@@ -21,6 +21,7 @@ import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   cockpitPresets,
+  orchestrationTasks,
   permissionSurfaces,
   pipelineItems,
   projects,
@@ -38,6 +39,13 @@ import {
   type CockpitMode,
   type LayoutId
 } from "./layout";
+import {
+  buildHandoffBrief,
+  canDispatchPipelineItem,
+  nextHandoffTask,
+  summarizeTasks,
+  type OrchestrationTask
+} from "./orchestration";
 import {
   loadWorkspacePreferences,
   saveWorkspacePreferences,
@@ -87,6 +95,14 @@ export function App() {
   }, [layout.columns, layout.rows, preset.sessionIds]);
 
   const project = projects.find((item) => item.id === selectedProjectId) ?? projects[0];
+  const projectPipelineItems = useMemo(
+    () => pipelineItems.filter((item) => item.projectId === project.id),
+    [project.id]
+  );
+  const projectTasks = useMemo(
+    () => orchestrationTasks.filter((task) => task.projectId === project.id),
+    [project.id]
+  );
 
   function updatePreferences(nextPreferences: Partial<WorkspacePreferences>) {
     setPreferences((current) => ({
@@ -236,11 +252,11 @@ export function App() {
                 </div>
               </>
             ) : (
-              <PipelineView items={pipelineItems} />
+              <PipelineView items={projectPipelineItems} project={project} tasks={projectTasks} />
             )}
           </section>
 
-          <RightPanel mode={mode} project={project} sessions={visibleSessions} />
+          <RightPanel mode={mode} project={project} sessions={visibleSessions} tasks={projectTasks} />
         </div>
       </section>
     </main>
@@ -288,29 +304,94 @@ function SessionCell({ session }: { session: SessionSummary }) {
   );
 }
 
-function PipelineView({ items }: { items: PipelineItem[] }) {
+function PipelineView({
+  items,
+  project,
+  tasks
+}: {
+  items: PipelineItem[];
+  project: ProjectSummary;
+  tasks: OrchestrationTask[];
+}) {
+  const dispatchableCount = items.filter(canDispatchPipelineItem).length;
+  const taskSummary = summarizeTasks(tasks);
+  const handoffTask = nextHandoffTask(tasks);
+  const handoff = handoffTask ? buildHandoffBrief(handoffTask, project) : undefined;
+
   return (
     <section className="pipeline-view">
       <div className="pipeline-header">
-        <h3>Project Pipeline</h3>
-        <button disabled={items.some((item) => item.readiness < 80)} type="button">
+        <div>
+          <h3>Project Pipeline</h3>
+          <p>{project.name} orchestration lane</p>
+        </div>
+        <button disabled={dispatchableCount === 0} title={`${dispatchableCount} ready tasks`} type="button">
           <Play size={16} />
-          Dispatch
+          Dispatch {dispatchableCount}
         </button>
       </div>
 
-      <div className="pipeline-table">
-        {items.map((item) => (
-          <article className="pipeline-row" key={item.id}>
-            <div>
-              <span className={classNames("pipeline-stage", `stage-${item.stage}`)}>{item.stage}</span>
-              <h4>{item.title}</h4>
+      <div className="pipeline-body">
+        <div className="pipeline-left">
+          <div className="pipeline-table" aria-label="Pipeline readiness">
+            {items.map((item) => (
+              <article className="pipeline-row" key={item.id}>
+                <div>
+                  <span className={classNames("pipeline-stage", `stage-${item.stage}`)}>{item.stage}</span>
+                  <h4>{item.title}</h4>
+                </div>
+                <span>{item.owner}</span>
+                <span>{item.risk}</span>
+                <span>{item.readiness}%</span>
+              </article>
+            ))}
+          </div>
+
+          <section className="task-board" aria-label="Task split">
+            <div className="task-board-header">
+              <div>
+                <h4>Task Split</h4>
+                <span>{taskSummary.total} scoped tasks</span>
+              </div>
+              <div className="summary-chips" aria-label="Task status summary">
+                <span>{taskSummary.queued} queued</span>
+                <span>{taskSummary.implementing} active</span>
+                <span>{taskSummary.validating} validating</span>
+                <span>{taskSummary.blocked} blocked</span>
+              </div>
             </div>
-            <span>{item.owner}</span>
-            <span>{item.risk}</span>
-            <span>{item.readiness}%</span>
-          </article>
-        ))}
+
+            <div className="task-list">
+              {tasks.map((task) => (
+                <article className="task-row" key={task.id}>
+                  <div>
+                    <span className={classNames("task-status", `task-${task.status}`)}>{task.status}</span>
+                    <h5>{task.title}</h5>
+                    <p>{task.objective}</p>
+                  </div>
+                  <span>{task.owner}</span>
+                  <span>{task.role}</span>
+                  <span>
+                    {task.attempt}/{task.attemptLimit}
+                  </span>
+                </article>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <aside className="handoff-panel" aria-label="Next handoff preview">
+          <header>
+            <div>
+              <span className="eyebrow">Next Handoff</span>
+              <h4>{handoff?.title ?? "No task selected"}</h4>
+            </div>
+            {handoffTask ? (
+              <span className={classNames("task-status", `task-${handoffTask.status}`)}>{handoffTask.status}</span>
+            ) : null}
+          </header>
+          <pre>{handoff?.markdown ?? "No scoped task is ready for handoff."}</pre>
+        </aside>
       </div>
     </section>
   );
@@ -319,14 +400,17 @@ function PipelineView({ items }: { items: PipelineItem[] }) {
 function RightPanel({
   mode,
   project,
-  sessions
+  sessions,
+  tasks
 }: {
   mode: CockpitMode;
   project: ProjectSummary;
   sessions: SessionSummary[];
+  tasks: OrchestrationTask[];
 }) {
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
+  const taskSummary = summarizeTasks(tasks);
 
   return (
     <aside className="right-panel" aria-label="Environment">
@@ -363,6 +447,24 @@ function RightPanel({
         <div className="mode-summary">
           <Workflow size={16} />
           <span>{modeLabels[mode]}</span>
+        </div>
+      </section>
+
+      <section className="panel-section">
+        <h4>Orchestration</h4>
+        <div className="orchestration-summary">
+          <span>
+            <strong>{taskSummary.total}</strong>
+            Tasks
+          </span>
+          <span>
+            <strong>{taskSummary.accepted}</strong>
+            Accepted
+          </span>
+          <span>
+            <strong>{taskSummary.blocked}</strong>
+            Blocked
+          </span>
         </div>
       </section>
 

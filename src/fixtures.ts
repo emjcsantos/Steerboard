@@ -1,4 +1,5 @@
 import type { CockpitMode } from "./layout";
+import type { OrchestrationTask } from "./orchestration";
 
 export type SessionState =
   | "idle"
@@ -36,6 +37,7 @@ export interface SessionSummary {
 
 export interface PipelineItem {
   id: string;
+  projectId: string;
   title: string;
   stage: "planned" | "ready" | "running" | "validating" | "accepted";
   owner: string;
@@ -173,10 +175,188 @@ export const sessions: SessionSummary[] = [
 ];
 
 export const pipelineItems: PipelineItem[] = [
-  { id: "pipe-1", title: "Define workspace registry", stage: "ready", owner: "Planning", risk: "medium", readiness: 92 },
-  { id: "pipe-2", title: "Render cockpit shell", stage: "running", owner: "UI", risk: "medium", readiness: 100 },
-  { id: "pipe-3", title: "Add runtime adapter mock", stage: "planned", owner: "Runtime", risk: "high", readiness: 54 },
-  { id: "pipe-4", title: "Validate grid bounds", stage: "validating", owner: "Quality", risk: "low", readiness: 100 }
+  {
+    id: "pipe-1",
+    projectId: "website-refresh",
+    title: "Define workspace registry",
+    stage: "ready",
+    owner: "Planning",
+    risk: "medium",
+    readiness: 92
+  },
+  {
+    id: "pipe-2",
+    projectId: "website-refresh",
+    title: "Render cockpit shell",
+    stage: "running",
+    owner: "UI",
+    risk: "medium",
+    readiness: 100
+  },
+  {
+    id: "pipe-3",
+    projectId: "website-refresh",
+    title: "Add runtime adapter mock",
+    stage: "planned",
+    owner: "Runtime",
+    risk: "high",
+    readiness: 54
+  },
+  {
+    id: "pipe-4",
+    projectId: "website-refresh",
+    title: "Validate grid bounds",
+    stage: "validating",
+    owner: "Quality",
+    risk: "low",
+    readiness: 100
+  },
+  {
+    id: "pipe-5",
+    projectId: "billing-workflow",
+    title: "Confirm invoice state map",
+    stage: "ready",
+    owner: "Planning",
+    risk: "medium",
+    readiness: 84
+  },
+  {
+    id: "pipe-6",
+    projectId: "developer-tooling",
+    title: "Review install command path",
+    stage: "accepted",
+    owner: "Quality",
+    risk: "low",
+    readiness: 100
+  }
+];
+
+export const orchestrationTasks: OrchestrationTask[] = [
+  {
+    id: "task-registry",
+    projectId: "website-refresh",
+    title: "Workspace Registry Schema",
+    role: "implementation",
+    status: "queued",
+    attempt: 0,
+    attemptLimit: 3,
+    owner: "Worker A",
+    objective: "Create the typed workspace registry contract used by the cockpit and pipeline lanes.",
+    scope: [
+      "Define the registry data shape for project identity, status, path, and runtime adapter state.",
+      "Keep the registry deterministic and independent from local user paths.",
+      "Return implementation notes and validation evidence to the orchestrator."
+    ],
+    fileOwnership: ["src/registry.ts", "src/registry.test.ts"],
+    acceptanceCriteria: [
+      "Registry entries can represent active, queued, and blocked projects.",
+      "Invalid project state is rejected by a focused unit test.",
+      "No private local paths or owner-specific names are introduced."
+    ],
+    validationCommands: ["npm run test -- src/registry.test.ts", "npm run build"],
+    dependencies: ["Pipeline item pipe-1 is ready for dispatch."],
+    rollback: "Revert only the registry files and leave cockpit layout files untouched."
+  },
+  {
+    id: "task-cockpit",
+    projectId: "website-refresh",
+    title: "Cockpit Panel Header Pass",
+    role: "implementation",
+    status: "implementing",
+    attempt: 1,
+    attemptLimit: 3,
+    owner: "Worker B",
+    objective: "Tighten panel headers so each lane exposes role, state, branch, and validation status at a glance.",
+    scope: [
+      "Adjust the existing session cell header only.",
+      "Preserve current 1x1 through 3x3 grid behavior.",
+      "Avoid changing pipeline data or runtime adapter mocks."
+    ],
+    fileOwnership: ["src/App.tsx", "src/styles.css"],
+    acceptanceCriteria: [
+      "Long session titles remain clipped instead of resizing the grid.",
+      "State chips remain visible at desktop widths.",
+      "Existing layout tests still pass."
+    ],
+    validationCommands: ["npm run test -- src/layout.test.ts", "npm run build"],
+    dependencies: ["Current cockpit shell scaffold."],
+    rollback: "Revert the header and style changes without touching orchestration fixtures."
+  },
+  {
+    id: "task-grid-validation",
+    projectId: "website-refresh",
+    title: "Cockpit Grid Validation",
+    role: "validation",
+    status: "validating",
+    attempt: 1,
+    attemptLimit: 3,
+    owner: "Worker C",
+    objective: "Validate that every supported cockpit layout caps visible panels at nine cells.",
+    scope: [
+      "Exercise 1x1, 2x1, 1x2, 3x1, 1x3, 2x2, 2x3, 3x2, and 3x3 layouts.",
+      "Report any overflow or missing layout option.",
+      "Do not modify production UI unless a failing test proves the need."
+    ],
+    fileOwnership: ["src/layout.test.ts"],
+    acceptanceCriteria: [
+      "Every layout has a deterministic max visible cell count.",
+      "3x3 never renders more than nine panels.",
+      "Validation notes identify the tested layout set."
+    ],
+    validationCommands: ["npm run test -- src/layout.test.ts"],
+    dependencies: ["Layout model already exists."],
+    rollback: "Remove only the added validation assertions if they are wrong or redundant."
+  },
+  {
+    id: "task-runtime-mock",
+    projectId: "website-refresh",
+    title: "Runtime Adapter Mock Contract",
+    role: "planning",
+    status: "blocked",
+    attempt: 3,
+    attemptLimit: 3,
+    owner: "Orchestrator",
+    objective: "Specify a local-only runtime adapter contract before any real process execution is introduced.",
+    scope: [
+      "Document the adapter states and permissions needed for future integrations.",
+      "Keep execution mocked until explicit runtime safety gates exist.",
+      "Return the blocked reason for orchestration review."
+    ],
+    fileOwnership: ["docs/architecture/architecture-plan.md"],
+    acceptanceCriteria: [
+      "Adapter state names match the UI permission surface.",
+      "The plan clearly separates mock data from real command execution.",
+      "No model-specific worker assumptions are added."
+    ],
+    validationCommands: ["npm run build"],
+    dependencies: ["Runtime permission model needs product decision."],
+    rollback: "Remove the adapter contract note if the runtime lane changes direction."
+  },
+  {
+    id: "task-billing-map",
+    projectId: "billing-workflow",
+    title: "Invoice State Map",
+    role: "planning",
+    status: "queued",
+    attempt: 0,
+    attemptLimit: 3,
+    owner: "Worker A",
+    objective: "Draft a small invoice state map that can be reviewed before implementation.",
+    scope: [
+      "Represent draft, sent, paid, adjusted, and void states.",
+      "Capture unknown mapping questions as explicit blockers.",
+      "Keep the output in a project-local planning file."
+    ],
+    fileOwnership: ["docs/product/invoice-state-map.md"],
+    acceptanceCriteria: [
+      "Each state has a plain-language definition.",
+      "Transitions identify the user action that causes them.",
+      "Open questions are listed separately from confirmed behavior."
+    ],
+    validationCommands: ["npm run build"],
+    dependencies: ["Pipeline item pipe-5 is ready for dispatch."],
+    rollback: "Delete the planning file if the billing lane is descoped."
+  }
 ];
 
 export const cockpitPresets: CockpitPreset[] = [
