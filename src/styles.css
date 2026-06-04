@@ -807,6 +807,43 @@ textarea {
   gap: 5px;
 }
 
+.panel-branch-signal {
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #cfd8e3;
+  padding: 4px 7px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.panel-branch-signal b {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-branch-neutral {
+  color: #c7d0da;
+}
+
+.panel-branch-work {
+  background: #19342b;
+  color: #8be1b2;
+}
+
+.panel-branch-review {
+  background: #172f3b;
+  color: #8bd7f4;
+}
+
+.panel-branch-protected {
+  background: #352e18;
+  color: #f0d984;
+}
+
 .panel-attempt-signal {
   flex: 0 0 auto;
   border-radius: 999px;

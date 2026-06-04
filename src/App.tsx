@@ -264,6 +264,10 @@ import {
   type CockpitPanelValidation
 } from "./cockpitPanelValidation";
 import {
+  createCockpitPanelBranch,
+  type CockpitPanelBranch
+} from "./cockpitPanelBranch";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -817,6 +821,7 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
   const fileScope = createCockpitPanelFileScope(session.files);
   const attemptSignal = createCockpitPanelAttempt(session.attempt, session.state);
   const validationSignal = createCockpitPanelValidation(session.validation, session.state);
+  const branchSignal = createCockpitPanelBranch(session.branch);
 
   return (
     <article
@@ -835,10 +840,7 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
       </header>
 
       <div className="cell-meta">
-        <span title={session.branch}>
-          <GitBranch size={14} />
-          {session.branch}
-        </span>
+        <PanelBranchSignal branch={branchSignal} />
         <span title={identity.runtimeLabel}>{identity.runtimeLabel}</span>
         <PanelAttemptSignal attempt={attemptSignal} />
       </div>
@@ -861,6 +863,19 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
         </div>
       </footer>
     </article>
+  );
+}
+
+function PanelBranchSignal({ branch }: { branch: CockpitPanelBranch }) {
+  return (
+    <span
+      aria-label={`Branch: ${branch.label}`}
+      className={classNames("panel-branch-signal", `panel-branch-${branch.tone}`)}
+      title={branch.detail}
+    >
+      <GitBranch size={14} />
+      <b>{branch.label}</b>
+    </span>
   );
 }
 
