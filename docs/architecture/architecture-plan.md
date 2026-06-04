@@ -38,6 +38,14 @@ Reason: Harnss has strong feature fit, but its current audited dependency and se
 - Validator runner dispatches validation tasks.
 - Integration runner checks, revises, commits, pushes, and reports.
 
+### Project Management Lane
+
+- Pipeline registry for user-defined development work.
+- Backlog, milestone, task, blocker, and release-gate entities.
+- Readiness checks before dispatch to Codex.
+- Deploy-to-Codex action that creates an orchestrator run from selected pipeline items.
+- Trace links from project pipeline item to Codex run, worker tasks, validation reports, and final integration result.
+
 ### Adapter Layer
 
 - Codex app-server adapter.
@@ -51,6 +59,7 @@ Reason: Harnss has strong feature fit, but its current audited dependency and se
 - Session metadata.
 - Handoff records.
 - Validation reports.
+- Pipeline items and dispatch records.
 - Audit trail.
 - User preferences.
 
@@ -75,4 +84,3 @@ Do not persist credentials, raw private browser state, or unredacted secrets.
 - Managed CLI auto-download behavior.
 - Dependency vulnerabilities from the current lockfile.
 - Worktree setup command execution.
-

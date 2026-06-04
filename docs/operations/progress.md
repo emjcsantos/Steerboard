@@ -9,3 +9,5 @@
 | Worker architecture | Finalized | `codex/harnss-audit-development-plan` / `0668188` | Public-safety scan PASS | Use tiny non-overlapping Spark tasks |
 | Originality and attribution | Added | `codex/original-product-ui-policy` / `796e4f8` | `git diff --check` PASS; public-safety scan PASS | Credit Harnss while keeping AtlasUI original |
 | UI direction | Added | `codex/original-product-ui-policy` / `796e4f8` | `git diff --check` PASS; public-safety scan PASS | Use as scaffold design quality gate |
+| Public release guardrails | Added | `codex/public-project-pipeline-lane` / pending | `git diff --check` PASS; private-project scan PASS | Block private project references before public pushes |
+| Project management lane | Added | `codex/public-project-pipeline-lane` / pending | `git diff --check` PASS; private-project scan PASS | Let users manage pipelines and deploy work to Codex |

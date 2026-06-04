@@ -62,7 +62,29 @@ Exit criteria:
 - worker attempts and validation states are visible,
 - handoff docs are public-safe and deterministic.
 
-## Phase 3: Codex App-Server Adapter
+## Phase 3: Project Management Lane
+
+Goal: let users manage a development pipeline in a tab and deploy ready items to Codex.
+
+Tiny worker tasks:
+
+- `P001`: define project, milestone, pipeline item, readiness, and dispatch schemas.
+- `P002`: create generic pipeline fixture data.
+- `P003`: render project management tab shell.
+- `P004`: render pipeline board or table.
+- `P005`: render item detail and readiness checklist.
+- `P006`: create deploy-to-Codex handoff preview.
+- `P007`: create dispatch record linking pipeline item to orchestrator run.
+- `P008`: test readiness validation and dispatch payload generation.
+
+Exit criteria:
+
+- pipeline uses generic public-safe sample data,
+- deploy button stays disabled until required fields are present,
+- dispatch payload can seed an orchestrator run,
+- tests pass.
+
+## Phase 4: Codex App-Server Adapter
 
 Goal: integrate real Codex sessions through supported app-server APIs.
 
@@ -82,7 +104,7 @@ Exit criteria:
 - no dependency on monitoring another IDE's UI,
 - adapter tests pass.
 
-## Phase 4: Spark Worker Execution
+## Phase 5: Spark Worker Execution
 
 Goal: connect orchestrator tasks to Codex 5.3 Spark workers.
 
@@ -102,7 +124,7 @@ Exit criteria:
 - Main Codex owns final integration,
 - failures loop up to three times then return to Main Codex.
 
-## Phase 5: Harnss-Pattern Selective Adoption
+## Phase 6: Harnss-Pattern Selective Adoption
 
 Goal: reuse only patterns that pass hardening.
 
@@ -120,4 +142,3 @@ Blocked until:
 - analytics defaults are changed,
 - file/URL/command IPC boundaries are hardened,
 - third-party notices are updated if code is copied.
-

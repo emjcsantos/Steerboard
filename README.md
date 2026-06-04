@@ -20,6 +20,7 @@ Harnss is MIT-licensed and highly relevant, but the audited commit is approved a
 - [Project Brief](docs/project/brief.md)
 - [Requirements](docs/product/requirements.md)
 - [UI Direction](docs/product/ui-direction.md)
+- [Project Management Lane](docs/product/project-management-lane.md)
 - [Architecture Plan](docs/architecture/architecture-plan.md)
 - [Security and Privacy Model](docs/architecture/security-privacy-model.md)
 - [Development Plan](docs/development/development-plan.md)
@@ -28,6 +29,7 @@ Harnss is MIT-licensed and highly relevant, but the audited commit is approved a
 - [Harnss Reuse Decision](docs/decisions/harnss-reuse-decision.md)
 - [Originality And Attribution Policy](docs/decisions/originality-attribution-policy.md)
 - [Public Documentation Guidelines](docs/operations/public-documentation-guidelines.md)
+- [Public Release Checklist](docs/operations/public-release-checklist.md)
 - [Progress](docs/operations/progress.md)
 - [Third-Party Notices](THIRD_PARTY_NOTICES.md)
 

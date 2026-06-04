@@ -8,6 +8,7 @@
 - `3x3` hard maximum for visible cockpit cells.
 - Per-cell session state: idle, planning, implementing, validating, blocked, failed, complete.
 - Orchestrator task board showing task ownership, attempt count, validation state, files touched, and handoff result.
+- Project management lane for planning and managing a user's development pipeline before dispatching selected work to Codex.
 - Worker handoff format with scope, allowed files, acceptance criteria, validation command, and rollback note.
 - Separate implementer and validator roles when task risk requires it.
 - Final integration lane owned by Main Codex.
@@ -20,6 +21,7 @@
 - Handoff document generation.
 - Audit and progress panels.
 - Local-only persistence for mock projects and runs.
+- Placeholder project-management lane with generic sample pipelines and no private project names.
 
 ## Later Functional Scope
 
@@ -30,6 +32,7 @@
 - Browser and terminal panes.
 - MCP configuration and status.
 - External worker adapters beyond Codex Spark.
+- Deploy-to-Codex action that converts a selected pipeline item into an orchestrator run, task split, and worker handoff set.
 
 ## UX Requirements
 
@@ -53,3 +56,4 @@
 - Destructive actions require explicit user confirmation.
 - Third-party code must pass license, dependency, script, IPC, storage, and network review before adoption.
 - Third-party inspiration must be credited, but AtlasUI code and UI should remain original unless a deliberate fork/import decision is recorded.
+- Public docs, screenshots, fixtures, seeds, and demo data must use generic project names only.

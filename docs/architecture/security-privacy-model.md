@@ -23,7 +23,7 @@ Never commit:
 - customer records,
 - private application records,
 - local machine paths,
-- screenshots exposing private sidebars or account state.
+- screenshots exposing private navigation or account state.
 
 ## Third-Party Adoption Gates
 
@@ -53,4 +53,3 @@ Worker task briefs must include:
 - rollback note.
 
 Main Codex must run final validation after worker completion.
-
