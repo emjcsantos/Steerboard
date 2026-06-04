@@ -240,6 +240,10 @@ import {
   type CockpitPanelRoster
 } from "./cockpitPanelRoster";
 import {
+  createCockpitPanelOverflow,
+  type CockpitPanelOverflow
+} from "./cockpitPanelOverflow";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -507,6 +511,10 @@ export function App() {
     () => createCockpitPanelRoster(cockpitSessions, visibleSessions.length, maxVisibleSessions),
     [cockpitSessions, maxVisibleSessions, visibleSessions.length]
   );
+  const cockpitPanelOverflow = useMemo(
+    () => createCockpitPanelOverflow(cockpitSessions, visibleSessions.length, maxVisibleSessions),
+    [cockpitSessions, maxVisibleSessions, visibleSessions.length]
+  );
   const activeDraftIndex = Math.min(selectedDraftIndex, Math.max(drafts.length - 1, 0));
   const viewLabel = view === "cockpit" ? "Cockpit" : view === "pipeline" ? "Pipeline" : "Planning";
 
@@ -692,6 +700,7 @@ export function App() {
                   </div>
                   <div className="toolbar-status">
                     <PanelRosterSignal roster={cockpitPanelRoster} />
+                    <PanelOverflowSignal overflow={cockpitPanelOverflow} />
                     <div className="run-chip">
                       <Play size={14} />
                       {visibleSessions.length} visible
@@ -825,6 +834,26 @@ function PanelRosterSignal({ roster }: { roster: CockpitPanelRoster }) {
           </span>
         ))}
       </div>
+    </div>
+  );
+}
+
+function PanelOverflowSignal({ overflow }: { overflow: CockpitPanelOverflow }) {
+  return (
+    <div
+      aria-label={`Hidden panel queue: ${overflow.label}`}
+      className={classNames("panel-overflow-chip", `panel-overflow-${overflow.tone}`)}
+      title={overflow.detail}
+    >
+      <div className="panel-overflow-copy">
+        <strong>{overflow.label}</strong>
+        <small>{overflow.hiddenLabel}</small>
+      </div>
+      <div className="panel-overflow-next">
+        <small>Next</small>
+        <strong title={overflow.nextLabel}>{overflow.nextLabel}</strong>
+      </div>
+      <b>{overflow.reviewLabel}</b>
     </div>
   );
 }

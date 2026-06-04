@@ -458,6 +458,87 @@ textarea {
   color: #f08a74;
 }
 
+.panel-overflow-chip {
+  display: grid;
+  grid-template-columns: minmax(76px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 240px;
+  max-width: 420px;
+  gap: 8px;
+  border: 1px solid #2f3540;
+  border-radius: 8px;
+  background: #151b22;
+  color: #dce3eb;
+  padding: 6px 8px;
+}
+
+.panel-overflow-copy,
+.panel-overflow-next {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.panel-overflow-copy strong,
+.panel-overflow-copy small,
+.panel-overflow-next strong,
+.panel-overflow-next small,
+.panel-overflow-chip b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-overflow-copy strong,
+.panel-overflow-next strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.panel-overflow-copy small,
+.panel-overflow-next small {
+  color: #9fa9b4;
+  font-size: 9px;
+}
+
+.panel-overflow-chip b {
+  justify-self: end;
+  border-radius: 999px;
+  background: #252b34;
+  color: #cfd8e3;
+  padding: 3px 6px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.panel-overflow-clear {
+  border-color: #254634;
+}
+
+.panel-overflow-clear b {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.panel-overflow-queued {
+  border-color: #244860;
+}
+
+.panel-overflow-queued b {
+  background: #172f3b;
+  color: #8bd7f4;
+}
+
+.panel-overflow-blocked {
+  border-color: #5c2c21;
+}
+
+.panel-overflow-blocked b {
+  background: #442119;
+  color: #ff9e85;
+}
+
 .run-chip {
   display: inline-flex;
   align-items: center;
