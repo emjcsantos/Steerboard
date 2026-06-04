@@ -103,6 +103,14 @@ import {
   type RuntimeProfileApprovalSnapshot
 } from "./runtimeProfileApproval";
 import {
+  appendRuntimeProfileApprovalRecord,
+  createRuntimeProfileApprovalRecord,
+  loadRuntimeProfileApprovalHistory,
+  saveRuntimeProfileApprovalHistory,
+  type RuntimeProfileApprovalRecord,
+  type RuntimeProfileApprovalRecordAction
+} from "./runtimeProfileApprovalHistory";
+import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
   type DispatchPackage
@@ -1078,6 +1086,9 @@ function RightPanel({
   );
   const [runtimeProfileApprovalIntent, setRuntimeProfileApprovalIntent] =
     useState<RuntimeProfileApprovalIntent>("idle");
+  const [runtimeProfileApprovalHistory, setRuntimeProfileApprovalHistory] = useState<
+    RuntimeProfileApprovalRecord[]
+  >(() => loadRuntimeProfileApprovalHistory());
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
@@ -1219,6 +1230,10 @@ function RightPanel({
   }, [runtimeProfileDraft]);
 
   useEffect(() => {
+    saveRuntimeProfileApprovalHistory(runtimeProfileApprovalHistory);
+  }, [runtimeProfileApprovalHistory]);
+
+  useEffect(() => {
     let isMounted = true;
 
     loadDesktopRuntimeBridgeStatus().then((status) => {
@@ -1301,6 +1316,20 @@ function RightPanel({
         adapterId: runtimeAdapter?.id ?? project.id
       })
     );
+  }
+
+  function recordRuntimeProfileApprovalAction(
+    action: RuntimeProfileApprovalRecordAction,
+    nextIntent: RuntimeProfileApprovalIntent
+  ) {
+    const record = createRuntimeProfileApprovalRecord(
+      runtimeProfileApprovalSnapshot,
+      action,
+      new Date().toISOString()
+    );
+
+    setRuntimeProfileApprovalHistory((current) => appendRuntimeProfileApprovalRecord(current, record));
+    setRuntimeProfileApprovalIntent(nextIntent);
   }
 
   return (
@@ -1501,9 +1530,10 @@ function RightPanel({
         approval={runtimeProfileApprovalSnapshot}
         draft={runtimeProfileDraft}
         draftReadiness={runtimeProfileDraftReadiness}
-        onCancelDraftApproval={() => setRuntimeProfileApprovalIntent("idle")}
+        history={runtimeProfileApprovalHistory}
+        onCancelDraftApproval={() => recordRuntimeProfileApprovalAction("cancelled", "idle")}
         onDraftChange={updateRuntimeProfileDraft}
-        onRequestDraftApproval={() => setRuntimeProfileApprovalIntent("requested")}
+        onRequestDraftApproval={() => recordRuntimeProfileApprovalAction("requested", "requested")}
         onResetDraft={resetRuntimeProfileDraft}
         profile={selectedRuntimeProfile}
         readiness={selectedRuntimeProfileReadiness}
@@ -1675,6 +1705,7 @@ function RuntimeProfilePanel({
   approval,
   draft,
   draftReadiness,
+  history,
   onCancelDraftApproval,
   onDraftChange,
   onRequestDraftApproval,
@@ -1686,6 +1717,7 @@ function RuntimeProfilePanel({
   approval: RuntimeProfileApprovalSnapshot;
   draft: RuntimeProfile;
   draftReadiness: RuntimeProfileReadiness;
+  history: RuntimeProfileApprovalRecord[];
   onCancelDraftApproval: () => void;
   onDraftChange: (nextDraft: Partial<RuntimeProfile>) => void;
   onRequestDraftApproval: () => void;
@@ -1922,11 +1954,45 @@ function RuntimeProfilePanel({
             </button>
           </div>
           <small title={approval.safety}>{approval.safety}</small>
+          <div className="runtime-profile-approval-history" aria-label="Runtime profile approval history">
+            <div className="runtime-profile-approval-history-header">
+              <strong>Recent approval records</strong>
+              <span>{history.length}</span>
+            </div>
+            {history.length > 0 ? (
+              <ol className="runtime-profile-approval-records">
+                {history.slice(0, 4).map((record) => (
+                  <RuntimeProfileApprovalRecordRow key={record.id} record={record} />
+                ))}
+              </ol>
+            ) : (
+              <p className="runtime-profile-approval-empty">
+                Request or cancel approval to create a local record.
+              </p>
+            )}
+          </div>
         </div>
 
         <small title={draftReadiness.safety}>{draftReadiness.safety}</small>
       </div>
     </section>
+  );
+}
+
+function RuntimeProfileApprovalRecordRow({
+  record
+}: {
+  record: RuntimeProfileApprovalRecord;
+}) {
+  return (
+    <li className={classNames("runtime-profile-approval-record", `runtime-profile-record-${record.action}`)}>
+      <span aria-hidden="true" />
+      <div>
+        <strong>{record.action}</strong>
+        <small title={record.detail}>{formatTimestamp(record.createdAt)}</small>
+      </div>
+      <b title={record.statusLabel}>{record.readiness}%</b>
+    </li>
   );
 }
 
