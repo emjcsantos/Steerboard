@@ -933,7 +933,7 @@ textarea {
 
 .runtime-profile-approval-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -1072,11 +1072,122 @@ textarea {
   font-size: 11px;
 }
 
+.runtime-profile-activation {
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.runtime-profile-activation-header,
+.runtime-profile-activation-footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.runtime-profile-activation-header strong,
+.runtime-profile-activation-header span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.runtime-profile-activation-header strong {
+  color: #edf2f7;
+}
+
+.runtime-profile-activation-header span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #aab3bd;
+  padding: 3px 6px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.runtime-profile-activation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.runtime-profile-activation-grid div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border-radius: 8px;
+  background: #13171d;
+  padding: 7px 6px;
+}
+
+.runtime-profile-activation-grid dt,
+.runtime-profile-activation-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-profile-activation-grid dt {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.runtime-profile-activation-grid dd {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.runtime-profile-activation-footer small {
+  min-width: 0;
+}
+
+.runtime-profile-activation-footer button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid #303742;
+  border-radius: 8px;
+  background: #151a20;
+  color: #dce3eb;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.runtime-profile-activation-footer button:hover,
+.runtime-profile-activation-footer button:focus-visible {
+  border-color: #4d82d9;
+  background: #1b2430;
+  outline: none;
+}
+
+.runtime-profile-activation p {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
 .runtime-profile-reasons li,
 .runtime-profile-ready-copy,
 .runtime-profile-card small,
 .runtime-profile-draft small,
-.runtime-profile-approval small {
+.runtime-profile-approval small,
+.runtime-profile-activation small {
   overflow: hidden;
   margin: 0;
   color: #8f99a5;

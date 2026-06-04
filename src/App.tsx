@@ -111,6 +111,14 @@ import {
   type RuntimeProfileApprovalRecordAction
 } from "./runtimeProfileApprovalHistory";
 import {
+  buildRuntimeProfileActivationSnapshot,
+  canActivateRuntimeProfile,
+  createRuntimeProfileActivationRecord,
+  loadRuntimeProfileActivation,
+  saveRuntimeProfileActivation,
+  type RuntimeProfileActivationSnapshot
+} from "./runtimeProfileActivation";
+import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
   type DispatchPackage
@@ -1089,6 +1097,9 @@ function RightPanel({
   const [runtimeProfileApprovalHistory, setRuntimeProfileApprovalHistory] = useState<
     RuntimeProfileApprovalRecord[]
   >(() => loadRuntimeProfileApprovalHistory());
+  const [runtimeProfileActivation, setRuntimeProfileActivation] = useState<
+    RuntimeProfileActivationSnapshot | undefined
+  >(() => loadRuntimeProfileActivation());
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
@@ -1181,6 +1192,13 @@ function RightPanel({
       ),
     [runtimeProfileApprovalIntent, runtimeProfileDraft, runtimeProfileDraftReadiness]
   );
+  const runtimeProfileActivationSnapshot = useMemo(
+    () => buildRuntimeProfileActivationSnapshot(runtimeProfileDraft, runtimeProfileDraftReadiness),
+    [runtimeProfileDraft, runtimeProfileDraftReadiness]
+  );
+  const canActivateDraftProfile =
+    runtimeProfileApprovalSnapshot.state === "requested" &&
+    canActivateRuntimeProfile(runtimeProfileDraftReadiness);
   const canStartStream =
     Boolean(selectedRun) &&
     runtimeIngestionEvents.length > 0 &&
@@ -1232,6 +1250,10 @@ function RightPanel({
   useEffect(() => {
     saveRuntimeProfileApprovalHistory(runtimeProfileApprovalHistory);
   }, [runtimeProfileApprovalHistory]);
+
+  useEffect(() => {
+    saveRuntimeProfileActivation(runtimeProfileActivation);
+  }, [runtimeProfileActivation]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1330,6 +1352,21 @@ function RightPanel({
 
     setRuntimeProfileApprovalHistory((current) => appendRuntimeProfileApprovalRecord(current, record));
     setRuntimeProfileApprovalIntent(nextIntent);
+  }
+
+  function activateRuntimeProfileDraft() {
+    if (!canActivateDraftProfile) {
+      return;
+    }
+
+    setRuntimeProfileActivation(
+      createRuntimeProfileActivationRecord(
+        runtimeProfileDraft,
+        runtimeProfileDraftReadiness,
+        new Date().toISOString()
+      )
+    );
+    setRuntimeProfileApprovalIntent("idle");
   }
 
   return (
@@ -1527,11 +1564,16 @@ function RightPanel({
       </section>
 
       <RuntimeProfilePanel
+        activation={runtimeProfileActivationSnapshot}
+        activeProfile={runtimeProfileActivation}
         approval={runtimeProfileApprovalSnapshot}
+        canActivateDraft={canActivateDraftProfile}
         draft={runtimeProfileDraft}
         draftReadiness={runtimeProfileDraftReadiness}
         history={runtimeProfileApprovalHistory}
+        onActivateDraftProfile={activateRuntimeProfileDraft}
         onCancelDraftApproval={() => recordRuntimeProfileApprovalAction("cancelled", "idle")}
+        onClearActiveProfile={() => setRuntimeProfileActivation(undefined)}
         onDraftChange={updateRuntimeProfileDraft}
         onRequestDraftApproval={() => recordRuntimeProfileApprovalAction("requested", "requested")}
         onResetDraft={resetRuntimeProfileDraft}
@@ -1702,11 +1744,16 @@ function RightPanel({
 }
 
 function RuntimeProfilePanel({
+  activation,
+  activeProfile,
   approval,
+  canActivateDraft,
   draft,
   draftReadiness,
   history,
+  onActivateDraftProfile,
   onCancelDraftApproval,
+  onClearActiveProfile,
   onDraftChange,
   onRequestDraftApproval,
   onResetDraft,
@@ -1714,11 +1761,16 @@ function RuntimeProfilePanel({
   readiness,
   summary
 }: {
+  activation: RuntimeProfileActivationSnapshot;
+  activeProfile?: RuntimeProfileActivationSnapshot;
   approval: RuntimeProfileApprovalSnapshot;
+  canActivateDraft: boolean;
   draft: RuntimeProfile;
   draftReadiness: RuntimeProfileReadiness;
   history: RuntimeProfileApprovalRecord[];
+  onActivateDraftProfile: () => void;
   onCancelDraftApproval: () => void;
+  onClearActiveProfile: () => void;
   onDraftChange: (nextDraft: Partial<RuntimeProfile>) => void;
   onRequestDraftApproval: () => void;
   onResetDraft: () => void;
@@ -1928,7 +1980,7 @@ function RuntimeProfilePanel({
             </div>
             <div>
               <dt>Activation</dt>
-              <dd>Held</dd>
+              <dd>{activeProfile?.state ?? activation.state}</dd>
             </div>
           </dl>
           <div className="runtime-profile-approval-actions">
@@ -1952,6 +2004,16 @@ function RuntimeProfilePanel({
               <RotateCcw size={14} />
               <span>Cancel</span>
             </button>
+            <button
+              aria-label="Activate approved runtime profile draft"
+              disabled={!canActivateDraft}
+              onClick={onActivateDraftProfile}
+              title="Set active"
+              type="button"
+            >
+              <CheckCircle2 size={14} />
+              <span>Activate</span>
+            </button>
           </div>
           <small title={approval.safety}>{approval.safety}</small>
           <div className="runtime-profile-approval-history" aria-label="Runtime profile approval history">
@@ -1970,6 +2032,49 @@ function RuntimeProfilePanel({
                 Request or cancel approval to create a local record.
               </p>
             )}
+          </div>
+          <div className="runtime-profile-activation" aria-label="Runtime profile activation">
+            <div className="runtime-profile-activation-header">
+              <strong>Active profile</strong>
+              <span>{activeProfile?.state ?? activation.state}</span>
+            </div>
+            {activeProfile ? (
+              <>
+                <dl className="runtime-profile-activation-grid">
+                  <div>
+                    <dt>Profile</dt>
+                    <dd title={activeProfile.profileLabel}>{activeProfile.profileLabel}</dd>
+                  </div>
+                  <div>
+                    <dt>Adapter</dt>
+                    <dd title={activeProfile.adapterId}>{activeProfile.adapterId}</dd>
+                  </div>
+                  <div>
+                    <dt>Transport</dt>
+                    <dd>{activeProfile.transport}</dd>
+                  </div>
+                  <div>
+                    <dt>Workspace</dt>
+                    <dd>{activeProfile.workspaceMode}</dd>
+                  </div>
+                </dl>
+                <div className="runtime-profile-activation-footer">
+                  <small title={activeProfile.detail}>{activeProfile.detail}</small>
+                  <button
+                    aria-label="Clear active runtime profile"
+                    onClick={onClearActiveProfile}
+                    title="Clear active profile"
+                    type="button"
+                  >
+                    <RotateCcw size={13} />
+                    <span>Clear</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p title={activation.detail}>{activation.detail}</p>
+            )}
+            <small title={activation.safety}>{activation.safety}</small>
           </div>
         </div>
 

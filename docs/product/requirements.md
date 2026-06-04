@@ -67,6 +67,8 @@
 - Saved runtime profile draft state should be repaired to safe defaults when malformed or unavailable.
 - Runtime profile draft approvals should support local request and cancel states without activating a profile or starting a process.
 - Runtime profile approval request and cancellation actions should be retained in a local history list across reloads.
+- Approved ready runtime profile drafts should support an explicit local activation state that survives reloads without executing a process.
+- Local runtime profile activation should be clearable and should remain separate from real launch approval.
 
 ## Later Functional Scope
 
@@ -95,6 +97,7 @@
 - Runtime profile drafts should graduate into approved runtime profiles only through an explicit permission and launch approval flow.
 - Approved runtime profile promotion should preserve an audit trail from draft readiness to activation decision.
 - Runtime profile approval history should later feed the activation audit trail when real profile promotion exists.
+- Local runtime profile activation should later hand off to the desktop permission flow before any configured runtime can execute.
 
 ## UX Requirements
 

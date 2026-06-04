@@ -74,6 +74,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Runtime profile draft storage keeps one editable local draft in browser storage with defensive repair and no side effects beyond local persistence.
 - Runtime profile approval previews derive local request, cancel, blocked, review, and ready states without activating profiles or invoking runtimes.
 - Runtime profile approval history stores local request and cancellation records so review state survives reloads before activation exists.
+- Runtime profile activation stores a single local active-profile snapshot after an explicit ready-profile approval request, while process execution remains unavailable.
 - Each runtime adapter should declare capabilities, required permissions, configuration fields, supported commands, event mapping, and mock fixtures.
 - The cockpit must consume normalized session, task, validation, and tool-call events instead of provider-specific payloads.
 - The scaffold exposes an adapter contract inspector that summarizes transport, capability, permission, and normalized-event readiness before runtime execution exists.
@@ -89,6 +90,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - The scaffold stores local execution audit preview records so monitor state survives reloads without storing private paths or secrets.
 - The scaffold exposes desktop bridge reachability in the cockpit while keeping process execution and workspace access locked by default.
 - The scaffold keeps runtime adapter data local and mocked until a desktop-shell permission path exists for process execution.
+- The scaffold keeps runtime profile activation as browser-local cockpit state until a desktop-shell permission path can safely promote it into real execution.
 
 ### Persistence
 
@@ -99,6 +101,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Validation reports.
 - Pipeline items and dispatch records.
 - Local mock run history.
+- Local runtime profile activation state.
 - Audit trail.
 - User preferences.
 
