@@ -13,6 +13,8 @@ Use this checklist before pushing docs, code, screenshots, fixtures, or demo dat
 - Demo data uses generic project names only.
 - Third-party references are credited without copying unapproved code or assets.
 - New docs are linked from `README.md` when they are product-source material.
+- Source-first install instructions are reproducible from a clean clone.
+- Install scripts and package-manager hooks are reviewed for unexpected network, file, or shell side effects.
 
 ## Suggested Text Scan
 

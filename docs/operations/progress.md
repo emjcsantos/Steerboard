@@ -13,3 +13,4 @@
 | Project management lane | Added | `codex/public-project-pipeline-lane` / `4f1277b` | `git diff --check` PASS; private-project scan PASS | Let users manage pipelines and deploy work to Codex |
 | Model-agnostic worker architecture | Added | `codex/model-agnostic-workers` / `b5911fe` | `git diff --check` PASS; model-specific scan PASS; private-reference scan PASS | Keep worker roles configurable across models/providers |
 | Cockpit modes and platform strategy | Added | `codex/cockpit-modes-platform-strategy` / `61f65f0` | `git diff --check` PASS; docs link scan PASS; private-reference scan PASS | Support focused, orchestrated, and independent project monitoring modes |
+| Source-first installation strategy | Added | `codex/git-source-install-strategy` / pending | `git diff --check` PASS; install docs scan PASS; private-reference scan PASS | Let early users inspect and run from git before signed builds |

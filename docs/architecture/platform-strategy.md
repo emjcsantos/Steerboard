@@ -41,6 +41,14 @@ Either way, AtlasUI should keep shell-specific code behind an adapter so product
 
 ## Deployment Model
 
-- Primary: signed local desktop app.
+- Early public preview: source-first install through git.
+- Primary stable channel: signed local desktop app.
+- Follow-up stable channels: package-manager distribution.
 - Optional later: local web companion connected to the desktop app or local agent service.
 - Not recommended for MVP: cloud-hosted control plane that directly manages local projects.
+
+## Adoption Strategy
+
+Use git-based source installation first for developers and security-conscious early users. It lets people inspect the code, scripts, dependencies, and local permission boundaries before running AtlasUI against real projects.
+
+Do not rely on git installation as the only long-term distribution path. Many users will want a signed app or trusted package-manager install once the product is stable.

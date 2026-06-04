@@ -27,6 +27,7 @@ Harnss is MIT-licensed and highly relevant, but the audited commit is approved a
 - [Security and Privacy Model](docs/architecture/security-privacy-model.md)
 - [Development Plan](docs/development/development-plan.md)
 - [Worker Task Rules](docs/development/worker-task-rules.md)
+- [Installation Strategy](docs/operations/installation-strategy.md)
 - [Harnss Static Audit](docs/audits/harnss-static-audit-2026-06-04.md)
 - [Harnss Reuse Decision](docs/decisions/harnss-reuse-decision.md)
 - [Originality And Attribution Policy](docs/decisions/originality-attribution-policy.md)

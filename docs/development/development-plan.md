@@ -36,12 +36,15 @@ Tiny worker tasks:
 - `S008`: add tests for layout limits and state transitions.
 - `S009`: add cockpit mode presets for focus lane, orchestrator-with-workers, and independent project monitor.
 - `S010`: run Tauri-first shell feasibility spike with Electron fallback criteria.
+- `S011`: add source-first git install instructions and one-command local startup.
+- `S012`: add local production build command and dependency audit instructions.
 
 Exit criteria:
 
 - app launches locally,
 - `3x3` layout renders without overlap,
 - all three cockpit modes render from public-safe mock data,
+- source install path is documented and reproducible,
 - tests pass,
 - no third-party Harnss code imported.
 
