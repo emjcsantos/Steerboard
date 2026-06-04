@@ -95,6 +95,9 @@ import {
   type CockpitPanelFocusTarget
 } from "./cockpitPanelFocus";
 import {
+  createCockpitPanelFocusControls
+} from "./cockpitPanelFocusControls";
+import {
   canDeployPlanningDraft,
   evaluatePlanningReadiness,
   normalizePlanningDraft,
@@ -1577,13 +1580,16 @@ function MilestoneStatusPanel({
 
 function PanelPrioritySignal({
   focusTarget,
+  onClearFocus,
   onFocus,
   priority
 }: {
   focusTarget: CockpitPanelFocusTarget;
+  onClearFocus: () => void;
   onFocus: () => void;
   priority: CockpitPanelPriority;
 }) {
+  const focusControls = createCockpitPanelFocusControls(focusTarget);
   const icon =
     priority.tone === "critical" || priority.tone === "attention" ? (
       <AlertTriangle size={15} />
@@ -1604,18 +1610,29 @@ function PanelPrioritySignal({
           </span>
           <button
             aria-label={
-              focusTarget.canFocus
+              !focusControls.focusDisabled
                 ? `Focus ${priority.title}`
-                : focusTarget.detail
+                : focusControls.focusTitle
             }
             className="panel-priority-focus-button"
-            disabled={!focusTarget.canFocus}
+            disabled={focusControls.focusDisabled}
             onClick={onFocus}
-            title={focusTarget.detail}
+            title={focusControls.focusTitle}
             type="button"
           >
             <CircleDot size={13} />
-            <span>{focusTarget.isFocused ? "Focused" : "Focus"}</span>
+            <span>{focusControls.focusLabel}</span>
+          </button>
+          <button
+            aria-label="Clear cockpit panel focus"
+            className="panel-priority-focus-button panel-priority-clear-button"
+            disabled={focusControls.clearDisabled}
+            onClick={onClearFocus}
+            title={focusControls.clearTitle}
+            type="button"
+          >
+            <CircleDot size={13} />
+            <span>{focusControls.clearLabel}</span>
           </button>
         </div>
       </div>
@@ -1641,7 +1658,7 @@ function PanelPrioritySignal({
           </div>
           <div>
             <dt>Slot</dt>
-            <dd>{focusTarget.positionLabel}</dd>
+            <dd>{focusControls.statusLabel}</dd>
           </div>
         </dl>
       </div>
@@ -2464,6 +2481,7 @@ function RightPanel({
 
       <PanelPrioritySignal
         focusTarget={panelFocusTarget}
+        onClearFocus={() => onFocusPanel(undefined)}
         onFocus={() => onFocusPanel(panelFocusTarget.panelId)}
         priority={panelPriority}
       />

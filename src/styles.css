@@ -1871,6 +1871,7 @@ textarea {
 .panel-priority-actions {
   display: flex;
   min-width: 0;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
@@ -1920,6 +1921,10 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.panel-priority-clear-button {
+  color: #aab3bd;
 }
 
 .panel-priority-row {
