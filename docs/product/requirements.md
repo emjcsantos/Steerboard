@@ -50,6 +50,8 @@
 - Adapter session status should reflect offline, connecting, ready, live, paused, complete, and blocked states from local adapter and stream evidence.
 - Runtime stream previews should expose a local event source summary showing queued, emitted, accepted, review, and blocked event counts.
 - Event source summaries should make the next queued event visible before it is emitted into the cockpit.
+- Event source summaries should show whether the queued events can attach to the selected runtime adapter or must remain local.
+- Adapter source readiness should explain missing capabilities or permissions before any external process can run.
 
 ## Later Functional Scope
 
@@ -60,6 +62,7 @@
 - Live stream controls backed by configured adapter sessions.
 - Adapter session monitor backed by real configured runtime events.
 - Configured event source adapters that replace local mocked event queues.
+- Adapter source connection flow that turns a local event queue into a configured runtime stream.
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
 - MCP configuration and status.

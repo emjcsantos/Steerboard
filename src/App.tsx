@@ -133,6 +133,10 @@ import {
   buildRuntimeEventSourceSnapshot,
   type RuntimeEventSourceSnapshot
 } from "./runtimeEventSource";
+import {
+  buildRuntimeSourceConnectionSnapshot,
+  type RuntimeSourceConnectionSnapshot
+} from "./runtimeSourceConnection";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -1015,6 +1019,10 @@ function RightPanel({
     runtimeStreamSnapshot,
     runtimeIngestionEvents
   );
+  const runtimeSourceConnectionSnapshot = buildRuntimeSourceConnectionSnapshot(
+    runtimeAdapter,
+    runtimeEventSourceSnapshot
+  );
   const canStartStream =
     Boolean(selectedRun) &&
     runtimeIngestionEvents.length > 0 &&
@@ -1316,7 +1324,10 @@ function RightPanel({
       <section className="panel-section">
         <h4>Runtime Stream</h4>
         <RuntimeAdapterSessionStatus snapshot={runtimeAdapterSessionSnapshot} />
-        <RuntimeEventSourceStatus snapshot={runtimeEventSourceSnapshot} />
+        <RuntimeEventSourceStatus
+          connection={runtimeSourceConnectionSnapshot}
+          snapshot={runtimeEventSourceSnapshot}
+        />
         <div className="stream-status-row">
           <span className={classNames("stream-state", `stream-${runtimeStreamSnapshot.state}`)}>
             <span aria-hidden="true" />
@@ -1436,7 +1447,13 @@ function RuntimeIngestionListItem({ event }: { event: RuntimeIngestionEvent }) {
   );
 }
 
-function RuntimeEventSourceStatus({ snapshot }: { snapshot: RuntimeEventSourceSnapshot }) {
+function RuntimeEventSourceStatus({
+  connection,
+  snapshot
+}: {
+  connection: RuntimeSourceConnectionSnapshot;
+  snapshot: RuntimeEventSourceSnapshot;
+}) {
   return (
     <div className="event-source" aria-label="Runtime event source">
       <div className="event-source-header">
@@ -1466,6 +1483,39 @@ function RuntimeEventSourceStatus({ snapshot }: { snapshot: RuntimeEventSourceSn
         </div>
       </dl>
       <small title={snapshot.nextEventLabel}>Next: {snapshot.nextEventLabel}</small>
+      <div className="source-connection" aria-label="Runtime source connection">
+        <div className="source-connection-header">
+          <span className={classNames("source-connection-state", `source-connection-${connection.state}`)}>
+            <span aria-hidden="true" />
+            {connection.state}
+          </span>
+          <strong title={connection.detail}>{connection.canAttach ? "Attach ready" : "Attach waiting"}</strong>
+        </div>
+        <p title={connection.detail}>{connection.detail}</p>
+        <dl className="source-connection-grid">
+          <div>
+            <dt>Capabilities</dt>
+            <dd>
+              {connection.requiredCapabilities.length - connection.missingCapabilities.length}/
+              {connection.requiredCapabilities.length}
+            </dd>
+          </div>
+          <div>
+            <dt>Permissions</dt>
+            <dd>
+              {connection.enabledPermissions}/{connection.requiredPermissions}
+            </dd>
+          </div>
+          <div>
+            <dt>Ready</dt>
+            <dd>{connection.readiness}%</dd>
+          </div>
+          <div>
+            <dt>Transport</dt>
+            <dd title={connection.transport}>{connection.transport}</dd>
+          </div>
+        </dl>
+      </div>
     </div>
   );
 }
