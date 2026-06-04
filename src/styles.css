@@ -680,6 +680,42 @@ textarea {
   text-overflow: ellipsis;
 }
 
+.monitor-next-event-preview {
+  display: grid;
+  grid-template-columns: auto minmax(72px, 0.45fr) minmax(0, 1fr);
+  gap: 6px;
+  border-radius: 8px;
+  background: #171d24;
+  padding: 5px 8px;
+  align-items: center;
+  min-width: 0;
+  color: #dce3eb;
+  font-size: 10px;
+}
+
+.monitor-next-event-seq,
+.monitor-next-event-label,
+.monitor-next-event-detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.monitor-next-event-seq {
+  color: #9fa9b4;
+  font-weight: 700;
+}
+
+.monitor-next-event-label {
+  color: #edf3f8;
+  font-weight: 600;
+}
+
+.monitor-next-event-detail {
+  color: #98a3ad;
+}
+
 .monitor-latest-event {
   display: flex;
   min-width: 0;

@@ -216,6 +216,10 @@ import {
   type CockpitMonitorEventFeedItem
 } from "./cockpitMonitorEventFeed";
 import {
+  buildCockpitMonitorNextEventPreview,
+  type CockpitMonitorNextEventPreview
+} from "./cockpitMonitorNextEvent";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -1628,6 +1632,10 @@ function RightPanel({
     runtimeStreamSnapshot,
     runtimeIngestionEvents
   );
+  const cockpitMonitorNextEventPreview = useMemo(
+    () => buildCockpitMonitorNextEventPreview(runtimeEventSourceSnapshot),
+    [runtimeEventSourceSnapshot]
+  );
   const runtimeSourceConnectionSnapshot = buildRuntimeSourceConnectionSnapshot(
     runtimeAdapter,
     runtimeEventSourceSnapshot
@@ -1946,6 +1954,7 @@ function RightPanel({
 
       <CockpitMonitorStrip
         controls={cockpitMonitorControlState}
+        nextEventPreview={cockpitMonitorNextEventPreview}
         recentEventFeed={recentEventFeed}
         onAttach={() => updateBridgeIntent("attached")}
         onPause={() => updateStreamPlayback("paused")}
@@ -2341,6 +2350,7 @@ function RightPanel({
 
 function CockpitMonitorStrip({
   controls,
+  nextEventPreview,
   recentEventFeed,
   onAttach,
   onPause,
@@ -2349,6 +2359,7 @@ function CockpitMonitorStrip({
   summary
 }: {
   controls: CockpitMonitorControlState;
+  nextEventPreview: CockpitMonitorNextEventPreview;
   recentEventFeed: CockpitMonitorEventFeedItem[];
   onAttach: () => void;
   onPause: () => void;
@@ -2363,6 +2374,9 @@ function CockpitMonitorStrip({
     0,
     Math.min(100, Number(summary.streamProgressPercent) || 0)
   );
+  const nextEventDetailAriaLabel = nextEventPreview.hasNext
+    ? `Next queued local event ${nextEventPreview.sequenceLabel}: ${nextEventPreview.label}`
+    : "Next queued local event: none queued";
 
   return (
     <section className="monitor-strip" aria-label="Cockpit monitor summary">
@@ -2410,6 +2424,21 @@ function CockpitMonitorStrip({
         />
         <span className="monitor-stream-progress-value" aria-live="polite">
           {summary.streamProgressValue}
+        </span>
+      </div>
+      <div
+        aria-label={nextEventDetailAriaLabel}
+        className="monitor-next-event-preview"
+        title={`${nextEventPreview.label}. ${nextEventPreview.detail}`}
+      >
+        <span className="monitor-next-event-seq" title={nextEventPreview.sequenceLabel}>
+          {nextEventPreview.sequenceLabel}
+        </span>
+        <span className="monitor-next-event-label" title={nextEventPreview.label}>
+          {nextEventPreview.label}
+        </span>
+        <span className="monitor-next-event-detail" title={nextEventPreview.detail}>
+          {nextEventPreview.detail}
         </span>
       </div>
       <div className="monitor-latest-event" title={latestEventDetail}>
