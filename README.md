@@ -11,7 +11,7 @@ The product goal is a focused workspace where a human operator can plan project 
 
 ## Current Status
 
-This repository currently contains the public product brief, requirements, architecture notes, execution rules, and development plan. Steerboard is intended to be an original product with its own architecture, interaction model, visual identity, and implementation.
+This repository currently contains the public product brief, requirements, architecture notes, installation strategy, and contribution guidance. Internal planning, progress logs, and agent execution rules should stay outside the public repository.
 
 ## Document Map
 
@@ -20,21 +20,15 @@ This repository currently contains the public product brief, requirements, archi
 - [UI Direction](docs/product/ui-direction.md)
 - [Cockpit Operating Modes](docs/product/cockpit-operating-modes.md)
 - [Project Management Lane](docs/product/project-management-lane.md)
-- [Architecture Plan](docs/architecture/architecture-plan.md)
+- [Architecture Overview](docs/architecture/architecture-plan.md)
 - [Platform Strategy](docs/architecture/platform-strategy.md)
 - [Security and Privacy Model](docs/architecture/security-privacy-model.md)
-- [Development Plan](docs/development/development-plan.md)
-- [Worker Task Rules](docs/development/worker-task-rules.md)
-- [MVP Goal](docs/development/mvp-goal.md)
-- [Multiagent And Worktree Strategy](docs/development/multiagent-worktree-strategy.md)
-- [Skill Development Map](docs/development/skill-development-map.md)
+- [Public Roadmap](docs/roadmap.md)
 - [Installation Strategy](docs/operations/installation-strategy.md)
 - [Originality And Attribution Policy](docs/decisions/originality-attribution-policy.md)
-- [Public Documentation Guidelines](docs/operations/public-documentation-guidelines.md)
-- [Public Release Checklist](docs/operations/public-release-checklist.md)
-- [Progress](docs/operations/progress.md)
+- [Contributing](CONTRIBUTING.md)
 - [Third-Party Notices](THIRD_PARTY_NOTICES.md)
 
-## Development Principle
+## Product Principle
 
-Do not start by blindly forking a large external IDE. Start with a small, testable Steerboard scaffold, design a distinct cockpit experience, keep agent-runtime integration behind adapters, and selectively adapt proven third-party patterns only after audit, attribution, and product-fit gates pass.
+Steerboard should remain a distinct product with its own cockpit experience, provider-neutral runtime adapter boundary, local-first security model, and public-safe fixture data.

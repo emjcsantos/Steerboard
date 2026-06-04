@@ -1,10 +1,6 @@
-# Architecture Plan
+# Architecture Overview
 
-## Recommended Starting Point
-
-Start with a clean Steerboard scaffold and use audited third-party projects as references, not as direct bases.
-
-Reason: reference projects have strong feature overlap, but any direct adoption requires separate dependency, security, attribution, and product-originality gates.
+Steerboard is a local-first desktop cockpit. The UI presents project lanes, agent sessions, task state, validation evidence, and local runtime status while privileged operations stay behind narrow desktop-shell APIs.
 
 ## Major Subsystems
 
@@ -70,29 +66,3 @@ Reason: reference projects have strong feature overlap, but any direct adoption 
 - User preferences.
 
 Do not persist credentials, raw private browser state, or unredacted secrets.
-
-### Development Execution
-
-- Use multiagent and multiworktree execution for independent file ownership lanes.
-- The main orchestrator keeps architecture, integration, final validation, commit, push, and report responsibilities.
-- Worker agents should receive small tasks with explicit file ownership and validation commands.
-
-## Reference Patterns Worth Studying
-
-- Electron main/preload/renderer split.
-- Agent app-server bridge patterns.
-- ACP-style agent abstraction.
-- Session list and split-pane concepts.
-- Tool-call visualization ideas.
-- Git, terminal, browser, MCP, and file-panel surfaces.
-- Encrypted OAuth store pattern.
-
-## Reference Patterns To Harden Before Reuse
-
-- Analytics default-on behavior.
-- Broad renderer-exposed file operations.
-- Arbitrary external URL opening.
-- Webview capability boundary.
-- Managed CLI auto-download behavior.
-- Dependency vulnerabilities from the current lockfile.
-- Worktree setup command execution.

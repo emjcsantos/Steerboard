@@ -2,11 +2,11 @@
 
 ## Product
 
-Steerboard is a desktop IDE for monitoring and steering multiple AI coding sessions at once.
+Steerboard is a desktop cockpit for monitoring and steering multiple agent-assisted project sessions at once.
 
 ## Problem
 
-Single-chat IDE surfaces make it hard to monitor concurrent work. Users often need several active coding-agent threads: one for planning, one or more for implementation, one for validation, and one for review. A single visible chat forces constant context switching.
+Single-lane agent surfaces make it hard to monitor concurrent work. Users often need several active sessions: one for planning, one or more for implementation, one for validation, and one for review. A single visible chat forces constant context switching.
 
 ## Target Experience
 
@@ -33,4 +33,4 @@ Steerboard should feel like a practical command cockpit:
 - Full marketplace or plugin ecosystem.
 - Running every possible external agent.
 - Importing private session history from another IDE as the main workflow.
-- Shipping an unaudited fork of any third-party app.
+- Shipping unaudited third-party application code.

@@ -59,8 +59,8 @@
 - No raw private transcripts in public examples.
 - Analytics default off.
 - Worker tasks must be file-scoped.
-- Multiagent and multiworktree development must use non-overlapping file ownership.
+- Parallel agent execution must use explicit workspace and file ownership boundaries.
 - Destructive actions require explicit user confirmation.
 - Third-party code must pass license, dependency, script, IPC, storage, and network review before adoption.
-- Third-party inspiration must be credited, but Steerboard code and UI should remain original unless a deliberate fork/import decision is recorded.
+- Third-party code or assets must be credited when copied, derived, bundled, or adapted; Steerboard code and UI should remain original unless a deliberate reuse decision is recorded.
 - Public docs, screenshots, fixtures, seeds, and demo data must use generic project names only.
