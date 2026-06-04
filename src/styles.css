@@ -829,9 +829,47 @@ textarea {
   padding: 9px 12px;
 }
 
+.cell-footer-actions {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.panel-file-scope {
+  flex: 0 0 auto;
+  overflow: hidden;
+  max-width: 82px;
+  border-radius: 999px;
+  background: #252b34;
+  color: #cfd8e3;
+  padding: 4px 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.panel-file-scope-empty {
+  color: #9fa9b4;
+}
+
+.panel-file-scope-scoped {
+  background: #19342b;
+  color: #8be1b2;
+}
+
+.panel-file-scope-wide {
+  background: #352e18;
+  color: #f0d984;
+}
+
 .tool-row {
   display: flex;
   min-width: 0;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 5px;

@@ -252,6 +252,10 @@ import {
   type CockpitPanelIdentity
 } from "./cockpitPanelIdentity";
 import {
+  createCockpitPanelFileScope,
+  type CockpitPanelFileScope
+} from "./cockpitPanelFileScope";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -802,6 +806,7 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
     state: session.state,
     title: session.title
   });
+  const fileScope = createCockpitPanelFileScope(session.files);
 
   return (
     <article
@@ -836,13 +841,28 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
 
       <footer className="cell-footer">
         <span className="validation-label">{session.validation}</span>
-        <div className="tool-row">
-          {session.tools.map((tool) => (
-            <span key={tool}>{tool}</span>
-          ))}
+        <div className="cell-footer-actions">
+          <PanelFileScopeSignal scope={fileScope} />
+          <div className="tool-row">
+            {session.tools.map((tool) => (
+              <span key={tool}>{tool}</span>
+            ))}
+          </div>
         </div>
       </footer>
     </article>
+  );
+}
+
+function PanelFileScopeSignal({ scope }: { scope: CockpitPanelFileScope }) {
+  return (
+    <span
+      aria-label={`File scope: ${scope.label}`}
+      className={classNames("panel-file-scope", `panel-file-scope-${scope.tone}`)}
+      title={scope.detail}
+    >
+      {scope.label}
+    </span>
   );
 }
 
