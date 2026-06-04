@@ -38,6 +38,8 @@
 - Mock run detail should expose the source package, spawned task count, cockpit panel count, and validation gate count.
 - Local mock run lifecycle controls for queue, running, complete, blocked, and failed states.
 - Lifecycle controls should update cockpit panels, task status summaries, validation gate status, and persisted run history together.
+- Selected mock runs should expose a compact event timeline covering run, task, session, and validation events.
+- Timeline summaries should show active, issue, and complete counts for quick cockpit monitoring.
 
 ## Later Functional Scope
 

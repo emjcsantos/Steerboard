@@ -103,6 +103,11 @@ import {
   transitionMockRunStatus,
   type RunLifecycleStatus
 } from "./runLifecycle";
+import {
+  buildRunTimeline,
+  summarizeRunTimeline,
+  type RunTimelineEvent
+} from "./runEvents";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -933,6 +938,8 @@ function RightPanel({
   const taskSummary = summarizeTasks(tasks);
   const runSummary = summarizeRunHistory(mockRuns);
   const latestRun = runSummary.latestRun;
+  const selectedTimeline = selectedRun ? buildRunTimeline(selectedRun) : [];
+  const timelineSummary = summarizeRunTimeline(selectedTimeline);
 
   return (
     <aside className="right-panel" aria-label="Environment">
@@ -1068,6 +1075,29 @@ function RightPanel({
                     <dd>{selectedRun.validationGates.length}</dd>
                   </div>
                 </dl>
+
+                <section className="run-timeline" aria-label="Selected mock run event timeline">
+                  <div className="timeline-summary" aria-label="Timeline summary">
+                    <span>
+                      <strong>{timelineSummary.activeCount}</strong>
+                      Active
+                    </span>
+                    <span>
+                      <strong>{timelineSummary.issueCount}</strong>
+                      Issues
+                    </span>
+                    <span>
+                      <strong>{timelineSummary.completeCount}</strong>
+                      Done
+                    </span>
+                  </div>
+
+                  <ol className="timeline-list">
+                    {selectedTimeline.map((event) => (
+                      <RunTimelineItem event={event} key={event.id} />
+                    ))}
+                  </ol>
+                </section>
               </>
             ) : null}
           </>
@@ -1126,6 +1156,24 @@ function RightPanel({
         </ol>
       </section>
     </aside>
+  );
+}
+
+function RunTimelineItem({ event }: { event: RunTimelineEvent }) {
+  return (
+    <li className={classNames("timeline-item", `timeline-${event.kind}`)}>
+      <span className="timeline-marker" aria-hidden="true" />
+      <div>
+        <span className="timeline-kicker">
+          {event.actor} / {event.kind}
+        </span>
+        <strong title={event.label}>{event.label}</strong>
+        <small title={event.detail}>{event.detail}</small>
+      </div>
+      <span className={classNames("timeline-status", `timeline-status-${event.status}`)}>
+        {event.status}
+      </span>
+    </li>
   );
 }
 
