@@ -212,6 +212,10 @@ import {
   type CockpitMonitorSummary
 } from "./cockpitMonitorSummary";
 import {
+  buildCockpitMonitorControlState,
+  type CockpitMonitorControlState
+} from "./cockpitMonitorControls";
+import {
   buildRuntimeAdapterSessionSnapshot,
   type RuntimeAdapterSessionSnapshot
 } from "./runtimeAdapterSession";
@@ -1708,17 +1712,16 @@ function RightPanel({
   const canActivateDraftProfile =
     runtimeProfileApprovalSnapshot.state === "requested" &&
     canActivateRuntimeProfile(runtimeProfileDraftReadiness);
-  const canStartStream =
-    Boolean(selectedRun) &&
-    runtimeIngestionEvents.length > 0 &&
-    runtimeAdapterBridgeSnapshot.canStream &&
-    runtimeStreamSnapshot.state !== "streaming" &&
-    runtimeStreamSnapshot.state !== "complete" &&
-    runtimeStreamSnapshot.state !== "blocked";
-  const canPauseStream = Boolean(selectedRun) && runtimeStreamSnapshot.state === "streaming";
-  const canResetStream =
-    Boolean(selectedRun) &&
-    (runtimeStreamSnapshot.cursor > 0 || runtimeStreamSnapshot.state !== "idle");
+  const cockpitMonitorControlState = buildCockpitMonitorControlState({
+    canStream: runtimeAdapterBridgeSnapshot.canStream,
+    cursor: runtimeStreamSnapshot.cursor,
+    eventCount: runtimeIngestionEvents.length,
+    hasRun: Boolean(selectedRun),
+    streamState: runtimeStreamSnapshot.state
+  });
+  const canStartStream = cockpitMonitorControlState.canStart;
+  const canPauseStream = cockpitMonitorControlState.canPause;
+  const canResetStream = cockpitMonitorControlState.canReset;
 
   useEffect(() => {
     if (!selectedRun || runtimeStreamSnapshot.state !== "streaming") {
@@ -1934,7 +1937,13 @@ function RightPanel({
         </button>
       </header>
 
-      <CockpitMonitorStrip summary={cockpitMonitorSummary} />
+      <CockpitMonitorStrip
+        controls={cockpitMonitorControlState}
+        onPause={() => updateStreamPlayback("paused")}
+        onReset={() => updateStreamPlayback("idle", 0)}
+        onStart={() => updateStreamPlayback("streaming")}
+        summary={cockpitMonitorSummary}
+      />
 
       <section className="panel-section">
         <h4>Progress</h4>
@@ -2321,7 +2330,19 @@ function RightPanel({
   );
 }
 
-function CockpitMonitorStrip({ summary }: { summary: CockpitMonitorSummary }) {
+function CockpitMonitorStrip({
+  controls,
+  onPause,
+  onReset,
+  onStart,
+  summary
+}: {
+  controls: CockpitMonitorControlState;
+  onPause: () => void;
+  onReset: () => void;
+  onStart: () => void;
+  summary: CockpitMonitorSummary;
+}) {
   return (
     <section className="monitor-strip" aria-label="Cockpit monitor summary">
       <div className="monitor-strip-header">
@@ -2358,6 +2379,35 @@ function CockpitMonitorStrip({ summary }: { summary: CockpitMonitorSummary }) {
           {summary.streamLabel}
         </span>
         <small>{summary.streamProgressLabel}</small>
+      </div>
+      <div className="monitor-control-row" aria-label="Cockpit monitor stream controls">
+        <button
+          aria-label="Start cockpit monitor stream"
+          disabled={!controls.canStart}
+          onClick={onStart}
+          title={controls.startReason}
+          type="button"
+        >
+          <Play size={13} />
+        </button>
+        <button
+          aria-label="Pause cockpit monitor stream"
+          disabled={!controls.canPause}
+          onClick={onPause}
+          title={controls.pauseReason}
+          type="button"
+        >
+          <Pause size={13} />
+        </button>
+        <button
+          aria-label="Reset cockpit monitor stream"
+          disabled={!controls.canReset}
+          onClick={onReset}
+          title={controls.resetReason}
+          type="button"
+        >
+          <RotateCcw size={13} />
+        </button>
       </div>
     </section>
   );

@@ -635,6 +635,32 @@ textarea {
   font-size: 11px;
 }
 
+.monitor-control-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.monitor-control-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  border-radius: 8px;
+  background: #252b34;
+  color: #dce3eb;
+}
+
+.monitor-control-row button:hover:not(:disabled),
+.monitor-control-row button:focus-visible {
+  background: #303844;
+}
+
+.monitor-control-row button:disabled {
+  cursor: not-allowed;
+  color: #66717d;
+}
+
 .panel-section {
   border: 1px solid #2c333d;
   border-radius: 8px;
