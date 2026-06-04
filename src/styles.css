@@ -1420,13 +1420,111 @@ textarea {
   font-size: 11px;
 }
 
+.runtime-profile-permission-approval {
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.runtime-profile-permission-approval-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.runtime-profile-permission-approval-header strong,
+.runtime-profile-permission-approval-header span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.runtime-profile-permission-approval-header strong {
+  color: #edf2f7;
+}
+
+.runtime-profile-permission-approval-header span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #aab3bd;
+  padding: 3px 6px;
+  font-weight: 800;
+}
+
+.runtime-profile-approval-requestable .runtime-profile-permission-approval-header span {
+  background: rgba(114, 214, 160, 0.12);
+  color: #8ee4b0;
+}
+
+.runtime-profile-approval-requested .runtime-profile-permission-approval-header span,
+.runtime-profile-approval-review .runtime-profile-permission-approval-header span {
+  background: rgba(240, 217, 132, 0.12);
+  color: #f0d984;
+}
+
+.runtime-profile-approval-blocked .runtime-profile-permission-approval-header span {
+  background: rgba(255, 158, 133, 0.12);
+  color: #ffad98;
+}
+
+.runtime-profile-permission-approval p {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.runtime-profile-permission-approval-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.runtime-profile-permission-approval-grid div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border-radius: 8px;
+  background: #13171d;
+  padding: 7px 6px;
+}
+
+.runtime-profile-permission-approval-grid dt,
+.runtime-profile-permission-approval-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-profile-permission-approval-grid dt {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.runtime-profile-permission-approval-grid dd {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
 .runtime-profile-reasons li,
 .runtime-profile-ready-copy,
 .runtime-profile-card small,
 .runtime-profile-draft small,
 .runtime-profile-approval small,
 .runtime-profile-activation small,
-.runtime-profile-permission-handoff small {
+.runtime-profile-permission-handoff small,
+.runtime-profile-permission-approval small {
   overflow: hidden;
   margin: 0;
   color: #8f99a5;

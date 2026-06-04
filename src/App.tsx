@@ -131,6 +131,10 @@ import {
   type RuntimeProfilePermissionRequestRecord
 } from "./runtimeProfilePermissionRequestHistory";
 import {
+  buildRuntimeProfilePermissionApprovalSnapshot,
+  type RuntimeProfilePermissionApprovalSnapshot
+} from "./runtimeProfilePermissionApproval";
+import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
   type DispatchPackage
@@ -1227,6 +1231,14 @@ function RightPanel({
     () => buildRuntimeProfilePermissionHandoffSnapshot(runtimeProfileActivation, desktopBridgeStatus),
     [desktopBridgeStatus, runtimeProfileActivation]
   );
+  const runtimeProfilePermissionApprovalSnapshot = useMemo(
+    () =>
+      buildRuntimeProfilePermissionApprovalSnapshot(
+        runtimeProfilePermissionHandoffSnapshot,
+        runtimeProfilePermissionRequestIntent
+      ),
+    [runtimeProfilePermissionHandoffSnapshot, runtimeProfilePermissionRequestIntent]
+  );
   const canActivateDraftProfile =
     runtimeProfileApprovalSnapshot.state === "requested" &&
     canActivateRuntimeProfile(runtimeProfileDraftReadiness);
@@ -1634,6 +1646,7 @@ function RightPanel({
           recordRuntimeProfilePermissionRequestAction("requested", "requested")
         }
         onResetDraft={resetRuntimeProfileDraft}
+        permissionApproval={runtimeProfilePermissionApprovalSnapshot}
         permissionHandoff={runtimeProfilePermissionHandoffSnapshot}
         permissionRequestHistory={runtimeProfilePermissionRequestHistory}
         permissionRequestIntent={runtimeProfilePermissionRequestIntent}
@@ -1819,6 +1832,7 @@ function RuntimeProfilePanel({
   onRequestDraftApproval,
   onRequestPermission,
   onResetDraft,
+  permissionApproval,
   permissionHandoff,
   permissionRequestHistory,
   permissionRequestIntent,
@@ -1841,6 +1855,7 @@ function RuntimeProfilePanel({
   onRequestDraftApproval: () => void;
   onRequestPermission: () => void;
   onResetDraft: () => void;
+  permissionApproval: RuntimeProfilePermissionApprovalSnapshot;
   permissionHandoff: RuntimeProfilePermissionHandoffSnapshot;
   permissionRequestHistory: RuntimeProfilePermissionRequestRecord[];
   permissionRequestIntent: RuntimeProfilePermissionRequestIntent;
@@ -2221,6 +2236,34 @@ function RuntimeProfilePanel({
                   Request or cancel permission review to create a local record.
                 </p>
               )}
+            </div>
+            <div
+              className={classNames(
+                "runtime-profile-permission-approval",
+                `runtime-profile-approval-${permissionApproval.state}`
+              )}
+              aria-label="Runtime profile desktop permission approval preview"
+            >
+              <div className="runtime-profile-permission-approval-header">
+                <strong>Permission approval</strong>
+                <span>{permissionApproval.statusLabel}</span>
+              </div>
+              <p title={permissionApproval.detail}>{permissionApproval.detail}</p>
+              <dl className="runtime-profile-permission-approval-grid">
+                <div>
+                  <dt>Intent</dt>
+                  <dd>{permissionApproval.intent}</dd>
+                </div>
+                <div>
+                  <dt>Review</dt>
+                  <dd>{permissionApproval.approvalRequired ? "Required" : "Held"}</dd>
+                </div>
+                <div>
+                  <dt>Execution</dt>
+                  <dd>{permissionApproval.executionLocked ? "Locked" : "Ready"}</dd>
+                </div>
+              </dl>
+              <small title={permissionApproval.safety}>{permissionApproval.safety}</small>
             </div>
             <small title={permissionHandoff.safety}>{permissionHandoff.safety}</small>
           </div>
