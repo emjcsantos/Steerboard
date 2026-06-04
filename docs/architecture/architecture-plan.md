@@ -76,6 +76,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Runtime profile approval history stores local request and cancellation records so review state survives reloads before activation exists.
 - Runtime profile activation stores a single local active-profile snapshot after an explicit ready-profile approval request, while process execution remains unavailable.
 - Runtime profile permission handoff previews combine active-profile state with desktop bridge status before any process, workspace, or network capability can be requested.
+- Runtime profile permission request history stores local request and cancellation records for the handoff gate before desktop permissions are available.
 - Each runtime adapter should declare capabilities, required permissions, configuration fields, supported commands, event mapping, and mock fixtures.
 - The cockpit must consume normalized session, task, validation, and tool-call events instead of provider-specific payloads.
 - The scaffold exposes an adapter contract inspector that summarizes transport, capability, permission, and normalized-event readiness before runtime execution exists.
@@ -93,6 +94,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - The scaffold keeps runtime adapter data local and mocked until a desktop-shell permission path exists for process execution.
 - The scaffold keeps runtime profile activation as browser-local cockpit state until a desktop-shell permission path can safely promote it into real execution.
 - The scaffold shows desktop permission handoff readiness from local active-profile and bridge status only; it does not open a shell permission request or execute commands.
+- The scaffold records local desktop permission request intent separately from desktop permission execution so review state can be audited without side effects.
 
 ### Persistence
 

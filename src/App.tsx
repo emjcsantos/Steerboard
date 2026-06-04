@@ -123,6 +123,14 @@ import {
   type RuntimeProfilePermissionHandoffSnapshot
 } from "./runtimeProfilePermissionHandoff";
 import {
+  appendRuntimeProfilePermissionRequestRecord,
+  createRuntimeProfilePermissionRequestRecord,
+  loadRuntimeProfilePermissionRequestHistory,
+  saveRuntimeProfilePermissionRequestHistory,
+  type RuntimeProfilePermissionRequestAction,
+  type RuntimeProfilePermissionRequestRecord
+} from "./runtimeProfilePermissionRequestHistory";
+import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
   type DispatchPackage
@@ -263,6 +271,7 @@ const streamStateLabels: Record<RuntimeStreamPlaybackState, string> = {
 const streamIntervalMs = 1100;
 const runtimeTransportOptions: RuntimeTransport[] = ["local-process", "remote-endpoint", "mock"];
 const runtimeWorkspaceModeOptions: RuntimeWorkspaceMode[] = ["read-only", "read-write", "isolated"];
+type RuntimeProfilePermissionRequestIntent = "idle" | "requested";
 
 function classNames(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
@@ -277,6 +286,12 @@ function parseRuntimeProfileList(value: string): string[] {
 
 function formatRuntimeProfileList(values: string[]): string {
   return values.join(", ");
+}
+
+function latestPermissionRequestIntent(
+  records: RuntimeProfilePermissionRequestRecord[]
+): RuntimeProfilePermissionRequestIntent {
+  return records[0]?.action === "requested" ? "requested" : "idle";
 }
 
 function formatTimestamp(value: string): string {
@@ -1104,6 +1119,14 @@ function RightPanel({
   const [runtimeProfileActivation, setRuntimeProfileActivation] = useState<
     RuntimeProfileActivationSnapshot | undefined
   >(() => loadRuntimeProfileActivation());
+  const [runtimeProfilePermissionRequestHistory, setRuntimeProfilePermissionRequestHistory] =
+    useState<RuntimeProfilePermissionRequestRecord[]>(() =>
+      loadRuntimeProfilePermissionRequestHistory()
+    );
+  const [runtimeProfilePermissionRequestIntent, setRuntimeProfilePermissionRequestIntent] =
+    useState<RuntimeProfilePermissionRequestIntent>(() =>
+      latestPermissionRequestIntent(loadRuntimeProfilePermissionRequestHistory())
+    );
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
@@ -1264,6 +1287,10 @@ function RightPanel({
   }, [runtimeProfileActivation]);
 
   useEffect(() => {
+    saveRuntimeProfilePermissionRequestHistory(runtimeProfilePermissionRequestHistory);
+  }, [runtimeProfilePermissionRequestHistory]);
+
+  useEffect(() => {
     let isMounted = true;
 
     loadDesktopRuntimeBridgeStatus().then((status) => {
@@ -1375,6 +1402,22 @@ function RightPanel({
       )
     );
     setRuntimeProfileApprovalIntent("idle");
+  }
+
+  function recordRuntimeProfilePermissionRequestAction(
+    action: RuntimeProfilePermissionRequestAction,
+    nextIntent: RuntimeProfilePermissionRequestIntent
+  ) {
+    const record = createRuntimeProfilePermissionRequestRecord(
+      runtimeProfilePermissionHandoffSnapshot,
+      action,
+      new Date().toISOString()
+    );
+
+    setRuntimeProfilePermissionRequestHistory((current) =>
+      appendRuntimeProfilePermissionRequestRecord(current, record)
+    );
+    setRuntimeProfilePermissionRequestIntent(nextIntent);
   }
 
   return (
@@ -1583,9 +1626,17 @@ function RightPanel({
         onCancelDraftApproval={() => recordRuntimeProfileApprovalAction("cancelled", "idle")}
         onClearActiveProfile={() => setRuntimeProfileActivation(undefined)}
         onDraftChange={updateRuntimeProfileDraft}
+        onCancelPermissionRequest={() =>
+          recordRuntimeProfilePermissionRequestAction("cancelled", "idle")
+        }
         onRequestDraftApproval={() => recordRuntimeProfileApprovalAction("requested", "requested")}
+        onRequestPermission={() =>
+          recordRuntimeProfilePermissionRequestAction("requested", "requested")
+        }
         onResetDraft={resetRuntimeProfileDraft}
         permissionHandoff={runtimeProfilePermissionHandoffSnapshot}
+        permissionRequestHistory={runtimeProfilePermissionRequestHistory}
+        permissionRequestIntent={runtimeProfilePermissionRequestIntent}
         profile={selectedRuntimeProfile}
         readiness={selectedRuntimeProfileReadiness}
         summary={runtimeProfileSummary}
@@ -1764,9 +1815,13 @@ function RuntimeProfilePanel({
   onCancelDraftApproval,
   onClearActiveProfile,
   onDraftChange,
+  onCancelPermissionRequest,
   onRequestDraftApproval,
+  onRequestPermission,
   onResetDraft,
   permissionHandoff,
+  permissionRequestHistory,
+  permissionRequestIntent,
   profile,
   readiness,
   summary
@@ -1782,13 +1837,21 @@ function RuntimeProfilePanel({
   onCancelDraftApproval: () => void;
   onClearActiveProfile: () => void;
   onDraftChange: (nextDraft: Partial<RuntimeProfile>) => void;
+  onCancelPermissionRequest: () => void;
   onRequestDraftApproval: () => void;
+  onRequestPermission: () => void;
   onResetDraft: () => void;
   permissionHandoff: RuntimeProfilePermissionHandoffSnapshot;
+  permissionRequestHistory: RuntimeProfilePermissionRequestRecord[];
+  permissionRequestIntent: RuntimeProfilePermissionRequestIntent;
   profile?: RuntimeProfile;
   readiness?: RuntimeProfileReadiness;
   summary: ReturnType<typeof summarizeRuntimeProfiles>;
 }) {
+  const canRequestPermission =
+    permissionHandoff.canRequestPermission && permissionRequestIntent !== "requested";
+  const canCancelPermission = permissionRequestIntent === "requested";
+
   return (
     <section className="panel-section">
       <h4>Runtime Profile</h4>
@@ -2117,6 +2180,48 @@ function RuntimeProfilePanel({
                 <dd>{permissionHandoff.workspaceAccessAvailable ? "Ready" : "Locked"}</dd>
               </div>
             </dl>
+            <div className="runtime-profile-permission-actions">
+              <button
+                aria-label="Request runtime profile desktop permission"
+                disabled={!canRequestPermission}
+                onClick={onRequestPermission}
+                title="Request permission"
+                type="button"
+              >
+                <ClipboardList size={14} />
+                <span>{permissionRequestIntent === "requested" ? "Requested" : "Request"}</span>
+              </button>
+              <button
+                aria-label="Cancel runtime profile desktop permission request"
+                disabled={!canCancelPermission}
+                onClick={onCancelPermissionRequest}
+                title="Cancel permission request"
+                type="button"
+              >
+                <RotateCcw size={14} />
+                <span>Cancel</span>
+              </button>
+            </div>
+            <div
+              className="runtime-profile-permission-history"
+              aria-label="Runtime profile desktop permission request history"
+            >
+              <div className="runtime-profile-permission-history-header">
+                <strong>Recent permission records</strong>
+                <span>{permissionRequestHistory.length}</span>
+              </div>
+              {permissionRequestHistory.length > 0 ? (
+                <ol className="runtime-profile-permission-records">
+                  {permissionRequestHistory.slice(0, 4).map((record) => (
+                    <RuntimeProfilePermissionRequestRecordRow key={record.id} record={record} />
+                  ))}
+                </ol>
+              ) : (
+                <p className="runtime-profile-permission-empty">
+                  Request or cancel permission review to create a local record.
+                </p>
+              )}
+            </div>
             <small title={permissionHandoff.safety}>{permissionHandoff.safety}</small>
           </div>
         </div>
@@ -2124,6 +2229,23 @@ function RuntimeProfilePanel({
         <small title={draftReadiness.safety}>{draftReadiness.safety}</small>
       </div>
     </section>
+  );
+}
+
+function RuntimeProfilePermissionRequestRecordRow({
+  record
+}: {
+  record: RuntimeProfilePermissionRequestRecord;
+}) {
+  return (
+    <li className={classNames("runtime-profile-permission-record", `runtime-profile-permission-record-${record.action}`)}>
+      <span aria-hidden="true" />
+      <div>
+        <strong>{record.action}</strong>
+        <small title={record.detail}>{formatTimestamp(record.createdAt)}</small>
+      </div>
+      <b title={record.statusLabel}>{record.readiness}%</b>
+    </li>
   );
 }
 
