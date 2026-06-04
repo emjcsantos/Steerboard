@@ -32,6 +32,7 @@
 - Dispatch gate preview with no real command execution.
 - Editable local planning drafts with readiness scoring before dispatch.
 - Local planning draft persistence with safe saved-state repair.
+- Local dispatch package preview generated from a complete staged planning draft.
 
 ## Later Functional Scope
 

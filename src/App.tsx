@@ -76,6 +76,11 @@ import {
   summarizeRuntimeAdapters,
   type RuntimeAdapter
 } from "./runtime";
+import {
+  renderDispatchPackageMarkdown,
+  tryBuildDispatchPackage,
+  type DispatchPackage
+} from "./dispatch";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -556,6 +561,28 @@ function PlanningView({
   const draft = drafts[activeIndex] ?? drafts[0] ?? normalizePlanningDraft({});
   const readiness = evaluatePlanningReadiness(draft);
   const canDeploy = canDeployPlanningDraft(draft);
+  const targetProject = projects.find((project) => project.id === draft.targetProjectId);
+  const [stagedPackage, setStagedPackage] = useState<DispatchPackage | undefined>();
+  const stagedMarkdown = stagedPackage ? renderDispatchPackageMarkdown(stagedPackage) : "";
+
+  function handleStageDraft() {
+    if (!targetProject) {
+      return;
+    }
+
+    const result = tryBuildDispatchPackage(
+      draft,
+      { id: targetProject.id, name: targetProject.name },
+      {
+        createdAt: new Date().toISOString(),
+        idSeed: "steerboard"
+      }
+    );
+
+    if (result.ok) {
+      setStagedPackage(result.package);
+    }
+  }
 
   return (
     <section className="planning-view">
@@ -564,7 +591,7 @@ function PlanningView({
           <h3>Project Planning</h3>
           <p>Prepare scoped work before dispatching it into the cockpit.</p>
         </div>
-        <button disabled={!canDeploy} type="button">
+        <button disabled={!canDeploy || !targetProject} onClick={handleStageDraft} type="button">
           <Play size={16} />
           Stage Draft
         </button>
@@ -750,6 +777,17 @@ function PlanningView({
                 <dd>{draft.validationPlan.length}</dd>
               </div>
             </dl>
+          </section>
+
+          <section>
+            <h4>Staged Preview</h4>
+            {stagedPackage ? (
+              <pre className="dispatch-preview">{stagedMarkdown}</pre>
+            ) : (
+              <p className="empty-preview">
+                Complete the draft, then stage it to generate the local dispatch package.
+              </p>
+            )}
           </section>
         </aside>
       </div>

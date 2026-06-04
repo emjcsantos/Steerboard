@@ -1122,6 +1122,31 @@ textarea {
   text-transform: capitalize;
 }
 
+.dispatch-preview,
+.empty-preview {
+  margin: 0;
+  border-radius: 8px;
+  background: #101318;
+}
+
+.dispatch-preview {
+  max-height: 240px;
+  overflow: auto;
+  padding: 10px;
+  color: #d9e0e8;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.empty-preview {
+  color: #aab3bd;
+  padding: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 @media (max-width: 1180px) {
   body {
     min-width: 900px;

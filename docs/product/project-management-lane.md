@@ -35,6 +35,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Deploy-to-runtime button disabled until required fields are present.
 - Registry and runtime gate chips showing why dispatch is enabled or blocked.
 - Generated handoff preview.
+- Generated dispatch package preview before real runtime execution.
 - Link from deployed item to cockpit run.
 - Deploy-mode selector for focused run, orchestrator-with-workers, or independent project monitor.
 
@@ -62,6 +63,7 @@ It should make the product useful before a coding agent starts: the user can org
 
 Deploying to a configured runtime creates:
 
+- a staged dispatch package,
 - an orchestrator run,
 - selected cockpit operating mode,
 - a task split proposal,
