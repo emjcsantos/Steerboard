@@ -1840,6 +1840,134 @@ textarea {
   font-size: 12px;
 }
 
+.panel-priority-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.panel-priority-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.panel-priority-header h4 {
+  margin: 0;
+}
+
+.panel-priority-pill {
+  flex: 0 1 auto;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #cfd8e3;
+  padding: 4px 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.panel-priority-row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.panel-priority-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: #252b34;
+  color: #cfd8e3;
+}
+
+.panel-priority-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.panel-priority-copy strong,
+.panel-priority-copy small,
+.panel-priority-meta dt,
+.panel-priority-meta dd {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-priority-copy strong {
+  color: #edf2f7;
+  font-size: 12px;
+}
+
+.panel-priority-copy small {
+  color: #9fa9b4;
+  font-size: 11px;
+}
+
+.panel-priority-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(48px, auto));
+  gap: 6px;
+  margin: 0;
+}
+
+.panel-priority-meta div {
+  min-width: 0;
+  border-radius: 7px;
+  background: #171c22;
+  padding: 5px 6px;
+}
+
+.panel-priority-meta dt {
+  color: #8f99a4;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.panel-priority-meta dd {
+  margin: 1px 0 0;
+  color: #cfd8e3;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.panel-priority-critical {
+  background: #442119;
+  color: #ff9e85;
+}
+
+.panel-priority-attention {
+  background: #352e18;
+  color: #f0d984;
+}
+
+.panel-priority-active {
+  background: #172f3b;
+  color: #8bd7f4;
+}
+
+.panel-priority-idle {
+  color: #c7d0da;
+}
+
+.panel-priority-complete {
+  background: #1d3929;
+  color: #89dda9;
+}
+
 .milestone-status-panel {
   display: grid;
   gap: 9px;

@@ -87,6 +87,10 @@ import {
   type MilestoneStatusSummary
 } from "./milestoneStatus";
 import {
+  createCockpitPanelPriority,
+  type CockpitPanelPriority
+} from "./cockpitPanelPriority";
+import {
   canDeployPlanningDraft,
   evaluatePlanningReadiness,
   normalizePlanningDraft,
@@ -1545,6 +1549,51 @@ function MilestoneStatusPanel({
   );
 }
 
+function PanelPrioritySignal({ priority }: { priority: CockpitPanelPriority }) {
+  const icon =
+    priority.tone === "critical" || priority.tone === "attention" ? (
+      <AlertTriangle size={15} />
+    ) : (
+      <CircleDot size={15} />
+    );
+
+  return (
+    <section className="panel-section panel-priority-panel" aria-label="Next cockpit panel attention">
+      <div className="panel-priority-header">
+        <h4>Next Attention</h4>
+        <span
+          className={classNames("panel-priority-pill", `panel-priority-${priority.tone}`)}
+          title={`${priority.priorityLabel}: ${priority.detail}`}
+        >
+          {priority.priorityLabel}
+        </span>
+      </div>
+      <div className="panel-priority-row">
+        <span
+          aria-hidden="true"
+          className={classNames("panel-priority-icon", `panel-priority-${priority.tone}`)}
+        >
+          {icon}
+        </span>
+        <div className="panel-priority-copy">
+          <strong title={priority.title}>{priority.title}</strong>
+          <small title={priority.detail}>{priority.detail}</small>
+        </div>
+        <dl className="panel-priority-meta" aria-label="Panel priority metadata">
+          <div>
+            <dt>Role</dt>
+            <dd>{priority.role}</dd>
+          </div>
+          <div>
+            <dt>State</dt>
+            <dd>{priority.state}</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+  );
+}
+
 function PipelineDispatchRequestRecordRow({ record }: { record: PipelineDispatchRequestRecord }) {
   return (
     <li className={classNames("pipeline-request-record", `pipeline-request-record-${record.action}`)}>
@@ -1914,6 +1963,10 @@ function RightPanel({
   const milestoneStatusSummary = useMemo(
     () => summarizeMilestoneStatuses(steerboardMilestoneStatuses),
     []
+  );
+  const panelPriority = useMemo(
+    () => createCockpitPanelPriority(sessions),
+    [sessions]
   );
   const latestRun = runSummary.latestRun;
   const selectedTimeline = useMemo(
@@ -2345,6 +2398,8 @@ function RightPanel({
           </div>
         </div>
       </section>
+
+      <PanelPrioritySignal priority={panelPriority} />
 
       <MilestoneStatusPanel
         milestones={steerboardMilestoneStatuses}
