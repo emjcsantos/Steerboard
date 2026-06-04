@@ -2,7 +2,7 @@
 
 ## Decision
 
-AtlasUI is an original product. It may learn from open-source references, but it should not become a visual clone, code clone, or thin rebrand of another desktop IDE.
+Steerboard is an original product. It may learn from open-source references, but it should not become a visual clone, code clone, or thin rebrand of another desktop IDE.
 
 ## Attribution
 
@@ -19,8 +19,8 @@ Reference credit is appropriate even when no code is copied. License notice is m
 
 ## Product Originality Rules
 
-- AtlasUI owns its own product name, information architecture, interaction model, visual language, and implementation.
-- Harnss may inform what to inspect, avoid, or harden, but it must not dictate AtlasUI's structure.
+- Steerboard owns its own product name, information architecture, interaction model, visual language, and implementation.
+- Harnss may inform what to inspect, avoid, or harden, but it must not dictate Steerboard's structure.
 - Do not copy screens one-to-one.
 - Do not copy brand assets, icons, screenshots, copywriting, or release metadata.
 - Do not import code without a recorded reuse decision and third-party notice update.
@@ -37,5 +37,5 @@ Before importing third-party code or assets, record:
 - changes made,
 - attribution update,
 - dependency/security review result,
-- confirmation that AtlasUI remains distinct.
+- confirmation that Steerboard remains distinct.
 

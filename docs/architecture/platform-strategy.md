@@ -1,6 +1,6 @@
 # Platform Strategy
 
-AtlasUI should be desktop-first.
+Steerboard should be desktop-first.
 
 The product needs privileged local capabilities: project-root file access, Git operations, terminal/process control, local agent runtimes, long-running sessions, notifications, and secure local preferences. A hosted web app cannot safely or reliably own those capabilities without adding a separate local daemon. A browser-only version can become a companion later, but it should not be the primary MVP surface.
 
@@ -39,7 +39,7 @@ Use a shell abstraction and keep the first implementation replaceable. Prefer a 
 
 Start with a Tauri feasibility spike if the MVP can keep terminal, editor, and agent integration simple. Choose Electron if the spike shows that core IDE surfaces would take materially longer in Tauri.
 
-Either way, AtlasUI should keep shell-specific code behind an adapter so product work can continue without locking every feature to one desktop framework.
+Either way, Steerboard should keep shell-specific code behind an adapter so product work can continue without locking every feature to one desktop framework.
 
 ## Deployment Model
 
@@ -51,6 +51,6 @@ Either way, AtlasUI should keep shell-specific code behind an adapter so product
 
 ## Adoption Strategy
 
-Use git-based source installation first for developers and security-conscious early users. It lets people inspect the code, scripts, dependencies, and local permission boundaries before running AtlasUI against real projects.
+Use git-based source installation first for developers and security-conscious early users. It lets people inspect the code, scripts, dependencies, and local permission boundaries before running Steerboard against real projects.
 
 Do not rely on git installation as the only long-term distribution path. Many users will want a signed app or trusted package-manager install once the product is stable.

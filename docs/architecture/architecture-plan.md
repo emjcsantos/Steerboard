@@ -2,7 +2,7 @@
 
 ## Recommended Starting Point
 
-Start with a clean AtlasUI scaffold and use Harnss as a reference implementation, not as a direct base.
+Start with a clea Steerboard scaffold and use Harnss as a reference implementation, not as a direct base.
 
 Reason: Harnss has strong feature fit, but its current audited dependency and security posture requires hardening before direct adoption.
 

@@ -27,7 +27,7 @@ Use skills and tools deliberately. They should speed development, validation, an
 | `product-design:prototype` | Building a clickable cockpit prototype from a confirmed brief | Useful when validating the product flow before deeper desktop integration |
 | `product-design:image-to-code` | Implementing a selected visual target | Useful after a concrete screenshot, Figma frame, or generated mock is chosen |
 | `product-design:design-qa` | Comparing implementation against a selected visual target | Useful before UI handoff once screenshots or Figma frames exist |
-| `product-design:audit` | Reviewing a working AtlasUI flow from captured evidence | Useful after a real flow exists, not before MVP scaffolding |
+| `product-design:audit` | Reviewing a working Steerboard flow from captured evidence | Useful after a real flow exists, not before MVP scaffolding |
 | `gh-fix-ci` and `gh-address-comments` | Handling CI failures or PR review comments | Useful after CI and PR workflows exist |
 
 ## Avoid For MVP Unless Explicitly Needed

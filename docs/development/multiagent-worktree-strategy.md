@@ -1,6 +1,6 @@
 # Multiagent And Worktree Strategy
 
-AtlasUI development should use parallel agents and worktrees when the work can be split into small, non-overlapping file ownership lanes.
+Steerboard development should use parallel agents and worktrees when the work can be split into small, non-overlapping file ownership lanes.
 
 ## When To Use Parallel Agents
 

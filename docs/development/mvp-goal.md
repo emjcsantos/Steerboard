@@ -4,7 +4,7 @@ This goal follows the Define Goal quality bar: concrete outcome, scoped work, me
 
 ## Phase 1 Objective
 
-Build a clean AtlasUI scaffold from a fresh clone that launches locally as a desktop app, renders public-safe mock data for focus lane, orchestrator-with-workers, and independent project monitor modes up to `3x3`, and verifies with repeatable setup, lint, test, build, visual layout checks, and public-reference scans.
+Build a clea Steerboard scaffold from a fresh clone that launches locally as a desktop app, renders public-safe mock data for focus lane, orchestrator-with-workers, and independent project monitor modes up to `3x3`, and verifies with repeatable setup, lint, test, build, visual layout checks, and public-reference scans.
 
 ## In Scope
 

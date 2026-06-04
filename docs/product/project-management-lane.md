@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The project management lane is a future AtlasUI tab where users manage development pipelines before deploying selected work to Codex.
+The project management lane is a future Steerboard tab where users manage development pipelines before deploying selected work to Codex.
 
 It should make the product useful before a coding agent starts: the user can organize priorities, define scope, attach acceptance criteria, inspect readiness, and then dispatch a clean task package into the Codex orchestration workflow.
 
@@ -20,7 +20,7 @@ It should make the product useful before a coding agent starts: the user can org
 1. User opens the project management tab.
 2. User creates or selects a generic project workspace.
 3. User adds pipeline items with scope, priority, acceptance criteria, and validation.
-4. AtlasUI checks readiness and highlights missing fields.
+4. Steerboard checks readiness and highlights missing fields.
 5. User clicks deploy to Codex.
 6. The main orchestrator turns the selected item into a run plan, small worker tasks, validation tasks, and integration steps.
 7. The cockpit opens the resulting run while the project management lane keeps the pipeline status synchronized.

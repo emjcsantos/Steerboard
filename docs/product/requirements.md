@@ -47,7 +47,7 @@
 - Clear visual distinction between orchestrator, implementer, validator, and integration roles.
 - User can collapse from `3x3` down to simpler layouts as needed.
 - User can switch cockpit modes without losing active session state.
-- AtlasUI must have its own visual identity and interaction model rather than copying a reference product screen-for-screen.
+- Steerboard must have its own visual identity and interaction model rather than copying a reference product screen-for-screen.
 - Animations must be restrained, fast, and purposeful: use them to preserve spatial continuity when sessions move, resize, start, pause, or complete.
 - Every cockpit cell must keep transcript, status, tool activity, and validation evidence readable without overlap.
 - Icon buttons must have accessible labels, visible focus states, and clear hover/pressed/disabled states.
@@ -62,5 +62,5 @@
 - Multiagent and multiworktree development must use non-overlapping file ownership.
 - Destructive actions require explicit user confirmation.
 - Third-party code must pass license, dependency, script, IPC, storage, and network review before adoption.
-- Third-party inspiration must be credited, but AtlasUI code and UI should remain original unless a deliberate fork/import decision is recorded.
+- Third-party inspiration must be credited, but Steerboard code and UI should remain original unless a deliberate fork/import decision is recorded.
 - Public docs, screenshots, fixtures, seeds, and demo data must use generic project names only.

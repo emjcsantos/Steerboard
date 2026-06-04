@@ -2,7 +2,7 @@
 
 ## Product
 
-AtlasUI is a desktop IDE for monitoring and steering multiple AI coding sessions at once.
+Steerboard is a desktop IDE for monitoring and steering multiple AI coding sessions at once.
 
 ## Problem
 
@@ -10,7 +10,7 @@ Single-chat IDE surfaces make it hard to monitor concurrent work. Users often ne
 
 ## Target Experience
 
-AtlasUI should feel like a practical command cockpit:
+Steerboard should feel like a practical command cockpit:
 
 - left project/thread navigation,
 - adaptive multi-session cockpit in the main area,

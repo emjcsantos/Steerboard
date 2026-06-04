@@ -88,7 +88,7 @@ Script result: gated.
 
 `electron-liquid-glass` is pinned to a GitHub tarball commit.
 
-This needs separate review or removal before AtlasUI adopts Harnss code.
+This needs separate review or removal before Steerboard adopts Harnss code.
 
 Third-party dependency result: gated.
 
@@ -96,7 +96,7 @@ Third-party dependency result: gated.
 
 Harnss can auto-download Codex using `npm pack @openai/codex@<platform-tag>`.
 
-This should be opt-in in AtlasUI and should verify source, version, and destination.
+This should be opt-in in Steerboard and should verify source, version, and destination.
 
 Managed binary result: gated.
 
@@ -104,7 +104,7 @@ Managed binary result: gated.
 
 Harnss includes Claude CLI installation paths that run platform installers such as PowerShell, cmd, or shell curl pipelines.
 
-AtlasUI should not include auto-install-by-pipeline behavior in MVP.
+Steerboard should not include auto-install-by-pipeline behavior in MVP.
 
 Auto-install result: gated.
 
@@ -112,7 +112,7 @@ Auto-install result: gated.
 
 Several exposed file APIs accept absolute paths, including read, rename, trash, open in editor, and folder operations.
 
-AtlasUI should scope file operations to project roots by default.
+Steerboard should scope file operations to project roots by default.
 
 IPC path result: gated.
 
@@ -120,7 +120,7 @@ IPC path result: gated.
 
 Harnss enables `webviewTag` and has browser/webview features, including webview JavaScript injection for element inspection.
 
-AtlasUI can reuse the product idea, but browser/webview execution should be isolated and optional.
+Steerboard can reuse the product idea, but browser/webview execution should be isolated and optional.
 
 Browser surface result: gated.
 
@@ -128,7 +128,7 @@ Browser surface result: gated.
 
 Harnss defaults main-process analytics to enabled. Renderer analytics starts opted out until settings sync, but the app setting default is true.
 
-AtlasUI should default analytics off.
+Steerboard should default analytics off.
 
 Analytics result: gated.
 
@@ -136,7 +136,7 @@ Analytics result: gated.
 
 Harnss can execute setup commands from `.harnss/worktree.json` after creating a worktree.
 
-AtlasUI should require explicit user confirmation before running project-provided commands.
+Steerboard should require explicit user confirmation before running project-provided commands.
 
 Worktree setup result: gated.
 
@@ -166,5 +166,5 @@ Harnss is clean enough to use as:
 - Codex app-server integration reference,
 - selective fork candidate after hardening.
 
-Do not import Harnss code into AtlasUI until the dependency audit and security gates above are resolved.
+Do not import Harnss code into Steerboard until the dependency audit and security gates above are resolved.
 

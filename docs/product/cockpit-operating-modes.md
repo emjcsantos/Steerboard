@@ -1,10 +1,10 @@
 # Cockpit Operating Modes
 
-AtlasUI's cockpit is a flexible monitoring surface, not a single workflow. The same panel system must support focused work, orchestrated multi-agent work, and independent project monitoring.
+Steerboard's cockpit is a flexible monitoring surface, not a single workflow. The same panel system must support focused work, orchestrated multi-agent work, and independent project monitoring.
 
 ## Mode 1: Focus Lane
 
-Use AtlasUI like a single coding-agent desktop app.
+Use Steerboard like a single coding-agent desktop app.
 
 - One project or run is active.
 - The cockpit can use `1x1`, `1x2`, or `2x1`.
@@ -13,7 +13,7 @@ Use AtlasUI like a single coding-agent desktop app.
 
 ## Mode 2: Orchestrator With Workers
 
-Use AtlasUI as a command cockpit for one orchestrated run.
+Use Steerboard as a command cockpit for one orchestrated run.
 
 - One main orchestrator panel owns the goal, task split, integration, and final report.
 - Worker panels show implementer and validator agents assigned to small, non-overlapping tasks.
@@ -22,7 +22,7 @@ Use AtlasUI as a command cockpit for one orchestrated run.
 
 ## Mode 3: Independent Project Monitor
 
-Use AtlasUI to watch several unrelated projects or runs at the same time.
+Use Steerboard to watch several unrelated projects or runs at the same time.
 
 - Each cockpit panel can bind to a different project, run, or session.
 - Projects do not share task ownership unless the user explicitly links them.

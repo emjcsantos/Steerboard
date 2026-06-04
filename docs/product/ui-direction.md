@@ -2,7 +2,7 @@
 
 ## Product Feel
 
-AtlasUI should feel like a calm, high-control engineering cockpit: focused, dense, legible, and smooth under pressure.
+Steerboard should feel like a calm, high-control engineering cockpit: focused, dense, legible, and smooth under pressure.
 
 The UI should not feel like a marketing page, a decorative dashboard, or a loose clone of an existing agent IDE.
 

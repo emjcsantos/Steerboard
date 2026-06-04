@@ -1,6 +1,6 @@
-# AtlasUI
+# Steerboard
 
-AtlasUI is a public desktop IDE project for coordinating multiple AI coding sessions in one cockpit.
+Steerboard is a public desktop IDE project for coordinating multiple AI coding sessions in one cockpit.
 
 The product goal is a Codex Desktop-like workspace where a human operator can run, compare, validate, and steer several coding-agent threads at once. The first-class workflow is:
 
@@ -13,7 +13,7 @@ The product goal is a Codex Desktop-like workspace where a human operator can ru
 
 This repository currently contains the public development plan, Harnss reference audit, architecture notes, and execution rules. No Harnss code has been copied into this repository yet.
 
-Harnss is MIT-licensed and highly relevant, but the audited commit is approved as a reference only until dependency and security hardening gates pass. AtlasUI is intended to be an original product with its own architecture, interaction model, visual identity, and implementation.
+Harnss is MIT-licensed and highly relevant, but the audited commit is approved as a reference only until dependency and security hardening gates pass. Steerboard is intended to be an original product with its own architecture, interaction model, visual identity, and implementation.
 
 ## Document Map
 
@@ -41,4 +41,4 @@ Harnss is MIT-licensed and highly relevant, but the audited commit is approved a
 
 ## Development Principle
 
-Do not start by blindly forking a large external IDE. Start with a small, testable AtlasUI scaffold, design a distinct cockpit experience, then selectively adapt proven patterns only after audit, attribution, and product-fit gates pass.
+Do not start by blindly forking a large external IDE. Start with a small, testable Steerboard scaffold, design a distinct cockpit experience, then selectively adapt proven patterns only after audit, attribution, and product-fit gates pass.

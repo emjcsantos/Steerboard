@@ -1,6 +1,6 @@
 # Installation Strategy
 
-AtlasUI should be easy to inspect before it is trusted with real projects.
+Steerboard should be easy to inspect before it is trusted with real projects.
 
 ## Recommended Adoption Ladder
 
@@ -16,8 +16,8 @@ The first public adoption path should be a git-based install for developers and 
 Expected shape:
 
 ```text
-git clone https://github.com/example/atlasui.git
-cd atlasui
+git clone https://github.com/your-org/steerboard.git
+cd steerboard
 pnpm install
 pnpm dev
 ```
@@ -60,7 +60,7 @@ Package managers make install and update flows feel less risky than downloading 
 
 ## Hosted Demo
 
-A hosted demo can be useful, but only as a product walkthrough with mock data. It should not be positioned as the real product because AtlasUI's core value depends on local project access and local runtime control.
+A hosted demo can be useful, but only as a product walkthrough with mock data. It should not be positioned as the real product because Steerboard's core value depends on local project access and local runtime control.
 
 ## Not Recommended For MVP
 

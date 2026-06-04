@@ -2,11 +2,11 @@
 
 ## Decision
 
-Use Harnss as a credited reference first, not as the initial AtlasUI codebase.
+Use Harnss as a credited reference first, not as the initial Steerboard codebase.
 
 ## Why
 
-Harnss has excellent product overlap with AtlasUI:
+Harnss has excellent product overlap with Steerboard:
 
 - multi-agent sessions,
 - Codex app-server integration,
@@ -16,7 +16,7 @@ Harnss has excellent product overlap with AtlasUI:
 
 However, the audited commit has dependency vulnerabilities and security hardening gates that make a direct fork too risky for the first public baseline.
 
-AtlasUI should remain an original product: its information architecture, orchestration model, cockpit layout behavior, visual language, and implementation should be designed specifically for AtlasUI.
+Steerboard should remain an original product: its information architecture, orchestration model, cockpit layout behavior, visual language, and implementation should be designed specifically for Steerboard.
 
 ## Approved Reuse
 
@@ -42,7 +42,7 @@ Not approved yet:
 
 ## Conditions To Upgrade To Fork Candidate
 
-Harnss or an AtlasUI fork can become a direct base only after:
+Harnss or a Steerboard fork can become a direct base only after:
 
 - production dependency audit has no critical or high advisories,
 - postinstall/native dependency behavior is documented and isolated,
@@ -52,8 +52,8 @@ Harnss or an AtlasUI fork can become a direct base only after:
 - managed binary downloads are opt-in,
 - worktree setup commands require confirmation,
 - third-party notices are preserved.
-- a product originality review confirms AtlasUI still has a distinct UI, architecture, and workflow.
+- a product originality review confirms Steerboard still has a distinct UI, architecture, and workflow.
 
 ## Current Path
 
-Continue with a clean AtlasUI scaffold, credit Harnss as research inspiration, then selectively port patterns only after they pass review and fit the AtlasUI product direction.
+Continue with a clea Steerboard scaffold, credit Harnss as research inspiration, then selectively port patterns only after they pass review and fit the Steerboard product direction.
