@@ -29,6 +29,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Provider-neutral runtime profile readiness model.
 - Runtime profile catalog and cockpit readiness panel.
 - Editable local runtime profile draft with saved-state repair.
+- Local runtime profile approval request preview.
 - Mock adapter for tests and demos.
 - Runtime setup and permission review flow.
 - Local launch request preview before approved runtime execution.

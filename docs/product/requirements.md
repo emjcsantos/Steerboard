@@ -65,6 +65,7 @@
 - The environment panel should show selected runtime profile readiness, transport, workspace posture, capability count, permission count, and safety copy before execution exists.
 - Users should be able to edit and locally persist a runtime profile draft without enabling execution.
 - Saved runtime profile draft state should be repaired to safe defaults when malformed or unavailable.
+- Runtime profile draft approvals should support local request and cancel states without activating a profile or starting a process.
 
 ## Later Functional Scope
 
@@ -91,6 +92,7 @@
 - Runtime profile editor for configuring provider-neutral transports, commands, permissions, and capabilities before launch approval.
 - Runtime profile catalog management with project/adapter mapping, review states, and disabled-by-default local process drafts.
 - Runtime profile drafts should graduate into approved runtime profiles only through an explicit permission and launch approval flow.
+- Approved runtime profile promotion should preserve an audit trail from draft readiness to activation decision.
 
 ## UX Requirements
 

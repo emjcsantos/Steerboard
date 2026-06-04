@@ -98,6 +98,11 @@ import {
   saveRuntimeProfileDraft
 } from "./runtimeProfileDraftStorage";
 import {
+  buildRuntimeProfileApprovalSnapshot,
+  type RuntimeProfileApprovalIntent,
+  type RuntimeProfileApprovalSnapshot
+} from "./runtimeProfileApproval";
+import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
   type DispatchPackage
@@ -1071,6 +1076,8 @@ function RightPanel({
   const [runtimeProfileDraft, setRuntimeProfileDraft] = useState<RuntimeProfile>(() =>
     loadRuntimeProfileDraft(createBlankRuntimeProfile({ adapterId: runtimeAdapter?.id ?? project.id }))
   );
+  const [runtimeProfileApprovalIntent, setRuntimeProfileApprovalIntent] =
+    useState<RuntimeProfileApprovalIntent>("idle");
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
@@ -1153,6 +1160,15 @@ function RightPanel({
   const runtimeProfileDraftReadiness = useMemo(
     () => evaluateRuntimeProfileReadiness(runtimeProfileDraft),
     [runtimeProfileDraft]
+  );
+  const runtimeProfileApprovalSnapshot = useMemo(
+    () =>
+      buildRuntimeProfileApprovalSnapshot(
+        runtimeProfileDraft,
+        runtimeProfileDraftReadiness,
+        runtimeProfileApprovalIntent
+      ),
+    [runtimeProfileApprovalIntent, runtimeProfileDraft, runtimeProfileDraftReadiness]
   );
   const canStartStream =
     Boolean(selectedRun) &&
@@ -1279,6 +1295,7 @@ function RightPanel({
   }
 
   function resetRuntimeProfileDraft() {
+    setRuntimeProfileApprovalIntent("idle");
     setRuntimeProfileDraft(
       createBlankRuntimeProfile({
         adapterId: runtimeAdapter?.id ?? project.id
@@ -1481,9 +1498,12 @@ function RightPanel({
       </section>
 
       <RuntimeProfilePanel
+        approval={runtimeProfileApprovalSnapshot}
         draft={runtimeProfileDraft}
         draftReadiness={runtimeProfileDraftReadiness}
+        onCancelDraftApproval={() => setRuntimeProfileApprovalIntent("idle")}
         onDraftChange={updateRuntimeProfileDraft}
+        onRequestDraftApproval={() => setRuntimeProfileApprovalIntent("requested")}
         onResetDraft={resetRuntimeProfileDraft}
         profile={selectedRuntimeProfile}
         readiness={selectedRuntimeProfileReadiness}
@@ -1652,17 +1672,23 @@ function RightPanel({
 }
 
 function RuntimeProfilePanel({
+  approval,
   draft,
   draftReadiness,
+  onCancelDraftApproval,
   onDraftChange,
+  onRequestDraftApproval,
   onResetDraft,
   profile,
   readiness,
   summary
 }: {
+  approval: RuntimeProfileApprovalSnapshot;
   draft: RuntimeProfile;
   draftReadiness: RuntimeProfileReadiness;
+  onCancelDraftApproval: () => void;
   onDraftChange: (nextDraft: Partial<RuntimeProfile>) => void;
+  onRequestDraftApproval: () => void;
   onResetDraft: () => void;
   profile?: RuntimeProfile;
   readiness?: RuntimeProfileReadiness;
@@ -1849,6 +1875,54 @@ function RuntimeProfilePanel({
         ) : (
           <p className="runtime-profile-ready-copy">Draft is ready for a future approval flow.</p>
         )}
+
+        <div className="runtime-profile-approval" aria-label="Runtime profile approval preview">
+          <div className="runtime-profile-approval-header">
+            <span className={classNames("runtime-profile-state", `runtime-profile-${approval.state}`)}>
+              <span aria-hidden="true" />
+              {approval.statusLabel}
+            </span>
+            <strong title={approval.label}>Approval</strong>
+          </div>
+          <p title={approval.detail}>{approval.detail}</p>
+          <dl className="runtime-profile-approval-grid">
+            <div>
+              <dt>Ready</dt>
+              <dd>{approval.readiness}%</dd>
+            </div>
+            <div>
+              <dt>Intent</dt>
+              <dd>{approval.intent}</dd>
+            </div>
+            <div>
+              <dt>Activation</dt>
+              <dd>Held</dd>
+            </div>
+          </dl>
+          <div className="runtime-profile-approval-actions">
+            <button
+              aria-label="Request runtime profile approval"
+              disabled={!approval.canRequest}
+              onClick={onRequestDraftApproval}
+              title={approval.primaryActionLabel}
+              type="button"
+            >
+              <ClipboardList size={14} />
+              <span>{approval.primaryActionLabel}</span>
+            </button>
+            <button
+              aria-label="Cancel runtime profile approval request"
+              disabled={!approval.canCancel}
+              onClick={onCancelDraftApproval}
+              title="Cancel request"
+              type="button"
+            >
+              <RotateCcw size={14} />
+              <span>Cancel</span>
+            </button>
+          </div>
+          <small title={approval.safety}>{approval.safety}</small>
+        </div>
 
         <small title={draftReadiness.safety}>{draftReadiness.safety}</small>
       </div>
