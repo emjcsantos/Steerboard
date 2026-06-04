@@ -125,6 +125,10 @@ import {
   type RuntimeStreamPlaybackState,
   type RuntimeStreamSnapshot
 } from "./runtimeStream";
+import {
+  buildRuntimeAdapterSessionSnapshot,
+  type RuntimeAdapterSessionSnapshot
+} from "./runtimeAdapterSession";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -998,6 +1002,10 @@ function RightPanel({
     streamPlayback?.cursor ?? 0,
     streamPlayback?.state ?? "idle"
   );
+  const runtimeAdapterSessionSnapshot = buildRuntimeAdapterSessionSnapshot(
+    runtimeAdapter,
+    runtimeStreamSnapshot
+  );
   const canStartStream =
     Boolean(selectedRun) &&
     runtimeIngestionEvents.length > 0 &&
@@ -1298,6 +1306,7 @@ function RightPanel({
 
       <section className="panel-section">
         <h4>Runtime Stream</h4>
+        <RuntimeAdapterSessionStatus snapshot={runtimeAdapterSessionSnapshot} />
         <div className="stream-status-row">
           <span className={classNames("stream-state", `stream-${runtimeStreamSnapshot.state}`)}>
             <span aria-hidden="true" />
@@ -1414,6 +1423,42 @@ function RuntimeIngestionListItem({ event }: { event: RuntimeIngestionEvent }) {
       </div>
       <span className="ingestion-status">{event.adapterStatus}</span>
     </li>
+  );
+}
+
+function RuntimeAdapterSessionStatus({ snapshot }: { snapshot: RuntimeAdapterSessionSnapshot }) {
+  return (
+    <div className="adapter-session" aria-label="Runtime adapter session">
+      <div className="adapter-session-header">
+        <span className={classNames("adapter-session-state", `adapter-session-${snapshot.state}`)}>
+          <span aria-hidden="true" />
+          {snapshot.state}
+        </span>
+        <strong title={snapshot.label}>{snapshot.label}</strong>
+      </div>
+      <p title={snapshot.heartbeat}>{snapshot.heartbeat}</p>
+      <dl className="adapter-session-grid">
+        <div>
+          <dt>Transport</dt>
+          <dd title={snapshot.transport}>{snapshot.transport}</dd>
+        </div>
+        <div>
+          <dt>Health</dt>
+          <dd>{snapshot.health}</dd>
+        </div>
+        <div>
+          <dt>Ready</dt>
+          <dd>{snapshot.readiness}%</dd>
+        </div>
+        <div>
+          <dt>Permissions</dt>
+          <dd>
+            {snapshot.enabledPermissions}/{snapshot.requiredPermissions}
+          </dd>
+        </div>
+      </dl>
+      <small title={snapshot.latestEventLabel}>Latest: {snapshot.latestEventLabel}</small>
+    </div>
   );
 }
 

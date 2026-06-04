@@ -46,6 +46,8 @@
 - Runtime ingestion previews should show accepted, review, and blocked event counts without executing any runtime process.
 - Selected mock runs should expose a local stream preview that can play, pause, and reset emitted adapter events for realtime cockpit monitoring.
 - Stream previews should show latest event, emitted count, pending count, and blocked state without starting external processes.
+- Runtime stream previews should expose adapter session status, heartbeat text, transport, and permission readiness for the selected project.
+- Adapter session status should reflect offline, connecting, ready, live, paused, complete, and blocked states from local adapter and stream evidence.
 
 ## Later Functional Scope
 
@@ -54,6 +56,7 @@
 - Live transcript streaming.
 - Live runtime event ingestion from configured adapters.
 - Live stream controls backed by configured adapter sessions.
+- Adapter session monitor backed by real configured runtime events.
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
 - MCP configuration and status.

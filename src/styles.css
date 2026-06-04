@@ -1122,6 +1122,119 @@ textarea {
   color: #ff9e85;
 }
 
+.adapter-session {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #272d36;
+  padding-bottom: 10px;
+}
+
+.adapter-session-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.adapter-session-header strong {
+  overflow: hidden;
+  color: #edf2f7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.adapter-session-state {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #c4ccd6;
+  padding: 5px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.adapter-session-state span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.adapter-session-live span {
+  background: #72a7ff;
+}
+
+.adapter-session-ready span,
+.adapter-session-complete span {
+  background: #89dda9;
+}
+
+.adapter-session-paused span,
+.adapter-session-connecting span {
+  background: #f0d984;
+}
+
+.adapter-session-blocked span {
+  background: #ff9e85;
+}
+
+.adapter-session p,
+.adapter-session small {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.adapter-session-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.adapter-session-grid div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border-radius: 8px;
+  background: #13171d;
+  padding: 7px 6px;
+}
+
+.adapter-session-grid dt,
+.adapter-session-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adapter-session-grid dt {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.adapter-session-grid dd {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
 .stream-status-row {
   display: flex;
   align-items: center;
