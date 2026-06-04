@@ -57,6 +57,14 @@ import {
   type PipelineItemDispatchPreview
 } from "./pipelineItemDispatchPreview";
 import {
+  appendPipelineDispatchRequestRecord,
+  createPipelineDispatchRequestRecord,
+  loadPipelineDispatchRequestHistory,
+  savePipelineDispatchRequestHistory,
+  type PipelineDispatchRequestAction,
+  type PipelineDispatchRequestRecord
+} from "./pipelineDispatchRequestHistory";
+import {
   loadWorkspacePreferences,
   saveWorkspacePreferences,
   type WorkspacePreferences
@@ -309,6 +317,7 @@ const runtimeTransportOptions: RuntimeTransport[] = ["local-process", "remote-en
 const runtimeWorkspaceModeOptions: RuntimeWorkspaceMode[] = ["read-only", "read-write", "isolated"];
 type ToolEvidenceCaptureIntent = "idle" | "requested";
 type RuntimeProfilePermissionRequestIntent = "idle" | "requested";
+type PipelineDispatchRequestIntent = "idle" | "requested";
 
 function classNames(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
@@ -329,6 +338,18 @@ function latestPermissionRequestIntent(
   records: RuntimeProfilePermissionRequestRecord[]
 ): RuntimeProfilePermissionRequestIntent {
   return records[0]?.action === "requested" ? "requested" : "idle";
+}
+
+function latestPipelineDispatchRequestIntent(
+  records: PipelineDispatchRequestRecord[],
+  itemId?: string
+): PipelineDispatchRequestIntent {
+  if (!itemId) {
+    return "idle";
+  }
+
+  const record = records.find((entry) => entry.itemId === itemId);
+  return record?.action === "requested" ? "requested" : "idle";
 }
 
 function formatTimestamp(value: string): string {
@@ -728,10 +749,22 @@ function PipelineView({
   tasks: OrchestrationTask[];
 }) {
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>(items[0]?.id);
+  const [dispatchRequestHistory, setDispatchRequestHistory] = useState<PipelineDispatchRequestRecord[]>(
+    () => loadPipelineDispatchRequestHistory()
+  );
   const selectedItem = items.find((item) => item.id === selectedItemId) ?? items[0];
   const selectedPreview = selectedItem
     ? buildPipelineItemDispatchPreview(selectedItem, registryEntry, runtimeAdapter)
     : undefined;
+  const dispatchRequestIntent = latestPipelineDispatchRequestIntent(
+    dispatchRequestHistory,
+    selectedPreview?.itemId
+  );
+  const selectedDispatchHistory = selectedPreview
+    ? dispatchRequestHistory.filter((record) => record.itemId === selectedPreview.itemId)
+    : [];
+  const canRequestDispatch = Boolean(selectedPreview?.canDispatch) && dispatchRequestIntent !== "requested";
+  const canCancelDispatch = dispatchRequestIntent === "requested";
   const dispatchableItemCount = items.filter((item) =>
     buildPipelineItemDispatchPreview(item, registryEntry, runtimeAdapter).canDispatch
   ).length;
@@ -741,6 +774,26 @@ function PipelineView({
   const taskSummary = summarizeTasks(tasks);
   const handoffTask = nextHandoffTask(tasks);
   const handoff = handoffTask ? buildHandoffBrief(handoffTask, project) : undefined;
+
+  useEffect(() => {
+    savePipelineDispatchRequestHistory(dispatchRequestHistory);
+  }, [dispatchRequestHistory]);
+
+  function recordPipelineDispatchAction(action: PipelineDispatchRequestAction) {
+    if (!selectedPreview) {
+      return;
+    }
+
+    const record = createPipelineDispatchRequestRecord(
+      selectedPreview,
+      action,
+      new Date().toISOString()
+    );
+
+    setDispatchRequestHistory((current) =>
+      appendPipelineDispatchRequestRecord(current, record)
+    );
+  }
 
   return (
     <section className="pipeline-view">
@@ -758,12 +811,13 @@ function PipelineView({
           </div>
         </div>
         <button
-          disabled={!selectedPreview?.canDispatch}
+          disabled={!canRequestDispatch}
+          onClick={() => recordPipelineDispatchAction("requested")}
           title={selectedPreview?.detail ?? `${dispatchableCount} ready tasks`}
           type="button"
         >
           <Play size={16} />
-          Dispatch Item
+          Request Dispatch
         </button>
       </div>
 
@@ -828,7 +882,17 @@ function PipelineView({
 
         <aside className="handoff-panel pipeline-detail-panel" aria-label="Selected pipeline item dispatch preview">
           {selectedPreview ? (
-            <PipelineItemDispatchDetail preview={selectedPreview} handoff={handoff} handoffTask={handoffTask} />
+            <PipelineItemDispatchDetail
+              canCancelDispatch={canCancelDispatch}
+              canRequestDispatch={canRequestDispatch}
+              handoff={handoff}
+              handoffTask={handoffTask}
+              history={selectedDispatchHistory}
+              intent={dispatchRequestIntent}
+              onCancelDispatch={() => recordPipelineDispatchAction("cancelled")}
+              onRequestDispatch={() => recordPipelineDispatchAction("requested")}
+              preview={selectedPreview}
+            />
           ) : (
             <p className="empty-preview">Select a pipeline item to inspect dispatch readiness.</p>
           )}
@@ -839,12 +903,24 @@ function PipelineView({
 }
 
 function PipelineItemDispatchDetail({
+  canCancelDispatch,
+  canRequestDispatch,
+  history,
   handoff,
   handoffTask,
+  intent,
+  onCancelDispatch,
+  onRequestDispatch,
   preview
 }: {
+  canCancelDispatch: boolean;
+  canRequestDispatch: boolean;
+  history: PipelineDispatchRequestRecord[];
   handoff?: ReturnType<typeof buildHandoffBrief>;
   handoffTask?: OrchestrationTask;
+  intent: PipelineDispatchRequestIntent;
+  onCancelDispatch: () => void;
+  onRequestDispatch: () => void;
   preview: PipelineItemDispatchPreview;
 }) {
   return (
@@ -895,6 +971,45 @@ function PipelineItemDispatchDetail({
           </ol>
         </section>
 
+        <section className="pipeline-request-section">
+          <div className="pipeline-request-header">
+            <div>
+              <h5>Dispatch Request</h5>
+              <small>{intent === "requested" ? "Request pending" : "No active request"}</small>
+            </div>
+            <span className={classNames("preview-state", intent === "requested" ? "preview-ready" : "preview-review")}>
+              {intent}
+            </span>
+          </div>
+          <div className="pipeline-request-actions">
+            <button
+              aria-label="Request selected pipeline item dispatch"
+              disabled={!canRequestDispatch}
+              onClick={onRequestDispatch}
+              type="button"
+            >
+              Request
+            </button>
+            <button
+              aria-label="Cancel selected pipeline item dispatch request"
+              disabled={!canCancelDispatch}
+              onClick={onCancelDispatch}
+              type="button"
+            >
+              Cancel
+            </button>
+          </div>
+          <ol className="pipeline-request-history" aria-label="Selected pipeline item dispatch request history">
+            {history.length > 0 ? (
+              history.slice(0, 4).map((record) => (
+                <PipelineDispatchRequestRecordRow key={record.id} record={record} />
+              ))
+            ) : (
+              <li className="pipeline-request-empty">Request dispatch to create a local record.</li>
+            )}
+          </ol>
+        </section>
+
         <section className="pipeline-handoff-section">
           <div className="pipeline-handoff-header">
             <div>
@@ -909,6 +1024,19 @@ function PipelineItemDispatchDetail({
         </section>
       </div>
     </>
+  );
+}
+
+function PipelineDispatchRequestRecordRow({ record }: { record: PipelineDispatchRequestRecord }) {
+  return (
+    <li className={classNames("pipeline-request-record", `pipeline-request-record-${record.action}`)}>
+      <span />
+      <div>
+        <strong>{record.action}</strong>
+        <small title={record.detail}>{formatTimestamp(record.createdAt)}</small>
+      </div>
+      <b title={record.state}>{record.readiness}%</b>
+    </li>
   );
 }
 

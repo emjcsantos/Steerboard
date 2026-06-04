@@ -45,6 +45,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Readiness checks before dispatch to a configured agent runtime.
 - Dispatch gates combine pipeline item readiness, project registry state, runtime adapter state, and required permission status.
 - Selected pipeline item previews summarize dispatch state and blocker details locally before any runtime process is launched.
+- Selected pipeline item dispatch request history stores local request and cancellation records separately from real runtime execution.
 - A local dispatch package preview is staged before any real runtime execution starts.
 - Mock orchestrator run projection converts staged packages into session and task rows for cockpit review before runtime adapters execute anything.
 - Local run history records staged package projections, task counts, panel counts, and validation gate counts for selected-run inspection.

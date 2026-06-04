@@ -31,6 +31,7 @@
 - Local-only persistence for mock projects and runs.
 - Placeholder project-management lane with generic sample pipelines and no private project names.
 - Selected pipeline items should expose a local dispatch detail preview with item, registry, and runtime gates before any runtime is launched.
+- Selected pipeline item dispatch requests should support local request and cancellation records that survive reloads without launching a runtime.
 - Dispatch gate preview with no real command execution.
 - Editable local planning drafts with readiness scoring before dispatch.
 - Local planning draft persistence with safe saved-state repair.
