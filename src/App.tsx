@@ -260,6 +260,10 @@ import {
   type CockpitPanelAttempt
 } from "./cockpitPanelAttempt";
 import {
+  createCockpitPanelValidation,
+  type CockpitPanelValidation
+} from "./cockpitPanelValidation";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -812,6 +816,7 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
   });
   const fileScope = createCockpitPanelFileScope(session.files);
   const attemptSignal = createCockpitPanelAttempt(session.attempt, session.state);
+  const validationSignal = createCockpitPanelValidation(session.validation, session.state);
 
   return (
     <article
@@ -845,7 +850,7 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
       </div>
 
       <footer className="cell-footer">
-        <span className="validation-label">{session.validation}</span>
+        <PanelValidationSignal validation={validationSignal} />
         <div className="cell-footer-actions">
           <PanelFileScopeSignal scope={fileScope} />
           <div className="tool-row">
@@ -856,6 +861,18 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
         </div>
       </footer>
     </article>
+  );
+}
+
+function PanelValidationSignal({ validation }: { validation: CockpitPanelValidation }) {
+  return (
+    <span
+      aria-label={`Validation status: ${validation.label}`}
+      className={classNames("panel-validation-signal", `panel-validation-${validation.tone}`)}
+      title={validation.detail}
+    >
+      {validation.label}
+    </span>
   );
 }
 
