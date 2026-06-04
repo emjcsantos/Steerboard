@@ -2359,6 +2359,10 @@ function CockpitMonitorStrip({
   const latestEventCue = `${summary.latestEventLabel} ${summary.latestEventStatus}`.trim();
   const latestEventDetail = `${latestEventCue}. ${summary.latestEventDetail}`;
   const hasRecentEvents = recentEventFeed.length > 0;
+  const streamProgressPercent = Math.max(
+    0,
+    Math.min(100, Number(summary.streamProgressPercent) || 0)
+  );
 
   return (
     <section className="monitor-strip" aria-label="Cockpit monitor summary">
@@ -2396,6 +2400,17 @@ function CockpitMonitorStrip({
           {summary.streamLabel}
         </span>
         <small>{summary.streamProgressLabel}</small>
+      </div>
+      <div className="monitor-stream-progress" aria-label="Cockpit stream progress">
+        <progress
+          aria-label="Cockpit stream progress percentage"
+          className="monitor-stream-progress-bar"
+          max={100}
+          value={streamProgressPercent}
+        />
+        <span className="monitor-stream-progress-value" aria-live="polite">
+          {summary.streamProgressValue}
+        </span>
       </div>
       <div className="monitor-latest-event" title={latestEventDetail}>
         <strong>Latest:</strong>

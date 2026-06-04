@@ -75,6 +75,8 @@ describe("cockpit monitor summary", () => {
       streamLabel: "Idle",
       streamState: "idle",
       streamProgressLabel: "0/0 emitted",
+      streamProgressPercent: 0,
+      streamProgressValue: "0%",
       pendingCount: 0,
       blockedCount: 0,
       latestEventLabel: "Waiting for first local event.",
@@ -103,6 +105,8 @@ describe("cockpit monitor summary", () => {
     expect(summary.streamState).toBe("streaming");
     expect(summary.streamLabel).toBe("Streaming");
     expect(summary.streamProgressLabel).toBe("1/3 emitted");
+    expect(summary.streamProgressPercent).toBe(33);
+    expect(summary.streamProgressValue).toBe("33%");
     expect(summary.timelineTotal).toBe(timelineSummary.total);
   });
 
@@ -115,6 +119,38 @@ describe("cockpit monitor summary", () => {
     expect(summary.latestEventLabel).toBe("Waiting for first local event.");
     expect(summary.latestEventStatus).toBe("none");
     expect(summary.latestEventDetail).toBe("No emitted events yet.");
+    expect(summary.streamProgressPercent).toBe(0);
+    expect(summary.streamProgressValue).toBe("0%");
+  });
+
+  it("safeguards over-total and non-finite stream totals", () => {
+    const run = buildDraftRun("running", "monitor-progress-safety");
+    const timelineSummary = summarizeRunTimeline(buildRunTimeline(run));
+    const snapshot = buildRuntimeStreamSnapshot(
+      [makeIngestionEvent("evt-1", "accepted"), makeIngestionEvent("evt-2", "accepted")],
+      2,
+      "streaming"
+    );
+    const snapshotCopy = structuredClone(snapshot);
+    const badSnapshot = {
+      ...snapshot,
+      emitted: 5,
+      total: 2
+    };
+    const nonFiniteSnapshot = {
+      ...snapshot,
+      emitted: 1,
+      total: Infinity
+    };
+
+    const clampedSummary = buildCockpitMonitorSummary(run, timelineSummary, badSnapshot);
+    const nonFiniteSummary = buildCockpitMonitorSummary(run, timelineSummary, nonFiniteSnapshot);
+
+    expect(clampedSummary.streamProgressPercent).toBe(100);
+    expect(clampedSummary.streamProgressValue).toBe("100%");
+    expect(nonFiniteSummary.streamProgressPercent).toBe(0);
+    expect(nonFiniteSummary.streamProgressValue).toBe("0%");
+    expect(snapshot).toEqual(snapshotCopy);
   });
 
   it("uses public-safe latest event metadata from the runtime stream", () => {

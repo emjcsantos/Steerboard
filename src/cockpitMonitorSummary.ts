@@ -12,6 +12,8 @@ export interface CockpitMonitorSummary {
   streamLabel: string;
   streamState: RuntimeStreamPlaybackState | "blocked" | "complete" | string;
   streamProgressLabel: string;
+  streamProgressPercent: number;
+  streamProgressValue: string;
   pendingCount: number;
   blockedCount: number;
   latestEventLabel: string;
@@ -31,6 +33,8 @@ function buildNoRunSummary(): CockpitMonitorSummary {
     streamLabel: "Idle",
     streamState: "idle",
     streamProgressLabel: "0/0 emitted",
+    streamProgressPercent: 0,
+    streamProgressValue: "0%",
     pendingCount: 0,
     blockedCount: 0,
     latestEventLabel: "Waiting for first local event.",
@@ -55,6 +59,27 @@ function buildStreamLabel(state: string): string {
     default:
       return "Stream";
   }
+}
+
+function buildStreamProgressPercent(snapshot: RuntimeStreamSnapshot): number {
+  if (!Number.isFinite(snapshot.total) || snapshot.total <= 0 || snapshot.emitted <= 0) {
+    return 0;
+  }
+
+  if (!Number.isFinite(snapshot.emitted)) {
+    return 0;
+  }
+
+  const rawPercent = (snapshot.emitted / snapshot.total) * 100;
+  if (!Number.isFinite(rawPercent)) {
+    return 0;
+  }
+
+  return Math.min(100, Math.max(0, Math.round(rawPercent)));
+}
+
+function buildStreamProgressValue(snapshot: RuntimeStreamSnapshot): string {
+  return `${buildStreamProgressPercent(snapshot)}%`;
 }
 
 function sanitizeCueText(value: string | undefined, fallback: string): string {
@@ -114,6 +139,8 @@ export function buildCockpitMonitorSummary(
     streamLabel: buildStreamLabel(streamSnapshot.state),
     streamState: safeStreamState,
     streamProgressLabel: `${streamSnapshot.emitted}/${streamSnapshot.total} emitted`,
+    streamProgressPercent: buildStreamProgressPercent(streamSnapshot),
+    streamProgressValue: buildStreamProgressValue(streamSnapshot),
     pendingCount: streamSnapshot.pending,
     blockedCount: streamSnapshot.blocked,
     latestEventLabel: latestEventCue.latestEventLabel,
