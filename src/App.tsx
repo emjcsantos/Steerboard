@@ -228,6 +228,10 @@ import {
   type CockpitMonitorAttention
 } from "./cockpitMonitorAttention";
 import {
+  createCockpitMonitorQuality,
+  type CockpitMonitorQuality
+} from "./cockpitMonitorQuality";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -1652,6 +1656,10 @@ function RightPanel({
     () => createCockpitMonitorAttention(cockpitMonitorSummary, cockpitMonitorHealth),
     [cockpitMonitorHealth, cockpitMonitorSummary]
   );
+  const cockpitMonitorQuality = useMemo(
+    () => createCockpitMonitorQuality(runtimeStreamSnapshot),
+    [runtimeStreamSnapshot]
+  );
   const runtimeSourceConnectionSnapshot = buildRuntimeSourceConnectionSnapshot(
     runtimeAdapter,
     runtimeEventSourceSnapshot
@@ -1973,6 +1981,7 @@ function RightPanel({
         controls={cockpitMonitorControlState}
         health={cockpitMonitorHealth}
         nextEventPreview={cockpitMonitorNextEventPreview}
+        quality={cockpitMonitorQuality}
         recentEventFeed={recentEventFeed}
         onAttach={() => updateBridgeIntent("attached")}
         onPause={() => updateStreamPlayback("paused")}
@@ -2371,6 +2380,7 @@ function CockpitMonitorStrip({
   controls,
   health,
   nextEventPreview,
+  quality,
   recentEventFeed,
   onAttach,
   onPause,
@@ -2382,6 +2392,7 @@ function CockpitMonitorStrip({
   controls: CockpitMonitorControlState;
   health: CockpitMonitorHealth;
   nextEventPreview: CockpitMonitorNextEventPreview;
+  quality: CockpitMonitorQuality;
   recentEventFeed: CockpitMonitorEventFeedItem[];
   onAttach: () => void;
   onPause: () => void;
@@ -2429,6 +2440,29 @@ function CockpitMonitorStrip({
         <strong>{attention.label}</strong>
         <small>{attention.detail}</small>
         <b>{attention.actionLabel}</b>
+      </div>
+      <div
+        aria-label={`Stream quality: ${quality.label}`}
+        className={classNames("monitor-quality-row", `monitor-quality-${quality.tone}`)}
+        title={quality.detail}
+      >
+        <div className="monitor-quality-copy">
+          <strong>{quality.label}</strong>
+          <small>{quality.detail}</small>
+        </div>
+        <b className="monitor-quality-readiness">{quality.readinessLabel}</b>
+        <div className="monitor-quality-metrics" aria-label="Stream quality metrics">
+          {quality.metrics.map((metric) => (
+            <span
+              className={classNames("monitor-quality-metric", `monitor-quality-metric-${metric.tone}`)}
+              key={metric.label}
+              title={`${metric.label}: ${metric.value}`}
+            >
+              <strong>{metric.value}</strong>
+              <small>{metric.label}</small>
+            </span>
+          ))}
+        </div>
       </div>
       <div className="monitor-strip-grid">
         <span>

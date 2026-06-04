@@ -740,6 +740,106 @@ textarea {
   color: #ff9e85;
 }
 
+.monitor-quality-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+  min-width: 0;
+  border: 1px solid #27303a;
+  border-radius: 8px;
+  background: #151b22;
+  padding: 8px;
+}
+
+.monitor-quality-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.monitor-quality-copy strong,
+.monitor-quality-copy small,
+.monitor-quality-readiness,
+.monitor-quality-metric strong,
+.monitor-quality-metric small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitor-quality-copy strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.monitor-quality-copy small {
+  color: #9fa9b4;
+  font-size: 10px;
+}
+
+.monitor-quality-readiness {
+  align-self: start;
+  justify-self: end;
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce3eb;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.monitor-quality-metrics {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.monitor-quality-metric {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 6px 5px;
+  text-align: center;
+}
+
+.monitor-quality-metric strong {
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.monitor-quality-metric small {
+  color: #8f99a5;
+  font-size: 9px;
+}
+
+.monitor-quality-clean {
+  border-color: #254634;
+}
+
+.monitor-quality-review {
+  border-color: #4b3d1f;
+}
+
+.monitor-quality-blocked {
+  border-color: #5c2c21;
+}
+
+.monitor-quality-metric-accepted strong {
+  color: #89dda9;
+}
+
+.monitor-quality-metric-review strong {
+  color: #f0d984;
+}
+
+.monitor-quality-metric-blocked strong {
+  color: #ff9e85;
+}
+
 .monitor-strip-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
