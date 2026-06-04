@@ -220,6 +220,10 @@ import {
   type CockpitMonitorNextEventPreview
 } from "./cockpitMonitorNextEvent";
 import {
+  createCockpitMonitorHealth,
+  type CockpitMonitorHealth
+} from "./cockpitMonitorHealth";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -1636,6 +1640,10 @@ function RightPanel({
     () => buildCockpitMonitorNextEventPreview(runtimeEventSourceSnapshot),
     [runtimeEventSourceSnapshot]
   );
+  const cockpitMonitorHealth = useMemo(
+    () => createCockpitMonitorHealth(runtimeStreamSnapshot),
+    [runtimeStreamSnapshot]
+  );
   const runtimeSourceConnectionSnapshot = buildRuntimeSourceConnectionSnapshot(
     runtimeAdapter,
     runtimeEventSourceSnapshot
@@ -1954,6 +1962,7 @@ function RightPanel({
 
       <CockpitMonitorStrip
         controls={cockpitMonitorControlState}
+        health={cockpitMonitorHealth}
         nextEventPreview={cockpitMonitorNextEventPreview}
         recentEventFeed={recentEventFeed}
         onAttach={() => updateBridgeIntent("attached")}
@@ -2350,6 +2359,7 @@ function RightPanel({
 
 function CockpitMonitorStrip({
   controls,
+  health,
   nextEventPreview,
   recentEventFeed,
   onAttach,
@@ -2359,6 +2369,7 @@ function CockpitMonitorStrip({
   summary
 }: {
   controls: CockpitMonitorControlState;
+  health: CockpitMonitorHealth;
   nextEventPreview: CockpitMonitorNextEventPreview;
   recentEventFeed: CockpitMonitorEventFeedItem[];
   onAttach: () => void;
@@ -2390,6 +2401,15 @@ function CockpitMonitorStrip({
         </span>
       </div>
       <p title={summary.detail}>{summary.detail}</p>
+      <div
+        className={classNames("monitor-health-row", `monitor-health-${health.tone}`)}
+        title={health.detail}
+      >
+        <span aria-hidden="true" />
+        <strong>{health.stateLabel}</strong>
+        <small>{health.detail}</small>
+        <b aria-label={`Stream heartbeat ${health.pulseLabel}`}>{health.pulseLabel}</b>
+      </div>
       <div className="monitor-strip-grid">
         <span>
           <strong>{summary.activeCount}</strong>

@@ -599,6 +599,67 @@ textarea {
   font-size: 11px;
 }
 
+.monitor-health-row {
+  display: grid;
+  grid-template-columns: auto minmax(52px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  border-radius: 8px;
+  background: #171d24;
+  padding: 7px 8px;
+}
+
+.monitor-health-row > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.monitor-health-row strong,
+.monitor-health-row small,
+.monitor-health-row b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitor-health-row strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.monitor-health-row small {
+  color: #9fa9b4;
+  font-size: 10px;
+}
+
+.monitor-health-row b {
+  color: #dce3eb;
+  font-size: 10px;
+  justify-self: end;
+}
+
+.monitor-health-live > span {
+  background: #8bd7f4;
+  animation: stream-pulse 1.6s ease-out infinite;
+}
+
+.monitor-health-ready > span,
+.monitor-health-complete > span {
+  background: #89dda9;
+}
+
+.monitor-health-paused > span {
+  background: #f0d984;
+}
+
+.monitor-health-blocked > span {
+  background: #ff9e85;
+}
+
 .monitor-strip-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -4471,6 +4532,7 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .monitor-health-live > span,
   .stream-streaming span {
     animation: none;
   }
