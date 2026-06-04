@@ -33,6 +33,7 @@
 - Selected pipeline items should expose a local dispatch detail preview with item, registry, and runtime gates before any runtime is launched.
 - Selected pipeline item dispatch requests should support local request and cancellation records that survive reloads without launching a runtime.
 - Dispatch-ready pipeline items should create a local cockpit run projection and switch users to the cockpit without launching an external runtime.
+- Selected pipeline items should list their linked local cockpit run projections and allow users to reopen a linked run from the pipeline detail view.
 - Dispatch gate preview with no real command execution.
 - Editable local planning drafts with readiness scoring before dispatch.
 - Local planning draft persistence with safe saved-state repair.

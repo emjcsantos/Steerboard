@@ -60,6 +60,10 @@ import {
   tryBuildPipelineItemDispatchPackage
 } from "./pipelineItemDispatchPackage";
 import {
+  buildPipelineItemRunLinks,
+  type PipelineItemRunLink
+} from "./pipelineItemRunLink";
+import {
   appendPipelineDispatchRequestRecord,
   createPipelineDispatchRequestRecord,
   loadPipelineDispatchRequestHistory,
@@ -658,6 +662,11 @@ export function App() {
             ) : view === "pipeline" ? (
               <PipelineView
                 items={projectPipelineItems}
+                mockRuns={projectMockRuns}
+                onOpenRun={(runId) => {
+                  setSelectedRunId(runId);
+                  updatePreferences({ view: "cockpit" });
+                }}
                 onStagePackage={handleStagePackage}
                 project={project}
                 registryEntry={registryEntry}
@@ -741,6 +750,8 @@ function SessionCell({ session }: { session: SessionSummary }) {
 
 function PipelineView({
   items,
+  mockRuns,
+  onOpenRun,
   onStagePackage,
   project,
   registryEntry,
@@ -748,6 +759,8 @@ function PipelineView({
   tasks
 }: {
   items: PipelineItem[];
+  mockRuns: MockOrchestratorRun[];
+  onOpenRun: (runId: string) => void;
   onStagePackage: (dispatchPackage: DispatchPackage) => void;
   project: ProjectSummary;
   registryEntry?: RegistryEntry;
@@ -769,6 +782,7 @@ function PipelineView({
   const selectedDispatchHistory = selectedPreview
     ? dispatchRequestHistory.filter((record) => record.itemId === selectedPreview.itemId)
     : [];
+  const selectedRunLinks = selectedItem ? buildPipelineItemRunLinks(selectedItem, mockRuns) : [];
   const canRequestDispatch = Boolean(selectedPreview?.canDispatch) && dispatchRequestIntent !== "requested";
   const canCancelDispatch = dispatchRequestIntent === "requested";
   const dispatchableItemCount = items.filter((item) =>
@@ -918,8 +932,10 @@ function PipelineView({
               intent={dispatchRequestIntent}
               onCancelDispatch={() => recordPipelineDispatchAction("cancelled")}
               onCreateCockpitRun={createPipelineCockpitRun}
+              onOpenRun={onOpenRun}
               onRequestDispatch={() => recordPipelineDispatchAction("requested")}
               preview={selectedPreview}
+              runLinks={selectedRunLinks}
             />
           ) : (
             <p className="empty-preview">Select a pipeline item to inspect dispatch readiness.</p>
@@ -940,8 +956,10 @@ function PipelineItemDispatchDetail({
   intent,
   onCancelDispatch,
   onCreateCockpitRun,
+  onOpenRun,
   onRequestDispatch,
-  preview
+  preview,
+  runLinks
 }: {
   canCancelDispatch: boolean;
   canCreateCockpitRun: boolean;
@@ -952,8 +970,10 @@ function PipelineItemDispatchDetail({
   intent: PipelineDispatchRequestIntent;
   onCancelDispatch: () => void;
   onCreateCockpitRun: () => void;
+  onOpenRun: (runId: string) => void;
   onRequestDispatch: () => void;
   preview: PipelineItemDispatchPreview;
+  runLinks: PipelineItemRunLink[];
 }) {
   return (
     <>
@@ -1045,6 +1065,7 @@ function PipelineItemDispatchDetail({
               Create Run
             </button>
           </div>
+          <PipelineItemRunLinks links={runLinks} onOpenRun={onOpenRun} />
           <ol className="pipeline-request-history" aria-label="Selected pipeline item dispatch request history">
             {history.length > 0 ? (
               history.slice(0, 4).map((record) => (
@@ -1070,6 +1091,47 @@ function PipelineItemDispatchDetail({
         </section>
       </div>
     </>
+  );
+}
+
+function PipelineItemRunLinks({
+  links,
+  onOpenRun
+}: {
+  links: PipelineItemRunLink[];
+  onOpenRun: (runId: string) => void;
+}) {
+  return (
+    <section className="pipeline-linked-runs" aria-label="Selected pipeline item linked cockpit runs">
+      <div className="pipeline-linked-runs-header">
+        <strong>Linked cockpit runs</strong>
+        <span>{links.length}</span>
+      </div>
+      {links.length > 0 ? (
+        <ol>
+          {links.map((link) => (
+            <li className="pipeline-linked-run" key={link.runId}>
+              <div>
+                <strong title={link.title}>{link.title}</strong>
+                <small title={link.sourcePackageId}>
+                  {formatShortDate(link.createdAt)} | {link.taskCount} tasks | {link.validationGateCount} gates
+                </small>
+              </div>
+              <span className={classNames("pipeline-linked-status", `run-${link.status}`)}>{link.status}</span>
+              <button
+                aria-label={`Open linked cockpit run ${link.runId}`}
+                onClick={() => onOpenRun(link.runId)}
+                type="button"
+              >
+                Open
+              </button>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="pipeline-linked-empty">Create a local cockpit run to attach a visible trace.</p>
+      )}
+    </section>
   );
 }
 

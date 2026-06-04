@@ -4745,6 +4745,123 @@ textarea {
   color: #a4adb7;
 }
 
+.pipeline-linked-runs {
+  margin-top: 12px;
+  border: 1px solid #272d36;
+  border-radius: 8px;
+  background: #151a20;
+  padding: 9px;
+}
+
+.pipeline-linked-runs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pipeline-linked-runs-header strong {
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.pipeline-linked-runs-header span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #c9d1da;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.pipeline-linked-runs ol {
+  display: grid;
+  gap: 7px;
+  margin: 9px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pipeline-linked-run {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #272d36;
+  border-radius: 8px;
+  background: #181d23;
+  padding: 8px;
+}
+
+.pipeline-linked-run strong,
+.pipeline-linked-run small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pipeline-linked-run strong {
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.pipeline-linked-run small {
+  margin-top: 2px;
+  color: #9fa9b4;
+}
+
+.pipeline-linked-status {
+  border-radius: 999px;
+  padding: 4px 7px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.pipeline-linked-status.run-queued {
+  background: #263241;
+  color: #b8c8dc;
+}
+
+.pipeline-linked-status.run-running {
+  background: #172f3b;
+  color: #8bd7f4;
+}
+
+.pipeline-linked-status.run-complete {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.pipeline-linked-status.run-blocked,
+.pipeline-linked-status.run-failed {
+  background: #442119;
+  color: #ff9e85;
+}
+
+.pipeline-linked-run button {
+  border-radius: 8px;
+  background: #252b34;
+  color: #dce3eb;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pipeline-linked-run button:hover,
+.pipeline-linked-run button:focus-visible {
+  background: #303844;
+}
+
+.pipeline-linked-empty {
+  margin: 9px 0 0;
+  border: 1px dashed #303844;
+  border-radius: 8px;
+  color: #9fa9b4;
+  padding: 9px;
+}
+
 .pipeline-request-history {
   display: grid;
   gap: 7px;
@@ -5047,8 +5164,18 @@ textarea {
     grid-template-columns: minmax(0, 1fr) 260px;
   }
 
+  .topbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .topbar-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
   .segmented.compact {
-    display: none;
+    display: flex;
   }
 
   .pipeline-body {
