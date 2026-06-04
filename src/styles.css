@@ -660,6 +660,86 @@ textarea {
   background: #ff9e85;
 }
 
+.monitor-attention-row {
+  display: grid;
+  grid-template-columns: minmax(72px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  border: 1px solid #27303a;
+  border-radius: 8px;
+  background: #151b22;
+  padding: 7px 8px;
+}
+
+.monitor-attention-row strong,
+.monitor-attention-row small,
+.monitor-attention-row b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitor-attention-row strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.monitor-attention-row small {
+  color: #9fa9b4;
+  font-size: 10px;
+}
+
+.monitor-attention-row b {
+  justify-self: end;
+  border-radius: 999px;
+  background: #252b34;
+  color: #cfd8e3;
+  padding: 3px 6px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.monitor-attention-live {
+  border-color: #244860;
+}
+
+.monitor-attention-live b {
+  background: #172f3b;
+  color: #8bd7f4;
+}
+
+.monitor-attention-ready,
+.monitor-attention-complete {
+  border-color: #254634;
+}
+
+.monitor-attention-ready b,
+.monitor-attention-complete b {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.monitor-attention-paused {
+  border-color: #4b3d1f;
+}
+
+.monitor-attention-paused b {
+  background: #352e18;
+  color: #f0d984;
+}
+
+.monitor-attention-blocked {
+  border-color: #5c2c21;
+}
+
+.monitor-attention-blocked b {
+  background: #442119;
+  color: #ff9e85;
+}
+
 .monitor-strip-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

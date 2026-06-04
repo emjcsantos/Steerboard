@@ -224,6 +224,10 @@ import {
   type CockpitMonitorHealth
 } from "./cockpitMonitorHealth";
 import {
+  createCockpitMonitorAttention,
+  type CockpitMonitorAttention
+} from "./cockpitMonitorAttention";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -1644,6 +1648,10 @@ function RightPanel({
     () => createCockpitMonitorHealth(runtimeStreamSnapshot),
     [runtimeStreamSnapshot]
   );
+  const cockpitMonitorAttention = useMemo(
+    () => createCockpitMonitorAttention(cockpitMonitorSummary, cockpitMonitorHealth),
+    [cockpitMonitorHealth, cockpitMonitorSummary]
+  );
   const runtimeSourceConnectionSnapshot = buildRuntimeSourceConnectionSnapshot(
     runtimeAdapter,
     runtimeEventSourceSnapshot
@@ -1961,6 +1969,7 @@ function RightPanel({
       </header>
 
       <CockpitMonitorStrip
+        attention={cockpitMonitorAttention}
         controls={cockpitMonitorControlState}
         health={cockpitMonitorHealth}
         nextEventPreview={cockpitMonitorNextEventPreview}
@@ -2358,6 +2367,7 @@ function RightPanel({
 }
 
 function CockpitMonitorStrip({
+  attention,
   controls,
   health,
   nextEventPreview,
@@ -2368,6 +2378,7 @@ function CockpitMonitorStrip({
   onStart,
   summary
 }: {
+  attention: CockpitMonitorAttention;
   controls: CockpitMonitorControlState;
   health: CockpitMonitorHealth;
   nextEventPreview: CockpitMonitorNextEventPreview;
@@ -2409,6 +2420,15 @@ function CockpitMonitorStrip({
         <strong>{health.stateLabel}</strong>
         <small>{health.detail}</small>
         <b aria-label={`Stream heartbeat ${health.pulseLabel}`}>{health.pulseLabel}</b>
+      </div>
+      <div
+        aria-label={`Operator attention: ${attention.label}`}
+        className={classNames("monitor-attention-row", `monitor-attention-${attention.tone}`)}
+        title={attention.detail}
+      >
+        <strong>{attention.label}</strong>
+        <small>{attention.detail}</small>
+        <b>{attention.actionLabel}</b>
       </div>
       <div className="monitor-strip-grid">
         <span>
