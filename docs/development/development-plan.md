@@ -13,8 +13,7 @@ Deliverables:
 - MVP goal,
 - multiagent and worktree strategy,
 - skill development map,
-- reference audit,
-- reuse decision,
+- third-party adoption gates,
 - progress tracker.
 
 Validation:

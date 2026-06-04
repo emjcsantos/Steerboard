@@ -11,7 +11,7 @@ The product goal is a focused workspace where a human operator can plan project 
 
 ## Current Status
 
-This repository currently contains the public product brief, requirements, architecture notes, execution rules, reference audit material, and development plan. Steerboard is intended to be an original product with its own architecture, interaction model, visual identity, and implementation.
+This repository currently contains the public product brief, requirements, architecture notes, execution rules, and development plan. Steerboard is intended to be an original product with its own architecture, interaction model, visual identity, and implementation.
 
 ## Document Map
 
@@ -29,8 +29,6 @@ This repository currently contains the public product brief, requirements, archi
 - [Multiagent And Worktree Strategy](docs/development/multiagent-worktree-strategy.md)
 - [Skill Development Map](docs/development/skill-development-map.md)
 - [Installation Strategy](docs/operations/installation-strategy.md)
-- [Harnss Static Audit](docs/audits/harnss-static-audit-2026-06-04.md)
-- [Harnss Reuse Decision](docs/decisions/harnss-reuse-decision.md)
 - [Originality And Attribution Policy](docs/decisions/originality-attribution-policy.md)
 - [Public Documentation Guidelines](docs/operations/public-documentation-guidelines.md)
 - [Public Release Checklist](docs/operations/public-release-checklist.md)
