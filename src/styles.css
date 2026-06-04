@@ -1615,6 +1615,171 @@ textarea {
   text-transform: capitalize;
 }
 
+.runtime-profile-permission-audit {
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.runtime-profile-permission-audit-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.runtime-profile-permission-audit-header strong,
+.runtime-profile-permission-audit-header span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.runtime-profile-permission-audit-header strong {
+  color: #edf2f7;
+}
+
+.runtime-profile-permission-audit-header span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #aab3bd;
+  padding: 3px 6px;
+  font-weight: 800;
+}
+
+.runtime-profile-audit-ready .runtime-profile-permission-audit-header span {
+  background: rgba(114, 214, 160, 0.12);
+  color: #8ee4b0;
+}
+
+.runtime-profile-audit-pending .runtime-profile-permission-audit-header span,
+.runtime-profile-audit-waiting .runtime-profile-permission-audit-header span {
+  background: rgba(240, 217, 132, 0.12);
+  color: #f0d984;
+}
+
+.runtime-profile-audit-blocked .runtime-profile-permission-audit-header span {
+  background: rgba(255, 158, 133, 0.12);
+  color: #ffad98;
+}
+
+.runtime-profile-permission-audit p {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.runtime-profile-permission-audit-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.runtime-profile-permission-audit-grid div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border-radius: 8px;
+  background: #13171d;
+  padding: 7px 6px;
+}
+
+.runtime-profile-permission-audit-grid dt,
+.runtime-profile-permission-audit-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-profile-permission-audit-grid dt {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.runtime-profile-permission-audit-grid dd {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.runtime-profile-permission-audit-items {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.runtime-profile-permission-audit-items li {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 5px 6px;
+}
+
+.runtime-profile-permission-audit-items span,
+.runtime-profile-permission-audit-items strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+}
+
+.runtime-profile-permission-audit-items span {
+  color: #aab3bd;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.runtime-profile-permission-audit-items strong {
+  color: #dce3eb;
+}
+
+.runtime-profile-audit-item-ready span {
+  color: #8ee4b0;
+}
+
+.runtime-profile-audit-item-waiting span {
+  color: #f0d984;
+}
+
+.runtime-profile-audit-item-blocked span {
+  color: #ffad98;
+}
+
+.runtime-profile-audit-item-locked span {
+  color: #aab3bd;
+}
+
+.runtime-profile-permission-audit pre {
+  max-height: 118px;
+  min-height: 34px;
+  overflow: auto;
+  margin: 0;
+  border-radius: 8px;
+  background: #0f141a;
+  color: #aab3bd;
+  padding: 7px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
 .runtime-profile-reasons li,
 .runtime-profile-ready-copy,
 .runtime-profile-card small,
@@ -1623,7 +1788,8 @@ textarea {
 .runtime-profile-activation small,
 .runtime-profile-permission-handoff small,
 .runtime-profile-permission-approval small,
-.runtime-profile-shell-approval small {
+.runtime-profile-shell-approval small,
+.runtime-profile-permission-audit small {
   overflow: hidden;
   margin: 0;
   color: #8f99a5;

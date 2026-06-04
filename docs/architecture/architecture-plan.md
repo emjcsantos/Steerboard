@@ -79,6 +79,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Runtime profile permission request history stores local request and cancellation records for the handoff gate before desktop permissions are available.
 - Runtime profile permission approval previews derive blocked, requestable, requested, and review states from local handoff/request state while execution remains locked.
 - A narrow desktop permission approval status command reports shell approval reachability before any permission grant or runtime execution can occur.
+- Runtime profile permission audit previews combine local approval state, shell approval status, request records, and execution lock state into a reviewable export preview without writing files.
 - Each runtime adapter should declare capabilities, required permissions, configuration fields, supported commands, event mapping, and mock fixtures.
 - The cockpit must consume normalized session, task, validation, and tool-call events instead of provider-specific payloads.
 - The scaffold exposes an adapter contract inspector that summarizes transport, capability, permission, and normalized-event readiness before runtime execution exists.
@@ -98,6 +99,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - The scaffold shows desktop permission handoff readiness from local active-profile and bridge status only; it does not open a shell permission request or execute commands.
 - The scaffold records local desktop permission request intent separately from desktop permission execution so review state can be audited without side effects.
 - The scaffold shows desktop permission approval status as a preview only until a desktop-shell approval command exists.
+- The scaffold shows desktop permission audit/export preview text only; real audit file creation stays behind a later explicit desktop-shell approval path.
 - The desktop shell approval command currently reports locked status only and does not grant permissions, access files, or launch processes.
 
 ### Persistence

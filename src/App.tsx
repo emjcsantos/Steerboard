@@ -135,6 +135,10 @@ import {
   type RuntimeProfilePermissionApprovalSnapshot
 } from "./runtimeProfilePermissionApproval";
 import {
+  buildRuntimeProfilePermissionAuditSnapshot,
+  type RuntimeProfilePermissionAuditSnapshot
+} from "./runtimeProfilePermissionAudit";
+import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
   type DispatchPackage
@@ -1246,6 +1250,19 @@ function RightPanel({
       ),
     [runtimeProfilePermissionHandoffSnapshot, runtimeProfilePermissionRequestIntent]
   );
+  const runtimeProfilePermissionAuditSnapshot = useMemo(
+    () =>
+      buildRuntimeProfilePermissionAuditSnapshot(
+        runtimeProfilePermissionApprovalSnapshot,
+        desktopPermissionApprovalStatus,
+        runtimeProfilePermissionRequestHistory
+      ),
+    [
+      desktopPermissionApprovalStatus,
+      runtimeProfilePermissionApprovalSnapshot,
+      runtimeProfilePermissionRequestHistory
+    ]
+  );
   const canActivateDraftProfile =
     runtimeProfileApprovalSnapshot.state === "requested" &&
     canActivateRuntimeProfile(runtimeProfileDraftReadiness);
@@ -1659,6 +1676,7 @@ function RightPanel({
         onResetDraft={resetRuntimeProfileDraft}
         permissionApproval={runtimeProfilePermissionApprovalSnapshot}
         permissionApprovalStatus={desktopPermissionApprovalStatus}
+        permissionAudit={runtimeProfilePermissionAuditSnapshot}
         permissionHandoff={runtimeProfilePermissionHandoffSnapshot}
         permissionRequestHistory={runtimeProfilePermissionRequestHistory}
         permissionRequestIntent={runtimeProfilePermissionRequestIntent}
@@ -1846,6 +1864,7 @@ function RuntimeProfilePanel({
   onResetDraft,
   permissionApproval,
   permissionApprovalStatus,
+  permissionAudit,
   permissionHandoff,
   permissionRequestHistory,
   permissionRequestIntent,
@@ -1870,6 +1889,7 @@ function RuntimeProfilePanel({
   onResetDraft: () => void;
   permissionApproval: RuntimeProfilePermissionApprovalSnapshot;
   permissionApprovalStatus: DesktopPermissionApprovalStatus;
+  permissionAudit: RuntimeProfilePermissionAuditSnapshot;
   permissionHandoff: RuntimeProfilePermissionHandoffSnapshot;
   permissionRequestHistory: RuntimeProfilePermissionRequestRecord[];
   permissionRequestIntent: RuntimeProfilePermissionRequestIntent;
@@ -2306,6 +2326,56 @@ function RuntimeProfilePanel({
                 </div>
               </dl>
               <small title={permissionApprovalStatus.safety}>{permissionApprovalStatus.safety}</small>
+            </div>
+            <div
+              className={classNames(
+                "runtime-profile-permission-audit",
+                `runtime-profile-audit-${permissionAudit.state}`
+              )}
+              aria-label="Runtime profile desktop permission audit preview"
+            >
+              <div className="runtime-profile-permission-audit-header">
+                <strong>Permission audit</strong>
+                <span>{permissionAudit.statusLabel}</span>
+              </div>
+              <p title={permissionAudit.detail}>{permissionAudit.detail}</p>
+              <dl className="runtime-profile-permission-audit-grid">
+                <div>
+                  <dt>Ready</dt>
+                  <dd>{permissionAudit.readiness}%</dd>
+                </div>
+                <div>
+                  <dt>Records</dt>
+                  <dd>{permissionAudit.recordCount}</dd>
+                </div>
+                <div>
+                  <dt>Export</dt>
+                  <dd>{permissionAudit.canExport ? "Ready" : "Held"}</dd>
+                </div>
+                <div>
+                  <dt>Execution</dt>
+                  <dd>{permissionAudit.executionLocked ? "Locked" : "Ready"}</dd>
+                </div>
+              </dl>
+              <ol className="runtime-profile-permission-audit-items">
+                {permissionAudit.items.slice(0, 4).map((item) => (
+                  <li
+                    className={`runtime-profile-audit-item-${item.status}`}
+                    key={item.id}
+                    title={item.detail}
+                  >
+                    <span>{item.status}</span>
+                    <strong>{item.label}</strong>
+                  </li>
+                ))}
+              </ol>
+              <pre
+                aria-label="Runtime profile permission audit export markdown"
+                title={permissionAudit.exportMarkdown}
+              >
+                {permissionAudit.canExport ? permissionAudit.exportMarkdown : "No export preview yet."}
+              </pre>
+              <small title={permissionAudit.safety}>{permissionAudit.safety}</small>
             </div>
             <small title={permissionHandoff.safety}>{permissionHandoff.safety}</small>
           </div>
