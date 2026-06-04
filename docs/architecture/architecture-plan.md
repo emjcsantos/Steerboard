@@ -51,6 +51,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Runtime ingestion preview checks selected-run timeline events against the active adapter contract and marks each event as accepted, review, or blocked.
 - Local stream preview plays normalized ingestion events into the cockpit as a realtime monitoring simulation before external runtime sessions exist.
 - Adapter session preview derives transport, heartbeat, permission readiness, and health from the selected runtime adapter plus local stream state.
+- Event source preview exposes the remaining normalized event queue that will feed the local stream monitor.
 - Deploy-to-runtime action that creates an orchestrator run from selected pipeline items.
 - Trace links from project pipeline item to orchestrator run, worker tasks, validation reports, and final integration result.
 
@@ -67,6 +68,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - The scaffold exposes a runtime ingestion preview that uses mocked timeline events to verify adapter event compatibility before real streaming is wired in.
 - The scaffold exposes local stream controls that play, pause, and reset mocked adapter events without starting external processes.
 - The scaffold exposes adapter session health derived from local runtime adapter configuration and mocked stream events.
+- The scaffold exposes event source state so the cockpit can distinguish queued adapter events from emitted stream events.
 - The scaffold keeps runtime adapter data local and mocked until a desktop-shell permission path exists for process execution.
 
 ### Persistence

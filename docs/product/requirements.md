@@ -48,6 +48,8 @@
 - Stream previews should show latest event, emitted count, pending count, and blocked state without starting external processes.
 - Runtime stream previews should expose adapter session status, heartbeat text, transport, and permission readiness for the selected project.
 - Adapter session status should reflect offline, connecting, ready, live, paused, complete, and blocked states from local adapter and stream evidence.
+- Runtime stream previews should expose a local event source summary showing queued, emitted, accepted, review, and blocked event counts.
+- Event source summaries should make the next queued event visible before it is emitted into the cockpit.
 
 ## Later Functional Scope
 
@@ -57,6 +59,7 @@
 - Live runtime event ingestion from configured adapters.
 - Live stream controls backed by configured adapter sessions.
 - Adapter session monitor backed by real configured runtime events.
+- Configured event source adapters that replace local mocked event queues.
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
 - MCP configuration and status.

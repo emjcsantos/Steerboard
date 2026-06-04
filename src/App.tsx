@@ -129,6 +129,10 @@ import {
   buildRuntimeAdapterSessionSnapshot,
   type RuntimeAdapterSessionSnapshot
 } from "./runtimeAdapterSession";
+import {
+  buildRuntimeEventSourceSnapshot,
+  type RuntimeEventSourceSnapshot
+} from "./runtimeEventSource";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -1006,6 +1010,11 @@ function RightPanel({
     runtimeAdapter,
     runtimeStreamSnapshot
   );
+  const runtimeEventSourceSnapshot = buildRuntimeEventSourceSnapshot(
+    runtimeAdapterSessionSnapshot,
+    runtimeStreamSnapshot,
+    runtimeIngestionEvents
+  );
   const canStartStream =
     Boolean(selectedRun) &&
     runtimeIngestionEvents.length > 0 &&
@@ -1307,6 +1316,7 @@ function RightPanel({
       <section className="panel-section">
         <h4>Runtime Stream</h4>
         <RuntimeAdapterSessionStatus snapshot={runtimeAdapterSessionSnapshot} />
+        <RuntimeEventSourceStatus snapshot={runtimeEventSourceSnapshot} />
         <div className="stream-status-row">
           <span className={classNames("stream-state", `stream-${runtimeStreamSnapshot.state}`)}>
             <span aria-hidden="true" />
@@ -1423,6 +1433,40 @@ function RuntimeIngestionListItem({ event }: { event: RuntimeIngestionEvent }) {
       </div>
       <span className="ingestion-status">{event.adapterStatus}</span>
     </li>
+  );
+}
+
+function RuntimeEventSourceStatus({ snapshot }: { snapshot: RuntimeEventSourceSnapshot }) {
+  return (
+    <div className="event-source" aria-label="Runtime event source">
+      <div className="event-source-header">
+        <span className={classNames("event-source-state", `event-source-${snapshot.state}`)}>
+          <span aria-hidden="true" />
+          {snapshot.state}
+        </span>
+        <strong title={snapshot.label}>{snapshot.mode} source</strong>
+      </div>
+      <p title={snapshot.detail}>{snapshot.detail}</p>
+      <dl className="event-source-grid">
+        <div>
+          <dt>Queued</dt>
+          <dd>{snapshot.available}</dd>
+        </div>
+        <div>
+          <dt>Accepted</dt>
+          <dd>{snapshot.accepted}</dd>
+        </div>
+        <div>
+          <dt>Review</dt>
+          <dd>{snapshot.review}</dd>
+        </div>
+        <div>
+          <dt>Blocked</dt>
+          <dd>{snapshot.blocked}</dd>
+        </div>
+      </dl>
+      <small title={snapshot.nextEventLabel}>Next: {snapshot.nextEventLabel}</small>
+    </div>
   );
 }
 

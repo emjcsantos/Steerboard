@@ -1235,6 +1235,118 @@ textarea {
   text-transform: capitalize;
 }
 
+.event-source {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #272d36;
+  padding-bottom: 10px;
+}
+
+.event-source-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.event-source-header strong {
+  overflow: hidden;
+  color: #edf2f7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.event-source-state {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #c4ccd6;
+  padding: 5px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.event-source-state span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.event-source-emitting span {
+  background: #72a7ff;
+}
+
+.event-source-ready span,
+.event-source-complete span {
+  background: #89dda9;
+}
+
+.event-source-paused span {
+  background: #f0d984;
+}
+
+.event-source-blocked span {
+  background: #ff9e85;
+}
+
+.event-source p,
+.event-source small {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.event-source-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.event-source-grid div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border-radius: 8px;
+  background: #13171d;
+  padding: 7px 6px;
+}
+
+.event-source-grid dt,
+.event-source-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-source-grid dt {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.event-source-grid dd {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .stream-status-row {
   display: flex;
   align-items: center;
