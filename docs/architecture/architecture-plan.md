@@ -60,6 +60,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Adapter contracts must be easy to add, test, and disable.
 - Each runtime adapter should declare capabilities, required permissions, configuration fields, supported commands, event mapping, and mock fixtures.
 - The cockpit must consume normalized session, task, validation, and tool-call events instead of provider-specific payloads.
+- The scaffold exposes an adapter contract inspector that summarizes transport, capability, permission, and normalized-event readiness before runtime execution exists.
 - The scaffold keeps runtime adapter data local and mocked until a desktop-shell permission path exists for process execution.
 
 ### Persistence

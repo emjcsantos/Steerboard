@@ -108,6 +108,11 @@ import {
   summarizeRunTimeline,
   type RunTimelineEvent
 } from "./runEvents";
+import {
+  buildAdapterContract,
+  summarizeAdapterContract,
+  type AdapterContractItem
+} from "./adapterContract";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -940,6 +945,8 @@ function RightPanel({
   const latestRun = runSummary.latestRun;
   const selectedTimeline = selectedRun ? buildRunTimeline(selectedRun) : [];
   const timelineSummary = summarizeRunTimeline(selectedTimeline);
+  const adapterContractItems = buildAdapterContract(runtimeAdapter);
+  const adapterContractSummary = summarizeAdapterContract(adapterContractItems);
 
   return (
     <aside className="right-panel" aria-label="Environment">
@@ -1136,6 +1143,29 @@ function RightPanel({
       </section>
 
       <section className="panel-section">
+        <h4>Adapter Contract</h4>
+        <div className="adapter-contract-summary" aria-label="Adapter contract summary">
+          <span>
+            <strong>{adapterContractSummary.readiness}%</strong>
+            Ready
+          </span>
+          <span>
+            <strong>{adapterContractSummary.review}</strong>
+            Review
+          </span>
+          <span>
+            <strong>{adapterContractSummary.blocked}</strong>
+            Blocked
+          </span>
+        </div>
+        <ol className="adapter-contract-list" aria-label="Adapter contract items">
+          {adapterContractItems.map((item) => (
+            <AdapterContractListItem item={item} key={item.id} />
+          ))}
+        </ol>
+      </section>
+
+      <section className="panel-section">
         <h4>Local Access</h4>
         <ul className="access-list">
           {permissionSurfaces.map((surface) => (
@@ -1156,6 +1186,19 @@ function RightPanel({
         </ol>
       </section>
     </aside>
+  );
+}
+
+function AdapterContractListItem({ item }: { item: AdapterContractItem }) {
+  return (
+    <li className={classNames("adapter-contract-item", `adapter-${item.kind}`, `adapter-${item.status}`)}>
+      <span className="adapter-contract-kind">{item.kind}</span>
+      <div>
+        <strong title={item.detail}>{item.detail || item.label}</strong>
+        <small>{item.label}</small>
+      </div>
+      <span className="adapter-contract-status">{item.status}</span>
+    </li>
   );
 }
 

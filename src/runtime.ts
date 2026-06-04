@@ -12,6 +12,9 @@ export interface RuntimeAdapter {
   label: string;
   state: RuntimeAdapterState;
   readiness: number;
+  transport: string;
+  capabilities: string[];
+  requiredPermissions: RuntimePermission[];
   permissions: RuntimePermissionState[];
 }
 
@@ -63,6 +66,27 @@ function normalizePermission(value: unknown): RuntimePermissionState | undefined
   };
 }
 
+function normalizeStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+function normalizeRequiredPermissions(value: unknown): RuntimePermission[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((permission): permission is RuntimePermission =>
+    validPermissions.includes(permission as RuntimePermission)
+  );
+}
+
 export function normalizeRuntimeAdapter(value: unknown): RuntimeAdapter {
   const adapter = isRecord(value) ? value : {};
   const rawPermissions = Array.isArray(adapter.permissions) ? adapter.permissions : [];
@@ -76,6 +100,12 @@ export function normalizeRuntimeAdapter(value: unknown): RuntimeAdapter {
     label: typeof adapter.label === "string" && adapter.label.trim() ? adapter.label : "Local runtime",
     state: validRuntimeStates.includes(state) ? state : "not_configured",
     readiness: clampReadiness(adapter.readiness),
+    transport:
+      typeof adapter.transport === "string" && adapter.transport.trim()
+        ? adapter.transport.trim()
+        : "mock-transport",
+    capabilities: normalizeStringList(adapter.capabilities),
+    requiredPermissions: normalizeRequiredPermissions(adapter.requiredPermissions),
     permissions
   };
 }

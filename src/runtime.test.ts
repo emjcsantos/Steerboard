@@ -12,6 +12,9 @@ const readyAdapter: RuntimeAdapter = {
   label: "Local runtime",
   state: "ready",
   readiness: 91,
+  transport: "mock-transport",
+  capabilities: ["session events", "task events"],
+  requiredPermissions: ["workspace_read", "process"],
   permissions: [
     { permission: "workspace_read", status: "enabled" },
     { permission: "process", status: "enabled" }
@@ -26,6 +29,9 @@ describe("runtime adapter model", () => {
         label: "",
         state: "unknown",
         readiness: 180,
+        transport: "",
+        capabilities: [" session events ", "", 7],
+        requiredPermissions: ["process", "private"],
         permissions: [
           { permission: "process", status: "unexpected" },
           { permission: "private", status: "enabled" },
@@ -37,6 +43,9 @@ describe("runtime adapter model", () => {
       label: "Local runtime",
       state: "not_configured",
       readiness: 100,
+      transport: "mock-transport",
+      capabilities: ["session events"],
+      requiredPermissions: ["process"],
       permissions: [{ permission: "process", status: "review" }]
     });
   });

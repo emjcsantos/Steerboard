@@ -41,6 +41,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Local run history list and selected-run detail so users can compare staged runs without losing cockpit context.
 - Local run lifecycle controls for previewing queued, running, accepted, blocked, and failed cockpit states before real runtime integration.
 - Local event timeline showing how the projected run, tasks, sessions, and validation gates relate.
+- Runtime adapter contract inspector showing whether the target project can support sessions, tasks, validation, and tool-call events.
 - Deploy-mode selector for focused run, orchestrator-with-workers, or independent project monitor.
 
 ## Required Fields For Dispatch
@@ -72,6 +73,7 @@ Deploying to a configured runtime creates:
 - a persisted local run-history entry,
 - local lifecycle state updates for the projected run,
 - selected-run event timeline records,
+- adapter contract readiness records,
 - a future real orchestrator run,
 - selected cockpit operating mode,
 - a task split proposal,

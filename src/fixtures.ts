@@ -279,6 +279,9 @@ export const runtimeAdapters: RuntimeAdapter[] = [
     label: "Local runtime",
     state: "ready",
     readiness: 92,
+    transport: "mock-local-transport",
+    capabilities: ["Session stream", "Task state", "Validation evidence", "Tool call summary"],
+    requiredPermissions: ["workspace_read", "workspace_write", "process"],
     permissions: [
       { permission: "workspace_read", status: "enabled" },
       { permission: "workspace_write", status: "review" },
@@ -291,6 +294,9 @@ export const runtimeAdapters: RuntimeAdapter[] = [
     label: "Local runtime",
     state: "limited",
     readiness: 72,
+    transport: "mock-local-transport",
+    capabilities: ["Session stream", "Task state", "Validation evidence"],
+    requiredPermissions: ["workspace_read", "workspace_write", "process"],
     permissions: [
       { permission: "workspace_read", status: "enabled" },
       { permission: "workspace_write", status: "review" },
@@ -303,6 +309,9 @@ export const runtimeAdapters: RuntimeAdapter[] = [
     label: "Local runtime",
     state: "not_configured",
     readiness: 0,
+    transport: "mock-local-transport",
+    capabilities: ["Session stream", "Task state"],
+    requiredPermissions: ["workspace_read", "process"],
     permissions: [
       { permission: "workspace_read", status: "review" },
       { permission: "workspace_write", status: "disabled" },
@@ -315,6 +324,9 @@ export const runtimeAdapters: RuntimeAdapter[] = [
     label: "Local runtime",
     state: "blocked",
     readiness: 31,
+    transport: "mock-local-transport",
+    capabilities: ["Session stream", "Task state", "Validation evidence"],
+    requiredPermissions: ["workspace_read", "workspace_write", "process"],
     permissions: [
       { permission: "workspace_read", status: "enabled" },
       { permission: "workspace_write", status: "disabled" },

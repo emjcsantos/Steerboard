@@ -40,6 +40,8 @@
 - Lifecycle controls should update cockpit panels, task status summaries, validation gate status, and persisted run history together.
 - Selected mock runs should expose a compact event timeline covering run, task, session, and validation events.
 - Timeline summaries should show active, issue, and complete counts for quick cockpit monitoring.
+- Runtime adapters should expose a compact contract inspector with transport, capabilities, permissions, and normalized event support.
+- Adapter contract summaries should show ready, review, and blocked counts before any real command execution is enabled.
 
 ## Later Functional Scope
 
