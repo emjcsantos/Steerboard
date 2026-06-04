@@ -36,6 +36,8 @@
 - Local mock orchestrator run projection from a staged dispatch package, visible in cockpit panels without executing a runtime.
 - Local mock run history persisted across reloads with selected-run detail in the environment panel.
 - Mock run detail should expose the source package, spawned task count, cockpit panel count, and validation gate count.
+- Local mock run lifecycle controls for queue, running, complete, blocked, and failed states.
+- Lifecycle controls should update cockpit panels, task status summaries, validation gate status, and persisted run history together.
 
 ## Later Functional Scope
 

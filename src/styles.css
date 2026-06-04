@@ -696,6 +696,57 @@ textarea {
   color: #ff9e85;
 }
 
+.run-control-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.run-control-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #303741;
+  border-radius: 8px;
+  background: #151a20;
+  color: #dce3eb;
+  padding: 7px 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.run-control-button:hover:not(:disabled) {
+  border-color: #4d5968;
+  background: #252b34;
+}
+
+.run-control-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.run-control-button.is-active {
+  border-color: #72d6a0;
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.run-control-button.control-blocked.is-active,
+.run-control-button.control-failed.is-active {
+  border-color: #8e4939;
+  background: #442119;
+  color: #ff9e85;
+}
+
+.run-control-button.control-complete.is-active {
+  border-color: #72d6a0;
+  background: #1d3929;
+  color: #89dda9;
+}
+
 .run-detail {
   display: grid;
   gap: 7px;

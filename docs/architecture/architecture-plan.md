@@ -46,6 +46,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - A local dispatch package preview is staged before any real runtime execution starts.
 - Mock orchestrator run projection converts staged packages into session and task rows for cockpit review before runtime adapters execute anything.
 - Local run history records staged package projections, task counts, panel counts, and validation gate counts for selected-run inspection.
+- Local lifecycle controls transition mock runs through queued, running, complete, blocked, and failed states while keeping task, session, and validation-gate state aligned.
 - Deploy-to-runtime action that creates an orchestrator run from selected pipeline items.
 - Trace links from project pipeline item to orchestrator run, worker tasks, validation reports, and final integration result.
 

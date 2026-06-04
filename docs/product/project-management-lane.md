@@ -39,6 +39,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Link from deployed item to cockpit run.
 - Local mock orchestrator run projection so users can inspect the planned run in cockpit panels before real runtime integration.
 - Local run history list and selected-run detail so users can compare staged runs without losing cockpit context.
+- Local run lifecycle controls for previewing queued, running, accepted, blocked, and failed cockpit states before real runtime integration.
 - Deploy-mode selector for focused run, orchestrator-with-workers, or independent project monitor.
 
 ## Required Fields For Dispatch
@@ -68,6 +69,7 @@ Deploying to a configured runtime creates:
 - a staged dispatch package,
 - a mock orchestrator run projection,
 - a persisted local run-history entry,
+- local lifecycle state updates for the projected run,
 - a future real orchestrator run,
 - selected cockpit operating mode,
 - a task split proposal,

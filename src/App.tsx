@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   PanelRight,
   Play,
+  RotateCcw,
   Rows3,
   Search,
   Settings2,
@@ -85,6 +86,7 @@ import {
   createMockRunFromDispatchPackage,
   runToOrchestrationTasks,
   runToSessionSummaries,
+  type MockRunStatus,
   type MockOrchestratorRun
 } from "./run";
 import {
@@ -97,6 +99,10 @@ import {
   loadRunHistory,
   saveRunHistory
 } from "./runHistoryStorage";
+import {
+  transitionMockRunStatus,
+  type RunLifecycleStatus
+} from "./runLifecycle";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -123,6 +129,18 @@ const missingFieldLabels: Record<PlanningDraftRequiredField, string> = {
   validationPlan: "Validation",
   rollbackNote: "Rollback"
 };
+
+const runLifecycleActions: Array<{
+  icon: ReactNode;
+  label: string;
+  status: RunLifecycleStatus;
+}> = [
+  { icon: <RotateCcw size={14} />, label: "Queue", status: "queued" },
+  { icon: <Play size={14} />, label: "Start", status: "running" },
+  { icon: <CheckCircle2 size={14} />, label: "Complete", status: "complete" },
+  { icon: <AlertTriangle size={14} />, label: "Block", status: "blocked" },
+  { icon: <AlertTriangle size={14} />, label: "Fail", status: "failed" }
+];
 
 function classNames(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
@@ -255,6 +273,14 @@ export function App() {
 
     setSelectedRunId(nextRun.id);
     setMockRuns((currentRuns) => upsertRunHistory(currentRuns, nextRun));
+    updatePreferences({ view: "cockpit" });
+  }
+
+  function handleRunStatusChange(runId: string, nextStatus: MockRunStatus) {
+    setSelectedRunId(runId);
+    setMockRuns((currentRuns) =>
+      currentRuns.map((run) => (run.id === runId ? transitionMockRunStatus(run, nextStatus) : run))
+    );
     updatePreferences({ view: "cockpit" });
   }
 
@@ -429,6 +455,7 @@ export function App() {
             mode={mode}
             mockRuns={projectMockRuns}
             onSelectRun={setSelectedRunId}
+            onUpdateRunStatus={handleRunStatusChange}
             project={project}
             registryEntry={registryEntry}
             registrySummary={registrySummary}
@@ -878,6 +905,7 @@ function RightPanel({
   mode,
   mockRuns,
   onSelectRun,
+  onUpdateRunStatus,
   project,
   registryEntry,
   registrySummary,
@@ -890,6 +918,7 @@ function RightPanel({
   mode: CockpitMode;
   mockRuns: MockOrchestratorRun[];
   onSelectRun: (runId: string) => void;
+  onUpdateRunStatus: (runId: string, nextStatus: MockRunStatus) => void;
   project: ProjectSummary;
   registryEntry?: RegistryEntry;
   registrySummary: ReturnType<typeof summarizeRegistry>;
@@ -999,24 +1028,47 @@ function RightPanel({
             </div>
 
             {selectedRun ? (
-              <dl className="run-detail" aria-label="Selected mock run detail">
-                <div>
-                  <dt>Source package</dt>
-                  <dd title={selectedRun.sourcePackageId}>{selectedRun.sourcePackageId}</dd>
+              <>
+                <div className="run-control-grid" aria-label="Selected mock run lifecycle controls">
+                  {runLifecycleActions.map((action) => (
+                    <button
+                      aria-label={`${action.label} selected mock run`}
+                      className={classNames(
+                        "run-control-button",
+                        `control-${action.status}`,
+                        selectedRun.status === action.status && "is-active"
+                      )}
+                      disabled={selectedRun.status === action.status}
+                      key={action.status}
+                      onClick={() => onUpdateRunStatus(selectedRun.id, action.status)}
+                      title={`${action.label} run`}
+                      type="button"
+                    >
+                      {action.icon}
+                      <span>{action.label}</span>
+                    </button>
+                  ))}
                 </div>
-                <div>
-                  <dt>Tasks</dt>
-                  <dd>{selectedRun.tasks.length}</dd>
-                </div>
-                <div>
-                  <dt>Panels</dt>
-                  <dd>{selectedRun.sessions.length}</dd>
-                </div>
-                <div>
-                  <dt>Validation gates</dt>
-                  <dd>{selectedRun.validationGates.length}</dd>
-                </div>
-              </dl>
+
+                <dl className="run-detail" aria-label="Selected mock run detail">
+                  <div>
+                    <dt>Source package</dt>
+                    <dd title={selectedRun.sourcePackageId}>{selectedRun.sourcePackageId}</dd>
+                  </div>
+                  <div>
+                    <dt>Tasks</dt>
+                    <dd>{selectedRun.tasks.length}</dd>
+                  </div>
+                  <div>
+                    <dt>Panels</dt>
+                    <dd>{selectedRun.sessions.length}</dd>
+                  </div>
+                  <div>
+                    <dt>Validation gates</dt>
+                    <dd>{selectedRun.validationGates.length}</dd>
+                  </div>
+                </dl>
+              </>
             ) : null}
           </>
         ) : (
