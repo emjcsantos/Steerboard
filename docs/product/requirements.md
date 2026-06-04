@@ -57,6 +57,7 @@
 - Runtime stream previews should expose a local launch request preview that shows handoff readiness, approval requirement, queued event count, and safety status before any external process can start.
 - Launch request previews should allow a local approval request to be queued and cancelled without executing a runtime process.
 - Runtime stream previews should expose a local execution audit preview showing launch readiness, approval state, execution lock state, queued event count, and transport.
+- Runtime stream previews should retain a local execution audit preview history for approval request and cancellation actions across reloads.
 
 ## Later Functional Scope
 
@@ -72,6 +73,7 @@
 - Approved launch request execution from the local preview into a configured desktop-shell adapter.
 - Approval request history, execution audit, and rollback records for configured runtime handoffs.
 - Execution audit history persisted across approved runtime handoffs.
+- Exportable execution audit records for team review.
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
 - MCP configuration and status.

@@ -31,6 +31,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Local launch request preview before approved runtime execution.
 - Local approval request preview for runtime handoff.
 - Local execution audit preview before runtime execution.
+- Local execution audit preview history.
 
 ## Phase 5: Local Execution And Packaging
 
@@ -38,5 +39,6 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Approved launch handoff from local preview into configured runtimes.
 - Runtime execution audit trail for approved handoffs.
 - Persisted execution audit records and rollback references.
+- Audit export and review workflow.
 - Git, terminal, validation, and evidence panels.
 - Signed desktop builds after the local security model is proven.

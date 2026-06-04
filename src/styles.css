@@ -1946,6 +1946,104 @@ textarea {
   text-transform: capitalize;
 }
 
+.execution-audit-history {
+  display: grid;
+  gap: 6px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.execution-audit-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.execution-audit-history-header strong,
+.execution-audit-history-header span {
+  overflow: hidden;
+  color: #edf2f7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.execution-audit-history-header span {
+  color: #8f99a5;
+  font-weight: 800;
+}
+
+.execution-audit-records {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.execution-audit-record {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  border-radius: 8px;
+  background: #11151a;
+  padding: 7px 6px;
+}
+
+.execution-audit-record > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.execution-audit-record-requested > span {
+  background: #72a7ff;
+}
+
+.execution-audit-record-cancelled > span {
+  background: #f0d984;
+}
+
+.execution-audit-record div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.execution-audit-record strong,
+.execution-audit-record small,
+.execution-audit-record b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.execution-audit-record strong {
+  color: #edf2f7;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.execution-audit-record b {
+  color: #c4ccd6;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.execution-audit-empty {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
 .stream-status-row {
   display: flex;
   align-items: center;

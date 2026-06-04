@@ -158,6 +158,14 @@ import {
   type RuntimeExecutionAuditItem,
   type RuntimeExecutionAuditSnapshot
 } from "./runtimeExecutionAudit";
+import {
+  appendRuntimeExecutionAuditRecord,
+  createRuntimeExecutionAuditRecord,
+  loadRuntimeExecutionAuditHistory,
+  saveRuntimeExecutionAuditHistory,
+  type RuntimeExecutionAuditRecord,
+  type RuntimeExecutionAuditRecordAction
+} from "./runtimeExecutionAuditHistory";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -209,6 +217,21 @@ const streamIntervalMs = 1100;
 
 function classNames(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
+}
+
+function formatTimestamp(value: string): string {
+  const timestamp = new Date(value);
+
+  if (Number.isNaN(timestamp.getTime())) {
+    return value;
+  }
+
+  return timestamp.toLocaleString([], {
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "short"
+  });
 }
 
 export function App() {
@@ -1000,6 +1023,9 @@ function RightPanel({
   const [launchApprovalIntentByRunId, setLaunchApprovalIntentByRunId] = useState<
     Record<string, RuntimeLaunchApprovalIntent>
   >({});
+  const [executionAuditHistory, setExecutionAuditHistory] = useState<RuntimeExecutionAuditRecord[]>(
+    () => loadRuntimeExecutionAuditHistory()
+  );
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
@@ -1108,6 +1134,10 @@ function RightPanel({
     return () => window.clearInterval(timer);
   }, [runtimeIngestionEvents, runtimeStreamSnapshot.state, selectedRun]);
 
+  useEffect(() => {
+    saveRuntimeExecutionAuditHistory(executionAuditHistory);
+  }, [executionAuditHistory]);
+
   function updateStreamPlayback(state: RuntimeStreamPlaybackState, cursor = runtimeStreamSnapshot.cursor) {
     if (!selectedRun) {
       return;
@@ -1143,6 +1173,24 @@ function RightPanel({
       ...current,
       [selectedRun.id]: intent
     }));
+  }
+
+  function recordLaunchApprovalAction(
+    action: RuntimeExecutionAuditRecordAction,
+    nextIntent: RuntimeLaunchApprovalIntent
+  ) {
+    if (!selectedRun) {
+      return;
+    }
+
+    const record = createRuntimeExecutionAuditRecord(
+      runtimeExecutionAuditSnapshot,
+      action,
+      new Date().toISOString()
+    );
+
+    setExecutionAuditHistory((current) => appendRuntimeExecutionAuditRecord(current, record));
+    updateLaunchApprovalIntent(nextIntent);
   }
 
   return (
@@ -1401,11 +1449,12 @@ function RightPanel({
           bridge={runtimeAdapterBridgeSnapshot}
           connection={runtimeSourceConnectionSnapshot}
           executionAudit={runtimeExecutionAuditSnapshot}
+          executionAuditHistory={executionAuditHistory}
           launchRequest={runtimeLaunchRequestSnapshot}
           onAttach={() => updateBridgeIntent("attached")}
-          onCancelApproval={() => updateLaunchApprovalIntent("idle")}
+          onCancelApproval={() => recordLaunchApprovalAction("cancelled", "idle")}
           onDetach={() => updateBridgeIntent("detached")}
-          onRequestApproval={() => updateLaunchApprovalIntent("requested")}
+          onRequestApproval={() => recordLaunchApprovalAction("requested", "requested")}
           snapshot={runtimeEventSourceSnapshot}
         />
         <div className="stream-status-row">
@@ -1532,6 +1581,7 @@ function RuntimeEventSourceStatus({
   bridge,
   connection,
   executionAudit,
+  executionAuditHistory,
   launchRequest,
   onAttach,
   onCancelApproval,
@@ -1543,6 +1593,7 @@ function RuntimeEventSourceStatus({
   bridge: RuntimeAdapterBridgeSnapshot;
   connection: RuntimeSourceConnectionSnapshot;
   executionAudit: RuntimeExecutionAuditSnapshot;
+  executionAuditHistory: RuntimeExecutionAuditRecord[];
   launchRequest: RuntimeLaunchRequestSnapshot;
   onAttach: () => void;
   onCancelApproval: () => void;
@@ -1616,6 +1667,7 @@ function RuntimeEventSourceStatus({
       <RuntimeLaunchRequestStatus
         approval={approval}
         executionAudit={executionAudit}
+        executionAuditHistory={executionAuditHistory}
         launchRequest={launchRequest}
         onCancelApproval={onCancelApproval}
         onRequestApproval={onRequestApproval}
@@ -1672,12 +1724,14 @@ function RuntimeAdapterBridgeStatus({
 function RuntimeLaunchRequestStatus({
   approval,
   executionAudit,
+  executionAuditHistory,
   launchRequest,
   onCancelApproval,
   onRequestApproval
 }: {
   approval: RuntimeLaunchApprovalSnapshot;
   executionAudit: RuntimeExecutionAuditSnapshot;
+  executionAuditHistory: RuntimeExecutionAuditRecord[];
   launchRequest: RuntimeLaunchRequestSnapshot;
   onCancelApproval: () => void;
   onRequestApproval: () => void;
@@ -1746,12 +1800,18 @@ function RuntimeLaunchRequestStatus({
         </div>
         <small title={approval.safety}>{approval.safety}</small>
       </div>
-      <RuntimeExecutionAuditStatus audit={executionAudit} />
+      <RuntimeExecutionAuditStatus audit={executionAudit} history={executionAuditHistory} />
     </div>
   );
 }
 
-function RuntimeExecutionAuditStatus({ audit }: { audit: RuntimeExecutionAuditSnapshot }) {
+function RuntimeExecutionAuditStatus({
+  audit,
+  history
+}: {
+  audit: RuntimeExecutionAuditSnapshot;
+  history: RuntimeExecutionAuditRecord[];
+}) {
   return (
     <div className="execution-audit" aria-label="Runtime execution audit preview">
       <div className="execution-audit-header">
@@ -1786,6 +1846,21 @@ function RuntimeExecutionAuditStatus({ audit }: { audit: RuntimeExecutionAuditSn
         ))}
       </ol>
       <small title={audit.safety}>{audit.safety}</small>
+      <div className="execution-audit-history" aria-label="Runtime execution audit history">
+        <div className="execution-audit-history-header">
+          <strong>Recent audit records</strong>
+          <span>{history.length}</span>
+        </div>
+        {history.length > 0 ? (
+          <ol className="execution-audit-records">
+            {history.slice(0, 4).map((record) => (
+              <RuntimeExecutionAuditRecordRow key={record.id} record={record} />
+            ))}
+          </ol>
+        ) : (
+          <p className="execution-audit-empty">Request or cancel approval to create a local record.</p>
+        )}
+      </div>
     </div>
   );
 }
@@ -1799,6 +1874,19 @@ function RuntimeExecutionAuditItemRow({ item }: { item: RuntimeExecutionAuditIte
         <small title={item.detail}>{item.detail}</small>
       </div>
       <b>{item.status}</b>
+    </li>
+  );
+}
+
+function RuntimeExecutionAuditRecordRow({ record }: { record: RuntimeExecutionAuditRecord }) {
+  return (
+    <li className={classNames("execution-audit-record", `execution-audit-record-${record.action}`)}>
+      <span aria-hidden="true" />
+      <div>
+        <strong title={record.detail}>{record.action}</strong>
+        <small title={record.createdAt}>{formatTimestamp(record.createdAt)}</small>
+      </div>
+      <b>{record.executionLocked ? "Locked" : record.statusLabel}</b>
     </li>
   );
 }
