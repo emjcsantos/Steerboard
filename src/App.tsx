@@ -225,6 +225,11 @@ import {
   loadDesktopRuntimeBridgeStatus,
   type DesktopRuntimeBridgeStatus
 } from "./desktopRuntimeBridge";
+import {
+  getFallbackDesktopPermissionApprovalStatus,
+  loadDesktopPermissionApprovalStatus,
+  type DesktopPermissionApprovalStatus
+} from "./desktopPermissionApproval";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -1112,6 +1117,8 @@ function RightPanel({
   const [desktopBridgeStatus, setDesktopBridgeStatus] = useState<DesktopRuntimeBridgeStatus>(
     () => getFallbackDesktopRuntimeBridgeStatus()
   );
+  const [desktopPermissionApprovalStatus, setDesktopPermissionApprovalStatus] =
+    useState<DesktopPermissionApprovalStatus>(() => getFallbackDesktopPermissionApprovalStatus());
   const [runtimeProfileDraft, setRuntimeProfileDraft] = useState<RuntimeProfile>(() =>
     loadRuntimeProfileDraft(createBlankRuntimeProfile({ adapterId: runtimeAdapter?.id ?? project.id }))
   );
@@ -1305,9 +1312,13 @@ function RightPanel({
   useEffect(() => {
     let isMounted = true;
 
-    loadDesktopRuntimeBridgeStatus().then((status) => {
+    Promise.all([
+      loadDesktopRuntimeBridgeStatus(),
+      loadDesktopPermissionApprovalStatus()
+    ]).then(([bridgeStatus, permissionApprovalStatus]) => {
       if (isMounted) {
-        setDesktopBridgeStatus(status);
+        setDesktopBridgeStatus(bridgeStatus);
+        setDesktopPermissionApprovalStatus(permissionApprovalStatus);
       }
     });
 
@@ -1647,6 +1658,7 @@ function RightPanel({
         }
         onResetDraft={resetRuntimeProfileDraft}
         permissionApproval={runtimeProfilePermissionApprovalSnapshot}
+        permissionApprovalStatus={desktopPermissionApprovalStatus}
         permissionHandoff={runtimeProfilePermissionHandoffSnapshot}
         permissionRequestHistory={runtimeProfilePermissionRequestHistory}
         permissionRequestIntent={runtimeProfilePermissionRequestIntent}
@@ -1833,6 +1845,7 @@ function RuntimeProfilePanel({
   onRequestPermission,
   onResetDraft,
   permissionApproval,
+  permissionApprovalStatus,
   permissionHandoff,
   permissionRequestHistory,
   permissionRequestIntent,
@@ -1856,6 +1869,7 @@ function RuntimeProfilePanel({
   onRequestPermission: () => void;
   onResetDraft: () => void;
   permissionApproval: RuntimeProfilePermissionApprovalSnapshot;
+  permissionApprovalStatus: DesktopPermissionApprovalStatus;
   permissionHandoff: RuntimeProfilePermissionHandoffSnapshot;
   permissionRequestHistory: RuntimeProfilePermissionRequestRecord[];
   permissionRequestIntent: RuntimeProfilePermissionRequestIntent;
@@ -2264,6 +2278,34 @@ function RuntimeProfilePanel({
                 </div>
               </dl>
               <small title={permissionApproval.safety}>{permissionApproval.safety}</small>
+            </div>
+            <div
+              className={classNames(
+                "runtime-profile-shell-approval",
+                `runtime-profile-shell-${permissionApprovalStatus.state}`
+              )}
+              aria-label="Desktop permission approval shell status"
+            >
+              <div className="runtime-profile-shell-approval-header">
+                <strong>Shell approval</strong>
+                <span>{permissionApprovalStatus.state}</span>
+              </div>
+              <p title={permissionApprovalStatus.detail}>{permissionApprovalStatus.detail}</p>
+              <dl className="runtime-profile-shell-approval-grid">
+                <div>
+                  <dt>Command</dt>
+                  <dd>{permissionApprovalStatus.approvalCommandAvailable ? "Ready" : "Locked"}</dd>
+                </div>
+                <div>
+                  <dt>Granted</dt>
+                  <dd>{permissionApprovalStatus.permissionGranted ? "Yes" : "No"}</dd>
+                </div>
+                <div>
+                  <dt>Source</dt>
+                  <dd>{permissionApprovalStatus.source}</dd>
+                </div>
+              </dl>
+              <small title={permissionApprovalStatus.safety}>{permissionApprovalStatus.safety}</small>
             </div>
             <small title={permissionHandoff.safety}>{permissionHandoff.safety}</small>
           </div>

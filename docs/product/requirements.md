@@ -72,6 +72,7 @@
 - Active runtime profiles should expose a desktop permission handoff preview that explains bridge, process, and workspace gates without executing anything.
 - Desktop permission handoff previews should support local request and cancel records that survive reloads without opening desktop permissions.
 - Desktop permission request state should expose a local approval preview that keeps execution locked until a real desktop approval path exists.
+- The desktop shell should expose a safe permission approval status so the cockpit can show whether the approval command is unavailable, locked, ready, or errored.
 
 ## Later Functional Scope
 
@@ -104,6 +105,7 @@
 - Desktop permission handoff previews should later become explicit permission requests with audit records and rollback notes.
 - Local desktop permission request records should later feed configured runtime permission approvals.
 - Desktop permission approval previews should later become real approval gates with signed audit records.
+- Desktop permission approval status should later connect to the real shell approval command after safety checks are implemented.
 
 ## UX Requirements
 
