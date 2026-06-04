@@ -81,6 +81,12 @@ import {
   type WorkspacePreferences
 } from "./preferences";
 import {
+  steerboardMilestoneStatuses,
+  summarizeMilestoneStatuses,
+  type MilestoneStatus,
+  type MilestoneStatusSummary
+} from "./milestoneStatus";
+import {
   canDeployPlanningDraft,
   evaluatePlanningReadiness,
   normalizePlanningDraft,
@@ -1493,6 +1499,52 @@ function PipelineRunStatusPill({
   );
 }
 
+function MilestoneStatusPanel({
+  milestones,
+  summary
+}: {
+  milestones: readonly MilestoneStatus[];
+  summary: MilestoneStatusSummary;
+}) {
+  return (
+    <section className="panel-section milestone-status-panel">
+      <div className="milestone-status-header">
+        <h4>Milestones</h4>
+        <span
+          title={`${summary.complete} complete, ${summary.active} in progress, ${summary.planned} planned, ${summary.paused} paused`}
+        >
+          {summary.complete}/{summary.total} complete
+        </span>
+      </div>
+      <table className="milestone-status-table" aria-label="Milestone status table">
+        <thead>
+          <tr>
+            <th scope="col">Target</th>
+            <th scope="col">Completion</th>
+            <th scope="col">Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {milestones.map((milestone) => (
+            <tr key={milestone.target}>
+              <td title={milestone.target}>{milestone.target}</td>
+              <td>
+                <span
+                  className={classNames("milestone-status-pill", `milestone-${milestone.tone}`)}
+                  title={milestone.completion}
+                >
+                  {milestone.completion}
+                </span>
+              </td>
+              <td title={milestone.note}>{milestone.note}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
 function PipelineDispatchRequestRecordRow({ record }: { record: PipelineDispatchRequestRecord }) {
   return (
     <li className={classNames("pipeline-request-record", `pipeline-request-record-${record.action}`)}>
@@ -1859,6 +1911,10 @@ function RightPanel({
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
   const runSummary = summarizeRunHistory(mockRuns);
+  const milestoneStatusSummary = useMemo(
+    () => summarizeMilestoneStatuses(steerboardMilestoneStatuses),
+    []
+  );
   const latestRun = runSummary.latestRun;
   const selectedTimeline = useMemo(
     () => (selectedRun ? buildRunTimeline(selectedRun) : []),
@@ -2289,6 +2345,11 @@ function RightPanel({
           </div>
         </div>
       </section>
+
+      <MilestoneStatusPanel
+        milestones={steerboardMilestoneStatuses}
+        summary={milestoneStatusSummary}
+      />
 
       <section className="panel-section">
         <h4>Mode</h4>
