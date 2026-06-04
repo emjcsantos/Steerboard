@@ -2,6 +2,16 @@
 
 This roadmap is intentionally high level. Detailed planning, task splitting, progress logs, and internal execution notes are kept outside the public repository.
 
+## Milestone Tracking
+
+| Target | Completion | Note |
+|---|---|---|
+| Phase 1: Product Scaffold | In progress | Core local shell, public fixture data, project sidebar, cockpit layouts, and operating modes are scaffolded for local review. |
+| Phase 2: Orchestration Model | In progress | Mock runs, task state, validation gates, handoff previews, and selected-run evidence panels are available without external runtime execution. |
+| Phase 3: Project Management Lane | In progress | Pipeline items can be inspected, request history is local, and dispatch-ready items can create local cockpit run projections. |
+| Phase 4: Runtime Adapters | In progress | Provider-neutral adapter previews, runtime profiles, local approvals, bridge status, permission previews, and evidence readiness are scaffolded as locked local previews. |
+| Phase 5: Local Execution And Packaging | Planned | Real runtime execution, permissioned terminal/Git capture, audit exports, build signing, and installer checks remain behind future explicit approval gates. |
+
 ## Phase 1: Product Scaffold
 
 - Local desktop shell.
@@ -24,6 +34,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Selected pipeline item dispatch detail preview.
 - Local selected-item dispatch request history.
 - Link from pipeline item to cockpit run.
+- Local pipeline item to cockpit run projection.
 
 ## Phase 4: Runtime Adapters
 

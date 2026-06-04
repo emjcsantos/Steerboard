@@ -4700,6 +4700,51 @@ textarea {
   color: #7f8994;
 }
 
+.pipeline-cockpit-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  border: 1px solid #272d36;
+  border-radius: 8px;
+  background: #181d23;
+  padding: 9px;
+}
+
+.pipeline-cockpit-link strong,
+.pipeline-cockpit-link small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pipeline-cockpit-link strong {
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.pipeline-cockpit-link small {
+  margin-top: 2px;
+  color: #9fa9b4;
+}
+
+.pipeline-cockpit-link button {
+  border-radius: 8px;
+  background: #72d6a0;
+  color: #0c1511;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pipeline-cockpit-link button:disabled {
+  cursor: not-allowed;
+  background: #38414b;
+  color: #a4adb7;
+}
+
 .pipeline-request-history {
   display: grid;
   gap: 7px;

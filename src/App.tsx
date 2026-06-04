@@ -57,6 +57,9 @@ import {
   type PipelineItemDispatchPreview
 } from "./pipelineItemDispatchPreview";
 import {
+  tryBuildPipelineItemDispatchPackage
+} from "./pipelineItemDispatchPackage";
+import {
   appendPipelineDispatchRequestRecord,
   createPipelineDispatchRequestRecord,
   loadPipelineDispatchRequestHistory,
@@ -655,6 +658,7 @@ export function App() {
             ) : view === "pipeline" ? (
               <PipelineView
                 items={projectPipelineItems}
+                onStagePackage={handleStagePackage}
                 project={project}
                 registryEntry={registryEntry}
                 runtimeAdapter={runtimeAdapter}
@@ -737,12 +741,14 @@ function SessionCell({ session }: { session: SessionSummary }) {
 
 function PipelineView({
   items,
+  onStagePackage,
   project,
   registryEntry,
   runtimeAdapter,
   tasks
 }: {
   items: PipelineItem[];
+  onStagePackage: (dispatchPackage: DispatchPackage) => void;
   project: ProjectSummary;
   registryEntry?: RegistryEntry;
   runtimeAdapter?: RuntimeAdapter;
@@ -793,6 +799,26 @@ function PipelineView({
     setDispatchRequestHistory((current) =>
       appendPipelineDispatchRequestRecord(current, record)
     );
+  }
+
+  function createPipelineCockpitRun() {
+    if (!selectedItem || !selectedPreview) {
+      return;
+    }
+
+    const result = tryBuildPipelineItemDispatchPackage(
+      selectedItem,
+      project,
+      selectedPreview,
+      {
+        createdAt: new Date().toISOString(),
+        idSeed: "pipeline-item"
+      }
+    );
+
+    if (result.ok) {
+      onStagePackage(result.package);
+    }
   }
 
   return (
@@ -884,12 +910,14 @@ function PipelineView({
           {selectedPreview ? (
             <PipelineItemDispatchDetail
               canCancelDispatch={canCancelDispatch}
+              canCreateCockpitRun={Boolean(selectedPreview.canDispatch)}
               canRequestDispatch={canRequestDispatch}
               handoff={handoff}
               handoffTask={handoffTask}
               history={selectedDispatchHistory}
               intent={dispatchRequestIntent}
               onCancelDispatch={() => recordPipelineDispatchAction("cancelled")}
+              onCreateCockpitRun={createPipelineCockpitRun}
               onRequestDispatch={() => recordPipelineDispatchAction("requested")}
               preview={selectedPreview}
             />
@@ -904,22 +932,26 @@ function PipelineView({
 
 function PipelineItemDispatchDetail({
   canCancelDispatch,
+  canCreateCockpitRun,
   canRequestDispatch,
   history,
   handoff,
   handoffTask,
   intent,
   onCancelDispatch,
+  onCreateCockpitRun,
   onRequestDispatch,
   preview
 }: {
   canCancelDispatch: boolean;
+  canCreateCockpitRun: boolean;
   canRequestDispatch: boolean;
   history: PipelineDispatchRequestRecord[];
   handoff?: ReturnType<typeof buildHandoffBrief>;
   handoffTask?: OrchestrationTask;
   intent: PipelineDispatchRequestIntent;
   onCancelDispatch: () => void;
+  onCreateCockpitRun: () => void;
   onRequestDispatch: () => void;
   preview: PipelineItemDispatchPreview;
 }) {
@@ -997,6 +1029,20 @@ function PipelineItemDispatchDetail({
               type="button"
             >
               Cancel
+            </button>
+          </div>
+          <div className="pipeline-cockpit-link">
+            <div>
+              <strong>Local cockpit run</strong>
+              <small>Creates a mock run projection from this pipeline item.</small>
+            </div>
+            <button
+              aria-label="Create local cockpit run from selected pipeline item"
+              disabled={!canCreateCockpitRun}
+              onClick={onCreateCockpitRun}
+              type="button"
+            >
+              Create Run
             </button>
           </div>
           <ol className="pipeline-request-history" aria-label="Selected pipeline item dispatch request history">
