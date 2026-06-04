@@ -42,6 +42,7 @@
 - Selected mock runs should expose a compact event timeline covering run, task, session, and validation events.
 - Timeline summaries should show active, issue, and complete counts for quick cockpit monitoring.
 - Selected mock runs should expose local validation evidence readiness with gate counts, evidence counts, finalization state, and safety copy before any terminal command runs.
+- Selected mock runs should expose terminal and Git evidence readiness so users can see capture locks, permission state, and local evidence dependency before any command or Git operation runs.
 - Runtime adapters should expose a compact contract inspector with transport, capabilities, permissions, and normalized event support.
 - Adapter contract summaries should show ready, review, and blocked counts before any real command execution is enabled.
 - Selected mock runs should expose a runtime ingestion preview that compares normalized timeline events against the selected adapter contract.
@@ -112,6 +113,7 @@
 - Desktop permission audit previews should later export signed review records after the desktop approval and rollback model is implemented.
 - Desktop packaging readiness should later hand off to real local build, signing, and installer checks after the packaging security model is implemented.
 - Local validation evidence readiness should later connect to real terminal, test, and Git evidence capture after the execution permission model is implemented.
+- Terminal and Git evidence readiness should later become permissioned command/test/Git capture with rollback-aware audit records.
 
 ## UX Requirements
 

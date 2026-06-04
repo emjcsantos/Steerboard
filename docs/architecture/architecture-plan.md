@@ -50,6 +50,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Local lifecycle controls transition mock runs through queued, running, complete, blocked, and failed states while keeping task, session, and validation-gate state aligned.
 - Selected-run event timelines derive normalized run, task, session, and validation events for compact monitoring in the cockpit side panel.
 - Local evidence readiness summarizes selected-run gates, evidence-bearing sessions, blockers, and final review state before any terminal, process, filesystem, or network capability is available.
+- Terminal and Git evidence readiness combines local evidence state, desktop bridge status, and permission status before any command, Git operation, process, filesystem, or network capability is available.
 - Runtime ingestion preview checks selected-run timeline events against the active adapter contract and marks each event as accepted, review, or blocked.
 - Local stream preview plays normalized ingestion events into the cockpit as a realtime monitoring simulation before external runtime sessions exist.
 - Adapter session preview derives transport, heartbeat, permission readiness, and health from the selected runtime adapter plus local stream state.
@@ -96,6 +97,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - The scaffold exposes an execution audit preview so users can monitor the next execution gate without granting process execution.
 - The scaffold stores local execution audit preview records so monitor state survives reloads without storing private paths or secrets.
 - The scaffold exposes local validation evidence readiness from selected-run data only; real terminal output, test artifacts, and Git evidence remain behind later permissioned desktop adapters.
+- The scaffold exposes terminal and Git capture readiness from local state only; real command output and repository evidence remain locked until desktop permission gates are implemented.
 - The scaffold exposes desktop bridge reachability in the cockpit while keeping process execution and workspace access locked by default.
 - The scaffold keeps runtime adapter data local and mocked until a desktop-shell permission path exists for process execution.
 - The scaffold keeps runtime profile activation as browser-local cockpit state until a desktop-shell permission path can safely promote it into real execution.

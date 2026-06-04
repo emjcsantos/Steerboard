@@ -242,6 +242,10 @@ import {
   buildLocalEvidenceReadinessSnapshot,
   type LocalEvidenceReadinessSnapshot
 } from "./localEvidenceReadiness";
+import {
+  buildToolEvidenceReadinessSnapshot,
+  type ToolEvidenceReadinessSnapshot
+} from "./toolEvidenceReadiness";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -1163,6 +1167,19 @@ function RightPanel({
     () => buildLocalEvidenceReadinessSnapshot(selectedRun),
     [selectedRun]
   );
+  const toolEvidenceReadinessSnapshot = useMemo(
+    () =>
+      buildToolEvidenceReadinessSnapshot(
+        desktopBridgeStatus,
+        desktopPermissionApprovalStatus,
+        localEvidenceReadinessSnapshot
+      ),
+    [
+      desktopBridgeStatus,
+      desktopPermissionApprovalStatus,
+      localEvidenceReadinessSnapshot
+    ]
+  );
   const timelineSummary = useMemo(
     () => summarizeRunTimeline(selectedTimeline),
     [selectedTimeline]
@@ -1646,6 +1663,7 @@ function RightPanel({
       </section>
 
       <LocalEvidenceReadinessPanel evidence={localEvidenceReadinessSnapshot} />
+      <ToolEvidenceReadinessPanel tools={toolEvidenceReadinessSnapshot} />
 
       <section className="panel-section">
         <h4>Project Registry</h4>
@@ -2719,6 +2737,62 @@ function LocalEvidenceReadinessPanel({
           ))}
         </ol>
         <small title={evidence.safety}>{evidence.safety}</small>
+      </div>
+    </section>
+  );
+}
+
+function ToolEvidenceReadinessPanel({
+  tools
+}: {
+  tools: ToolEvidenceReadinessSnapshot;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Terminal & Git</h4>
+      <div
+        className={classNames("tool-evidence", `tool-evidence-${tools.state}`)}
+        aria-label="Terminal and Git evidence readiness preview"
+      >
+        <div className="tool-evidence-header">
+          <span className="tool-evidence-state">
+            <span aria-hidden="true" />
+            {tools.statusLabel}
+          </span>
+          <strong title={tools.label}>Capture readiness</strong>
+        </div>
+        <p title={tools.detail}>{tools.detail}</p>
+        <dl className="tool-evidence-grid">
+          <div>
+            <dt>Ready</dt>
+            <dd>{tools.readiness}%</dd>
+          </div>
+          <div>
+            <dt>Terminal</dt>
+            <dd>{tools.terminalLocked ? "Locked" : "Ready"}</dd>
+          </div>
+          <div>
+            <dt>Git</dt>
+            <dd>{tools.gitLocked ? "Locked" : "Ready"}</dd>
+          </div>
+          <div>
+            <dt>Capture</dt>
+            <dd>{tools.canCapture ? "Ready" : "Held"}</dd>
+          </div>
+        </dl>
+        <ol className="tool-evidence-items">
+          {tools.items.map((item) => (
+            <li
+              className={`tool-evidence-item-${item.status}`}
+              key={item.id}
+              title={item.detail}
+            >
+              <span>{item.status}</span>
+              <strong>{item.label}</strong>
+            </li>
+          ))}
+        </ol>
+        <small title={tools.safety}>{tools.safety}</small>
       </div>
     </section>
   );
