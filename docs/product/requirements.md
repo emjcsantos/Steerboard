@@ -74,6 +74,7 @@
 - Desktop permission request state should expose a local approval preview that keeps execution locked until a real desktop approval path exists.
 - The desktop shell should expose a safe permission approval status so the cockpit can show whether the approval command is unavailable, locked, ready, or errored.
 - Desktop permission state should expose a local audit and export preview that combines approval state, shell approval status, request history, and execution lock status without writing files.
+- The environment panel should expose desktop packaging readiness so users can see shell, bridge, permission, and packaging-lock state before any installer or signed build command exists.
 
 ## Later Functional Scope
 
@@ -108,6 +109,7 @@
 - Desktop permission approval previews should later become real approval gates with signed audit records.
 - Desktop permission approval status should later connect to the real shell approval command after safety checks are implemented.
 - Desktop permission audit previews should later export signed review records after the desktop approval and rollback model is implemented.
+- Desktop packaging readiness should later hand off to real local build, signing, and installer checks after the packaging security model is implemented.
 
 ## UX Requirements
 

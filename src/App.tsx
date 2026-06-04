@@ -234,6 +234,10 @@ import {
   loadDesktopPermissionApprovalStatus,
   type DesktopPermissionApprovalStatus
 } from "./desktopPermissionApproval";
+import {
+  buildDesktopPackagingReadinessSnapshot,
+  type DesktopPackagingReadinessSnapshot
+} from "./desktopPackagingReadiness";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -1263,6 +1267,14 @@ function RightPanel({
       runtimeProfilePermissionRequestHistory
     ]
   );
+  const desktopPackagingReadinessSnapshot = useMemo(
+    () =>
+      buildDesktopPackagingReadinessSnapshot(
+        desktopBridgeStatus,
+        desktopPermissionApprovalStatus
+      ),
+    [desktopBridgeStatus, desktopPermissionApprovalStatus]
+  );
   const canActivateDraftProfile =
     runtimeProfileApprovalSnapshot.state === "requested" &&
     canActivateRuntimeProfile(runtimeProfileDraftReadiness);
@@ -1653,6 +1665,8 @@ function RightPanel({
           <span>{runtimeSummary.ready}/{runtimeSummary.total} ready</span>
         </div>
       </section>
+
+      <DesktopPackagingReadinessPanel packaging={desktopPackagingReadinessSnapshot} />
 
       <RuntimeProfilePanel
         activation={runtimeProfileActivationSnapshot}
@@ -2584,6 +2598,61 @@ function DesktopRuntimeBridgeStatusBlock({
       </dl>
       <small title={bridge.safety}>{bridge.safety}</small>
     </div>
+  );
+}
+
+function DesktopPackagingReadinessPanel({
+  packaging
+}: {
+  packaging: DesktopPackagingReadinessSnapshot;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Desktop App</h4>
+      <div
+        className={classNames(
+          "desktop-packaging",
+          `desktop-packaging-${packaging.state}`
+        )}
+        aria-label="Desktop packaging readiness preview"
+      >
+        <div className="desktop-packaging-header">
+          <span className="desktop-packaging-state">
+            <span aria-hidden="true" />
+            {packaging.statusLabel}
+          </span>
+          <strong title={packaging.label}>Package readiness</strong>
+        </div>
+        <p title={packaging.detail}>{packaging.detail}</p>
+        <dl className="desktop-packaging-grid">
+          <div>
+            <dt>Ready</dt>
+            <dd>{packaging.readiness}%</dd>
+          </div>
+          <div>
+            <dt>Package</dt>
+            <dd>{packaging.canPackage ? "Ready" : "Held"}</dd>
+          </div>
+          <div>
+            <dt>Lock</dt>
+            <dd>{packaging.packagingLocked ? "Locked" : "Open"}</dd>
+          </div>
+        </dl>
+        <ol className="desktop-packaging-items">
+          {packaging.items.map((item) => (
+            <li
+              className={`desktop-packaging-item-${item.status}`}
+              key={item.id}
+              title={item.detail}
+            >
+              <span>{item.status}</span>
+              <strong>{item.label}</strong>
+            </li>
+          ))}
+        </ol>
+        <small title={packaging.safety}>{packaging.safety}</small>
+      </div>
+    </section>
   );
 }
 
