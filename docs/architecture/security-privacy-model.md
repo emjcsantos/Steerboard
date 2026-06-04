@@ -52,4 +52,4 @@ Worker task briefs must include:
 - required handoff summary,
 - rollback note.
 
-Main Codex must run final validation after worker completion.
+The main orchestrator must run final validation after worker completion.

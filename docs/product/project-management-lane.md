@@ -22,7 +22,7 @@ It should make the product useful before a coding agent starts: the user can org
 3. User adds pipeline items with scope, priority, acceptance criteria, and validation.
 4. AtlasUI checks readiness and highlights missing fields.
 5. User clicks deploy to Codex.
-6. Main Codex turns the selected item into a run plan, small worker tasks, validation tasks, and integration steps.
+6. The main orchestrator turns the selected item into a run plan, small worker tasks, validation tasks, and integration steps.
 7. The cockpit opens the resulting run while the project management lane keeps the pipeline status synchronized.
 
 ## MVP Shape
@@ -64,4 +64,4 @@ Deploying to Codex creates:
 - expected files or ownership boundaries,
 - final integration checklist.
 
-Main Codex remains responsible for architecture, final validation, commit, push, and reporting.
+The main orchestrator remains responsible for architecture, final validation, commit, push, and reporting.

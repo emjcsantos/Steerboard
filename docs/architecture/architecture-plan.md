@@ -32,7 +32,7 @@ Reason: Harnss has strong feature fit, but its current audited dependency and se
 
 ### Orchestration Core
 
-- Main Codex owns architecture and final integration.
+- The main orchestrator owns architecture and final integration.
 - Task splitter creates small, non-overlapping tasks.
 - Worker runner dispatches implementer tasks.
 - Validator runner dispatches validation tasks.
@@ -49,7 +49,7 @@ Reason: Harnss has strong feature fit, but its current audited dependency and se
 ### Adapter Layer
 
 - Codex app-server adapter.
-- Worker adapter for Codex Spark.
+- Worker adapter for configured agent runtimes.
 - Future adapters for ACP-compatible workers.
 - Adapter APIs should normalize events into the session core instead of leaking provider-specific event shapes into the UI.
 

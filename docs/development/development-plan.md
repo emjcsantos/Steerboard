@@ -104,9 +104,9 @@ Exit criteria:
 - no dependency on monitoring another IDE's UI,
 - adapter tests pass.
 
-## Phase 5: Spark Worker Execution
+## Phase 5: Worker Execution
 
-Goal: connect orchestrator tasks to Codex 5.3 Spark workers.
+Goal: connect orchestrator tasks to configured worker agents through a model-agnostic worker profile.
 
 Tiny worker tasks:
 
@@ -121,8 +121,8 @@ Tiny worker tasks:
 Exit criteria:
 
 - implementer and validator roles are separate,
-- Main Codex owns final integration,
-- failures loop up to three times then return to Main Codex.
+- the main orchestrator owns final integration,
+- failures loop up to three times then return to the main orchestrator.
 
 ## Phase 6: Harnss-Pattern Selective Adoption
 

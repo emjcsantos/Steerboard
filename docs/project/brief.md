@@ -22,10 +22,10 @@ AtlasUI should feel like a practical command cockpit:
 ## Primary Workflow
 
 1. The user opens a project.
-2. Main Codex prepares the plan and splits it into small tasks.
-3. Spark workers receive non-overlapping tasks.
+2. The main orchestrator prepares the plan and splits it into small tasks.
+3. Configured worker agents receive non-overlapping tasks.
 4. Each worker implements and validates up to three attempts.
-5. Main Codex validates worker output, integrates accepted changes, fixes gaps, commits, pushes, and reports.
+5. The main orchestrator validates worker output, integrates accepted changes, fixes gaps, commits, pushes, and reports.
 
 ## Non-Goals For MVP
 
@@ -33,4 +33,3 @@ AtlasUI should feel like a practical command cockpit:
 - Running every possible external agent.
 - Importing private session history from another IDE as the main workflow.
 - Shipping an unaudited fork of any third-party app.
-

@@ -11,7 +11,8 @@
 - Project management lane for planning and managing a user's development pipeline before dispatching selected work to Codex.
 - Worker handoff format with scope, allowed files, acceptance criteria, validation command, and rollback note.
 - Separate implementer and validator roles when task risk requires it.
-- Final integration lane owned by Main Codex.
+- Final integration lane owned by the main orchestrator.
+- Model-agnostic worker profiles so model/provider choice stays configurable.
 
 ## MVP Functional Scope
 
@@ -31,7 +32,7 @@
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
 - MCP configuration and status.
-- External worker adapters beyond Codex Spark.
+- Additional worker adapters beyond the default configured runtime.
 - Deploy-to-Codex action that converts a selected pipeline item into an orchestrator run, task split, and worker handoff set.
 
 ## UX Requirements
