@@ -42,12 +42,15 @@
 - Timeline summaries should show active, issue, and complete counts for quick cockpit monitoring.
 - Runtime adapters should expose a compact contract inspector with transport, capabilities, permissions, and normalized event support.
 - Adapter contract summaries should show ready, review, and blocked counts before any real command execution is enabled.
+- Selected mock runs should expose a runtime ingestion preview that compares normalized timeline events against the selected adapter contract.
+- Runtime ingestion previews should show accepted, review, and blocked event counts without executing any runtime process.
 
 ## Later Functional Scope
 
 - Real agent-runtime session ownership.
 - Real worker spawning.
 - Live transcript streaming.
+- Live runtime event ingestion from configured adapters.
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
 - MCP configuration and status.

@@ -113,6 +113,11 @@ import {
   summarizeAdapterContract,
   type AdapterContractItem
 } from "./adapterContract";
+import {
+  buildRuntimeIngestionPreview,
+  summarizeRuntimeIngestion,
+  type RuntimeIngestionEvent
+} from "./runtimeIngestion";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -947,6 +952,8 @@ function RightPanel({
   const timelineSummary = summarizeRunTimeline(selectedTimeline);
   const adapterContractItems = buildAdapterContract(runtimeAdapter);
   const adapterContractSummary = summarizeAdapterContract(adapterContractItems);
+  const runtimeIngestionEvents = buildRuntimeIngestionPreview(selectedTimeline, adapterContractItems);
+  const runtimeIngestionSummary = summarizeRuntimeIngestion(runtimeIngestionEvents);
 
   return (
     <aside className="right-panel" aria-label="Environment">
@@ -1166,6 +1173,37 @@ function RightPanel({
       </section>
 
       <section className="panel-section">
+        <h4>Runtime Ingestion</h4>
+        <div className="ingestion-summary" aria-label="Runtime ingestion summary">
+          <span>
+            <strong>{runtimeIngestionSummary.readiness}%</strong>
+            Ready
+          </span>
+          <span>
+            <strong>{runtimeIngestionSummary.accepted}</strong>
+            Accepted
+          </span>
+          <span>
+            <strong>{runtimeIngestionSummary.review}</strong>
+            Review
+          </span>
+          <span>
+            <strong>{runtimeIngestionSummary.blocked}</strong>
+            Blocked
+          </span>
+        </div>
+        {runtimeIngestionEvents.length > 0 ? (
+          <ol className="ingestion-list" aria-label="Runtime ingestion preview">
+            {runtimeIngestionEvents.map((event) => (
+              <RuntimeIngestionListItem event={event} key={event.id} />
+            ))}
+          </ol>
+        ) : (
+          <p className="empty-preview">Select or stage a local run to preview adapter event ingestion.</p>
+        )}
+      </section>
+
+      <section className="panel-section">
         <h4>Local Access</h4>
         <ul className="access-list">
           {permissionSurfaces.map((surface) => (
@@ -1198,6 +1236,22 @@ function AdapterContractListItem({ item }: { item: AdapterContractItem }) {
         <small>{item.label}</small>
       </div>
       <span className="adapter-contract-status">{item.status}</span>
+    </li>
+  );
+}
+
+function RuntimeIngestionListItem({ event }: { event: RuntimeIngestionEvent }) {
+  return (
+    <li className={classNames("ingestion-item", `ingestion-${event.eventKind}`, `ingestion-${event.adapterStatus}`)}>
+      <span className="ingestion-sequence">{event.sequence + 1}</span>
+      <div>
+        <span className="ingestion-kicker">
+          {event.eventKind} / {event.adapterStatus}
+        </span>
+        <strong title={event.label}>{event.label}</strong>
+        <small title={`${event.detail}. ${event.reason}`}>{event.reason}</small>
+      </div>
+      <span className="ingestion-status">{event.adapterStatus}</span>
     </li>
   );
 }

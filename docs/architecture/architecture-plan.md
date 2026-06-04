@@ -48,6 +48,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Local run history records staged package projections, task counts, panel counts, and validation gate counts for selected-run inspection.
 - Local lifecycle controls transition mock runs through queued, running, complete, blocked, and failed states while keeping task, session, and validation-gate state aligned.
 - Selected-run event timelines derive normalized run, task, session, and validation events for compact monitoring in the cockpit side panel.
+- Runtime ingestion preview checks selected-run timeline events against the active adapter contract and marks each event as accepted, review, or blocked.
 - Deploy-to-runtime action that creates an orchestrator run from selected pipeline items.
 - Trace links from project pipeline item to orchestrator run, worker tasks, validation reports, and final integration result.
 
@@ -61,6 +62,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Each runtime adapter should declare capabilities, required permissions, configuration fields, supported commands, event mapping, and mock fixtures.
 - The cockpit must consume normalized session, task, validation, and tool-call events instead of provider-specific payloads.
 - The scaffold exposes an adapter contract inspector that summarizes transport, capability, permission, and normalized-event readiness before runtime execution exists.
+- The scaffold exposes a runtime ingestion preview that uses mocked timeline events to verify adapter event compatibility before real streaming is wired in.
 - The scaffold keeps runtime adapter data local and mocked until a desktop-shell permission path exists for process execution.
 
 ### Persistence
