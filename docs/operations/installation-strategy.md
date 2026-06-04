@@ -22,6 +22,12 @@ npm install
 npm run dev
 ```
 
+Desktop preview:
+
+```text
+npm run desktop:dev
+```
+
 Benefits:
 
 - Users can inspect the code before running it.
@@ -38,6 +44,7 @@ Requirements before promoting this path:
 - Public-safe fixture data only.
 - Explicit permission model for project folders, Git, terminal, local agent runtimes, and notifications.
 - One-command development startup: `npm run dev`.
+- One-command desktop startup: `npm run desktop:dev`.
 - One-command local production build: `npm run build`.
 
 ## Signed Desktop Builds

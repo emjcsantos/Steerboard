@@ -39,6 +39,8 @@ Use a shell abstraction and keep the first implementation replaceable. Prefer a 
 
 Start with a Tauri feasibility spike if the MVP can keep terminal, editor, and agent integration simple. Choose Electron if the spike shows that core IDE surfaces would take materially longer in Tauri.
 
+The first scaffold uses a minimal Tauri shell that loads the Vite cockpit UI during development and keeps privileged desktop capabilities behind future adapter boundaries.
+
 Either way, Steerboard should keep shell-specific code behind an adapter so product work can continue without locking every feature to one desktop framework.
 
 ## Deployment Model

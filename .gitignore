@@ -6,6 +6,8 @@ release/
 .turbo/
 .cache/
 coverage/
+src-tauri/target/
+src-tauri/gen/
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts

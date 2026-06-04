@@ -22,6 +22,14 @@ npm run dev
 
 The preview runs on `http://127.0.0.1:5173/` by default.
 
+## Desktop Preview
+
+```text
+npm run desktop:dev
+```
+
+The desktop shell uses Tauri and loads the same local Vite UI during development.
+
 ## Document Map
 
 - [Project Brief](docs/project/brief.md)
