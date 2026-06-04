@@ -236,6 +236,10 @@ import {
   type CockpitMonitorLoop
 } from "./cockpitMonitorLoop";
 import {
+  createCockpitPanelRoster,
+  type CockpitPanelRoster
+} from "./cockpitPanelRoster";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -490,9 +494,18 @@ export function App() {
     ],
     [project.id, projectMockTasks]
   );
+  const cockpitSessions = useMemo(
+    () => [...projectMockSessions, ...basePresetSessions],
+    [basePresetSessions, projectMockSessions]
+  );
+  const maxVisibleSessions = layout.columns * layout.rows;
   const visibleSessions = useMemo(
-    () => [...projectMockSessions, ...basePresetSessions].slice(0, layout.columns * layout.rows),
-    [basePresetSessions, layout.columns, layout.rows, projectMockSessions]
+    () => cockpitSessions.slice(0, maxVisibleSessions),
+    [cockpitSessions, maxVisibleSessions]
+  );
+  const cockpitPanelRoster = useMemo(
+    () => createCockpitPanelRoster(cockpitSessions, visibleSessions.length, maxVisibleSessions),
+    [cockpitSessions, maxVisibleSessions, visibleSessions.length]
   );
   const activeDraftIndex = Math.min(selectedDraftIndex, Math.max(drafts.length - 1, 0));
   const viewLabel = view === "cockpit" ? "Cockpit" : view === "pipeline" ? "Pipeline" : "Planning";
@@ -677,9 +690,12 @@ export function App() {
                       </button>
                     ))}
                   </div>
-                  <div className="run-chip">
-                    <Play size={14} />
-                    {visibleSessions.length} visible
+                  <div className="toolbar-status">
+                    <PanelRosterSignal roster={cockpitPanelRoster} />
+                    <div className="run-chip">
+                      <Play size={14} />
+                      {visibleSessions.length} visible
+                    </div>
                   </div>
                 </div>
 
@@ -781,6 +797,35 @@ function SessionCell({ session }: { session: SessionSummary }) {
         </div>
       </footer>
     </article>
+  );
+}
+
+function PanelRosterSignal({ roster }: { roster: CockpitPanelRoster }) {
+  return (
+    <div
+      aria-label={`Panel roster: ${roster.label}`}
+      className={classNames("panel-roster-chip", `panel-roster-${roster.tone}`)}
+      title={roster.detail}
+    >
+      <div className="panel-roster-copy">
+        <strong>{roster.label}</strong>
+        <small>
+          {roster.visibleLabel} / {roster.hiddenLabel}
+        </small>
+      </div>
+      <div className="panel-roster-metrics" aria-label="Panel roster role counts">
+        {roster.metrics.map((metric) => (
+          <span
+            className={classNames("panel-roster-metric", `panel-roster-metric-${metric.tone}`)}
+            key={metric.label}
+            title={`${metric.label}: ${metric.value}`}
+          >
+            <strong>{metric.value}</strong>
+            <small>{metric.label}</small>
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 
