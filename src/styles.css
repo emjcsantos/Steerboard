@@ -235,6 +235,40 @@ input:focus-visible {
   gap: 12px;
 }
 
+.runtime-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border-radius: 999px;
+  background: #252b34;
+  color: #b9c1cb;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.runtime-ready {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.runtime-limited,
+.runtime-checking {
+  background: #352e18;
+  color: #f0d984;
+}
+
+.runtime-blocked {
+  background: #442119;
+  color: #ff9e85;
+}
+
+.runtime-not_configured {
+  background: #2a3038;
+  color: #c7d0da;
+}
+
 .segmented {
   display: flex;
   gap: 3px;
@@ -531,7 +565,8 @@ input:focus-visible {
 .mode-summary,
 .access-list li,
 .validation-list li,
-.orchestration-summary {
+.orchestration-summary,
+.runtime-detail {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -551,6 +586,29 @@ input:focus-visible {
 .orchestration-summary strong {
   color: #ffffff;
   font-size: 18px;
+}
+
+.registry-detail,
+.runtime-detail {
+  display: grid;
+  gap: 8px;
+}
+
+.registry-detail span,
+.runtime-detail span:not(.runtime-pill) {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  color: #aab3bd;
+  font-size: 11px;
+}
+
+.registry-detail strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ffffff;
+  font-size: 14px;
 }
 
 .access-list,
@@ -636,6 +694,30 @@ input:focus-visible {
 
 .pipeline-header p {
   margin: 3px 0 0;
+}
+
+.gate-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.gate-chip {
+  border-radius: 999px;
+  padding: 4px 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.gate-ready {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.gate-review {
+  background: #352e18;
+  color: #f0d984;
 }
 
 .pipeline-header button {

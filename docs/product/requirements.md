@@ -3,6 +3,7 @@
 ## Core Functional Requirements
 
 - Project workspace registry.
+- Project registry entries must expose display-safe workspace labels, status, runtime state, permission state, and readiness without storing private local paths in public fixtures.
 - Session registry for active and historical agent threads.
 - Adaptive cockpit layouts: `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, and `3x3`.
 - `3x3` hard maximum for visible cockpit cells.
@@ -10,6 +11,7 @@
 - Per-cell session state: idle, planning, implementing, validating, blocked, failed, complete.
 - Orchestrator task board showing task ownership, attempt count, validation state, files touched, and handoff result.
 - Project management lane for planning and managing a user's development pipeline before dispatching selected work to a configured agent runtime.
+- Dispatch controls must combine pipeline readiness, project registry readiness, and runtime adapter readiness before enabling a launch action.
 - Worker handoff format with scope, allowed files, acceptance criteria, validation command, and rollback note.
 - Separate implementer and validator roles when task risk requires it.
 - Final integration lane owned by the main orchestrator.
@@ -19,6 +21,7 @@
 ## MVP Functional Scope
 
 - Static project list and session mock data.
+- Static project registry and runtime adapter mock data.
 - Cockpit layout model and responsive grid.
 - Mock cockpit mode presets for focus lane, orchestrator-with-workers, and independent project monitor.
 - Task and worker state model.
@@ -26,6 +29,7 @@
 - Audit and progress panels.
 - Local-only persistence for mock projects and runs.
 - Placeholder project-management lane with generic sample pipelines and no private project names.
+- Dispatch gate preview with no real command execution.
 
 ## Later Functional Scope
 

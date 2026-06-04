@@ -1,5 +1,7 @@
 import type { CockpitMode } from "./layout";
 import type { OrchestrationTask } from "./orchestration";
+import type { RegistryEntry } from "./registry";
+import type { RuntimeAdapter } from "./runtime";
 
 export type SessionState =
   | "idle"
@@ -228,6 +230,96 @@ export const pipelineItems: PipelineItem[] = [
     owner: "Quality",
     risk: "low",
     readiness: 100
+  }
+];
+
+export const registryEntries: RegistryEntry[] = [
+  {
+    projectId: "website-refresh",
+    projectName: "Website Refresh",
+    status: "active",
+    workspaceLabel: "Marketing workspace",
+    runtimeState: "ready",
+    permissionState: "allowed",
+    readiness: 92
+  },
+  {
+    projectId: "billing-workflow",
+    projectName: "Billing Workflow",
+    status: "active",
+    workspaceLabel: "Operations workspace",
+    runtimeState: "starting",
+    permissionState: "review",
+    readiness: 84
+  },
+  {
+    projectId: "developer-tooling",
+    projectName: "Developer Tooling",
+    status: "queued",
+    workspaceLabel: "Internal tooling workspace",
+    runtimeState: "stopped",
+    permissionState: "review",
+    readiness: 68
+  },
+  {
+    projectId: "mobile-prototype",
+    projectName: "Mobile App Prototype",
+    status: "blocked",
+    workspaceLabel: "Product design workspace",
+    runtimeState: "error",
+    permissionState: "blocked",
+    readiness: 31
+  }
+];
+
+export const runtimeAdapters: RuntimeAdapter[] = [
+  {
+    id: "website-refresh",
+    label: "Local runtime",
+    state: "ready",
+    readiness: 92,
+    permissions: [
+      { permission: "workspace_read", status: "enabled" },
+      { permission: "workspace_write", status: "review" },
+      { permission: "process", status: "enabled" },
+      { permission: "network", status: "disabled" }
+    ]
+  },
+  {
+    id: "billing-workflow",
+    label: "Local runtime",
+    state: "limited",
+    readiness: 72,
+    permissions: [
+      { permission: "workspace_read", status: "enabled" },
+      { permission: "workspace_write", status: "review" },
+      { permission: "process", status: "review" },
+      { permission: "network", status: "disabled" }
+    ]
+  },
+  {
+    id: "developer-tooling",
+    label: "Local runtime",
+    state: "not_configured",
+    readiness: 0,
+    permissions: [
+      { permission: "workspace_read", status: "review" },
+      { permission: "workspace_write", status: "disabled" },
+      { permission: "process", status: "disabled" },
+      { permission: "network", status: "disabled" }
+    ]
+  },
+  {
+    id: "mobile-prototype",
+    label: "Local runtime",
+    state: "blocked",
+    readiness: 31,
+    permissions: [
+      { permission: "workspace_read", status: "enabled" },
+      { permission: "workspace_write", status: "disabled" },
+      { permission: "process", status: "disabled" },
+      { permission: "network", status: "disabled" }
+    ]
   }
 ];
 

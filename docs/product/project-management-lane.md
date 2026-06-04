@@ -32,6 +32,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Item detail panel.
 - Readiness checklist.
 - Deploy-to-runtime button disabled until required fields are present.
+- Registry and runtime gate chips showing why dispatch is enabled or blocked.
 - Generated handoff preview.
 - Link from deployed item to cockpit run.
 - Deploy-mode selector for focused run, orchestrator-with-workers, or independent project monitor.
@@ -47,6 +48,8 @@ It should make the product useful before a coding agent starts: the user can org
 - validation command or validation plan,
 - risk level,
 - rollback note.
+- project registry readiness,
+- runtime adapter readiness and required permissions.
 
 ## Privacy Rules
 

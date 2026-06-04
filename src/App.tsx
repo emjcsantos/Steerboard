@@ -25,6 +25,8 @@ import {
   permissionSurfaces,
   pipelineItems,
   projects,
+  registryEntries,
+  runtimeAdapters,
   type PermissionSurface,
   sessions,
   type PipelineItem,
@@ -51,6 +53,17 @@ import {
   saveWorkspacePreferences,
   type WorkspacePreferences
 } from "./preferences";
+import {
+  dispatchableRegistryEntries,
+  summarizeRegistry,
+  type RegistryEntry
+} from "./registry";
+import {
+  canRunWithAdapter,
+  runtimeStateLabel,
+  summarizeRuntimeAdapters,
+  type RuntimeAdapter
+} from "./runtime";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -85,6 +98,14 @@ export function App() {
 
   const preset = cockpitPresets.find((entry) => entry.mode === mode) ?? cockpitPresets[0];
   const layout = getLayoutSpec(layoutId);
+  const registryByProject = useMemo(
+    () => new Map(registryEntries.map((entry) => [entry.projectId, entry])),
+    []
+  );
+  const runtimeByProject = useMemo(
+    () => new Map(runtimeAdapters.map((adapter) => [adapter.id, adapter])),
+    []
+  );
 
   const visibleSessions = useMemo(() => {
     const presetSessions = preset.sessionIds
@@ -95,6 +116,10 @@ export function App() {
   }, [layout.columns, layout.rows, preset.sessionIds]);
 
   const project = projects.find((item) => item.id === selectedProjectId) ?? projects[0];
+  const registryEntry = registryByProject.get(project.id);
+  const runtimeAdapter = runtimeByProject.get(project.id);
+  const registrySummary = summarizeRegistry(registryEntries);
+  const runtimeSummary = summarizeRuntimeAdapters(runtimeAdapters);
   const projectPipelineItems = useMemo(
     () => pipelineItems.filter((item) => item.projectId === project.id),
     [project.id]
@@ -148,7 +173,7 @@ export function App() {
               <span className={classNames("project-status", `is-${item.status}`)} />
               <span className="project-copy">
                 <span>{item.name}</span>
-                <small>{item.runs} runs</small>
+                <small>{registryByProject.get(item.id)?.workspaceLabel ?? `${item.runs} runs`}</small>
               </span>
               <span className="project-time">{item.updated}</span>
             </button>
@@ -173,6 +198,12 @@ export function App() {
           </div>
 
           <div className="topbar-controls">
+            {runtimeAdapter ? (
+              <span className={classNames("runtime-pill", `runtime-${runtimeAdapter.state}`)}>
+                {runtimeStateLabel(runtimeAdapter.state)}
+              </span>
+            ) : null}
+
             <div className="segmented" aria-label="Cockpit mode">
               {cockpitPresets.map((entry) => (
                 <button
@@ -252,11 +283,26 @@ export function App() {
                 </div>
               </>
             ) : (
-              <PipelineView items={projectPipelineItems} project={project} tasks={projectTasks} />
+              <PipelineView
+                items={projectPipelineItems}
+                project={project}
+                registryEntry={registryEntry}
+                runtimeAdapter={runtimeAdapter}
+                tasks={projectTasks}
+              />
             )}
           </section>
 
-          <RightPanel mode={mode} project={project} sessions={visibleSessions} tasks={projectTasks} />
+          <RightPanel
+            mode={mode}
+            project={project}
+            registryEntry={registryEntry}
+            registrySummary={registrySummary}
+            runtimeAdapter={runtimeAdapter}
+            runtimeSummary={runtimeSummary}
+            sessions={visibleSessions}
+            tasks={projectTasks}
+          />
         </div>
       </section>
     </main>
@@ -307,13 +353,20 @@ function SessionCell({ session }: { session: SessionSummary }) {
 function PipelineView({
   items,
   project,
+  registryEntry,
+  runtimeAdapter,
   tasks
 }: {
   items: PipelineItem[];
   project: ProjectSummary;
+  registryEntry?: RegistryEntry;
+  runtimeAdapter?: RuntimeAdapter;
   tasks: OrchestrationTask[];
 }) {
-  const dispatchableCount = items.filter(canDispatchPipelineItem).length;
+  const dispatchableItemCount = items.filter(canDispatchPipelineItem).length;
+  const registryReady = registryEntry ? dispatchableRegistryEntries([registryEntry]).length === 1 : false;
+  const runtimeReady = runtimeAdapter ? canRunWithAdapter(runtimeAdapter) : false;
+  const dispatchableCount = registryReady && runtimeReady ? dispatchableItemCount : 0;
   const taskSummary = summarizeTasks(tasks);
   const handoffTask = nextHandoffTask(tasks);
   const handoff = handoffTask ? buildHandoffBrief(handoffTask, project) : undefined;
@@ -324,6 +377,14 @@ function PipelineView({
         <div>
           <h3>Project Pipeline</h3>
           <p>{project.name} orchestration lane</p>
+          <div className="gate-row" aria-label="Dispatch gates">
+            <span className={classNames("gate-chip", registryReady ? "gate-ready" : "gate-review")}>
+              Registry {registryEntry?.readiness ?? 0}%
+            </span>
+            <span className={classNames("gate-chip", runtimeReady ? "gate-ready" : "gate-review")}>
+              Runtime {runtimeAdapter ? runtimeStateLabel(runtimeAdapter.state) : "Missing"}
+            </span>
+          </div>
         </div>
         <button disabled={dispatchableCount === 0} title={`${dispatchableCount} ready tasks`} type="button">
           <Play size={16} />
@@ -400,11 +461,19 @@ function PipelineView({
 function RightPanel({
   mode,
   project,
+  registryEntry,
+  registrySummary,
+  runtimeAdapter,
+  runtimeSummary,
   sessions,
   tasks
 }: {
   mode: CockpitMode;
   project: ProjectSummary;
+  registryEntry?: RegistryEntry;
+  registrySummary: ReturnType<typeof summarizeRegistry>;
+  runtimeAdapter?: RuntimeAdapter;
+  runtimeSummary: ReturnType<typeof summarizeRuntimeAdapters>;
   sessions: SessionSummary[];
   tasks: OrchestrationTask[];
 }) {
@@ -465,6 +534,35 @@ function RightPanel({
             <strong>{taskSummary.blocked}</strong>
             Blocked
           </span>
+        </div>
+      </section>
+
+      <section className="panel-section">
+        <h4>Project Registry</h4>
+        <div className="registry-detail">
+          <span>
+            <strong>{registryEntry?.workspaceLabel ?? "Unregistered workspace"}</strong>
+            Workspace
+          </span>
+          <span>
+            <strong>{registryEntry?.readiness ?? 0}%</strong>
+            Registry readiness
+          </span>
+          <span>
+            <strong>{registrySummary.byStatus.active}/{registrySummary.total}</strong>
+            Active projects
+          </span>
+        </div>
+      </section>
+
+      <section className="panel-section">
+        <h4>Runtime</h4>
+        <div className="runtime-detail">
+          <span className={classNames("runtime-pill", runtimeAdapter && `runtime-${runtimeAdapter.state}`)}>
+            {runtimeAdapter ? runtimeStateLabel(runtimeAdapter.state) : "Missing"}
+          </span>
+          <span>{runtimeAdapter?.readiness ?? 0}% readiness</span>
+          <span>{runtimeSummary.ready}/{runtimeSummary.total} ready</span>
         </div>
       </section>
 

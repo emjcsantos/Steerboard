@@ -42,6 +42,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Pipeline registry for user-defined development work.
 - Backlog, milestone, task, blocker, and release-gate entities.
 - Readiness checks before dispatch to a configured agent runtime.
+- Dispatch gates combine pipeline item readiness, project registry state, runtime adapter state, and required permission status.
 - Deploy-to-runtime action that creates an orchestrator run from selected pipeline items.
 - Trace links from project pipeline item to orchestrator run, worker tasks, validation reports, and final integration result.
 
@@ -54,10 +55,12 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Adapter contracts must be easy to add, test, and disable.
 - Each runtime adapter should declare capabilities, required permissions, configuration fields, supported commands, event mapping, and mock fixtures.
 - The cockpit must consume normalized session, task, validation, and tool-call events instead of provider-specific payloads.
+- The scaffold keeps runtime adapter data local and mocked until a desktop-shell permission path exists for process execution.
 
 ### Persistence
 
 - Project registry.
+- Runtime adapter configuration and readiness state.
 - Session metadata.
 - Handoff records.
 - Validation reports.
