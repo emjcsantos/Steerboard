@@ -26,6 +26,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 ## Phase 4: Runtime Adapters
 
 - Provider-neutral adapter contract.
+- Provider-neutral runtime profile readiness model.
 - Mock adapter for tests and demos.
 - Runtime setup and permission review flow.
 - Local launch request preview before approved runtime execution.
@@ -39,6 +40,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Real session ownership through configured runtimes.
 - Approved launch handoff from local preview into configured runtimes.
 - Desktop bridge permission flow for approved process and workspace access.
+- Runtime profile editor and validation flow before approved launch.
 - Runtime execution audit trail for approved handoffs.
 - Persisted execution audit records and rollback references.
 - Audit export and review workflow.

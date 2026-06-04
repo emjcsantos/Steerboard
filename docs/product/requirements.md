@@ -17,6 +17,7 @@
 - Final integration lane owned by the main orchestrator.
 - Model-agnostic worker profiles so model/provider choice stays configurable.
 - Easy agent-runtime integration through pluggable adapters, documented worker profiles, mockable transports, and no cockpit-specific rewrites.
+- Runtime profile setup must be provider-neutral and should separate profile readiness from actual process execution.
 
 ## MVP Functional Scope
 
@@ -60,6 +61,7 @@
 - Runtime stream previews should retain a local execution audit preview history for approval request and cancellation actions across reloads.
 - The desktop shell should expose a safe runtime bridge status so the cockpit can show whether it is running in browser preview or a desktop shell without enabling process execution.
 - Desktop bridge status should default to unavailable or locked unless an approved runtime path explicitly reports readiness.
+- Runtime profile drafts should start disabled with read-only workspace posture and deterministic readiness reasons.
 
 ## Later Functional Scope
 
@@ -83,6 +85,7 @@
 - Additional worker adapters beyond the default configured runtime.
 - Deploy-to-runtime action that converts a selected pipeline item into an orchestrator run, task split, and worker handoff set.
 - Runtime integration wizard for adding or testing a configured model/provider adapter.
+- Runtime profile editor for configuring provider-neutral transports, commands, permissions, and capabilities before launch approval.
 
 ## UX Requirements
 
