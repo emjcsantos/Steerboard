@@ -28,9 +28,11 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Provider-neutral adapter contract.
 - Mock adapter for tests and demos.
 - Runtime setup and permission review flow.
+- Local launch request preview before approved runtime execution.
 
 ## Phase 5: Local Execution And Packaging
 
 - Real session ownership through configured runtimes.
+- Approved launch handoff from local preview into configured runtimes.
 - Git, terminal, validation, and evidence panels.
 - Signed desktop builds after the local security model is proven.

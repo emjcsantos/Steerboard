@@ -54,6 +54,7 @@
 - Adapter source readiness should explain missing capabilities or permissions before any external process can run.
 - Runtime stream previews should expose a local adapter bridge that can attach, detach, and gate stream playback without launching an external process.
 - Adapter bridge state should distinguish attachable, attached, live, paused, complete, and blocked states.
+- Runtime stream previews should expose a local launch request preview that shows handoff readiness, approval requirement, queued event count, and safety status before any external process can start.
 
 ## Later Functional Scope
 
@@ -66,6 +67,7 @@
 - Configured event source adapters that replace local mocked event queues.
 - Adapter source connection flow that turns a local event queue into a configured runtime stream.
 - Desktop-shell adapter bridge that can hand off from local preview to an approved configured runtime.
+- Approved launch request execution from the local preview into a configured desktop-shell adapter.
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
 - MCP configuration and status.

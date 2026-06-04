@@ -144,6 +144,10 @@ import {
   type RuntimeAdapterBridgeIntent,
   type RuntimeAdapterBridgeSnapshot
 } from "./runtimeAdapterBridge";
+import {
+  buildRuntimeLaunchRequestSnapshot,
+  type RuntimeLaunchRequestSnapshot
+} from "./runtimeLaunchRequest";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -1037,6 +1041,11 @@ function RightPanel({
     runtimeStreamSnapshot,
     bridgeIntent
   );
+  const runtimeLaunchRequestSnapshot = buildRuntimeLaunchRequestSnapshot(
+    runtimeAdapterBridgeSnapshot,
+    runtimeSourceConnectionSnapshot,
+    runtimeEventSourceSnapshot
+  );
   const canStartStream =
     Boolean(selectedRun) &&
     runtimeIngestionEvents.length > 0 &&
@@ -1357,6 +1366,7 @@ function RightPanel({
         <RuntimeEventSourceStatus
           bridge={runtimeAdapterBridgeSnapshot}
           connection={runtimeSourceConnectionSnapshot}
+          launchRequest={runtimeLaunchRequestSnapshot}
           onAttach={() => updateBridgeIntent("attached")}
           onDetach={() => updateBridgeIntent("detached")}
           snapshot={runtimeEventSourceSnapshot}
@@ -1483,12 +1493,14 @@ function RuntimeIngestionListItem({ event }: { event: RuntimeIngestionEvent }) {
 function RuntimeEventSourceStatus({
   bridge,
   connection,
+  launchRequest,
   onAttach,
   onDetach,
   snapshot
 }: {
   bridge: RuntimeAdapterBridgeSnapshot;
   connection: RuntimeSourceConnectionSnapshot;
+  launchRequest: RuntimeLaunchRequestSnapshot;
   onAttach: () => void;
   onDetach: () => void;
   snapshot: RuntimeEventSourceSnapshot;
@@ -1556,6 +1568,7 @@ function RuntimeEventSourceStatus({
         </dl>
       </div>
       <RuntimeAdapterBridgeStatus bridge={bridge} onAttach={onAttach} onDetach={onDetach} />
+      <RuntimeLaunchRequestStatus launchRequest={launchRequest} />
     </div>
   );
 }
@@ -1601,6 +1614,46 @@ function RuntimeAdapterBridgeStatus({
           <span>Detach</span>
         </button>
       </div>
+    </div>
+  );
+}
+
+function RuntimeLaunchRequestStatus({
+  launchRequest
+}: {
+  launchRequest: RuntimeLaunchRequestSnapshot;
+}) {
+  return (
+    <div className="launch-request" aria-label="Runtime launch request preview">
+      <div className="launch-request-header">
+        <span className={classNames("launch-request-state", `launch-request-${launchRequest.state}`)}>
+          <span aria-hidden="true" />
+          {launchRequest.state}
+        </span>
+        <strong title={launchRequest.label}>
+          {launchRequest.canRequest ? "Request ready" : "Request preview"}
+        </strong>
+      </div>
+      <p title={launchRequest.detail}>{launchRequest.detail}</p>
+      <dl className="launch-request-grid">
+        <div>
+          <dt>Events</dt>
+          <dd>{launchRequest.eventCount}</dd>
+        </div>
+        <div>
+          <dt>Ready</dt>
+          <dd>{launchRequest.readiness}%</dd>
+        </div>
+        <div>
+          <dt>Approval</dt>
+          <dd>{launchRequest.requiresApproval ? "Required" : "Held"}</dd>
+        </div>
+        <div>
+          <dt>Transport</dt>
+          <dd title={launchRequest.transport}>{launchRequest.transport}</dd>
+        </div>
+      </dl>
+      <small title={launchRequest.safety}>{launchRequest.safety}</small>
     </div>
   );
 }
