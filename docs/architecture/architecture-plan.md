@@ -48,6 +48,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Selected pipeline item dispatch request history stores local request and cancellation records separately from real runtime execution.
 - Dispatch-ready pipeline items can create local mock cockpit run projections through the same dispatch package and run-history path used by planning drafts.
 - Selected pipeline item run links are derived from local run history and exact task ownership labels, so the pipeline can reopen matching cockpit runs without storing full run payloads in the item detail.
+- Pipeline item run status summaries are derived from stripped linked-run records so pipeline monitoring stays local, compact, and independent from full cockpit run payloads.
 - A local dispatch package preview is staged before any real runtime execution starts.
 - Mock orchestrator run projection converts staged packages into session and task rows for cockpit review before runtime adapters execute anything.
 - Local run history records staged package projections, task counts, panel counts, and validation gate counts for selected-run inspection.

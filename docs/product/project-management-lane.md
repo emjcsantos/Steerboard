@@ -41,6 +41,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Generated dispatch package preview before real runtime execution.
 - Link from deployed item to cockpit run.
 - Linked local cockpit run list for the selected item, with an open action that returns users to the matching cockpit run.
+- Linked cockpit run status summary on pipeline rows and selected item detail so users can monitor progress without leaving the lane.
 - Local selected-item detail so users can review dispatch blockers without leaving the pipeline.
 - Local dispatch request records so users can queue intent for review before runtime launch exists.
 - Local cockpit run projection so users can inspect the pipeline item as orchestrator sessions before runtime launch exists.
@@ -85,6 +86,7 @@ Deploying to a configured runtime creates:
 - a mock orchestrator run projection,
 - a persisted local run-history entry,
 - a traceable link from the selected pipeline item back to matching local run-history entries,
+- a compact linked-run status summary for the selected pipeline item,
 - local lifecycle state updates for the projected run,
 - selected-run event timeline records,
 - adapter contract readiness records,

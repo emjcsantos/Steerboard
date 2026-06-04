@@ -64,6 +64,10 @@ import {
   type PipelineItemRunLink
 } from "./pipelineItemRunLink";
 import {
+  summarizePipelineItemRunStatus,
+  type PipelineItemRunStatusSummary
+} from "./pipelineItemRunStatus";
+import {
   appendPipelineDispatchRequestRecord,
   createPipelineDispatchRequestRecord,
   loadPipelineDispatchRequestHistory,
@@ -783,6 +787,11 @@ function PipelineView({
     ? dispatchRequestHistory.filter((record) => record.itemId === selectedPreview.itemId)
     : [];
   const selectedRunLinks = selectedItem ? buildPipelineItemRunLinks(selectedItem, mockRuns) : [];
+  const itemRunStatusById = useMemo(
+    () => new Map(items.map((item) => [item.id, summarizePipelineItemRunStatus(item, mockRuns)])),
+    [items, mockRuns]
+  );
+  const selectedRunStatus = selectedItem ? itemRunStatusById.get(selectedItem.id) : undefined;
   const canRequestDispatch = Boolean(selectedPreview?.canDispatch) && dispatchRequestIntent !== "requested";
   const canCancelDispatch = dispatchRequestIntent === "requested";
   const dispatchableItemCount = items.filter((item) =>
@@ -864,27 +873,32 @@ function PipelineView({
       <div className="pipeline-body">
         <div className="pipeline-left">
           <div className="pipeline-table" aria-label="Pipeline readiness">
-            {items.map((item) => (
-              <button
-                aria-pressed={selectedPreview?.itemId === item.id}
-                className={classNames(
-                  "pipeline-row",
-                  "pipeline-row-button",
-                  selectedPreview?.itemId === item.id && "is-selected"
-                )}
-                key={item.id}
-                onClick={() => setSelectedItemId(item.id)}
-                type="button"
-              >
-                <div>
-                  <span className={classNames("pipeline-stage", `stage-${item.stage}`)}>{item.stage}</span>
-                  <h4>{item.title}</h4>
-                </div>
-                <span>{item.owner}</span>
-                <span>{item.risk}</span>
-                <span>{item.readiness}%</span>
-              </button>
-            ))}
+            {items.map((item) => {
+              const runStatus = itemRunStatusById.get(item.id);
+
+              return (
+                <button
+                  aria-pressed={selectedPreview?.itemId === item.id}
+                  className={classNames(
+                    "pipeline-row",
+                    "pipeline-row-button",
+                    selectedPreview?.itemId === item.id && "is-selected"
+                  )}
+                  key={item.id}
+                  onClick={() => setSelectedItemId(item.id)}
+                  type="button"
+                >
+                  <div>
+                    <span className={classNames("pipeline-stage", `stage-${item.stage}`)}>{item.stage}</span>
+                    <h4>{item.title}</h4>
+                  </div>
+                  <span>{item.owner}</span>
+                  <span>{item.risk}</span>
+                  <span>{item.readiness}%</span>
+                  <PipelineRunStatusPill summary={runStatus} />
+                </button>
+              );
+            })}
           </div>
 
           <section className="task-board" aria-label="Task split">
@@ -936,6 +950,7 @@ function PipelineView({
               onRequestDispatch={() => recordPipelineDispatchAction("requested")}
               preview={selectedPreview}
               runLinks={selectedRunLinks}
+              runStatus={selectedRunStatus}
             />
           ) : (
             <p className="empty-preview">Select a pipeline item to inspect dispatch readiness.</p>
@@ -959,7 +974,8 @@ function PipelineItemDispatchDetail({
   onOpenRun,
   onRequestDispatch,
   preview,
-  runLinks
+  runLinks,
+  runStatus
 }: {
   canCancelDispatch: boolean;
   canCreateCockpitRun: boolean;
@@ -974,6 +990,7 @@ function PipelineItemDispatchDetail({
   onRequestDispatch: () => void;
   preview: PipelineItemDispatchPreview;
   runLinks: PipelineItemRunLink[];
+  runStatus?: PipelineItemRunStatusSummary;
 }) {
   return (
     <>
@@ -1004,6 +1021,12 @@ function PipelineItemDispatchDetail({
             <div>
               <dt>Ready</dt>
               <dd>{preview.readiness}%</dd>
+            </div>
+            <div>
+              <dt>Runs</dt>
+              <dd>
+                <PipelineRunStatusPill compact summary={runStatus} />
+              </dd>
             </div>
           </dl>
         </section>
@@ -1132,6 +1155,36 @@ function PipelineItemRunLinks({
         <p className="pipeline-linked-empty">Create a local cockpit run to attach a visible trace.</p>
       )}
     </section>
+  );
+}
+
+function PipelineRunStatusPill({
+  compact = false,
+  summary
+}: {
+  compact?: boolean;
+  summary?: PipelineItemRunStatusSummary;
+}) {
+  if (!summary) {
+    return null;
+  }
+
+  const status = summary.latestStatus ?? "none";
+  const countLabel = summary.linkCount > 0 && !compact ? ` (${summary.linkCount})` : "";
+
+  return (
+    <span
+      className={classNames(
+        "pipeline-run-status",
+        `run-${status}`,
+        summary.activeCount > 0 && "has-active",
+        summary.issueCount > 0 && "has-issue"
+      )}
+      title={summary.detail}
+    >
+      {summary.label}
+      {countLabel}
+    </span>
   );
 }
 

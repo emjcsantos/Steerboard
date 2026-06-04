@@ -162,6 +162,13 @@ describe("pipeline item run links", () => {
       "run-3",
       "run-4"
     ]);
+    expect(buildPipelineItemRunLinks(pipelineItem, runs, Number.POSITIVE_INFINITY).map((link) => link.runId)).toEqual([
+      "run-1",
+      "run-2",
+      "run-3",
+      "run-4",
+      "run-5"
+    ]);
   });
 
   it("deduplicates by run id and keeps newest first", () => {

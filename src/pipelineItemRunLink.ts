@@ -47,6 +47,14 @@ function compareNewestFirst(a: MockOrchestratorRun, b: MockOrchestratorRun): num
 }
 
 function normalizeLimit(limit = 4): number {
+  if (limit === Number.POSITIVE_INFINITY) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  if (limit <= 0) {
+    return 0;
+  }
+
   if (!Number.isFinite(limit)) {
     return 4;
   }

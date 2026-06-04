@@ -4346,7 +4346,7 @@ textarea {
 }
 
 .pipeline-row {
-  grid-template-columns: minmax(0, 1fr) 72px 56px 48px;
+  grid-template-columns: minmax(0, 1fr) 72px 56px 48px 94px;
   gap: 8px;
   border-bottom: 1px solid #242a33;
   padding: 12px 14px;
@@ -4413,6 +4413,49 @@ textarea {
 .stage-validating {
   background: #352e18;
   color: #f0d984;
+}
+
+.pipeline-run-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  border-radius: 999px;
+  padding: 4px 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.pipeline-run-status.run-none {
+  background: #252b34;
+  color: #9fa9b4;
+}
+
+.pipeline-run-status.run-queued {
+  background: #263241;
+  color: #b8c8dc;
+}
+
+.pipeline-run-status.run-running,
+.pipeline-run-status.has-active {
+  background: #172f3b;
+  color: #8bd7f4;
+}
+
+.pipeline-run-status.run-complete {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.pipeline-run-status.run-blocked,
+.pipeline-run-status.run-failed,
+.pipeline-run-status.has-issue {
+  background: #442119;
+  color: #ff9e85;
 }
 
 .task-board {
@@ -4602,6 +4645,10 @@ textarea {
   font-size: 13px;
   font-weight: 700;
   text-transform: capitalize;
+}
+
+.pipeline-detail-summary dd .pipeline-run-status {
+  width: 100%;
 }
 
 .pipeline-gate-section h5,
