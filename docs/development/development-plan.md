@@ -34,11 +34,14 @@ Tiny worker tasks:
 - `S006`: render right-side environment/progress panel.
 - `S007`: add persistence boundary for non-sensitive mock preferences.
 - `S008`: add tests for layout limits and state transitions.
+- `S009`: add cockpit mode presets for focus lane, orchestrator-with-workers, and independent project monitor.
+- `S010`: run Tauri-first shell feasibility spike with Electron fallback criteria.
 
 Exit criteria:
 
 - app launches locally,
 - `3x3` layout renders without overlap,
+- all three cockpit modes render from public-safe mock data,
 - tests pass,
 - no third-party Harnss code imported.
 

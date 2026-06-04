@@ -34,6 +34,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Deploy-to-Codex button disabled until required fields are present.
 - Generated handoff preview.
 - Link from deployed item to cockpit run.
+- Deploy-mode selector for focused run, orchestrator-with-workers, or independent project monitor.
 
 ## Required Fields For Dispatch
 
@@ -58,6 +59,7 @@ It should make the product useful before a coding agent starts: the user can org
 Deploying to Codex creates:
 
 - an orchestrator run,
+- selected cockpit operating mode,
 - a task split proposal,
 - worker task briefs,
 - validator task briefs,

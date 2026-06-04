@@ -14,6 +14,7 @@ AtlasUI should feel like a practical command cockpit:
 
 - left project/thread navigation,
 - adaptive multi-session cockpit in the main area,
+- focused single-project lane, orchestrator-with-workers mode, and independent multi-project monitoring mode,
 - per-session status, transcript, tool activity, diffs, tests, and approvals,
 - right-side environment and progress panel,
 - safe task dispatch from orchestrator to workers,

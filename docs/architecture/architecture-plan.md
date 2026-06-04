@@ -10,7 +10,9 @@ Reason: Harnss has strong feature fit, but its current audited dependency and se
 
 ### Desktop Shell
 
-- Electron or Tauri shell.
+- Desktop-first shell.
+- Tauri-first feasibility spike, with Electron as the fallback if core IDE integrations become slower or riskier in Tauri.
+- Shell-specific code stays behind adapters.
 - Main process owns filesystem, terminal, git, process, and app-server boundaries.
 - Renderer stays isolated from Node APIs.
 
@@ -29,6 +31,7 @@ Reason: Harnss has strong feature fit, but its current audited dependency and se
 - Each cell binds to a session, task, or evidence pane.
 - Layout state is independent from the session registry.
 - Users can resize and reassign cells without mutating session data.
+- Mode presets support focus lane, orchestrator-with-workers, and independent project monitor.
 
 ### Orchestration Core
 
