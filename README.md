@@ -13,23 +13,24 @@ The product goal is a Codex Desktop-like workspace where a human operator can ru
 
 This repository currently contains the public development plan, Harnss reference audit, architecture notes, and execution rules. No Harnss code has been copied into this repository yet.
 
-Harnss is MIT-licensed and highly relevant, but the audited commit is approved as a reference only until dependency and security hardening gates pass.
+Harnss is MIT-licensed and highly relevant, but the audited commit is approved as a reference only until dependency and security hardening gates pass. AtlasUI is intended to be an original product with its own architecture, interaction model, visual identity, and implementation.
 
 ## Document Map
 
 - [Project Brief](docs/project/brief.md)
 - [Requirements](docs/product/requirements.md)
+- [UI Direction](docs/product/ui-direction.md)
 - [Architecture Plan](docs/architecture/architecture-plan.md)
 - [Security and Privacy Model](docs/architecture/security-privacy-model.md)
 - [Development Plan](docs/development/development-plan.md)
 - [Worker Task Rules](docs/development/worker-task-rules.md)
 - [Harnss Static Audit](docs/audits/harnss-static-audit-2026-06-04.md)
 - [Harnss Reuse Decision](docs/decisions/harnss-reuse-decision.md)
+- [Originality And Attribution Policy](docs/decisions/originality-attribution-policy.md)
 - [Public Documentation Guidelines](docs/operations/public-documentation-guidelines.md)
 - [Progress](docs/operations/progress.md)
 - [Third-Party Notices](THIRD_PARTY_NOTICES.md)
 
 ## Development Principle
 
-Do not start by blindly forking a large external IDE. Start with a small, testable AtlasUI scaffold, then selectively import or adapt proven patterns after audit gates pass.
-
+Do not start by blindly forking a large external IDE. Start with a small, testable AtlasUI scaffold, design a distinct cockpit experience, then selectively adapt proven patterns only after audit, attribution, and product-fit gates pass.

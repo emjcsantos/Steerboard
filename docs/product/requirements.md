@@ -38,6 +38,11 @@
 - No card-inside-card dashboard clutter.
 - Clear visual distinction between orchestrator, implementer, validator, and integration roles.
 - User can collapse from `3x3` down to simpler layouts as needed.
+- AtlasUI must have its own visual identity and interaction model rather than copying a reference product screen-for-screen.
+- Animations must be restrained, fast, and purposeful: use them to preserve spatial continuity when sessions move, resize, start, pause, or complete.
+- Every cockpit cell must keep transcript, status, tool activity, and validation evidence readable without overlap.
+- Icon buttons must have accessible labels, visible focus states, and clear hover/pressed/disabled states.
+- Layout must remain stable under streaming text, long file names, long branch names, loading states, and failed-worker messages.
 
 ## Safety Requirements
 
@@ -47,4 +52,4 @@
 - Worker tasks must be file-scoped.
 - Destructive actions require explicit user confirmation.
 - Third-party code must pass license, dependency, script, IPC, storage, and network review before adoption.
-
+- Third-party inspiration must be credited, but AtlasUI code and UI should remain original unless a deliberate fork/import decision is recorded.

@@ -2,7 +2,7 @@
 
 ## Decision
 
-Use Harnss as a reference first, not as the initial AtlasUI codebase.
+Use Harnss as a credited reference first, not as the initial AtlasUI codebase.
 
 ## Why
 
@@ -16,6 +16,8 @@ Harnss has excellent product overlap with AtlasUI:
 
 However, the audited commit has dependency vulnerabilities and security hardening gates that make a direct fork too risky for the first public baseline.
 
+AtlasUI should remain an original product: its information architecture, orchestration model, cockpit layout behavior, visual language, and implementation should be designed specifically for AtlasUI.
+
 ## Approved Reuse
 
 Approved now:
@@ -26,6 +28,7 @@ Approved now:
 - study tool-call rendering patterns,
 - study encrypted token storage pattern,
 - study agent registry concepts.
+- credit Harnss as an open-source reference in public notices.
 
 Not approved yet:
 
@@ -35,6 +38,7 @@ Not approved yet:
 - inherit analytics defaults,
 - inherit broad file IPC behavior,
 - inherit auto-install pipeline behavior.
+- clone Harnss UI screen-for-screen.
 
 ## Conditions To Upgrade To Fork Candidate
 
@@ -48,8 +52,8 @@ Harnss or an AtlasUI fork can become a direct base only after:
 - managed binary downloads are opt-in,
 - worktree setup commands require confirmation,
 - third-party notices are preserved.
+- a product originality review confirms AtlasUI still has a distinct UI, architecture, and workflow.
 
 ## Current Path
 
-Continue with a clean AtlasUI scaffold, then selectively port patterns after they pass review.
-
+Continue with a clean AtlasUI scaffold, credit Harnss as research inspiration, then selectively port patterns only after they pass review and fit the AtlasUI product direction.

@@ -7,3 +7,5 @@
 | Harnss direct adoption | Blocked | `codex/harnss-audit-development-plan` / `0668188` | Dependency audit found critical/high advisories | Harden before any fork/import |
 | Development plan | Finalized | `codex/harnss-audit-development-plan` / `0668188` | Public-safety scan PASS | Start Phase 1 clean scaffold |
 | Worker architecture | Finalized | `codex/harnss-audit-development-plan` / `0668188` | Public-safety scan PASS | Use tiny non-overlapping Spark tasks |
+| Originality and attribution | Added | `codex/original-product-ui-policy` / pending | `git diff --check` PASS; public-safety scan PASS | Credit Harnss while keeping AtlasUI original |
+| UI direction | Added | `codex/original-product-ui-policy` / pending | `git diff --check` PASS; public-safety scan PASS | Use as scaffold design quality gate |
