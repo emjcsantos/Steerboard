@@ -844,6 +844,54 @@ textarea {
   color: #f0d984;
 }
 
+.panel-runtime-signal {
+  overflow: hidden;
+  max-width: 132px;
+  border-radius: 999px;
+  background: #252b34;
+  color: #cfd8e3;
+  padding: 4px 7px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.panel-runtime-signal b {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-runtime-orchestrator {
+  background: #263044;
+  color: #adc9ff;
+}
+
+.panel-runtime-worker {
+  background: #19342b;
+  color: #8be1b2;
+}
+
+.panel-runtime-validator {
+  background: #172f3b;
+  color: #8bd7f4;
+}
+
+.panel-runtime-integration {
+  background: #352e18;
+  color: #f0d984;
+}
+
+.panel-runtime-local {
+  background: #2d2841;
+  color: #d9c1ff;
+}
+
+.panel-runtime-neutral {
+  color: #c7d0da;
+}
+
 .panel-attempt-signal {
   flex: 0 0 auto;
   border-radius: 999px;

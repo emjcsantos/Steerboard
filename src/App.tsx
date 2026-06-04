@@ -268,6 +268,10 @@ import {
   type CockpitPanelBranch
 } from "./cockpitPanelBranch";
 import {
+  createCockpitPanelRuntime,
+  type CockpitPanelRuntime
+} from "./cockpitPanelRuntime";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -822,6 +826,10 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
   const attemptSignal = createCockpitPanelAttempt(session.attempt, session.state);
   const validationSignal = createCockpitPanelValidation(session.validation, session.state);
   const branchSignal = createCockpitPanelBranch(session.branch);
+  const runtimeSignal = createCockpitPanelRuntime({
+    role: session.role,
+    runtime: session.runtime
+  });
 
   return (
     <article
@@ -841,7 +849,7 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
 
       <div className="cell-meta">
         <PanelBranchSignal branch={branchSignal} />
-        <span title={identity.runtimeLabel}>{identity.runtimeLabel}</span>
+        <PanelRuntimeSignal runtime={runtimeSignal} />
         <PanelAttemptSignal attempt={attemptSignal} />
       </div>
 
@@ -875,6 +883,19 @@ function PanelBranchSignal({ branch }: { branch: CockpitPanelBranch }) {
     >
       <GitBranch size={14} />
       <b>{branch.label}</b>
+    </span>
+  );
+}
+
+function PanelRuntimeSignal({ runtime }: { runtime: CockpitPanelRuntime }) {
+  return (
+    <span
+      aria-label={`Runtime: ${runtime.label}`}
+      className={classNames("panel-runtime-signal", `panel-runtime-${runtime.tone}`)}
+      title={runtime.detail}
+    >
+      <Terminal size={14} />
+      <b>{runtime.label}</b>
     </span>
   );
 }
