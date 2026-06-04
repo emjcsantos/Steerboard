@@ -153,6 +153,11 @@ import {
   type RuntimeLaunchApprovalIntent,
   type RuntimeLaunchApprovalSnapshot
 } from "./runtimeLaunchApproval";
+import {
+  buildRuntimeExecutionAuditSnapshot,
+  type RuntimeExecutionAuditItem,
+  type RuntimeExecutionAuditSnapshot
+} from "./runtimeExecutionAudit";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -1059,6 +1064,10 @@ function RightPanel({
     runtimeLaunchRequestSnapshot,
     launchApprovalIntent
   );
+  const runtimeExecutionAuditSnapshot = buildRuntimeExecutionAuditSnapshot(
+    runtimeLaunchRequestSnapshot,
+    runtimeLaunchApprovalSnapshot
+  );
   const canStartStream =
     Boolean(selectedRun) &&
     runtimeIngestionEvents.length > 0 &&
@@ -1391,6 +1400,7 @@ function RightPanel({
           approval={runtimeLaunchApprovalSnapshot}
           bridge={runtimeAdapterBridgeSnapshot}
           connection={runtimeSourceConnectionSnapshot}
+          executionAudit={runtimeExecutionAuditSnapshot}
           launchRequest={runtimeLaunchRequestSnapshot}
           onAttach={() => updateBridgeIntent("attached")}
           onCancelApproval={() => updateLaunchApprovalIntent("idle")}
@@ -1521,6 +1531,7 @@ function RuntimeEventSourceStatus({
   approval,
   bridge,
   connection,
+  executionAudit,
   launchRequest,
   onAttach,
   onCancelApproval,
@@ -1531,6 +1542,7 @@ function RuntimeEventSourceStatus({
   approval: RuntimeLaunchApprovalSnapshot;
   bridge: RuntimeAdapterBridgeSnapshot;
   connection: RuntimeSourceConnectionSnapshot;
+  executionAudit: RuntimeExecutionAuditSnapshot;
   launchRequest: RuntimeLaunchRequestSnapshot;
   onAttach: () => void;
   onCancelApproval: () => void;
@@ -1603,6 +1615,7 @@ function RuntimeEventSourceStatus({
       <RuntimeAdapterBridgeStatus bridge={bridge} onAttach={onAttach} onDetach={onDetach} />
       <RuntimeLaunchRequestStatus
         approval={approval}
+        executionAudit={executionAudit}
         launchRequest={launchRequest}
         onCancelApproval={onCancelApproval}
         onRequestApproval={onRequestApproval}
@@ -1658,11 +1671,13 @@ function RuntimeAdapterBridgeStatus({
 
 function RuntimeLaunchRequestStatus({
   approval,
+  executionAudit,
   launchRequest,
   onCancelApproval,
   onRequestApproval
 }: {
   approval: RuntimeLaunchApprovalSnapshot;
+  executionAudit: RuntimeExecutionAuditSnapshot;
   launchRequest: RuntimeLaunchRequestSnapshot;
   onCancelApproval: () => void;
   onRequestApproval: () => void;
@@ -1731,7 +1746,60 @@ function RuntimeLaunchRequestStatus({
         </div>
         <small title={approval.safety}>{approval.safety}</small>
       </div>
+      <RuntimeExecutionAuditStatus audit={executionAudit} />
     </div>
+  );
+}
+
+function RuntimeExecutionAuditStatus({ audit }: { audit: RuntimeExecutionAuditSnapshot }) {
+  return (
+    <div className="execution-audit" aria-label="Runtime execution audit preview">
+      <div className="execution-audit-header">
+        <span className={classNames("execution-audit-state", `execution-audit-${audit.state}`)}>
+          <span aria-hidden="true" />
+          {audit.statusLabel}
+        </span>
+        <strong title={audit.label}>Execution audit</strong>
+      </div>
+      <p title={audit.detail}>{audit.detail}</p>
+      <dl className="execution-audit-grid">
+        <div>
+          <dt>Events</dt>
+          <dd>{audit.eventCount}</dd>
+        </div>
+        <div>
+          <dt>Approval</dt>
+          <dd>{audit.requiresDesktopApproval ? "Needed" : "Held"}</dd>
+        </div>
+        <div>
+          <dt>Execute</dt>
+          <dd>{audit.canExecute ? "Ready" : "Locked"}</dd>
+        </div>
+        <div>
+          <dt>Transport</dt>
+          <dd title={audit.transport}>{audit.transport}</dd>
+        </div>
+      </dl>
+      <ol className="execution-audit-list" aria-label="Runtime execution audit checklist">
+        {audit.items.map((item) => (
+          <RuntimeExecutionAuditItemRow item={item} key={item.id} />
+        ))}
+      </ol>
+      <small title={audit.safety}>{audit.safety}</small>
+    </div>
+  );
+}
+
+function RuntimeExecutionAuditItemRow({ item }: { item: RuntimeExecutionAuditItem }) {
+  return (
+    <li className={classNames("execution-audit-item", `execution-audit-item-${item.status}`)}>
+      <span aria-hidden="true" />
+      <div>
+        <strong title={item.label}>{item.label}</strong>
+        <small title={item.detail}>{item.detail}</small>
+      </div>
+      <b>{item.status}</b>
+    </li>
   );
 }
 
