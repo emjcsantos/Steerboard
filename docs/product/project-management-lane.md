@@ -37,6 +37,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Generated handoff preview.
 - Generated dispatch package preview before real runtime execution.
 - Link from deployed item to cockpit run.
+- Local mock orchestrator run projection so users can inspect the planned run in cockpit panels before real runtime integration.
 - Deploy-mode selector for focused run, orchestrator-with-workers, or independent project monitor.
 
 ## Required Fields For Dispatch
@@ -64,7 +65,8 @@ It should make the product useful before a coding agent starts: the user can org
 Deploying to a configured runtime creates:
 
 - a staged dispatch package,
-- an orchestrator run,
+- a mock orchestrator run projection,
+- a future real orchestrator run,
 - selected cockpit operating mode,
 - a task split proposal,
 - worker task briefs,

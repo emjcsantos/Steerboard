@@ -81,6 +81,12 @@ import {
   tryBuildDispatchPackage,
   type DispatchPackage
 } from "./dispatch";
+import {
+  createMockRunFromDispatchPackage,
+  runToOrchestrationTasks,
+  runToSessionSummaries,
+  type MockOrchestratorRun
+} from "./run";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -123,6 +129,7 @@ export function App() {
   );
   const [drafts, setDrafts] = useState<PlanningDraft[]>(() => loadPlanningDrafts(defaultPlanningDrafts));
   const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
+  const [mockRuns, setMockRuns] = useState<MockOrchestratorRun[]>([]);
   const { selectedProjectId, mode, layoutId, view } = preferences;
 
   useEffect(() => {
@@ -144,26 +151,43 @@ export function App() {
     []
   );
 
-  const visibleSessions = useMemo(() => {
-    const presetSessions = preset.sessionIds
+  const basePresetSessions = useMemo(() => {
+    return preset.sessionIds
       .map((sessionId) => sessions.find((session) => session.id === sessionId))
       .filter((session): session is SessionSummary => Boolean(session));
-
-    return presetSessions.slice(0, layout.columns * layout.rows);
-  }, [layout.columns, layout.rows, preset.sessionIds]);
+  }, [preset.sessionIds]);
 
   const project = projects.find((item) => item.id === selectedProjectId) ?? projects[0];
   const registryEntry = registryByProject.get(project.id);
   const runtimeAdapter = runtimeByProject.get(project.id);
   const registrySummary = summarizeRegistry(registryEntries);
   const runtimeSummary = summarizeRuntimeAdapters(runtimeAdapters);
+  const projectMockRuns = useMemo(
+    () => mockRuns.filter((run) => run.projectId === project.id),
+    [mockRuns, project.id]
+  );
+  const projectMockSessions = useMemo(
+    () => projectMockRuns.flatMap((run) => runToSessionSummaries(run) as SessionSummary[]),
+    [projectMockRuns]
+  );
+  const projectMockTasks = useMemo(
+    () => projectMockRuns.flatMap((run) => runToOrchestrationTasks(run)),
+    [projectMockRuns]
+  );
   const projectPipelineItems = useMemo(
     () => pipelineItems.filter((item) => item.projectId === project.id),
     [project.id]
   );
   const projectTasks = useMemo(
-    () => orchestrationTasks.filter((task) => task.projectId === project.id),
-    [project.id]
+    () => [
+      ...projectMockTasks,
+      ...orchestrationTasks.filter((task) => task.projectId === project.id)
+    ],
+    [project.id, projectMockTasks]
+  );
+  const visibleSessions = useMemo(
+    () => [...projectMockSessions, ...basePresetSessions].slice(0, layout.columns * layout.rows),
+    [basePresetSessions, layout.columns, layout.rows, projectMockSessions]
   );
   const activeDraftIndex = Math.min(selectedDraftIndex, Math.max(drafts.length - 1, 0));
   const viewLabel = view === "cockpit" ? "Cockpit" : view === "pipeline" ? "Pipeline" : "Planning";
@@ -199,6 +223,18 @@ export function App() {
     setDrafts((currentDrafts) => [...currentDrafts, nextDraft]);
     setSelectedDraftIndex(drafts.length);
     updatePreferences({ view: "planning" });
+  }
+
+  function handleStagePackage(dispatchPackage: DispatchPackage) {
+    const nextRun = createMockRunFromDispatchPackage(dispatchPackage, {
+      createdAt: new Date().toISOString(),
+      idSeed: "steerboard-run"
+    });
+
+    setMockRuns((currentRuns) => [
+      nextRun,
+      ...currentRuns.filter((run) => run.sourcePackageId !== dispatchPackage.id)
+    ]);
   }
 
   return (
@@ -361,6 +397,7 @@ export function App() {
                 drafts={drafts}
                 onAddDraft={handleAddDraft}
                 onSelectDraft={setSelectedDraftIndex}
+                onStagePackage={handleStagePackage}
                 onUpdateDraft={handleDraftUpdate}
                 projects={projects}
               />
@@ -369,6 +406,7 @@ export function App() {
 
           <RightPanel
             mode={mode}
+            mockRuns={projectMockRuns}
             project={project}
             registryEntry={registryEntry}
             registrySummary={registrySummary}
@@ -548,6 +586,7 @@ function PlanningView({
   drafts,
   onAddDraft,
   onSelectDraft,
+  onStagePackage,
   onUpdateDraft,
   projects
 }: {
@@ -555,6 +594,7 @@ function PlanningView({
   drafts: PlanningDraft[];
   onAddDraft: () => void;
   onSelectDraft: (index: number) => void;
+  onStagePackage: (dispatchPackage: DispatchPackage) => void;
   onUpdateDraft: (draft: PlanningDraft) => void;
   projects: ProjectSummary[];
 }) {
@@ -581,6 +621,7 @@ function PlanningView({
 
     if (result.ok) {
       setStagedPackage(result.package);
+      onStagePackage(result.package);
     }
   }
 
@@ -797,6 +838,7 @@ function PlanningView({
 
 function RightPanel({
   mode,
+  mockRuns,
   project,
   registryEntry,
   registrySummary,
@@ -806,6 +848,7 @@ function RightPanel({
   tasks
 }: {
   mode: CockpitMode;
+  mockRuns: MockOrchestratorRun[];
   project: ProjectSummary;
   registryEntry?: RegistryEntry;
   registrySummary: ReturnType<typeof summarizeRegistry>;
@@ -817,6 +860,7 @@ function RightPanel({
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
+  const latestRun = mockRuns[0];
 
   return (
     <aside className="right-panel" aria-label="Environment">
@@ -870,6 +914,24 @@ function RightPanel({
           <span>
             <strong>{taskSummary.blocked}</strong>
             Blocked
+          </span>
+        </div>
+      </section>
+
+      <section className="panel-section">
+        <h4>Mock Runs</h4>
+        <div className="registry-detail">
+          <span>
+            <strong>{mockRuns.length}</strong>
+            Local staged runs
+          </span>
+          <span>
+            <strong>{latestRun?.status ?? "none"}</strong>
+            Latest status
+          </span>
+          <span>
+            <strong>{latestRun?.sourcePackageId ?? "No package staged"}</strong>
+            Source package
           </span>
         </div>
       </section>

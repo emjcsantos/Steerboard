@@ -44,6 +44,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Readiness checks before dispatch to a configured agent runtime.
 - Dispatch gates combine pipeline item readiness, project registry state, runtime adapter state, and required permission status.
 - A local dispatch package preview is staged before any real runtime execution starts.
+- Mock orchestrator run projection converts staged packages into session and task rows for cockpit review before runtime adapters execute anything.
 - Deploy-to-runtime action that creates an orchestrator run from selected pipeline items.
 - Trace links from project pipeline item to orchestrator run, worker tasks, validation reports, and final integration result.
 

@@ -33,6 +33,7 @@
 - Editable local planning drafts with readiness scoring before dispatch.
 - Local planning draft persistence with safe saved-state repair.
 - Local dispatch package preview generated from a complete staged planning draft.
+- Local mock orchestrator run projection from a staged dispatch package, visible in cockpit panels without executing a runtime.
 
 ## Later Functional Scope
 
