@@ -15,4 +15,4 @@
 | Cockpit modes and platform strategy | Added | `codex/cockpit-modes-platform-strategy` / `61f65f0` | `git diff --check` PASS; docs link scan PASS; private-reference scan PASS | Support focused, orchestrated, and independent project monitoring modes |
 | Source-first installation strategy | Added | `codex/git-source-install-strategy` / `389811a` | `git diff --check` PASS; install docs scan PASS; private-reference scan PASS | Let early users inspect and run from git before signed builds |
 | Plan finalization improvements | Added | `codex/plan-finalization-improvements` / `223992d` | `git diff --check` PASS; docs link scan PASS; model-specific scan PASS; private-reference scan PASS | Add easy model integration, multiworktree execution, skill map, and measurable MVP goal |
-| Product rename | In progress | `codex/rename-product-steerboard` / pending | Pending | Rename repository and validate public docs |
+| Product rename | Complete | `codex/rename-product-steerboard` / `ed41781` | `git diff --check` PASS; stale-name scan PASS; private-reference scan PASS; model-specific scan PASS; BOM scan PASS | Start Phase 1 Steerboard scaffold |
