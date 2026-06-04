@@ -43,6 +43,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Local event timeline showing how the projected run, tasks, sessions, and validation gates relate.
 - Runtime adapter contract inspector showing whether the target project can support sessions, tasks, validation, and tool-call events.
 - Runtime ingestion preview showing whether selected-run events are accepted, require review, or are blocked by the target adapter contract.
+- Local stream preview controls for watching projected adapter events emit over time before real runtime integration.
 - Deploy-mode selector for focused run, orchestrator-with-workers, or independent project monitor.
 
 ## Required Fields For Dispatch
@@ -76,6 +77,7 @@ Deploying to a configured runtime creates:
 - selected-run event timeline records,
 - adapter contract readiness records,
 - runtime ingestion preview records,
+- local stream preview state,
 - a future real orchestrator run,
 - selected cockpit operating mode,
 - a task split proposal,

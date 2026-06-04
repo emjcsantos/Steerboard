@@ -1122,6 +1122,241 @@ textarea {
   color: #ff9e85;
 }
 
+.stream-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #aab3bd;
+  font-size: 12px;
+}
+
+.stream-state {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #c4ccd6;
+  padding: 5px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.stream-state span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.stream-streaming span {
+  background: #72a7ff;
+  box-shadow: 0 0 0 0 rgba(114, 167, 255, 0.42);
+  animation: stream-pulse 1.4s ease-out infinite;
+}
+
+.stream-complete span {
+  background: #89dda9;
+}
+
+.stream-blocked span {
+  background: #ff9e85;
+}
+
+.stream-paused span {
+  background: #f0d984;
+}
+
+.stream-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.stream-summary span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  border-radius: 8px;
+  background: #13171d;
+  color: #aab3bd;
+  padding: 8px 6px;
+  font-size: 11px;
+}
+
+.stream-summary strong {
+  overflow: hidden;
+  color: #ffffff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+}
+
+.stream-control-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.stream-control-grid button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 36px;
+  gap: 6px;
+  border: 1px solid #303742;
+  border-radius: 8px;
+  background: #151a20;
+  color: #dce3eb;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.stream-control-grid button:hover:not(:disabled),
+.stream-control-grid button:focus-visible {
+  border-color: #4d82d9;
+  background: #1b2430;
+  outline: none;
+}
+
+.stream-control-grid button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.stream-preview {
+  display: grid;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.stream-latest {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  border-radius: 8px;
+  background: #151a20;
+  padding: 9px;
+}
+
+.stream-latest span,
+.stream-latest small {
+  overflow: hidden;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.stream-latest strong {
+  overflow: hidden;
+  color: #edf2f7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.stream-event-list {
+  display: grid;
+  gap: 6px;
+  max-height: 180px;
+  margin: 0;
+  overflow: auto;
+  padding: 0;
+  list-style: none;
+}
+
+.stream-event {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  border-radius: 8px;
+  background: #151a20;
+  padding: 7px;
+}
+
+.stream-event span,
+.stream-event small {
+  overflow: hidden;
+  border-radius: 999px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.stream-event span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #252b34;
+  color: #b9c1cb;
+}
+
+.stream-event strong {
+  overflow: hidden;
+  color: #edf2f7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.stream-event small {
+  max-width: 74px;
+  padding: 4px 6px;
+}
+
+.stream-event-accepted small {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.stream-event-review small {
+  background: #352e18;
+  color: #f0d984;
+}
+
+.stream-event-blocked small {
+  background: #442119;
+  color: #ff9e85;
+}
+
+@keyframes stream-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(114, 167, 255, 0.42);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px rgba(114, 167, 255, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(114, 167, 255, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stream-streaming span {
+    animation: none;
+  }
+}
+
 .access-list,
 .validation-list {
   display: grid;

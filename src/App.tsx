@@ -9,6 +9,7 @@ import {
   Grid2X2,
   LayoutDashboard,
   PanelRight,
+  Pause,
   Play,
   RotateCcw,
   Rows3,
@@ -118,6 +119,12 @@ import {
   summarizeRuntimeIngestion,
   type RuntimeIngestionEvent
 } from "./runtimeIngestion";
+import {
+  buildRuntimeStreamSnapshot,
+  nextRuntimeStreamPosition,
+  type RuntimeStreamPlaybackState,
+  type RuntimeStreamSnapshot
+} from "./runtimeStream";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -156,6 +163,16 @@ const runLifecycleActions: Array<{
   { icon: <AlertTriangle size={14} />, label: "Block", status: "blocked" },
   { icon: <AlertTriangle size={14} />, label: "Fail", status: "failed" }
 ];
+
+const streamStateLabels: Record<RuntimeStreamPlaybackState, string> = {
+  idle: "Idle",
+  streaming: "Streaming",
+  paused: "Paused",
+  complete: "Complete",
+  blocked: "Blocked"
+};
+
+const streamIntervalMs = 1100;
 
 function classNames(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
@@ -943,17 +960,93 @@ function RightPanel({
   sessions: SessionSummary[];
   tasks: OrchestrationTask[];
 }) {
+  const [streamPlaybackByRunId, setStreamPlaybackByRunId] = useState<
+    Record<string, { cursor: number; state: RuntimeStreamPlaybackState }>
+  >({});
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
   const runSummary = summarizeRunHistory(mockRuns);
   const latestRun = runSummary.latestRun;
-  const selectedTimeline = selectedRun ? buildRunTimeline(selectedRun) : [];
-  const timelineSummary = summarizeRunTimeline(selectedTimeline);
-  const adapterContractItems = buildAdapterContract(runtimeAdapter);
-  const adapterContractSummary = summarizeAdapterContract(adapterContractItems);
-  const runtimeIngestionEvents = buildRuntimeIngestionPreview(selectedTimeline, adapterContractItems);
-  const runtimeIngestionSummary = summarizeRuntimeIngestion(runtimeIngestionEvents);
+  const selectedTimeline = useMemo(
+    () => (selectedRun ? buildRunTimeline(selectedRun) : []),
+    [selectedRun]
+  );
+  const timelineSummary = useMemo(
+    () => summarizeRunTimeline(selectedTimeline),
+    [selectedTimeline]
+  );
+  const adapterContractItems = useMemo(
+    () => buildAdapterContract(runtimeAdapter),
+    [runtimeAdapter]
+  );
+  const adapterContractSummary = useMemo(
+    () => summarizeAdapterContract(adapterContractItems),
+    [adapterContractItems]
+  );
+  const runtimeIngestionEvents = useMemo(
+    () => buildRuntimeIngestionPreview(selectedTimeline, adapterContractItems),
+    [adapterContractItems, selectedTimeline]
+  );
+  const runtimeIngestionSummary = useMemo(
+    () => summarizeRuntimeIngestion(runtimeIngestionEvents),
+    [runtimeIngestionEvents]
+  );
+  const streamPlayback = selectedRun ? streamPlaybackByRunId[selectedRun.id] : undefined;
+  const runtimeStreamSnapshot = buildRuntimeStreamSnapshot(
+    runtimeIngestionEvents,
+    streamPlayback?.cursor ?? 0,
+    streamPlayback?.state ?? "idle"
+  );
+  const canStartStream =
+    Boolean(selectedRun) &&
+    runtimeIngestionEvents.length > 0 &&
+    runtimeStreamSnapshot.state !== "streaming" &&
+    runtimeStreamSnapshot.state !== "complete" &&
+    runtimeStreamSnapshot.state !== "blocked";
+  const canPauseStream = Boolean(selectedRun) && runtimeStreamSnapshot.state === "streaming";
+  const canResetStream =
+    Boolean(selectedRun) &&
+    (runtimeStreamSnapshot.cursor > 0 || runtimeStreamSnapshot.state !== "idle");
+
+  useEffect(() => {
+    if (!selectedRun || runtimeStreamSnapshot.state !== "streaming") {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setStreamPlaybackByRunId((current) => {
+        const playback = current[selectedRun.id] ?? { cursor: 0, state: "streaming" };
+        const nextPosition = nextRuntimeStreamPosition(playback.cursor, runtimeIngestionEvents.length);
+        const nextSnapshot = buildRuntimeStreamSnapshot(
+          runtimeIngestionEvents,
+          nextPosition,
+          "streaming"
+        );
+
+        return {
+          ...current,
+          [selectedRun.id]: {
+            cursor: nextPosition,
+            state: nextSnapshot.state
+          }
+        };
+      });
+    }, streamIntervalMs);
+
+    return () => window.clearInterval(timer);
+  }, [runtimeIngestionEvents, runtimeStreamSnapshot.state, selectedRun]);
+
+  function updateStreamPlayback(state: RuntimeStreamPlaybackState, cursor = runtimeStreamSnapshot.cursor) {
+    if (!selectedRun) {
+      return;
+    }
+
+    setStreamPlaybackByRunId((current) => ({
+      ...current,
+      [selectedRun.id]: { cursor, state }
+    }));
+  }
 
   return (
     <aside className="right-panel" aria-label="Environment">
@@ -1204,6 +1297,74 @@ function RightPanel({
       </section>
 
       <section className="panel-section">
+        <h4>Runtime Stream</h4>
+        <div className="stream-status-row">
+          <span className={classNames("stream-state", `stream-${runtimeStreamSnapshot.state}`)}>
+            <span aria-hidden="true" />
+            {streamStateLabels[runtimeStreamSnapshot.state]}
+          </span>
+          <span>
+            {runtimeStreamSnapshot.emitted}/{runtimeStreamSnapshot.total} emitted
+          </span>
+        </div>
+        <div className="stream-summary" aria-label="Runtime stream summary">
+          <span>
+            <strong>{runtimeStreamSnapshot.readiness}%</strong>
+            Ready
+          </span>
+          <span>
+            <strong>{runtimeStreamSnapshot.pending}</strong>
+            Pending
+          </span>
+          <span>
+            <strong>{runtimeStreamSnapshot.review}</strong>
+            Review
+          </span>
+          <span>
+            <strong>{runtimeStreamSnapshot.blocked}</strong>
+            Blocked
+          </span>
+        </div>
+        <div className="stream-control-grid" aria-label="Runtime stream controls">
+          <button
+            aria-label="Start runtime stream preview"
+            disabled={!canStartStream}
+            onClick={() => updateStreamPlayback("streaming")}
+            title="Start stream"
+            type="button"
+          >
+            <Play size={14} />
+            <span>Start</span>
+          </button>
+          <button
+            aria-label="Pause runtime stream preview"
+            disabled={!canPauseStream}
+            onClick={() => updateStreamPlayback("paused")}
+            title="Pause stream"
+            type="button"
+          >
+            <Pause size={14} />
+            <span>Pause</span>
+          </button>
+          <button
+            aria-label="Reset runtime stream preview"
+            disabled={!canResetStream}
+            onClick={() => updateStreamPlayback("idle", 0)}
+            title="Reset stream"
+            type="button"
+          >
+            <RotateCcw size={14} />
+            <span>Reset</span>
+          </button>
+        </div>
+        {runtimeStreamSnapshot.latestEvent ? (
+          <RuntimeStreamPreview snapshot={runtimeStreamSnapshot} />
+        ) : (
+          <p className="empty-preview">Start the local stream to watch projected adapter events emit here.</p>
+        )}
+      </section>
+
+      <section className="panel-section">
         <h4>Local Access</h4>
         <ul className="access-list">
           {permissionSurfaces.map((surface) => (
@@ -1253,6 +1414,29 @@ function RuntimeIngestionListItem({ event }: { event: RuntimeIngestionEvent }) {
       </div>
       <span className="ingestion-status">{event.adapterStatus}</span>
     </li>
+  );
+}
+
+function RuntimeStreamPreview({ snapshot }: { snapshot: RuntimeStreamSnapshot }) {
+  const visibleEvents = snapshot.emittedEvents.slice(-5);
+
+  return (
+    <div className="stream-preview">
+      <div className="stream-latest">
+        <span>Latest</span>
+        <strong title={snapshot.latestEvent?.label}>{snapshot.latestEvent?.label}</strong>
+        <small title={snapshot.latestEvent?.reason}>{snapshot.latestEvent?.reason}</small>
+      </div>
+      <ol className="stream-event-list" aria-label="Emitted runtime stream events">
+        {visibleEvents.map((event) => (
+          <li className={classNames("stream-event", `stream-event-${event.adapterStatus}`)} key={event.id}>
+            <span>{event.sequence + 1}</span>
+            <strong title={event.label}>{event.label}</strong>
+            <small>{event.adapterStatus}</small>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 

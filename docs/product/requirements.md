@@ -44,6 +44,8 @@
 - Adapter contract summaries should show ready, review, and blocked counts before any real command execution is enabled.
 - Selected mock runs should expose a runtime ingestion preview that compares normalized timeline events against the selected adapter contract.
 - Runtime ingestion previews should show accepted, review, and blocked event counts without executing any runtime process.
+- Selected mock runs should expose a local stream preview that can play, pause, and reset emitted adapter events for realtime cockpit monitoring.
+- Stream previews should show latest event, emitted count, pending count, and blocked state without starting external processes.
 
 ## Later Functional Scope
 
@@ -51,6 +53,7 @@
 - Real worker spawning.
 - Live transcript streaming.
 - Live runtime event ingestion from configured adapters.
+- Live stream controls backed by configured adapter sessions.
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
 - MCP configuration and status.
