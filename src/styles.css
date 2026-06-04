@@ -2402,6 +2402,149 @@ textarea {
   color: #aab3bd;
 }
 
+.tool-evidence-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.tool-evidence-actions button {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #303741;
+  border-radius: 8px;
+  background: #151a20;
+  color: #dce3eb;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.tool-evidence-actions button:hover:not(:disabled),
+.tool-evidence-actions button:focus-visible {
+  border-color: #4d5968;
+  background: #252b34;
+}
+
+.tool-evidence-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.tool-evidence-actions button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-evidence-history {
+  display: grid;
+  gap: 6px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.tool-evidence-history-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tool-evidence-history-header strong,
+.tool-evidence-history-header span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.tool-evidence-history-header strong {
+  color: #edf2f7;
+}
+
+.tool-evidence-history-header span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #aab3bd;
+  padding: 3px 6px;
+  font-weight: 800;
+}
+
+.tool-evidence-records {
+  display: grid;
+  gap: 5px;
+  max-height: 156px;
+  margin: 0;
+  overflow: auto;
+  padding: 0;
+  list-style: none;
+}
+
+.tool-evidence-record {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 6px;
+}
+
+.tool-evidence-record > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.tool-evidence-record-requested > span {
+  background: #f0d984;
+}
+
+.tool-evidence-record-cancelled > span {
+  background: #8f99a5;
+}
+
+.tool-evidence-record div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.tool-evidence-record strong,
+.tool-evidence-record small,
+.tool-evidence-record b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+}
+
+.tool-evidence-record strong {
+  color: #edf2f7;
+  text-transform: capitalize;
+}
+
+.tool-evidence-record b {
+  color: #ffffff;
+}
+
+.tool-evidence-empty {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
 .adapter-contract-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -246,6 +246,14 @@ import {
   buildToolEvidenceReadinessSnapshot,
   type ToolEvidenceReadinessSnapshot
 } from "./toolEvidenceReadiness";
+import {
+  appendToolEvidenceCaptureRecord,
+  createToolEvidenceCaptureRecord,
+  loadToolEvidenceCaptureHistory,
+  saveToolEvidenceCaptureHistory,
+  type ToolEvidenceCaptureRecord,
+  type ToolEvidenceCaptureRecordAction
+} from "./toolEvidenceCaptureHistory";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -296,6 +304,7 @@ const streamStateLabels: Record<RuntimeStreamPlaybackState, string> = {
 const streamIntervalMs = 1100;
 const runtimeTransportOptions: RuntimeTransport[] = ["local-process", "remote-endpoint", "mock"];
 const runtimeWorkspaceModeOptions: RuntimeWorkspaceMode[] = ["read-only", "read-write", "isolated"];
+type ToolEvidenceCaptureIntent = "idle" | "requested";
 type RuntimeProfilePermissionRequestIntent = "idle" | "requested";
 
 function classNames(...parts: Array<string | false | undefined>): string {
@@ -1130,6 +1139,11 @@ function RightPanel({
   const [executionAuditHistory, setExecutionAuditHistory] = useState<RuntimeExecutionAuditRecord[]>(
     () => loadRuntimeExecutionAuditHistory()
   );
+  const [toolEvidenceCaptureHistory, setToolEvidenceCaptureHistory] = useState<
+    ToolEvidenceCaptureRecord[]
+  >(() => loadToolEvidenceCaptureHistory());
+  const [toolEvidenceCaptureIntent, setToolEvidenceCaptureIntent] =
+    useState<ToolEvidenceCaptureIntent>("idle");
   const [desktopBridgeStatus, setDesktopBridgeStatus] = useState<DesktopRuntimeBridgeStatus>(
     () => getFallbackDesktopRuntimeBridgeStatus()
   );
@@ -1348,6 +1362,10 @@ function RightPanel({
   }, [executionAuditHistory]);
 
   useEffect(() => {
+    saveToolEvidenceCaptureHistory(toolEvidenceCaptureHistory);
+  }, [toolEvidenceCaptureHistory]);
+
+  useEffect(() => {
     saveRuntimeProfileDraft(runtimeProfileDraft);
   }, [runtimeProfileDraft]);
 
@@ -1434,6 +1452,22 @@ function RightPanel({
 
     setExecutionAuditHistory((current) => appendRuntimeExecutionAuditRecord(current, record));
     updateLaunchApprovalIntent(nextIntent);
+  }
+
+  function recordToolEvidenceCaptureAction(
+    action: ToolEvidenceCaptureRecordAction,
+    nextIntent: ToolEvidenceCaptureIntent
+  ) {
+    const record = createToolEvidenceCaptureRecord(
+      toolEvidenceReadinessSnapshot,
+      action,
+      new Date().toISOString()
+    );
+
+    setToolEvidenceCaptureHistory((current) =>
+      appendToolEvidenceCaptureRecord(current, record)
+    );
+    setToolEvidenceCaptureIntent(nextIntent);
   }
 
   function updateRuntimeProfileDraft(nextDraft: Partial<RuntimeProfile>) {
@@ -1663,7 +1697,13 @@ function RightPanel({
       </section>
 
       <LocalEvidenceReadinessPanel evidence={localEvidenceReadinessSnapshot} />
-      <ToolEvidenceReadinessPanel tools={toolEvidenceReadinessSnapshot} />
+      <ToolEvidenceReadinessPanel
+        captureHistory={toolEvidenceCaptureHistory}
+        captureIntent={toolEvidenceCaptureIntent}
+        onCancelCapture={() => recordToolEvidenceCaptureAction("cancelled", "idle")}
+        onRequestCapture={() => recordToolEvidenceCaptureAction("requested", "requested")}
+        tools={toolEvidenceReadinessSnapshot}
+      />
 
       <section className="panel-section">
         <h4>Project Registry</h4>
@@ -2743,10 +2783,21 @@ function LocalEvidenceReadinessPanel({
 }
 
 function ToolEvidenceReadinessPanel({
+  captureHistory,
+  captureIntent,
+  onCancelCapture,
+  onRequestCapture,
   tools
 }: {
+  captureHistory: ToolEvidenceCaptureRecord[];
+  captureIntent: ToolEvidenceCaptureIntent;
+  onCancelCapture: () => void;
+  onRequestCapture: () => void;
   tools: ToolEvidenceReadinessSnapshot;
 }) {
+  const canRequestCapture = captureIntent !== "requested";
+  const canCancelCapture = captureIntent === "requested";
+
   return (
     <section className="panel-section">
       <h4>Terminal & Git</h4>
@@ -2792,9 +2843,65 @@ function ToolEvidenceReadinessPanel({
             </li>
           ))}
         </ol>
+        <div className="tool-evidence-actions">
+          <button
+            aria-label="Request terminal and Git evidence capture"
+            disabled={!canRequestCapture}
+            onClick={onRequestCapture}
+            title="Request capture preview"
+            type="button"
+          >
+            <ClipboardList size={14} />
+            <span>{captureIntent === "requested" ? "Requested" : "Request"}</span>
+          </button>
+          <button
+            aria-label="Cancel terminal and Git evidence capture request"
+            disabled={!canCancelCapture}
+            onClick={onCancelCapture}
+            title="Cancel capture request"
+            type="button"
+          >
+            <RotateCcw size={14} />
+            <span>Cancel</span>
+          </button>
+        </div>
+        <div className="tool-evidence-history" aria-label="Terminal and Git evidence capture history">
+          <div className="tool-evidence-history-header">
+            <strong>Recent capture records</strong>
+            <span>{captureHistory.length}</span>
+          </div>
+          {captureHistory.length > 0 ? (
+            <ol className="tool-evidence-records">
+              {captureHistory.slice(0, 4).map((record) => (
+                <ToolEvidenceCaptureRecordRow key={record.id} record={record} />
+              ))}
+            </ol>
+          ) : (
+            <p className="tool-evidence-empty">
+              Request or cancel capture review to create a local record.
+            </p>
+          )}
+        </div>
         <small title={tools.safety}>{tools.safety}</small>
       </div>
     </section>
+  );
+}
+
+function ToolEvidenceCaptureRecordRow({
+  record
+}: {
+  record: ToolEvidenceCaptureRecord;
+}) {
+  return (
+    <li className={classNames("tool-evidence-record", `tool-evidence-record-${record.action}`)}>
+      <span aria-hidden="true" />
+      <div>
+        <strong>{record.action}</strong>
+        <small title={record.detail}>{formatTimestamp(record.createdAt)}</small>
+      </div>
+      <b title={record.statusLabel}>{record.readiness}%</b>
+    </li>
   );
 }
 

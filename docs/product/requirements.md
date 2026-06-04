@@ -43,6 +43,7 @@
 - Timeline summaries should show active, issue, and complete counts for quick cockpit monitoring.
 - Selected mock runs should expose local validation evidence readiness with gate counts, evidence counts, finalization state, and safety copy before any terminal command runs.
 - Selected mock runs should expose terminal and Git evidence readiness so users can see capture locks, permission state, and local evidence dependency before any command or Git operation runs.
+- Terminal and Git evidence readiness should support local request and cancellation records that survive reloads without running commands or Git operations.
 - Runtime adapters should expose a compact contract inspector with transport, capabilities, permissions, and normalized event support.
 - Adapter contract summaries should show ready, review, and blocked counts before any real command execution is enabled.
 - Selected mock runs should expose a runtime ingestion preview that compares normalized timeline events against the selected adapter contract.

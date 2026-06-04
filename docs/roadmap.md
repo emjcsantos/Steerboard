@@ -47,6 +47,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Desktop packaging readiness preview.
 - Local validation evidence readiness preview.
 - Terminal and Git evidence readiness preview.
+- Local terminal and Git capture request history.
 
 ## Phase 5: Local Execution And Packaging
 
