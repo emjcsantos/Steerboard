@@ -272,6 +272,10 @@ import {
   type CockpitPanelRuntime
 } from "./cockpitPanelRuntime";
 import {
+  createCockpitPanelActivity,
+  type CockpitPanelActivity
+} from "./cockpitPanelActivity";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -830,6 +834,11 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
     role: session.role,
     runtime: session.runtime
   });
+  const activitySignal = createCockpitPanelActivity({
+    state: session.state,
+    transcript: session.transcript,
+    validation: session.validation
+  });
 
   return (
     <article
@@ -862,6 +871,7 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
       <footer className="cell-footer">
         <PanelValidationSignal validation={validationSignal} />
         <div className="cell-footer-actions">
+          <PanelActivitySignal activity={activitySignal} />
           <PanelFileScopeSignal scope={fileScope} />
           <div className="tool-row">
             {session.tools.map((tool) => (
@@ -871,6 +881,20 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
         </div>
       </footer>
     </article>
+  );
+}
+
+function PanelActivitySignal({ activity }: { activity: CockpitPanelActivity }) {
+  return (
+    <span
+      aria-label={`Latest activity: ${activity.label}, ${activity.countLabel}`}
+      className={classNames("panel-activity-signal", `panel-activity-${activity.tone}`)}
+      title={`${activity.detail} (${activity.countLabel})`}
+    >
+      <Activity size={14} />
+      <b>{activity.label}</b>
+      <small>{activity.countLabel}</small>
+    </span>
   );
 }
 

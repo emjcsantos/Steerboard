@@ -1009,6 +1009,58 @@ textarea {
   gap: 6px;
 }
 
+.panel-activity-signal {
+  display: inline-flex;
+  flex: 0 1 150px;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #cfd8e3;
+  padding: 4px 7px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.panel-activity-signal b,
+.panel-activity-signal small {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-activity-signal small {
+  color: #9fa9b4;
+  font-size: 10px;
+}
+
+.panel-activity-active {
+  background: #172f3b;
+  color: #8bd7f4;
+}
+
+.panel-activity-waiting {
+  background: #252b34;
+  color: #cfd8e3;
+}
+
+.panel-activity-review {
+  background: #442119;
+  color: #ff9e85;
+}
+
+.panel-activity-complete {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.panel-activity-empty {
+  color: #9fa9b4;
+}
+
 .panel-file-scope {
   flex: 0 0 auto;
   overflow: hidden;
