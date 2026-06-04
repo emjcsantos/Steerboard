@@ -13,6 +13,15 @@ The product goal is a focused workspace where a human operator can plan project 
 
 This repository currently contains the public product brief, requirements, architecture notes, installation strategy, and contribution guidance. Internal planning, progress logs, and agent execution rules should stay outside the public repository.
 
+## Local Preview
+
+```text
+npm install
+npm run dev
+```
+
+The preview runs on `http://127.0.0.1:5173/` by default.
+
 ## Document Map
 
 - [Project Brief](docs/project/brief.md)

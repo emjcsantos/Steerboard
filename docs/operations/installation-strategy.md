@@ -18,8 +18,8 @@ Expected shape:
 ```text
 git clone https://github.com/<owner>/steerboard.git
 cd steerboard
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 Benefits:
@@ -37,8 +37,8 @@ Requirements before promoting this path:
 - Clear dependency audit instructions.
 - Public-safe fixture data only.
 - Explicit permission model for project folders, Git, terminal, local agent runtimes, and notifications.
-- One-command development startup.
-- One-command local production build.
+- One-command development startup: `npm run dev`.
+- One-command local production build: `npm run build`.
 
 ## Signed Desktop Builds
 
