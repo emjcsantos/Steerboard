@@ -62,6 +62,7 @@
 - The desktop shell should expose a safe runtime bridge status so the cockpit can show whether it is running in browser preview or a desktop shell without enabling process execution.
 - Desktop bridge status should default to unavailable or locked unless an approved runtime path explicitly reports readiness.
 - Runtime profile drafts should start disabled with read-only workspace posture and deterministic readiness reasons.
+- The environment panel should show selected runtime profile readiness, transport, workspace posture, capability count, permission count, and safety copy before execution exists.
 
 ## Later Functional Scope
 
@@ -86,6 +87,7 @@
 - Deploy-to-runtime action that converts a selected pipeline item into an orchestrator run, task split, and worker handoff set.
 - Runtime integration wizard for adding or testing a configured model/provider adapter.
 - Runtime profile editor for configuring provider-neutral transports, commands, permissions, and capabilities before launch approval.
+- Runtime profile catalog management with project/adapter mapping, review states, and disabled-by-default local process drafts.
 
 ## UX Requirements
 

@@ -27,6 +27,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 - Provider-neutral adapter contract.
 - Provider-neutral runtime profile readiness model.
+- Runtime profile catalog and cockpit readiness panel.
 - Mock adapter for tests and demos.
 - Runtime setup and permission review flow.
 - Local launch request preview before approved runtime execution.

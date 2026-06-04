@@ -70,6 +70,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Adapter APIs should normalize events into the session core instead of leaking provider-specific event shapes into the UI.
 - Adapter contracts must be easy to add, test, and disable.
 - Runtime profiles describe configured transports, commands, permissions, workspace posture, and capabilities without executing them during readiness evaluation.
+- Runtime profile catalog helpers keep profile selection and readiness summaries pure so the renderer can display profile state before any launch path exists.
 - Each runtime adapter should declare capabilities, required permissions, configuration fields, supported commands, event mapping, and mock fixtures.
 - The cockpit must consume normalized session, task, validation, and tool-call events instead of provider-specific payloads.
 - The scaffold exposes an adapter contract inspector that summarizes transport, capability, permission, and normalized-event readiness before runtime execution exists.

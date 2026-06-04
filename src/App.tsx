@@ -81,6 +81,16 @@ import {
   type RuntimeAdapter
 } from "./runtime";
 import {
+  evaluateRuntimeProfileReadiness,
+  type RuntimeProfile,
+  type RuntimeProfileReadiness
+} from "./runtimeProfile";
+import {
+  runtimeProfiles,
+  selectRuntimeProfileForAdapter,
+  summarizeRuntimeProfiles
+} from "./runtimeProfileCatalog";
+import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
   type DispatchPackage
@@ -288,6 +298,7 @@ export function App() {
   const runtimeAdapter = runtimeByProject.get(project.id);
   const registrySummary = summarizeRegistry(registryEntries);
   const runtimeSummary = summarizeRuntimeAdapters(runtimeAdapters);
+  const runtimeProfileSummary = summarizeRuntimeProfiles(runtimeProfiles);
   const projectMockRuns = useMemo(
     () => filterRunsByProject(mockRuns, project.id),
     [mockRuns, project.id]
@@ -553,6 +564,7 @@ export function App() {
             registryEntry={registryEntry}
             registrySummary={registrySummary}
             runtimeAdapter={runtimeAdapter}
+            runtimeProfileSummary={runtimeProfileSummary}
             runtimeSummary={runtimeSummary}
             selectedRun={selectedRun}
             sessions={visibleSessions}
@@ -1003,6 +1015,7 @@ function RightPanel({
   registryEntry,
   registrySummary,
   runtimeAdapter,
+  runtimeProfileSummary,
   runtimeSummary,
   selectedRun,
   sessions,
@@ -1016,6 +1029,7 @@ function RightPanel({
   registryEntry?: RegistryEntry;
   registrySummary: ReturnType<typeof summarizeRegistry>;
   runtimeAdapter?: RuntimeAdapter;
+  runtimeProfileSummary: ReturnType<typeof summarizeRuntimeProfiles>;
   runtimeSummary: ReturnType<typeof summarizeRuntimeAdapters>;
   selectedRun?: MockOrchestratorRun;
   sessions: SessionSummary[];
@@ -1101,6 +1115,17 @@ function RightPanel({
   const runtimeExecutionAuditSnapshot = buildRuntimeExecutionAuditSnapshot(
     runtimeLaunchRequestSnapshot,
     runtimeLaunchApprovalSnapshot
+  );
+  const selectedRuntimeProfile = useMemo(
+    () => selectRuntimeProfileForAdapter(runtimeProfiles, runtimeAdapter?.id ?? project.id),
+    [project.id, runtimeAdapter?.id]
+  );
+  const selectedRuntimeProfileReadiness = useMemo(
+    () =>
+      selectedRuntimeProfile
+        ? evaluateRuntimeProfileReadiness(selectedRuntimeProfile)
+        : undefined,
+    [selectedRuntimeProfile]
   );
   const canStartStream =
     Boolean(selectedRun) &&
@@ -1409,6 +1434,12 @@ function RightPanel({
         </div>
       </section>
 
+      <RuntimeProfilePanel
+        profile={selectedRuntimeProfile}
+        readiness={selectedRuntimeProfileReadiness}
+        summary={runtimeProfileSummary}
+      />
+
       <section className="panel-section">
         <h4>Adapter Contract</h4>
         <div className="adapter-contract-summary" aria-label="Adapter contract summary">
@@ -1567,6 +1598,87 @@ function RightPanel({
         </ol>
       </section>
     </aside>
+  );
+}
+
+function RuntimeProfilePanel({
+  profile,
+  readiness,
+  summary
+}: {
+  profile?: RuntimeProfile;
+  readiness?: RuntimeProfileReadiness;
+  summary: ReturnType<typeof summarizeRuntimeProfiles>;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Runtime Profile</h4>
+      <div className="runtime-profile-summary" aria-label="Runtime profile summary">
+        <span>
+          <strong>{summary.readiness}%</strong>
+          Ready
+        </span>
+        <span>
+          <strong>{summary.ready}</strong>
+          Ready
+        </span>
+        <span>
+          <strong>{summary.review}</strong>
+          Review
+        </span>
+        <span>
+          <strong>{summary.blocked}</strong>
+          Blocked
+        </span>
+      </div>
+
+      {profile && readiness ? (
+        <div className="runtime-profile-card" aria-label="Selected runtime profile">
+          <div className="runtime-profile-header">
+            <span className={classNames("runtime-profile-state", `runtime-profile-${readiness.state}`)}>
+              <span aria-hidden="true" />
+              {readiness.state}
+            </span>
+            <strong title={profile.label}>{profile.label}</strong>
+          </div>
+
+          <dl className="runtime-profile-grid">
+            <div>
+              <dt>Transport</dt>
+              <dd>{profile.transport}</dd>
+            </div>
+            <div>
+              <dt>Workspace</dt>
+              <dd>{profile.workspaceMode}</dd>
+            </div>
+            <div>
+              <dt>Capabilities</dt>
+              <dd>{profile.capabilities.length}</dd>
+            </div>
+            <div>
+              <dt>Permissions</dt>
+              <dd>{profile.requiredPermissions.length}</dd>
+            </div>
+          </dl>
+
+          {readiness.reasons.length > 0 ? (
+            <ul className="runtime-profile-reasons" aria-label="Runtime profile readiness reasons">
+              {readiness.reasons.slice(0, 3).map((reason) => (
+                <li key={reason} title={reason}>
+                  {reason}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="runtime-profile-ready-copy">Profile is ready for a future approval flow.</p>
+          )}
+
+          <small title={readiness.safety}>{readiness.safety}</small>
+        </div>
+      ) : (
+        <p className="empty-preview">Add a runtime profile to review setup readiness.</p>
+      )}
+    </section>
   );
 }
 

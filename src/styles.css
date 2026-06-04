@@ -620,6 +620,146 @@ textarea {
   font-size: 14px;
 }
 
+.runtime-profile-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.runtime-profile-summary span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border-radius: 8px;
+  background: #13171d;
+  color: #aab3bd;
+  padding: 8px 6px;
+  font-size: 11px;
+}
+
+.runtime-profile-summary strong {
+  overflow: hidden;
+  color: #ffffff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+}
+
+.runtime-profile-card {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  border-top: 1px solid #272d36;
+  padding-top: 10px;
+}
+
+.runtime-profile-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.runtime-profile-header strong {
+  overflow: hidden;
+  color: #edf2f7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.runtime-profile-state {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #c4ccd6;
+  padding: 5px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.runtime-profile-state span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.runtime-profile-ready span {
+  background: #89dda9;
+}
+
+.runtime-profile-review span {
+  background: #f0d984;
+}
+
+.runtime-profile-blocked span {
+  background: #ff9e85;
+}
+
+.runtime-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.runtime-profile-grid div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border-radius: 8px;
+  background: #13171d;
+  padding: 7px 6px;
+}
+
+.runtime-profile-grid dt,
+.runtime-profile-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-profile-grid dt {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.runtime-profile-grid dd {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.runtime-profile-reasons {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.runtime-profile-reasons li,
+.runtime-profile-ready-copy,
+.runtime-profile-card small {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
 .run-history-list {
   display: grid;
   gap: 6px;
