@@ -208,6 +208,10 @@ import {
   type RuntimeStreamSnapshot
 } from "./runtimeStream";
 import {
+  buildCockpitMonitorSummary,
+  type CockpitMonitorSummary
+} from "./cockpitMonitorSummary";
+import {
   buildRuntimeAdapterSessionSnapshot,
   type RuntimeAdapterSessionSnapshot
 } from "./runtimeAdapterSession";
@@ -1602,6 +1606,11 @@ function RightPanel({
     streamPlayback?.cursor ?? 0,
     streamPlayback?.state ?? "idle"
   );
+  const cockpitMonitorSummary = buildCockpitMonitorSummary(
+    selectedRun,
+    timelineSummary,
+    runtimeStreamSnapshot
+  );
   const runtimeAdapterSessionSnapshot = buildRuntimeAdapterSessionSnapshot(
     runtimeAdapter,
     runtimeStreamSnapshot
@@ -1924,6 +1933,8 @@ function RightPanel({
           <PanelRight size={17} />
         </button>
       </header>
+
+      <CockpitMonitorStrip summary={cockpitMonitorSummary} />
 
       <section className="panel-section">
         <h4>Progress</h4>
@@ -2307,6 +2318,48 @@ function RightPanel({
         </ol>
       </section>
     </aside>
+  );
+}
+
+function CockpitMonitorStrip({ summary }: { summary: CockpitMonitorSummary }) {
+  return (
+    <section className="monitor-strip" aria-label="Cockpit monitor summary">
+      <div className="monitor-strip-header">
+        <div>
+          <span className="eyebrow">Monitor</span>
+          <strong title={summary.runLabel}>{summary.runLabel}</strong>
+        </div>
+        <span className={classNames("monitor-state", `monitor-${summary.runState}`)}>
+          {summary.runState}
+        </span>
+      </div>
+      <p title={summary.detail}>{summary.detail}</p>
+      <div className="monitor-strip-grid">
+        <span>
+          <strong>{summary.activeCount}</strong>
+          Active
+        </span>
+        <span>
+          <strong>{summary.issueCount}</strong>
+          Issues
+        </span>
+        <span>
+          <strong>{summary.completeCount}</strong>
+          Done
+        </span>
+        <span>
+          <strong>{summary.pendingCount}</strong>
+          Pending
+        </span>
+      </div>
+      <div className="monitor-stream-row">
+        <span className={classNames("stream-state", `stream-${summary.streamState}`)}>
+          <span aria-hidden="true" />
+          {summary.streamLabel}
+        </span>
+        <small>{summary.streamProgressLabel}</small>
+      </div>
+    </section>
   );
 }
 

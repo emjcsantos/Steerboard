@@ -59,6 +59,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Terminal and Git evidence capture history stores local request and cancellation records for review before command output or repository evidence exists.
 - Runtime ingestion preview checks selected-run timeline events against the active adapter contract and marks each event as accepted, review, or blocked.
 - Local stream preview plays normalized ingestion events into the cockpit as a realtime monitoring simulation before external runtime sessions exist.
+- Cockpit monitor summaries combine selected-run timeline counts and local stream state into a compact side-panel strip for quick realtime visibility.
 - Adapter session preview derives transport, heartbeat, permission readiness, and health from the selected runtime adapter plus local stream state.
 - Event source preview exposes the remaining normalized event queue that will feed the local stream monitor.
 - Source connection preview checks whether the selected adapter has the capabilities and permissions needed to attach that event queue.

@@ -530,6 +530,111 @@ textarea {
   font-size: 16px;
 }
 
+.monitor-strip {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #2c333d;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 12px;
+}
+
+.monitor-strip-header {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.monitor-strip-header div {
+  min-width: 0;
+}
+
+.monitor-strip-header strong,
+.monitor-strip p,
+.monitor-stream-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitor-strip-header strong {
+  display: block;
+  margin-top: 2px;
+  color: #edf3f8;
+  font-size: 13px;
+}
+
+.monitor-state {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #252b34;
+  color: #b9c1cb;
+  padding: 4px 7px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.monitor-running {
+  background: #172f3b;
+  color: #8bd7f4;
+}
+
+.monitor-complete {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.monitor-blocked,
+.monitor-failed {
+  background: #442119;
+  color: #ff9e85;
+}
+
+.monitor-strip p {
+  margin: 0;
+  color: #aab3bd;
+  font-size: 11px;
+}
+
+.monitor-strip-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.monitor-strip-grid span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border-radius: 8px;
+  background: #171d24;
+  color: #8f99a5;
+  padding: 7px 5px;
+  text-align: center;
+  font-size: 10px;
+}
+
+.monitor-strip-grid strong {
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.monitor-stream-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.monitor-stream-row small {
+  color: #9fa9b4;
+  font-size: 11px;
+}
+
 .panel-section {
   border: 1px solid #2c333d;
   border-radius: 8px;
