@@ -256,6 +256,10 @@ import {
   type CockpitPanelFileScope
 } from "./cockpitPanelFileScope";
 import {
+  createCockpitPanelAttempt,
+  type CockpitPanelAttempt
+} from "./cockpitPanelAttempt";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -807,6 +811,7 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
     title: session.title
   });
   const fileScope = createCockpitPanelFileScope(session.files);
+  const attemptSignal = createCockpitPanelAttempt(session.attempt, session.state);
 
   return (
     <article
@@ -830,7 +835,7 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
           {session.branch}
         </span>
         <span title={identity.runtimeLabel}>{identity.runtimeLabel}</span>
-        <span>Attempt {session.attempt}</span>
+        <PanelAttemptSignal attempt={attemptSignal} />
       </div>
 
       <div className="cell-transcript">
@@ -851,6 +856,19 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
         </div>
       </footer>
     </article>
+  );
+}
+
+function PanelAttemptSignal({ attempt }: { attempt: CockpitPanelAttempt }) {
+  return (
+    <span
+      aria-label={`Attempt limit: ${attempt.label}`}
+      className={classNames("panel-attempt-signal", `panel-attempt-${attempt.tone}`)}
+      title={attempt.detail}
+    >
+      <small>Attempt </small>
+      <b>{attempt.label}</b>
+    </span>
   );
 }
 
