@@ -18,11 +18,13 @@ import {
   Workflow
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   cockpitPresets,
+  permissionSurfaces,
   pipelineItems,
   projects,
+  type PermissionSurface,
   sessions,
   type PipelineItem,
   type ProjectSummary,
@@ -36,6 +38,11 @@ import {
   type CockpitMode,
   type LayoutId
 } from "./layout";
+import {
+  loadWorkspacePreferences,
+  saveWorkspacePreferences,
+  type WorkspacePreferences
+} from "./preferences";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -58,10 +65,15 @@ function classNames(...parts: Array<string | false | undefined>): string {
 }
 
 export function App() {
-  const [selectedProject, setSelectedProject] = useState(projects[0].id);
-  const [mode, setMode] = useState<CockpitMode>("orchestrator");
-  const [layoutId, setLayoutId] = useState<LayoutId>(defaultLayoutByMode.orchestrator);
-  const [view, setView] = useState<"cockpit" | "pipeline">("cockpit");
+  const validProjectIds = useMemo(() => projects.map((item) => item.id), []);
+  const [preferences, setPreferences] = useState<WorkspacePreferences>(() =>
+    loadWorkspacePreferences(validProjectIds)
+  );
+  const { selectedProjectId, mode, layoutId, view } = preferences;
+
+  useEffect(() => {
+    saveWorkspacePreferences(preferences);
+  }, [preferences]);
 
   const preset = cockpitPresets.find((entry) => entry.mode === mode) ?? cockpitPresets[0];
   const layout = getLayoutSpec(layoutId);
@@ -74,12 +86,21 @@ export function App() {
     return presetSessions.slice(0, layout.columns * layout.rows);
   }, [layout.columns, layout.rows, preset.sessionIds]);
 
-  const project = projects.find((item) => item.id === selectedProject) ?? projects[0];
+  const project = projects.find((item) => item.id === selectedProjectId) ?? projects[0];
+
+  function updatePreferences(nextPreferences: Partial<WorkspacePreferences>) {
+    setPreferences((current) => ({
+      ...current,
+      ...nextPreferences
+    }));
+  }
 
   function handleModeChange(nextMode: CockpitMode) {
-    setMode(nextMode);
-    setLayoutId(defaultLayoutByMode[nextMode]);
-    setView("cockpit");
+    updatePreferences({
+      mode: nextMode,
+      layoutId: defaultLayoutByMode[nextMode],
+      view: "cockpit"
+    });
   }
 
   return (
@@ -103,9 +124,9 @@ export function App() {
         <nav className="project-list">
           {projects.map((item) => (
             <button
-              className={classNames("project-button", selectedProject === item.id && "is-selected")}
+              className={classNames("project-button", selectedProjectId === item.id && "is-selected")}
               key={item.id}
-              onClick={() => setSelectedProject(item.id)}
+              onClick={() => updatePreferences({ selectedProjectId: item.id })}
               type="button"
             >
               <span className={classNames("project-status", `is-${item.status}`)} />
@@ -152,7 +173,7 @@ export function App() {
             <div className="segmented compact" aria-label="Primary view">
               <button
                 className={classNames(view === "cockpit" && "is-active")}
-                onClick={() => setView("cockpit")}
+                onClick={() => updatePreferences({ view: "cockpit" })}
                 type="button"
               >
                 <LayoutDashboard size={15} />
@@ -160,7 +181,7 @@ export function App() {
               </button>
               <button
                 className={classNames(view === "pipeline" && "is-active")}
-                onClick={() => setView("pipeline")}
+                onClick={() => updatePreferences({ view: "pipeline" })}
                 type="button"
               >
                 <ClipboardList size={15} />
@@ -181,7 +202,7 @@ export function App() {
                         aria-label={`Use ${option.id} layout`}
                         className={classNames(option.id === layoutId && "is-active")}
                         key={option.id}
-                        onClick={() => setLayoutId(option.id)}
+                        onClick={() => updatePreferences({ layoutId: option.id })}
                         title={option.id}
                         type="button"
                       >
@@ -272,7 +293,7 @@ function PipelineView({ items }: { items: PipelineItem[] }) {
     <section className="pipeline-view">
       <div className="pipeline-header">
         <h3>Project Pipeline</h3>
-        <button type="button">
+        <button disabled={items.some((item) => item.readiness < 80)} type="button">
           <Play size={16} />
           Dispatch
         </button>
@@ -348,22 +369,9 @@ function RightPanel({
       <section className="panel-section">
         <h4>Local Access</h4>
         <ul className="access-list">
-          <li>
-            <CheckCircle2 size={15} />
-            Project folder mock
-          </li>
-          <li>
-            <CheckCircle2 size={15} />
-            Git status mock
-          </li>
-          <li>
-            <CircleDot size={15} />
-            Runtime adapter mock
-          </li>
-          <li>
-            <CircleDot size={15} />
-            Terminal disabled
-          </li>
+          {permissionSurfaces.map((surface) => (
+            <PermissionItem key={surface.id} surface={surface} />
+          ))}
         </ul>
       </section>
 
@@ -379,5 +387,26 @@ function RightPanel({
         </ol>
       </section>
     </aside>
+  );
+}
+
+function PermissionItem({ surface }: { surface: PermissionSurface }) {
+  const icon =
+    surface.status === "enabled" ? (
+      <CheckCircle2 size={15} />
+    ) : surface.status === "review" ? (
+      <CircleDot size={15} />
+    ) : (
+      <AlertTriangle size={15} />
+    );
+
+  return (
+    <li className={classNames("permission-item", `permission-${surface.status}`)}>
+      {icon}
+      <span>
+        <strong>{surface.label}</strong>
+        <small>{surface.detail}</small>
+      </span>
+    </li>
   );
 }

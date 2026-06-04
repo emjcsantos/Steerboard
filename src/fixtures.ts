@@ -50,6 +50,13 @@ export interface CockpitPreset {
   sessionIds: string[];
 }
 
+export interface PermissionSurface {
+  id: string;
+  label: string;
+  status: "enabled" | "review" | "disabled";
+  detail: string;
+}
+
 export const projects: ProjectSummary[] = [
   { id: "website-refresh", name: "Website Refresh", status: "active", updated: "8m", runs: 4 },
   { id: "billing-workflow", name: "Billing Workflow", status: "active", updated: "19m", runs: 3 },
@@ -190,5 +197,38 @@ export const cockpitPresets: CockpitPreset[] = [
     label: "Independent Project Monitor",
     description: "Multiple unrelated project lanes at once.",
     sessionIds: ["run-plan", "billing-api", "tooling-smoke", "worker-layout", "worker-validation", "integration"]
+  }
+];
+
+export const permissionSurfaces: PermissionSurface[] = [
+  {
+    id: "project-folder",
+    label: "Project folder",
+    status: "enabled",
+    detail: "Mock workspace scope only"
+  },
+  {
+    id: "git",
+    label: "Git",
+    status: "enabled",
+    detail: "Read-only status mock"
+  },
+  {
+    id: "terminal",
+    label: "Terminal/process",
+    status: "disabled",
+    detail: "No command execution in scaffold"
+  },
+  {
+    id: "runtime",
+    label: "Runtime adapter",
+    status: "review",
+    detail: "Mock transport pending setup"
+  },
+  {
+    id: "notifications",
+    label: "Notifications",
+    status: "review",
+    detail: "Local alerts not configured"
   }
 ];
