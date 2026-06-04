@@ -148,6 +148,11 @@ import {
   buildRuntimeLaunchRequestSnapshot,
   type RuntimeLaunchRequestSnapshot
 } from "./runtimeLaunchRequest";
+import {
+  buildRuntimeLaunchApprovalSnapshot,
+  type RuntimeLaunchApprovalIntent,
+  type RuntimeLaunchApprovalSnapshot
+} from "./runtimeLaunchApproval";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -987,6 +992,9 @@ function RightPanel({
     Record<string, { cursor: number; state: RuntimeStreamPlaybackState }>
   >({});
   const [bridgeIntentByRunId, setBridgeIntentByRunId] = useState<Record<string, RuntimeAdapterBridgeIntent>>({});
+  const [launchApprovalIntentByRunId, setLaunchApprovalIntentByRunId] = useState<
+    Record<string, RuntimeLaunchApprovalIntent>
+  >({});
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
@@ -1045,6 +1053,11 @@ function RightPanel({
     runtimeAdapterBridgeSnapshot,
     runtimeSourceConnectionSnapshot,
     runtimeEventSourceSnapshot
+  );
+  const launchApprovalIntent = selectedRun ? launchApprovalIntentByRunId[selectedRun.id] ?? "idle" : "idle";
+  const runtimeLaunchApprovalSnapshot = buildRuntimeLaunchApprovalSnapshot(
+    runtimeLaunchRequestSnapshot,
+    launchApprovalIntent
   );
   const canStartStream =
     Boolean(selectedRun) &&
@@ -1110,6 +1123,17 @@ function RightPanel({
     if (intent === "detached" && runtimeStreamSnapshot.state === "streaming") {
       updateStreamPlayback("paused");
     }
+  }
+
+  function updateLaunchApprovalIntent(intent: RuntimeLaunchApprovalIntent) {
+    if (!selectedRun) {
+      return;
+    }
+
+    setLaunchApprovalIntentByRunId((current) => ({
+      ...current,
+      [selectedRun.id]: intent
+    }));
   }
 
   return (
@@ -1364,11 +1388,14 @@ function RightPanel({
         <h4>Runtime Stream</h4>
         <RuntimeAdapterSessionStatus snapshot={runtimeAdapterSessionSnapshot} />
         <RuntimeEventSourceStatus
+          approval={runtimeLaunchApprovalSnapshot}
           bridge={runtimeAdapterBridgeSnapshot}
           connection={runtimeSourceConnectionSnapshot}
           launchRequest={runtimeLaunchRequestSnapshot}
           onAttach={() => updateBridgeIntent("attached")}
+          onCancelApproval={() => updateLaunchApprovalIntent("idle")}
           onDetach={() => updateBridgeIntent("detached")}
+          onRequestApproval={() => updateLaunchApprovalIntent("requested")}
           snapshot={runtimeEventSourceSnapshot}
         />
         <div className="stream-status-row">
@@ -1491,18 +1518,24 @@ function RuntimeIngestionListItem({ event }: { event: RuntimeIngestionEvent }) {
 }
 
 function RuntimeEventSourceStatus({
+  approval,
   bridge,
   connection,
   launchRequest,
   onAttach,
+  onCancelApproval,
   onDetach,
+  onRequestApproval,
   snapshot
 }: {
+  approval: RuntimeLaunchApprovalSnapshot;
   bridge: RuntimeAdapterBridgeSnapshot;
   connection: RuntimeSourceConnectionSnapshot;
   launchRequest: RuntimeLaunchRequestSnapshot;
   onAttach: () => void;
+  onCancelApproval: () => void;
   onDetach: () => void;
+  onRequestApproval: () => void;
   snapshot: RuntimeEventSourceSnapshot;
 }) {
   return (
@@ -1568,7 +1601,12 @@ function RuntimeEventSourceStatus({
         </dl>
       </div>
       <RuntimeAdapterBridgeStatus bridge={bridge} onAttach={onAttach} onDetach={onDetach} />
-      <RuntimeLaunchRequestStatus launchRequest={launchRequest} />
+      <RuntimeLaunchRequestStatus
+        approval={approval}
+        launchRequest={launchRequest}
+        onCancelApproval={onCancelApproval}
+        onRequestApproval={onRequestApproval}
+      />
     </div>
   );
 }
@@ -1619,9 +1657,15 @@ function RuntimeAdapterBridgeStatus({
 }
 
 function RuntimeLaunchRequestStatus({
-  launchRequest
+  approval,
+  launchRequest,
+  onCancelApproval,
+  onRequestApproval
 }: {
+  approval: RuntimeLaunchApprovalSnapshot;
   launchRequest: RuntimeLaunchRequestSnapshot;
+  onCancelApproval: () => void;
+  onRequestApproval: () => void;
 }) {
   return (
     <div className="launch-request" aria-label="Runtime launch request preview">
@@ -1654,6 +1698,39 @@ function RuntimeLaunchRequestStatus({
         </div>
       </dl>
       <small title={launchRequest.safety}>{launchRequest.safety}</small>
+      <div className="launch-approval" aria-label="Runtime launch approval request">
+        <div className="launch-approval-header">
+          <span className={classNames("launch-approval-state", `launch-approval-${approval.state}`)}>
+            <span aria-hidden="true" />
+            {approval.statusLabel}
+          </span>
+          <strong title={approval.label}>Approval request</strong>
+        </div>
+        <p title={approval.detail}>{approval.detail}</p>
+        <div className="launch-approval-actions">
+          <button
+            aria-label="Request runtime launch approval"
+            disabled={!approval.canRequest}
+            onClick={onRequestApproval}
+            title={approval.primaryActionLabel}
+            type="button"
+          >
+            <ClipboardList size={14} />
+            <span>{approval.primaryActionLabel}</span>
+          </button>
+          <button
+            aria-label="Cancel runtime launch approval request"
+            disabled={!approval.canCancel}
+            onClick={onCancelApproval}
+            title="Cancel request"
+            type="button"
+          >
+            <RotateCcw size={14} />
+            <span>Cancel</span>
+          </button>
+        </div>
+        <small title={approval.safety}>{approval.safety}</small>
+      </div>
     </div>
   );
 }

@@ -29,10 +29,12 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Mock adapter for tests and demos.
 - Runtime setup and permission review flow.
 - Local launch request preview before approved runtime execution.
+- Local approval request preview for runtime handoff.
 
 ## Phase 5: Local Execution And Packaging
 
 - Real session ownership through configured runtimes.
 - Approved launch handoff from local preview into configured runtimes.
+- Runtime execution audit trail for approved handoffs.
 - Git, terminal, validation, and evidence panels.
 - Signed desktop builds after the local security model is proven.

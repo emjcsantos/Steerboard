@@ -55,6 +55,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Source connection preview checks whether the selected adapter has the capabilities and permissions needed to attach that event queue.
 - Adapter bridge preview tracks local attach, detach, and stream handoff state before any external runtime process is launched.
 - Launch request preview derives handoff readiness, approval status, queued event count, and safety copy from the local bridge and event source before any external runtime process is launched.
+- Approval request preview records the user's local request intent separately from execution so the cockpit can show pending approval without starting a runtime process.
 - Deploy-to-runtime action that creates an orchestrator run from selected pipeline items.
 - Trace links from project pipeline item to orchestrator run, worker tasks, validation reports, and final integration result.
 
@@ -75,6 +76,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - The scaffold exposes source connection readiness so users can see why a local event queue is or is not attachable to a configured adapter.
 - The scaffold exposes adapter bridge state so stream playback can be gated by an explicit local attach step.
 - The scaffold exposes a launch request preview so users can see when a handoff would be ready while execution remains blocked behind an explicit desktop-shell approval path.
+- The scaffold exposes a local approval request state so users can queue or cancel a handoff request while process execution remains unavailable.
 - The scaffold keeps runtime adapter data local and mocked until a desktop-shell permission path exists for process execution.
 
 ### Persistence

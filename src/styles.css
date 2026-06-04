@@ -1669,6 +1669,111 @@ textarea {
   font-weight: 800;
 }
 
+.launch-approval {
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.launch-approval-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.launch-approval-header strong {
+  overflow: hidden;
+  color: #edf2f7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.launch-approval-state {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #c4ccd6;
+  padding: 5px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.launch-approval-state span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.launch-approval-requestable span {
+  background: #89dda9;
+}
+
+.launch-approval-waiting span,
+.launch-approval-requested span {
+  background: #f0d984;
+}
+
+.launch-approval-blocked span {
+  background: #ff9e85;
+}
+
+.launch-approval p,
+.launch-approval small {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.launch-approval-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.launch-approval-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 34px;
+  gap: 6px;
+  border: 1px solid #303742;
+  border-radius: 8px;
+  background: #151a20;
+  color: #dce3eb;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.launch-approval-actions button:hover:not(:disabled),
+.launch-approval-actions button:focus-visible {
+  border-color: #4d82d9;
+  background: #1b2430;
+  outline: none;
+}
+
+.launch-approval-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
 .stream-status-row {
   display: flex;
   align-items: center;

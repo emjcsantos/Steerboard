@@ -55,6 +55,7 @@
 - Runtime stream previews should expose a local adapter bridge that can attach, detach, and gate stream playback without launching an external process.
 - Adapter bridge state should distinguish attachable, attached, live, paused, complete, and blocked states.
 - Runtime stream previews should expose a local launch request preview that shows handoff readiness, approval requirement, queued event count, and safety status before any external process can start.
+- Launch request previews should allow a local approval request to be queued and cancelled without executing a runtime process.
 
 ## Later Functional Scope
 
@@ -68,6 +69,7 @@
 - Adapter source connection flow that turns a local event queue into a configured runtime stream.
 - Desktop-shell adapter bridge that can hand off from local preview to an approved configured runtime.
 - Approved launch request execution from the local preview into a configured desktop-shell adapter.
+- Approval request history, execution audit, and rollback records for configured runtime handoffs.
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
 - MCP configuration and status.
