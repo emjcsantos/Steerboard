@@ -87,6 +87,16 @@ import {
   runToSessionSummaries,
   type MockOrchestratorRun
 } from "./run";
+import {
+  filterRunsByProject,
+  selectRunById,
+  summarizeRunHistory,
+  upsertRunHistory
+} from "./runHistory";
+import {
+  loadRunHistory,
+  saveRunHistory
+} from "./runHistoryStorage";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -129,7 +139,8 @@ export function App() {
   );
   const [drafts, setDrafts] = useState<PlanningDraft[]>(() => loadPlanningDrafts(defaultPlanningDrafts));
   const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
-  const [mockRuns, setMockRuns] = useState<MockOrchestratorRun[]>([]);
+  const [mockRuns, setMockRuns] = useState<MockOrchestratorRun[]>(() => loadRunHistory());
+  const [selectedRunId, setSelectedRunId] = useState<string>();
   const { selectedProjectId, mode, layoutId, view } = preferences;
 
   useEffect(() => {
@@ -139,6 +150,10 @@ export function App() {
   useEffect(() => {
     savePlanningDrafts(drafts);
   }, [drafts]);
+
+  useEffect(() => {
+    saveRunHistory(mockRuns);
+  }, [mockRuns]);
 
   const preset = cockpitPresets.find((entry) => entry.mode === mode) ?? cockpitPresets[0];
   const layout = getLayoutSpec(layoutId);
@@ -163,9 +178,16 @@ export function App() {
   const registrySummary = summarizeRegistry(registryEntries);
   const runtimeSummary = summarizeRuntimeAdapters(runtimeAdapters);
   const projectMockRuns = useMemo(
-    () => mockRuns.filter((run) => run.projectId === project.id),
+    () => filterRunsByProject(mockRuns, project.id),
     [mockRuns, project.id]
   );
+  const selectedRun = useMemo(() => {
+    if (selectedRunId) {
+      return selectRunById(projectMockRuns, selectedRunId) ?? projectMockRuns[0];
+    }
+
+    return projectMockRuns[0];
+  }, [projectMockRuns, selectedRunId]);
   const projectMockSessions = useMemo(
     () => projectMockRuns.flatMap((run) => runToSessionSummaries(run) as SessionSummary[]),
     [projectMockRuns]
@@ -231,10 +253,9 @@ export function App() {
       idSeed: "steerboard-run"
     });
 
-    setMockRuns((currentRuns) => [
-      nextRun,
-      ...currentRuns.filter((run) => run.sourcePackageId !== dispatchPackage.id)
-    ]);
+    setSelectedRunId(nextRun.id);
+    setMockRuns((currentRuns) => upsertRunHistory(currentRuns, nextRun));
+    updatePreferences({ view: "cockpit" });
   }
 
   return (
@@ -407,11 +428,13 @@ export function App() {
           <RightPanel
             mode={mode}
             mockRuns={projectMockRuns}
+            onSelectRun={setSelectedRunId}
             project={project}
             registryEntry={registryEntry}
             registrySummary={registrySummary}
             runtimeAdapter={runtimeAdapter}
             runtimeSummary={runtimeSummary}
+            selectedRun={selectedRun}
             sessions={visibleSessions}
             tasks={projectTasks}
           />
@@ -579,6 +602,21 @@ function linesToList(value: string): string[] {
     .split(/\r?\n/)
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
+}
+
+function formatShortDate(value: string): string {
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return "Unknown time";
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(parsed);
 }
 
 function PlanningView({
@@ -839,28 +877,33 @@ function PlanningView({
 function RightPanel({
   mode,
   mockRuns,
+  onSelectRun,
   project,
   registryEntry,
   registrySummary,
   runtimeAdapter,
   runtimeSummary,
+  selectedRun,
   sessions,
   tasks
 }: {
   mode: CockpitMode;
   mockRuns: MockOrchestratorRun[];
+  onSelectRun: (runId: string) => void;
   project: ProjectSummary;
   registryEntry?: RegistryEntry;
   registrySummary: ReturnType<typeof summarizeRegistry>;
   runtimeAdapter?: RuntimeAdapter;
   runtimeSummary: ReturnType<typeof summarizeRuntimeAdapters>;
+  selectedRun?: MockOrchestratorRun;
   sessions: SessionSummary[];
   tasks: OrchestrationTask[];
 }) {
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
-  const latestRun = mockRuns[0];
+  const runSummary = summarizeRunHistory(mockRuns);
+  const latestRun = runSummary.latestRun;
 
   return (
     <aside className="right-panel" aria-label="Environment">
@@ -922,7 +965,7 @@ function RightPanel({
         <h4>Mock Runs</h4>
         <div className="registry-detail">
           <span>
-            <strong>{mockRuns.length}</strong>
+            <strong>{runSummary.total}</strong>
             Local staged runs
           </span>
           <span>
@@ -930,10 +973,55 @@ function RightPanel({
             Latest status
           </span>
           <span>
-            <strong>{latestRun?.sourcePackageId ?? "No package staged"}</strong>
-            Source package
+            <strong>{runSummary.countsByStatus.queued + runSummary.countsByStatus.running}</strong>
+            Open runs
           </span>
         </div>
+
+        {mockRuns.length > 0 ? (
+          <>
+            <div className="run-history-list" aria-label="Local mock run history">
+              {mockRuns.slice(0, 4).map((run) => (
+                <button
+                  aria-pressed={selectedRun?.id === run.id}
+                  className={classNames("run-history-button", selectedRun?.id === run.id && "is-selected")}
+                  key={run.id}
+                  onClick={() => onSelectRun(run.id)}
+                  type="button"
+                >
+                  <span>
+                    <strong title={run.title}>{run.title}</strong>
+                    <small>{formatShortDate(run.createdAt)}</small>
+                  </span>
+                  <span className={classNames("run-status", `run-${run.status}`)}>{run.status}</span>
+                </button>
+              ))}
+            </div>
+
+            {selectedRun ? (
+              <dl className="run-detail" aria-label="Selected mock run detail">
+                <div>
+                  <dt>Source package</dt>
+                  <dd title={selectedRun.sourcePackageId}>{selectedRun.sourcePackageId}</dd>
+                </div>
+                <div>
+                  <dt>Tasks</dt>
+                  <dd>{selectedRun.tasks.length}</dd>
+                </div>
+                <div>
+                  <dt>Panels</dt>
+                  <dd>{selectedRun.sessions.length}</dd>
+                </div>
+                <div>
+                  <dt>Validation gates</dt>
+                  <dd>{selectedRun.validationGates.length}</dd>
+                </div>
+              </dl>
+            ) : null}
+          </>
+        ) : (
+          <p className="empty-preview">Stage a complete planning draft to create a local cockpit run.</p>
+        )}
       </section>
 
       <section className="panel-section">

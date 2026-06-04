@@ -34,6 +34,8 @@
 - Local planning draft persistence with safe saved-state repair.
 - Local dispatch package preview generated from a complete staged planning draft.
 - Local mock orchestrator run projection from a staged dispatch package, visible in cockpit panels without executing a runtime.
+- Local mock run history persisted across reloads with selected-run detail in the environment panel.
+- Mock run detail should expose the source package, spawned task count, cockpit panel count, and validation gate count.
 
 ## Later Functional Scope
 

@@ -620,6 +620,112 @@ textarea {
   font-size: 14px;
 }
 
+.run-history-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.run-history-button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 8px;
+  background: transparent;
+  color: #dce3eb;
+  padding: 8px;
+  text-align: left;
+}
+
+.run-history-button:hover,
+.run-history-button.is-selected {
+  background: #252b34;
+}
+
+.run-history-button span:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.run-history-button strong,
+.run-history-button small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.run-history-button strong {
+  font-size: 12px;
+}
+
+.run-history-button small {
+  color: #8f99a5;
+  font-size: 11px;
+}
+
+.run-status {
+  border-radius: 999px;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.run-queued {
+  background: #2a3038;
+  color: #c7d0da;
+}
+
+.run-running {
+  background: #182b48;
+  color: #91beff;
+}
+
+.run-complete {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.run-blocked,
+.run-failed {
+  background: #442119;
+  color: #ff9e85;
+}
+
+.run-detail {
+  display: grid;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #272d36;
+  color: #aab3bd;
+  font-size: 11px;
+}
+
+.run-detail div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.run-detail dt,
+.run-detail dd {
+  min-width: 0;
+  margin: 0;
+}
+
+.run-detail dd {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ffffff;
+  font-weight: 700;
+}
+
 .access-list,
 .validation-list {
   display: grid;
