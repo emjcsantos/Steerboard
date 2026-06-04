@@ -244,6 +244,10 @@ import {
   type CockpitPanelOverflow
 } from "./cockpitPanelOverflow";
 import {
+  createCockpitLayoutCapacity,
+  type CockpitLayoutCapacity
+} from "./cockpitLayoutCapacity";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -515,6 +519,10 @@ export function App() {
     () => createCockpitPanelOverflow(cockpitSessions, visibleSessions.length, maxVisibleSessions),
     [cockpitSessions, maxVisibleSessions, visibleSessions.length]
   );
+  const cockpitLayoutCapacity = useMemo(
+    () => createCockpitLayoutCapacity(layout, cockpitSessions.length, visibleSessions.length),
+    [cockpitSessions.length, layout, visibleSessions.length]
+  );
   const activeDraftIndex = Math.min(selectedDraftIndex, Math.max(drafts.length - 1, 0));
   const viewLabel = view === "cockpit" ? "Cockpit" : view === "pipeline" ? "Pipeline" : "Planning";
 
@@ -699,6 +707,7 @@ export function App() {
                     ))}
                   </div>
                   <div className="toolbar-status">
+                    <LayoutCapacitySignal capacity={cockpitLayoutCapacity} />
                     <PanelRosterSignal roster={cockpitPanelRoster} />
                     <PanelOverflowSignal overflow={cockpitPanelOverflow} />
                     <div className="run-chip">
@@ -854,6 +863,22 @@ function PanelOverflowSignal({ overflow }: { overflow: CockpitPanelOverflow }) {
         <strong title={overflow.nextLabel}>{overflow.nextLabel}</strong>
       </div>
       <b>{overflow.reviewLabel}</b>
+    </div>
+  );
+}
+
+function LayoutCapacitySignal({ capacity }: { capacity: CockpitLayoutCapacity }) {
+  return (
+    <div
+      aria-label={`Layout capacity: ${capacity.label}`}
+      className={classNames("layout-capacity-chip", `layout-capacity-${capacity.tone}`)}
+      title={capacity.detail}
+    >
+      <div>
+        <strong>{capacity.layoutLabel}</strong>
+        <small>{capacity.capacityLabel}</small>
+      </div>
+      <b>{capacity.usageLabel}</b>
     </div>
   );
 }
