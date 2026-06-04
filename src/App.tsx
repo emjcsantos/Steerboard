@@ -2348,6 +2348,9 @@ function CockpitMonitorStrip({
   onStart: () => void;
   summary: CockpitMonitorSummary;
 }) {
+  const latestEventCue = `${summary.latestEventLabel} ${summary.latestEventStatus}`.trim();
+  const latestEventDetail = `${latestEventCue}. ${summary.latestEventDetail}`;
+
   return (
     <section className="monitor-strip" aria-label="Cockpit monitor summary">
       <div className="monitor-strip-header">
@@ -2384,6 +2387,10 @@ function CockpitMonitorStrip({
           {summary.streamLabel}
         </span>
         <small>{summary.streamProgressLabel}</small>
+      </div>
+      <div className="monitor-latest-event" title={latestEventDetail}>
+        <strong>Latest:</strong>
+        <span>{latestEventCue}</span>
       </div>
       <div className="monitor-control-row" aria-label="Cockpit monitor stream controls">
         <button

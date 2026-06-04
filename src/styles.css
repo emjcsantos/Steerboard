@@ -635,6 +635,33 @@ textarea {
   font-size: 11px;
 }
 
+.monitor-latest-event {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #aab3bd;
+  font-size: 11px;
+}
+
+.monitor-latest-event strong,
+.monitor-latest-event span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.monitor-latest-event strong {
+  color: #edf3f8;
+  flex: 0 0 auto;
+}
+
+.monitor-latest-event span {
+  color: #dce3eb;
+}
+
 .monitor-control-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

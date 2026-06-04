@@ -77,6 +77,9 @@ describe("cockpit monitor summary", () => {
       streamProgressLabel: "0/0 emitted",
       pendingCount: 0,
       blockedCount: 0,
+      latestEventLabel: "Waiting for first local event.",
+      latestEventStatus: "idle",
+      latestEventDetail: "No emitted events yet.",
       detail: "Select or stage a run to monitor local cockpit activity."
     });
   });
@@ -101,6 +104,63 @@ describe("cockpit monitor summary", () => {
     expect(summary.streamLabel).toBe("Streaming");
     expect(summary.streamProgressLabel).toBe("1/3 emitted");
     expect(summary.timelineTotal).toBe(timelineSummary.total);
+  });
+
+  it("surfaces waiting cue when stream is attached but has not emitted events", () => {
+    const run = buildDraftRun("running", "monitor-waiting");
+    const timelineSummary = summarizeRunTimeline(buildRunTimeline(run));
+    const snapshot = buildRuntimeStreamSnapshot([], 0, "streaming");
+    const summary = buildCockpitMonitorSummary(run, timelineSummary, snapshot);
+
+    expect(summary.latestEventLabel).toBe("Waiting for first local event.");
+    expect(summary.latestEventStatus).toBe("none");
+    expect(summary.latestEventDetail).toBe("No emitted events yet.");
+  });
+
+  it("uses public-safe latest event metadata from the runtime stream", () => {
+    const run = buildDraftRun("running", "monitor-latest-event");
+    const timelineSummary = summarizeRunTimeline(buildRunTimeline(run));
+    const snapshot = buildRuntimeStreamSnapshot(
+      [
+        makeIngestionEvent("evt-1", "accepted"),
+        makeIngestionEvent("evt-2", "review")
+      ],
+      2,
+      "streaming"
+    );
+
+    const summary = buildCockpitMonitorSummary(run, timelineSummary, snapshot);
+
+    expect(summary.latestEventLabel).toBe("Latest run event");
+    expect(summary.latestEventStatus).toBe("review");
+    expect(summary.latestEventDetail).toBe("review: review reason");
+  });
+
+  it("sanitizes path-like latest event cue content", () => {
+    const run = buildDraftRun("running", "monitor-latest-event-safety");
+    const timelineSummary = summarizeRunTimeline(buildRunTimeline(run));
+    const event = makeIngestionEvent("evt-1", "blocked");
+    const snapshot = buildRuntimeStreamSnapshot(
+      [
+        {
+          ...event,
+          label: "C:\\private\\event.ts",
+          reason: "/private/source failed"
+        }
+      ],
+      1,
+      "paused"
+    );
+
+    const summary = buildCockpitMonitorSummary(run, timelineSummary, snapshot);
+
+    expect(summary.latestEventLabel).not.toContain("/");
+    expect(summary.latestEventLabel).not.toContain("\\");
+    expect(summary.latestEventStatus).not.toContain("/");
+    expect(summary.latestEventStatus).not.toContain("\\");
+    expect(summary.latestEventDetail).not.toContain("/");
+    expect(summary.latestEventDetail).not.toContain("\\");
+    expect(summary.latestEventDetail).toBe("blocked: private source failed");
   });
 
   it("labels blocked stream state when events contain blocked items", () => {

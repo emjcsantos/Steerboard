@@ -14,6 +14,9 @@ export interface CockpitMonitorSummary {
   streamProgressLabel: string;
   pendingCount: number;
   blockedCount: number;
+  latestEventLabel: string;
+  latestEventStatus: string;
+  latestEventDetail: string;
   detail: string;
 }
 
@@ -30,6 +33,9 @@ function buildNoRunSummary(): CockpitMonitorSummary {
     streamProgressLabel: "0/0 emitted",
     pendingCount: 0,
     blockedCount: 0,
+    latestEventLabel: "Waiting for first local event.",
+    latestEventStatus: "idle",
+    latestEventDetail: "No emitted events yet.",
     detail: "Select or stage a run to monitor local cockpit activity."
   };
 }
@@ -51,6 +57,41 @@ function buildStreamLabel(state: string): string {
   }
 }
 
+function sanitizeCueText(value: string | undefined, fallback: string): string {
+  const cleaned = value
+    ?.replace(/[\\/]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return cleaned ? cleaned.slice(0, 96) : fallback;
+}
+
+function buildLatestEventCue(streamSnapshot: RuntimeStreamSnapshot): {
+  latestEventLabel: string;
+  latestEventStatus: string;
+  latestEventDetail: string;
+} {
+  const latestEvent = streamSnapshot.latestEvent;
+
+  if (!latestEvent) {
+    return {
+      latestEventLabel: "Waiting for first local event.",
+      latestEventStatus: streamSnapshot.state === "idle" ? "idle" : "none",
+      latestEventDetail: "No emitted events yet."
+    };
+  }
+
+  const eventKind = sanitizeCueText(latestEvent.eventKind, "event");
+  const adapterStatus = sanitizeCueText(latestEvent.adapterStatus, "pending");
+  const reason = sanitizeCueText(latestEvent.reason, "Local adapter event emitted.");
+
+  return {
+    latestEventLabel: `Latest ${eventKind} event`,
+    latestEventStatus: adapterStatus,
+    latestEventDetail: `${adapterStatus}: ${reason}`
+  };
+}
+
 export function buildCockpitMonitorSummary(
   run: MockOrchestratorRun | undefined,
   timelineSummary: RunTimelineSummary,
@@ -61,6 +102,7 @@ export function buildCockpitMonitorSummary(
   }
 
   const safeStreamState: string = streamSnapshot.state;
+  const latestEventCue = buildLatestEventCue(streamSnapshot);
 
   return {
     runLabel: run.title,
@@ -74,6 +116,9 @@ export function buildCockpitMonitorSummary(
     streamProgressLabel: `${streamSnapshot.emitted}/${streamSnapshot.total} emitted`,
     pendingCount: streamSnapshot.pending,
     blockedCount: streamSnapshot.blocked,
+    latestEventLabel: latestEventCue.latestEventLabel,
+    latestEventStatus: latestEventCue.latestEventStatus,
+    latestEventDetail: latestEventCue.latestEventDetail,
     detail: `Run ${run.status}. Active: ${timelineSummary.activeCount}, issues: ${timelineSummary.issueCount}, complete: ${timelineSummary.completeCount}, pending events: ${streamSnapshot.pending}, blocked events: ${streamSnapshot.blocked}.`
   };
 }
