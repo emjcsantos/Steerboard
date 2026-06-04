@@ -6,7 +6,7 @@ It is intended for external visibility and product-level communication, not an i
 | Target | Completion | Note |
 | --- | --- | --- |
 | Product scaffold | Complete | Core Steerboard structure, navigation baseline, and documentation skeleton are in place. |
-| Cockpit monitor and operating modes | In progress | Compact runtime/worker visibility, compact live health, compact attempt-limit visibility, compact branch/worktree visibility, compact file-scope visibility, compact panel identity visibility, compact latest-activity visibility, compact validation-status visibility, panel roster, hidden-panel queue, attention, stream quality, layout-capacity, and loop validation signals are being added for easier monitoring. |
+| Cockpit monitor and operating modes | In progress | Compact runtime/worker visibility, compact live health, compact attempt-limit visibility, compact branch/worktree visibility, compact file-scope visibility, compact panel identity visibility, compact tool-coverage visibility, compact latest-activity visibility, compact validation-status visibility, panel roster, hidden-panel queue, attention, stream quality, layout-capacity, and loop validation signals are being added for easier monitoring. |
 | Orchestration model | Planned | Standardized orchestration flow is being finalized to coordinate cockpit tasks and health signals. |
 | Runtime adapters | In progress | Adapter interfaces are being stabilized across runtime surfaces to support consistent signal ingestion. |
 | Security and privacy model | Planned | Security and privacy posture is being documented, with production controls being designed for release readiness. |

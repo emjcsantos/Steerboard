@@ -276,6 +276,10 @@ import {
   type CockpitPanelActivity
 } from "./cockpitPanelActivity";
 import {
+  createCockpitPanelToolCoverage,
+  type CockpitPanelToolCoverage
+} from "./cockpitPanelToolCoverage";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -839,6 +843,7 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
     transcript: session.transcript,
     validation: session.validation
   });
+  const toolCoverageSignal = createCockpitPanelToolCoverage(session.tools);
 
   return (
     <article
@@ -873,14 +878,24 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
         <div className="cell-footer-actions">
           <PanelActivitySignal activity={activitySignal} />
           <PanelFileScopeSignal scope={fileScope} />
-          <div className="tool-row">
-            {session.tools.map((tool) => (
-              <span key={tool}>{tool}</span>
-            ))}
-          </div>
+          <PanelToolCoverageSignal coverage={toolCoverageSignal} />
         </div>
       </footer>
     </article>
+  );
+}
+
+function PanelToolCoverageSignal({ coverage }: { coverage: CockpitPanelToolCoverage }) {
+  return (
+    <span
+      aria-label={`Tool coverage: ${coverage.label}, ${coverage.countLabel}`}
+      className={classNames("panel-tool-coverage", `panel-tool-${coverage.tone}`)}
+      title={`${coverage.detail} (${coverage.countLabel})`}
+    >
+      <ClipboardList size={14} />
+      <b>{coverage.label}</b>
+      <small>{coverage.countLabel}</small>
+    </span>
   );
 }
 
