@@ -166,6 +166,11 @@ import {
   type RuntimeExecutionAuditRecord,
   type RuntimeExecutionAuditRecordAction
 } from "./runtimeExecutionAuditHistory";
+import {
+  getFallbackDesktopRuntimeBridgeStatus,
+  loadDesktopRuntimeBridgeStatus,
+  type DesktopRuntimeBridgeStatus
+} from "./desktopRuntimeBridge";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -1026,6 +1031,9 @@ function RightPanel({
   const [executionAuditHistory, setExecutionAuditHistory] = useState<RuntimeExecutionAuditRecord[]>(
     () => loadRuntimeExecutionAuditHistory()
   );
+  const [desktopBridgeStatus, setDesktopBridgeStatus] = useState<DesktopRuntimeBridgeStatus>(
+    () => getFallbackDesktopRuntimeBridgeStatus()
+  );
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
@@ -1137,6 +1145,20 @@ function RightPanel({
   useEffect(() => {
     saveRuntimeExecutionAuditHistory(executionAuditHistory);
   }, [executionAuditHistory]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    loadDesktopRuntimeBridgeStatus().then((status) => {
+      if (isMounted) {
+        setDesktopBridgeStatus(status);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   function updateStreamPlayback(state: RuntimeStreamPlaybackState, cursor = runtimeStreamSnapshot.cursor) {
     if (!selectedRun) {
@@ -1448,6 +1470,7 @@ function RightPanel({
           approval={runtimeLaunchApprovalSnapshot}
           bridge={runtimeAdapterBridgeSnapshot}
           connection={runtimeSourceConnectionSnapshot}
+          desktopBridge={desktopBridgeStatus}
           executionAudit={runtimeExecutionAuditSnapshot}
           executionAuditHistory={executionAuditHistory}
           launchRequest={runtimeLaunchRequestSnapshot}
@@ -1580,6 +1603,7 @@ function RuntimeEventSourceStatus({
   approval,
   bridge,
   connection,
+  desktopBridge,
   executionAudit,
   executionAuditHistory,
   launchRequest,
@@ -1592,6 +1616,7 @@ function RuntimeEventSourceStatus({
   approval: RuntimeLaunchApprovalSnapshot;
   bridge: RuntimeAdapterBridgeSnapshot;
   connection: RuntimeSourceConnectionSnapshot;
+  desktopBridge: DesktopRuntimeBridgeStatus;
   executionAudit: RuntimeExecutionAuditSnapshot;
   executionAuditHistory: RuntimeExecutionAuditRecord[];
   launchRequest: RuntimeLaunchRequestSnapshot;
@@ -1663,6 +1688,7 @@ function RuntimeEventSourceStatus({
           </div>
         </dl>
       </div>
+      <DesktopRuntimeBridgeStatusBlock bridge={desktopBridge} />
       <RuntimeAdapterBridgeStatus bridge={bridge} onAttach={onAttach} onDetach={onDetach} />
       <RuntimeLaunchRequestStatus
         approval={approval}
@@ -1672,6 +1698,40 @@ function RuntimeEventSourceStatus({
         onCancelApproval={onCancelApproval}
         onRequestApproval={onRequestApproval}
       />
+    </div>
+  );
+}
+
+function DesktopRuntimeBridgeStatusBlock({
+  bridge
+}: {
+  bridge: DesktopRuntimeBridgeStatus;
+}) {
+  return (
+    <div className="desktop-bridge" aria-label="Desktop runtime bridge status">
+      <div className="desktop-bridge-header">
+        <span className={classNames("desktop-bridge-state", `desktop-bridge-${bridge.state}`)}>
+          <span aria-hidden="true" />
+          {bridge.state}
+        </span>
+        <strong title={bridge.label}>{bridge.source === "desktop" ? "Desktop bridge" : "Browser preview"}</strong>
+      </div>
+      <p title={bridge.detail}>{bridge.detail}</p>
+      <dl className="desktop-bridge-grid">
+        <div>
+          <dt>Process</dt>
+          <dd>{bridge.processExecutionAvailable ? "Ready" : "Locked"}</dd>
+        </div>
+        <div>
+          <dt>Workspace</dt>
+          <dd>{bridge.workspaceAccessAvailable ? "Ready" : "Locked"}</dd>
+        </div>
+        <div>
+          <dt>Source</dt>
+          <dd>{bridge.source}</dd>
+        </div>
+      </dl>
+      <small title={bridge.safety}>{bridge.safety}</small>
     </div>
   );
 }

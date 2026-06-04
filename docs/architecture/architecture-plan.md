@@ -11,6 +11,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Shell-specific code stays behind adapters.
 - Main process owns filesystem, terminal, git, process, and app-server boundaries.
 - Renderer stays isolated from Node APIs.
+- A narrow desktop bridge status command reports shell reachability and safety state before exposing any process, filesystem, terminal, or network execution capability.
 
 ### Session Core
 
@@ -81,6 +82,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - The scaffold exposes a local approval request state so users can queue or cancel a handoff request while process execution remains unavailable.
 - The scaffold exposes an execution audit preview so users can monitor the next execution gate without granting process execution.
 - The scaffold stores local execution audit preview records so monitor state survives reloads without storing private paths or secrets.
+- The scaffold exposes desktop bridge reachability in the cockpit while keeping process execution and workspace access locked by default.
 - The scaffold keeps runtime adapter data local and mocked until a desktop-shell permission path exists for process execution.
 
 ### Persistence

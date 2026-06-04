@@ -58,6 +58,8 @@
 - Launch request previews should allow a local approval request to be queued and cancelled without executing a runtime process.
 - Runtime stream previews should expose a local execution audit preview showing launch readiness, approval state, execution lock state, queued event count, and transport.
 - Runtime stream previews should retain a local execution audit preview history for approval request and cancellation actions across reloads.
+- The desktop shell should expose a safe runtime bridge status so the cockpit can show whether it is running in browser preview or a desktop shell without enabling process execution.
+- Desktop bridge status should default to unavailable or locked unless an approved runtime path explicitly reports readiness.
 
 ## Later Functional Scope
 
@@ -70,6 +72,7 @@
 - Configured event source adapters that replace local mocked event queues.
 - Adapter source connection flow that turns a local event queue into a configured runtime stream.
 - Desktop-shell adapter bridge that can hand off from local preview to an approved configured runtime.
+- Desktop-shell bridge commands that report runtime reachability, workspace readiness, and permission status before any process launch is allowed.
 - Approved launch request execution from the local preview into a configured desktop-shell adapter.
 - Approval request history, execution audit, and rollback records for configured runtime handoffs.
 - Execution audit history persisted across approved runtime handoffs.

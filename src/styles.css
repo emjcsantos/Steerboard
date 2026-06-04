@@ -1453,6 +1453,116 @@ textarea {
   text-transform: capitalize;
 }
 
+.desktop-bridge {
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.desktop-bridge-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.desktop-bridge-header strong {
+  overflow: hidden;
+  color: #edf2f7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.desktop-bridge-state {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #c4ccd6;
+  padding: 5px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.desktop-bridge-state span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.desktop-bridge-locked span {
+  background: #f0d984;
+}
+
+.desktop-bridge-unavailable span {
+  background: #8f99a5;
+}
+
+.desktop-bridge-ready span {
+  background: #89dda9;
+}
+
+.desktop-bridge-error span {
+  background: #ff9e85;
+}
+
+.desktop-bridge p,
+.desktop-bridge small {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.desktop-bridge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.desktop-bridge-grid div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border-radius: 8px;
+  background: #13171d;
+  padding: 7px 6px;
+}
+
+.desktop-bridge-grid dt,
+.desktop-bridge-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktop-bridge-grid dt {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.desktop-bridge-grid dd {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
 .adapter-bridge {
   display: grid;
   gap: 7px;
