@@ -653,6 +653,17 @@ textarea {
   background: #181d23;
 }
 
+.session-cell.is-focused {
+  border-color: #8bd7f4;
+  box-shadow:
+    inset 0 0 0 1px rgba(139, 215, 244, 0.56),
+    0 0 0 1px rgba(139, 215, 244, 0.18);
+}
+
+.session-cell.is-focused .cell-header {
+  background: #1a2530;
+}
+
 .session-cell.role-orchestrator {
   border-top-color: #72d6a0;
 }
@@ -1857,6 +1868,14 @@ textarea {
   margin: 0;
 }
 
+.panel-priority-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .panel-priority-pill {
   flex: 0 1 auto;
   overflow: hidden;
@@ -1868,6 +1887,39 @@ textarea {
   white-space: nowrap;
   font-size: 10px;
   font-weight: 800;
+}
+
+.panel-priority-focus-button {
+  display: inline-flex;
+  min-width: 0;
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid #343d49;
+  border-radius: 999px;
+  background: #171c22;
+  color: #d8e1eb;
+  padding: 0 7px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.panel-priority-focus-button:hover:not(:disabled),
+.panel-priority-focus-button:focus-visible {
+  border-color: #8bd7f4;
+  color: #ffffff;
+}
+
+.panel-priority-focus-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.panel-priority-focus-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .panel-priority-row {
@@ -1917,7 +1969,7 @@ textarea {
 
 .panel-priority-meta {
   display: grid;
-  grid-template-columns: repeat(2, minmax(48px, auto));
+  grid-template-columns: repeat(3, minmax(42px, auto));
   gap: 6px;
   margin: 0;
 }
@@ -1961,6 +2013,15 @@ textarea {
 
 .panel-priority-idle {
   color: #c7d0da;
+}
+
+.panel-priority-focused {
+  background: #263044;
+  color: #adc9ff;
+}
+
+.panel-priority-neutral {
+  color: #9fa9b4;
 }
 
 .panel-priority-complete {

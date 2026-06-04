@@ -91,6 +91,10 @@ import {
   type CockpitPanelPriority
 } from "./cockpitPanelPriority";
 import {
+  createCockpitPanelFocusTarget,
+  type CockpitPanelFocusTarget
+} from "./cockpitPanelFocus";
+import {
   canDeployPlanningDraft,
   evaluatePlanningReadiness,
   normalizePlanningDraft,
@@ -477,6 +481,7 @@ export function App() {
   const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
   const [mockRuns, setMockRuns] = useState<MockOrchestratorRun[]>(() => loadRunHistory());
   const [selectedRunId, setSelectedRunId] = useState<string>();
+  const [focusedPanelId, setFocusedPanelId] = useState<string>();
   const { selectedProjectId, mode, layoutId, view } = preferences;
 
   useEffect(() => {
@@ -557,6 +562,13 @@ export function App() {
     () => cockpitSessions.slice(0, maxVisibleSessions),
     [cockpitSessions, maxVisibleSessions]
   );
+  useEffect(() => {
+    setFocusedPanelId((currentPanelId) =>
+      currentPanelId && visibleSessions.some((session) => session.id === currentPanelId)
+        ? currentPanelId
+        : undefined
+    );
+  }, [visibleSessions]);
   const cockpitPanelRoster = useMemo(
     () => createCockpitPanelRoster(cockpitSessions, visibleSessions.length, maxVisibleSessions),
     [cockpitSessions, maxVisibleSessions, visibleSessions.length]
@@ -772,6 +784,7 @@ export function App() {
                 >
                   {visibleSessions.map((session) => (
                     <SessionCell
+                      isFocused={session.id === focusedPanelId}
                       key={session.id}
                       projectLabel={
                         projectLabelById.get(session.projectId) ??
@@ -822,6 +835,8 @@ export function App() {
             runtimeProfileSummary={runtimeProfileSummary}
             runtimeSummary={runtimeSummary}
             selectedRun={selectedRun}
+            focusedPanelId={focusedPanelId}
+            onFocusPanel={setFocusedPanelId}
             sessions={visibleSessions}
             tasks={projectTasks}
           />
@@ -831,7 +846,15 @@ export function App() {
   );
 }
 
-function SessionCell({ projectLabel, session }: { projectLabel?: string; session: SessionSummary }) {
+function SessionCell({
+  isFocused = false,
+  projectLabel,
+  session
+}: {
+  isFocused?: boolean;
+  projectLabel?: string;
+  session: SessionSummary;
+}) {
   const identity = createCockpitPanelIdentity({
     projectId: session.projectId,
     projectLabel,
@@ -857,8 +880,11 @@ function SessionCell({ projectLabel, session }: { projectLabel?: string; session
 
   return (
     <article
-      aria-label={identity.ariaLabel}
-      className={classNames("session-cell", `role-${session.role}`)}
+      aria-current={isFocused ? "true" : undefined}
+      aria-label={isFocused ? `${identity.ariaLabel} - Focused` : identity.ariaLabel}
+      className={classNames("session-cell", `role-${session.role}`, isFocused && "is-focused")}
+      data-focused={isFocused ? "true" : undefined}
+      tabIndex={isFocused ? 0 : undefined}
     >
       <header className="cell-header">
         <div className="cell-title-block">
@@ -1549,7 +1575,15 @@ function MilestoneStatusPanel({
   );
 }
 
-function PanelPrioritySignal({ priority }: { priority: CockpitPanelPriority }) {
+function PanelPrioritySignal({
+  focusTarget,
+  onFocus,
+  priority
+}: {
+  focusTarget: CockpitPanelFocusTarget;
+  onFocus: () => void;
+  priority: CockpitPanelPriority;
+}) {
   const icon =
     priority.tone === "critical" || priority.tone === "attention" ? (
       <AlertTriangle size={15} />
@@ -1561,12 +1595,29 @@ function PanelPrioritySignal({ priority }: { priority: CockpitPanelPriority }) {
     <section className="panel-section panel-priority-panel" aria-label="Next cockpit panel attention">
       <div className="panel-priority-header">
         <h4>Next Attention</h4>
-        <span
-          className={classNames("panel-priority-pill", `panel-priority-${priority.tone}`)}
-          title={`${priority.priorityLabel}: ${priority.detail}`}
-        >
-          {priority.priorityLabel}
-        </span>
+        <div className="panel-priority-actions">
+          <span
+            className={classNames("panel-priority-pill", `panel-priority-${priority.tone}`)}
+            title={`${priority.priorityLabel}: ${priority.detail}`}
+          >
+            {priority.priorityLabel}
+          </span>
+          <button
+            aria-label={
+              focusTarget.canFocus
+                ? `Focus ${priority.title}`
+                : focusTarget.detail
+            }
+            className="panel-priority-focus-button"
+            disabled={!focusTarget.canFocus}
+            onClick={onFocus}
+            title={focusTarget.detail}
+            type="button"
+          >
+            <CircleDot size={13} />
+            <span>{focusTarget.isFocused ? "Focused" : "Focus"}</span>
+          </button>
+        </div>
       </div>
       <div className="panel-priority-row">
         <span
@@ -1587,6 +1638,10 @@ function PanelPrioritySignal({ priority }: { priority: CockpitPanelPriority }) {
           <div>
             <dt>State</dt>
             <dd>{priority.state}</dd>
+          </div>
+          <div>
+            <dt>Slot</dt>
+            <dd>{focusTarget.positionLabel}</dd>
           </div>
         </dl>
       </div>
@@ -1900,11 +1955,15 @@ function RightPanel({
   runtimeProfileSummary,
   runtimeSummary,
   selectedRun,
+  focusedPanelId,
+  onFocusPanel,
   sessions,
   tasks
 }: {
+  focusedPanelId?: string;
   mode: CockpitMode;
   mockRuns: MockOrchestratorRun[];
+  onFocusPanel: (panelId: string | undefined) => void;
   onSelectRun: (runId: string) => void;
   onUpdateRunStatus: (runId: string, nextStatus: MockRunStatus) => void;
   project: ProjectSummary;
@@ -1967,6 +2026,10 @@ function RightPanel({
   const panelPriority = useMemo(
     () => createCockpitPanelPriority(sessions),
     [sessions]
+  );
+  const panelFocusTarget = useMemo(
+    () => createCockpitPanelFocusTarget(sessions, panelPriority, focusedPanelId),
+    [focusedPanelId, panelPriority, sessions]
   );
   const latestRun = runSummary.latestRun;
   const selectedTimeline = useMemo(
@@ -2399,7 +2462,11 @@ function RightPanel({
         </div>
       </section>
 
-      <PanelPrioritySignal priority={panelPriority} />
+      <PanelPrioritySignal
+        focusTarget={panelFocusTarget}
+        onFocus={() => onFocusPanel(panelFocusTarget.panelId)}
+        priority={panelPriority}
+      />
 
       <MilestoneStatusPanel
         milestones={steerboardMilestoneStatuses}
