@@ -2086,6 +2086,166 @@ textarea {
   color: #ff9e85;
 }
 
+.local-evidence {
+  display: grid;
+  gap: 8px;
+}
+
+.local-evidence-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.local-evidence-header strong {
+  overflow: hidden;
+  color: #edf2f7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.local-evidence-state {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #c4ccd6;
+  padding: 5px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.local-evidence-state span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.local-evidence-ready .local-evidence-state span {
+  background: #89dda9;
+}
+
+.local-evidence-waiting .local-evidence-state span {
+  background: #f0d984;
+}
+
+.local-evidence-blocked .local-evidence-state span {
+  background: #ff9e85;
+}
+
+.local-evidence-empty .local-evidence-state span {
+  background: #8f99a5;
+}
+
+.local-evidence p,
+.local-evidence small {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.local-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.local-evidence-grid div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border-radius: 8px;
+  background: #13171d;
+  padding: 7px 6px;
+}
+
+.local-evidence-grid dt,
+.local-evidence-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.local-evidence-grid dt {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.local-evidence-grid dd {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.local-evidence-items {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.local-evidence-items li {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 6px;
+}
+
+.local-evidence-items span,
+.local-evidence-items strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+}
+
+.local-evidence-items span {
+  color: #aab3bd;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.local-evidence-items strong {
+  color: #dce3eb;
+}
+
+.local-evidence-item-ready span {
+  color: #8ee4b0;
+}
+
+.local-evidence-item-waiting span {
+  color: #f0d984;
+}
+
+.local-evidence-item-blocked span {
+  color: #ffad98;
+}
+
+.local-evidence-item-missing span {
+  color: #aab3bd;
+}
+
 .adapter-contract-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

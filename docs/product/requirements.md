@@ -41,6 +41,7 @@
 - Lifecycle controls should update cockpit panels, task status summaries, validation gate status, and persisted run history together.
 - Selected mock runs should expose a compact event timeline covering run, task, session, and validation events.
 - Timeline summaries should show active, issue, and complete counts for quick cockpit monitoring.
+- Selected mock runs should expose local validation evidence readiness with gate counts, evidence counts, finalization state, and safety copy before any terminal command runs.
 - Runtime adapters should expose a compact contract inspector with transport, capabilities, permissions, and normalized event support.
 - Adapter contract summaries should show ready, review, and blocked counts before any real command execution is enabled.
 - Selected mock runs should expose a runtime ingestion preview that compares normalized timeline events against the selected adapter contract.
@@ -110,6 +111,7 @@
 - Desktop permission approval status should later connect to the real shell approval command after safety checks are implemented.
 - Desktop permission audit previews should later export signed review records after the desktop approval and rollback model is implemented.
 - Desktop packaging readiness should later hand off to real local build, signing, and installer checks after the packaging security model is implemented.
+- Local validation evidence readiness should later connect to real terminal, test, and Git evidence capture after the execution permission model is implemented.
 
 ## UX Requirements
 

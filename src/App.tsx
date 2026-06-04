@@ -238,6 +238,10 @@ import {
   buildDesktopPackagingReadinessSnapshot,
   type DesktopPackagingReadinessSnapshot
 } from "./desktopPackagingReadiness";
+import {
+  buildLocalEvidenceReadinessSnapshot,
+  type LocalEvidenceReadinessSnapshot
+} from "./localEvidenceReadiness";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -1155,6 +1159,10 @@ function RightPanel({
     () => (selectedRun ? buildRunTimeline(selectedRun) : []),
     [selectedRun]
   );
+  const localEvidenceReadinessSnapshot = useMemo(
+    () => buildLocalEvidenceReadinessSnapshot(selectedRun),
+    [selectedRun]
+  );
   const timelineSummary = useMemo(
     () => summarizeRunTimeline(selectedTimeline),
     [selectedTimeline]
@@ -1636,6 +1644,8 @@ function RightPanel({
           <p className="empty-preview">Stage a complete planning draft to create a local cockpit run.</p>
         )}
       </section>
+
+      <LocalEvidenceReadinessPanel evidence={localEvidenceReadinessSnapshot} />
 
       <section className="panel-section">
         <h4>Project Registry</h4>
@@ -2651,6 +2661,64 @@ function DesktopPackagingReadinessPanel({
           ))}
         </ol>
         <small title={packaging.safety}>{packaging.safety}</small>
+      </div>
+    </section>
+  );
+}
+
+function LocalEvidenceReadinessPanel({
+  evidence
+}: {
+  evidence: LocalEvidenceReadinessSnapshot;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Evidence</h4>
+      <div
+        className={classNames("local-evidence", `local-evidence-${evidence.state}`)}
+        aria-label="Local validation evidence readiness preview"
+      >
+        <div className="local-evidence-header">
+          <span className="local-evidence-state">
+            <span aria-hidden="true" />
+            {evidence.statusLabel}
+          </span>
+          <strong title={evidence.label}>Validation evidence</strong>
+        </div>
+        <p title={evidence.detail}>{evidence.detail}</p>
+        <dl className="local-evidence-grid">
+          <div>
+            <dt>Ready</dt>
+            <dd>{evidence.readiness}%</dd>
+          </div>
+          <div>
+            <dt>Gates</dt>
+            <dd>
+              {evidence.passedGateCount}/{evidence.gateCount}
+            </dd>
+          </div>
+          <div>
+            <dt>Evidence</dt>
+            <dd>{evidence.evidenceCount}</dd>
+          </div>
+          <div>
+            <dt>Finalize</dt>
+            <dd>{evidence.canFinalize ? "Ready" : "Held"}</dd>
+          </div>
+        </dl>
+        <ol className="local-evidence-items">
+          {evidence.items.map((item) => (
+            <li
+              className={`local-evidence-item-${item.status}`}
+              key={item.id}
+              title={item.detail}
+            >
+              <span>{item.status}</span>
+              <strong>{item.label}</strong>
+            </li>
+          ))}
+        </ol>
+        <small title={evidence.safety}>{evidence.safety}</small>
       </div>
     </section>
   );

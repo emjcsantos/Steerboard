@@ -45,6 +45,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Desktop permission approval status panel.
 - Local desktop permission audit and export preview.
 - Desktop packaging readiness preview.
+- Local validation evidence readiness preview.
 
 ## Phase 5: Local Execution And Packaging
 
@@ -62,5 +63,6 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Persisted execution audit records and rollback references.
 - Audit export and review workflow.
 - Git, terminal, validation, and evidence panels.
+- Permissioned terminal and Git evidence capture.
 - Local build, signing, and installer readiness checks.
 - Signed desktop builds after the local security model is proven.
