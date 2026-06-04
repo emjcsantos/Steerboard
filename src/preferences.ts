@@ -1,6 +1,6 @@
 import { defaultLayoutByMode, layoutOptions, type CockpitMode, type LayoutId } from "./layout";
 
-export type PrimaryView = "cockpit" | "pipeline";
+export type PrimaryView = "cockpit" | "pipeline" | "planning";
 
 export interface WorkspacePreferences {
   selectedProjectId: string;
@@ -19,7 +19,7 @@ export const fallbackPreferences: WorkspacePreferences = {
 };
 
 const validModes: CockpitMode[] = ["focus", "orchestrator", "monitor"];
-const validViews: PrimaryView[] = ["cockpit", "pipeline"];
+const validViews: PrimaryView[] = ["cockpit", "pipeline", "planning"];
 const validLayouts = layoutOptions.map((layout) => layout.id);
 
 function isRecord(value: unknown): value is Record<string, unknown> {

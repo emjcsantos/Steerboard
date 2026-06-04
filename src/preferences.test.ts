@@ -14,7 +14,7 @@ describe("workspace preferences", () => {
       selectedProjectId: "billing-workflow",
       mode: "monitor",
       layoutId: "3x2",
-      view: "pipeline"
+      view: "planning"
     };
 
     expect(normalizePreferences(stored, validProjects)).toEqual(stored);

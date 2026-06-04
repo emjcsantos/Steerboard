@@ -30,6 +30,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Generic sample projects only.
 - Pipeline board or table.
 - Item detail panel.
+- Editable local draft list and draft detail editor.
 - Readiness checklist.
 - Deploy-to-runtime button disabled until required fields are present.
 - Registry and runtime gate chips showing why dispatch is enabled or blocked.

@@ -1,5 +1,6 @@
 import type { CockpitMode } from "./layout";
 import type { OrchestrationTask } from "./orchestration";
+import type { PlanningDraft } from "./planning";
 import type { RegistryEntry } from "./registry";
 import type { RuntimeAdapter } from "./runtime";
 
@@ -320,6 +321,36 @@ export const runtimeAdapters: RuntimeAdapter[] = [
       { permission: "process", status: "disabled" },
       { permission: "network", status: "disabled" }
     ]
+  }
+];
+
+export const planningDrafts: PlanningDraft[] = [
+  {
+    title: "Prepare launch checklist",
+    objective: "Create a scoped checklist before dispatching the next website refresh task.",
+    targetProjectId: "website-refresh",
+    scope: ["Confirm page inventory", "Identify files likely affected", "Define validation evidence"],
+    fileAreas: ["src/routes", "src/components", "docs/product"],
+    acceptanceCriteria: [
+      "Checklist has clear owner-facing scope.",
+      "Validation evidence is explicit before dispatch."
+    ],
+    validationPlan: ["npm run test", "npm run build"],
+    risk: "medium",
+    rollbackNote: "Keep the draft local and discard it if scope changes before dispatch.",
+    deployMode: "staged"
+  },
+  {
+    title: "Billing state clarification",
+    objective: "Clarify state transitions before implementation begins.",
+    targetProjectId: "billing-workflow",
+    scope: ["Confirm draft, sent, paid, adjusted, and void states"],
+    fileAreas: ["docs/product"],
+    acceptanceCriteria: ["Open questions are separated from confirmed behavior."],
+    validationPlan: [],
+    risk: "medium",
+    rollbackNote: "",
+    deployMode: "dry-run"
   }
 ];
 

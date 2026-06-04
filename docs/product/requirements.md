@@ -30,6 +30,8 @@
 - Local-only persistence for mock projects and runs.
 - Placeholder project-management lane with generic sample pipelines and no private project names.
 - Dispatch gate preview with no real command execution.
+- Editable local planning drafts with readiness scoring before dispatch.
+- Local planning draft persistence with safe saved-state repair.
 
 ## Later Functional Scope
 

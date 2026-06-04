@@ -23,6 +23,7 @@ import {
   cockpitPresets,
   orchestrationTasks,
   permissionSurfaces,
+  planningDrafts,
   pipelineItems,
   projects,
   registryEntries,
@@ -54,6 +55,17 @@ import {
   type WorkspacePreferences
 } from "./preferences";
 import {
+  canDeployPlanningDraft,
+  evaluatePlanningReadiness,
+  normalizePlanningDraft,
+  type PlanningDraft,
+  type PlanningDraftRequiredField
+} from "./planning";
+import {
+  loadPlanningDrafts,
+  savePlanningDrafts
+} from "./planningStorage";
+import {
   dispatchableRegistryEntries,
   summarizeRegistry,
   type RegistryEntry
@@ -81,20 +93,40 @@ const stateIcon: Record<SessionState, ReactNode> = {
   complete: <CheckCircle2 size={14} />
 };
 
+const missingFieldLabels: Record<PlanningDraftRequiredField, string> = {
+  title: "Title",
+  objective: "Objective",
+  targetProjectId: "Project",
+  scope: "Scope",
+  acceptanceCriteria: "Acceptance",
+  validationPlan: "Validation",
+  rollbackNote: "Rollback"
+};
+
 function classNames(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
 }
 
 export function App() {
   const validProjectIds = useMemo(() => projects.map((item) => item.id), []);
+  const defaultPlanningDrafts = useMemo(
+    () => planningDrafts.map((draft) => normalizePlanningDraft(draft)),
+    []
+  );
   const [preferences, setPreferences] = useState<WorkspacePreferences>(() =>
     loadWorkspacePreferences(validProjectIds)
   );
+  const [drafts, setDrafts] = useState<PlanningDraft[]>(() => loadPlanningDrafts(defaultPlanningDrafts));
+  const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
   const { selectedProjectId, mode, layoutId, view } = preferences;
 
   useEffect(() => {
     saveWorkspacePreferences(preferences);
   }, [preferences]);
+
+  useEffect(() => {
+    savePlanningDrafts(drafts);
+  }, [drafts]);
 
   const preset = cockpitPresets.find((entry) => entry.mode === mode) ?? cockpitPresets[0];
   const layout = getLayoutSpec(layoutId);
@@ -128,6 +160,8 @@ export function App() {
     () => orchestrationTasks.filter((task) => task.projectId === project.id),
     [project.id]
   );
+  const activeDraftIndex = Math.min(selectedDraftIndex, Math.max(drafts.length - 1, 0));
+  const viewLabel = view === "cockpit" ? "Cockpit" : view === "pipeline" ? "Pipeline" : "Planning";
 
   function updatePreferences(nextPreferences: Partial<WorkspacePreferences>) {
     setPreferences((current) => ({
@@ -142,6 +176,24 @@ export function App() {
       layoutId: defaultLayoutByMode[nextMode],
       view: "cockpit"
     });
+  }
+
+  function handleDraftUpdate(nextDraft: PlanningDraft) {
+    setDrafts((currentDrafts) =>
+      currentDrafts.map((draft, index) => (index === activeDraftIndex ? nextDraft : draft))
+    );
+  }
+
+  function handleAddDraft() {
+    const nextDraft = normalizePlanningDraft({
+      targetProjectId: project.id,
+      risk: "medium",
+      deployMode: "dry-run"
+    });
+
+    setDrafts((currentDrafts) => [...currentDrafts, nextDraft]);
+    setSelectedDraftIndex(drafts.length);
+    updatePreferences({ view: "planning" });
   }
 
   return (
@@ -234,12 +286,20 @@ export function App() {
                 <ClipboardList size={15} />
                 Pipeline
               </button>
+              <button
+                className={classNames(view === "planning" && "is-active")}
+                onClick={() => updatePreferences({ view: "planning" })}
+                type="button"
+              >
+                <Workflow size={15} />
+                Planning
+              </button>
             </div>
           </div>
         </header>
 
         <div className="content-split">
-          <section className="main-surface" aria-label={view === "cockpit" ? "Cockpit" : "Pipeline"}>
+          <section className="main-surface" aria-label={viewLabel}>
             {view === "cockpit" ? (
               <>
                 <div className="surface-toolbar">
@@ -282,13 +342,22 @@ export function App() {
                   ))}
                 </div>
               </>
-            ) : (
+            ) : view === "pipeline" ? (
               <PipelineView
                 items={projectPipelineItems}
                 project={project}
                 registryEntry={registryEntry}
                 runtimeAdapter={runtimeAdapter}
                 tasks={projectTasks}
+              />
+            ) : (
+              <PlanningView
+                activeIndex={activeDraftIndex}
+                drafts={drafts}
+                onAddDraft={handleAddDraft}
+                onSelectDraft={setSelectedDraftIndex}
+                onUpdateDraft={handleDraftUpdate}
+                projects={projects}
               />
             )}
           </section>
@@ -452,6 +521,236 @@ function PipelineView({
             ) : null}
           </header>
           <pre>{handoff?.markdown ?? "No scoped task is ready for handoff."}</pre>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function listToLines(items: string[]): string {
+  return items.join("\n");
+}
+
+function linesToList(value: string): string[] {
+  return value
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+function PlanningView({
+  activeIndex,
+  drafts,
+  onAddDraft,
+  onSelectDraft,
+  onUpdateDraft,
+  projects
+}: {
+  activeIndex: number;
+  drafts: PlanningDraft[];
+  onAddDraft: () => void;
+  onSelectDraft: (index: number) => void;
+  onUpdateDraft: (draft: PlanningDraft) => void;
+  projects: ProjectSummary[];
+}) {
+  const draft = drafts[activeIndex] ?? drafts[0] ?? normalizePlanningDraft({});
+  const readiness = evaluatePlanningReadiness(draft);
+  const canDeploy = canDeployPlanningDraft(draft);
+
+  return (
+    <section className="planning-view">
+      <header className="planning-header">
+        <div>
+          <h3>Project Planning</h3>
+          <p>Prepare scoped work before dispatching it into the cockpit.</p>
+        </div>
+        <button disabled={!canDeploy} type="button">
+          <Play size={16} />
+          Stage Draft
+        </button>
+      </header>
+
+      <div className="planning-body">
+        <aside className="draft-list" aria-label="Planning drafts">
+          <div className="draft-list-header">
+            <h4>Drafts</h4>
+            <button onClick={onAddDraft} type="button">
+              New Draft
+            </button>
+          </div>
+
+          {drafts.map((item, index) => {
+            const itemReadiness = evaluatePlanningReadiness(item);
+            const targetProject = projects.find((project) => project.id === item.targetProjectId);
+
+            return (
+              <button
+                className={classNames("draft-button", index === activeIndex && "is-selected")}
+                key={`${item.title}-${index}`}
+                onClick={() => onSelectDraft(index)}
+                type="button"
+              >
+                <span>{item.title || "Untitled draft"}</span>
+                <small>{targetProject?.name ?? "No project selected"}</small>
+                <strong>{itemReadiness.readiness}%</strong>
+              </button>
+            );
+          })}
+        </aside>
+
+        <form className="draft-editor" aria-label="Draft editor">
+          <label>
+            <span>Title</span>
+            <input
+              value={draft.title}
+              onChange={(event) => onUpdateDraft({ ...draft, title: event.currentTarget.value })}
+            />
+          </label>
+
+          <label>
+            <span>Target Project</span>
+            <select
+              value={draft.targetProjectId}
+              onChange={(event) => onUpdateDraft({ ...draft, targetProjectId: event.currentTarget.value })}
+            >
+              <option value="">Select project</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="wide-field">
+            <span>Objective</span>
+            <textarea
+              rows={3}
+              value={draft.objective}
+              onChange={(event) => onUpdateDraft({ ...draft, objective: event.currentTarget.value })}
+            />
+          </label>
+
+          <label>
+            <span>Scope</span>
+            <textarea
+              rows={5}
+              value={listToLines(draft.scope)}
+              onChange={(event) => onUpdateDraft({ ...draft, scope: linesToList(event.currentTarget.value) })}
+            />
+          </label>
+
+          <label>
+            <span>File Areas</span>
+            <textarea
+              rows={5}
+              value={listToLines(draft.fileAreas)}
+              onChange={(event) => onUpdateDraft({ ...draft, fileAreas: linesToList(event.currentTarget.value) })}
+            />
+          </label>
+
+          <label>
+            <span>Acceptance Criteria</span>
+            <textarea
+              rows={5}
+              value={listToLines(draft.acceptanceCriteria)}
+              onChange={(event) =>
+                onUpdateDraft({ ...draft, acceptanceCriteria: linesToList(event.currentTarget.value) })
+              }
+            />
+          </label>
+
+          <label>
+            <span>Validation Plan</span>
+            <textarea
+              rows={5}
+              value={listToLines(draft.validationPlan)}
+              onChange={(event) =>
+                onUpdateDraft({ ...draft, validationPlan: linesToList(event.currentTarget.value) })
+              }
+            />
+          </label>
+
+          <label>
+            <span>Risk</span>
+            <select
+              value={draft.risk}
+              onChange={(event) =>
+                onUpdateDraft({ ...draft, risk: event.currentTarget.value as PlanningDraft["risk"] })
+              }
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Deploy Mode</span>
+            <select
+              value={draft.deployMode}
+              onChange={(event) =>
+                onUpdateDraft({ ...draft, deployMode: event.currentTarget.value as PlanningDraft["deployMode"] })
+              }
+            >
+              <option value="dry-run">Dry run</option>
+              <option value="staged">Staged</option>
+              <option value="full">Full</option>
+            </select>
+          </label>
+
+          <label className="wide-field">
+            <span>Rollback Note</span>
+            <textarea
+              rows={3}
+              value={draft.rollbackNote}
+              onChange={(event) => onUpdateDraft({ ...draft, rollbackNote: event.currentTarget.value })}
+            />
+          </label>
+        </form>
+
+        <aside className="readiness-panel" aria-label="Planning readiness">
+          <div className="readiness-score">
+            <strong>{readiness.readiness}%</strong>
+            <span>Ready</span>
+          </div>
+
+          <section>
+            <h4>Missing Fields</h4>
+            <div className="missing-list">
+              {readiness.missingFieldIds.length === 0 ? (
+                <span className="gate-chip gate-ready">Complete</span>
+              ) : (
+                readiness.missingFieldIds.map((fieldId) => (
+                  <span className="gate-chip gate-review" key={fieldId}>
+                    {missingFieldLabels[fieldId]}
+                  </span>
+                ))
+              )}
+            </div>
+          </section>
+
+          <section>
+            <h4>Dispatch Package</h4>
+            <dl className="draft-summary">
+              <div>
+                <dt>Mode</dt>
+                <dd>{draft.deployMode}</dd>
+              </div>
+              <div>
+                <dt>Risk</dt>
+                <dd>{draft.risk}</dd>
+              </div>
+              <div>
+                <dt>Scope</dt>
+                <dd>{draft.scope.length}</dd>
+              </div>
+              <div>
+                <dt>Validation</dt>
+                <dd>{draft.validationPlan.length}</dd>
+              </div>
+            </dl>
+          </section>
         </aside>
       </div>
     </section>
