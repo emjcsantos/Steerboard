@@ -98,6 +98,10 @@ import {
   createCockpitPanelFocusControls
 } from "./cockpitPanelFocusControls";
 import {
+  createCockpitFocusedPanelStatus,
+  type CockpitFocusedPanelStatus
+} from "./cockpitFocusedPanelStatus";
+import {
   canDeployPlanningDraft,
   evaluatePlanningReadiness,
   normalizePlanningDraft,
@@ -584,6 +588,10 @@ export function App() {
     () => createCockpitLayoutCapacity(layout, cockpitSessions.length, visibleSessions.length),
     [cockpitSessions.length, layout, visibleSessions.length]
   );
+  const cockpitFocusedPanelStatus = useMemo(
+    () => createCockpitFocusedPanelStatus(visibleSessions, focusedPanelId),
+    [focusedPanelId, visibleSessions]
+  );
   const activeDraftIndex = Math.min(selectedDraftIndex, Math.max(drafts.length - 1, 0));
   const viewLabel = view === "cockpit" ? "Cockpit" : view === "pipeline" ? "Pipeline" : "Planning";
 
@@ -769,6 +777,7 @@ export function App() {
                   </div>
                   <div className="toolbar-status">
                     <LayoutCapacitySignal capacity={cockpitLayoutCapacity} />
+                    <FocusedPanelStatusChip status={cockpitFocusedPanelStatus} />
                     <PanelRosterSignal roster={cockpitPanelRoster} />
                     <PanelOverflowSignal overflow={cockpitPanelOverflow} />
                     <div className="run-chip">
@@ -1092,6 +1101,22 @@ function LayoutCapacitySignal({ capacity }: { capacity: CockpitLayoutCapacity })
         <small>{capacity.capacityLabel}</small>
       </div>
       <b>{capacity.usageLabel}</b>
+    </div>
+  );
+}
+
+function FocusedPanelStatusChip({ status }: { status: CockpitFocusedPanelStatus }) {
+  return (
+    <div
+      aria-label={`Focused panel status: ${status.label}. ${status.detail}`}
+      className={classNames("focused-panel-chip", `focused-panel-${status.tone}`)}
+      title={status.detail}
+    >
+      <CircleDot size={14} />
+      <div>
+        <strong>{status.label}</strong>
+        <small>{status.detail}</small>
+      </div>
     </div>
   );
 }

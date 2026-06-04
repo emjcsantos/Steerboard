@@ -6,7 +6,7 @@ It is intended for external visibility and product-level communication, not an i
 | Target | Completion | Note |
 | --- | --- | --- |
 | Product scaffold | Complete | Core Steerboard structure, navigation baseline, and documentation skeleton are in place. |
-| Cockpit monitor and operating modes | In progress | The cockpit monitor includes a visible milestone/status table plus focus and highlight controls to target a visible cockpit panel and clear the highlighted panel when needed. |
+| Cockpit monitor and operating modes | In progress | The cockpit monitor includes a visible milestone/status table, focus and highlight controls, and a compact focused-panel status signal for quick panel visibility updates. |
 | Orchestration model | Planned | Standardized orchestration flow is being finalized to coordinate cockpit tasks and health signals. |
 | Runtime adapters | In progress | Adapter interfaces are being stabilized across runtime surfaces to support consistent signal ingestion. |
 | Security and privacy model | Planned | Security and privacy posture is being documented, with production controls being designed for release readiness. |

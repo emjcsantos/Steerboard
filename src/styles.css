@@ -443,6 +443,90 @@ textarea {
   color: #ff9e85;
 }
 
+.focused-panel-chip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  min-width: 172px;
+  max-width: 240px;
+  gap: 7px;
+  border: 1px solid #2f3540;
+  border-radius: 8px;
+  background: #151b22;
+  color: #dce3eb;
+  padding: 6px 8px;
+}
+
+.focused-panel-chip div {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.focused-panel-chip strong,
+.focused-panel-chip small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.focused-panel-chip strong {
+  color: #edf3f8;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.focused-panel-chip small {
+  color: #9fa9b4;
+  font-size: 10px;
+}
+
+.focused-panel-active {
+  border-color: #26516b;
+  background: #142531;
+}
+
+.focused-panel-active strong,
+.focused-panel-active svg {
+  color: #8bd7f4;
+}
+
+.focused-panel-critical {
+  border-color: #563027;
+  background: #291915;
+}
+
+.focused-panel-critical strong,
+.focused-panel-critical svg {
+  color: #ff9e85;
+}
+
+.focused-panel-attention {
+  border-color: #4c4120;
+  background: #252313;
+}
+
+.focused-panel-attention strong,
+.focused-panel-attention svg {
+  color: #f0d984;
+}
+
+.focused-panel-complete {
+  border-color: #245133;
+  background: #152718;
+}
+
+.focused-panel-complete strong,
+.focused-panel-complete svg {
+  color: #89dda9;
+}
+
+.focused-panel-idle,
+.focused-panel-neutral {
+  color: #9fa9b4;
+}
+
 .panel-roster-chip {
   display: grid;
   grid-template-columns: minmax(96px, auto) minmax(0, 1fr);
