@@ -21,6 +21,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 - Project pipeline.
 - Milestones, tasks, blockers, readiness checks, and dispatch previews.
+- Selected pipeline item dispatch detail preview.
 - Link from pipeline item to cockpit run.
 
 ## Phase 4: Runtime Adapters

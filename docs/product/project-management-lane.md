@@ -30,6 +30,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Generic sample projects only.
 - Pipeline board or table.
 - Item detail panel.
+- Selected item dispatch preview with pipeline, registry, and runtime gates.
 - Editable local draft list and draft detail editor.
 - Readiness checklist.
 - Deploy-to-runtime button disabled until required fields are present.
@@ -37,6 +38,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Generated handoff preview.
 - Generated dispatch package preview before real runtime execution.
 - Link from deployed item to cockpit run.
+- Local selected-item detail so users can review dispatch blockers without leaving the pipeline.
 - Local mock orchestrator run projection so users can inspect the planned run in cockpit panels before real runtime integration.
 - Local run history list and selected-run detail so users can compare staged runs without losing cockpit context.
 - Local run lifecycle controls for previewing queued, running, accepted, blocked, and failed cockpit states before real runtime integration.

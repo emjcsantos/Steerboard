@@ -48,11 +48,14 @@ import {
 } from "./layout";
 import {
   buildHandoffBrief,
-  canDispatchPipelineItem,
   nextHandoffTask,
   summarizeTasks,
   type OrchestrationTask
 } from "./orchestration";
+import {
+  buildPipelineItemDispatchPreview,
+  type PipelineItemDispatchPreview
+} from "./pipelineItemDispatchPreview";
 import {
   loadWorkspacePreferences,
   saveWorkspacePreferences,
@@ -724,7 +727,14 @@ function PipelineView({
   runtimeAdapter?: RuntimeAdapter;
   tasks: OrchestrationTask[];
 }) {
-  const dispatchableItemCount = items.filter(canDispatchPipelineItem).length;
+  const [selectedItemId, setSelectedItemId] = useState<string | undefined>(items[0]?.id);
+  const selectedItem = items.find((item) => item.id === selectedItemId) ?? items[0];
+  const selectedPreview = selectedItem
+    ? buildPipelineItemDispatchPreview(selectedItem, registryEntry, runtimeAdapter)
+    : undefined;
+  const dispatchableItemCount = items.filter((item) =>
+    buildPipelineItemDispatchPreview(item, registryEntry, runtimeAdapter).canDispatch
+  ).length;
   const registryReady = registryEntry ? dispatchableRegistryEntries([registryEntry]).length === 1 : false;
   const runtimeReady = runtimeAdapter ? canRunWithAdapter(runtimeAdapter) : false;
   const dispatchableCount = registryReady && runtimeReady ? dispatchableItemCount : 0;
@@ -747,9 +757,13 @@ function PipelineView({
             </span>
           </div>
         </div>
-        <button disabled={dispatchableCount === 0} title={`${dispatchableCount} ready tasks`} type="button">
+        <button
+          disabled={!selectedPreview?.canDispatch}
+          title={selectedPreview?.detail ?? `${dispatchableCount} ready tasks`}
+          type="button"
+        >
           <Play size={16} />
-          Dispatch {dispatchableCount}
+          Dispatch Item
         </button>
       </div>
 
@@ -757,7 +771,17 @@ function PipelineView({
         <div className="pipeline-left">
           <div className="pipeline-table" aria-label="Pipeline readiness">
             {items.map((item) => (
-              <article className="pipeline-row" key={item.id}>
+              <button
+                aria-pressed={selectedPreview?.itemId === item.id}
+                className={classNames(
+                  "pipeline-row",
+                  "pipeline-row-button",
+                  selectedPreview?.itemId === item.id && "is-selected"
+                )}
+                key={item.id}
+                onClick={() => setSelectedItemId(item.id)}
+                type="button"
+              >
                 <div>
                   <span className={classNames("pipeline-stage", `stage-${item.stage}`)}>{item.stage}</span>
                   <h4>{item.title}</h4>
@@ -765,7 +789,7 @@ function PipelineView({
                 <span>{item.owner}</span>
                 <span>{item.risk}</span>
                 <span>{item.readiness}%</span>
-              </article>
+              </button>
             ))}
           </div>
 
@@ -802,20 +826,89 @@ function PipelineView({
           </section>
         </div>
 
-        <aside className="handoff-panel" aria-label="Next handoff preview">
-          <header>
+        <aside className="handoff-panel pipeline-detail-panel" aria-label="Selected pipeline item dispatch preview">
+          {selectedPreview ? (
+            <PipelineItemDispatchDetail preview={selectedPreview} handoff={handoff} handoffTask={handoffTask} />
+          ) : (
+            <p className="empty-preview">Select a pipeline item to inspect dispatch readiness.</p>
+          )}
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function PipelineItemDispatchDetail({
+  handoff,
+  handoffTask,
+  preview
+}: {
+  handoff?: ReturnType<typeof buildHandoffBrief>;
+  handoffTask?: OrchestrationTask;
+  preview: PipelineItemDispatchPreview;
+}) {
+  return (
+    <>
+      <header>
+        <div>
+          <span className="eyebrow">Selected Item</span>
+          <h4>{preview.title}</h4>
+        </div>
+        <span className={classNames("preview-state", `preview-${preview.state}`)}>{preview.state}</span>
+      </header>
+
+      <div className="pipeline-detail-body">
+        <section className="pipeline-detail-summary" aria-label="Selected pipeline item summary">
+          <p title={preview.detail}>{preview.detail}</p>
+          <dl>
+            <div>
+              <dt>Stage</dt>
+              <dd>{preview.stage}</dd>
+            </div>
+            <div>
+              <dt>Owner</dt>
+              <dd>{preview.owner}</dd>
+            </div>
+            <div>
+              <dt>Risk</dt>
+              <dd>{preview.risk}</dd>
+            </div>
+            <div>
+              <dt>Ready</dt>
+              <dd>{preview.readiness}%</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="pipeline-gate-section">
+          <h5>Dispatch Gates</h5>
+          <ol className="dispatch-gate-list" aria-label="Selected item dispatch gates">
+            {preview.gates.map((gate) => (
+              <li className={`dispatch-gate-${gate.status}`} key={gate.id}>
+                <span />
+                <div>
+                  <strong>{gate.label}</strong>
+                  <small title={gate.detail}>{gate.detail}</small>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="pipeline-handoff-section">
+          <div className="pipeline-handoff-header">
             <div>
               <span className="eyebrow">Next Handoff</span>
-              <h4>{handoff?.title ?? "No task selected"}</h4>
+              <h5>{handoff?.title ?? "No task selected"}</h5>
             </div>
             {handoffTask ? (
               <span className={classNames("task-status", `task-${handoffTask.status}`)}>{handoffTask.status}</span>
             ) : null}
-          </header>
+          </div>
           <pre>{handoff?.markdown ?? "No scoped task is ready for handoff."}</pre>
-        </aside>
+        </section>
       </div>
-    </section>
+    </>
   );
 }
 
