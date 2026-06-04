@@ -69,6 +69,7 @@
 - Runtime profile approval request and cancellation actions should be retained in a local history list across reloads.
 - Approved ready runtime profile drafts should support an explicit local activation state that survives reloads without executing a process.
 - Local runtime profile activation should be clearable and should remain separate from real launch approval.
+- Active runtime profiles should expose a desktop permission handoff preview that explains bridge, process, and workspace gates without executing anything.
 
 ## Later Functional Scope
 
@@ -98,6 +99,7 @@
 - Approved runtime profile promotion should preserve an audit trail from draft readiness to activation decision.
 - Runtime profile approval history should later feed the activation audit trail when real profile promotion exists.
 - Local runtime profile activation should later hand off to the desktop permission flow before any configured runtime can execute.
+- Desktop permission handoff previews should later become explicit permission requests with audit records and rollback notes.
 
 ## UX Requirements
 

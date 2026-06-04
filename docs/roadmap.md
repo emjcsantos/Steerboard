@@ -39,6 +39,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Local execution audit preview before runtime execution.
 - Local execution audit preview history.
 - Desktop bridge status panel for shell reachability and locked execution state.
+- Desktop permission handoff preview for an active local runtime profile.
 
 ## Phase 5: Local Execution And Packaging
 
@@ -47,6 +48,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Desktop bridge permission flow for approved process and workspace access.
 - Runtime profile editor and validation flow before approved launch.
 - Runtime profile activation handoff into desktop-shell permission flow.
+- Desktop permission request records for approved profile handoffs.
 - Runtime execution audit trail for approved handoffs.
 - Persisted execution audit records and rollback references.
 - Audit export and review workflow.

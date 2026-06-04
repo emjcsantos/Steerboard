@@ -119,6 +119,10 @@ import {
   type RuntimeProfileActivationSnapshot
 } from "./runtimeProfileActivation";
 import {
+  buildRuntimeProfilePermissionHandoffSnapshot,
+  type RuntimeProfilePermissionHandoffSnapshot
+} from "./runtimeProfilePermissionHandoff";
+import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
   type DispatchPackage
@@ -1196,6 +1200,10 @@ function RightPanel({
     () => buildRuntimeProfileActivationSnapshot(runtimeProfileDraft, runtimeProfileDraftReadiness),
     [runtimeProfileDraft, runtimeProfileDraftReadiness]
   );
+  const runtimeProfilePermissionHandoffSnapshot = useMemo(
+    () => buildRuntimeProfilePermissionHandoffSnapshot(runtimeProfileActivation, desktopBridgeStatus),
+    [desktopBridgeStatus, runtimeProfileActivation]
+  );
   const canActivateDraftProfile =
     runtimeProfileApprovalSnapshot.state === "requested" &&
     canActivateRuntimeProfile(runtimeProfileDraftReadiness);
@@ -1577,6 +1585,7 @@ function RightPanel({
         onDraftChange={updateRuntimeProfileDraft}
         onRequestDraftApproval={() => recordRuntimeProfileApprovalAction("requested", "requested")}
         onResetDraft={resetRuntimeProfileDraft}
+        permissionHandoff={runtimeProfilePermissionHandoffSnapshot}
         profile={selectedRuntimeProfile}
         readiness={selectedRuntimeProfileReadiness}
         summary={runtimeProfileSummary}
@@ -1757,6 +1766,7 @@ function RuntimeProfilePanel({
   onDraftChange,
   onRequestDraftApproval,
   onResetDraft,
+  permissionHandoff,
   profile,
   readiness,
   summary
@@ -1774,6 +1784,7 @@ function RuntimeProfilePanel({
   onDraftChange: (nextDraft: Partial<RuntimeProfile>) => void;
   onRequestDraftApproval: () => void;
   onResetDraft: () => void;
+  permissionHandoff: RuntimeProfilePermissionHandoffSnapshot;
   profile?: RuntimeProfile;
   readiness?: RuntimeProfileReadiness;
   summary: ReturnType<typeof summarizeRuntimeProfiles>;
@@ -2075,6 +2086,38 @@ function RuntimeProfilePanel({
               <p title={activation.detail}>{activation.detail}</p>
             )}
             <small title={activation.safety}>{activation.safety}</small>
+          </div>
+          <div
+            className={classNames(
+              "runtime-profile-permission-handoff",
+              `runtime-profile-permission-${permissionHandoff.state}`
+            )}
+            aria-label="Runtime profile desktop permission handoff"
+          >
+            <div className="runtime-profile-permission-header">
+              <strong>Desktop permission</strong>
+              <span>{permissionHandoff.statusLabel}</span>
+            </div>
+            <p title={permissionHandoff.detail}>{permissionHandoff.detail}</p>
+            <dl className="runtime-profile-permission-grid">
+              <div>
+                <dt>Ready</dt>
+                <dd>{permissionHandoff.readiness}%</dd>
+              </div>
+              <div>
+                <dt>Bridge</dt>
+                <dd>{permissionHandoff.bridgeState}</dd>
+              </div>
+              <div>
+                <dt>Process</dt>
+                <dd>{permissionHandoff.processExecutionAvailable ? "Ready" : "Locked"}</dd>
+              </div>
+              <div>
+                <dt>Workspace</dt>
+                <dd>{permissionHandoff.workspaceAccessAvailable ? "Ready" : "Locked"}</dd>
+              </div>
+            </dl>
+            <small title={permissionHandoff.safety}>{permissionHandoff.safety}</small>
           </div>
         </div>
 
