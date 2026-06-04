@@ -1453,6 +1453,116 @@ textarea {
   text-transform: capitalize;
 }
 
+.adapter-bridge {
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.adapter-bridge-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.adapter-bridge-header strong {
+  overflow: hidden;
+  color: #edf2f7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.adapter-bridge-state {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #c4ccd6;
+  padding: 5px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.adapter-bridge-state span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.adapter-bridge-attachable span,
+.adapter-bridge-attached span,
+.adapter-bridge-complete span {
+  background: #89dda9;
+}
+
+.adapter-bridge-attaching span,
+.adapter-bridge-paused span {
+  background: #f0d984;
+}
+
+.adapter-bridge-live span {
+  background: #72a7ff;
+}
+
+.adapter-bridge-blocked span {
+  background: #ff9e85;
+}
+
+.adapter-bridge p {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.adapter-bridge-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.adapter-bridge-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 34px;
+  gap: 6px;
+  border: 1px solid #303742;
+  border-radius: 8px;
+  background: #151a20;
+  color: #dce3eb;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.adapter-bridge-actions button:hover:not(:disabled),
+.adapter-bridge-actions button:focus-visible {
+  border-color: #4d82d9;
+  background: #1b2430;
+  outline: none;
+}
+
+.adapter-bridge-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
 .stream-status-row {
   display: flex;
   align-items: center;

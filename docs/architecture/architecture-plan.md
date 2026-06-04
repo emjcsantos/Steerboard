@@ -53,6 +53,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Adapter session preview derives transport, heartbeat, permission readiness, and health from the selected runtime adapter plus local stream state.
 - Event source preview exposes the remaining normalized event queue that will feed the local stream monitor.
 - Source connection preview checks whether the selected adapter has the capabilities and permissions needed to attach that event queue.
+- Adapter bridge preview tracks local attach, detach, and stream handoff state before any external runtime process is launched.
 - Deploy-to-runtime action that creates an orchestrator run from selected pipeline items.
 - Trace links from project pipeline item to orchestrator run, worker tasks, validation reports, and final integration result.
 
@@ -71,6 +72,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - The scaffold exposes adapter session health derived from local runtime adapter configuration and mocked stream events.
 - The scaffold exposes event source state so the cockpit can distinguish queued adapter events from emitted stream events.
 - The scaffold exposes source connection readiness so users can see why a local event queue is or is not attachable to a configured adapter.
+- The scaffold exposes adapter bridge state so stream playback can be gated by an explicit local attach step.
 - The scaffold keeps runtime adapter data local and mocked until a desktop-shell permission path exists for process execution.
 
 ### Persistence

@@ -47,6 +47,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Adapter session preview showing the selected runtime's transport, health, heartbeat, and permission readiness.
 - Event source preview showing the queued normalized events that will feed the stream monitor.
 - Source connection preview showing whether the queued events can attach to the selected runtime adapter.
+- Adapter bridge preview showing whether a local event source has been attached to the selected runtime stream.
 - Deploy-mode selector for focused run, orchestrator-with-workers, or independent project monitor.
 
 ## Required Fields For Dispatch
@@ -84,6 +85,7 @@ Deploying to a configured runtime creates:
 - adapter session preview state,
 - event source preview state,
 - source connection readiness state,
+- adapter bridge preview state,
 - a future real orchestrator run,
 - selected cockpit operating mode,
 - a task split proposal,

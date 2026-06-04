@@ -52,6 +52,8 @@
 - Event source summaries should make the next queued event visible before it is emitted into the cockpit.
 - Event source summaries should show whether the queued events can attach to the selected runtime adapter or must remain local.
 - Adapter source readiness should explain missing capabilities or permissions before any external process can run.
+- Runtime stream previews should expose a local adapter bridge that can attach, detach, and gate stream playback without launching an external process.
+- Adapter bridge state should distinguish attachable, attached, live, paused, complete, and blocked states.
 
 ## Later Functional Scope
 
@@ -63,6 +65,7 @@
 - Adapter session monitor backed by real configured runtime events.
 - Configured event source adapters that replace local mocked event queues.
 - Adapter source connection flow that turns a local event queue into a configured runtime stream.
+- Desktop-shell adapter bridge that can hand off from local preview to an approved configured runtime.
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
 - MCP configuration and status.

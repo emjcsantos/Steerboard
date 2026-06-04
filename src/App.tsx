@@ -7,7 +7,9 @@ import {
   Columns3,
   GitBranch,
   Grid2X2,
+  Link2,
   LayoutDashboard,
+  Link2Off,
   PanelRight,
   Pause,
   Play,
@@ -137,6 +139,11 @@ import {
   buildRuntimeSourceConnectionSnapshot,
   type RuntimeSourceConnectionSnapshot
 } from "./runtimeSourceConnection";
+import {
+  buildRuntimeAdapterBridgeSnapshot,
+  type RuntimeAdapterBridgeIntent,
+  type RuntimeAdapterBridgeSnapshot
+} from "./runtimeAdapterBridge";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -975,6 +982,7 @@ function RightPanel({
   const [streamPlaybackByRunId, setStreamPlaybackByRunId] = useState<
     Record<string, { cursor: number; state: RuntimeStreamPlaybackState }>
   >({});
+  const [bridgeIntentByRunId, setBridgeIntentByRunId] = useState<Record<string, RuntimeAdapterBridgeIntent>>({});
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
@@ -1023,9 +1031,16 @@ function RightPanel({
     runtimeAdapter,
     runtimeEventSourceSnapshot
   );
+  const bridgeIntent = selectedRun ? bridgeIntentByRunId[selectedRun.id] ?? "detached" : "detached";
+  const runtimeAdapterBridgeSnapshot = buildRuntimeAdapterBridgeSnapshot(
+    runtimeSourceConnectionSnapshot,
+    runtimeStreamSnapshot,
+    bridgeIntent
+  );
   const canStartStream =
     Boolean(selectedRun) &&
     runtimeIngestionEvents.length > 0 &&
+    runtimeAdapterBridgeSnapshot.canStream &&
     runtimeStreamSnapshot.state !== "streaming" &&
     runtimeStreamSnapshot.state !== "complete" &&
     runtimeStreamSnapshot.state !== "blocked";
@@ -1071,6 +1086,21 @@ function RightPanel({
       ...current,
       [selectedRun.id]: { cursor, state }
     }));
+  }
+
+  function updateBridgeIntent(intent: RuntimeAdapterBridgeIntent) {
+    if (!selectedRun) {
+      return;
+    }
+
+    setBridgeIntentByRunId((current) => ({
+      ...current,
+      [selectedRun.id]: intent
+    }));
+
+    if (intent === "detached" && runtimeStreamSnapshot.state === "streaming") {
+      updateStreamPlayback("paused");
+    }
   }
 
   return (
@@ -1325,7 +1355,10 @@ function RightPanel({
         <h4>Runtime Stream</h4>
         <RuntimeAdapterSessionStatus snapshot={runtimeAdapterSessionSnapshot} />
         <RuntimeEventSourceStatus
+          bridge={runtimeAdapterBridgeSnapshot}
           connection={runtimeSourceConnectionSnapshot}
+          onAttach={() => updateBridgeIntent("attached")}
+          onDetach={() => updateBridgeIntent("detached")}
           snapshot={runtimeEventSourceSnapshot}
         />
         <div className="stream-status-row">
@@ -1448,10 +1481,16 @@ function RuntimeIngestionListItem({ event }: { event: RuntimeIngestionEvent }) {
 }
 
 function RuntimeEventSourceStatus({
+  bridge,
   connection,
+  onAttach,
+  onDetach,
   snapshot
 }: {
+  bridge: RuntimeAdapterBridgeSnapshot;
   connection: RuntimeSourceConnectionSnapshot;
+  onAttach: () => void;
+  onDetach: () => void;
   snapshot: RuntimeEventSourceSnapshot;
 }) {
   return (
@@ -1515,6 +1554,52 @@ function RuntimeEventSourceStatus({
             <dd title={connection.transport}>{connection.transport}</dd>
           </div>
         </dl>
+      </div>
+      <RuntimeAdapterBridgeStatus bridge={bridge} onAttach={onAttach} onDetach={onDetach} />
+    </div>
+  );
+}
+
+function RuntimeAdapterBridgeStatus({
+  bridge,
+  onAttach,
+  onDetach
+}: {
+  bridge: RuntimeAdapterBridgeSnapshot;
+  onAttach: () => void;
+  onDetach: () => void;
+}) {
+  return (
+    <div className="adapter-bridge" aria-label="Runtime adapter bridge">
+      <div className="adapter-bridge-header">
+        <span className={classNames("adapter-bridge-state", `adapter-bridge-${bridge.state}`)}>
+          <span aria-hidden="true" />
+          {bridge.state}
+        </span>
+        <strong title={bridge.detail}>{bridge.attached ? "Bridge attached" : "Bridge detached"}</strong>
+      </div>
+      <p title={bridge.detail}>{bridge.detail}</p>
+      <div className="adapter-bridge-actions" aria-label="Runtime adapter bridge controls">
+        <button
+          aria-label="Attach runtime adapter bridge"
+          disabled={!bridge.canAttach}
+          onClick={onAttach}
+          title="Attach bridge"
+          type="button"
+        >
+          <Link2 size={14} />
+          <span>Attach</span>
+        </button>
+        <button
+          aria-label="Detach runtime adapter bridge"
+          disabled={!bridge.canDetach}
+          onClick={onDetach}
+          title="Detach bridge"
+          type="button"
+        >
+          <Link2Off size={14} />
+          <span>Detach</span>
+        </button>
       </div>
     </div>
   );
