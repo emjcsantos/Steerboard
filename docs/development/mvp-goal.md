@@ -4,7 +4,7 @@ This goal follows the Define Goal quality bar: concrete outcome, scoped work, me
 
 ## Phase 1 Objective
 
-Build a clea Steerboard scaffold from a fresh clone that launches locally as a desktop app, renders public-safe mock data for focus lane, orchestrator-with-workers, and independent project monitor modes up to `3x3`, and verifies with repeatable setup, lint, test, build, visual layout checks, and public-reference scans.
+Build a clean Steerboard scaffold from a fresh clone that launches locally as a desktop app, renders public-safe mock data for focus lane, orchestrator-with-workers, and independent project monitor modes up to `3x3`, and verifies with repeatable setup, lint, test, build, visual layout checks, and public-reference scans.
 
 ## In Scope
 
@@ -19,7 +19,7 @@ Build a clea Steerboard scaffold from a fresh clone that launches locally as a d
 
 ## Out Of Scope
 
-- Real Codex session ownership.
+- Real agent-runtime session ownership.
 - Real worker spawning.
 - Real Git commit or push from the app.
 - Cloud control plane.
@@ -34,7 +34,7 @@ Build a clea Steerboard scaffold from a fresh clone that launches locally as a d
 - Screenshot or DOM-based layout checks pass for `1x1`, `2x1`, `1x2`, and `3x3`.
 - All three cockpit modes render from generic fixture data.
 - Public-reference scan passes with no local paths, private project labels, raw transcripts, credentials, or owner-specific names.
-- Harnss code import scan confirms no copied source.
+- Third-party code import scan confirms no copied source.
 
 ## Stop And Ask Conditions
 

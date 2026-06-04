@@ -2,9 +2,9 @@
 
 ## Recommended Starting Point
 
-Start with a clea Steerboard scaffold and use Harnss as a reference implementation, not as a direct base.
+Start with a clean Steerboard scaffold and use audited third-party projects as references, not as direct bases.
 
-Reason: Harnss has strong feature fit, but its current audited dependency and security posture requires hardening before direct adoption.
+Reason: reference projects have strong feature overlap, but any direct adoption requires separate dependency, security, attribution, and product-originality gates.
 
 ## Major Subsystems
 
@@ -45,14 +45,14 @@ Reason: Harnss has strong feature fit, but its current audited dependency and se
 
 - Pipeline registry for user-defined development work.
 - Backlog, milestone, task, blocker, and release-gate entities.
-- Readiness checks before dispatch to Codex.
-- Deploy-to-Codex action that creates an orchestrator run from selected pipeline items.
-- Trace links from project pipeline item to Codex run, worker tasks, validation reports, and final integration result.
+- Readiness checks before dispatch to a configured agent runtime.
+- Deploy-to-runtime action that creates an orchestrator run from selected pipeline items.
+- Trace links from project pipeline item to orchestrator run, worker tasks, validation reports, and final integration result.
 
 ### Adapter Layer
 
-- Codex app-server adapter.
-- Worker adapter for configured agent runtimes.
+- Agent-runtime adapter for configured local or remote runtimes.
+- Worker adapter for configured implementer and validator profiles.
 - Future adapters for ACP-compatible workers.
 - Adapter APIs should normalize events into the session core instead of leaking provider-specific event shapes into the UI.
 - Adapter contracts must be easy to add, test, and disable.
@@ -77,17 +77,17 @@ Do not persist credentials, raw private browser state, or unredacted secrets.
 - The main orchestrator keeps architecture, integration, final validation, commit, push, and report responsibilities.
 - Worker agents should receive small tasks with explicit file ownership and validation commands.
 
-## Harnss Patterns Worth Reusing
+## Reference Patterns Worth Studying
 
 - Electron main/preload/renderer split.
-- Codex JSON-RPC app-server bridge.
+- Agent app-server bridge patterns.
 - ACP-style agent abstraction.
 - Session list and split-pane concepts.
 - Tool-call visualization ideas.
 - Git, terminal, browser, MCP, and file-panel surfaces.
 - Encrypted OAuth store pattern.
 
-## Harnss Patterns To Harden Before Reuse
+## Reference Patterns To Harden Before Reuse
 
 - Analytics default-on behavior.
 - Broad renderer-exposed file operations.

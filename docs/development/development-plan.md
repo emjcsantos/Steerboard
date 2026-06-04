@@ -13,7 +13,7 @@ Deliverables:
 - MVP goal,
 - multiagent and worktree strategy,
 - skill development map,
-- Harnss audit,
+- reference audit,
 - reuse decision,
 - progress tracker.
 
@@ -25,7 +25,7 @@ Validation:
 
 ## Phase 1: Clean Scaffold
 
-Goal: create a minimal desktop app shell without importing Harnss code.
+Goal: create a minimal desktop app shell without importing unaudited third-party app code.
 
 Tiny worker tasks:
 
@@ -51,7 +51,7 @@ Exit criteria:
 - source install path is documented and reproducible,
 - mocked permission model is visible before real local access,
 - tests pass,
-- no third-party Harnss code imported.
+- no unaudited third-party app code imported.
 
 ## Phase 2: Orchestrator And Worker Model
 
@@ -77,7 +77,7 @@ Exit criteria:
 
 ## Phase 3: Project Management Lane
 
-Goal: let users manage a development pipeline in a tab and deploy ready items to Codex.
+Goal: let users manage a development pipeline in a tab and deploy ready items to a configured agent runtime.
 
 Tiny worker tasks:
 
@@ -86,7 +86,7 @@ Tiny worker tasks:
 - `P003`: render project management tab shell.
 - `P004`: render pipeline board or table.
 - `P005`: render item detail and readiness checklist.
-- `P006`: create deploy-to-Codex handoff preview.
+- `P006`: create deploy-to-runtime handoff preview.
 - `P007`: create dispatch record linking pipeline item to orchestrator run.
 - `P008`: test readiness validation and dispatch payload generation.
 
@@ -97,20 +97,20 @@ Exit criteria:
 - dispatch payload can seed an orchestrator run,
 - tests pass.
 
-## Phase 4: Codex App-Server Adapter
+## Phase 4: Agent Runtime Adapter
 
-Goal: integrate real Codex sessions through supported app-server APIs.
+Goal: integrate real agent sessions through a provider-neutral runtime adapter contract.
 
 Tiny worker tasks:
 
-- `C001`: process lifecycle wrapper.
-- `C002`: initialize handshake.
-- `C003`: thread start/resume/list/read.
-- `C004`: turn start/interrupt.
-- `C005`: approval and user-input bridge.
-- `C006`: event normalization into session core.
-- `C007`: app-server adapter tests with mocked JSON-RPC.
-- `C008`: adapter setup guide and local smoke-test command.
+- `R001`: process lifecycle wrapper.
+- `R002`: initialize handshake.
+- `R003`: session start/resume/list/read.
+- `R004`: turn start/interrupt.
+- `R005`: approval and user-input bridge.
+- `R006`: event normalization into session core.
+- `R007`: adapter tests with mocked transport.
+- `R008`: adapter setup guide and local smoke-test command.
 
 Exit criteria:
 
@@ -141,13 +141,13 @@ Exit criteria:
 - failures loop up to three times then return to the main orchestrator,
 - a new mock worker profile can be added without code changes outside the adapter/profile boundary.
 
-## Phase 6: Harnss-Pattern Selective Adoption
+## Phase 6: Reference-Pattern Selective Adoption
 
 Goal: reuse only patterns that pass hardening.
 
 Candidates:
 
-- Codex JSON-RPC bridge ideas,
+- agent app-server bridge ideas,
 - split-pane session management ideas,
 - tool-call rendering ideas,
 - encrypted OAuth store pattern,

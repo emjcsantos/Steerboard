@@ -9,12 +9,12 @@
 - Cockpit operating modes: focused single-project lane, orchestrator with worker panels, and independent multi-project monitor.
 - Per-cell session state: idle, planning, implementing, validating, blocked, failed, complete.
 - Orchestrator task board showing task ownership, attempt count, validation state, files touched, and handoff result.
-- Project management lane for planning and managing a user's development pipeline before dispatching selected work to Codex.
+- Project management lane for planning and managing a user's development pipeline before dispatching selected work to a configured agent runtime.
 - Worker handoff format with scope, allowed files, acceptance criteria, validation command, and rollback note.
 - Separate implementer and validator roles when task risk requires it.
 - Final integration lane owned by the main orchestrator.
 - Model-agnostic worker profiles so model/provider choice stays configurable.
-- Easy Codex and model integration through pluggable runtime adapters, documented worker profiles, mockable transports, and no cockpit-specific rewrites.
+- Easy agent-runtime integration through pluggable adapters, documented worker profiles, mockable transports, and no cockpit-specific rewrites.
 
 ## MVP Functional Scope
 
@@ -29,14 +29,14 @@
 
 ## Later Functional Scope
 
-- Real Codex app-server session ownership.
+- Real agent-runtime session ownership.
 - Real worker spawning.
 - Live transcript streaming.
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
 - MCP configuration and status.
 - Additional worker adapters beyond the default configured runtime.
-- Deploy-to-Codex action that converts a selected pipeline item into an orchestrator run, task split, and worker handoff set.
+- Deploy-to-runtime action that converts a selected pipeline item into an orchestrator run, task split, and worker handoff set.
 - Runtime integration wizard for adding or testing a configured model/provider adapter.
 
 ## UX Requirements

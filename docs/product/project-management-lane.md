@@ -2,9 +2,9 @@
 
 ## Purpose
 
-The project management lane is a future Steerboard tab where users manage development pipelines before deploying selected work to Codex.
+The project management lane is a future Steerboard tab where users manage development pipelines before deploying selected work to configured agent runtimes.
 
-It should make the product useful before a coding agent starts: the user can organize priorities, define scope, attach acceptance criteria, inspect readiness, and then dispatch a clean task package into the Codex orchestration workflow.
+It should make the product useful before a coding agent starts: the user can organize priorities, define scope, attach acceptance criteria, inspect readiness, and then dispatch a clean task package into the orchestration workflow.
 
 ## Core Jobs
 
@@ -12,8 +12,8 @@ It should make the product useful before a coding agent starts: the user can org
 - Organize backlog, milestones, epics, tasks, blockers, and release gates.
 - Attach task briefs, acceptance criteria, validation commands, and risk notes.
 - Track pipeline state: idea, planned, ready, dispatched, running, validating, blocked, accepted, shipped.
-- Select one or more ready items and deploy them to Codex.
-- Show which pipeline item created each Codex run and which worker tasks were spawned.
+- Select one or more ready items and deploy them to a configured runtime.
+- Show which pipeline item created each orchestrator run and which worker tasks were spawned.
 
 ## User Flow
 
@@ -21,7 +21,7 @@ It should make the product useful before a coding agent starts: the user can org
 2. User creates or selects a generic project workspace.
 3. User adds pipeline items with scope, priority, acceptance criteria, and validation.
 4. Steerboard checks readiness and highlights missing fields.
-5. User clicks deploy to Codex.
+5. User clicks deploy to runtime.
 6. The main orchestrator turns the selected item into a run plan, small worker tasks, validation tasks, and integration steps.
 7. The cockpit opens the resulting run while the project management lane keeps the pipeline status synchronized.
 
@@ -31,7 +31,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Pipeline board or table.
 - Item detail panel.
 - Readiness checklist.
-- Deploy-to-Codex button disabled until required fields are present.
+- Deploy-to-runtime button disabled until required fields are present.
 - Generated handoff preview.
 - Link from deployed item to cockpit run.
 - Deploy-mode selector for focused run, orchestrator-with-workers, or independent project monitor.
@@ -54,9 +54,9 @@ It should make the product useful before a coding agent starts: the user can org
 - Do not include private project names, owner names, customer names, local folders, screenshots from private navigation, or raw chat logs.
 - Public screenshots should use sanitized fixture data only.
 
-## Codex Dispatch Contract
+## Runtime Dispatch Contract
 
-Deploying to Codex creates:
+Deploying to a configured runtime creates:
 
 - an orchestrator run,
 - selected cockpit operating mode,

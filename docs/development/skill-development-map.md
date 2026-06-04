@@ -12,10 +12,10 @@ Use skills and tools deliberately. They should speed development, validation, an
 | `playwright-interactive` | Iterating on local desktop or browser-rendered UI checks | Supports screenshot and interaction validation |
 | `browser:control-in-app-browser` | Opening and checking local preview targets | Useful for fast visual smoke checks when a web preview exists |
 | `node_repl` tools | Driving scripted local UI checks with Browser or Playwright | Helps automate repeatable renderer checks without manual clicking |
-| `openai-docs` | Checking current official Codex/OpenAI integration docs | Prevents stale assumptions about supported Codex surfaces |
+| Provider documentation skills | Checking current official docs for selected runtime adapters | Prevents stale assumptions about supported provider surfaces |
 | `github` and `yeet` | Publishing branches, PRs, and reviewing repository state | Keeps public collaboration traceable |
 | `multi_agent_v1` tools | Splitting independent work into agents or validators | Speeds development when file ownership does not overlap |
-| Codex app thread/worktree tools | Creating background threads or worktrees for isolated tasks | Supports the orchestrator-worker development workflow |
+| Thread/worktree orchestration tools | Creating background threads or worktrees for isolated tasks | Supports the orchestrator-worker development workflow |
 
 ## Later Skills
 

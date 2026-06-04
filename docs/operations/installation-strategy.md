@@ -16,7 +16,7 @@ The first public adoption path should be a git-based install for developers and 
 Expected shape:
 
 ```text
-git clone https://github.com/your-org/steerboard.git
+git clone https://github.com/<owner>/steerboard.git
 cd steerboard
 pnpm install
 pnpm dev

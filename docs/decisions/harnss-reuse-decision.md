@@ -9,7 +9,7 @@ Use Harnss as a credited reference first, not as the initial Steerboard codebase
 Harnss has excellent product overlap with Steerboard:
 
 - multi-agent sessions,
-- Codex app-server integration,
+- agent-runtime adapter patterns,
 - split-session UI,
 - tool rendering,
 - git, terminal, browser, file, MCP, and agent panels.
@@ -23,7 +23,7 @@ Steerboard should remain an original product: its information architecture, orch
 Approved now:
 
 - study architecture,
-- study Codex app-server adapter,
+- study agent-runtime adapter patterns,
 - study layout patterns,
 - study tool-call rendering patterns,
 - study encrypted token storage pattern,
@@ -56,4 +56,4 @@ Harnss or a Steerboard fork can become a direct base only after:
 
 ## Current Path
 
-Continue with a clea Steerboard scaffold, credit Harnss as research inspiration, then selectively port patterns only after they pass review and fit the Steerboard product direction.
+Continue with a clean Steerboard scaffold, credit Harnss as research inspiration, then selectively port patterns only after they pass review and fit the Steerboard product direction.

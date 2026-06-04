@@ -57,7 +57,7 @@ The main orchestrator must run final validation after worker completion.
 
 ## Runtime Adapter Safety
 
-Each Codex or model/provider adapter must declare:
+Each runtime, model, or provider adapter must declare:
 
 - required local permissions,
 - supported actions,
