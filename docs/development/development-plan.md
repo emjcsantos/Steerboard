@@ -10,6 +10,9 @@ Deliverables:
 - requirements,
 - architecture plan,
 - worker task rules,
+- MVP goal,
+- multiagent and worktree strategy,
+- skill development map,
 - Harnss audit,
 - reuse decision,
 - progress tracker.
@@ -38,6 +41,7 @@ Tiny worker tasks:
 - `S010`: run Tauri-first shell feasibility spike with Electron fallback criteria.
 - `S011`: add source-first git install instructions and one-command local startup.
 - `S012`: add local production build command and dependency audit instructions.
+- `S013`: add mocked local-permission surface for project folder, Git, terminal/process, runtime, and notifications.
 
 Exit criteria:
 
@@ -45,6 +49,7 @@ Exit criteria:
 - `3x3` layout renders without overlap,
 - all three cockpit modes render from public-safe mock data,
 - source install path is documented and reproducible,
+- mocked permission model is visible before real local access,
 - tests pass,
 - no third-party Harnss code imported.
 
@@ -55,6 +60,7 @@ Goal: implement the orchestration data model before real agent execution.
 Tiny worker tasks:
 
 - `O001`: define run, task, worker, attempt, validation, and handoff schemas.
+- `O001A`: define runtime adapter profile schema with capabilities, permissions, config fields, and mock transport.
 - `O002`: create orchestrator task board UI.
 - `O003`: create worker detail drawer.
 - `O004`: create validator result display.
@@ -67,6 +73,7 @@ Exit criteria:
 - orchestrator can split mock tasks,
 - worker attempts and validation states are visible,
 - handoff docs are public-safe and deterministic.
+- adding a mocked runtime adapter requires no cockpit UI rewrite.
 
 ## Phase 3: Project Management Lane
 
@@ -103,12 +110,14 @@ Tiny worker tasks:
 - `C005`: approval and user-input bridge.
 - `C006`: event normalization into session core.
 - `C007`: app-server adapter tests with mocked JSON-RPC.
+- `C008`: adapter setup guide and local smoke-test command.
 
 Exit criteria:
 
 - app owns sessions directly,
 - no dependency on monitoring another IDE's UI,
-- adapter tests pass.
+- adapter tests pass,
+- adding or disabling the adapter is documented and reversible.
 
 ## Phase 5: Worker Execution
 
@@ -117,6 +126,7 @@ Goal: connect orchestrator tasks to configured worker agents through a model-agn
 Tiny worker tasks:
 
 - `W001`: worker profile configuration.
+- `W001A`: worker profile setup UX and validation errors.
 - `W002`: implementer dispatch.
 - `W003`: validator dispatch.
 - `W004`: three-attempt fail loop.
@@ -128,7 +138,8 @@ Exit criteria:
 
 - implementer and validator roles are separate,
 - the main orchestrator owns final integration,
-- failures loop up to three times then return to the main orchestrator.
+- failures loop up to three times then return to the main orchestrator,
+- a new mock worker profile can be added without code changes outside the adapter/profile boundary.
 
 ## Phase 6: Harnss-Pattern Selective Adoption
 

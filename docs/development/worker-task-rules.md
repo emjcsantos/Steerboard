@@ -43,6 +43,7 @@ Avoid worker tasks that mix UI, persistence, agent execution, security policy, a
 - Shared files require sequential tasks.
 - Schema files should be owned by one worker at a time.
 - The main orchestrator integrates cross-cutting changes after workers return.
+- Use separate worktrees for parallel material changes when two workers need to edit at the same time.
 
 ## Validation Loop
 
@@ -64,6 +65,7 @@ main_orchestrator_validate_integrate_revise()
 Each worker must return:
 
 - task id,
+- branch or worktree,
 - files changed,
 - behavior changed,
 - validation command,

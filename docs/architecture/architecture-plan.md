@@ -55,6 +55,9 @@ Reason: Harnss has strong feature fit, but its current audited dependency and se
 - Worker adapter for configured agent runtimes.
 - Future adapters for ACP-compatible workers.
 - Adapter APIs should normalize events into the session core instead of leaking provider-specific event shapes into the UI.
+- Adapter contracts must be easy to add, test, and disable.
+- Each runtime adapter should declare capabilities, required permissions, configuration fields, supported commands, event mapping, and mock fixtures.
+- The cockpit must consume normalized session, task, validation, and tool-call events instead of provider-specific payloads.
 
 ### Persistence
 
@@ -67,6 +70,12 @@ Reason: Harnss has strong feature fit, but its current audited dependency and se
 - User preferences.
 
 Do not persist credentials, raw private browser state, or unredacted secrets.
+
+### Development Execution
+
+- Use multiagent and multiworktree execution for independent file ownership lanes.
+- The main orchestrator keeps architecture, integration, final validation, commit, push, and report responsibilities.
+- Worker agents should receive small tasks with explicit file ownership and validation commands.
 
 ## Harnss Patterns Worth Reusing
 

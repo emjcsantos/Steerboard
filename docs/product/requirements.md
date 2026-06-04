@@ -14,6 +14,7 @@
 - Separate implementer and validator roles when task risk requires it.
 - Final integration lane owned by the main orchestrator.
 - Model-agnostic worker profiles so model/provider choice stays configurable.
+- Easy Codex and model integration through pluggable runtime adapters, documented worker profiles, mockable transports, and no cockpit-specific rewrites.
 
 ## MVP Functional Scope
 
@@ -36,6 +37,7 @@
 - MCP configuration and status.
 - Additional worker adapters beyond the default configured runtime.
 - Deploy-to-Codex action that converts a selected pipeline item into an orchestrator run, task split, and worker handoff set.
+- Runtime integration wizard for adding or testing a configured model/provider adapter.
 
 ## UX Requirements
 
@@ -57,6 +59,7 @@
 - No raw private transcripts in public examples.
 - Analytics default off.
 - Worker tasks must be file-scoped.
+- Multiagent and multiworktree development must use non-overlapping file ownership.
 - Destructive actions require explicit user confirmation.
 - Third-party code must pass license, dependency, script, IPC, storage, and network review before adoption.
 - Third-party inspiration must be credited, but AtlasUI code and UI should remain original unless a deliberate fork/import decision is recorded.

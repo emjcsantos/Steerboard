@@ -6,6 +6,8 @@ The product needs privileged local capabilities: project-root file access, Git o
 
 ## Recommended Shell Direction
 
+Tauri is a framework for building desktop apps. It wraps a web-based UI in a native desktop shell and exposes local capabilities through a native backend.
+
 Use a shell abstraction and keep the first implementation replaceable. Prefer a Tauri-first spike for the clean scaffold, with Electron as the fallback if terminal, editor, webview, or agent-process integration becomes slower than expected.
 
 ## Tauri Strengths

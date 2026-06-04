@@ -9,6 +9,7 @@
 - External URL opening is allowlisted or user-confirmed.
 - Terminal and git destructive actions require confirmation.
 - Worker commands run with the least capability needed for the task.
+- Runtime adapters start disabled until configured and explicitly enabled.
 
 ## Sensitive Data Rules
 
@@ -53,3 +54,17 @@ Worker task briefs must include:
 - rollback note.
 
 The main orchestrator must run final validation after worker completion.
+
+## Runtime Adapter Safety
+
+Each Codex or model/provider adapter must declare:
+
+- required local permissions,
+- supported actions,
+- configuration fields,
+- secret storage needs,
+- network behavior,
+- mock mode,
+- disable and rollback path.
+
+Adapter configuration must be testable without real project data or real credentials whenever possible.
