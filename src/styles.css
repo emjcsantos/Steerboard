@@ -662,6 +662,61 @@ textarea {
   color: #dce3eb;
 }
 
+.monitor-recent-events {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  max-height: 86px;
+  overflow: auto;
+  padding: 0;
+  list-style: none;
+}
+
+.monitor-recent-event-row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  background: #171d24;
+  padding: 6px 8px;
+  color: #dce3eb;
+}
+
+.monitor-recent-event-row strong,
+.monitor-recent-event-row span,
+.monitor-recent-event-row small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitor-recent-event-row strong {
+  color: #edf3f8;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.monitor-recent-event-row span {
+  justify-self: end;
+  color: #b1bcc8;
+  font-size: 9px;
+}
+
+.monitor-recent-event-row small {
+  color: #98a3ad;
+  font-size: 10px;
+}
+
+.monitor-recent-empty {
+  margin: 0;
+  padding: 7px 0;
+  color: #8f99a4;
+  font-size: 11px;
+}
+
 .monitor-control-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -212,6 +212,10 @@ import {
   type CockpitMonitorSummary
 } from "./cockpitMonitorSummary";
 import {
+  buildCockpitMonitorEventFeed,
+  type CockpitMonitorEventFeedItem
+} from "./cockpitMonitorEventFeed";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -1724,6 +1728,7 @@ function RightPanel({
   const canStartStream = cockpitMonitorControlState.canStart;
   const canPauseStream = cockpitMonitorControlState.canPause;
   const canResetStream = cockpitMonitorControlState.canReset;
+  const recentEventFeed = buildCockpitMonitorEventFeed(runtimeStreamSnapshot);
 
   useEffect(() => {
     if (!selectedRun || runtimeStreamSnapshot.state !== "streaming") {
@@ -1941,6 +1946,7 @@ function RightPanel({
 
       <CockpitMonitorStrip
         controls={cockpitMonitorControlState}
+        recentEventFeed={recentEventFeed}
         onAttach={() => updateBridgeIntent("attached")}
         onPause={() => updateStreamPlayback("paused")}
         onReset={() => updateStreamPlayback("idle", 0)}
@@ -2335,6 +2341,7 @@ function RightPanel({
 
 function CockpitMonitorStrip({
   controls,
+  recentEventFeed,
   onAttach,
   onPause,
   onReset,
@@ -2342,6 +2349,7 @@ function CockpitMonitorStrip({
   summary
 }: {
   controls: CockpitMonitorControlState;
+  recentEventFeed: CockpitMonitorEventFeedItem[];
   onAttach: () => void;
   onPause: () => void;
   onReset: () => void;
@@ -2350,6 +2358,7 @@ function CockpitMonitorStrip({
 }) {
   const latestEventCue = `${summary.latestEventLabel} ${summary.latestEventStatus}`.trim();
   const latestEventDetail = `${latestEventCue}. ${summary.latestEventDetail}`;
+  const hasRecentEvents = recentEventFeed.length > 0;
 
   return (
     <section className="monitor-strip" aria-label="Cockpit monitor summary">
@@ -2392,6 +2401,23 @@ function CockpitMonitorStrip({
         <strong>Latest:</strong>
         <span>{latestEventCue}</span>
       </div>
+      {hasRecentEvents ? (
+        <ol className="monitor-recent-events" aria-label="Recent local events">
+          {recentEventFeed.map((item) => (
+            <li
+              className={classNames("monitor-recent-event-row", `event-status-${item.status}`)}
+              key={item.id}
+              title={`${item.sequenceLabel} ${item.label}. ${item.detail}`}
+            >
+              <strong>{item.label}</strong>
+              <span>{item.sequenceLabel}</span>
+              <small>{item.detail}</small>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="monitor-recent-empty">{`Recent local events will appear here.`}</p>
+      )}
       <div className="monitor-control-row" aria-label="Cockpit monitor stream controls">
         <button
           aria-label="Attach cockpit monitor event source"
