@@ -11,4 +11,4 @@
 | UI direction | Added | `codex/original-product-ui-policy` / `796e4f8` | `git diff --check` PASS; public-safety scan PASS | Use as scaffold design quality gate |
 | Public release guardrails | Added | `codex/public-project-pipeline-lane` / `4f1277b` | `git diff --check` PASS; private-project scan PASS | Block private project references before public pushes |
 | Project management lane | Added | `codex/public-project-pipeline-lane` / `4f1277b` | `git diff --check` PASS; private-project scan PASS | Let users manage pipelines and deploy work to Codex |
-| Model-agnostic worker architecture | Added | `codex/model-agnostic-workers` / pending | `git diff --check` PASS; model-specific scan PASS; private-reference scan PASS | Keep worker roles configurable across models/providers |
+| Model-agnostic worker architecture | Added | `codex/model-agnostic-workers` / `b5911fe` | `git diff --check` PASS; model-specific scan PASS; private-reference scan PASS | Keep worker roles configurable across models/providers |
