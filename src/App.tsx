@@ -232,6 +232,10 @@ import {
   type CockpitMonitorQuality
 } from "./cockpitMonitorQuality";
 import {
+  createCockpitMonitorLoop,
+  type CockpitMonitorLoop
+} from "./cockpitMonitorLoop";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -1660,6 +1664,10 @@ function RightPanel({
     () => createCockpitMonitorQuality(runtimeStreamSnapshot),
     [runtimeStreamSnapshot]
   );
+  const cockpitMonitorLoop = useMemo(
+    () => createCockpitMonitorLoop(selectedRun),
+    [selectedRun]
+  );
   const runtimeSourceConnectionSnapshot = buildRuntimeSourceConnectionSnapshot(
     runtimeAdapter,
     runtimeEventSourceSnapshot
@@ -1980,6 +1988,7 @@ function RightPanel({
         attention={cockpitMonitorAttention}
         controls={cockpitMonitorControlState}
         health={cockpitMonitorHealth}
+        loop={cockpitMonitorLoop}
         nextEventPreview={cockpitMonitorNextEventPreview}
         quality={cockpitMonitorQuality}
         recentEventFeed={recentEventFeed}
@@ -2379,6 +2388,7 @@ function CockpitMonitorStrip({
   attention,
   controls,
   health,
+  loop,
   nextEventPreview,
   quality,
   recentEventFeed,
@@ -2391,6 +2401,7 @@ function CockpitMonitorStrip({
   attention: CockpitMonitorAttention;
   controls: CockpitMonitorControlState;
   health: CockpitMonitorHealth;
+  loop: CockpitMonitorLoop;
   nextEventPreview: CockpitMonitorNextEventPreview;
   quality: CockpitMonitorQuality;
   recentEventFeed: CockpitMonitorEventFeedItem[];
@@ -2462,6 +2473,30 @@ function CockpitMonitorStrip({
               <small>{metric.label}</small>
             </span>
           ))}
+        </div>
+      </div>
+      <div
+        aria-label={`Loop validation: ${loop.label}`}
+        className={classNames("monitor-loop-row", `monitor-loop-${loop.tone}`)}
+        title={loop.detail}
+      >
+        <div className="monitor-loop-copy">
+          <strong>{loop.label}</strong>
+          <small>{loop.detail}</small>
+        </div>
+        <div className="monitor-loop-metrics" aria-label="Loop validation metrics">
+          <span>
+            <strong>{loop.attemptLabel}</strong>
+            <small>Attempt</small>
+          </span>
+          <span>
+            <strong>{loop.gateLabel}</strong>
+            <small>Gates</small>
+          </span>
+          <span>
+            <strong>{loop.workerLabel}</strong>
+            <small>Panels</small>
+          </span>
         </div>
       </div>
       <div className="monitor-strip-grid">

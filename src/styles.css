@@ -840,6 +840,108 @@ textarea {
   color: #ff9e85;
 }
 
+.monitor-loop-row {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  border: 1px solid #27303a;
+  border-radius: 8px;
+  background: #151b22;
+  padding: 8px;
+}
+
+.monitor-loop-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.monitor-loop-copy strong,
+.monitor-loop-copy small,
+.monitor-loop-metrics strong,
+.monitor-loop-metrics small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitor-loop-copy strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.monitor-loop-copy small {
+  color: #9fa9b4;
+  font-size: 10px;
+}
+
+.monitor-loop-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.monitor-loop-metrics span {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 6px 5px;
+  text-align: center;
+}
+
+.monitor-loop-metrics strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.monitor-loop-metrics small {
+  color: #8f99a5;
+  font-size: 9px;
+}
+
+.monitor-loop-waiting {
+  border-color: #303844;
+}
+
+.monitor-loop-waiting .monitor-loop-metrics strong {
+  color: #cfd8e3;
+}
+
+.monitor-loop-running {
+  border-color: #244860;
+}
+
+.monitor-loop-validating {
+  border-color: #4b3d1f;
+}
+
+.monitor-loop-blocked {
+  border-color: #5c2c21;
+}
+
+.monitor-loop-complete {
+  border-color: #254634;
+}
+
+.monitor-loop-running .monitor-loop-metrics strong {
+  color: #8bd7f4;
+}
+
+.monitor-loop-validating .monitor-loop-metrics strong {
+  color: #f0d984;
+}
+
+.monitor-loop-blocked .monitor-loop-metrics strong {
+  color: #ff9e85;
+}
+
+.monitor-loop-complete .monitor-loop-metrics strong {
+  color: #89dda9;
+}
+
 .monitor-strip-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
