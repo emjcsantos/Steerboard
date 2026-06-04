@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+release/
+.vite/
+.turbo/
+.cache/
+coverage/
+*.log
+*.local
+.env
+.env.*
+!.env.example
+
