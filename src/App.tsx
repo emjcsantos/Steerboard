@@ -1713,10 +1713,12 @@ function RightPanel({
     runtimeProfileApprovalSnapshot.state === "requested" &&
     canActivateRuntimeProfile(runtimeProfileDraftReadiness);
   const cockpitMonitorControlState = buildCockpitMonitorControlState({
+    canAttachSource: runtimeAdapterBridgeSnapshot.canAttach,
     canStream: runtimeAdapterBridgeSnapshot.canStream,
     cursor: runtimeStreamSnapshot.cursor,
     eventCount: runtimeIngestionEvents.length,
     hasRun: Boolean(selectedRun),
+    isSourceAttached: runtimeAdapterBridgeSnapshot.attached,
     streamState: runtimeStreamSnapshot.state
   });
   const canStartStream = cockpitMonitorControlState.canStart;
@@ -1939,6 +1941,7 @@ function RightPanel({
 
       <CockpitMonitorStrip
         controls={cockpitMonitorControlState}
+        onAttach={() => updateBridgeIntent("attached")}
         onPause={() => updateStreamPlayback("paused")}
         onReset={() => updateStreamPlayback("idle", 0)}
         onStart={() => updateStreamPlayback("streaming")}
@@ -2332,12 +2335,14 @@ function RightPanel({
 
 function CockpitMonitorStrip({
   controls,
+  onAttach,
   onPause,
   onReset,
   onStart,
   summary
 }: {
   controls: CockpitMonitorControlState;
+  onAttach: () => void;
   onPause: () => void;
   onReset: () => void;
   onStart: () => void;
@@ -2381,6 +2386,15 @@ function CockpitMonitorStrip({
         <small>{summary.streamProgressLabel}</small>
       </div>
       <div className="monitor-control-row" aria-label="Cockpit monitor stream controls">
+        <button
+          aria-label="Attach cockpit monitor event source"
+          disabled={!controls.canAttach}
+          onClick={onAttach}
+          title={controls.attachReason}
+          type="button"
+        >
+          <Link2 size={13} />
+        </button>
         <button
           aria-label="Start cockpit monitor stream"
           disabled={!controls.canStart}

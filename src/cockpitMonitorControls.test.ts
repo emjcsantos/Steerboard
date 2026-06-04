@@ -8,8 +8,14 @@ function controlsFor(args: {
   canStream: boolean;
   streamState: RuntimeStreamPlaybackState;
   cursor: number;
+  canAttachSource?: boolean;
+  isSourceAttached?: boolean;
 }) {
-  return buildCockpitMonitorControlState(args);
+  return buildCockpitMonitorControlState({
+    canAttachSource: true,
+    isSourceAttached: true,
+    ...args
+  });
 }
 
 describe("cockpit monitor control state", () => {
@@ -26,7 +32,9 @@ describe("cockpit monitor control state", () => {
       canStart: true,
       canPause: false,
       canReset: false,
+      canAttach: false,
       startReason: "Start local stream preview.",
+      attachReason: "Local event source is already attached.",
       pauseReason: "Stream is not running.",
       resetReason: "Nothing to reset."
     });
@@ -67,13 +75,16 @@ describe("cockpit monitor control state", () => {
       controlsFor({
         hasRun: true,
         eventCount: 4,
-        canStream: false,
+        canStream: true,
         streamState: "idle",
-        cursor: 0
+        cursor: 0,
+        isSourceAttached: false
       })
     ).toMatchObject({
       canStart: false,
-      startReason: "Attach an allowed local event source first."
+      canAttach: true,
+      startReason: "Attach an allowed local event source first.",
+      attachReason: "Attach local event source preview."
     });
   });
 
@@ -120,6 +131,60 @@ describe("cockpit monitor control state", () => {
     ).toMatchObject({
       canStart: false,
       startReason: "Stream is blocked by local adapter review."
+    });
+  });
+
+  it("allows attach when run is selected, events are queued, and source can be attached", () => {
+    expect(
+      controlsFor({
+        hasRun: true,
+        eventCount: 4,
+        canStream: true,
+        streamState: "idle",
+        cursor: 0,
+        isSourceAttached: false,
+        canAttachSource: true
+      })
+    ).toMatchObject({
+      canAttach: true,
+      canStart: false,
+      startReason: "Attach an allowed local event source first.",
+      attachReason: "Attach local event source preview."
+    });
+  });
+
+  it("blocks attach when stream is blocked", () => {
+    expect(
+      controlsFor({
+        hasRun: true,
+        eventCount: 4,
+        canStream: true,
+        streamState: "blocked",
+        cursor: 0,
+        isSourceAttached: false,
+        canAttachSource: true
+      })
+    ).toMatchObject({
+      canAttach: false,
+      canStart: false,
+      startReason: "Stream is blocked by local adapter review.",
+      attachReason: "Stream is blocked by local adapter review."
+    });
+  });
+
+  it("blocks attach when source is already attached", () => {
+    expect(
+      controlsFor({
+        hasRun: true,
+        eventCount: 4,
+        canStream: true,
+        streamState: "idle",
+        cursor: 0,
+        isSourceAttached: true
+      })
+    ).toMatchObject({
+      canAttach: false,
+      attachReason: "Local event source is already attached."
     });
   });
 
@@ -225,6 +290,8 @@ describe("cockpit monitor control state", () => {
       eventCount: 3,
       canStream: true,
       streamState: "streaming" as RuntimeStreamPlaybackState,
+      canAttachSource: true,
+      isSourceAttached: true,
       cursor: 1
     };
 
@@ -241,6 +308,7 @@ describe("cockpit monitor control state", () => {
         eventCount: 1,
         canStream: true,
         streamState,
+        isSourceAttached: false,
         cursor: index
       })
     );
@@ -249,6 +317,7 @@ describe("cockpit monitor control state", () => {
       expect(result.startReason).not.toMatch(/[\\/]/);
       expect(result.pauseReason).not.toMatch(/[\\/]/);
       expect(result.resetReason).not.toMatch(/[\\/]/);
+      expect(result.attachReason).not.toMatch(/[\\/]/);
     }
   });
 });
