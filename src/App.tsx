@@ -248,6 +248,10 @@ import {
   type CockpitLayoutCapacity
 } from "./cockpitLayoutCapacity";
 import {
+  createCockpitPanelIdentity,
+  type CockpitPanelIdentity
+} from "./cockpitPanelIdentity";
+import {
   buildCockpitMonitorControlState,
   type CockpitMonitorControlState
 } from "./cockpitMonitorControls";
@@ -453,6 +457,10 @@ export function App() {
   const layout = getLayoutSpec(layoutId);
   const registryByProject = useMemo(
     () => new Map(registryEntries.map((entry) => [entry.projectId, entry])),
+    []
+  );
+  const projectLabelById = useMemo(
+    () => new Map(projects.map((entry) => [entry.id, entry.name])),
     []
   );
   const runtimeByProject = useMemo(
@@ -725,7 +733,15 @@ export function App() {
                   }}
                 >
                   {visibleSessions.map((session) => (
-                    <SessionCell key={session.id} session={session} />
+                    <SessionCell
+                      key={session.id}
+                      projectLabel={
+                        projectLabelById.get(session.projectId) ??
+                        registryByProject.get(session.projectId)?.workspaceLabel ??
+                        session.projectId
+                      }
+                      session={session}
+                    />
                   ))}
                 </div>
               </>
@@ -777,13 +793,25 @@ export function App() {
   );
 }
 
-function SessionCell({ session }: { session: SessionSummary }) {
+function SessionCell({ projectLabel, session }: { projectLabel?: string; session: SessionSummary }) {
+  const identity = createCockpitPanelIdentity({
+    projectId: session.projectId,
+    projectLabel,
+    role: session.role,
+    runtime: session.runtime,
+    state: session.state,
+    title: session.title
+  });
+
   return (
-    <article className={classNames("session-cell", `role-${session.role}`)}>
+    <article
+      aria-label={identity.ariaLabel}
+      className={classNames("session-cell", `role-${session.role}`)}
+    >
       <header className="cell-header">
-        <div>
-          <span className="cell-role">{session.role}</span>
-          <h3>{session.title}</h3>
+        <div className="cell-title-block">
+          <PanelIdentitySignal identity={identity} />
+          <h3 title={identity.title}>{identity.title}</h3>
         </div>
         <span className={classNames("state-chip", `state-${session.state}`)}>
           {stateIcon[session.state]}
@@ -796,7 +824,7 @@ function SessionCell({ session }: { session: SessionSummary }) {
           <GitBranch size={14} />
           {session.branch}
         </span>
-        <span>{session.runtime}</span>
+        <span title={identity.runtimeLabel}>{identity.runtimeLabel}</span>
         <span>Attempt {session.attempt}</span>
       </div>
 
@@ -815,6 +843,22 @@ function SessionCell({ session }: { session: SessionSummary }) {
         </div>
       </footer>
     </article>
+  );
+}
+
+function PanelIdentitySignal({ identity }: { identity: CockpitPanelIdentity }) {
+  return (
+    <div
+      aria-label={`${identity.roleLabel} for ${identity.projectLabel}`}
+      className={classNames("panel-identity-row", `panel-identity-${identity.tone}`)}
+      title={identity.detail}
+    >
+      <span className="cell-role">{identity.roleLabel}</span>
+      <span aria-hidden="true" className="panel-identity-divider">
+        /
+      </span>
+      <span className="panel-project-label">{identity.projectLabel}</span>
+    </div>
   );
 }
 
