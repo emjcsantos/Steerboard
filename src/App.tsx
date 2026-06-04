@@ -102,6 +102,9 @@ import {
   type CockpitFocusedPanelStatus
 } from "./cockpitFocusedPanelStatus";
 import {
+  createCockpitFocusedPanelControls
+} from "./cockpitFocusedPanelControls";
+import {
   canDeployPlanningDraft,
   evaluatePlanningReadiness,
   normalizePlanningDraft,
@@ -777,7 +780,10 @@ export function App() {
                   </div>
                   <div className="toolbar-status">
                     <LayoutCapacitySignal capacity={cockpitLayoutCapacity} />
-                    <FocusedPanelStatusChip status={cockpitFocusedPanelStatus} />
+                    <FocusedPanelStatusChip
+                      onClearFocus={() => setFocusedPanelId(undefined)}
+                      status={cockpitFocusedPanelStatus}
+                    />
                     <PanelRosterSignal roster={cockpitPanelRoster} />
                     <PanelOverflowSignal overflow={cockpitPanelOverflow} />
                     <div className="run-chip">
@@ -1105,18 +1111,35 @@ function LayoutCapacitySignal({ capacity }: { capacity: CockpitLayoutCapacity })
   );
 }
 
-function FocusedPanelStatusChip({ status }: { status: CockpitFocusedPanelStatus }) {
+function FocusedPanelStatusChip({
+  onClearFocus,
+  status
+}: {
+  onClearFocus: () => void;
+  status: CockpitFocusedPanelStatus;
+}) {
+  const controls = createCockpitFocusedPanelControls(status);
+
   return (
     <div
       aria-label={`Focused panel status: ${status.label}. ${status.detail}`}
       className={classNames("focused-panel-chip", `focused-panel-${status.tone}`)}
-      title={status.detail}
+      title={controls.statusTitle}
     >
       <CircleDot size={14} />
       <div>
         <strong>{status.label}</strong>
         <small>{status.detail}</small>
       </div>
+      <button
+        aria-label={controls.ariaLabel}
+        disabled={controls.clearDisabled}
+        onClick={onClearFocus}
+        title={controls.clearTitle}
+        type="button"
+      >
+        {controls.clearLabel}
+      </button>
     </div>
   );
 }
