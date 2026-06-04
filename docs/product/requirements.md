@@ -63,6 +63,8 @@
 - Desktop bridge status should default to unavailable or locked unless an approved runtime path explicitly reports readiness.
 - Runtime profile drafts should start disabled with read-only workspace posture and deterministic readiness reasons.
 - The environment panel should show selected runtime profile readiness, transport, workspace posture, capability count, permission count, and safety copy before execution exists.
+- Users should be able to edit and locally persist a runtime profile draft without enabling execution.
+- Saved runtime profile draft state should be repaired to safe defaults when malformed or unavailable.
 
 ## Later Functional Scope
 
@@ -88,6 +90,7 @@
 - Runtime integration wizard for adding or testing a configured model/provider adapter.
 - Runtime profile editor for configuring provider-neutral transports, commands, permissions, and capabilities before launch approval.
 - Runtime profile catalog management with project/adapter mapping, review states, and disabled-by-default local process drafts.
+- Runtime profile drafts should graduate into approved runtime profiles only through an explicit permission and launch approval flow.
 
 ## UX Requirements
 

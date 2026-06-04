@@ -81,15 +81,22 @@ import {
   type RuntimeAdapter
 } from "./runtime";
 import {
+  createBlankRuntimeProfile,
   evaluateRuntimeProfileReadiness,
+  type RuntimeTransport,
   type RuntimeProfile,
-  type RuntimeProfileReadiness
+  type RuntimeProfileReadiness,
+  type RuntimeWorkspaceMode
 } from "./runtimeProfile";
 import {
   runtimeProfiles,
   selectRuntimeProfileForAdapter,
   summarizeRuntimeProfiles
 } from "./runtimeProfileCatalog";
+import {
+  loadRuntimeProfileDraft,
+  saveRuntimeProfileDraft
+} from "./runtimeProfileDraftStorage";
 import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
@@ -229,9 +236,22 @@ const streamStateLabels: Record<RuntimeStreamPlaybackState, string> = {
 };
 
 const streamIntervalMs = 1100;
+const runtimeTransportOptions: RuntimeTransport[] = ["local-process", "remote-endpoint", "mock"];
+const runtimeWorkspaceModeOptions: RuntimeWorkspaceMode[] = ["read-only", "read-write", "isolated"];
 
 function classNames(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
+}
+
+function parseRuntimeProfileList(value: string): string[] {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+function formatRuntimeProfileList(values: string[]): string {
+  return values.join(", ");
 }
 
 function formatTimestamp(value: string): string {
@@ -1048,6 +1068,9 @@ function RightPanel({
   const [desktopBridgeStatus, setDesktopBridgeStatus] = useState<DesktopRuntimeBridgeStatus>(
     () => getFallbackDesktopRuntimeBridgeStatus()
   );
+  const [runtimeProfileDraft, setRuntimeProfileDraft] = useState<RuntimeProfile>(() =>
+    loadRuntimeProfileDraft(createBlankRuntimeProfile({ adapterId: runtimeAdapter?.id ?? project.id }))
+  );
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
@@ -1127,6 +1150,10 @@ function RightPanel({
         : undefined,
     [selectedRuntimeProfile]
   );
+  const runtimeProfileDraftReadiness = useMemo(
+    () => evaluateRuntimeProfileReadiness(runtimeProfileDraft),
+    [runtimeProfileDraft]
+  );
   const canStartStream =
     Boolean(selectedRun) &&
     runtimeIngestionEvents.length > 0 &&
@@ -1170,6 +1197,10 @@ function RightPanel({
   useEffect(() => {
     saveRuntimeExecutionAuditHistory(executionAuditHistory);
   }, [executionAuditHistory]);
+
+  useEffect(() => {
+    saveRuntimeProfileDraft(runtimeProfileDraft);
+  }, [runtimeProfileDraft]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1238,6 +1269,21 @@ function RightPanel({
 
     setExecutionAuditHistory((current) => appendRuntimeExecutionAuditRecord(current, record));
     updateLaunchApprovalIntent(nextIntent);
+  }
+
+  function updateRuntimeProfileDraft(nextDraft: Partial<RuntimeProfile>) {
+    setRuntimeProfileDraft((current) => ({
+      ...current,
+      ...nextDraft
+    }));
+  }
+
+  function resetRuntimeProfileDraft() {
+    setRuntimeProfileDraft(
+      createBlankRuntimeProfile({
+        adapterId: runtimeAdapter?.id ?? project.id
+      })
+    );
   }
 
   return (
@@ -1435,6 +1481,10 @@ function RightPanel({
       </section>
 
       <RuntimeProfilePanel
+        draft={runtimeProfileDraft}
+        draftReadiness={runtimeProfileDraftReadiness}
+        onDraftChange={updateRuntimeProfileDraft}
+        onResetDraft={resetRuntimeProfileDraft}
         profile={selectedRuntimeProfile}
         readiness={selectedRuntimeProfileReadiness}
         summary={runtimeProfileSummary}
@@ -1602,10 +1652,18 @@ function RightPanel({
 }
 
 function RuntimeProfilePanel({
+  draft,
+  draftReadiness,
+  onDraftChange,
+  onResetDraft,
   profile,
   readiness,
   summary
 }: {
+  draft: RuntimeProfile;
+  draftReadiness: RuntimeProfileReadiness;
+  onDraftChange: (nextDraft: Partial<RuntimeProfile>) => void;
+  onResetDraft: () => void;
   profile?: RuntimeProfile;
   readiness?: RuntimeProfileReadiness;
   summary: ReturnType<typeof summarizeRuntimeProfiles>;
@@ -1678,6 +1736,122 @@ function RuntimeProfilePanel({
       ) : (
         <p className="empty-preview">Add a runtime profile to review setup readiness.</p>
       )}
+
+      <div className="runtime-profile-draft" aria-label="Editable runtime profile draft">
+        <div className="runtime-profile-draft-header">
+          <span className={classNames("runtime-profile-state", `runtime-profile-${draftReadiness.state}`)}>
+            <span aria-hidden="true" />
+            {draftReadiness.state}
+          </span>
+          <strong>Draft</strong>
+          <button aria-label="Reset runtime profile draft" onClick={onResetDraft} title="Reset draft" type="button">
+            <RotateCcw size={13} />
+            <span>Reset</span>
+          </button>
+        </div>
+
+        <div className="runtime-profile-form">
+          <label>
+            <span>Label</span>
+            <input
+              aria-label="Runtime profile draft label"
+              onChange={(event) => onDraftChange({ label: event.currentTarget.value })}
+              value={draft.label}
+            />
+          </label>
+          <label>
+            <span>Adapter</span>
+            <input
+              aria-label="Runtime profile draft adapter id"
+              onChange={(event) => onDraftChange({ adapterId: event.currentTarget.value })}
+              value={draft.adapterId}
+            />
+          </label>
+          <label>
+            <span>Transport</span>
+            <select
+              aria-label="Runtime profile draft transport"
+              onChange={(event) =>
+                onDraftChange({ transport: event.currentTarget.value as RuntimeTransport })
+              }
+              value={draft.transport}
+            >
+              {runtimeTransportOptions.map((transport) => (
+                <option key={transport} value={transport}>
+                  {transport}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Workspace</span>
+            <select
+              aria-label="Runtime profile draft workspace mode"
+              onChange={(event) =>
+                onDraftChange({ workspaceMode: event.currentTarget.value as RuntimeWorkspaceMode })
+              }
+              value={draft.workspaceMode}
+            >
+              {runtimeWorkspaceModeOptions.map((workspaceMode) => (
+                <option key={workspaceMode} value={workspaceMode}>
+                  {workspaceMode}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="runtime-profile-form-full">
+            <span>Command</span>
+            <input
+              aria-label="Runtime profile draft command"
+              onChange={(event) => onDraftChange({ command: event.currentTarget.value })}
+              value={draft.command}
+            />
+          </label>
+          <label className="runtime-profile-form-full">
+            <span>Capabilities</span>
+            <input
+              aria-label="Runtime profile draft capabilities"
+              onChange={(event) =>
+                onDraftChange({ capabilities: parseRuntimeProfileList(event.currentTarget.value) })
+              }
+              value={formatRuntimeProfileList(draft.capabilities)}
+            />
+          </label>
+          <label className="runtime-profile-form-full">
+            <span>Permissions</span>
+            <input
+              aria-label="Runtime profile draft required permissions"
+              onChange={(event) =>
+                onDraftChange({ requiredPermissions: parseRuntimeProfileList(event.currentTarget.value) })
+              }
+              value={formatRuntimeProfileList(draft.requiredPermissions)}
+            />
+          </label>
+          <label className="runtime-profile-checkbox">
+            <input
+              aria-label="Enable runtime profile draft"
+              checked={draft.enabled}
+              onChange={(event) => onDraftChange({ enabled: event.currentTarget.checked })}
+              type="checkbox"
+            />
+            <span>Enabled</span>
+          </label>
+        </div>
+
+        {draftReadiness.reasons.length > 0 ? (
+          <ul className="runtime-profile-reasons" aria-label="Runtime profile draft readiness reasons">
+            {draftReadiness.reasons.slice(0, 3).map((reason) => (
+              <li key={reason} title={reason}>
+                {reason}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="runtime-profile-ready-copy">Draft is ready for a future approval flow.</p>
+        )}
+
+        <small title={draftReadiness.safety}>{draftReadiness.safety}</small>
+      </div>
     </section>
   );
 }
