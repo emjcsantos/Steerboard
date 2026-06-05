@@ -121,6 +121,9 @@ import {
   type CodexPanelTurnResultPayload
 } from "./codexSession";
 import {
+  buildCodexSessionControls
+} from "./codexSessionControls";
+import {
   loadPanelSessionState,
   savePanelSessionState,
   upsertPanelSession,
@@ -648,6 +651,26 @@ interface CodexPanelSessionStartPayload {
   sessionId: string;
   threadId: string;
   started: boolean;
+  detail: string;
+}
+
+interface CodexPanelInterruptResultPayload {
+  source: string;
+  panelId: string | null;
+  sessionId: string | null;
+  threadId: string | null;
+  turnId: string | null;
+  interrupted: boolean;
+  detail: string;
+}
+
+interface CodexPanelSteerResultPayload {
+  source: string;
+  panelId: string | null;
+  sessionId: string | null;
+  threadId: string | null;
+  turnId: string | null;
+  steered: boolean;
   detail: string;
 }
 
@@ -1569,6 +1592,7 @@ function SessionCell({
     loadPanelChatMessages(session)
   );
   const [draftMessage, setDraftMessage] = useState("");
+  const [lastLivePrompt, setLastLivePrompt] = useState("");
   const restoredSessionAvailable = Boolean(
     liveCodexEnabled &&
       panelSessionRecord &&
@@ -1591,7 +1615,25 @@ function SessionCell({
     [draftMessage]
   );
   const canUseLiveCodex = liveCodexEnabled && hasDesktopRuntime();
-  const liveChatBusy = liveChatStatus === "starting" || liveChatStatus === "running";
+  const liveChatStarting = liveChatStatus === "starting";
+  const liveChatRunning = liveChatStatus === "running";
+  const liveChatBusy = liveChatStarting || liveChatRunning;
+  const liveControlSnapshot = useMemo(
+    () =>
+      buildCodexSessionControls({
+        sessionStatus: liveChatStatus,
+        liveTransportAvailable: canUseLiveCodex,
+        activeTurn: {
+          status: liveChatStarting ? "starting" : liveChatRunning ? "streaming" : liveChatStatus
+        },
+        lastUserPrompt: lastLivePrompt,
+        draftText: draftMessage
+      }),
+    [canUseLiveCodex, draftMessage, lastLivePrompt, liveChatRunning, liveChatStarting, liveChatStatus]
+  );
+  const canInterruptLiveTurn = liveControlSnapshot.interrupt.state === "live";
+  const canRetryLiveTurn =
+    liveControlSnapshot.retry.state === "live" && !liveChatBusy;
   const composerStatusLabel = canUseLiveCodex
     ? liveChatStatus === "idle"
       ? "Codex live ready"
@@ -1609,6 +1651,7 @@ function SessionCell({
   useEffect(() => {
     setChatMessages(loadPanelChatMessages(session));
     setDraftMessage("");
+    setLastLivePrompt("");
     const restored = Boolean(
       liveCodexEnabled &&
         panelSessionRecord &&
@@ -1657,6 +1700,173 @@ function SessionCell({
     }
   }
 
+  async function sendLivePanelPrompt(trimmedMessage: string, mode: "send" | "retry" = "send") {
+    const sequence = chatMessages.length;
+    const pendingMessage = createPanelLiveStatusMessage(
+      session,
+      sequence + 1,
+      mode === "retry" ? "Retrying with live Codex..." : "Sending to live Codex...",
+      "running"
+    );
+
+    setLastLivePrompt(trimmedMessage);
+    setChatMessages((currentMessages) => [
+      ...currentMessages,
+      {
+        id: `${session.id}:user:${currentMessages.length}`,
+        role: "user",
+        label: "You",
+        body: trimmedMessage,
+        meta: mode === "retry" ? "retry" : "live"
+      },
+      pendingMessage
+    ]);
+    setDraftMessage("");
+
+    try {
+      await ensureLivePanelSession();
+      setLiveChatStatus("running");
+      setLiveChatDetail("Codex turn is running.");
+      const result = await invokeDesktopCommand<CodexPanelTurnResultPayload>(
+        mode === "retry" ? "codex_panel_session_retry" : "codex_panel_session_send_turn",
+        { panelId: session.id, prompt: trimmedMessage }
+      );
+      const state = reduceCodexSessionEvents(
+        normalizeCodexPanelTurnResultEvents(result, trimmedMessage)
+      );
+      const nextMessages = codexSessionStateToPanelMessages(session, state, sequence + 2);
+      const statusMessages = result.failed || result.interrupted || nextMessages.length === 0
+        ? [
+            result.failed
+              ? createPanelLiveErrorMessage(
+                  session,
+                  sequence + 2,
+                  result.detail || "Codex did not return a live response."
+                )
+              : createPanelLiveStatusMessage(
+                  session,
+                  sequence + 2,
+                  result.detail || "Codex turn ended without a live response.",
+                  result.interrupted ? "interrupted" : "live codex"
+                )
+          ]
+        : [];
+
+      setLiveChatStatus(
+        result.failed
+          ? "failed"
+          : result.interrupted
+            ? "interrupted"
+            : result.completed
+              ? "completed"
+              : "failed"
+      );
+      setLiveChatDetail(result.detail);
+      onPanelSessionStatus?.(
+        session.id,
+        result.failed ? "error" : result.interrupted ? "idle" : "active",
+        result.detail
+      );
+      setChatMessages((currentMessages) => [
+        ...currentMessages.filter((message) => message.id !== pendingMessage.id),
+        ...nextMessages,
+        ...statusMessages
+      ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setLiveChatStatus("failed");
+      setLiveChatDetail(message);
+      onPanelSessionStatus?.(session.id, "error", message);
+      setChatMessages((currentMessages) => [
+        ...currentMessages.filter((item) => item.id !== pendingMessage.id),
+        createPanelLiveErrorMessage(session, sequence + 2, message)
+      ]);
+    }
+  }
+
+  async function handleInterruptLiveTurn() {
+    if (!canInterruptLiveTurn) {
+      return;
+    }
+
+    try {
+      const result = await invokeDesktopCommand<CodexPanelInterruptResultPayload>(
+        "codex_panel_session_interrupt",
+        { panelId: session.id }
+      );
+      setLiveChatDetail(result.detail);
+      if (result.interrupted) {
+        setLiveChatStatus("interrupted");
+        onPanelSessionStatus?.(session.id, "idle", result.detail);
+      }
+      setChatMessages((currentMessages) => [
+        ...currentMessages,
+        createPanelLiveStatusMessage(
+          session,
+          currentMessages.length,
+          result.detail,
+          result.interrupted ? "interrupted" : "unsupported"
+        )
+      ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setLiveChatStatus("failed");
+      setLiveChatDetail(message);
+      onPanelSessionStatus?.(session.id, "error", message);
+      setChatMessages((currentMessages) => [
+        ...currentMessages,
+        createPanelLiveErrorMessage(session, currentMessages.length, message)
+      ]);
+    }
+  }
+
+  async function handleSteerLiveTurn(trimmedMessage: string) {
+    if (!canUseLiveCodex || !liveChatRunning || !trimmedMessage) {
+      return;
+    }
+
+    try {
+      setDraftMessage("");
+      const result = await invokeDesktopCommand<CodexPanelSteerResultPayload>(
+        "codex_panel_session_steer",
+        { panelId: session.id, message: trimmedMessage }
+      );
+      setLiveChatDetail(result.detail);
+      setChatMessages((currentMessages) => [
+        ...currentMessages,
+        {
+          id: `${session.id}:user:${currentMessages.length}`,
+          role: "user",
+          label: "You",
+          body: trimmedMessage,
+          meta: result.steered ? "steer" : "not steered"
+        },
+        createPanelLiveStatusMessage(
+          session,
+          currentMessages.length + 1,
+          result.detail,
+          result.steered ? "steer" : "unsupported"
+        )
+      ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setLiveChatDetail(message);
+      setChatMessages((currentMessages) => [
+        ...currentMessages,
+        createPanelLiveErrorMessage(session, currentMessages.length, message)
+      ]);
+    }
+  }
+
+  async function handleRetryLiveTurn() {
+    const prompt = lastLivePrompt.trim();
+    if (!canRetryLiveTurn || !prompt) {
+      return;
+    }
+
+    await sendLivePanelPrompt(prompt, "retry");
+  }
+
   async function handlePanelChatSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmedMessage = draftMessage.trim();
@@ -1666,85 +1876,10 @@ function SessionCell({
     }
 
     if (canUseLiveCodex) {
-      const sequence = chatMessages.length;
-      const pendingMessage = createPanelLiveStatusMessage(
-        session,
-        sequence + 1,
-        "Sending to live Codex...",
-        "running"
-      );
-
-      setChatMessages((currentMessages) => [
-        ...currentMessages,
-        {
-          id: `${session.id}:user:${currentMessages.length}`,
-          role: "user",
-          label: "You",
-          body: trimmedMessage,
-          meta: "live"
-        },
-        pendingMessage
-      ]);
-      setDraftMessage("");
-
-      try {
-        await ensureLivePanelSession();
-        setLiveChatStatus("running");
-        setLiveChatDetail("Codex turn is running.");
-        const result = await invokeDesktopCommand<CodexPanelTurnResultPayload>(
-          "codex_panel_session_send_turn",
-          { panelId: session.id, prompt: trimmedMessage }
-        );
-        const state = reduceCodexSessionEvents(
-          normalizeCodexPanelTurnResultEvents(result, trimmedMessage)
-        );
-        const nextMessages = codexSessionStateToPanelMessages(session, state, sequence + 2);
-        const statusMessages = result.failed || result.interrupted || nextMessages.length === 0
-          ? [
-              result.failed
-                ? createPanelLiveErrorMessage(
-                    session,
-                    sequence + 2,
-                    result.detail || "Codex did not return a live response."
-                  )
-                : createPanelLiveStatusMessage(
-                    session,
-                    sequence + 2,
-                    result.detail || "Codex turn ended without a live response.",
-                    result.interrupted ? "interrupted" : "live codex"
-                  )
-            ]
-          : [];
-
-        setLiveChatStatus(
-          result.failed
-            ? "failed"
-            : result.interrupted
-              ? "interrupted"
-              : result.completed
-                ? "completed"
-                : "failed"
-        );
-        setLiveChatDetail(result.detail);
-        onPanelSessionStatus?.(
-          session.id,
-          result.failed ? "error" : result.interrupted ? "idle" : "active",
-          result.detail
-        );
-        setChatMessages((currentMessages) => [
-          ...currentMessages.filter((message) => message.id !== pendingMessage.id),
-          ...nextMessages,
-          ...statusMessages
-        ]);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        setLiveChatStatus("failed");
-        setLiveChatDetail(message);
-        onPanelSessionStatus?.(session.id, "error", message);
-        setChatMessages((currentMessages) => [
-          ...currentMessages.filter((item) => item.id !== pendingMessage.id),
-          createPanelLiveErrorMessage(session, sequence + 2, message)
-        ]);
+      if (liveChatRunning) {
+        await handleSteerLiveTurn(trimmedMessage);
+      } else {
+        await sendLivePanelPrompt(trimmedMessage);
       }
       return;
     }
@@ -1830,7 +1965,7 @@ function SessionCell({
           </button>
           <textarea
             aria-label={`Message ${identity.title}`}
-            disabled={liveChatBusy}
+            disabled={liveChatStarting}
             onChange={(event) => setDraftMessage(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
@@ -1861,13 +1996,60 @@ function SessionCell({
             <span className={classNames("composer-status", `composer-status-${liveChatStatus}`)} title={liveChatDetail}>
               {composerStatusLabel}
             </span>
+            <button
+              aria-label={`Interrupt ${identity.title}`}
+              className="session-control-button"
+              disabled={!canInterruptLiveTurn}
+              onClick={handleInterruptLiveTurn}
+              title={liveControlSnapshot.interrupt.reason}
+              type="button"
+            >
+              <Pause size={15} />
+            </button>
+            <button
+              aria-label={`Retry last prompt in ${identity.title}`}
+              className="session-control-button"
+              disabled={!canRetryLiveTurn}
+              onClick={handleRetryLiveTurn}
+              title={liveControlSnapshot.retry.reason}
+              type="button"
+            >
+              <RotateCcw size={15} />
+            </button>
+            <button
+              aria-label={`Fork ${identity.title}`}
+              className="session-control-button is-unsupported"
+              disabled
+              title={liveControlSnapshot.fork.reason}
+              type="button"
+            >
+              <GitBranch size={15} />
+            </button>
+            <button
+              aria-label={`Resume ${identity.title}`}
+              className="session-control-button is-unsupported"
+              disabled
+              title={liveControlSnapshot.resume.reason}
+              type="button"
+            >
+              <Play size={15} />
+            </button>
+            <button
+              aria-label={`Archive ${identity.title}`}
+              className="session-control-button is-unsupported"
+              disabled
+              title={liveControlSnapshot.archive.reason}
+              type="button"
+            >
+              <Folder size={15} />
+            </button>
             <button aria-label="Open lane options" title="Lane options" type="button">
               <MoreHorizontal size={15} />
             </button>
             <button
               aria-label={`Send message to ${identity.title}`}
-              disabled={draftMessage.trim().length === 0 || liveChatBusy}
-              title="Send"
+              disabled={draftMessage.trim().length === 0 || liveChatStarting}
+              title={liveChatRunning ? liveControlSnapshot.steer.reason : "Send"}
               type="submit"
             >
               <Send size={15} />

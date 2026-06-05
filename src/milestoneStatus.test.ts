@@ -211,12 +211,12 @@ describe("milestone status model", () => {
 
     expect(runtimeAdapters?.completion).toBe("In progress");
     expect(runtimeAdapters?.tone).toBe("active");
-    expect(runtimeAdapters?.completionPercent).toBe(45);
+    expect(runtimeAdapters?.completionPercent).toBe(50);
     expect(runtimeAdapters?.latestNote).toBe(
-      "Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, and stream-routing foundations exist."
+      "Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, stream routing, and control capability foundations exist."
     );
     expect(runtimeAdapters?.nextStep).toBe(
-      "Connect routed stream state to richer monitor surfaces."
+      "Connect routed stream and control state to richer monitor surfaces."
     );
   });
 
@@ -227,10 +227,10 @@ describe("milestone status model", () => {
 
     expect(liveCodex?.completion).toBe("In progress");
     expect(liveCodex?.tone).toBe("active");
-    expect(liveCodex?.completionPercent).toBe(35);
+    expect(liveCodex?.completionPercent).toBe(42);
     expect(liveCodex?.current).toBe(true);
     expect(liveCodex?.nextStep).toBe(
-      "Run native two-panel smoke, then add session controls."
+      "Run native two-panel smoke and live-control smoke, then start slash command capability work."
     );
   });
 
@@ -254,10 +254,10 @@ describe("milestone status model", () => {
       active: 7,
       planned: 1,
       paused: 1,
-      averageCompletionPercent: 32,
+      averageCompletionPercent: 34,
       nextTarget: "Live Codex integration",
-      nextStep: "Run native two-panel smoke, then add session controls.",
-      nextCompletionPercent: 35
+      nextStep: "Run native two-panel smoke and live-control smoke, then start slash command capability work.",
+      nextCompletionPercent: 42
     });
   });
 

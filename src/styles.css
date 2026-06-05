@@ -1721,7 +1721,7 @@ textarea {
 
 .chat-composer {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) auto;
+  grid-template-columns: 30px minmax(0, 1fr);
   align-items: end;
   gap: 8px;
   width: 100%;
@@ -1784,16 +1784,24 @@ textarea {
 
 .chat-composer-meta {
   display: inline-flex;
-  grid-column: 3;
-  grid-row: 1;
+  grid-column: 1 / -1;
+  grid-row: 2;
   align-items: center;
+  flex-wrap: wrap;
   gap: 5px;
+  justify-content: flex-end;
+  min-width: 0;
+  border-top: 1px solid #303743;
+  padding-top: 6px;
 }
 
 .chat-composer-meta span {
+  max-width: 112px;
   color: #a66a43;
   font-size: 10px;
   font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -1815,13 +1823,35 @@ textarea {
   color: #ff9e85;
 }
 
+.chat-composer button.session-control-button {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #343d49;
+  background: #171d24;
+  color: #9aa6b2;
+}
+
+.chat-composer button.session-control-button:hover:not(:disabled),
+.chat-composer button.session-control-button:focus-visible {
+  border-color: #42627a;
+  background: #1c2933;
+  color: #8bd7f4;
+}
+
+.chat-composer button.session-control-button:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.chat-composer button.session-control-button.is-unsupported {
+  border-style: dashed;
+}
+
 .slash-command-menu {
   display: grid;
-  grid-column: 2 / -1;
-  grid-row: 2;
+  grid-column: 1 / -1;
+  grid-row: 3;
   gap: 4px;
-  border-top: 1px solid #303743;
-  padding-top: 6px;
 }
 
 .slash-command-menu button {

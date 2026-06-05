@@ -42,11 +42,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Cockpit monitor and operating modes",
     completion: "In progress",
     plan: "Complete core cockpit panels, control affordances, and visible operating-mode cues.",
-    completionPercent: 55,
+    completionPercent: 58,
     latestNote:
-      "Multi-panel cockpit and local chat-lane scaffold exist; visible panels can use panel-keyed live Codex chat, with native two-panel smoke still pending.",
+      "Multi-panel cockpit and local chat-lane scaffold exist; visible panels can use panel-keyed live Codex chat and per-panel session controls, with native two-panel smoke still pending.",
     nextStep:
-      "Run native two-panel smoke and harden session controls.",
+      "Run native two-panel smoke and live-control smoke, then continue command capability work.",
     tone: "active",
     note:
       "Cockpit layouts, local monitor previews, and chat-lane scaffolding exist, but live provider-backed behavior is not complete."
@@ -68,11 +68,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Runtime adapter previews",
     completion: "In progress",
     plan: "Deliver and stabilize adapter surfaces for consistent runtime status intake.",
-    completionPercent: 45,
+    completionPercent: 50,
     latestNote:
-      "Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, and stream-routing foundations exist.",
+      "Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, stream routing, and control capability foundations exist.",
     nextStep:
-      "Connect routed stream state to richer monitor surfaces.",
+      "Connect routed stream and control state to richer monitor surfaces.",
     tone: "active",
     note:
       "Provider-neutral profile, bridge, permission, launch, and evidence previews exist as locked local scaffolds."
@@ -81,11 +81,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Live Codex integration",
     completion: "In progress",
     plan: "Connect real Codex auth/session transport to cockpit panels.",
-    completionPercent: 35,
+    completionPercent: 42,
     latestNote:
-      "Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, and visible-panel live chat paths.",
+      "Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations.",
     nextStep:
-      "Run native two-panel smoke, then add session controls.",
+      "Run native two-panel smoke and live-control smoke, then start slash command capability work.",
     current: true,
     tone: "active",
     note:

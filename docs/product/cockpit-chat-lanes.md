@@ -17,9 +17,11 @@ The current implementation supports a first live-panel milestone:
 - the live panel starts an explicit ephemeral read-only session only after the user submits a message,
 - the panel renders normalized assistant output, completion, interruption, and error states,
 - panel session metadata is keyed by cockpit panel ID so hidden/revealed panels can preserve identity,
+- each panel exposes compact live session controls for interrupt, retry, and steering when supported,
+- fork, resume, and archive controls remain visible as honest unsupported states until the adapter exposes those capabilities,
 - passive readiness checks must not send prompts or spend model tokens.
 
-This is still an early live milestone. Multi-panel state and event isolation now have foundations, while native two-panel smoke, true incremental UI streaming, richer session controls, and provider catalogs remain future milestones.
+This is still an early live milestone. Multi-panel state, event isolation, and session-control foundations now exist, while native two-panel smoke, live control smoke, true incremental UI streaming, fork/resume/archive support, and provider catalogs remain future milestones.
 
 The next live milestone is to connect panel chat to the provider adapter layer:
 

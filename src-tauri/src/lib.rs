@@ -172,6 +172,18 @@ pub struct CodexPanelInterruptResult {
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CodexPanelSteerResult {
+    pub source: String,
+    pub panel_id: Option<String>,
+    pub session_id: Option<String>,
+    pub thread_id: Option<String>,
+    pub turn_id: Option<String>,
+    pub steered: bool,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CodexPanelCloseResult {
     pub source: String,
     pub panel_id: Option<String>,
@@ -184,7 +196,7 @@ mod runtime_bridge {
         CodexAppServerProbe, CodexAppServerProtocolProbe, CodexCliProbe, CodexExecJsonProbe,
         CodexExecutionProbe, CodexHomeProbe, CodexLiveSmokeProof, CodexPanelCloseResult,
         CodexPanelEvent, CodexPanelInterruptResult, CodexPanelSessionReadiness,
-        CodexPanelSessionStart, CodexPanelTurnResult, CodexTransportProbe,
+        CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelTurnResult, CodexTransportProbe,
         PermissionApprovalStatus, RuntimeBridgeStatus,
     };
     use serde_json::Value;
@@ -376,6 +388,14 @@ mod runtime_bridge {
     }
 
     #[tauri::command]
+    pub fn codex_panel_session_retry(
+        panel_id: Option<String>,
+        prompt: String,
+    ) -> Result<CodexPanelTurnResult, String> {
+        codex_panel_session_send_turn(panel_id, prompt)
+    }
+
+    #[tauri::command]
     pub fn codex_panel_session_interrupt(
         panel_id: Option<String>,
     ) -> Result<CodexPanelInterruptResult, String> {
@@ -393,6 +413,32 @@ mod runtime_bridge {
         };
 
         interrupt_panel_turn(&session)
+    }
+
+    #[tauri::command]
+    pub fn codex_panel_session_steer(
+        panel_id: Option<String>,
+        message: String,
+    ) -> Result<CodexPanelSteerResult, String> {
+        let panel_id = panel_session_key(panel_id);
+        let message = message.trim().to_string();
+        if message.is_empty() {
+            return Err("Steer message is required.".to_string());
+        }
+
+        let Some(session) = get_panel_session(&panel_id)? else {
+            return Ok(CodexPanelSteerResult {
+                source: "desktop".to_string(),
+                panel_id: Some(panel_id),
+                session_id: None,
+                thread_id: None,
+                turn_id: None,
+                steered: false,
+                detail: "No Codex panel session is active.".to_string(),
+            });
+        };
+
+        steer_panel_turn(&session, message)
     }
 
     #[tauri::command]
@@ -1107,6 +1153,62 @@ mod runtime_bridge {
         })
     }
 
+    fn steer_panel_turn(
+        session: &Arc<CodexPanelSession>,
+        message: String,
+    ) -> Result<CodexPanelSteerResult, String> {
+        let turn_id = session
+            .current_turn_id
+            .lock()
+            .map_err(|_| "Codex panel turn state lock was poisoned.".to_string())?
+            .clone();
+        let Some(turn_id) = turn_id.filter(|value| value != "starting") else {
+            return Ok(CodexPanelSteerResult {
+                source: "desktop".to_string(),
+                panel_id: Some(session.panel_id.clone()),
+                session_id: Some(session.session_id.clone()),
+                thread_id: Some(session.thread_id.clone()),
+                turn_id: None,
+                steered: false,
+                detail: "No active Codex panel turn is steerable.".to_string(),
+            });
+        };
+
+        let request_id = session.next_request_id();
+        let steer = steer_request(request_id, &session.thread_id, &turn_id, &message);
+        if !session.send(&steer)? {
+            return Err("Unable to write turn/steer request.".to_string());
+        }
+
+        Ok(CodexPanelSteerResult {
+            source: "desktop".to_string(),
+            panel_id: Some(session.panel_id.clone()),
+            session_id: Some(session.session_id.clone()),
+            thread_id: Some(session.thread_id.clone()),
+            turn_id: Some(turn_id),
+            steered: true,
+            detail: "Sent turn/steer to Codex app-server.".to_string(),
+        })
+    }
+
+    pub(crate) fn steer_request(id: i64, thread_id: &str, turn_id: &str, message: &str) -> Value {
+        serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": id,
+            "method": "turn/steer",
+            "params": {
+                "threadId": thread_id,
+                "expectedTurnId": turn_id,
+                "input": [
+                    {
+                        "type": "text",
+                        "text": message
+                    }
+                ]
+            }
+        })
+    }
+
     impl CodexPanelSession {
         fn next_request_id(&self) -> i64 {
             self.next_id.fetch_add(1, Ordering::SeqCst)
@@ -1439,7 +1541,9 @@ pub fn run() {
             runtime_bridge::codex_panel_session_readiness,
             runtime_bridge::codex_panel_session_start,
             runtime_bridge::codex_panel_session_send_turn,
+            runtime_bridge::codex_panel_session_retry,
             runtime_bridge::codex_panel_session_interrupt,
+            runtime_bridge::codex_panel_session_steer,
             runtime_bridge::codex_panel_session_close
         ])
         .run(tauri::generate_context!())
@@ -1538,6 +1642,35 @@ mod tests {
             runtime_bridge::panel_session_key(Some("   ".to_string())),
             "default"
         );
+    }
+
+    #[test]
+    fn panel_steer_request_uses_expected_turn_id_precondition() {
+        let request = runtime_bridge::steer_request(9, "thread-a", "turn-a", "Narrow the answer.");
+        assert_eq!(
+            request.get("method").and_then(serde_json::Value::as_str),
+            Some("turn/steer")
+        );
+        assert_eq!(
+            request.get("id").and_then(serde_json::Value::as_i64),
+            Some(9)
+        );
+        let params = request
+            .get("params")
+            .and_then(serde_json::Value::as_object)
+            .expect("params should be present");
+        assert_eq!(
+            params.get("threadId").and_then(serde_json::Value::as_str),
+            Some("thread-a")
+        );
+        assert_eq!(
+            params
+                .get("expectedTurnId")
+                .and_then(serde_json::Value::as_str),
+            Some("turn-a")
+        );
+        assert!(params.get("turnId").is_none());
+        assert!(request.to_string().contains("Narrow the answer."));
     }
 
     #[test]
