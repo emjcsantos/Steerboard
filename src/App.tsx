@@ -90,6 +90,9 @@ import {
   createMilestoneReportRowState
 } from "./milestoneReportRowState";
 import {
+  createMilestoneReportNextDetail
+} from "./milestoneReportNextDetail";
+import {
   createCockpitPanelPriority,
   type CockpitPanelPriority
 } from "./cockpitPanelPriority";
@@ -1619,6 +1622,8 @@ function MilestoneStatusPanel({
   milestones: readonly MilestoneStatus[];
   summary: MilestoneStatusSummary;
 }) {
+  const nextDetail = createMilestoneReportNextDetail(milestones, summary);
+
   return (
     <section className="panel-section milestone-status-panel">
       <div className="milestone-status-header">
@@ -1650,6 +1655,34 @@ function MilestoneStatusPanel({
           <span title={`${summary.active} in progress`}>{summary.active} active</span>
           <span title={`${summary.paused} paused`}>{summary.paused} paused</span>
         </div>
+      </div>
+      <div
+        aria-label={nextDetail.ariaLabel}
+        className={classNames(
+          "milestone-next-detail",
+          !nextDetail.hasNext && "is-empty"
+        )}
+        title={nextDetail.title}
+      >
+        <div className="milestone-next-detail-header">
+          <span>Current next</span>
+          <strong title={nextDetail.target}>{nextDetail.target}</strong>
+          <b>{nextDetail.completionLabel}</b>
+        </div>
+        <dl>
+          <div>
+            <dt>Plan</dt>
+            <dd title={nextDetail.plan}>{nextDetail.plan}</dd>
+          </div>
+          <div>
+            <dt>Latest</dt>
+            <dd title={nextDetail.latestNote}>{nextDetail.latestNote}</dd>
+          </div>
+          <div>
+            <dt>Next</dt>
+            <dd title={nextDetail.nextStep}>{nextDetail.nextStep}</dd>
+          </div>
+        </dl>
       </div>
       <table className="milestone-status-table" aria-label="Milestone status table">
         <thead>
