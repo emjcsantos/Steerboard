@@ -274,6 +274,10 @@ import {
   type CockpitModeHandoff
 } from "./cockpitModeHandoff";
 import {
+  createCockpitModeHandoffQa,
+  type CockpitModeHandoffQa
+} from "./cockpitModeHandoffQa";
+import {
   createCockpitPanelRoster,
   type CockpitPanelRoster
 } from "./cockpitPanelRoster";
@@ -627,6 +631,16 @@ export function App() {
       ),
     [cockpitSessions.length, layout, mode, visibleSessions.length]
   );
+  const cockpitModeHandoffQa = useMemo(
+    () =>
+      createCockpitModeHandoffQa(
+        cockpitModeHandoff,
+        cockpitLayoutCapacity,
+        cockpitFocusedPanelStatus,
+        cockpitPanelOverflow
+      ),
+    [cockpitFocusedPanelStatus, cockpitLayoutCapacity, cockpitModeHandoff, cockpitPanelOverflow]
+  );
   const activeDraftIndex = Math.min(selectedDraftIndex, Math.max(drafts.length - 1, 0));
   const viewLabel = view === "cockpit" ? "Cockpit" : view === "pipeline" ? "Pipeline" : "Planning";
 
@@ -882,6 +896,7 @@ export function App() {
           <RightPanel
             mode={mode}
             modeHandoff={cockpitModeHandoff}
+            modeHandoffQa={cockpitModeHandoffQa}
             mockRuns={projectMockRuns}
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
@@ -1708,6 +1723,7 @@ function MilestoneStatusPanel({
           <tr>
             <th scope="col">Target</th>
             <th scope="col">Plan</th>
+            <th scope="col">Completion</th>
             <th scope="col">% Completion</th>
             <th scope="col">Latest Note</th>
             <th scope="col">Next Step</th>
@@ -1734,6 +1750,11 @@ function MilestoneStatusPanel({
                   </span>
                 </td>
                 <td title={milestone.plan}>{milestone.plan}</td>
+                <td className="milestone-completion-cell" title={milestone.completion}>
+                  <span className={classNames("milestone-state-pill", `milestone-${milestone.tone}`)}>
+                    {milestone.completion}
+                  </span>
+                </td>
                 <td>
                   <div
                     className="milestone-percent-cell"
@@ -2146,6 +2167,7 @@ function PlanningView({
 function RightPanel({
   mode,
   modeHandoff,
+  modeHandoffQa,
   mockRuns,
   onSelectRun,
   onUpdateRunStatus,
@@ -2164,6 +2186,7 @@ function RightPanel({
   focusedPanelId?: string;
   mode: CockpitMode;
   modeHandoff: CockpitModeHandoff;
+  modeHandoffQa: CockpitModeHandoffQa;
   mockRuns: MockOrchestratorRun[];
   onFocusPanel: (panelId: string | undefined) => void;
   onSelectRun: (runId: string) => void;
@@ -2717,6 +2740,29 @@ function RightPanel({
               <dd title={modeHandoff.preservedLabel}>{modeHandoff.preservedLabel}</dd>
             </div>
           </dl>
+        </div>
+        <div
+          aria-label={modeHandoffQa.ariaLabel}
+          className={classNames("mode-handoff-qa", `mode-handoff-qa-${modeHandoffQa.tone}`)}
+          title={modeHandoffQa.detail}
+        >
+          <div className="mode-handoff-qa-header">
+            <strong>{modeHandoffQa.label}</strong>
+            <b>{modeHandoffQa.checkLabel}</b>
+          </div>
+          <p>{modeHandoffQa.detail}</p>
+          <div className="mode-handoff-qa-checks" aria-label="Mode handoff QA checks">
+            {modeHandoffQa.checks.map((check) => (
+              <span
+                className={classNames("mode-handoff-qa-check", `mode-handoff-qa-check-${check.tone}`)}
+                key={check.label}
+                title={`${check.label}: ${check.value}`}
+              >
+                <strong>{check.value}</strong>
+                <small>{check.label}</small>
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 

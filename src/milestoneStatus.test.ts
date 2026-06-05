@@ -29,6 +29,7 @@ const modelPatterns: RegExp[] = [
 type SnapshotMilestoneRow = {
   target: string;
   plan: string;
+  completion: string;
   completionPercent: number;
   latestNote: string;
   nextStep: string;
@@ -37,7 +38,7 @@ type SnapshotMilestoneRow = {
 function parseSnapshotRows(markdown: string): SnapshotMilestoneRow[] {
   const lines = markdown.split(/\r?\n/);
   const headerIndex = lines.findIndex((line) =>
-    /^\|\s*Target\s*\|\s*Plan\s*\|\s*% Completion\s*\|\s*Latest Note\s*\|\s*Next Step\s*\|\s*$/i.test(
+    /^\|\s*Target\s*\|\s*Plan\s*\|\s*Completion\s*\|\s*% Completion\s*\|\s*Latest Note\s*\|\s*Next Step\s*\|\s*$/i.test(
       line.trim()
     )
   );
@@ -50,7 +51,7 @@ function parseSnapshotRows(markdown: string): SnapshotMilestoneRow[] {
       break;
     }
 
-    if (line === "| --- | --- | --- | --- | --- |") {
+    if (line === "| --- | --- | --- | --- | --- | --- |") {
       continue;
     }
 
@@ -59,12 +60,12 @@ function parseSnapshotRows(markdown: string): SnapshotMilestoneRow[] {
       .split("|")
       .map((column) => column.trim());
 
-    if (columns.length !== 5) {
+    if (columns.length !== 6) {
       break;
     }
 
-    const [target, plan, completionPercent, latestNote, nextStep] = columns;
-    if (!target || !plan || !completionPercent || !latestNote || !nextStep) {
+    const [target, plan, completion, completionPercent, latestNote, nextStep] = columns;
+    if (!target || !plan || !completion || !completionPercent || !latestNote || !nextStep) {
       break;
     }
 
@@ -77,6 +78,7 @@ function parseSnapshotRows(markdown: string): SnapshotMilestoneRow[] {
     rows.push({
       target,
       plan,
+      completion,
       completionPercent: normalizedCompletionPercent,
       latestNote,
       nextStep
@@ -151,11 +153,11 @@ describe("milestone status model", () => {
       active: 2,
       planned: 3,
       paused: 1,
-      averageCompletionPercent: 40,
+      averageCompletionPercent: 41,
       nextTarget: "Cockpit monitor and operating modes",
       nextStep:
-        "Run final operating-mode handoff polish and QA, while preserving toolbar focus/clear behavior stability.",
-      nextCompletionPercent: 70
+        "Run final visual QA and browser interaction verification, while preserving toolbar focus/clear behavior stability.",
+      nextCompletionPercent: 80
     });
   });
 
@@ -172,11 +174,12 @@ describe("milestone status model", () => {
       const columns = [
         row.target,
         row.plan,
+        row.completion,
         String(row.completionPercent),
         row.latestNote,
         row.nextStep
       ];
-      expect(columns).toHaveLength(5);
+      expect(columns).toHaveLength(6);
       expect(columns.every((column) => column.length > 0)).toBe(true);
       expect(row.completionPercent).toBeGreaterThanOrEqual(0);
       expect(row.completionPercent).toBeLessThanOrEqual(100);
@@ -201,6 +204,7 @@ describe("milestone status model", () => {
       const live = liveRowsByTarget.get(snapshotRow.target);
       expect(live).toBeDefined();
       expect(live?.plan).toBe(snapshotRow.plan);
+      expect(live?.completion).toBe(snapshotRow.completion);
       expect(live?.completionPercent).toBe(snapshotRow.completionPercent);
       expect(live?.latestNote).toBe(snapshotRow.latestNote);
       expect(live?.nextStep).toBe(snapshotRow.nextStep);
