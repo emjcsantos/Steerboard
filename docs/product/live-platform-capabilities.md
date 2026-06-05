@@ -19,6 +19,8 @@ The Codex adapter should use the local Codex runtime instead of storing Codex se
 
 - Authentication delegates to Codex login, API-key login, or trusted access-token setup.
 - Session transport uses Codex app-server where available.
+- The first transport spike targets supervised app-server `stdio://` because it can prove local reachability with a no-prompt initialize handshake before any model prompt is sent.
+- Codex CLI `exec --json` is treated as a one-shot fallback, not a replacement for live multi-panel session transport.
 - Thread, turn, item, tool, approval, and stream events are normalized into Steerboard cockpit events.
 - Codex config, plugins, MCP, automations, memories, rules, and slash commands are reflected through adapter APIs rather than hardcoded as static UI.
 
@@ -127,8 +129,8 @@ The cockpit consumes only normalized adapter events. Provider-specific payloads 
 
 | Target | Completion | Note |
 |---|---|---|
-| Connection Center | 0% | Detect runtime, auth method, login state, and safe credential posture. |
-| Codex App-Server Adapter | 0% | Initialize the local app-server, start/resume sessions, and stream normalized events. |
+| Connection Center | 15% | Local transport probe model added; desktop bridge can distinguish browser preview, CLI detection, app-server stdio handshake, and locked prompt execution. |
+| Codex App-Server Adapter | 10% | Transport target selected as supervised app-server stdio; schema proves thread, turn, stream, plugin, MCP, and skills primitives. |
 | Live Panel Chat | 0% | Send real messages and render real streamed panel events. |
 | Slash Command Registry | 0% | Provide command discovery and command execution from the composer. |
 | MCP Manager | 0% | Show configured servers, health, OAuth/setup state, and tool policy. |

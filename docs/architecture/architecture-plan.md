@@ -7,7 +7,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 ### Desktop Shell
 
 - Desktop-first shell.
-- App shell exposes a top-left desktop menu bar with `File`, `Edit`, `View`, `Window`, and `Help`.
+- App shell exposes a restrained top-left desktop menu bar with useful working sections first.
 - `File > Migrate...` opens the migration source picker and category checklist.
 - Tauri-first feasibility spike, with Electron as the fallback if core IDE integrations become slower or riskier in Tauri.
 - Shell-specific code stays behind adapters.
@@ -91,6 +91,8 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Worker adapter for configured implementer and validator profiles.
 - Future adapters for ACP-compatible workers.
 - Codex adapter should be the first live adapter and should delegate authentication to Codex rather than storing Codex secrets in Steerboard.
+- The first Codex transport target is a desktop-gated, supervised `app-server stdio` bridge. Readiness detection can prove CLI availability, protocol schema, and no-prompt initialize handshake before prompt execution is allowed.
+- `codex exec --json` is a fallback for deliberate one-shot work, not the default live cockpit session transport.
 - Live provider adapters should expose session, command, plugin, automation, MCP, personalization, approval, and audit capabilities through one normalized contract.
 - The Codex adapter should expose a read-only default option seed that mirrors Codex plugins, skills, slash commands, MCP servers, and personalization sources from the connected runtime.
 - Source-platform migration adapters should convert supported external settings and integration metadata into Steerboard profiles without copying secrets or mutating the source platform.

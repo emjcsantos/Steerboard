@@ -113,6 +113,14 @@ import {
   type PanelChatMessage
 } from "./panelChat";
 import {
+  decideCodexTransport,
+  getFallbackCodexTransportProbe,
+  loadCodexTransportProbe,
+  type CodexTransportDecision,
+  type CodexTransportProbe,
+  type CodexTransportState
+} from "./codexTransportSpike";
+import {
   steerboardMilestoneStatuses,
   summarizeMilestoneStatuses,
   type MilestoneStatus,
@@ -571,6 +579,41 @@ function formatTimestamp(value: string): string {
   });
 }
 
+function codexNotice(decision: CodexTransportDecision): string {
+  if (decision.state === "live") {
+    return "Codex live transport enabled";
+  }
+
+  if (decision.preferredTransport === "app-server-stdio") {
+    return "Codex stdio transport ready";
+  }
+
+  if (decision.preferredTransport === "exec-json") {
+    return "Codex one-shot fallback available";
+  }
+
+  if (decision.canDetectRuntime) {
+    return "Codex detected, transport pending";
+  }
+
+  return "Local preview mode";
+}
+
+function transportStatusLabel(state: CodexTransportState): string {
+  switch (state) {
+    case "live":
+      return "Live";
+    case "ready":
+      return "Ready";
+    case "preview":
+      return "Preview";
+    case "blocked":
+      return "Blocked";
+    case "unavailable":
+      return "Unavailable";
+  }
+}
+
 export function App() {
   const validProjectIds = useMemo(() => projects.map((item) => item.id), []);
   const defaultPlanningDrafts = useMemo(
@@ -589,11 +632,23 @@ export function App() {
   const [appDialog, setAppDialog] = useState<AppDialog>();
   const [codexConnectionRequested, setCodexConnectionRequested] = useState(false);
   const [appNotice, setAppNotice] = useState("Local preview mode");
+  const [codexTransportProbe, setCodexTransportProbe] = useState<CodexTransportProbe>(() =>
+    getFallbackCodexTransportProbe()
+  );
+  const [codexTransportLoading, setCodexTransportLoading] = useState(false);
   const { selectedProjectId, mode, layoutId, view } = preferences;
+  const codexTransportDecision = useMemo(
+    () => decideCodexTransport(codexTransportProbe),
+    [codexTransportProbe]
+  );
 
   useEffect(() => {
     saveWorkspacePreferences(preferences);
   }, [preferences]);
+
+  useEffect(() => {
+    refreshCodexTransportProbe();
+  }, []);
 
   useEffect(() => {
     savePlanningDrafts(drafts);
@@ -800,7 +855,21 @@ export function App() {
 
   function handleStageCodexConnection() {
     setCodexConnectionRequested(true);
-    setAppNotice("Codex connection request staged locally");
+    setAppNotice(
+      codexTransportDecision.preferredTransport === "app-server-stdio"
+        ? "Codex stdio bridge staged"
+        : "Codex connection request staged locally"
+    );
+  }
+
+  async function refreshCodexTransportProbe() {
+    setCodexTransportLoading(true);
+    const nextProbe = await loadCodexTransportProbe();
+    const nextDecision = decideCodexTransport(nextProbe);
+
+    setCodexTransportProbe(nextProbe);
+    setCodexTransportLoading(false);
+    setAppNotice(codexNotice(nextDecision));
   }
 
   return (
@@ -1066,8 +1135,11 @@ export function App() {
       {appDialog ? (
         <AppDialogSurface
           codexConnectionRequested={codexConnectionRequested}
+          codexTransportDecision={codexTransportDecision}
+          codexTransportLoading={codexTransportLoading}
           dialog={appDialog}
           onClose={() => setAppDialog(undefined)}
+          onRefreshCodexTransport={refreshCodexTransportProbe}
           onStageCodexConnection={handleStageCodexConnection}
         />
       ) : null}
@@ -1198,13 +1270,19 @@ function AppMenuBar({
 
 function AppDialogSurface({
   codexConnectionRequested,
+  codexTransportDecision,
+  codexTransportLoading,
   dialog,
   onClose,
+  onRefreshCodexTransport,
   onStageCodexConnection
 }: {
   codexConnectionRequested: boolean;
+  codexTransportDecision: CodexTransportDecision;
+  codexTransportLoading: boolean;
   dialog: AppDialog;
   onClose: () => void;
+  onRefreshCodexTransport: () => void;
   onStageCodexConnection: () => void;
 }) {
   const title =
@@ -1237,22 +1315,39 @@ function AppDialogSurface({
             <div className="connection-summary">
               <ShieldCheck size={18} />
               <div>
-                <strong>{codexConnectionRequested ? "Connection request staged" : "Execution locked"}</strong>
-                <p>
-                  Steerboard can prepare the Codex adapter locally, but live auth, app-server transport,
-                  and session execution stay disabled until the provider bridge is implemented.
-                </p>
+                <span className={classNames("transport-state-pill", `transport-${codexTransportDecision.state}`)}>
+                  {transportStatusLabel(codexTransportDecision.state)}
+                </span>
+                <strong>{codexConnectionRequested ? "Connection request staged" : "Codex transport spike"}</strong>
+                <p>{codexTransportDecision.summary}</p>
               </div>
             </div>
-            <div className="connection-checks" aria-label="Codex connection readiness">
-              <span className="is-ready">Panel chat state ready</span>
-              <span className="is-ready">Slash command surface ready</span>
-              <span>Auth handoff pending</span>
-              <span>Live stream bridge pending</span>
+            <div className="transport-proof-grid" aria-label="Codex transport proof">
+              <span>Preferred transport</span>
+              <strong>{codexTransportDecision.preferredTransport}</strong>
+              <span>Proof level</span>
+              <strong>{codexTransportDecision.proof}</strong>
+              <span>Can start session</span>
+              <strong>{codexTransportDecision.canStartSession ? "Yes" : "No"}</strong>
+              <span>Can send prompt</span>
+              <strong>{codexTransportDecision.canSendPanelMessage ? "Yes" : "Locked"}</strong>
             </div>
-            <button className="dialog-primary-action" onClick={onStageCodexConnection} type="button">
-              {codexConnectionRequested ? "Connection request staged" : "Stage Codex connection request"}
-            </button>
+            <div className="connection-checks" aria-label="Codex connection readiness">
+              {codexTransportDecision.evidence.map((item) => (
+                <span className={`is-${item.status}`} key={item.id} title={item.detail}>
+                  {item.label}
+                </span>
+              ))}
+            </div>
+            <p className="transport-fallback">{codexTransportDecision.fallback}</p>
+            <div className="dialog-action-row">
+              <button className="dialog-secondary-action" onClick={onRefreshCodexTransport} type="button">
+                {codexTransportLoading ? "Checking..." : "Refresh probe"}
+              </button>
+              <button className="dialog-primary-action" onClick={onStageCodexConnection} type="button">
+                {codexConnectionRequested ? "Connection request staged" : "Stage Codex connection request"}
+              </button>
+            </div>
           </div>
         ) : null}
 
