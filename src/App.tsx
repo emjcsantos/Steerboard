@@ -171,10 +171,13 @@ import {
   type PanelSlashCommand
 } from "./panelChat";
 import {
+  buildMcpCatalogSnapshot,
   defaultMcpCatalog,
-  summarizeMcpCatalog,
-  type McpCatalogEntry
+  type McpCatalogEntry,
+  type McpCatalogRefreshSource,
+  type McpCatalogSnapshot
 } from "./mcpCatalog";
+import { loadProviderMcpCatalogSnapshot } from "./providerMcpCatalog";
 import {
   buildDefaultMigrationPreview,
   buildMigrationPreviewCounts,
@@ -1007,6 +1010,21 @@ function formatPluginCatalogSource(source: PluginCatalogRefreshSource): string {
   }
 }
 
+function formatMcpCatalogSource(source: McpCatalogRefreshSource): string {
+  switch (source) {
+    case "provider-live":
+      return "Provider live";
+    case "provider-preview":
+      return "Provider preview";
+    case "default-fallback":
+      return "Default fallback";
+    case "empty-refresh":
+      return "Empty refresh";
+    case "unavailable":
+      return "Unavailable";
+  }
+}
+
 function buildPluginCatalogRows(catalog: readonly PluginCatalogEntry[]): PlatformCatalogRow[] {
   return catalog.map((entry) => ({
     id: entry.id,
@@ -1061,6 +1079,7 @@ function buildPersonalizationCatalogRows(
 
 function getPlatformCatalogView(
   dialog: AppDialog,
+  mcpCatalogSnapshot: McpCatalogSnapshot,
   pluginCatalogSnapshot: PluginCatalogSnapshot,
   skillCatalogSnapshot: SkillCatalogSnapshot
 ): PlatformCatalogView | undefined {
@@ -1090,9 +1109,10 @@ function getPlatformCatalogView(
     return {
       title: "MCP Servers",
       eyebrow: "Platform catalog",
-      lead: "MCP entries show transport and tool policy posture without starting or mutating any server.",
-      rows: buildMcpCatalogRows(defaultMcpCatalog),
-      summary: summarizeMcpCatalog(defaultMcpCatalog)
+      lead: "MCP entries show transport, tool policy posture, and safe provider refresh state without starting or mutating any server.",
+      rows: buildMcpCatalogRows(mcpCatalogSnapshot.catalog),
+      summary: mcpCatalogSnapshot.summary,
+      sourceLabel: formatMcpCatalogSource(mcpCatalogSnapshot.source)
     };
   }
 
@@ -1318,6 +1338,9 @@ export function App() {
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
+  const [mcpCatalogSnapshot, setMcpCatalogSnapshot] = useState<McpCatalogSnapshot>(() =>
+    buildMcpCatalogSnapshot(defaultMcpCatalog, "default-fallback", defaultMcpCatalog)
+  );
   const [pluginCatalogSnapshot, setPluginCatalogSnapshot] = useState<PluginCatalogSnapshot>(() =>
     buildPluginCatalogSnapshot(defaultPluginCatalog, "default-fallback", defaultPluginCatalog)
   );
@@ -1326,6 +1349,7 @@ export function App() {
   );
   const [codexTransportLoading, setCodexTransportLoading] = useState(false);
   const [codexLiveSmokeLoading, setCodexLiveSmokeLoading] = useState(false);
+  const [mcpCatalogLoading, setMcpCatalogLoading] = useState(false);
   const [pluginCatalogLoading, setPluginCatalogLoading] = useState(false);
   const [skillCatalogLoading, setSkillCatalogLoading] = useState(false);
   const [panelSessionState, setPanelSessionState] = useState<CodexPanelSessionState>(() =>
@@ -2127,6 +2151,18 @@ export function App() {
     }
   }
 
+  async function refreshMcpCatalogSnapshot() {
+    setMcpCatalogLoading(true);
+    setAppNotice("Refreshing provider MCP catalog");
+    try {
+      const nextSnapshot = await loadProviderMcpCatalogSnapshot(undefined, defaultMcpCatalog);
+      setMcpCatalogSnapshot(nextSnapshot);
+      setAppNotice(`${formatMcpCatalogSource(nextSnapshot.source)} MCP catalog refreshed`);
+    } finally {
+      setMcpCatalogLoading(false);
+    }
+  }
+
   async function refreshSkillCatalogSnapshot() {
     setSkillCatalogLoading(true);
     setAppNotice("Refreshing provider skill catalog");
@@ -2624,12 +2660,15 @@ export function App() {
           migrationProfileDraft={migrationProfileDraft}
           migrationSourceId={migrationSourceId}
           migrationSourcePreview={migrationSourcePreview}
+          mcpCatalogLoading={mcpCatalogLoading}
+          mcpCatalogSnapshot={mcpCatalogSnapshot}
           onCreateMigrationProfileDraft={handleCreateMigrationProfileDraft}
           onMigrationCategoryChange={handleMigrationCategoryChange}
           onMigrationSourceChange={handleMigrationSourceChange}
           onClose={() => setAppDialog(undefined)}
           onRefreshCommandCatalog={refreshCommandCatalogSnapshot}
           onRefreshCodexTransport={refreshCodexTransportProbe}
+          onRefreshMcpCatalog={refreshMcpCatalogSnapshot}
           onRefreshMigrationPreview={() => refreshMigrationSourcePreview()}
           onRefreshPluginCatalog={refreshPluginCatalogSnapshot}
           onRefreshSkillCatalog={refreshSkillCatalogSnapshot}
@@ -2792,12 +2831,15 @@ function AppDialogSurface({
   migrationProfileDraft,
   migrationSourceId,
   migrationSourcePreview,
+  mcpCatalogLoading,
+  mcpCatalogSnapshot,
   onCreateMigrationProfileDraft,
   onMigrationCategoryChange,
   onMigrationSourceChange,
   onClose,
   onRefreshCommandCatalog,
   onRefreshCodexTransport,
+  onRefreshMcpCatalog,
   onRefreshMigrationPreview,
   onRefreshPluginCatalog,
   onRefreshSkillCatalog,
@@ -2821,12 +2863,15 @@ function AppDialogSurface({
   migrationProfileDraft?: MigrationProfileDraft;
   migrationSourceId: MigrationSourceId;
   migrationSourcePreview: MigrationSourcePreviewPayload;
+  mcpCatalogLoading: boolean;
+  mcpCatalogSnapshot: McpCatalogSnapshot;
   onCreateMigrationProfileDraft: () => void;
   onMigrationCategoryChange: (categoryId: MigrationCategoryId, selected: boolean) => void;
   onMigrationSourceChange: (sourceId: MigrationSourceId) => void;
   onClose: () => void;
   onRefreshCommandCatalog: () => void;
   onRefreshCodexTransport: () => void;
+  onRefreshMcpCatalog: () => void;
   onRefreshMigrationPreview: () => void;
   onRefreshPluginCatalog: () => void;
   onRefreshSkillCatalog: () => void;
@@ -2840,6 +2885,7 @@ function AppDialogSurface({
 }) {
   const platformCatalogView = getPlatformCatalogView(
     dialog,
+    mcpCatalogSnapshot,
     pluginCatalogSnapshot,
     skillCatalogSnapshot
   );
@@ -3129,6 +3175,13 @@ function AppDialogSurface({
               <div className="dialog-action-row">
                 <button className="dialog-secondary-action" onClick={onRefreshPluginCatalog} type="button">
                   {pluginCatalogLoading ? "Refreshing..." : "Refresh plugins catalog"}
+                </button>
+              </div>
+            ) : null}
+            {dialog === "mcp" ? (
+              <div className="dialog-action-row">
+                <button className="dialog-secondary-action" onClick={onRefreshMcpCatalog} type="button">
+                  {mcpCatalogLoading ? "Refreshing..." : "Refresh MCP catalog"}
                 </button>
               </div>
             ) : null}

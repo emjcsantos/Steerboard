@@ -245,13 +245,13 @@ describe("milestone status model", () => {
 
     expect(platform?.completion).toBe("In progress");
     expect(platform?.tone).toBe("active");
-    expect(platform?.completionPercent).toBe(42);
+    expect(platform?.completionPercent).toBe(44);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Panel slash commands, Skills catalog, and Plugin manager refresh through desktop-backed safe provider capability bridges with ready, preview, setup-required, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable."
+      "Panel slash commands, Skills catalog, Plugin manager, and MCP manager refresh through desktop-backed safe provider capability bridges with ready, preview, setup-required, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable."
     );
     expect(platform?.nextStep).toBe(
-      "Extend the same safe provider refresh pattern to MCP, automations, and personalization, then run the owner testing checklist for command, skill, and plugin refresh behavior while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
+      "Extend the same safe provider refresh pattern to automations and personalization, then run the owner testing checklist for command, skill, plugin, and MCP refresh behavior while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
     );
   });
 
@@ -278,8 +278,8 @@ describe("milestone status model", () => {
       averageCompletionPercent: 41,
       nextTarget: "Platform capabilities",
       nextStep:
-        "Extend the same safe provider refresh pattern to MCP, automations, and personalization, then run the owner testing checklist for command, skill, and plugin refresh behavior while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
-      nextCompletionPercent: 42
+        "Extend the same safe provider refresh pattern to automations and personalization, then run the owner testing checklist for command, skill, plugin, and MCP refresh behavior while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
+      nextCompletionPercent: 44
     });
   });
 
@@ -313,7 +313,7 @@ describe("milestone status model", () => {
       "A provider-neutral checklist and fixture layer now verify Phase 10B runner contract behavior for approved requests, read-only terminal probe constraints, disabled mutation paths, and redacted audit output."
     );
     expect(ownerTesting?.nextStep).toBe(
-      "Run the full local testing checklist, verify approval-to-probe behavior, provider command, skill, and plugin refresh behavior, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
+      "Run the full local testing checklist, verify approval-to-probe behavior, provider command, skill, plugin, and MCP refresh behavior, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
     );
   });
 

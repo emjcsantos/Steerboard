@@ -94,11 +94,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Platform capabilities",
     completion: "In progress",
     plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
-    completionPercent: 42,
+    completionPercent: 44,
     latestNote:
-      "Panel slash commands, Skills catalog, and Plugin manager refresh through desktop-backed safe provider capability bridges with ready, preview, setup-required, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable.",
+      "Panel slash commands, Skills catalog, Plugin manager, and MCP manager refresh through desktop-backed safe provider capability bridges with ready, preview, setup-required, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable.",
     nextStep:
-      "Extend the same safe provider refresh pattern to MCP, automations, and personalization, then run the owner testing checklist for command, skill, and plugin refresh behavior while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
+      "Extend the same safe provider refresh pattern to automations and personalization, then run the owner testing checklist for command, skill, plugin, and MCP refresh behavior while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
     current: true,
     tone: "active",
     note:
@@ -124,7 +124,7 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     latestNote:
       "A provider-neutral checklist and fixture layer now verify Phase 10B runner contract behavior for approved requests, read-only terminal probe constraints, disabled mutation paths, and redacted audit output.",
     nextStep:
-      "Run the full local testing checklist, verify approval-to-probe behavior, provider command, skill, and plugin refresh behavior, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
+      "Run the full local testing checklist, verify approval-to-probe behavior, provider command, skill, plugin, and MCP refresh behavior, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
     tone: "active",
     note: "Daily local testing and failure-state coverage are being hardened before broader live runner attachment."
   },

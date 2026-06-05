@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildMcpCatalogSnapshot,
   defaultMcpCatalog,
   normalizeMcpCatalog,
+  snapshotFromProviderMcpCatalogPayload,
   summarizeMcpCatalog,
   type McpCatalogEntry,
   type McpCatalogState
@@ -158,6 +160,120 @@ describe("MCP catalog summary", () => {
 
   it("normalizes summary input before counting", () => {
     expect(summarizeMcpCatalog("bad-input").total).toBe(defaultMcpCatalog.length);
+  });
+});
+
+describe("MCP catalog snapshots", () => {
+  const fallbackCatalog: McpCatalogEntry[] = [
+    {
+      id: "filesystem-bridge",
+      label: "Filesystem Bridge",
+      transport: "stdio",
+      state: "live",
+      toolPolicy: "read-only",
+      detail: "Fallback filesystem bridge."
+    },
+    {
+      id: "research-index",
+      label: "Research Index",
+      transport: "http",
+      state: "preview",
+      toolPolicy: "read-only"
+    }
+  ];
+
+  it("builds a default fallback snapshot from safe defaults", () => {
+    const snapshot = buildMcpCatalogSnapshot(undefined, "default-fallback", fallbackCatalog);
+
+    expect(snapshot.source).toBe("default-fallback");
+    expect(snapshot.catalog).toEqual(fallbackCatalog);
+    expect(snapshot.summary.source).toBe("default-fallback");
+    expect(snapshot.summary.availability).toBe(1);
+  });
+
+  it("builds provider-live snapshot from normalized provider rows", () => {
+    const snapshot = snapshotFromProviderMcpCatalogPayload(
+      {
+        source: "provider-live",
+        entries: [
+          {
+            id: "provider-mcp-status",
+            label: "Provider MCP Status",
+            transport: "stdio",
+            state: "live",
+            toolPolicy: "approval-required",
+            detail: "Provider app-server exposes MCP status capability metadata."
+          }
+        ]
+      },
+      fallbackCatalog
+    );
+
+    expect(snapshot.source).toBe("provider-live");
+    expect(snapshot.catalog).toEqual([
+      {
+        id: "provider-mcp-status",
+        label: "Provider MCP Status",
+        transport: "stdio",
+        state: "live",
+        toolPolicy: "approval-required",
+        detail: "Provider app-server exposes MCP status capability metadata."
+      }
+    ]);
+  });
+
+  it("downgrades provider-live rows to preview for preview-only provider payloads", () => {
+    const snapshot = snapshotFromProviderMcpCatalogPayload(
+      {
+        source: "provider-preview",
+        entries: [
+          {
+            id: "provider-mcp-status",
+            label: "Provider MCP Status",
+            transport: "stdio",
+            state: "live",
+            toolPolicy: "approval-required"
+          }
+        ]
+      },
+      fallbackCatalog
+    );
+
+    expect(snapshot.source).toBe("provider-preview");
+    expect(snapshot.catalog[0]?.state).toBe("preview");
+  });
+
+  it("returns empty-refresh source for empty refresh payloads", () => {
+    const snapshot = snapshotFromProviderMcpCatalogPayload(
+      {
+        source: "empty-refresh",
+        entries: []
+      },
+      fallbackCatalog
+    );
+
+    expect(snapshot.source).toBe("empty-refresh");
+    expect(snapshot.catalog).toEqual(fallbackCatalog);
+  });
+
+  it("returns unavailable snapshot for malformed or unavailable payloads", () => {
+    const malformed = snapshotFromProviderMcpCatalogPayload("not-a-payload", fallbackCatalog);
+    const unavailable = snapshotFromProviderMcpCatalogPayload(
+      {
+        source: "unavailable",
+        entries: []
+      },
+      fallbackCatalog
+    );
+
+    expect(malformed.source).toBe("unavailable");
+    expect(unavailable.source).toBe("unavailable");
+    expect(malformed.catalog.find((entry) => entry.id === "filesystem-bridge")?.state).toBe(
+      "unavailable"
+    );
+    expect(unavailable.catalog.find((entry) => entry.id === "research-index")?.state).toBe(
+      "preview"
+    );
   });
 });
 

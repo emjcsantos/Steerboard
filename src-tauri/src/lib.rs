@@ -255,6 +255,27 @@ pub struct ProviderPluginCatalogPreview {
     pub safety: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderMcpCatalogEntry {
+    pub id: String,
+    pub label: String,
+    pub source: String,
+    pub state: String,
+    pub capability: String,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderMcpCatalogPreview {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub entries: Vec<ProviderMcpCatalogEntry>,
+    pub detail: String,
+    pub safety: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LiveActionRunnerRequest {
@@ -331,8 +352,8 @@ mod runtime_bridge {
         LiveActionRunnerRequest, LiveActionRunnerResult, MigrationSourceCategoryPreview,
         MigrationSourcePreview, MigrationSourcePreviewCounts, PermissionApprovalStatus,
         ProviderCommandCatalogEntry, ProviderCommandCatalogPreview, ProviderPluginCatalogEntry,
-        ProviderPluginCatalogPreview, ProviderSkillCatalogEntry, ProviderSkillCatalogPreview,
-        RuntimeBridgeStatus,
+        ProviderPluginCatalogPreview, ProviderMcpCatalogEntry, ProviderMcpCatalogPreview,
+        ProviderSkillCatalogEntry, ProviderSkillCatalogPreview, RuntimeBridgeStatus,
     };
     use serde_json::Value;
     use std::collections::{BTreeMap, BTreeSet};
@@ -1238,6 +1259,108 @@ mod runtime_bridge {
     #[tauri::command]
     pub fn codex_plugin_catalog_preview() -> ProviderPluginCatalogPreview {
         codex_plugin_catalog_preview_from_probe(codex_transport_probe())
+    }
+
+    fn mcp_catalog_entry(
+        id: &str,
+        label: &str,
+        source: &str,
+        state: &str,
+        capability: &str,
+        detail: &str,
+    ) -> ProviderMcpCatalogEntry {
+        ProviderMcpCatalogEntry {
+            id: id.to_string(),
+            label: label.to_string(),
+            source: source.to_string(),
+            state: state.to_string(),
+            capability: capability.to_string(),
+            detail: detail.to_string(),
+        }
+    }
+
+    pub(crate) fn codex_mcp_catalog_preview_from_probe(
+        probe: CodexTransportProbe,
+    ) -> ProviderMcpCatalogPreview {
+        let panel_protocol_ready = probe.app_server.protocol.thread_start
+            && probe.app_server.protocol.turn_start
+            && probe.app_server.protocol.agent_message_delta;
+        let app_server_ready = probe.app_server.available
+            && probe.app_server.stdio_handshake
+            && panel_protocol_ready;
+        let provider_detected = probe.cli.available
+            || probe.codex_home.present
+            || probe.app_server.available
+            || probe.exec_json.available;
+        let mcp_status_detected = probe.app_server.protocol.mcp_status;
+
+        if !provider_detected {
+            return ProviderMcpCatalogPreview {
+                source: "unavailable".to_string(),
+                checked_at: probe.checked_at,
+                entries: Vec::new(),
+                detail: "No provider MCP capability was detected.".to_string(),
+                safety:
+                    "MCP refresh did not read MCP config bodies, copy credentials, or expose local paths."
+                        .to_string(),
+            };
+        }
+
+        let source = if app_server_ready && mcp_status_detected {
+            "provider-live"
+        } else {
+            "provider-preview"
+        };
+        let runnable_state = if source == "provider-live" {
+            "live"
+        } else if mcp_status_detected {
+            "preview"
+        } else {
+            "setup-required"
+        };
+
+        let mut entries = Vec::new();
+        if mcp_status_detected {
+            entries.push(mcp_catalog_entry(
+                "provider-mcp-status",
+                "Provider MCP Status",
+                "api",
+                runnable_state,
+                "mcp-status",
+                "Provider app-server exposes MCP status capability metadata.",
+            ));
+        }
+
+        if entries.is_empty() && probe.codex_home.present {
+            entries.push(mcp_catalog_entry(
+                "provider-mcp-setup",
+                "MCP Setup",
+                "builtin",
+                "setup-required",
+                "provider-profile",
+                "Provider profile is present, but no metadata-visible MCP status capability was detected.",
+            ));
+        }
+
+        ProviderMcpCatalogPreview {
+            source: source.to_string(),
+            checked_at: probe.checked_at,
+            entries,
+            detail: if mcp_status_detected {
+                "Provider MCP catalog refreshed from safe capability metadata.".to_string()
+            } else {
+                "Provider MCP catalog refreshed in setup mode from safe profile metadata."
+                    .to_string()
+            },
+            safety:
+                "MCP refresh did not read MCP config bodies, copy credentials, auth files, raw transcripts, or expose local paths."
+                    .to_string(),
+        }
+    }
+
+    #[tauri::command]
+    pub fn codex_mcp_catalog_preview() -> ProviderMcpCatalogPreview {
+        codex_mcp_catalog_preview_from_probe(codex_transport_probe())
     }
 
     #[tauri::command]
@@ -2492,6 +2615,7 @@ pub fn run() {
             runtime_bridge::codex_command_catalog_preview,
             runtime_bridge::codex_skill_catalog_preview,
             runtime_bridge::codex_plugin_catalog_preview,
+            runtime_bridge::codex_mcp_catalog_preview,
             runtime_bridge::codex_transport_live_smoke,
             runtime_bridge::codex_panel_session_readiness,
             runtime_bridge::codex_panel_session_start,
@@ -3121,6 +3245,94 @@ mod tests {
         assert!(!serialized.contains("plugin.md"));
         assert!(!serialized.contains("manifest"));
         assert!(serialized.contains("metadata"));
+    }
+
+    #[test]
+    fn codex_mcp_catalog_preview_marks_mcp_live_from_safe_metadata() {
+        let mut probe = fake_codex_transport_probe();
+        probe.app_server.protocol.mcp_status = true;
+
+        let preview = runtime_bridge::codex_mcp_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "provider-live");
+        assert!(preview.safety.to_lowercase().contains("did not read mcp config bodies"));
+        assert!(preview
+            .detail
+            .to_lowercase()
+            .contains("capability metadata"));
+        assert!(preview.entries.iter().any(|entry| {
+            entry.id == "provider-mcp-status"
+                && entry.state == "live"
+                && entry.capability == "mcp-status"
+        }));
+    }
+
+    #[test]
+    fn codex_mcp_catalog_preview_uses_preview_when_live_session_is_not_ready() {
+        let mut probe = fake_codex_transport_probe();
+        probe.app_server.protocol.mcp_status = true;
+        probe.app_server.stdio_handshake = false;
+        probe.app_server.protocol.agent_message_delta = false;
+
+        let preview = runtime_bridge::codex_mcp_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "provider-preview");
+        assert_eq!(preview.entries.len(), 1);
+        assert_eq!(preview.entries[0].id, "provider-mcp-status");
+        assert_eq!(preview.entries[0].state, "preview");
+    }
+
+    #[test]
+    fn codex_mcp_catalog_preview_uses_setup_required_when_profile_has_no_mcp_status() {
+        let mut probe = fake_codex_transport_probe();
+        probe.app_server.protocol.mcp_status = false;
+
+        let preview = runtime_bridge::codex_mcp_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "provider-preview");
+        assert_eq!(preview.entries.len(), 1);
+        assert_eq!(preview.entries[0].id, "provider-mcp-setup");
+        assert_eq!(preview.entries[0].state, "setup-required");
+    }
+
+    #[test]
+    fn codex_mcp_catalog_preview_reports_unavailable_without_provider_detection() {
+        let mut probe = fake_codex_transport_probe();
+        probe.cli.available = false;
+        probe.codex_home.present = false;
+        probe.app_server.available = false;
+        probe.app_server.protocol.mcp_status = false;
+        probe.exec_json.available = false;
+
+        let preview = runtime_bridge::codex_mcp_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "unavailable");
+        assert!(preview.entries.is_empty());
+        assert!(preview
+            .detail
+            .to_lowercase()
+            .contains("no provider mcp capability"));
+    }
+
+    #[test]
+    fn codex_mcp_catalog_preview_excludes_config_secrets_transcripts_and_path_details() {
+        let mut probe = fake_codex_transport_probe();
+        probe.app_server.protocol.mcp_status = true;
+
+        let preview = runtime_bridge::codex_mcp_catalog_preview_from_probe(probe);
+        let serialized = serde_json::to_string(&preview)
+            .unwrap_or_default()
+            .to_lowercase();
+
+        assert!(!serialized.contains("auth.json"));
+        assert!(!serialized.contains("config.toml"));
+        assert!(!serialized.contains("token"));
+        assert!(!serialized.contains("secret"));
+        assert!(!serialized.contains("c:\\"));
+        assert!(!serialized.contains("/home/"));
+        assert!(!serialized.contains("raw transcript:"));
+        assert!(serialized.contains("metadata"));
+        assert!(serialized.contains("raw transcripts"));
     }
 
     #[test]
