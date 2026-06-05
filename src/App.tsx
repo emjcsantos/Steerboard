@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import packageManifest from "../package.json";
 import {
   cockpitPresets,
   orchestrationTasks,
@@ -219,6 +218,10 @@ import {
   createSecurityPrivacyThreatModel,
   type SecurityPrivacyThreatModel
 } from "./securityPrivacyThreatModel";
+import {
+  createReleasePrivacyReadiness,
+  type ReleasePrivacyReadinessSnapshot
+} from "./releasePrivacyReadiness";
 import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
@@ -419,10 +422,6 @@ import {
   buildDesktopPackagingReadinessSnapshot,
   type DesktopPackagingReadinessSnapshot
 } from "./desktopPackagingReadiness";
-import {
-  createSourceInstallReadiness,
-  type SourceInstallReadinessSnapshot
-} from "./sourceInstallReadiness";
 import {
   buildLocalEvidenceReadinessSnapshot,
   type LocalEvidenceReadinessSnapshot
@@ -2560,6 +2559,15 @@ function RightPanel({
       toolEvidenceReadinessSnapshot
     ]
   );
+  const releasePrivacyReadinessSnapshot = useMemo(
+    () =>
+      createReleasePrivacyReadiness(securityPrivacyThreatModel, {
+        localFirstDefaultsReady: true,
+        dependencyReviewReady: "review",
+        publicFixtureReady: true
+      }),
+    [securityPrivacyThreatModel]
+  );
   const desktopPackagingReadinessSnapshot = useMemo(
     () =>
       buildDesktopPackagingReadinessSnapshot(
@@ -2567,10 +2575,6 @@ function RightPanel({
         desktopPermissionApprovalStatus
       ),
     [desktopBridgeStatus, desktopPermissionApprovalStatus]
-  );
-  const sourceInstallReadinessSnapshot = useMemo(
-    () => createSourceInstallReadiness(packageManifest),
-    []
   );
   const canActivateDraftProfile =
     runtimeProfileApprovalSnapshot.state === "requested" &&
@@ -3227,7 +3231,10 @@ function RightPanel({
         onRequestCapture={() => recordToolEvidenceCaptureAction("requested", "requested")}
         tools={toolEvidenceReadinessSnapshot}
       />
-      <SecurityPrivacyThreatModelPanel model={securityPrivacyThreatModel} />
+      <SecurityPrivacyThreatModelPanel
+        model={securityPrivacyThreatModel}
+        releasePrivacy={releasePrivacyReadinessSnapshot}
+      />
 
       <section className="panel-section">
         <h4>Project Registry</h4>
@@ -3287,10 +3294,7 @@ function RightPanel({
         </div>
       </section>
 
-      <DesktopPackagingReadinessPanel
-        packaging={desktopPackagingReadinessSnapshot}
-        sourceInstall={sourceInstallReadinessSnapshot}
-      />
+      <DesktopPackagingReadinessPanel packaging={desktopPackagingReadinessSnapshot} />
 
       <RuntimeProfilePanel
         activation={runtimeProfileActivationSnapshot}
@@ -4555,11 +4559,9 @@ function DesktopRuntimeBridgeStatusBlock({
 }
 
 function DesktopPackagingReadinessPanel({
-  packaging,
-  sourceInstall
+  packaging
 }: {
   packaging: DesktopPackagingReadinessSnapshot;
-  sourceInstall: SourceInstallReadinessSnapshot;
 }) {
   return (
     <section className="panel-section">
@@ -4605,36 +4607,6 @@ function DesktopPackagingReadinessPanel({
             </li>
           ))}
         </ol>
-        <div
-          aria-label={sourceInstall.ariaLabel}
-          className={classNames(
-            "source-install-readiness",
-            `source-install-${sourceInstall.state}`
-          )}
-        >
-          <div className="source-install-header">
-            <span className="source-install-state">
-              <span aria-hidden="true" />
-              {sourceInstall.statusLabel}
-            </span>
-            <strong title={sourceInstall.label}>Source install</strong>
-            <b>{sourceInstall.readiness}%</b>
-          </div>
-          <p title={sourceInstall.detail}>{sourceInstall.detail}</p>
-          <ol className="source-install-items">
-            {sourceInstall.items.map((item) => (
-              <li
-                className={`source-install-item-${item.status}`}
-                key={item.id}
-                title={item.detail}
-              >
-                <span>{item.status}</span>
-                <strong>{item.label}</strong>
-              </li>
-            ))}
-          </ol>
-          <small title={sourceInstall.safety}>{sourceInstall.safety}</small>
-        </div>
         <small title={packaging.safety}>{packaging.safety}</small>
       </div>
     </section>
@@ -4806,9 +4778,11 @@ function ToolEvidenceReadinessPanel({
 }
 
 function SecurityPrivacyThreatModelPanel({
-  model
+  model,
+  releasePrivacy
 }: {
   model: SecurityPrivacyThreatModel;
+  releasePrivacy: ReleasePrivacyReadinessSnapshot;
 }) {
   return (
     <section className="panel-section">
@@ -4842,6 +4816,36 @@ function SecurityPrivacyThreatModelPanel({
             </li>
           ))}
         </ol>
+        <div
+          aria-label={releasePrivacy.ariaLabel}
+          className={classNames(
+            "release-privacy-readiness",
+            `release-privacy-${releasePrivacy.state}`
+          )}
+        >
+          <div className="release-privacy-header">
+            <span className="release-privacy-state">
+              <span aria-hidden="true" />
+              {releasePrivacy.statusLabel}
+            </span>
+            <strong title={releasePrivacy.label}>Release privacy</strong>
+            <b>{releasePrivacy.readiness}%</b>
+          </div>
+          <p title={releasePrivacy.detail}>{releasePrivacy.detail}</p>
+          <ol className="release-privacy-items">
+            {releasePrivacy.items.map((item) => (
+              <li
+                className={`release-privacy-item-${item.status}`}
+                key={item.id}
+                title={item.detail}
+              >
+                <span>{item.status}</span>
+                <strong>{item.label}</strong>
+              </li>
+            ))}
+          </ol>
+          <small title={releasePrivacy.safety}>{releasePrivacy.safety}</small>
+        </div>
       </div>
     </section>
   );

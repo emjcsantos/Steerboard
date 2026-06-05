@@ -80,22 +80,21 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Security and privacy model",
     completion: "In progress",
     plan: "Set baseline protections, data-handling boundaries, and reviewable controls.",
-    completionPercent: 40,
-    latestNote: "Threat-model and control guidance now covers private data leakage, local permission scope, external execution, dependency adoption, and audit trails.",
-    nextStep: "Add visible security-control readiness checks to the cockpit and validate privacy-safe release guidance.",
+    completionPercent: 55,
+    latestNote: "Release/privacy readiness gates are now defined and visible for release promotion checks.",
+    nextStep: "Harden release privacy gates against real project data and runtime adapter edge cases.",
     tone: "active",
     note: "Security and privacy posture is being documented, with production controls being designed for release readiness."
   },
   {
     target: "Packaging and installation",
-    completion: "In progress",
+    completion: "Paused",
     plan: "Prepare install, environment, and distribution path for dependable rollout.",
-    completionPercent: 30,
-    latestNote:
-      "Source-first install readiness gates are now defined and visible in documentation, before any distribution promotion.",
-    nextStep: "Expose source-install readiness in the cockpit and validate build/package guidance.",
-    tone: "active",
-    note: "Distribution, source setup readiness checks, and install safety documentation are now in visible progress."
+    completionPercent: 0,
+    latestNote: "Packaging is intentionally deferred until core development is complete.",
+    nextStep: "Remain paused until core development is complete.",
+    tone: "paused",
+    note: "Packaging and installation work is intentionally paused while security and core delivery milestones advance."
   },
   {
     target: "Optional project management lane",

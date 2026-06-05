@@ -33,6 +33,18 @@ Never commit:
 - Unreviewed dependency adoption: risk of security gaps entering through unchecked third-party code.
 - Missing audit trail: risk of operators lacking a visible history of who changed what and why.
 
+## Release Privacy Readiness Gates
+
+Before release promotion, the following five gates are visible checks only (no install actions, network operations, or artifact writes during evaluation).
+
+- Local-first defaults
+- Sensitive data boundary
+- Permission and execution lock
+- Dependency and fixture safety
+- Audit and export trail
+
+Release privacy readiness gates are intended to be explicit controls for pre-release visibility and decision support. They are checks only; they do not execute distribution actions, environment mutation, or outbound release actions.
+
 ## Implementation Controls
 
 - Root-scoped file access: keep reads/writes constrained to project roots with explicit path allowlists.
@@ -47,7 +59,7 @@ Never commit:
 Before importing third-party code:
 
 1. Confirm license and attribution.
-2. Review package scripts.
+2. Review lifecycle scripts.
 3. Review native dependencies.
 4. Run dependency audit.
 5. Review Electron webPreferences and preload API.

@@ -47,16 +47,6 @@ Requirements before promoting this path:
 - One-command desktop startup: `npm run desktop:dev`.
 - One-command local production build: `npm run build`.
 
-## Source-First Readiness Checks
-
-Before promoting source-first installation, the cockpit can show lightweight readiness checks that do not execute anything:
-
-- **Source setup scripts** visibility: users should see required setup commands and dependency bootstrap steps in the documentation.
-- **Desktop startup script** visibility: `npm run desktop:dev` startup command and expected prerequisites are shown before execution.
-- **Production build script** visibility: `npm run build` command path, output target expectation, and local verification behavior are documented.
-- **Validation script** visibility: a dedicated validation command is defined and documented for post-setup health checks.
-- **Install hook safety** visibility: any install/prepare hooks are explicitly listed so users know what runs and can review it before proceeding.
-
 ## Signed Desktop Builds
 
 Signed desktop builds should become the main non-developer path once the app is stable enough for broader use.

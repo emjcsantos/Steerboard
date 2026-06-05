@@ -38,21 +38,6 @@ const securityDocForbiddenTerms: RegExp[] = [
   /\braw private transcripts\b/i
 ];
 
-const installationDocForbiddenTerms: RegExp[] = [
-  /[A-Za-z]:\\/,
-  /(^|[\s])\.\.[\\/]/,
-  /\b(projectatlas|project-atlas|carparts\.com|amicassa|hyperion|zenith)\b/i,
-  /\braw private transcripts\b/i,
-  /worker[-_ ]?[0-9a-f]{4,}/i,
-  /\bworker id[:\s]*[a-z0-9-]+\b/i,
-  /\bgpt-\d/i,
-  /\bclaude/i,
-  /\bgemini/i,
-  /\bllama\b/i,
-  /\bopus\b/i,
-  /\bmistral\b/i
-];
-
 type SnapshotMilestoneRow = {
   target: string;
   plan: string;
@@ -204,14 +189,14 @@ describe("milestone status model", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
       total: 7,
       complete: 4,
-      active: 2,
+      active: 1,
       planned: 0,
-      paused: 1,
-      averageCompletionPercent: 67,
+      paused: 2,
+      averageCompletionPercent: 65,
       nextTarget: "Security and privacy model",
       nextStep:
-        "Add visible security-control readiness checks to the cockpit and validate privacy-safe release guidance.",
-      nextCompletionPercent: 40
+        "Harden release privacy gates against real project data and runtime adapter edge cases.",
+      nextCompletionPercent: 55
     });
   });
 
@@ -222,9 +207,9 @@ describe("milestone status model", () => {
 
     expect(securityMilestone?.completion).toBe("In progress");
     expect(securityMilestone?.tone).toBe("active");
-    expect(securityMilestone?.completionPercent).toBe(40);
+    expect(securityMilestone?.completionPercent).toBe(55);
     expect(securityMilestone?.nextStep).toBe(
-      "Add visible security-control readiness checks to the cockpit and validate privacy-safe release guidance."
+      "Harden release privacy gates against real project data and runtime adapter edge cases."
     );
   });
 
@@ -319,47 +304,31 @@ describe("milestone status model", () => {
     expect(securityDocText).toContain("Unsafe external execution");
     expect(securityDocText).toContain("Unreviewed dependency adoption");
     expect(securityDocText).toContain("Missing audit trail");
+    expect(securityDocText).toContain("Local-first defaults");
+    expect(securityDocText).toContain("Sensitive data boundary");
+    expect(securityDocText).toContain("Permission and execution lock");
+    expect(securityDocText).toContain("Dependency and fixture safety");
+    expect(securityDocText).toContain("Audit and export trail");
 
     for (const pattern of securityDocForbiddenTerms) {
       expect(pattern.test(securityDocText)).toBe(false);
     }
   });
 
-  it("advances packaging and installation to in-progress 30%", () => {
+  it("pauses packaging and installation to 0%", () => {
     const packagingMilestone = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Packaging and installation"
     );
 
-    expect(packagingMilestone?.completion).toBe("In progress");
-    expect(packagingMilestone?.tone).toBe("active");
-    expect(packagingMilestone?.completionPercent).toBe(30);
-    expect(packagingMilestone?.latestNote).toContain("Source-first install readiness gates are now defined");
+    expect(packagingMilestone?.completion).toBe("Paused");
+    expect(packagingMilestone?.tone).toBe("paused");
+    expect(packagingMilestone?.completionPercent).toBe(0);
+    expect(packagingMilestone?.latestNote).toBe(
+      "Packaging is intentionally deferred until core development is complete."
+    );
     expect(packagingMilestone?.nextStep).toBe(
-      "Expose source-install readiness in the cockpit and validate build/package guidance."
+      "Remain paused until core development is complete."
     );
-  });
-
-  it("documents public-safe source-first readiness checks", () => {
-    const installationStrategyPath = path.join(
-      process.cwd(),
-      "docs/operations/installation-strategy.md"
-    );
-    const installationStrategyText = fs.readFileSync(
-      installationStrategyPath,
-      "utf8"
-    );
-
-    expect(installationStrategyText).toContain("Source-First Readiness Checks");
-    expect(installationStrategyText).toContain("Source setup scripts");
-    expect(installationStrategyText).toContain("Desktop startup script");
-    expect(installationStrategyText).toContain("Production build script");
-    expect(installationStrategyText).toContain("Validation script");
-    expect(installationStrategyText).toContain("Install hook safety");
-
-    for (const pattern of installationDocForbiddenTerms) {
-      expect(pattern.test(installationStrategyText)).toBe(false);
-      expect(pattern.test(installationStrategyText.toLowerCase())).toBe(false);
-    }
   });
 
   it("safeguards public-facing text from private details", () => {
