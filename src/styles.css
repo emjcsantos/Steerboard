@@ -655,6 +655,246 @@ textarea {
   font-weight: 800;
 }
 
+.migration-controls {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.migration-controls label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.migration-controls label span {
+  color: #8793a0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.migration-controls select {
+  min-width: 0;
+  border: 1px solid #303844;
+  border-radius: 8px;
+  background: #121820;
+  color: #edf3f8;
+  padding: 8px 10px;
+  font-weight: 800;
+}
+
+.migration-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.migration-summary-strip span,
+.migration-source-card,
+.migration-draft {
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #11161c;
+}
+
+.migration-summary-strip span {
+  min-width: 0;
+  padding: 8px;
+  color: #9fa9b4;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.migration-summary-strip strong {
+  display: block;
+  color: #edf3f8;
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.migration-source-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  padding: 10px;
+}
+
+.migration-source-card strong {
+  display: block;
+  color: #edf3f8;
+  margin-top: 6px;
+}
+
+.migration-source-card p,
+.migration-source-card small {
+  margin: 0;
+  color: #9fa9b4;
+  line-height: 1.35;
+}
+
+.migration-source-state {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid #303743;
+  border-radius: 999px;
+  padding: 2px 7px;
+  color: #aeb8c4;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.migration-source-state.is-detected {
+  border-color: #2f6a49;
+  color: #8be1b2;
+}
+
+.migration-source-state.is-preview {
+  border-color: #7a6530;
+  color: #f3d88a;
+}
+
+.migration-scan-list,
+.migration-category-list,
+.migration-exclusions {
+  display: grid;
+  gap: 6px;
+}
+
+.migration-scan-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-height: 190px;
+  overflow: auto;
+}
+
+.migration-scan-list span {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 8px;
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 8px;
+}
+
+.migration-scan-list strong {
+  min-width: 0;
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.migration-scan-list b,
+.migration-category-row b {
+  border: 1px solid #303743;
+  border-radius: 999px;
+  color: #aeb8c4;
+  padding: 2px 6px;
+  font-size: 10px;
+  line-height: 1.1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.migration-scan-list small {
+  grid-column: 1 / -1;
+  color: #9fa9b4;
+  line-height: 1.25;
+}
+
+.migration-category-list {
+  max-height: min(34vh, 330px);
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.migration-category-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 8px 10px;
+}
+
+.migration-category-row input {
+  width: 15px;
+  height: 15px;
+  accent-color: #4fd6a3;
+}
+
+.migration-category-row input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.migration-category-row strong {
+  display: block;
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.migration-category-row small {
+  color: #9fa9b4;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.migration-state-accepted {
+  border-color: #2f6a49 !important;
+  color: #8be1b2 !important;
+}
+
+.migration-state-review-required {
+  border-color: #7a6530 !important;
+  color: #f3d88a !important;
+}
+
+.migration-state-unsupported {
+  border-color: #315977 !important;
+  color: #8ec8f6 !important;
+}
+
+.migration-state-excluded {
+  border-color: #633337 !important;
+  color: #ff9fa7 !important;
+}
+
+.migration-exclusions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.migration-exclusions span {
+  border: 1px solid #633337;
+  border-radius: 8px;
+  background: #171214;
+  color: #ffb8bd;
+  padding: 7px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.migration-draft {
+  display: grid;
+  gap: 4px;
+  padding: 9px 10px;
+}
+
+.migration-draft strong {
+  color: #8be1b2;
+}
+
+.migration-draft span,
+.migration-draft small {
+  color: #aab4c0;
+}
+
 .slash-command-list span {
   display: grid;
   grid-template-columns: minmax(82px, auto) auto;

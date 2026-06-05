@@ -128,6 +128,19 @@ import {
   type McpCatalogEntry
 } from "./mcpCatalog";
 import {
+  buildDefaultMigrationPreview,
+  buildMigrationPreviewCounts,
+  defaultMigrationSource,
+  defaultMigrationSources,
+  redactMigrationPreviewDetail,
+  toggleMigrationCategory,
+  type MigrationCategoryId,
+  type MigrationCategoryState,
+  type MigrationPreview,
+  type MigrationPreviewCounts,
+  type MigrationSourceId
+} from "./migrationModel";
+import {
   defaultPersonalizationCatalog,
   summarizePersonalizationCatalog,
   type PersonalizationCatalogEntry
@@ -813,6 +826,70 @@ function getPlatformCatalogView(dialog: AppDialog): PlatformCatalogView | undefi
   return undefined;
 }
 
+function fallbackMigrationSourcePreview(sourceId: MigrationSourceId): MigrationSourcePreviewPayload {
+  const source = defaultMigrationSources.find((item) => item.id === sourceId) ?? defaultMigrationSources[0];
+  return {
+    sourceId: source.id,
+    sourceLabel: source.label,
+    detected: false,
+    safeLocationLabel: "Browser preview; desktop metadata scan is unavailable",
+    categories: [
+      {
+        id: "source",
+        label: "Source metadata",
+        status: "review-required",
+        count: 0,
+        reason: "Open the desktop app to scan local source metadata."
+      },
+      {
+        id: "secrets",
+        label: "Auth and secrets",
+        status: "excluded",
+        count: 0,
+        reason: "Credentials, tokens, cookies, and raw transcript bodies are never imported."
+      }
+    ],
+    counts: {
+      accepted: 0,
+      reviewRequired: 1,
+      unsupported: 0,
+      excluded: 1
+    },
+    excludedSecretsSummary: [
+      "Authentication token stores are excluded.",
+      "Cookies and browser profile state are excluded.",
+      "Raw transcript data is excluded."
+    ],
+    safetyNote:
+      "Browser preview mode shows migration policy only. Desktop mode can scan metadata without copying secrets or mutating the source."
+  };
+}
+
+function formatMigrationState(state: MigrationCategoryState): string {
+  return state.replace("-", " ");
+}
+
+function selectedMigrationCategoryIds(preview: MigrationPreview): string[] {
+  return preview.categories
+    .filter((category) => category.selected && category.state !== "unsupported")
+    .map((category) => category.label);
+}
+
+function buildMigrationProfileDraft(
+  sourcePreview: MigrationSourcePreviewPayload,
+  preview: MigrationPreview
+): MigrationProfileDraft {
+  return {
+    sourceId: preview.source,
+    sourceLabel: sourcePreview.sourceLabel,
+    createdAt: new Date().toISOString(),
+    selectedCategories: selectedMigrationCategoryIds(preview),
+    counts: buildMigrationPreviewCounts(preview),
+    safetyNote:
+      "Profile draft created from selected metadata categories only. Source app, credentials, raw transcripts, and browser state were not mutated or copied."
+  };
+}
+
 type LivePanelChatStatus =
   | "preview"
   | "idle"
@@ -849,6 +926,34 @@ interface CodexPanelSteerResultPayload {
   turnId: string | null;
   steered: boolean;
   detail: string;
+}
+
+interface MigrationSourceCategoryPreviewPayload {
+  id: string;
+  label: string;
+  status: MigrationCategoryState;
+  count: number;
+  reason: string;
+}
+
+interface MigrationSourcePreviewPayload {
+  sourceId: string;
+  sourceLabel: string;
+  detected: boolean;
+  safeLocationLabel: string;
+  categories: MigrationSourceCategoryPreviewPayload[];
+  counts: MigrationPreviewCounts;
+  excludedSecretsSummary: string[];
+  safetyNote: string;
+}
+
+interface MigrationProfileDraft {
+  sourceId: MigrationSourceId;
+  sourceLabel: string;
+  createdAt: string;
+  selectedCategories: string[];
+  counts: MigrationPreviewCounts;
+  safetyNote: string;
 }
 
 function hasDesktopRuntime(): boolean {
@@ -889,6 +994,15 @@ export function App() {
   const [panelSessionState, setPanelSessionState] = useState<CodexPanelSessionState>(() =>
     loadPanelSessionState()
   );
+  const [migrationSourceId, setMigrationSourceId] = useState<MigrationSourceId>(defaultMigrationSource);
+  const [migrationPreview, setMigrationPreview] = useState<MigrationPreview>(() =>
+    buildDefaultMigrationPreview(defaultMigrationSource)
+  );
+  const [migrationSourcePreview, setMigrationSourcePreview] = useState<MigrationSourcePreviewPayload>(() =>
+    fallbackMigrationSourcePreview(defaultMigrationSource)
+  );
+  const [migrationPreviewLoading, setMigrationPreviewLoading] = useState(false);
+  const [migrationProfileDraft, setMigrationProfileDraft] = useState<MigrationProfileDraft>();
   const { selectedProjectId, mode, layoutId, view } = preferences;
   const codexTransportDecision = useMemo(
     () => decideCodexTransport(codexTransportProbe, codexLiveSmokeProof),
@@ -914,6 +1028,12 @@ export function App() {
   useEffect(() => {
     savePanelSessionState(panelSessionState);
   }, [panelSessionState]);
+
+  useEffect(() => {
+    if (appDialog === "migration") {
+      refreshMigrationSourcePreview();
+    }
+  }, [appDialog]);
 
   const preset = cockpitPresets.find((entry) => entry.mode === mode) ?? cockpitPresets[0];
   const layout = getLayoutSpec(layoutId);
@@ -1127,6 +1247,74 @@ export function App() {
     setCodexTransportProbe(nextProbe);
     setCodexTransportLoading(false);
     setAppNotice(codexNotice(nextDecision));
+  }
+
+  async function refreshMigrationSourcePreview(nextSourceId = migrationSourceId) {
+    setMigrationPreviewLoading(true);
+
+    if (!hasDesktopRuntime()) {
+      setMigrationSourcePreview(fallbackMigrationSourcePreview(nextSourceId));
+      setMigrationPreviewLoading(false);
+      return;
+    }
+
+    try {
+      const result = await invokeDesktopCommand<MigrationSourcePreviewPayload>(
+        "migration_source_preview",
+        { sourceId: nextSourceId }
+      );
+      setMigrationSourcePreview({
+        ...result,
+        safetyNote: redactMigrationPreviewDetail(result.safetyNote),
+        categories: result.categories.map((category) => ({
+          ...category,
+          reason: redactMigrationPreviewDetail(category.reason)
+        })),
+        excludedSecretsSummary: result.excludedSecretsSummary.map((item) =>
+          redactMigrationPreviewDetail(item)
+        )
+      });
+    } catch (error) {
+      setMigrationSourcePreview({
+        ...fallbackMigrationSourcePreview(nextSourceId),
+        safeLocationLabel: "Desktop metadata scan failed",
+        safetyNote:
+          error instanceof Error
+            ? redactMigrationPreviewDetail(error.message)
+            : "Desktop metadata scan failed without returning details."
+      });
+    } finally {
+      setMigrationPreviewLoading(false);
+    }
+  }
+
+  function handleMigrationSourceChange(nextSourceId: MigrationSourceId) {
+    setMigrationSourceId(nextSourceId);
+    setMigrationPreview(buildDefaultMigrationPreview(nextSourceId));
+    setMigrationProfileDraft(undefined);
+    refreshMigrationSourcePreview(nextSourceId);
+  }
+
+  function handleMigrationCategoryChange(categoryId: MigrationCategoryId, selected: boolean) {
+    setMigrationPreview((current) => toggleMigrationCategory(current, categoryId, selected));
+    setMigrationProfileDraft(undefined);
+  }
+
+  function handleSelectReviewableMigrationCategories() {
+    setMigrationPreview((current) =>
+      current.categories.reduce(
+        (nextPreview, category) =>
+          category.baseState === "unsupported"
+            ? nextPreview
+            : toggleMigrationCategory(nextPreview, category.id, true),
+        buildDefaultMigrationPreview(current.source)
+      )
+    );
+    setMigrationProfileDraft(undefined);
+  }
+
+  function handleCreateMigrationProfileDraft() {
+    setMigrationProfileDraft(buildMigrationProfileDraft(migrationSourcePreview, migrationPreview));
   }
 
   async function runCodexLiveSmokeProof() {
@@ -1455,9 +1643,19 @@ export function App() {
           codexTransportDecision={codexTransportDecision}
           codexTransportLoading={codexTransportLoading}
           dialog={appDialog}
+          migrationPreview={migrationPreview}
+          migrationPreviewLoading={migrationPreviewLoading}
+          migrationProfileDraft={migrationProfileDraft}
+          migrationSourceId={migrationSourceId}
+          migrationSourcePreview={migrationSourcePreview}
+          onCreateMigrationProfileDraft={handleCreateMigrationProfileDraft}
+          onMigrationCategoryChange={handleMigrationCategoryChange}
+          onMigrationSourceChange={handleMigrationSourceChange}
           onClose={() => setAppDialog(undefined)}
           onRefreshCodexTransport={refreshCodexTransportProbe}
+          onRefreshMigrationPreview={() => refreshMigrationSourcePreview()}
           onRunCodexLiveSmokeProof={runCodexLiveSmokeProof}
+          onSelectReviewableMigrationCategories={handleSelectReviewableMigrationCategories}
           onStageCodexConnection={handleStageCodexConnection}
         />
       ) : null}
@@ -1605,9 +1803,19 @@ function AppDialogSurface({
   codexTransportDecision,
   codexTransportLoading,
   dialog,
+  migrationPreview,
+  migrationPreviewLoading,
+  migrationProfileDraft,
+  migrationSourceId,
+  migrationSourcePreview,
+  onCreateMigrationProfileDraft,
+  onMigrationCategoryChange,
+  onMigrationSourceChange,
   onClose,
   onRefreshCodexTransport,
+  onRefreshMigrationPreview,
   onRunCodexLiveSmokeProof,
+  onSelectReviewableMigrationCategories,
   onStageCodexConnection
 }: {
   codexConnectionRequested: boolean;
@@ -1616,12 +1824,24 @@ function AppDialogSurface({
   codexTransportDecision: CodexTransportDecision;
   codexTransportLoading: boolean;
   dialog: AppDialog;
+  migrationPreview: MigrationPreview;
+  migrationPreviewLoading: boolean;
+  migrationProfileDraft?: MigrationProfileDraft;
+  migrationSourceId: MigrationSourceId;
+  migrationSourcePreview: MigrationSourcePreviewPayload;
+  onCreateMigrationProfileDraft: () => void;
+  onMigrationCategoryChange: (categoryId: MigrationCategoryId, selected: boolean) => void;
+  onMigrationSourceChange: (sourceId: MigrationSourceId) => void;
   onClose: () => void;
   onRefreshCodexTransport: () => void;
+  onRefreshMigrationPreview: () => void;
   onRunCodexLiveSmokeProof: () => void;
+  onSelectReviewableMigrationCategories: () => void;
   onStageCodexConnection: () => void;
 }) {
   const platformCatalogView = getPlatformCatalogView(dialog);
+  const migrationCounts = buildMigrationPreviewCounts(migrationPreview);
+  const selectedCategoryCount = migrationPreview.categories.filter((category) => category.selected).length;
   const title =
     dialog === "connection"
       ? "Codex Connection"
@@ -1710,17 +1930,114 @@ function AppDialogSurface({
         {dialog === "migration" ? (
           <div className="app-dialog-body">
             <p>
-              Migration will import working setup into Steerboard profiles without mutating the source app.
-              The first useful categories are settings, projects, threads, skills, plugins, MCP, and commands.
+              Migration previews source metadata, lets you select exactly what to bring over, and keeps
+              credentials, browser state, and raw transcripts excluded.
             </p>
-            <div className="migration-grid" aria-label="Migration source preview">
-              <span>Codex</span>
-              <span>Settings, projects, chats, plugins, skills, MCP, commands</span>
-              <span>Claude Code</span>
-              <span>Projects, MCP, commands, local prompts</span>
-              <span>Manual files</span>
-              <span>JSON, TOML, MCP config, skill folders</span>
+            <div className="migration-controls" aria-label="Migration controls">
+              <label>
+                <span>Source</span>
+                <select
+                  aria-label="Migration source platform"
+                  onChange={(event) => onMigrationSourceChange(event.currentTarget.value as MigrationSourceId)}
+                  value={migrationSourceId}
+                >
+                  {defaultMigrationSources.map((source) => (
+                    <option key={source.id} value={source.id}>
+                      {source.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button className="dialog-secondary-action" onClick={onRefreshMigrationPreview} type="button">
+                {migrationPreviewLoading ? "Scanning..." : "Refresh metadata"}
+              </button>
+              <button className="dialog-secondary-action" onClick={onSelectReviewableMigrationCategories} type="button">
+                Select safe metadata
+              </button>
             </div>
+            <div className="migration-summary-strip" aria-label="Migration preview counts">
+              <span>
+                <strong>{migrationCounts.accepted}</strong>
+                Accepted
+              </span>
+              <span>
+                <strong>{migrationCounts.reviewRequired}</strong>
+                Review
+              </span>
+              <span>
+                <strong>{migrationCounts.unsupported}</strong>
+                Unsupported
+              </span>
+              <span>
+                <strong>{migrationCounts.excluded}</strong>
+                Excluded
+              </span>
+              <span>
+                <strong>{selectedCategoryCount}</strong>
+                Selected
+              </span>
+            </div>
+            <div className="migration-source-card" aria-label="Migration source metadata scan">
+              <div>
+                <span className={classNames("migration-source-state", migrationSourcePreview.detected ? "is-detected" : "is-preview")}>
+                  {migrationSourcePreview.detected ? "Detected" : "Preview"}
+                </span>
+                <strong>{migrationSourcePreview.sourceLabel}</strong>
+                <p>{migrationSourcePreview.safeLocationLabel}</p>
+              </div>
+              <small title={migrationSourcePreview.safetyNote}>{migrationSourcePreview.safetyNote}</small>
+            </div>
+            <div className="migration-scan-list" aria-label="Migration source scan categories">
+              {migrationSourcePreview.categories.map((category) => (
+                <span className={`migration-state-${category.status}`} key={category.id} title={category.reason}>
+                  <strong>{category.label}</strong>
+                  <b>{formatMigrationState(category.status)}</b>
+                  <small>{category.count} found; {category.reason}</small>
+                </span>
+              ))}
+            </div>
+            <div className="migration-category-list" aria-label="Migration category checklist">
+              {migrationPreview.categories.map((category) => (
+                <label className="migration-category-row" key={category.id}>
+                  <input
+                    checked={category.selected}
+                    disabled={category.baseState === "unsupported"}
+                    onChange={(event) => onMigrationCategoryChange(category.id, event.currentTarget.checked)}
+                    type="checkbox"
+                  />
+                  <span>
+                    <strong>{category.label}</strong>
+                    <small>{category.detail}</small>
+                  </span>
+                  <b className={`migration-state-${category.state}`}>
+                    {formatMigrationState(category.state)}
+                  </b>
+                </label>
+              ))}
+            </div>
+            <div className="migration-exclusions" aria-label="Migration excluded sensitive data">
+              {migrationSourcePreview.excludedSecretsSummary.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+            <div className="dialog-action-row">
+              <button
+                className="dialog-primary-action"
+                disabled={selectedCategoryCount === 0}
+                onClick={onCreateMigrationProfileDraft}
+                type="button"
+              >
+                Create profile draft
+              </button>
+            </div>
+            {migrationProfileDraft ? (
+              <div className="migration-draft" aria-label="Migration profile draft">
+                <strong>Profile draft staged</strong>
+                <span>{migrationProfileDraft.sourceLabel}</span>
+                <small>{migrationProfileDraft.selectedCategories.join(", ")}</small>
+                <small>{migrationProfileDraft.safetyNote}</small>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

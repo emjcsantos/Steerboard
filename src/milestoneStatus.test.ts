@@ -241,13 +241,13 @@ describe("milestone status model", () => {
 
     expect(platform?.completion).toBe("In progress");
     expect(platform?.tone).toBe("active");
-    expect(platform?.completionPercent).toBe(18);
+    expect(platform?.completionPercent).toBe(28);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Slash commands plus plugin, skill, MCP, automation, and personalization catalog foundations are provider-neutral and state-aware."
+      "Slash commands, platform catalogs, and migration preview/profile-draft foundations are provider-neutral and state-aware."
     );
     expect(platform?.nextStep).toBe(
-      "Build safe migration preview and provider refresh on top of the catalog schemas."
+      "Connect provider refresh, reviewed import persistence, and permission gates."
     );
   });
 
@@ -271,10 +271,10 @@ describe("milestone status model", () => {
       active: 8,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 36,
+      averageCompletionPercent: 37,
       nextTarget: "Platform capabilities",
-      nextStep: "Build safe migration preview and provider refresh on top of the catalog schemas.",
-      nextCompletionPercent: 18
+      nextStep: "Connect provider refresh, reviewed import persistence, and permission gates.",
+      nextCompletionPercent: 28
     });
   });
 

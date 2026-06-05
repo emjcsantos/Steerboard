@@ -191,12 +191,50 @@ pub struct CodexPanelCloseResult {
     pub detail: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MigrationSourceCategoryPreview {
+    pub id: String,
+    pub label: String,
+    pub status: String,
+    pub count: usize,
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MigrationSourcePreviewCounts {
+    pub accepted: usize,
+    pub review_required: usize,
+    pub unsupported: usize,
+    pub excluded: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MigrationSourcePreview {
+    pub source_id: String,
+    pub source_label: String,
+    pub detected: bool,
+    pub safe_location_label: String,
+    pub categories: Vec<MigrationSourceCategoryPreview>,
+    pub counts: MigrationSourcePreviewCounts,
+    pub excluded_secrets_summary: Vec<String>,
+    pub safety_note: String,
+}
+
 mod runtime_bridge {
+    const MIGRATION_STATUS_ACCEPTED: &str = "accepted";
+    const MIGRATION_STATUS_REVIEW_REQUIRED: &str = "review-required";
+    const MIGRATION_STATUS_UNSUPPORTED: &str = "unsupported";
+    const MIGRATION_STATUS_EXCLUDED: &str = "excluded";
+
     use super::{
         CodexAppServerProbe, CodexAppServerProtocolProbe, CodexCliProbe, CodexExecJsonProbe,
         CodexExecutionProbe, CodexHomeProbe, CodexLiveSmokeProof, CodexPanelCloseResult,
         CodexPanelEvent, CodexPanelInterruptResult, CodexPanelSessionReadiness,
         CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelTurnResult, CodexTransportProbe,
+        MigrationSourceCategoryPreview, MigrationSourcePreview, MigrationSourcePreviewCounts,
         PermissionApprovalStatus, RuntimeBridgeStatus,
     };
     use serde_json::Value;
@@ -213,6 +251,299 @@ mod runtime_bridge {
 
     static PANEL_SESSIONS: OnceLock<Mutex<BTreeMap<String, Arc<CodexPanelSession>>>> =
         OnceLock::new();
+
+    fn migration_category(
+        id: &str,
+        label: &str,
+        status: &str,
+        count: usize,
+        reason: &str,
+    ) -> MigrationSourceCategoryPreview {
+        MigrationSourceCategoryPreview {
+            id: id.to_string(),
+            label: label.to_string(),
+            status: status.to_string(),
+            count,
+            reason: reason.to_string(),
+        }
+    }
+
+    fn migration_counts(categories: &[MigrationSourceCategoryPreview]) -> MigrationSourcePreviewCounts {
+        let mut counts = MigrationSourcePreviewCounts {
+            accepted: 0,
+            review_required: 0,
+            unsupported: 0,
+            excluded: 0,
+        };
+
+        for category in categories {
+            match category.status.as_str() {
+                MIGRATION_STATUS_ACCEPTED => counts.accepted += 1,
+                MIGRATION_STATUS_REVIEW_REQUIRED => counts.review_required += 1,
+                MIGRATION_STATUS_UNSUPPORTED => counts.unsupported += 1,
+                MIGRATION_STATUS_EXCLUDED => counts.excluded += 1,
+                _ => {}
+            }
+        }
+
+        counts
+    }
+
+    fn codex_safe_location_label() -> String {
+        "Default Codex home".to_string()
+    }
+
+    fn codex_migration_preview_from_probe(probe: &CodexTransportProbe) -> MigrationSourcePreview {
+        let detected = probe.cli.available || probe.codex_home.present || probe.app_server.available;
+
+        let categories = vec![
+            migration_category(
+                "cli",
+                "Codex CLI",
+                if probe.cli.available {
+                    MIGRATION_STATUS_ACCEPTED
+                } else {
+                    MIGRATION_STATUS_UNSUPPORTED
+                },
+                if probe.cli.available { 1 } else { 0 },
+                if probe.cli.available {
+                    "CLI binary was detected on PATH."
+                } else {
+                    "CLI was not detected; migration will remain metadata-only for unavailable CLI paths."
+                },
+            ),
+            migration_category(
+                "config",
+                "Codex configuration",
+                if probe.codex_home.config_present {
+                    MIGRATION_STATUS_ACCEPTED
+                } else if detected {
+                    MIGRATION_STATUS_REVIEW_REQUIRED
+                } else {
+                    MIGRATION_STATUS_UNSUPPORTED
+                },
+                if probe.codex_home.config_present { 1 } else { 0 },
+                if probe.codex_home.config_present {
+                    "A Codex config file location is present."
+                } else {
+                    "No config file was detected in metadata scan."
+                },
+            ),
+            migration_category(
+                "skills",
+                "Skills",
+                if probe.codex_home.skills_count > 0 {
+                    MIGRATION_STATUS_ACCEPTED
+                } else {
+                    MIGRATION_STATUS_EXCLUDED
+                },
+                probe.codex_home.skills_count,
+                if probe.codex_home.skills_count > 0 {
+                    "Skill metadata can be migrated after review."
+                } else {
+                    "No metadata-visible skill entries were found."
+                },
+            ),
+            migration_category(
+                "plugins",
+                "Plugins",
+                if probe.codex_home.plugins_present {
+                    MIGRATION_STATUS_REVIEW_REQUIRED
+                } else {
+                    MIGRATION_STATUS_EXCLUDED
+                },
+                if probe.codex_home.plugins_present { 1 } else { 0 },
+                if probe.codex_home.plugins_present {
+                    "Plugin manifests are detected and require review before import."
+                } else {
+                    "No metadata-visible plugin manifests were found."
+                },
+            ),
+            migration_category(
+                "app-server",
+                "App-server capability",
+                if probe.app_server.stdio_handshake {
+                    MIGRATION_STATUS_ACCEPTED
+                } else if probe.app_server.available {
+                    MIGRATION_STATUS_REVIEW_REQUIRED
+                } else {
+                    MIGRATION_STATUS_UNSUPPORTED
+                },
+                if probe.app_server.stdio_handshake || probe.app_server.available {
+                    1
+                } else {
+                    0
+                },
+                if probe.app_server.stdio_handshake {
+                    "The app-server stdio handshake is available for adapter-style scanning."
+                } else if probe.app_server.available {
+                    "App-server help surface is present, but handshake could not be confirmed."
+                } else {
+                    "App-server capability was not detected in metadata probes."
+                },
+            ),
+            migration_category(
+                "mcp",
+                "MCP definitions",
+                if probe.app_server.protocol.mcp_status {
+                    MIGRATION_STATUS_REVIEW_REQUIRED
+                } else {
+                    MIGRATION_STATUS_UNSUPPORTED
+                },
+                if probe.app_server.protocol.mcp_status { 1 } else { 0 },
+                if probe.app_server.protocol.mcp_status {
+                    "MCP capability signatures are available and require review."
+                } else {
+                    "No MCP definitions were detected in metadata."
+                },
+            ),
+            migration_category(
+                "commands",
+                "Commands and hooks",
+                MIGRATION_STATUS_REVIEW_REQUIRED,
+                0,
+                "Command-capable features are marked review-required until enabled in Steerboard.",
+            ),
+            migration_category(
+                "secrets",
+                "Auth and secrets",
+                MIGRATION_STATUS_EXCLUDED,
+                0,
+                "Auth stores are never copied during preview.",
+            ),
+            migration_category(
+                "transcripts",
+                "Raw transcripts",
+                MIGRATION_STATUS_EXCLUDED,
+                0,
+                "Thread transcripts are excluded from preview payloads by design.",
+            ),
+            migration_category(
+                "browser-state",
+                "Browser and cookie state",
+                MIGRATION_STATUS_EXCLUDED,
+                0,
+                "Browser state is intentionally excluded from metadata import."
+            ),
+        ];
+
+        let counts = migration_counts(&categories);
+
+        MigrationSourcePreview {
+            source_id: "codex".to_string(),
+            source_label: "Codex".to_string(),
+            detected,
+            safe_location_label: codex_safe_location_label(),
+            counts,
+            categories,
+            excluded_secrets_summary: vec![
+                "Authentication token stores are excluded.".to_string(),
+                "Cookies and browser profile state are excluded.".to_string(),
+                "Raw transcript data is excluded.".to_string(),
+            ],
+            safety_note: "Metadata-only preview: this command reads CLI presence, config markers, plugin/signature counts, and capability flags only. No auth files, cookie stores, private transcripts, token files, raw exports, or private source paths are returned.".to_string(),
+        }
+    }
+
+    fn unsupported_migration_preview(source_id: &str) -> MigrationSourcePreview {
+        let categories = vec![
+            migration_category(
+                "source",
+                "Source adapter",
+                MIGRATION_STATUS_UNSUPPORTED,
+                0,
+                "This source type is not supported by the current migration adapter set.",
+            ),
+            migration_category(
+                "projects",
+                "Projects and workspaces",
+                MIGRATION_STATUS_UNSUPPORTED,
+                0,
+                "This category has no adapter implementation yet.",
+            ),
+            migration_category(
+                "skills",
+                "Skills and prompts",
+                MIGRATION_STATUS_UNSUPPORTED,
+                0,
+                "No parser is available for this source type.",
+            ),
+            migration_category(
+                "plugins",
+                "Plugins",
+                MIGRATION_STATUS_UNSUPPORTED,
+                0,
+                "No plugin importer exists for this source type.",
+            ),
+            migration_category(
+                "secrets",
+                "Auth and secrets",
+                MIGRATION_STATUS_EXCLUDED,
+                0,
+                "Auth stores are excluded from migration previews.",
+            ),
+            migration_category(
+                "transcripts",
+                "Raw transcripts",
+                MIGRATION_STATUS_EXCLUDED,
+                0,
+                "Raw transcripts are excluded from migration previews.",
+            ),
+            migration_category(
+                "browser-state",
+                "Browser and cookie state",
+                MIGRATION_STATUS_EXCLUDED,
+                0,
+                "Browser state is excluded from migration previews.",
+            ),
+        ];
+        let counts = migration_counts(&categories);
+
+        MigrationSourcePreview {
+            source_id: source_id.to_string(),
+            source_label: if source_id == "auto" {
+                "No detected source".to_string()
+            } else {
+                format!("Unsupported: {}", source_id)
+            },
+            detected: false,
+            safe_location_label: "No local source location detected".to_string(),
+            categories,
+            counts,
+            excluded_secrets_summary: vec![
+                "Authentication token stores are excluded.".to_string(),
+                "Cookies and browser profile state are excluded.".to_string(),
+                "Raw transcript data is excluded.".to_string(),
+            ],
+            safety_note: "No filesystem reads or process execution occurred for this source in preview mode. Only adapter metadata policy is shown."
+                .to_string(),
+        }
+    }
+
+    fn normalize_source_id(source_id: Option<String>) -> String {
+        source_id
+            .unwrap_or_else(|| "auto".to_string())
+            .trim()
+            .to_lowercase()
+    }
+
+    pub(crate) fn migration_source_preview_from_probe(
+        source_id: Option<String>,
+        transport_probe: Option<CodexTransportProbe>,
+    ) -> MigrationSourcePreview {
+        match normalize_source_id(source_id) {
+            source_id if source_id == "codex" || source_id == "auto" || source_id.is_empty() => {
+                let transport_probe = transport_probe.unwrap_or_else(codex_transport_probe);
+                codex_migration_preview_from_probe(&transport_probe)
+            }
+            source_id => unsupported_migration_preview(&source_id),
+        }
+    }
+
+    #[tauri::command]
+    pub fn migration_source_preview(source_id: Option<String>) -> MigrationSourcePreview {
+        migration_source_preview_from_probe(source_id, Some(codex_transport_probe()))
+    }
 
     #[tauri::command]
     pub fn runtime_bridge_status() -> RuntimeBridgeStatus {
@@ -1536,6 +1867,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             runtime_bridge::runtime_bridge_status,
             runtime_bridge::runtime_permission_approval_status,
+            runtime_bridge::migration_source_preview,
             runtime_bridge::codex_transport_probe,
             runtime_bridge::codex_transport_live_smoke,
             runtime_bridge::codex_panel_session_readiness,
@@ -1727,5 +2059,104 @@ mod tests {
         assert_eq!(event.event_type, "error");
         assert_eq!(event.turn_id.as_deref(), Some("turn-3"));
         assert_eq!(event.message.as_deref(), Some("provider failed"));
+    }
+
+    fn fake_codex_transport_probe() -> CodexTransportProbe {
+        CodexTransportProbe {
+            source: "desktop".to_string(),
+            checked_at: Some("1700000000000".to_string()),
+            cli: CodexCliProbe {
+                available: true,
+                version: Some("1.2.3".to_string()),
+            },
+            codex_home: CodexHomeProbe {
+                present: true,
+                config_present: true,
+                auth_present: true,
+                skills_count: 4,
+                plugins_present: true,
+            },
+            app_server: CodexAppServerProbe {
+                available: true,
+                stdio_handshake: true,
+                daemon_lifecycle: "unsupported".to_string(),
+                user_agent: Some("unit-test-agent".to_string()),
+                platform_os: Some("test-os".to_string()),
+                protocol: CodexAppServerProtocolProbe {
+                    thread_start: true,
+                    turn_start: true,
+                    turn_interrupt: true,
+                    turn_steer: true,
+                    agent_message_delta: true,
+                    plugin_list: true,
+                    mcp_status: false,
+                    skills_list: true,
+                },
+            },
+            exec_json: CodexExecJsonProbe {
+                available: true,
+                can_stream_events: true,
+                detail: "fake".to_string(),
+            },
+            execution: CodexExecutionProbe {
+                process_execution_allowed: false,
+                prompt_execution_allowed: false,
+                detail: "fake".to_string(),
+            },
+        }
+    }
+
+    #[test]
+    fn migration_source_preview_marks_auth_and_transcripts_as_excluded_for_codex() {
+        let probe = fake_codex_transport_probe();
+        let preview =
+            runtime_bridge::migration_source_preview_from_probe(Some("codex".to_string()), Some(probe));
+        let serialized = serde_json::to_string(&preview).unwrap_or_default().to_lowercase();
+        assert_eq!(preview.source_id, "codex");
+        assert_eq!(preview.source_label, "Codex");
+        assert!(preview.detected);
+        assert!(preview
+            .categories
+            .iter()
+            .any(|category| category.id == "secrets" && category.status == "excluded"));
+        assert!(preview
+            .categories
+            .iter()
+            .any(|category| category.id == "transcripts" && category.status == "excluded"));
+        assert!(preview
+            .excluded_secrets_summary
+            .iter()
+            .any(|item| item.to_lowercase().contains("authentication")));
+        assert!(!serialized.contains("c:\\"));
+        assert!(!serialized.contains("/home/"));
+        assert!(!serialized.contains("auth.json"));
+        assert!(preview.excluded_secrets_summary.len() >= 3);
+        assert!(preview
+            .safety_note
+            .to_lowercase()
+            .contains("metadata-only"));
+        assert!(!preview.safe_location_label.contains('/'));
+        assert!(!preview.safe_location_label.contains('\\'));
+        let total_counts = preview.counts.accepted
+            + preview.counts.review_required
+            + preview.counts.unsupported
+            + preview.counts.excluded;
+        assert_eq!(total_counts, preview.categories.len());
+    }
+
+    #[test]
+    fn migration_source_preview_unsupported_source_is_marked_reviewable_without_probe_dependency() {
+        let preview =
+            runtime_bridge::migration_source_preview_from_probe(Some("antigravity".to_string()), None);
+        assert_eq!(preview.source_id, "antigravity");
+        assert!(!preview.detected);
+        assert!(preview.source_label.contains("Unsupported"));
+        assert_eq!(preview.categories.iter().filter(|category| category.status == "accepted").count(), 0);
+        assert!(preview.counts.unsupported >= 3);
+        assert!(preview
+            .safety_note
+            .to_lowercase()
+            .contains("no filesystem"));
+        assert!(preview.safe_location_label.contains("No local source location"));
     }
 }

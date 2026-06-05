@@ -139,4 +139,5 @@ The cockpit consumes only normalized adapter events. Provider-specific payloads 
 | Plugin Manager | 12% | Provider-neutral plugin model and dialog surface show setup/enabled posture and supported invocation metadata as a safe seed catalog. |
 | Automations Manager | 12% | Provider-neutral automation model and dialog surface show lifecycle, trigger, and approval posture without scheduling or running automations. |
 | Personalization Center | 12% | Provider-neutral personalization model and settings entry show instruction/config layers and privacy posture without exposing private paths. |
+| Migration Center | 20% | `File > Migrate...` now exposes a safe source selector, desktop metadata scan, category checkboxes, excluded secrets summary, and local profile draft staging. Reviewed persistence and rollback remain pending. |
 | Permission And Audit Layer | 0% | Gate live actions and preserve reviewable local audit records. |
