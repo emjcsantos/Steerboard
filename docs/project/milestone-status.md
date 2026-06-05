@@ -9,7 +9,7 @@ It is the complete public milestone report contract. Every milestone must appear
 The compact target table must include **Target**, **Completion**, and **Note**.
 The detailed milestone table must include **Target**, **Plan**, **Completion**, **% Completion**, **Latest Note**, and **Next Step**.
 
-Overall completion: 40%. Next milestone: Security and privacy model. Next step: attach approved risk gates to specific tool runners without bypassing audit.
+Overall completion: 40%. Next milestone: Owner testing hardening. Next step: run the full local testing checklist, verify failure fixtures in the cockpit, and attach the approved gates to live runners.
 
 Milestone reports should be readable at minimum by Target, Completion, and Note.
 
@@ -22,6 +22,7 @@ Milestone reports should be readable at minimum by Target, Completion, and Note.
 | Live Codex integration | In progress | Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations. |
 | Platform capabilities | In progress | Slash commands, platform catalogs, migration preview/profile-draft foundations, and live-action risk gates are provider-neutral and state-aware. |
 | Security and privacy model | In progress | Provider-neutral live-action permission gates and redacted audit records are visible for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions. |
+| Owner testing hardening | In progress | A provider-neutral checklist and failure-state fixture layer now make launch, chat, panels, commands, catalogs, migration, dispatch, permissions, reload, and recovery testable. |
 | Packaging and installation | Paused | Packaging is intentionally deferred until core development is complete. |
 | Optional project management lane | In progress | Pipeline visibility, dispatch previews, linked local runs, and readiness language are scaffolded. |
 
@@ -33,6 +34,7 @@ Milestone reports should be readable at minimum by Target, Completion, and Note.
 | Runtime adapter previews | Deliver and stabilize adapter surfaces for consistent runtime status intake. | In progress | 50% | Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, stream routing, and control capability foundations exist. | Connect routed stream and control state to richer monitor surfaces. |
 | Live Codex integration | Connect real Codex auth/session transport to cockpit panels. | In progress | 42% | Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations. | Run native two-panel smoke and live-control smoke as recurring regression checks. |
 | Platform capabilities | Make commands, plugins, automations, MCP, personalization, permissions, and audit state live. | In progress | 34% | Slash commands, platform catalogs, migration preview/profile-draft foundations, and live-action risk gates are provider-neutral and state-aware. | Connect provider refresh, reviewed import persistence, and approved actions to live runners. |
-| Security and privacy model | Set baseline protections, data-handling boundaries, and reviewable controls. | In progress | 42% | Provider-neutral live-action permission gates and redacted audit records are visible for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions. | Attach approved risk gates to specific tool runners without bypassing audit. |
+| Security and privacy model | Set baseline protections, data-handling boundaries, and reviewable controls. | In progress | 45% | Provider-neutral live-action permission gates and redacted audit records are visible for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions. | Attach approved risk gates to specific tool runners without bypassing audit. |
+| Owner testing hardening | Make live-functionality checks repeatable through a local checklist, failure fixtures, and docs consistency checks. | In progress | 34% | A provider-neutral checklist and failure-state fixture layer now make launch, chat, panels, commands, catalogs, migration, dispatch, permissions, reload, and recovery testable. | Run the full local testing checklist, verify failure fixtures in the cockpit, and attach the approved gates to live runners. |
 | Packaging and installation | Prepare install, environment, and distribution path for dependable rollout. | Paused | 0% | Packaging is intentionally deferred until core development is complete. | Remain paused until core development is complete. |
 | Optional project management lane | Define the optional lane scope while keeping cockpit chat primary. | In progress | 25% | Pipeline visibility, dispatch previews, linked local runs, and readiness language are scaffolded. | Keep secondary and connect it to provider capability readiness after live chat works. |

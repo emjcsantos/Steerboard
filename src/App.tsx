@@ -497,6 +497,16 @@ import {
   type RuntimeRecoveryFailureCoverage
 } from "./runtimeRecoveryFailureCoverage";
 import {
+  buildFailureStateFixtures,
+  summarizeFailureStateFixtures,
+  type FailureStateFixture,
+  type FailureStateFixtureSummary
+} from "./failureStateFixtures";
+import {
+  buildOwnerTestingChecklist,
+  type OwnerTestingChecklist
+} from "./ownerTestingChecklist";
+import {
   appendLiveActionAuditRecord,
   buildLiveActionAuditExportMarkdown,
   createLiveActionAuditRecord,
@@ -4393,6 +4403,37 @@ function RightPanel({
       ).length,
     [liveActionRequestsByProvider]
   );
+  const ownerTestingChecklist: OwnerTestingChecklist = useMemo(
+    () =>
+      buildOwnerTestingChecklist({
+        launch: "ready",
+        connect: runtimeAdapter?.state === "blocked" ? "blocked" : "review",
+        chat: "review",
+        "multi-panel": "review",
+        controls: "review",
+        "slash-commands": "ready",
+        catalogs: "ready",
+        migration: "ready",
+        planning: "ready",
+        dispatch: "ready",
+        permissions: liveActionExecutableCount > 0 ? "ready" : "review",
+        reload: "review",
+        recovery: runtimeRecoveryFailureCoverage.tone === "blocked" ? "blocked" : "review"
+      }),
+    [
+      liveActionExecutableCount,
+      runtimeAdapter?.state,
+      runtimeRecoveryFailureCoverage.tone
+    ]
+  );
+  const failureStateFixtures: readonly FailureStateFixture[] = useMemo(
+    () => buildFailureStateFixtures(),
+    []
+  );
+  const failureStateFixtureSummary: FailureStateFixtureSummary = useMemo(
+    () => summarizeFailureStateFixtures(failureStateFixtures),
+    [failureStateFixtures]
+  );
   const liveActionAuditMarkdown = useMemo(
     () => buildLiveActionAuditExportMarkdown(liveActionAuditHistory),
     [liveActionAuditHistory]
@@ -4903,6 +4944,12 @@ function RightPanel({
       <MilestoneStatusPanel
         milestones={steerboardMilestoneStatuses}
         summary={milestoneStatusSummary}
+      />
+
+      <OwnerTestingReadinessPanel
+        checklist={ownerTestingChecklist}
+        failureFixtures={failureStateFixtures}
+        failureSummary={failureStateFixtureSummary}
       />
 
       <section className="panel-section">
@@ -7126,6 +7173,102 @@ function ToolEvidenceReadinessPanel({
           )}
         </div>
         <small title={tools.safety}>{tools.safety}</small>
+      </div>
+    </section>
+  );
+}
+
+function OwnerTestingReadinessPanel({
+  checklist,
+  failureFixtures,
+  failureSummary
+}: {
+  checklist: OwnerTestingChecklist;
+  failureFixtures: readonly FailureStateFixture[];
+  failureSummary: FailureStateFixtureSummary;
+}) {
+  const visibleChecklistItems = checklist.items.slice(0, 6);
+  const visibleFailureFixtures = failureFixtures.slice(0, 4);
+
+  return (
+    <section className="panel-section">
+      <h4>Owner Testing</h4>
+      <div
+        aria-label={`Owner testing readiness ${checklist.summary.statusLabel}; ${checklist.summary.readiness}% ready; ${checklist.summary.ready} ready, ${checklist.summary.review} review, ${checklist.summary.blocked} blocked, ${checklist.summary.waiting} waiting`}
+        className={classNames(
+          "owner-testing-readiness",
+          `owner-testing-${checklist.summary.state}`
+        )}
+      >
+        <div className="owner-testing-header">
+          <span className="owner-testing-state">
+            <span aria-hidden="true" />
+            {checklist.summary.statusLabel}
+          </span>
+          <strong title={checklist.label}>Daily checklist</strong>
+          <b>{checklist.summary.readiness}%</b>
+        </div>
+        <dl className="owner-testing-grid" aria-label="Owner testing checklist counts">
+          <div>
+            <dt>Ready</dt>
+            <dd>{checklist.summary.ready}</dd>
+          </div>
+          <div>
+            <dt>Review</dt>
+            <dd>{checklist.summary.review}</dd>
+          </div>
+          <div>
+            <dt>Blocked</dt>
+            <dd>{checklist.summary.blocked}</dd>
+          </div>
+          <div>
+            <dt>Waiting</dt>
+            <dd>{checklist.summary.waiting}</dd>
+          </div>
+        </dl>
+        <ol className="owner-testing-list" aria-label="Owner testing checklist preview">
+          {visibleChecklistItems.map((item) => (
+            <li
+              className={`owner-testing-item-${item.state}`}
+              key={item.id}
+              title={item.checks}
+            >
+              <span>{item.state}</span>
+              <strong>{item.name}</strong>
+              <small>{item.focus}</small>
+            </li>
+          ))}
+        </ol>
+        <div
+          aria-label={`Failure fixture coverage ${failureSummary.statusLabel}; ${failureSummary.blocked} blocked, ${failureSummary.review} review, ${failureSummary.ready} ready`}
+          className={classNames(
+            "failure-fixture-coverage",
+            `failure-fixture-${failureSummary.state}`
+          )}
+        >
+          <div className="failure-fixture-header">
+            <span className="failure-fixture-state">
+              <span aria-hidden="true" />
+              {failureSummary.statusLabel}
+            </span>
+            <strong>Failure fixtures</strong>
+            <b>{failureSummary.total}</b>
+          </div>
+          <p title={failureSummary.nextAction.label}>{failureSummary.nextAction.label}</p>
+          <ol className="failure-fixture-list" aria-label="Owner testing failure fixtures">
+            {visibleFailureFixtures.map((fixture) => (
+              <li
+                className={`failure-fixture-item-${fixture.state}`}
+                key={fixture.id}
+                title={`${fixture.detail} ${fixture.safety}`}
+              >
+                <span>{fixture.severity}</span>
+                <strong>{fixture.label}</strong>
+                <small>{fixture.state}</small>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
     </section>
   );

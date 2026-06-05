@@ -107,14 +107,26 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Security and privacy model",
     completion: "In progress",
     plan: "Set baseline protections, data-handling boundaries, and reviewable controls.",
-    completionPercent: 42,
+    completionPercent: 45,
     latestNote:
       "Provider-neutral live-action permission gates and redacted audit records are visible for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions.",
     nextStep:
       "Attach approved risk gates to specific tool runners without bypassing audit.",
-    current: true,
     tone: "active",
     note: "Local-first safety boundaries, live-action approval gates, and redacted audit records are visible before real tool execution."
+  },
+  {
+    target: "Owner testing hardening",
+    completion: "In progress",
+    plan: "Make live-functionality checks repeatable through a local checklist, failure fixtures, and docs consistency checks.",
+    completionPercent: 34,
+    latestNote:
+      "A provider-neutral checklist and failure-state fixture layer now make launch, chat, panels, commands, catalogs, migration, dispatch, permissions, reload, and recovery testable.",
+    nextStep:
+      "Run the full local testing checklist, verify failure fixtures in the cockpit, and attach the approved gates to live runners.",
+    current: true,
+    tone: "active",
+    note: "Daily local testing and failure-state coverage are being hardened before broader live runner attachment."
   },
   {
     target: "Packaging and installation",

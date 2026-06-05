@@ -48,6 +48,7 @@ The desktop shell uses Tauri and loads the same local Vite UI during development
 - [Security and Privacy Model](docs/architecture/security-privacy-model.md)
 - [Public Roadmap](docs/roadmap.md)
 - [Installation Strategy](docs/operations/installation-strategy.md)
+- [Local Testing Checklist](docs/operations/local-testing-checklist.md)
 - [Originality And Attribution Policy](docs/decisions/originality-attribution-policy.md)
 - [Contributing](CONTRIBUTING.md)
 - [Third-Party Notices](THIRD_PARTY_NOTICES.md)

@@ -174,6 +174,7 @@ describe("milestone status model", () => {
     expect(targets).toContain("Live Codex integration");
     expect(targets).toContain("Platform capabilities");
     expect(targets).toContain("Security and privacy model");
+    expect(targets).toContain("Owner testing hardening");
     expect(targets).toContain("Packaging and installation");
     expect(targets).toContain("Optional project management lane");
   });
@@ -267,32 +268,49 @@ describe("milestone status model", () => {
 
   it("summarizes exported milestone list counts correctly", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
-      total: 9,
+      total: 10,
       complete: 0,
-      active: 8,
+      active: 9,
       planned: 0,
       paused: 1,
       averageCompletionPercent: 40,
-      nextTarget: "Security and privacy model",
-      nextStep: "Attach approved risk gates to specific tool runners without bypassing audit.",
-      nextCompletionPercent: 42
+      nextTarget: "Owner testing hardening",
+      nextStep: "Run the full local testing checklist, verify failure fixtures in the cockpit, and attach the approved gates to live runners.",
+      nextCompletionPercent: 34
     });
   });
 
-  it("tracks security and privacy model as complete with closure language", () => {
+  it("tracks security and privacy model as active after risk gate foundations land", () => {
     const securityMilestone = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Security and privacy model"
     );
 
     expect(securityMilestone?.completion).toBe("In progress");
     expect(securityMilestone?.tone).toBe("active");
-    expect(securityMilestone?.completionPercent).toBe(42);
-    expect(securityMilestone?.current).toBe(true);
+    expect(securityMilestone?.completionPercent).toBe(45);
+    expect(securityMilestone?.current).toBeUndefined();
     expect(securityMilestone?.latestNote).toBe(
       "Provider-neutral live-action permission gates and redacted audit records are visible for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions."
     );
     expect(securityMilestone?.nextStep).toBe(
       "Attach approved risk gates to specific tool runners without bypassing audit."
+    );
+  });
+
+  it("tracks owner testing hardening as the current live-functionality milestone", () => {
+    const ownerTesting = steerboardMilestoneStatuses.find(
+      (milestone) => milestone.target === "Owner testing hardening"
+    );
+
+    expect(ownerTesting?.completion).toBe("In progress");
+    expect(ownerTesting?.tone).toBe("active");
+    expect(ownerTesting?.completionPercent).toBe(34);
+    expect(ownerTesting?.current).toBe(true);
+    expect(ownerTesting?.latestNote).toBe(
+      "A provider-neutral checklist and failure-state fixture layer now make launch, chat, panels, commands, catalogs, migration, dispatch, permissions, reload, and recovery testable."
+    );
+    expect(ownerTesting?.nextStep).toBe(
+      "Run the full local testing checklist, verify failure fixtures in the cockpit, and attach the approved gates to live runners."
     );
   });
 
