@@ -74,6 +74,11 @@ import {
   type AutomationCatalogEntry
 } from "./automationCatalog";
 import {
+  buildCommandCatalogSnapshot,
+  type CommandCatalogRefreshSource,
+  type CommandCatalogSnapshot
+} from "./commandCatalog";
+import {
   cockpitPresets,
   orchestrationTasks,
   permissionSurfaces,
@@ -161,7 +166,8 @@ import {
   loadPanelChatMessages,
   panelSlashCommands,
   savePanelChatMessages,
-  type PanelChatMessage
+  type PanelChatMessage,
+  type PanelSlashCommand
 } from "./panelChat";
 import {
   defaultMcpCatalog,
@@ -947,6 +953,21 @@ function formatCatalogAvailability(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
+function formatCommandCatalogSource(source: CommandCatalogRefreshSource): string {
+  switch (source) {
+    case "provider-live":
+      return "Provider live";
+    case "provider-preview":
+      return "Provider preview";
+    case "default-fallback":
+      return "Default fallback";
+    case "empty-refresh":
+      return "Empty refresh";
+    case "unavailable":
+      return "Unavailable";
+  }
+}
+
 function buildPluginCatalogRows(catalog: readonly PluginCatalogEntry[]): PlatformCatalogRow[] {
   return catalog.map((entry) => ({
     id: entry.id,
@@ -1248,6 +1269,9 @@ export function App() {
   );
   const [codexLiveSmokeProof, setCodexLiveSmokeProof] = useState<CodexLiveSmokeProof>(() =>
     getFallbackCodexLiveSmokeProof()
+  );
+  const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
+    buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
   const [codexTransportLoading, setCodexTransportLoading] = useState(false);
   const [codexLiveSmokeLoading, setCodexLiveSmokeLoading] = useState(false);
@@ -2031,6 +2055,15 @@ export function App() {
     }
   }
 
+  function refreshCommandCatalogSnapshot() {
+    const source: CommandCatalogRefreshSource = codexTransportDecision.canStartSession
+      ? "provider-live"
+      : "provider-preview";
+    const nextSnapshot = buildCommandCatalogSnapshot(panelSlashCommands, source, panelSlashCommands);
+    setCommandCatalogSnapshot(nextSnapshot);
+    setAppNotice(`${formatCommandCatalogSource(nextSnapshot.source)} command catalog refreshed`);
+  }
+
   function recordLivePanelSessionStart(result: CodexPanelSessionStartPayload) {
     setPanelSessionState((currentState) =>
       upsertPanelSession(
@@ -2417,6 +2450,7 @@ export function App() {
                             title={session.title}
                           >
                             <SessionCell
+                              commandCatalog={commandCatalogSnapshot.catalog}
                               isFocused={session.id === focusedPanelId}
                               liveCodexEnabled={codexTransportDecision.canStartSession}
                               onPanelSessionStart={recordLivePanelSessionStart}
@@ -2434,6 +2468,7 @@ export function App() {
                       })
                     : visibleSessions.map((session) => (
                         <SessionCell
+                          commandCatalog={commandCatalogSnapshot.catalog}
                           isFocused={session.id === focusedPanelId}
                           key={session.id}
                           liveCodexEnabled={codexTransportDecision.canStartSession}
@@ -2502,6 +2537,7 @@ export function App() {
       </section>
       {appDialog ? (
         <AppDialogSurface
+          commandCatalogSnapshot={commandCatalogSnapshot}
           codexConnectionRequested={codexConnectionRequested}
           codexLiveSmokeLoading={codexLiveSmokeLoading}
           codexLiveSmokeProof={codexLiveSmokeProof}
@@ -2517,6 +2553,7 @@ export function App() {
           onMigrationCategoryChange={handleMigrationCategoryChange}
           onMigrationSourceChange={handleMigrationSourceChange}
           onClose={() => setAppDialog(undefined)}
+          onRefreshCommandCatalog={refreshCommandCatalogSnapshot}
           onRefreshCodexTransport={refreshCodexTransportProbe}
           onRefreshMigrationPreview={() => refreshMigrationSourcePreview()}
           onRunCodexLiveSmokeProof={runCodexLiveSmokeProof}
@@ -2662,6 +2699,7 @@ function AppMenuBar({
 }
 
 function AppDialogSurface({
+  commandCatalogSnapshot,
   codexConnectionRequested,
   codexLiveSmokeLoading,
   codexLiveSmokeProof,
@@ -2677,12 +2715,14 @@ function AppDialogSurface({
   onMigrationCategoryChange,
   onMigrationSourceChange,
   onClose,
+  onRefreshCommandCatalog,
   onRefreshCodexTransport,
   onRefreshMigrationPreview,
   onRunCodexLiveSmokeProof,
   onSelectReviewableMigrationCategories,
   onStageCodexConnection
 }: {
+  commandCatalogSnapshot: CommandCatalogSnapshot;
   codexConnectionRequested: boolean;
   codexLiveSmokeLoading: boolean;
   codexLiveSmokeProof: CodexLiveSmokeProof;
@@ -2698,6 +2738,7 @@ function AppDialogSurface({
   onMigrationCategoryChange: (categoryId: MigrationCategoryId, selected: boolean) => void;
   onMigrationSourceChange: (sourceId: MigrationSourceId) => void;
   onClose: () => void;
+  onRefreshCommandCatalog: () => void;
   onRefreshCodexTransport: () => void;
   onRefreshMigrationPreview: () => void;
   onRunCodexLiveSmokeProof: () => void;
@@ -2909,8 +2950,39 @@ function AppDialogSurface({
         {dialog === "slash-help" ? (
           <div className="app-dialog-body">
             <p>Slash commands are scoped to the active panel and show whether they can run live, stage locally, or remain unavailable.</p>
+            <div className="catalog-summary-strip command-catalog-summary" aria-label="Slash command catalog summary">
+              <span>
+                <strong>{commandCatalogSnapshot.summary.total}</strong>
+                Total
+              </span>
+              <span>
+                <strong>{commandCatalogSnapshot.summary.live}</strong>
+                Live
+              </span>
+              <span>
+                <strong>{commandCatalogSnapshot.summary.preview}</strong>
+                Preview
+              </span>
+              <span>
+                <strong>{commandCatalogSnapshot.summary.blocked}</strong>
+                Blocked
+              </span>
+              <span>
+                <strong>{formatCatalogAvailability(commandCatalogSnapshot.summary.availability)}</strong>
+                Ready
+              </span>
+              <span>
+                <strong>{formatCommandCatalogSource(commandCatalogSnapshot.source)}</strong>
+                Source
+              </span>
+            </div>
+            <div className="dialog-action-row">
+              <button className="dialog-secondary-action" onClick={onRefreshCommandCatalog} type="button">
+                Refresh command catalog
+              </button>
+            </div>
             <div className="slash-command-list" aria-label="Available slash commands">
-              {panelSlashCommands.map((item) => (
+              {commandCatalogSnapshot.catalog.map((item) => (
                 <span className={`command-state-${item.state}`} key={item.command}>
                   <strong>{item.command}</strong>
                   <b>{item.state}</b>
@@ -3068,6 +3140,7 @@ function AdaptivePanelFrame({
 }
 
 function SessionCell({
+  commandCatalog = panelSlashCommands,
   isFocused = false,
   liveCodexEnabled = false,
   onPanelSessionStart,
@@ -3076,6 +3149,7 @@ function SessionCell({
   projectLabel,
   session
 }: {
+  commandCatalog?: readonly PanelSlashCommand[];
   isFocused?: boolean;
   liveCodexEnabled?: boolean;
   onPanelSessionStart?: (result: CodexPanelSessionStartPayload) => void;
@@ -3134,15 +3208,15 @@ function SessionCell({
   );
   const canUseLiveCodex = liveCodexEnabled && hasDesktopRuntime();
   const slashSuggestions = useMemo(
-    () => getPanelSlashCommandSuggestions(draftMessage),
-    [draftMessage]
+    () => getPanelSlashCommandSuggestions(draftMessage, commandCatalog),
+    [commandCatalog, draftMessage]
   );
   const activeSlashCommandDecision = useMemo(() => {
     const trimmedDraft = draftMessage.trimStart();
     return trimmedDraft.startsWith("/")
-      ? getPanelSlashCommandDecision(trimmedDraft, canUseLiveCodex)
+      ? getPanelSlashCommandDecision(trimmedDraft, canUseLiveCodex, commandCatalog)
       : undefined;
-  }, [canUseLiveCodex, draftMessage]);
+  }, [canUseLiveCodex, commandCatalog, draftMessage]);
   const liveChatStarting = liveChatStatus === "starting";
   const liveChatRunning = liveChatStatus === "running";
   const liveChatBusy = liveChatStarting || liveChatRunning;
@@ -3403,7 +3477,11 @@ function SessionCell({
       return;
     }
 
-    const slashCommandDecision = getPanelSlashCommandDecision(trimmedMessage, canUseLiveCodex);
+    const slashCommandDecision = getPanelSlashCommandDecision(
+      trimmedMessage,
+      canUseLiveCodex,
+      commandCatalog
+    );
 
     if (slashCommandDecision.route === "blocked" || slashCommandDecision.route === "local-preview") {
       setChatMessages((currentMessages) => [
@@ -3421,7 +3499,7 @@ function SessionCell({
               currentMessages.length + 1,
               slashCommandDecision
             )
-          : createPanelReplyMessage(session, currentMessages.length + 1, trimmedMessage)
+          : createPanelReplyMessage(session, currentMessages.length + 1, trimmedMessage, commandCatalog)
       ]);
       setDraftMessage("");
       return;
@@ -3445,7 +3523,7 @@ function SessionCell({
         body: trimmedMessage,
         meta: "draft"
       },
-      createPanelReplyMessage(session, currentMessages.length + 1, trimmedMessage)
+      createPanelReplyMessage(session, currentMessages.length + 1, trimmedMessage, commandCatalog)
     ]);
     setDraftMessage("");
   }

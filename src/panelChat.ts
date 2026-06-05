@@ -97,13 +97,17 @@ export function buildInitialPanelChat(session: SessionSummary): PanelChatMessage
   ];
 }
 
-export function getPanelSlashCommandSuggestions(value: string): PanelSlashCommand[] {
-  return getCommandCatalogSuggestions(value, panelSlashCommands);
+export function getPanelSlashCommandSuggestions(
+  value: string,
+  catalog: readonly PanelSlashCommand[] = panelSlashCommands
+): PanelSlashCommand[] {
+  return getCommandCatalogSuggestions(value, catalog);
 }
 
 export function getPanelSlashCommandDecision(
   submittedMessage: string,
-  liveTransportAvailable: boolean
+  liveTransportAvailable: boolean,
+  catalog: readonly PanelSlashCommand[] = panelSlashCommands
 ): PanelSlashCommandDecision {
   const trimmed = submittedMessage.trim();
 
@@ -121,7 +125,7 @@ export function getPanelSlashCommandDecision(
     };
   }
 
-  const decision = buildCommandExecutionDecision(trimmed, liveTransportAvailable, panelSlashCommands);
+  const decision = buildCommandExecutionDecision(trimmed, liveTransportAvailable, catalog);
   if (!decision.executable) {
     return {
       command: decision.entry,
@@ -146,9 +150,10 @@ export function getPanelSlashCommandDecision(
 export function createPanelReplyMessage(
   session: SessionSummary,
   sequence: number,
-  submittedMessage = ""
+  submittedMessage = "",
+  catalog: readonly PanelSlashCommand[] = panelSlashCommands
 ): PanelChatMessage {
-  const decision = getPanelSlashCommandDecision(submittedMessage, false);
+  const decision = getPanelSlashCommandDecision(submittedMessage, false, catalog);
 
   if (decision.command && decision.route === "local-preview") {
     const statusLabel = decision.feedback.statusLabel.toLowerCase();

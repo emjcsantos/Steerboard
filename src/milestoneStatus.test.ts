@@ -248,10 +248,10 @@ describe("milestone status model", () => {
     expect(platform?.completionPercent).toBe(34);
     expect(platform?.current).toBeUndefined();
     expect(platform?.latestNote).toBe(
-      "Panel slash commands now expose structured ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable."
+      "Panel slash commands now use a refreshable provider-neutral catalog snapshot with ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable."
     );
     expect(platform?.nextStep).toBe(
-      "Connect refreshable provider catalogs to the command surface while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
+      "Connect real provider catalog refresh calls beyond the safe seeded snapshot while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
     );
   });
 

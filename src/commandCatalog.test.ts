@@ -4,6 +4,8 @@ import {
   defaultCommandCatalog,
   findCommandCatalogEntry,
   getCommandCatalogSuggestions,
+  buildCommandCatalogSnapshot,
+  summarizeCommandCatalog,
   normalizeCommandCatalog,
   type CommandCatalogEntry
 } from "./commandCatalog";
@@ -189,5 +191,120 @@ describe("catalog normalization", () => {
 
   it("falls back to default catalog when provided value is unusable", () => {
     expect(normalizeCommandCatalog("not-a-catalog")).toEqual(defaultCommandCatalog);
+  });
+});
+
+describe("command catalog refresh snapshots", () => {
+  it("builds a provider-live snapshot from provider-supplied catalog", () => {
+    const snapshot = buildCommandCatalogSnapshot(
+      [
+        {
+          command: "/refresh",
+          label: "Refresh",
+          detail: "Refresh active context from provider cache.",
+          state: "live",
+          scopes: ["panel", "app"]
+        },
+        {
+          command: "/preview-only",
+          label: "Preview Only",
+          detail: "Local-only review command.",
+          state: "preview",
+          scopes: ["panel"]
+        }
+      ],
+      "provider-live",
+      defaultCommandCatalog
+    );
+
+    expect(snapshot.source).toBe("provider-live");
+    expect(snapshot.summary).toMatchObject({
+      source: "provider-live",
+      total: 2,
+      live: 1,
+      preview: 1,
+      executable: 2,
+      blocked: 0,
+      availability: 1
+    });
+    expect(snapshot.catalog[0]).toMatchObject({
+      command: "/refresh",
+      label: "Refresh"
+    });
+  });
+
+  it("falls back to default catalog when provider payload is not repairable", () => {
+    const fallback: CommandCatalogEntry[] = [
+      {
+        command: "/provider-fallback",
+        label: "Fallback",
+        detail: "Provider repair fallback command.",
+        state: "preview",
+        scopes: ["panel"]
+      }
+    ];
+
+    const snapshot = buildCommandCatalogSnapshot(
+      [{ command: "bad command" }],
+      "provider-live",
+      fallback
+    );
+
+    expect(snapshot.source).toBe("default-fallback");
+    expect(snapshot.catalog).toEqual(fallback);
+  });
+
+  it("represents empty and unavailable refresh outcomes", () => {
+    const emptySnapshot = buildCommandCatalogSnapshot([], "provider-preview", []);
+    const unavailableSnapshot = buildCommandCatalogSnapshot(null as unknown, "provider-live", []);
+
+    expect(emptySnapshot.source).toBe("empty-refresh");
+    expect(unavailableSnapshot.source).toBe("unavailable");
+  });
+
+  it("summarizes fallback and provider catalog source state safely", () => {
+    const providerSummary = summarizeCommandCatalog(
+      [
+        {
+          command: "/preview",
+          label: "Preview",
+          detail: "Provider preview command.",
+          state: "preview",
+          scopes: ["panel"]
+        },
+        {
+          command: "/block",
+          label: "Block",
+          detail: "Disabled command.",
+          state: "unsupported",
+          scopes: ["panel"]
+        },
+        {
+          command: "/live",
+          label: "Live",
+          detail: "Live command.",
+          state: "live",
+          scopes: ["app"]
+        }
+      ],
+      "provider-preview"
+    );
+
+    const fallbackSummary = summarizeCommandCatalog("bad-payload", "default-fallback");
+
+    expect(providerSummary).toMatchObject({
+      source: "provider-preview",
+      total: 3,
+      live: 1,
+      preview: 1,
+      unsupported: 1,
+      executable: 2,
+      blocked: 1
+    });
+    expect(fallbackSummary).toMatchObject({
+      source: "default-fallback",
+      total: defaultCommandCatalog.length,
+      preview: defaultCommandCatalog.filter((item) => item.state === "preview").length
+    });
   });
 });

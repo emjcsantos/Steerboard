@@ -18,6 +18,31 @@ export interface CommandExecutionFeedback {
   nextAction: string;
 }
 
+export type CommandCatalogRefreshSource =
+  | "provider-live"
+  | "provider-preview"
+  | "default-fallback"
+  | "empty-refresh"
+  | "unavailable";
+
+export interface CommandCatalogSnapshotSummary {
+  source: CommandCatalogRefreshSource;
+  total: number;
+  live: number;
+  preview: number;
+  unsupported: number;
+  unavailable: number;
+  executable: number;
+  blocked: number;
+  availability: number;
+}
+
+export interface CommandCatalogSnapshot {
+  source: CommandCatalogRefreshSource;
+  catalog: readonly CommandCatalogEntry[];
+  summary: CommandCatalogSnapshotSummary;
+}
+
 type CommandExecutionDecisionState = CommandCatalogState;
 
 type UnknownCommand = {
@@ -193,6 +218,98 @@ function normalizeCommandCatalogInternal(value: unknown): CommandCatalogEntry[] 
     .filter((entry, index, list) => list.findIndex((item) => item.command === entry.command) === index);
 
   return entries;
+}
+
+function summarizeCommandCatalogEntries(
+  catalog: readonly CommandCatalogEntry[],
+  source: CommandCatalogRefreshSource
+): CommandCatalogSnapshotSummary {
+  const summary: Omit<CommandCatalogSnapshotSummary, "source"> = {
+    total: catalog.length,
+    live: 0,
+    preview: 0,
+    unsupported: 0,
+    unavailable: 0,
+    executable: 0,
+    blocked: 0,
+    availability: 0
+  };
+
+  for (const entry of catalog) {
+    switch (entry.state) {
+      case "live":
+        summary.live += 1;
+        break;
+      case "preview":
+        summary.preview += 1;
+        break;
+      case "unsupported":
+        summary.unsupported += 1;
+        break;
+      default:
+        summary.unavailable += 1;
+        break;
+    }
+  }
+
+  summary.executable = summary.live + summary.preview;
+  summary.blocked = summary.unsupported + summary.unavailable;
+  summary.availability =
+    summary.total > 0
+      ? Number(((summary.live + summary.preview) / summary.total).toFixed(2))
+      : 0;
+
+  return { ...summary, source };
+}
+
+export function summarizeCommandCatalog(
+  catalog: unknown = defaultCommandCatalog,
+  source: CommandCatalogRefreshSource = "default-fallback"
+): CommandCatalogSnapshotSummary {
+  const safeCatalog = normalizeCommandCatalog(catalog);
+  return summarizeCommandCatalogEntries(safeCatalog, source);
+}
+
+export function buildCommandCatalogSnapshot(
+  catalog: unknown,
+  source: CommandCatalogRefreshSource = "default-fallback",
+  fallback: readonly CommandCatalogEntry[] = defaultCommandCatalog
+): CommandCatalogSnapshot {
+  const providedIsArray = Array.isArray(catalog);
+  const normalizedCatalog = providedIsArray ? normalizeCommandCatalogInternal(catalog) : [];
+  const normalizedFallback = normalizeCommandCatalogInternal(fallback);
+
+  if (normalizedCatalog.length > 0) {
+    return {
+      source:
+        source === "provider-live" || source === "provider-preview"
+          ? source
+          : "default-fallback",
+      catalog: normalizedCatalog,
+      summary: summarizeCommandCatalogEntries(
+        normalizedCatalog,
+        source === "provider-live" || source === "provider-preview"
+          ? source
+          : "default-fallback"
+      )
+    };
+  }
+
+  let resolvedSource: CommandCatalogRefreshSource = source;
+  if (providedIsArray) {
+    resolvedSource = catalog.length === 0 ? "empty-refresh" : "default-fallback";
+  } else if (normalizedFallback.length === 0) {
+    resolvedSource = "unavailable";
+  } else {
+    resolvedSource = "default-fallback";
+  }
+
+  const safeCatalog = normalizeCommandCatalog(catalog, fallback);
+  return {
+    source: resolvedSource,
+    catalog: safeCatalog,
+    summary: summarizeCommandCatalogEntries(safeCatalog, resolvedSource)
+  };
 }
 
 function commandFeedback(

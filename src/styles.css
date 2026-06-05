@@ -972,6 +972,11 @@ textarea {
   line-height: 1.1;
 }
 
+.command-catalog-summary span:last-child strong {
+  font-size: 10px;
+  line-height: 1.25;
+}
+
 .catalog-list {
   display: grid;
   gap: 6px;

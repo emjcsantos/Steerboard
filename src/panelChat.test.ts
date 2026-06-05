@@ -10,6 +10,7 @@ import {
   getPanelSlashCommandSuggestions,
   normalizePanelChatMessages,
   parseStoredPanelChatThreads,
+  type PanelSlashCommand,
   type PanelChatMessage
 } from "./panelChat";
 import type { SessionSummary } from "./fixtures";
@@ -45,6 +46,19 @@ describe("panel chat helpers", () => {
     expect(getPanelSlashCommandSuggestions("hello")).toEqual([]);
     expect(getPanelSlashCommandSuggestions("/val").map((item) => item.command)).toEqual(["/validate"]);
     expect(getPanelSlashCommandSuggestions("/")).toHaveLength(7);
+
+    const refreshedCatalog: PanelSlashCommand[] = [
+      {
+        command: "/refresh",
+        label: "Refresh",
+        detail: "Provider refreshed suggestion.",
+        state: "preview",
+        scopes: ["panel"]
+      }
+    ];
+    expect(getPanelSlashCommandSuggestions("/re", refreshedCatalog).map((item) => item.command)).toEqual([
+      "/refresh"
+    ]);
   });
 
   it("routes slash commands according to catalog capability and live transport", () => {
@@ -106,6 +120,38 @@ describe("panel chat helpers", () => {
         nextAction: "Use a supported slash command from the catalog."
       }
     });
+
+    const refreshedCatalog: PanelSlashCommand[] = [
+      {
+        command: "/refresh",
+        label: "Refresh",
+        detail: "Provider live command.",
+        state: "live",
+        scopes: ["panel"]
+      },
+      {
+        command: "/review-preview",
+        label: "Review Preview",
+        detail: "Provider preview command.",
+        state: "preview",
+        scopes: ["panel"]
+      }
+    ];
+
+    expect(getPanelSlashCommandDecision("/refresh now", false, refreshedCatalog)).toMatchObject({
+      route: "blocked",
+      executable: false,
+      state: "unavailable",
+      feedback: {
+        statusLabel: "Blocked",
+        severity: "warning"
+      }
+    });
+    expect(getPanelSlashCommandDecision("/review-preview now", false, refreshedCatalog)).toMatchObject({
+      route: "local-preview",
+      executable: true,
+      state: "preview"
+    });
   });
 
   it("creates a command-aware local reply", () => {
@@ -114,6 +160,17 @@ describe("panel chat helpers", () => {
     expect(createPanelReplyMessage(session, 4, "/validate this").body).toMatch(/preview/);
     expect(createPanelReplyMessage(session, 4, "/plan this").meta).toBe("slash command blocked");
     expect(createPanelReplyMessage(session, 4, "regular message").meta).toBe("local adapter pending");
+    expect(
+      createPanelReplyMessage(session, 4, "/review-preview now", [
+        {
+          command: "/review-preview",
+          label: "Review Preview",
+          detail: "Provider preview command.",
+          state: "preview",
+          scopes: ["panel"]
+        }
+      ]).meta
+    ).toBe("slash command preview");
   });
 
   it("renders a structured status message for blocked slash decisions", () => {

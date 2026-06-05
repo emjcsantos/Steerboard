@@ -96,9 +96,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
     completionPercent: 34,
     latestNote:
-      "Panel slash commands now expose structured ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable.",
+      "Panel slash commands now use a refreshable provider-neutral catalog snapshot with ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable.",
     nextStep:
-      "Connect refreshable provider catalogs to the command surface while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
+      "Connect real provider catalog refresh calls beyond the safe seeded snapshot while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
     tone: "active",
     note:
       "Slash commands, platform catalogs, migration preview, and risk-gated approval/audit foundations exist; provider refresh and full execution remain live-disabled."
