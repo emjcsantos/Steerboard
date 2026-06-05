@@ -45,7 +45,10 @@ import {
   createAdaptiveCockpitDropPreview,
   type AdaptiveCockpitDropPreview
 } from "./adaptiveCockpitDropPreview";
-import { createAdaptiveProjectPanelStack } from "./adaptiveCockpitProjectStack";
+import {
+  createAdaptiveProjectPanelStack,
+  type AdaptiveCockpitProjectStackRequestedTemplateId
+} from "./adaptiveCockpitProjectStack";
 import {
   ADAPTIVE_LAYOUT_MAX_PANELS,
   createAdaptiveCockpitLayoutForPanelIds,
@@ -1189,6 +1192,33 @@ async function invokeDesktopCommand<T>(command: string, args?: Record<string, un
   return invoke<T>(command, args);
 }
 
+const adaptiveProjectTemplateOptions: Array<{
+  id: AdaptiveCockpitProjectStackRequestedTemplateId;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: "auto-stack",
+    label: "Auto",
+    description: "Use the best project stack, then monitor fallbacks."
+  },
+  {
+    id: "project-focus",
+    label: "Focus",
+    description: "Drop one project panel plus one monitor fallback."
+  },
+  {
+    id: "project-monitor",
+    label: "Monitor",
+    description: "Fill the cockpit with project panels and monitor fallbacks."
+  },
+  {
+    id: "project-orchestrator",
+    label: "Orchestrator",
+    description: "Prioritize orchestrator, implementer, validator, and integration panels."
+  }
+];
+
 export function App() {
   const validProjectIds = useMemo(() => projects.map((item) => item.id), []);
   const defaultPlanningDrafts = useMemo(
@@ -1233,7 +1263,7 @@ export function App() {
   );
   const [migrationPreviewLoading, setMigrationPreviewLoading] = useState(false);
   const [migrationProfileDraft, setMigrationProfileDraft] = useState<MigrationProfileDraft>();
-  const { selectedProjectId, mode, layoutId, view } = preferences;
+  const { selectedProjectId, mode, layoutId, view, adaptiveProjectTemplateId } = preferences;
   const codexTransportDecision = useMemo(
     () => decideCodexTransport(codexTransportProbe, codexLiveSmokeProof),
     [codexLiveSmokeProof, codexTransportProbe]
@@ -1671,7 +1701,8 @@ export function App() {
       projectId: item.id,
       sessions: allKnownSessions,
       fallbackSessionIds: monitorFallbackSessionIds(),
-      maxPanelCount: ADAPTIVE_LAYOUT_MAX_PANELS
+      maxPanelCount: ADAPTIVE_LAYOUT_MAX_PANELS,
+      templateId: adaptiveProjectTemplateId
     });
 
     updatePreferences({
@@ -2264,6 +2295,30 @@ export function App() {
                   </label>
                   {layout.kind === "adaptive" ? (
                     <div className="adaptive-toolbar" aria-label="Adaptive cockpit controls">
+                      <label className="adaptive-template-select">
+                        <span>Project</span>
+                        <select
+                          aria-label="Select project drop template"
+                          onChange={(event) =>
+                            updatePreferences({
+                              adaptiveProjectTemplateId:
+                                event.target.value as AdaptiveCockpitProjectStackRequestedTemplateId
+                            })
+                          }
+                          title={
+                            adaptiveProjectTemplateOptions.find(
+                              (option) => option.id === adaptiveProjectTemplateId
+                            )?.description
+                          }
+                          value={adaptiveProjectTemplateId}
+                        >
+                          {adaptiveProjectTemplateOptions.map((option) => (
+                            <option key={option.id} title={option.description} value={option.id}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
                       <button
                         disabled={hiddenAdaptivePanels.length === 0}
                         onClick={handleAddAdaptivePanel}

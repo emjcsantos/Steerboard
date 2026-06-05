@@ -95,13 +95,13 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 - Adaptive freeform cockpit mode.
 - User-created panels from existing cockpit sessions and tasks.
-- Drag-and-drop from the left rail into the cockpit center, starting with project stacks and chats.
+- Drag-and-drop from the left rail into the cockpit center, starting with project stacks and chats, with selectable templates for whole-project drops.
 - Resizable and repositionable panels with magnetic snapping.
 - Collision handling, safe drop zones, hidden queue integration, and reset to last safe layout.
 - Local persistence and saved-state repair for panel geometry.
 - Keyboard alternatives for add, move, resize, focus, hide, reveal, and reset.
 - Visible ready, unsupported, and unavailable drop-preview states for adaptive docking.
-- Default project stack selection that prioritizes orchestrator, implementer, validator, and integration panels before monitor fallbacks.
+- Default project stack selection that prioritizes orchestrator, implementer, validator, and integration panels before monitor fallbacks, and an adaptive project-drop template selector for explicit template choice.
 
 ## Phase 7: Platform Capabilities
 

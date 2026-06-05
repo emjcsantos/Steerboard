@@ -1,4 +1,5 @@
 import { defaultLayoutByMode, layoutOptions, type CockpitMode, type LayoutId } from "./layout";
+import type { AdaptiveCockpitProjectStackRequestedTemplateId } from "./adaptiveCockpitProjectStack";
 
 export type PrimaryView = "cockpit" | "pipeline" | "planning";
 
@@ -7,6 +8,7 @@ export interface WorkspacePreferences {
   mode: CockpitMode;
   layoutId: LayoutId;
   view: PrimaryView;
+  adaptiveProjectTemplateId: AdaptiveCockpitProjectStackRequestedTemplateId;
 }
 
 export const PREFERENCES_STORAGE_KEY = "steerboard.workspace.preferences";
@@ -15,12 +17,19 @@ export const fallbackPreferences: WorkspacePreferences = {
   selectedProjectId: "website-refresh",
   mode: "orchestrator",
   layoutId: defaultLayoutByMode.orchestrator,
-  view: "cockpit"
+  view: "cockpit",
+  adaptiveProjectTemplateId: "auto-stack"
 };
 
 const validModes: CockpitMode[] = ["focus", "orchestrator", "monitor"];
 const validViews: PrimaryView[] = ["cockpit", "pipeline", "planning"];
 const validLayouts = layoutOptions.map((layout) => layout.id);
+const validAdaptiveProjectTemplateIds: AdaptiveCockpitProjectStackRequestedTemplateId[] = [
+  "auto-stack",
+  "project-focus",
+  "project-monitor",
+  "project-orchestrator"
+];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -46,12 +55,18 @@ export function normalizePreferences(
     typeof value.selectedProjectId === "string" && validProjectIds.includes(value.selectedProjectId)
       ? value.selectedProjectId
       : fallback.selectedProjectId;
+  const adaptiveProjectTemplateId = validAdaptiveProjectTemplateIds.includes(
+    value.adaptiveProjectTemplateId as AdaptiveCockpitProjectStackRequestedTemplateId
+  )
+    ? (value.adaptiveProjectTemplateId as AdaptiveCockpitProjectStackRequestedTemplateId)
+    : fallback.adaptiveProjectTemplateId;
 
   return {
     selectedProjectId,
     mode,
     layoutId,
-    view
+    view,
+    adaptiveProjectTemplateId
   };
 }
 

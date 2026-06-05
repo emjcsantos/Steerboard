@@ -14,7 +14,8 @@ describe("workspace preferences", () => {
       selectedProjectId: "billing-workflow",
       mode: "monitor",
       layoutId: "3x2",
-      view: "planning"
+      view: "planning",
+      adaptiveProjectTemplateId: "project-monitor"
     };
 
     expect(normalizePreferences(stored, validProjects)).toEqual(stored);
@@ -25,7 +26,8 @@ describe("workspace preferences", () => {
       selectedProjectId: "website-refresh",
       mode: "orchestrator",
       layoutId: "adaptive",
-      view: "cockpit"
+      view: "cockpit",
+      adaptiveProjectTemplateId: "project-orchestrator"
     };
 
     expect(normalizePreferences(stored, validProjects)).toEqual(stored);
@@ -42,7 +44,8 @@ describe("workspace preferences", () => {
         selectedProjectId: "private-project",
         mode: "unknown",
         layoutId: "9x9",
-        view: "settings"
+        view: "settings",
+        adaptiveProjectTemplateId: "bad-template"
       },
       validProjects
     );
@@ -56,11 +59,27 @@ describe("workspace preferences", () => {
         selectedProjectId: "website-refresh",
         mode: "focus",
         layoutId: "4x4",
-        view: "cockpit"
+        view: "cockpit",
+        adaptiveProjectTemplateId: "project-focus"
       },
       validProjects
     );
 
     expect(repaired.layoutId).toBe("2x1");
+    expect(repaired.adaptiveProjectTemplateId).toBe("project-focus");
+  });
+
+  it("repairs missing adaptive project template to fallback", () => {
+    const repaired = normalizePreferences(
+      {
+        selectedProjectId: "website-refresh",
+        mode: "orchestrator",
+        layoutId: "adaptive",
+        view: "cockpit"
+      },
+      validProjects
+    );
+
+    expect(repaired.adaptiveProjectTemplateId).toBe("auto-stack");
   });
 });

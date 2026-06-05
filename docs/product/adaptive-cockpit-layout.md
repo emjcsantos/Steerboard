@@ -14,7 +14,7 @@ The visual direction is dense, calm, and workbench-like: one compact control row
 | Layout dropdown | Complete | Fixed presets and `Adaptive` are presented from one dropdown. |
 | Adaptive canvas | In progress | Adaptive mode renders cockpit panels as user-added frames with add/reveal, hide, resize, reset, keyboard adjustment, drag-to-move, project stack drop-in, session drag-in, and drop-preview controls. |
 | Magnetic behavior | In progress | Panels snap to a bounded 3x3 grid with deterministic collision handling and safe saved-state repair. |
-| Drag-in sessions and projects | In progress | Projects and chats can be dragged from the left rail into Adaptive cockpit with visible ready, unsupported, and unavailable drop-preview states; whole-project drops now choose a multi-panel project stack. |
+| Drag-in sessions and projects | In progress | Projects and chats can be dragged from the left rail into Adaptive cockpit with visible ready, unsupported, and unavailable drop-preview states; whole-project drops support a template picker with safe defaults. |
 | Persistence and recovery | In progress | Adaptive geometry is saved locally and repaired when saved state is malformed or no longer matches active cockpit sessions. |
 | Accessibility | In progress | Layout selection, add/reveal, hide, resize, focus, reset, arrow-key move, and shift-arrow resize paths exist; broader shortcut polish remains planned. |
 
@@ -48,7 +48,7 @@ Each adaptive panel should track:
 
 Users should be able to drag a chat, project, task, run, or evidence item into the cockpit center. Dropping should either create a new panel or replace a highlighted existing panel, depending on the drop target.
 
-Dragging a whole project should offer useful panel templates, such as:
+Dragging a whole project should offer selectable templates, such as:
 
 - project chat,
 - orchestrator plus monitor,
@@ -89,4 +89,4 @@ Adaptive panels should feel free, but not sloppy. The first implementation shoul
 7. Add keyboard move/resize/reset paths and interaction tests.
 8. Add direct chat/session drag-in from navigation and richer drop-zone previews.
 9. Add richer panel templates for whole-project drops and cross-project session stacks.
-10. Add a user-selectable project-template picker after the default project stack behavior is stable.
+10. Ship the adaptive project-drop template picker with safe defaults and clear fallback behavior.

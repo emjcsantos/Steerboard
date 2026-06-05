@@ -1241,6 +1241,38 @@ textarea {
   padding: 5px 6px;
 }
 
+.adaptive-template-select {
+  display: grid;
+  grid-template-columns: auto minmax(100px, 128px);
+  align-items: center;
+  gap: 6px;
+  height: 25px;
+  border: 1px solid #35463d;
+  border-radius: 7px;
+  background: #17231d;
+  padding: 0 5px 0 7px;
+}
+
+.adaptive-template-select select {
+  width: 100%;
+  min-width: 0;
+  height: 19px;
+  border: 0;
+  border-left: 1px solid #304139;
+  background: transparent;
+  color: #edf3f8;
+  padding: 0 18px 0 6px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.adaptive-template-select select:hover,
+.adaptive-template-select select:focus-visible {
+  color: #ffffff;
+  outline: none;
+}
+
 .adaptive-toolbar button,
 .adaptive-panel-controls button,
 .adaptive-panel-drag-handle {
