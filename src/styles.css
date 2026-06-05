@@ -6076,6 +6076,333 @@ textarea {
   font-size: 11px;
 }
 
+.live-action-gates {
+  display: grid;
+  gap: 9px;
+}
+
+.live-action-gates-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-action-gates-header span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #c7d0da;
+  padding: 5px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.live-action-gates-header strong,
+.live-action-gates-header b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.live-action-gates-header strong {
+  color: #edf2f7;
+}
+
+.live-action-gates-header b {
+  border-radius: 999px;
+  background: #151a20;
+  color: #dce3eb;
+  padding: 4px 7px;
+}
+
+.live-action-gates-ready .live-action-gates-header span {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.live-action-gates-locked .live-action-gates-header span {
+  background: #352e18;
+  color: #f0d984;
+}
+
+.live-action-gates p,
+.live-action-audit-history p {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.live-action-gates-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.live-action-gates-grid div {
+  min-width: 0;
+  border: 1px solid #272d36;
+  border-radius: 8px;
+  background: #151a20;
+  padding: 7px;
+}
+
+.live-action-gates-grid dt,
+.live-action-gates-grid dd {
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.live-action-gates-grid dt {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.live-action-gates-grid dd {
+  margin-top: 3px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.live-action-gate-list,
+.live-action-audit-history ol {
+  display: grid;
+  gap: 6px;
+  max-height: 264px;
+  margin: 0;
+  overflow: auto;
+  padding: 0;
+  list-style: none;
+}
+
+.live-action-gate-row {
+  display: grid;
+  gap: 7px;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 8px;
+}
+
+.live-action-gate-copy {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 5px 8px;
+  align-items: center;
+}
+
+.live-action-gate-copy span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #c7d0da;
+  padding: 4px 6px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.live-action-gate-requested .live-action-gate-copy span {
+  background: #352e18;
+  color: #f0d984;
+}
+
+.live-action-gate-approved .live-action-gate-copy span {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.live-action-gate-denied .live-action-gate-copy span,
+.live-action-gate-timed-out .live-action-gate-copy span {
+  background: #442119;
+  color: #ff9e85;
+}
+
+.live-action-gate-copy strong,
+.live-action-gate-copy small,
+.live-action-gate-meta span {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.live-action-gate-copy strong {
+  color: #edf2f7;
+  font-size: 12px;
+}
+
+.live-action-gate-copy small {
+  grid-column: 1 / -1;
+  color: #8f99a5;
+  font-size: 11px;
+}
+
+.live-action-gate-meta {
+  display: grid;
+  grid-template-columns: 58px 92px minmax(0, 1fr);
+  gap: 5px;
+}
+
+.live-action-gate-meta span {
+  border: 1px solid #272d36;
+  border-radius: 7px;
+  background: #151a20;
+  color: #aab3bd;
+  padding: 5px 6px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.live-action-gate-actions {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.live-action-gate-actions button {
+  min-height: 30px;
+  border: 1px solid #303741;
+  border-radius: 7px;
+  background: #1b222b;
+  color: #dce3eb;
+  padding: 5px 4px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.live-action-gate-actions button:hover:not(:disabled) {
+  border-color: #4d5968;
+  background: #252b34;
+}
+
+.live-action-gate-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.live-action-audit-history {
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.live-action-audit-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.live-action-audit-header strong,
+.live-action-audit-header span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.live-action-audit-header strong {
+  color: #edf2f7;
+}
+
+.live-action-audit-header span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #aab3bd;
+  padding: 3px 6px;
+  font-weight: 800;
+}
+
+.live-action-audit-record {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 6px;
+}
+
+.live-action-audit-record > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.live-action-audit-requested > span {
+  background: #f0d984;
+}
+
+.live-action-audit-approved > span,
+.live-action-audit-executed > span {
+  background: #89dda9;
+}
+
+.live-action-audit-denied > span,
+.live-action-audit-failed > span,
+.live-action-audit-timed-out > span {
+  background: #ff9e85;
+}
+
+.live-action-audit-record div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.live-action-audit-record strong,
+.live-action-audit-record small,
+.live-action-audit-record b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+}
+
+.live-action-audit-record strong {
+  color: #edf2f7;
+  text-transform: capitalize;
+}
+
+.live-action-audit-record b {
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.live-action-audit-history pre {
+  max-height: 118px;
+  min-height: 34px;
+  overflow: auto;
+  margin: 0;
+  border-radius: 8px;
+  background: #0f141a;
+  color: #aab3bd;
+  padding: 7px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
 .run-history-list {
   display: grid;
   gap: 6px;

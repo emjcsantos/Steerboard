@@ -196,7 +196,7 @@ describe("milestone status model", () => {
     expect(orchestration?.completion).toBe("In progress");
     expect(orchestration?.tone).toBe("active");
     expect(orchestration?.completionPercent).toBe(52);
-    expect(orchestration?.current).toBe(true);
+    expect(orchestration?.current).toBeUndefined();
     expect(orchestration?.latestNote).toBe(
       "Local orchestration now creates orchestrator, implementer, validator, and integration panels with visible handoff and retry state."
     );
@@ -242,13 +242,13 @@ describe("milestone status model", () => {
 
     expect(platform?.completion).toBe("In progress");
     expect(platform?.tone).toBe("active");
-    expect(platform?.completionPercent).toBe(28);
+    expect(platform?.completionPercent).toBe(34);
     expect(platform?.current).toBeUndefined();
     expect(platform?.latestNote).toBe(
-      "Slash commands, platform catalogs, and migration preview/profile-draft foundations are provider-neutral and state-aware."
+      "Slash commands, platform catalogs, migration preview/profile-draft foundations, and live-action risk gates are provider-neutral and state-aware."
     );
     expect(platform?.nextStep).toBe(
-      "Connect provider refresh, reviewed import persistence, and permission gates."
+      "Connect provider refresh, reviewed import persistence, and approved actions to live runners."
     );
   });
 
@@ -272,10 +272,10 @@ describe("milestone status model", () => {
       active: 8,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 38,
-      nextTarget: "Orchestration model",
-      nextStep: "Connect the local handoff loop to configured runtime profiles and live worker session spawning.",
-      nextCompletionPercent: 52
+      averageCompletionPercent: 40,
+      nextTarget: "Security and privacy model",
+      nextStep: "Attach approved risk gates to specific tool runners without bypassing audit.",
+      nextCompletionPercent: 42
     });
   });
 
@@ -286,12 +286,13 @@ describe("milestone status model", () => {
 
     expect(securityMilestone?.completion).toBe("In progress");
     expect(securityMilestone?.tone).toBe("active");
-    expect(securityMilestone?.completionPercent).toBe(30);
+    expect(securityMilestone?.completionPercent).toBe(42);
+    expect(securityMilestone?.current).toBe(true);
     expect(securityMilestone?.latestNote).toBe(
-      "Local-first safety boundaries are documented; live-provider secrets and approvals still need hardening."
+      "Provider-neutral live-action permission gates and redacted audit records are visible for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions."
     );
     expect(securityMilestone?.nextStep).toBe(
-      "Add provider credential, permission, and audit acceptance criteria before live execution."
+      "Attach approved risk gates to specific tool runners without bypassing audit."
     );
   });
 

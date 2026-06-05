@@ -9,7 +9,7 @@ It is the complete public milestone report contract. Every milestone must appear
 The compact target table must include **Target**, **Completion**, and **Note**.
 The detailed milestone table must include **Target**, **Plan**, **Completion**, **% Completion**, **Latest Note**, and **Next Step**.
 
-Overall completion: 38%. Next milestone: Orchestration model. Next step: connect the local handoff loop to configured runtime profiles and live worker session spawning.
+Overall completion: 40%. Next milestone: Security and privacy model. Next step: attach approved risk gates to specific tool runners without bypassing audit.
 
 Milestone reports should be readable at minimum by Target, Completion, and Note.
 
@@ -20,8 +20,8 @@ Milestone reports should be readable at minimum by Target, Completion, and Note.
 | Orchestration model | In progress | Local orchestration now creates orchestrator, implementer, validator, and integration panels with visible handoff and retry state. |
 | Runtime adapter previews | In progress | Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, stream routing, and control capability foundations exist. |
 | Live Codex integration | In progress | Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations. |
-| Platform capabilities | In progress | Slash commands, platform catalogs, and migration preview/profile-draft foundations are provider-neutral and state-aware. |
-| Security and privacy model | In progress | Local-first safety boundaries are documented; live-provider secrets and approvals still need hardening. |
+| Platform capabilities | In progress | Slash commands, platform catalogs, migration preview/profile-draft foundations, and live-action risk gates are provider-neutral and state-aware. |
+| Security and privacy model | In progress | Provider-neutral live-action permission gates and redacted audit records are visible for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions. |
 | Packaging and installation | Paused | Packaging is intentionally deferred until core development is complete. |
 | Optional project management lane | In progress | Pipeline visibility, dispatch previews, linked local runs, and readiness language are scaffolded. |
 
@@ -32,7 +32,7 @@ Milestone reports should be readable at minimum by Target, Completion, and Note.
 | Orchestration model | Define a consistent model for sequencing cross-cutting tasks and status propagation. | In progress | 52% | Local orchestration now creates orchestrator, implementer, validator, and integration panels with visible handoff and retry state. | Connect the local handoff loop to configured runtime profiles and live worker session spawning. |
 | Runtime adapter previews | Deliver and stabilize adapter surfaces for consistent runtime status intake. | In progress | 50% | Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, stream routing, and control capability foundations exist. | Connect routed stream and control state to richer monitor surfaces. |
 | Live Codex integration | Connect real Codex auth/session transport to cockpit panels. | In progress | 42% | Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations. | Run native two-panel smoke and live-control smoke as recurring regression checks. |
-| Platform capabilities | Make commands, plugins, automations, MCP, personalization, permissions, and audit state live. | In progress | 28% | Slash commands, platform catalogs, and migration preview/profile-draft foundations are provider-neutral and state-aware. | Connect provider refresh, reviewed import persistence, and permission gates. |
-| Security and privacy model | Set baseline protections, data-handling boundaries, and reviewable controls. | In progress | 30% | Local-first safety boundaries are documented; live-provider secrets and approvals still need hardening. | Add provider credential, permission, and audit acceptance criteria before live execution. |
+| Platform capabilities | Make commands, plugins, automations, MCP, personalization, permissions, and audit state live. | In progress | 34% | Slash commands, platform catalogs, migration preview/profile-draft foundations, and live-action risk gates are provider-neutral and state-aware. | Connect provider refresh, reviewed import persistence, and approved actions to live runners. |
+| Security and privacy model | Set baseline protections, data-handling boundaries, and reviewable controls. | In progress | 42% | Provider-neutral live-action permission gates and redacted audit records are visible for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions. | Attach approved risk gates to specific tool runners without bypassing audit. |
 | Packaging and installation | Prepare install, environment, and distribution path for dependable rollout. | Paused | 0% | Packaging is intentionally deferred until core development is complete. | Remain paused until core development is complete. |
 | Optional project management lane | Define the optional lane scope while keeping cockpit chat primary. | In progress | 25% | Pipeline visibility, dispatch previews, linked local runs, and readiness language are scaffolded. | Keep secondary and connect it to provider capability readiness after live chat works. |

@@ -497,6 +497,25 @@ import {
   type RuntimeRecoveryFailureCoverage
 } from "./runtimeRecoveryFailureCoverage";
 import {
+  appendLiveActionAuditRecord,
+  buildLiveActionAuditExportMarkdown,
+  createLiveActionAuditRecord,
+  loadLiveActionAuditRecords,
+  saveLiveActionAuditRecords,
+  type LiveActionAuditAction,
+  type LiveActionAuditRecord
+} from "./liveActionAudit";
+import {
+  applyLiveActionPermissionDecision,
+  buildLiveActionPermissionRequestSummary,
+  canExecuteLiveAction,
+  type LiveActionPermissionDecision,
+  type LiveActionPermissionRequest,
+  type LiveActionPermissionRequestSummary,
+  type LiveActionProvider,
+  type LiveActionRiskLevel
+} from "./liveActionPermission";
+import {
   buildRuntimeExecutionAuditSnapshot,
   type RuntimeExecutionAuditItem,
   type RuntimeExecutionAuditSnapshot
@@ -587,8 +606,95 @@ const streamStateLabels: Record<RuntimeStreamPlaybackState, string> = {
 };
 
 const streamIntervalMs = 1100;
+const liveActionPermissionTimeoutMs = 15 * 60 * 1000;
 const runtimeTransportOptions: RuntimeTransport[] = ["local-process", "remote-endpoint", "mock"];
 const runtimeWorkspaceModeOptions: RuntimeWorkspaceMode[] = ["read-only", "read-write", "isolated"];
+
+interface LiveActionGateDefinition {
+  provider: LiveActionProvider;
+  actionLabel: string;
+  why: string;
+  workspace: string;
+  service: string;
+  risk: LiveActionRiskLevel;
+  detail: string;
+}
+
+const liveActionGateDefinitions: LiveActionGateDefinition[] = [
+  {
+    provider: "terminal",
+    actionLabel: "Run terminal command",
+    why: "Terminal commands can mutate the workspace or host environment.",
+    workspace: "current workspace",
+    service: "local shell",
+    risk: "high",
+    detail: "Terminal actions require explicit approval before any command can run."
+  },
+  {
+    provider: "git",
+    actionLabel: "Run Git operation",
+    why: "Git operations can stage, commit, push, or alter repository state.",
+    workspace: "current repository",
+    service: "git",
+    risk: "high",
+    detail: "Git actions require a visible approval and audit record."
+  },
+  {
+    provider: "mcp",
+    actionLabel: "Invoke MCP tool",
+    why: "MCP tools can reach local or external systems depending on the server.",
+    workspace: "configured MCP server",
+    service: "mcp",
+    risk: "high",
+    detail: "MCP tool use is locked until the action is approved."
+  },
+  {
+    provider: "plugin",
+    actionLabel: "Run plugin action",
+    why: "Plugin actions can call service integrations or generate artifacts.",
+    workspace: "active plugin",
+    service: "plugin",
+    risk: "medium",
+    detail: "Plugin execution requires approval when it can mutate data or call a service."
+  },
+  {
+    provider: "automation",
+    actionLabel: "Start automation",
+    why: "Automations can continue running after the immediate user turn.",
+    workspace: "automation scheduler",
+    service: "automation",
+    risk: "high",
+    detail: "Automations require approval before scheduling or recurring execution."
+  },
+  {
+    provider: "external-service",
+    actionLabel: "Send external request",
+    why: "External services can receive data or change account state.",
+    workspace: "external account",
+    service: "external service",
+    risk: "high",
+    detail: "Outbound external actions stay locked until reviewed."
+  },
+  {
+    provider: "runtime-launch",
+    actionLabel: "Launch runtime worker",
+    why: "Runtime launch can start a live worker process or endpoint session.",
+    workspace: "runtime profile",
+    service: "runtime",
+    risk: "high",
+    detail: "Worker launch must be approved before live execution."
+  },
+  {
+    provider: "profile-activation",
+    actionLabel: "Activate runtime profile",
+    why: "Profiles can grant permissions and change the working execution mode.",
+    workspace: "runtime profile",
+    service: "profile",
+    risk: "high",
+    detail: "Profile activation requires approval before it changes live capability."
+  }
+];
+
 type ToolEvidenceCaptureIntent = "idle" | "requested";
 type RuntimeProfilePermissionRequestIntent = "idle" | "requested";
 type PipelineDispatchRequestIntent = "idle" | "requested";
@@ -650,6 +756,57 @@ function latestPermissionRequestIntent(
   records: RuntimeProfilePermissionRequestRecord[]
 ): RuntimeProfilePermissionRequestIntent {
   return records[0]?.action === "requested" ? "requested" : "idle";
+}
+
+function createLiveActionPermissionRequest(
+  definition: LiveActionGateDefinition,
+  state: LiveActionPermissionRequest["state"],
+  requestedAt: string
+): LiveActionPermissionRequest {
+  const request: LiveActionPermissionRequest = {
+    id: `${definition.provider}:live-action-permission`,
+    provider: definition.provider,
+    actionLabel: definition.actionLabel,
+    state,
+    requestedAt,
+    risk: definition.risk
+  };
+
+  if (state === "idle") {
+    return request;
+  }
+
+  return {
+    ...request,
+    timeoutMs: liveActionPermissionTimeoutMs,
+    expiresAt: new Date(Date.parse(requestedAt) + liveActionPermissionTimeoutMs).toISOString()
+  };
+}
+
+function createInitialLiveActionRequests(): Record<string, LiveActionPermissionRequest> {
+  const createdAt = "1970-01-01T00:00:00.000Z";
+
+  return Object.fromEntries(
+    liveActionGateDefinitions.map((definition) => [
+      definition.provider,
+      createLiveActionPermissionRequest(definition, "idle", createdAt)
+    ])
+  );
+}
+
+function buildLiveActionAuditInput(
+  definition: LiveActionGateDefinition,
+  resultSummary: string
+) {
+  return {
+    what: definition.actionLabel,
+    why: definition.why,
+    provider: definition.provider,
+    workspace: definition.workspace,
+    service: definition.service,
+    resultSummary,
+    risk: definition.risk
+  };
 }
 
 function latestPipelineDispatchRequestIntent(
@@ -3945,6 +4102,12 @@ function RightPanel({
   const [executionAuditHistory, setExecutionAuditHistory] = useState<RuntimeExecutionAuditRecord[]>(
     () => loadRuntimeExecutionAuditHistory()
   );
+  const [liveActionRequestsByProvider, setLiveActionRequestsByProvider] = useState<
+    Record<string, LiveActionPermissionRequest>
+  >(() => createInitialLiveActionRequests());
+  const [liveActionAuditHistory, setLiveActionAuditHistory] = useState<LiveActionAuditRecord[]>(
+    () => loadLiveActionAuditRecords()
+  );
   const [toolEvidenceCaptureHistory, setToolEvidenceCaptureHistory] = useState<
     ToolEvidenceCaptureRecord[]
   >(() => loadToolEvidenceCaptureHistory());
@@ -4205,6 +4368,35 @@ function RightPanel({
     runtimeLaunchRequestSnapshot,
     runtimeLaunchApprovalSnapshot
   );
+  const liveActionPermissionSummaries = useMemo(
+    () =>
+      liveActionGateDefinitions.map((definition) => {
+        const request =
+          liveActionRequestsByProvider[definition.provider] ??
+          createLiveActionPermissionRequest(definition, "idle", "1970-01-01T00:00:00.000Z");
+
+        return buildLiveActionPermissionRequestSummary({
+          ...request,
+          detail: definition.detail,
+          requestedBy: "operator"
+        });
+      }),
+    [liveActionRequestsByProvider]
+  );
+  const liveActionExecutableCount = useMemo(
+    () =>
+      liveActionGateDefinitions.filter((definition) =>
+        canExecuteLiveAction(
+          liveActionRequestsByProvider[definition.provider] ??
+            createLiveActionPermissionRequest(definition, "idle", "1970-01-01T00:00:00.000Z")
+        )
+      ).length,
+    [liveActionRequestsByProvider]
+  );
+  const liveActionAuditMarkdown = useMemo(
+    () => buildLiveActionAuditExportMarkdown(liveActionAuditHistory),
+    [liveActionAuditHistory]
+  );
   const selectedRuntimeProfile = useMemo(
     () => selectRuntimeProfileForAdapter(runtimeProfiles, runtimeAdapter?.id ?? project.id),
     [project.id, runtimeAdapter?.id]
@@ -4435,6 +4627,10 @@ function RightPanel({
   }, [executionAuditHistory]);
 
   useEffect(() => {
+    saveLiveActionAuditRecords(liveActionAuditHistory);
+  }, [liveActionAuditHistory]);
+
+  useEffect(() => {
     saveToolEvidenceCaptureHistory(toolEvidenceCaptureHistory);
   }, [toolEvidenceCaptureHistory]);
 
@@ -4541,6 +4737,53 @@ function RightPanel({
       appendToolEvidenceCaptureRecord(current, record)
     );
     setToolEvidenceCaptureIntent(nextIntent);
+  }
+
+  function recordLiveActionPermissionDecision(
+    definition: LiveActionGateDefinition,
+    decision: LiveActionPermissionDecision,
+    auditAction: LiveActionAuditAction,
+    resultSummary: string
+  ) {
+    const timestamp = new Date().toISOString();
+
+    setLiveActionRequestsByProvider((current) => {
+      const existing =
+        current[definition.provider] ??
+        createLiveActionPermissionRequest(definition, "idle", timestamp);
+      const requestedAt = decision === "request" || decision === "reset" ? timestamp : existing.requestedAt;
+      const expiresAt =
+        decision === "request"
+          ? new Date(Date.parse(timestamp) + liveActionPermissionTimeoutMs).toISOString()
+          : decision === "reset"
+            ? undefined
+            : existing.expiresAt;
+      const timeoutMs =
+        decision === "request"
+          ? liveActionPermissionTimeoutMs
+          : decision === "reset"
+            ? undefined
+            : existing.timeoutMs;
+
+      return {
+        ...current,
+        [definition.provider]: {
+          ...existing,
+          state: applyLiveActionPermissionDecision(existing.state, decision),
+          requestedAt,
+          timeoutMs,
+          expiresAt
+        }
+      };
+    });
+
+    const record = createLiveActionAuditRecord(
+      buildLiveActionAuditInput(definition, resultSummary),
+      auditAction,
+      timestamp
+    );
+
+    setLiveActionAuditHistory((current) => appendLiveActionAuditRecord(current, record));
   }
 
   function updateRuntimeProfileDraft(nextDraft: Partial<RuntimeProfile>) {
@@ -5207,6 +5450,54 @@ function RightPanel({
         profile={selectedRuntimeProfile}
         readiness={selectedRuntimeProfileReadiness}
         summary={runtimeProfileSummary}
+      />
+
+      <LiveActionRiskGatePanel
+        auditExportMarkdown={liveActionAuditMarkdown}
+        auditHistory={liveActionAuditHistory}
+        executableCount={liveActionExecutableCount}
+        onApprove={(definition) =>
+          recordLiveActionPermissionDecision(
+            definition,
+            "approve",
+            "approved",
+            "Approved locally; live execution remains tied to the specific action runner."
+          )
+        }
+        onDeny={(definition) =>
+          recordLiveActionPermissionDecision(
+            definition,
+            "deny",
+            "denied",
+            "Denied locally; action remains locked."
+          )
+        }
+        onRequest={(definition) =>
+          recordLiveActionPermissionDecision(
+            definition,
+            "request",
+            "requested",
+            "Permission requested locally; action remains locked until approval."
+          )
+        }
+        onReset={(definition) =>
+          recordLiveActionPermissionDecision(
+            definition,
+            "reset",
+            "cancelled",
+            "Permission state reset locally; action is locked."
+          )
+        }
+        onTimeout={(definition) =>
+          recordLiveActionPermissionDecision(
+            definition,
+            "timeout",
+            "timed-out",
+            "Permission request timed out locally; action remains locked."
+          )
+        }
+        requestsByProvider={liveActionRequestsByProvider}
+        summaries={liveActionPermissionSummaries}
       />
 
       <section className="panel-section">
@@ -6185,6 +6476,187 @@ function RuntimeProfilePermissionRequestRecordRow({
         <small title={record.detail}>{formatTimestamp(record.createdAt)}</small>
       </div>
       <b title={record.statusLabel}>{record.readiness}%</b>
+    </li>
+  );
+}
+
+function LiveActionRiskGatePanel({
+  auditExportMarkdown,
+  auditHistory,
+  executableCount,
+  onApprove,
+  onDeny,
+  onRequest,
+  onReset,
+  onTimeout,
+  requestsByProvider,
+  summaries
+}: {
+  auditExportMarkdown: string;
+  auditHistory: LiveActionAuditRecord[];
+  executableCount: number;
+  onApprove: (definition: LiveActionGateDefinition) => void;
+  onDeny: (definition: LiveActionGateDefinition) => void;
+  onRequest: (definition: LiveActionGateDefinition) => void;
+  onReset: (definition: LiveActionGateDefinition) => void;
+  onTimeout: (definition: LiveActionGateDefinition) => void;
+  requestsByProvider: Record<string, LiveActionPermissionRequest>;
+  summaries: LiveActionPermissionRequestSummary[];
+}) {
+  const summaryByProvider = new Map(summaries.map((summary) => [summary.provider, summary]));
+  const requestedCount = summaries.filter((summary) => summary.state === "requested").length;
+  const approvedCount = summaries.filter((summary) => summary.state === "approved").length;
+  const blockedCount = summaries.filter((summary) => summary.state === "denied" || summary.state === "timed-out").length;
+
+  return (
+    <section className="panel-section">
+      <h4>Risk Gates</h4>
+      <div
+        className={classNames(
+          "live-action-gates",
+          executableCount > 0 ? "live-action-gates-ready" : "live-action-gates-locked"
+        )}
+        aria-label="Risky live action permission gates"
+      >
+        <div className="live-action-gates-header">
+          <span>
+            <ShieldCheck size={14} />
+            {executableCount > 0 ? "Approved" : "Locked"}
+          </span>
+          <strong>Live action approval</strong>
+          <b>{executableCount}/{liveActionGateDefinitions.length}</b>
+        </div>
+        <p>
+          Terminal, Git, MCP, plugin, automation, external service, runtime, and profile actions require visible approval before execution.
+        </p>
+        <dl className="live-action-gates-grid">
+          <div>
+            <dt>Requested</dt>
+            <dd>{requestedCount}</dd>
+          </div>
+          <div>
+            <dt>Approved</dt>
+            <dd>{approvedCount}</dd>
+          </div>
+          <div>
+            <dt>Blocked</dt>
+            <dd>{blockedCount}</dd>
+          </div>
+          <div>
+            <dt>Audit</dt>
+            <dd>{auditHistory.length}</dd>
+          </div>
+        </dl>
+        <ol className="live-action-gate-list">
+          {liveActionGateDefinitions.map((definition) => {
+            const request =
+              requestsByProvider[definition.provider] ??
+              createLiveActionPermissionRequest(definition, "idle", "1970-01-01T00:00:00.000Z");
+            const summary =
+              summaryByProvider.get(definition.provider) ??
+              buildLiveActionPermissionRequestSummary({
+                ...request,
+                detail: definition.detail,
+                requestedBy: "operator"
+              });
+            const canExecute = canExecuteLiveAction(request);
+            const canRequest = summary.state === "idle";
+            const canReview = summary.state === "requested";
+            const canReset = summary.state !== "idle";
+
+            return (
+              <li
+                className={classNames("live-action-gate-row", `live-action-gate-${summary.state}`)}
+                key={definition.provider}
+              >
+                <div className="live-action-gate-copy">
+                  <span>{summary.state}</span>
+                  <strong title={summary.actionLabel}>{summary.actionLabel}</strong>
+                  <small title={summary.detail}>
+                    {canExecute ? "Execution path approved for this action." : summary.detail}
+                  </small>
+                </div>
+                <div className="live-action-gate-meta">
+                  <span>{summary.risk}</span>
+                  <span>{canExecute ? "Execute ready" : "Locked"}</span>
+                  <span title={summary.expiresAt}>Expires {summary.expiresAt === "none" ? "none" : formatShortDate(summary.expiresAt)}</span>
+                </div>
+                <div className="live-action-gate-actions">
+                  <button
+                    aria-label={`Request ${definition.actionLabel} approval`}
+                    disabled={!canRequest}
+                    onClick={() => onRequest(definition)}
+                    type="button"
+                  >
+                    Request
+                  </button>
+                  <button
+                    aria-label={`Approve ${definition.actionLabel}`}
+                    disabled={!canReview}
+                    onClick={() => onApprove(definition)}
+                    type="button"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    aria-label={`Deny ${definition.actionLabel}`}
+                    disabled={!canReview}
+                    onClick={() => onDeny(definition)}
+                    type="button"
+                  >
+                    Deny
+                  </button>
+                  <button
+                    aria-label={`Timeout ${definition.actionLabel}`}
+                    disabled={!canReview}
+                    onClick={() => onTimeout(definition)}
+                    type="button"
+                  >
+                    Timeout
+                  </button>
+                  <button
+                    aria-label={`Reset ${definition.actionLabel} gate`}
+                    disabled={!canReset}
+                    onClick={() => onReset(definition)}
+                    type="button"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+        <div className="live-action-audit-history" aria-label="Live action audit history">
+          <div className="live-action-audit-header">
+            <strong>Recent risk records</strong>
+            <span>{auditHistory.length}</span>
+          </div>
+          {auditHistory.length > 0 ? (
+            <ol>
+              {auditHistory.slice(0, 4).map((record) => (
+                <LiveActionAuditRecordRow key={record.id} record={record} />
+              ))}
+            </ol>
+          ) : (
+            <p>No risk records yet.</p>
+          )}
+          <pre title={auditExportMarkdown}>{auditExportMarkdown}</pre>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LiveActionAuditRecordRow({ record }: { record: LiveActionAuditRecord }) {
+  return (
+    <li className={classNames("live-action-audit-record", `live-action-audit-${record.action}`)}>
+      <span aria-hidden="true" />
+      <div>
+        <strong title={record.what}>{record.action}</strong>
+        <small title={record.timestamp}>{formatTimestamp(record.timestamp)}</small>
+      </div>
+      <b title={record.resultSummary}>{record.risk}</b>
     </li>
   );
 }

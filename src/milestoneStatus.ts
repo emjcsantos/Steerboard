@@ -60,7 +60,6 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
       "Local orchestration now creates orchestrator, implementer, validator, and integration panels with visible handoff and retry state.",
     nextStep:
       "Connect the local handoff loop to configured runtime profiles and live worker session spawning.",
-    current: true,
     tone: "active",
     note:
       "Local runs, task state, validation gates, handoff previews, and retry state are modeled before live runtime dispatch."
@@ -95,26 +94,27 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Platform capabilities",
     completion: "In progress",
     plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
-    completionPercent: 28,
+    completionPercent: 34,
     latestNote:
-      "Slash commands, platform catalogs, and migration preview/profile-draft foundations are provider-neutral and state-aware.",
+      "Slash commands, platform catalogs, migration preview/profile-draft foundations, and live-action risk gates are provider-neutral and state-aware.",
     nextStep:
-      "Connect provider refresh, reviewed import persistence, and permission gates.",
+      "Connect provider refresh, reviewed import persistence, and approved actions to live runners.",
     tone: "active",
     note:
-      "Slash commands, platform catalogs, and migration preview now have provider-neutral foundations; provider refresh, execution, permissions, and audit still need live backing."
+      "Slash commands, platform catalogs, migration preview, and risk-gated approval/audit foundations exist; provider refresh and execution still need live backing."
   },
   {
     target: "Security and privacy model",
     completion: "In progress",
     plan: "Set baseline protections, data-handling boundaries, and reviewable controls.",
-    completionPercent: 30,
+    completionPercent: 42,
     latestNote:
-      "Local-first safety boundaries are documented; live-provider secrets and approvals still need hardening.",
+      "Provider-neutral live-action permission gates and redacted audit records are visible for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions.",
     nextStep:
-      "Add provider credential, permission, and audit acceptance criteria before live execution.",
+      "Attach approved risk gates to specific tool runners without bypassing audit.",
+    current: true,
     tone: "active",
-    note: "Baseline local-first boundaries exist, but live provider permissions, secret handling, and audit gates still need implementation."
+    note: "Local-first safety boundaries, live-action approval gates, and redacted audit records are visible before real tool execution."
   },
   {
     target: "Packaging and installation",
