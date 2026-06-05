@@ -2,6 +2,7 @@
 
 This document is a public-facing milestone snapshot of the Steerboard roadmap status.  
 It is intended for external visibility and product-level communication, not an internal execution log.
+The compact summary below is the current next milestone selected for active monitoring.
 
 It is the complete public milestone report contract. Every milestone must appear as one row and include these columns:
 **Target**, **Plan**, **% Completion**, **Latest Note**, and **Next Step**.

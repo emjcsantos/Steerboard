@@ -2323,8 +2323,42 @@ textarea {
   text-transform: uppercase;
 }
 
+.milestone-status-table tbody tr.is-next-milestone td {
+  background: #14212a;
+}
+
+.milestone-status-table tbody tr.is-next-milestone td:first-child {
+  box-shadow: inset 2px 0 0 #8bd7f4;
+}
+
 .milestone-status-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+.milestone-target-cell {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.milestone-target-cell > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.milestone-next-marker {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #172f3b;
+  color: #8bd7f4;
+  padding: 2px 5px;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .milestone-status-pill {

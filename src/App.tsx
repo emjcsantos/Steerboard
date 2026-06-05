@@ -87,6 +87,9 @@ import {
   type MilestoneStatusSummary
 } from "./milestoneStatus";
 import {
+  createMilestoneReportRowState
+} from "./milestoneReportRowState";
+import {
   createCockpitPanelPriority,
   type CockpitPanelPriority
 } from "./cockpitPanelPriority";
@@ -1659,30 +1662,47 @@ function MilestoneStatusPanel({
           </tr>
         </thead>
         <tbody>
-          {milestones.map((milestone) => (
-            <tr key={milestone.target}>
-              <td title={milestone.target}>{milestone.target}</td>
-              <td title={milestone.plan}>{milestone.plan}</td>
-              <td>
-                <div
-                  className="milestone-percent-cell"
-                  title={`${milestone.completionPercent}% - ${milestone.completion}`}
-                >
-                  <span className={classNames("milestone-status-pill", `milestone-${milestone.tone}`)}>
-                    {milestone.completionPercent}%
+          {milestones.map((milestone) => {
+            const rowState = createMilestoneReportRowState(milestone, summary);
+
+            return (
+              <tr
+                aria-current={rowState.isNext ? "step" : undefined}
+                aria-label={rowState.ariaLabel}
+                className={classNames(rowState.isNext && "is-next-milestone")}
+                key={milestone.target}
+                title={rowState.rowTitle}
+              >
+                <td title={milestone.target}>
+                  <span className="milestone-target-cell">
+                    <span>{milestone.target}</span>
+                    {rowState.isNext ? (
+                      <b className="milestone-next-marker">{rowState.markerLabel}</b>
+                    ) : null}
                   </span>
-                  <span className="milestone-percent-track" aria-hidden="true">
-                    <span
-                      className={classNames("milestone-percent-fill", `milestone-${milestone.tone}`)}
-                      style={{ width: `${milestone.completionPercent}%` }}
-                    />
-                  </span>
-                </div>
-              </td>
-              <td title={milestone.latestNote}>{milestone.latestNote}</td>
-              <td title={milestone.nextStep}>{milestone.nextStep}</td>
-            </tr>
-          ))}
+                </td>
+                <td title={milestone.plan}>{milestone.plan}</td>
+                <td>
+                  <div
+                    className="milestone-percent-cell"
+                    title={`${milestone.completionPercent}% - ${milestone.completion}`}
+                  >
+                    <span className={classNames("milestone-status-pill", `milestone-${milestone.tone}`)}>
+                      {milestone.completionPercent}%
+                    </span>
+                    <span className="milestone-percent-track" aria-hidden="true">
+                      <span
+                        className={classNames("milestone-percent-fill", `milestone-${milestone.tone}`)}
+                        style={{ width: `${milestone.completionPercent}%` }}
+                      />
+                    </span>
+                  </div>
+                </td>
+                <td title={milestone.latestNote}>{milestone.latestNote}</td>
+                <td title={milestone.nextStep}>{milestone.nextStep}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </section>
