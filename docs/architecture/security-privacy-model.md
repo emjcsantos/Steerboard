@@ -100,6 +100,8 @@ The final security review gate combines the visible release privacy check, curre
 
 This gate is decision support only. It must not resume packaging, build installers, mutate files, mutate runtime state, call a network endpoint, start a process, or perform release actions. Packaging remains paused until core development is complete and a separate release decision explicitly resumes it.
 
+Browser-preview safety locks can satisfy the security closure posture when execution remains locked and no desktop action is available. Desktop runtime errors, unlocked execution, missing packaging locks, or blocked validation evidence still prevent closure.
+
 ## Implementation Controls
 
 - Root-scoped file access: keep reads/writes constrained to project roots with explicit path allowlists.

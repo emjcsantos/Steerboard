@@ -234,31 +234,30 @@ describe("milestone status model", () => {
   it("summarizes exported milestone list counts correctly", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
       total: 7,
-      complete: 4,
-      active: 1,
+      complete: 5,
+      active: 0,
       planned: 0,
       paused: 2,
       averageCompletionPercent: 71,
-      nextTarget: "Security and privacy model",
-      nextStep:
-        "Resolve any blocked or review-state security evidence before closing security and resuming packaging later.",
-      nextCompletionPercent: 98
+      nextTarget: "No active milestone",
+      nextStep: "No active next step.",
+      nextCompletionPercent: 100
     });
   });
 
-  it("tracks security and privacy model as in progress with updated completion", () => {
+  it("tracks security and privacy model as complete with closure language", () => {
     const securityMilestone = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Security and privacy model"
     );
 
-    expect(securityMilestone?.completion).toBe("In progress");
-    expect(securityMilestone?.tone).toBe("active");
-    expect(securityMilestone?.completionPercent).toBe(98);
+    expect(securityMilestone?.completion).toBe("Complete");
+    expect(securityMilestone?.tone).toBe("complete");
+    expect(securityMilestone?.completionPercent).toBe(100);
     expect(securityMilestone?.latestNote).toBe(
-      "Final security review now surfaces release privacy, current-run acceptance, repeated evidence, packaging pause lock, and close-security decision status."
+      "Final security review is closed, with release privacy and current-run acceptance evidence now complete."
     );
     expect(securityMilestone?.nextStep).toBe(
-      "Resolve any blocked or review-state security evidence before closing security and resuming packaging later."
+      "Monitor for security and privacy regressions while packaging and optional lanes remain paused."
     );
   });
 

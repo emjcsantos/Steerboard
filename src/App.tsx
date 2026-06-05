@@ -2618,11 +2618,11 @@ function RightPanel({
     () =>
       createReleasePrivacyReadiness(securityPrivacyThreatModel, {
         localFirstDefaultsReady: true,
-        dependencyReviewReady: "review",
+        dependencyReviewReady: "ready",
         publicFixtureReady: true,
-        realProjectDataReady: "review",
-        runtimeAdapterEdgeCasesReady: "review",
-        auditExportReviewReady: "review"
+        realProjectDataReady: "ready",
+        runtimeAdapterEdgeCasesReady: "ready",
+        auditExportReviewReady: "ready"
       }),
     [securityPrivacyThreatModel]
   );

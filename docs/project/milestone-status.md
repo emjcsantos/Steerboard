@@ -9,7 +9,7 @@ It is the complete public milestone report contract. Every milestone must appear
 The compact target table must include **Target**, **Completion**, and **Note**.
 The detailed milestone table must include **Target**, **Plan**, **Completion**, **% Completion**, **Latest Note**, and **Next Step**.
 
-Overall completion: 71%. Next milestone: Security and privacy model. Next step: Resolve any blocked or review-state security evidence before closing security and resuming packaging later.
+Overall completion: 71%. Next milestone: No active milestone. Next step: No active next step.
 
 Milestone reports should be readable at minimum by Target, Completion, and Note.
 
@@ -19,7 +19,7 @@ Milestone reports should be readable at minimum by Target, Completion, and Note.
 | Cockpit monitor and operating modes | Complete | Final desktop and narrow-pane acceptance coverage is complete for cockpit monitor depth, mode handoff QA, and mode/layout/focus/clear interaction readiness. |
 | Orchestration model | Complete | Final orchestration acceptance coverage now confirms lifecycle signals, task coverage, regression checks, and run closure evidence for end-to-end monitoring. |
 | Runtime adapters | Complete | Runtime adapter recovery and external-source failure-state coverage now closes the runtime intake milestone with visible recovery, source, failure, and safe-handoff checks. |
-| Security and privacy model | In progress | Final security review now surfaces release privacy, current-run acceptance, repeated evidence, packaging pause lock, and close-security decision status. |
+| Security and privacy model | Complete | Final security review is closed, with release privacy and current-run acceptance evidence now complete. |
 | Packaging and installation | Paused | Packaging is intentionally deferred until core development is complete. |
 | Optional project management lane | Paused | Paused: optional lane is deferred while core delivery milestones advance. |
 
@@ -29,6 +29,6 @@ Milestone reports should be readable at minimum by Target, Completion, and Note.
 | Cockpit monitor and operating modes | Complete core cockpit panels, control affordances, and visible operating-mode cues. | Complete | 100% | Final desktop and narrow-pane acceptance coverage is complete for cockpit monitor depth, mode handoff QA, and mode/layout/focus/clear interaction readiness. | Monitor for regressions while orchestration and runtime adapter milestones advance. |
 | Orchestration model | Define a consistent model for sequencing cross-cutting tasks and status propagation. | Complete | 100% | Final orchestration acceptance coverage now confirms lifecycle signals, task coverage, regression checks, and run closure evidence for end-to-end monitoring. | Monitor orchestration regressions while runtime adapter validation advances. |
 | Runtime adapters | Deliver and stabilize adapter surfaces for consistent runtime status intake. | Complete | 100% | Runtime adapter recovery and external-source failure-state coverage now closes the runtime intake milestone with visible recovery, source, failure, and safe-handoff checks. | Monitor runtime adapter regressions while security and privacy controls advance. |
-| Security and privacy model | Set baseline protections, data-handling boundaries, and reviewable controls. | In progress | 98% | Final security review now surfaces release privacy, current-run acceptance, repeated evidence, packaging pause lock, and close-security decision status. | Resolve any blocked or review-state security evidence before closing security and resuming packaging later. |
+| Security and privacy model | Set baseline protections, data-handling boundaries, and reviewable controls. | Complete | 100% | Final security review is closed, with release privacy and current-run acceptance evidence now complete. | Monitor for security and privacy regressions while packaging and optional lanes remain paused. |
 | Packaging and installation | Prepare install, environment, and distribution path for dependable rollout. | Paused | 0% | Packaging is intentionally deferred until core development is complete. | Remain paused until core development is complete. |
 | Optional project management lane | Define the optional lane scope and keep it intentionally dormant unless priority changes. | Paused | 0% | Paused: optional lane is deferred while core delivery milestones advance. | Remain paused; reassess only after critical milestones move to a stable operating state. |

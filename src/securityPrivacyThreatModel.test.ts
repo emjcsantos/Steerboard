@@ -49,6 +49,15 @@ const errorPermission: DesktopPermissionApprovalStatus = {
   source: "desktop"
 };
 
+const errorBridge: DesktopRuntimeBridgeStatus = {
+  ...baseBridge,
+  state: "error",
+  processExecutionAvailable: false,
+  workspaceAccessAvailable: false,
+  detail: "Desktop bridge status could not be loaded.",
+  source: "desktop"
+};
+
 const browserPermission: DesktopPermissionApprovalStatus = {
   ...basePermission,
   state: "unavailable",
@@ -196,19 +205,27 @@ describe("createSecurityPrivacyThreatModel", () => {
     expect(model.checks[2].value).toContain("toolEvidence.terminalLocked=true");
   });
 
-  it("returns review for browser preview permission states while execution lock remains ok", () => {
+  it("counts browser preview permission/audit state as ready when all locks are preserved", () => {
     const model = createSecurityPrivacyThreatModel(
       browserBridge,
       browserPermission,
       localEvidence,
       toolEvidence,
-      profileApproval,
-      lockedProfileAudit
+      blockedProfileApproval,
+      blockedProfileAudit
     );
 
-    expect(model.tone).toBe("review");
-    expect(model.checks[1].tone).toBe("review");
+    expect(model.tone).toBe("ready");
+    expect(model.checkLabel).toBe("4/4 checks");
+    expect(model.checks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Permission gates", tone: "ok" }),
+        expect.objectContaining({ label: "Audit trail", tone: "ok" })
+      ])
+    );
     expect(model.checks[2].tone).toBe("ok");
+    expect(model.ariaLabel).toContain("profileApproval=blocked");
+    expect(model.ariaLabel).toContain("profileAudit=blocked");
     expect(model.ariaLabel).toContain("bridge=unavailable(browser)");
     expect(model.ariaLabel).toContain("permission=unavailable(browser)");
   });
@@ -248,6 +265,23 @@ describe("createSecurityPrivacyThreatModel", () => {
     });
   });
 
+  it("blocks when permission gate has desktop bridge error", () => {
+    const model = createSecurityPrivacyThreatModel(
+      errorBridge,
+      basePermission,
+      localEvidence,
+      toolEvidence,
+      profileApproval,
+      profileAudit
+    );
+
+    expect(model.tone).toBe("blocked");
+    expect(model.checks[1]).toMatchObject({
+      label: "Permission gates",
+      tone: "blocked"
+    });
+  });
+
   it("blocks execution lock when capture can run", () => {
     const model = createSecurityPrivacyThreatModel(
       baseBridge,
@@ -273,6 +307,23 @@ describe("createSecurityPrivacyThreatModel", () => {
       toolEvidence,
       profileApprovalUnlocked,
       profileAudit
+    );
+
+    expect(model.tone).toBe("blocked");
+    expect(model.checks[2]).toMatchObject({
+      label: "Execution lock",
+      tone: "blocked"
+    });
+  });
+
+  it("keeps browser-preview blocked when execution lock is not preserved", () => {
+    const model = createSecurityPrivacyThreatModel(
+      browserBridge,
+      browserPermission,
+      localEvidence,
+      unlockedToolEvidence,
+      blockedProfileApproval,
+      blockedProfileAudit
     );
 
     expect(model.tone).toBe("blocked");

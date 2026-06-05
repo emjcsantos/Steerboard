@@ -68,6 +68,25 @@ function hasNoActionSafety(safety: string | undefined): boolean {
   );
 }
 
+function isBrowserPreviewLockedShellContext(
+  bridge?: DesktopRuntimeBridgeStatus,
+  permission?: DesktopPermissionApprovalStatus,
+  toolEvidence?: ToolEvidenceReadinessSnapshot,
+  profileApproval?: RuntimeProfilePermissionApprovalSnapshot,
+  profileAudit?: RuntimeProfilePermissionAuditSnapshot
+): boolean {
+  return (
+    bridge?.source === "browser" &&
+    permission?.source === "browser" &&
+    bridge.state === "unavailable" &&
+    permission.state === "unavailable" &&
+    (toolEvidence?.terminalLocked ?? false) &&
+    (toolEvidence?.gitLocked ?? false) &&
+    (profileApproval?.executionLocked ?? false) &&
+    (profileAudit?.executionLocked ?? false)
+  );
+}
+
 function resolveDataBoundaryTone(
   localEvidence?: LocalEvidenceReadinessSnapshot,
   toolEvidence?: ToolEvidenceReadinessSnapshot,
@@ -118,7 +137,9 @@ function resolveDataBoundaryTone(
 function resolvePermissionGateTone(
   bridge?: DesktopRuntimeBridgeStatus,
   permission?: DesktopPermissionApprovalStatus,
-  profileApproval?: RuntimeProfilePermissionApprovalSnapshot
+  profileApproval?: RuntimeProfilePermissionApprovalSnapshot,
+  toolEvidence?: ToolEvidenceReadinessSnapshot,
+  profileAudit?: RuntimeProfilePermissionAuditSnapshot
 ): SecurityPrivacyThreatModelCheck {
   if (
     bridge === undefined &&
@@ -129,6 +150,24 @@ function resolvePermissionGateTone(
       label: "Permission gates",
       value: "missing",
       tone: "neutral"
+    };
+  }
+
+  if (
+    isBrowserPreviewLockedShellContext(
+      bridge,
+      permission,
+      toolEvidence,
+      profileApproval,
+      profileAudit
+    )
+  ) {
+    return {
+      label: "Permission gates",
+      value:
+        `bridge=${toSafeText(bridge?.state)}; permission=${toSafeText(permission?.state)}; ` +
+        `executionLocked=${toSafeBooleanText(profileApproval?.executionLocked)}`,
+      tone: "ok"
     };
   }
 
@@ -234,13 +273,35 @@ function resolveExecutionLockTone(
 }
 
 function resolveAuditTrailTone(
-  profileAudit?: RuntimeProfilePermissionAuditSnapshot
+  profileAudit?: RuntimeProfilePermissionAuditSnapshot,
+  bridge?: DesktopRuntimeBridgeStatus,
+  permission?: DesktopPermissionApprovalStatus,
+  toolEvidence?: ToolEvidenceReadinessSnapshot,
+  profileApproval?: RuntimeProfilePermissionApprovalSnapshot
 ): SecurityPrivacyThreatModelCheck {
   if (profileAudit === undefined) {
     return {
       label: "Audit trail",
       value: "missing",
       tone: "neutral"
+    };
+  }
+
+  if (
+    isBrowserPreviewLockedShellContext(
+      bridge,
+      permission,
+      toolEvidence,
+      profileApproval,
+      profileAudit
+    )
+  ) {
+    return {
+      label: "Audit trail",
+      value:
+        `state=${profileAudit.state}; canExport=${String(profileAudit.canExport)}; ` +
+        `recordCount=${profileAudit.recordCount}`,
+      tone: "ok"
     };
   }
 
@@ -254,7 +315,10 @@ function resolveAuditTrailTone(
     };
   }
 
-  if (profileAudit.canExport || profileAudit.recordCount > 0) {
+  if (
+    profileAudit.canExport ||
+    profileAudit.recordCount > 0
+  ) {
     return {
       label: "Audit trail",
       value:
@@ -327,9 +391,15 @@ export function createSecurityPrivacyThreatModel(
 ): SecurityPrivacyThreatModel {
   const checks = [
     resolveDataBoundaryTone(localEvidence, toolEvidence, bridge),
-    resolvePermissionGateTone(bridge, permission, profileApproval),
+    resolvePermissionGateTone(
+      bridge,
+      permission,
+      profileApproval,
+      toolEvidence,
+      profileAudit
+    ),
     resolveExecutionLockTone(toolEvidence, profileApproval, profileAudit),
-    resolveAuditTrailTone(profileAudit)
+    resolveAuditTrailTone(profileAudit, bridge, permission, toolEvidence, profileApproval)
   ];
 
   const okCount = checks.filter((check) => check.tone === "ok").length;
