@@ -57,6 +57,10 @@ import {
   type OrchestrationDependencyReadiness
 } from "./orchestrationDependencyReadiness";
 import {
+  createOrchestrationDispatchAudit,
+  type OrchestrationDispatchAudit
+} from "./orchestrationDispatchAudit";
+import {
   buildPipelineItemDispatchPreview,
   type PipelineItemDispatchPreview
 } from "./pipelineItemDispatchPreview";
@@ -2262,6 +2266,10 @@ function RightPanel({
     () => createOrchestrationDependencyReadiness(tasks),
     [tasks]
   );
+  const orchestrationDispatchAudit: OrchestrationDispatchAudit = useMemo(
+    () => createOrchestrationDispatchAudit(tasks),
+    [tasks]
+  );
   const runSummary = summarizeRunHistory(mockRuns);
   const milestoneStatusSummary = useMemo(
     () => summarizeMilestoneStatuses(steerboardMilestoneStatuses),
@@ -2892,6 +2900,38 @@ function RightPanel({
             {orchestrationDependencyReadiness.checks.map((check) => (
               <span
                 className={classNames("orchestration-readiness-check", `orchestration-readiness-check-${check.tone}`)}
+                key={check.label}
+                title={`${check.label}: ${check.value}`}
+              >
+                <strong>{check.value}</strong>
+                <small>{check.label}</small>
+              </span>
+            ))}
+          </div>
+        </div>
+        <div
+          aria-label={orchestrationDispatchAudit.ariaLabel}
+          className={classNames(
+            "orchestration-dispatch-audit",
+            `orchestration-dispatch-audit-${orchestrationDispatchAudit.tone}`
+          )}
+          title={orchestrationDispatchAudit.detail}
+        >
+          <div className="orchestration-dispatch-audit-header">
+            <strong>{orchestrationDispatchAudit.label}</strong>
+            <b>{orchestrationDispatchAudit.checkLabel}</b>
+          </div>
+          <p>{orchestrationDispatchAudit.detail}</p>
+          <div
+            className="orchestration-dispatch-audit-checks"
+            aria-label="Orchestration dispatch audit checks"
+          >
+            {orchestrationDispatchAudit.checks.map((check) => (
+              <span
+                className={classNames(
+                  "orchestration-dispatch-audit-check",
+                  `orchestration-dispatch-audit-check-${check.tone}`
+                )}
                 key={check.label}
                 title={`${check.label}: ${check.value}`}
               >

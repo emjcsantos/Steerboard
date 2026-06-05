@@ -135,11 +135,11 @@ describe("milestone status model", () => {
 
     expect(orchestration?.completion).toBe("In progress");
     expect(orchestration?.tone).toBe("active");
-    expect(orchestration?.latestNote.toLowerCase()).toContain(
-      "dependency-readiness coverage"
+    expect(orchestration?.latestNote).toBe(
+      "Dispatch sequencing and handoff audit coverage now tracks queued, active, blocked, and dependency-order signals for orchestration handoff."
     );
     expect(orchestration?.nextStep).toBe(
-      "Add dispatch sequencing and handoff audit coverage across queued, active, and blocked tasks."
+      "Add accepted-result propagation and integration handoff evidence for orchestration runs."
     );
   });
 
@@ -163,11 +163,11 @@ describe("milestone status model", () => {
       active: 2,
       planned: 2,
       paused: 1,
-      averageCompletionPercent: 46,
+      averageCompletionPercent: 49,
       nextTarget: "Orchestration model",
       nextStep:
-        "Add dispatch sequencing and handoff audit coverage across queued, active, and blocked tasks.",
-      nextCompletionPercent: 45
+        "Add accepted-result propagation and integration handoff evidence for orchestration runs.",
+      nextCompletionPercent: 60
     });
   });
 
@@ -194,7 +194,18 @@ describe("milestone status model", () => {
       expect(row.completionPercent).toBeGreaterThanOrEqual(0);
       expect(row.completionPercent).toBeLessThanOrEqual(100);
       expect(Number.isInteger(row.completionPercent)).toBe(true);
+      expect(row.target.length).toBeGreaterThan(0);
+      expect(row.completion.length).toBeGreaterThan(0);
+      expect(row.latestNote.length).toBeGreaterThan(0);
     }
+
+    const liveTargets = new Set(
+      steerboardMilestoneStatuses.map((milestone) => milestone.target)
+    );
+    expect(
+      snapshotRows.every((row) => liveTargets.has(row.target))
+    ).toBe(true);
+    expect(snapshotRows.length).toBe(liveTargets.size);
   });
 
   it("keeps exported milestone target/plan/% completion/latest note/next step in sync with the public snapshot", () => {
