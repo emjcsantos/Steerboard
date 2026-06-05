@@ -380,6 +380,10 @@ import {
   type RuntimeLaunchApprovalSnapshot
 } from "./runtimeLaunchApproval";
 import {
+  createRuntimeLaunchHandoffAcceptance,
+  type RuntimeLaunchHandoffAcceptance
+} from "./runtimeLaunchHandoffAcceptance";
+import {
   buildRuntimeExecutionAuditSnapshot,
   type RuntimeExecutionAuditItem,
   type RuntimeExecutionAuditSnapshot
@@ -2433,6 +2437,21 @@ function RightPanel({
     runtimeLaunchRequestSnapshot,
     launchApprovalIntent
   );
+  const runtimeLaunchHandoffAcceptance: RuntimeLaunchHandoffAcceptance = useMemo(
+    () =>
+      createRuntimeLaunchHandoffAcceptance(
+        runtimeEventSourceSnapshot,
+        runtimeSourceConnectionSnapshot,
+        runtimeLaunchRequestSnapshot,
+        runtimeLaunchApprovalSnapshot
+      ),
+    [
+      runtimeEventSourceSnapshot,
+      runtimeLaunchApprovalSnapshot,
+      runtimeLaunchRequestSnapshot,
+      runtimeSourceConnectionSnapshot
+    ]
+  );
   const runtimeExecutionAuditSnapshot = buildRuntimeExecutionAuditSnapshot(
     runtimeLaunchRequestSnapshot,
     runtimeLaunchApprovalSnapshot
@@ -3309,6 +3328,7 @@ function RightPanel({
           desktopBridge={desktopBridgeStatus}
           executionAudit={runtimeExecutionAuditSnapshot}
           executionAuditHistory={executionAuditHistory}
+          handoffAcceptance={runtimeLaunchHandoffAcceptance}
           launchRequest={runtimeLaunchRequestSnapshot}
           onAttach={() => updateBridgeIntent("attached")}
           onCancelApproval={() => recordLaunchApprovalAction("cancelled", "idle")}
@@ -4276,6 +4296,7 @@ function RuntimeEventSourceStatus({
   desktopBridge,
   executionAudit,
   executionAuditHistory,
+  handoffAcceptance,
   launchRequest,
   onAttach,
   onCancelApproval,
@@ -4289,6 +4310,7 @@ function RuntimeEventSourceStatus({
   desktopBridge: DesktopRuntimeBridgeStatus;
   executionAudit: RuntimeExecutionAuditSnapshot;
   executionAuditHistory: RuntimeExecutionAuditRecord[];
+  handoffAcceptance: RuntimeLaunchHandoffAcceptance;
   launchRequest: RuntimeLaunchRequestSnapshot;
   onAttach: () => void;
   onCancelApproval: () => void;
@@ -4368,6 +4390,38 @@ function RuntimeEventSourceStatus({
         onCancelApproval={onCancelApproval}
         onRequestApproval={onRequestApproval}
       />
+      <div
+        aria-label={handoffAcceptance.ariaLabel}
+        className={classNames(
+          "runtime-handoff-acceptance",
+          `runtime-handoff-acceptance-${handoffAcceptance.tone}`
+        )}
+        title={handoffAcceptance.detail}
+      >
+        <div className="runtime-handoff-acceptance-header">
+          <strong>{handoffAcceptance.label}</strong>
+          <b>{handoffAcceptance.checkLabel}</b>
+        </div>
+        <p>{handoffAcceptance.detail}</p>
+        <div
+          className="runtime-handoff-acceptance-checks"
+          aria-label="Runtime launch handoff acceptance checks"
+        >
+          {handoffAcceptance.checks.map((check) => (
+            <span
+              className={classNames(
+                "runtime-handoff-acceptance-check",
+                `runtime-handoff-acceptance-check-${check.tone}`
+              )}
+              key={check.label}
+              title={`${check.label}: ${check.value}`}
+            >
+              <strong>{check.value}</strong>
+              <small>{check.label}</small>
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

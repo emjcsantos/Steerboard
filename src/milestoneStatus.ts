@@ -67,11 +67,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Runtime adapters",
     completion: "In progress",
     plan: "Deliver and stabilize adapter surfaces for consistent runtime status intake.",
-    completionPercent: 60,
+    completionPercent: 75,
     latestNote:
-      "Core runtime entry validation now checks adapter readiness, contract coverage, session state, and entry-point permissions for runtime validation.",
+      "Runtime event-source and launch handoff acceptance coverage now checks source readiness, adapter connection, requestability, and approval state before handoff.",
     nextStep:
-      "Add runtime event-source and launch handoff acceptance coverage.",
+      "Add runtime adapter recovery and external-source failure-state coverage.",
     tone: "active",
     note:
       "Adapter interfaces are being stabilized across runtime surfaces to support consistent signal ingestion."

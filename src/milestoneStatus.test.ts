@@ -151,12 +151,12 @@ describe("milestone status model", () => {
 
     expect(runtimeAdapters?.completion).toBe("In progress");
     expect(runtimeAdapters?.tone).toBe("active");
-    expect(runtimeAdapters?.completionPercent).toBe(60);
+    expect(runtimeAdapters?.completionPercent).toBe(75);
     expect(runtimeAdapters?.latestNote).toBe(
-      "Core runtime entry validation now checks adapter readiness, contract coverage, session state, and entry-point permissions for runtime validation."
+      "Runtime event-source and launch handoff acceptance coverage now checks source readiness, adapter connection, requestability, and approval state before handoff."
     );
     expect(runtimeAdapters?.nextStep).toBe(
-      "Add runtime event-source and launch handoff acceptance coverage."
+      "Add runtime adapter recovery and external-source failure-state coverage."
     );
   });
 
@@ -180,11 +180,11 @@ describe("milestone status model", () => {
       active: 1,
       planned: 2,
       paused: 1,
-      averageCompletionPercent: 56,
+      averageCompletionPercent: 59,
       nextTarget: "Runtime adapters",
       nextStep:
-        "Add runtime event-source and launch handoff acceptance coverage.",
-      nextCompletionPercent: 60
+        "Add runtime adapter recovery and external-source failure-state coverage.",
+      nextCompletionPercent: 75
     });
   });
 

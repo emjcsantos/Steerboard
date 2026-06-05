@@ -3449,6 +3449,113 @@ textarea {
   border-color: #303844;
 }
 
+.runtime-handoff-acceptance {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.runtime-handoff-acceptance-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.runtime-handoff-acceptance-header strong,
+.runtime-handoff-acceptance-header b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-handoff-acceptance-header strong {
+  color: #edf3f8;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.runtime-handoff-acceptance-header b {
+  border-radius: 999px;
+  background: #10161d;
+  color: #cfd8e3;
+  padding: 3px 6px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.runtime-handoff-acceptance p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #9fa9b4;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.runtime-handoff-acceptance-checks {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.runtime-handoff-acceptance-check {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #26303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 6px 5px;
+  text-align: center;
+}
+
+.runtime-handoff-acceptance-check strong,
+.runtime-handoff-acceptance-check small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-handoff-acceptance-check strong {
+  color: #f4f7fa;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.runtime-handoff-acceptance-check small {
+  color: #8f99a4;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.runtime-handoff-acceptance-ready,
+.runtime-handoff-acceptance-check-ok {
+  border-color: #254634;
+}
+
+.runtime-handoff-acceptance-review,
+.runtime-handoff-acceptance-check-review {
+  border-color: #5c4b1b;
+}
+
+.runtime-handoff-acceptance-blocked,
+.runtime-handoff-acceptance-check-blocked {
+  border-color: #69343a;
+}
+
+.runtime-handoff-acceptance-waiting,
+.runtime-handoff-acceptance-check-neutral {
+  border-color: #303844;
+}
+
 .registry-detail strong {
   overflow: hidden;
   text-overflow: ellipsis;
