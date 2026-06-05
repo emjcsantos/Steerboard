@@ -149,14 +149,14 @@ describe("milestone status model", () => {
       (milestone) => milestone.target === "Runtime adapters"
     );
 
-    expect(runtimeAdapters?.completion).toBe("In progress");
-    expect(runtimeAdapters?.tone).toBe("active");
-    expect(runtimeAdapters?.completionPercent).toBe(75);
+    expect(runtimeAdapters?.completion).toBe("Complete");
+    expect(runtimeAdapters?.tone).toBe("complete");
+    expect(runtimeAdapters?.completionPercent).toBe(100);
     expect(runtimeAdapters?.latestNote).toBe(
-      "Runtime event-source and launch handoff acceptance coverage now checks source readiness, adapter connection, requestability, and approval state before handoff."
+      "Runtime adapter recovery and external-source failure-state coverage now closes the runtime intake milestone with visible recovery, source, failure, and safe-handoff checks."
     );
     expect(runtimeAdapters?.nextStep).toBe(
-      "Add runtime adapter recovery and external-source failure-state coverage."
+      "Monitor runtime adapter regressions while security and privacy controls advance."
     );
   });
 
@@ -176,15 +176,15 @@ describe("milestone status model", () => {
   it("summarizes exported milestone list counts correctly", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
       total: 7,
-      complete: 3,
-      active: 1,
+      complete: 4,
+      active: 0,
       planned: 2,
       paused: 1,
-      averageCompletionPercent: 59,
-      nextTarget: "Runtime adapters",
+      averageCompletionPercent: 62,
+      nextTarget: "Security and privacy model",
       nextStep:
-        "Add runtime adapter recovery and external-source failure-state coverage.",
-      nextCompletionPercent: 75
+        "Complete threat modeling and publish practical control guidance for implementation.",
+      nextCompletionPercent: 20
     });
   });
 

@@ -384,6 +384,10 @@ import {
   type RuntimeLaunchHandoffAcceptance
 } from "./runtimeLaunchHandoffAcceptance";
 import {
+  createRuntimeRecoveryFailureCoverage,
+  type RuntimeRecoveryFailureCoverage
+} from "./runtimeRecoveryFailureCoverage";
+import {
   buildRuntimeExecutionAuditSnapshot,
   type RuntimeExecutionAuditItem,
   type RuntimeExecutionAuditSnapshot
@@ -2452,6 +2456,25 @@ function RightPanel({
       runtimeSourceConnectionSnapshot
     ]
   );
+  const runtimeRecoveryFailureCoverage: RuntimeRecoveryFailureCoverage = useMemo(
+    () =>
+      createRuntimeRecoveryFailureCoverage(
+        runtimeAdapter,
+        runtimeEventSourceSnapshot,
+        runtimeSourceConnectionSnapshot,
+        runtimeLaunchRequestSnapshot,
+        runtimeLaunchApprovalSnapshot,
+        runtimeStreamSnapshot
+      ),
+    [
+      runtimeAdapter,
+      runtimeEventSourceSnapshot,
+      runtimeLaunchApprovalSnapshot,
+      runtimeLaunchRequestSnapshot,
+      runtimeSourceConnectionSnapshot,
+      runtimeStreamSnapshot
+    ]
+  );
   const runtimeExecutionAuditSnapshot = buildRuntimeExecutionAuditSnapshot(
     runtimeLaunchRequestSnapshot,
     runtimeLaunchApprovalSnapshot
@@ -3334,6 +3357,7 @@ function RightPanel({
           onCancelApproval={() => recordLaunchApprovalAction("cancelled", "idle")}
           onDetach={() => updateBridgeIntent("detached")}
           onRequestApproval={() => recordLaunchApprovalAction("requested", "requested")}
+          recoveryCoverage={runtimeRecoveryFailureCoverage}
           snapshot={runtimeEventSourceSnapshot}
         />
         <div className="stream-status-row">
@@ -4302,6 +4326,7 @@ function RuntimeEventSourceStatus({
   onCancelApproval,
   onDetach,
   onRequestApproval,
+  recoveryCoverage,
   snapshot
 }: {
   approval: RuntimeLaunchApprovalSnapshot;
@@ -4316,6 +4341,7 @@ function RuntimeEventSourceStatus({
   onCancelApproval: () => void;
   onDetach: () => void;
   onRequestApproval: () => void;
+  recoveryCoverage: RuntimeRecoveryFailureCoverage;
   snapshot: RuntimeEventSourceSnapshot;
 }) {
   return (
@@ -4412,6 +4438,38 @@ function RuntimeEventSourceStatus({
               className={classNames(
                 "runtime-handoff-acceptance-check",
                 `runtime-handoff-acceptance-check-${check.tone}`
+              )}
+              key={check.label}
+              title={`${check.label}: ${check.value}`}
+            >
+              <strong>{check.value}</strong>
+              <small>{check.label}</small>
+            </span>
+          ))}
+        </div>
+      </div>
+      <div
+        aria-label={recoveryCoverage.ariaLabel}
+        className={classNames(
+          "runtime-recovery-coverage",
+          `runtime-recovery-coverage-${recoveryCoverage.tone}`
+        )}
+        title={recoveryCoverage.detail}
+      >
+        <div className="runtime-recovery-coverage-header">
+          <strong>{recoveryCoverage.label}</strong>
+          <b>{recoveryCoverage.checkLabel}</b>
+        </div>
+        <p>{recoveryCoverage.detail}</p>
+        <div
+          className="runtime-recovery-coverage-checks"
+          aria-label="Runtime adapter recovery and failure-state coverage checks"
+        >
+          {recoveryCoverage.checks.map((check) => (
+            <span
+              className={classNames(
+                "runtime-recovery-coverage-check",
+                `runtime-recovery-coverage-check-${check.tone}`
               )}
               key={check.label}
               title={`${check.label}: ${check.value}`}

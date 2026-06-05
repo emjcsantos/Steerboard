@@ -65,14 +65,14 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
   },
   {
     target: "Runtime adapters",
-    completion: "In progress",
+    completion: "Complete",
     plan: "Deliver and stabilize adapter surfaces for consistent runtime status intake.",
-    completionPercent: 75,
+    completionPercent: 100,
     latestNote:
-      "Runtime event-source and launch handoff acceptance coverage now checks source readiness, adapter connection, requestability, and approval state before handoff.",
+      "Runtime adapter recovery and external-source failure-state coverage now closes the runtime intake milestone with visible recovery, source, failure, and safe-handoff checks.",
     nextStep:
-      "Add runtime adapter recovery and external-source failure-state coverage.",
-    tone: "active",
+      "Monitor runtime adapter regressions while security and privacy controls advance.",
+    tone: "complete",
     note:
       "Adapter interfaces are being stabilized across runtime surfaces to support consistent signal ingestion."
   },

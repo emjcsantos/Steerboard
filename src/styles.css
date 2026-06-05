@@ -3556,6 +3556,113 @@ textarea {
   border-color: #303844;
 }
 
+.runtime-recovery-coverage {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.runtime-recovery-coverage-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.runtime-recovery-coverage-header strong,
+.runtime-recovery-coverage-header b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-recovery-coverage-header strong {
+  color: #edf3f8;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.runtime-recovery-coverage-header b {
+  border-radius: 999px;
+  background: #10161d;
+  color: #cfd8e3;
+  padding: 3px 6px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.runtime-recovery-coverage p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #9fa9b4;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.runtime-recovery-coverage-checks {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.runtime-recovery-coverage-check {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #26303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 6px 5px;
+  text-align: center;
+}
+
+.runtime-recovery-coverage-check strong,
+.runtime-recovery-coverage-check small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-recovery-coverage-check strong {
+  color: #f4f7fa;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.runtime-recovery-coverage-check small {
+  color: #8f99a4;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.runtime-recovery-coverage-covered,
+.runtime-recovery-coverage-check-ok {
+  border-color: #254634;
+}
+
+.runtime-recovery-coverage-review,
+.runtime-recovery-coverage-check-review {
+  border-color: #5c4b1b;
+}
+
+.runtime-recovery-coverage-blocked,
+.runtime-recovery-coverage-check-blocked {
+  border-color: #69343a;
+}
+
+.runtime-recovery-coverage-waiting,
+.runtime-recovery-coverage-check-neutral {
+  border-color: #303844;
+}
+
 .registry-detail strong {
   overflow: hidden;
   text-overflow: ellipsis;
