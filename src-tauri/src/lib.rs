@@ -191,6 +191,26 @@ pub struct CodexPanelCloseResult {
     pub detail: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderCommandCatalogEntry {
+    pub command: String,
+    pub label: String,
+    pub detail: String,
+    pub state: String,
+    pub scopes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderCommandCatalogPreview {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub entries: Vec<ProviderCommandCatalogEntry>,
+    pub detail: String,
+    pub safety: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LiveActionRunnerRequest {
@@ -266,7 +286,7 @@ mod runtime_bridge {
         CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelTurnResult, CodexTransportProbe,
         LiveActionRunnerRequest, LiveActionRunnerResult, MigrationSourceCategoryPreview,
         MigrationSourcePreview, MigrationSourcePreviewCounts, PermissionApprovalStatus,
-        RuntimeBridgeStatus,
+        ProviderCommandCatalogEntry, ProviderCommandCatalogPreview, RuntimeBridgeStatus,
     };
     use serde_json::Value;
     use std::collections::{BTreeMap, BTreeSet};
@@ -779,6 +799,150 @@ mod runtime_bridge {
                         .to_string(),
             },
         }
+    }
+
+    fn command_catalog_entry(
+        command: &str,
+        label: &str,
+        detail: &str,
+        state: &str,
+        scopes: &[&str],
+    ) -> ProviderCommandCatalogEntry {
+        ProviderCommandCatalogEntry {
+            command: command.to_string(),
+            label: label.to_string(),
+            detail: detail.to_string(),
+            state: state.to_string(),
+            scopes: scopes.iter().map(|scope| scope.to_string()).collect(),
+        }
+    }
+
+    pub(crate) fn codex_command_catalog_preview_from_probe(
+        probe: CodexTransportProbe,
+    ) -> ProviderCommandCatalogPreview {
+        let panel_protocol_ready = probe.app_server.protocol.thread_start
+            && probe.app_server.protocol.turn_start
+            && probe.app_server.protocol.agent_message_delta;
+        let app_server_ready = probe.app_server.available
+            && probe.app_server.stdio_handshake
+            && panel_protocol_ready;
+        let provider_detected = probe.cli.available
+            || probe.app_server.available
+            || probe.app_server.stdio_handshake
+            || probe.exec_json.available;
+
+        if !provider_detected {
+            return ProviderCommandCatalogPreview {
+                source: "unavailable".to_string(),
+                checked_at: probe.checked_at,
+                entries: Vec::new(),
+                detail: "No provider command capability was detected.".to_string(),
+                safety: "Capability refresh did not send prompts, copy credentials, or read raw transcripts."
+                    .to_string(),
+            };
+        }
+
+        let source = if app_server_ready {
+            "provider-live"
+        } else {
+            "provider-preview"
+        };
+        let live_or_preview = if app_server_ready { "live" } else { "preview" };
+        let mcp_state = if probe.app_server.protocol.mcp_status {
+            "preview"
+        } else {
+            "unsupported"
+        };
+
+        ProviderCommandCatalogPreview {
+            source: source.to_string(),
+            checked_at: probe.checked_at,
+            entries: vec![
+                command_catalog_entry(
+                    "/plan",
+                    "Plan",
+                    if app_server_ready {
+                        "Plan against the connected provider session."
+                    } else {
+                        "Stage a provider-ready plan while live session startup is unavailable."
+                    },
+                    live_or_preview,
+                    &["panel", "app"],
+                ),
+                command_catalog_entry(
+                    "/handoff",
+                    "Handoff",
+                    if app_server_ready {
+                        "Create a scoped handoff for the connected provider runtime."
+                    } else {
+                        "Draft a handoff locally for review before provider execution."
+                    },
+                    live_or_preview,
+                    &["panel", "global"],
+                ),
+                command_catalog_entry(
+                    "/validate",
+                    "Validate",
+                    "Prepare validation steps and evidence without running unsafe actions.",
+                    "preview",
+                    &["panel"],
+                ),
+                command_catalog_entry(
+                    "/summarize",
+                    "Summarize",
+                    "Summarize the active context without exposing raw transcripts.",
+                    "preview",
+                    &["panel", "global"],
+                ),
+                command_catalog_entry(
+                    "/status",
+                    "Status",
+                    if probe.cli.available {
+                        "Report provider connection and cockpit readiness from safe metadata."
+                    } else {
+                        "Status requires a detectable provider runtime."
+                    },
+                    if probe.cli.available {
+                        live_or_preview
+                    } else {
+                        "unavailable"
+                    },
+                    &["app", "global"],
+                ),
+                command_catalog_entry(
+                    "/review",
+                    "Review",
+                    "Collect review signals and keep execution behind approval gates.",
+                    "preview",
+                    &["panel", "app"],
+                ),
+                command_catalog_entry(
+                    "/mcp",
+                    "MCP",
+                    if probe.app_server.protocol.mcp_status {
+                        "Inspect MCP capability metadata where the provider exposes it."
+                    } else {
+                        "MCP command metadata is not exposed by this provider capability probe."
+                    },
+                    mcp_state,
+                    &["app", "global"],
+                ),
+            ],
+            detail: if app_server_ready {
+                "Provider command catalog refreshed from safe app-server capability metadata."
+                    .to_string()
+            } else {
+                "Provider command catalog refreshed in preview mode from safe runtime metadata."
+                    .to_string()
+            },
+            safety: "Capability refresh did not send prompts, copy credentials, or read raw transcripts."
+                .to_string(),
+        }
+    }
+
+    #[tauri::command]
+    pub fn codex_command_catalog_preview() -> ProviderCommandCatalogPreview {
+        codex_command_catalog_preview_from_probe(codex_transport_probe())
     }
 
     #[tauri::command]
@@ -2030,6 +2194,7 @@ pub fn run() {
             runtime_bridge::runtime_permission_approval_status,
             runtime_bridge::migration_source_preview,
             runtime_bridge::codex_transport_probe,
+            runtime_bridge::codex_command_catalog_preview,
             runtime_bridge::codex_transport_live_smoke,
             runtime_bridge::codex_panel_session_readiness,
             runtime_bridge::codex_panel_session_start,
@@ -2442,6 +2607,81 @@ mod tests {
                 detail: "fake".to_string(),
             },
         }
+    }
+
+    #[test]
+    fn codex_command_catalog_preview_marks_app_server_commands_live_from_safe_metadata() {
+        let preview =
+            runtime_bridge::codex_command_catalog_preview_from_probe(fake_codex_transport_probe());
+
+        assert_eq!(preview.source, "provider-live");
+        assert!(preview
+            .detail
+            .to_lowercase()
+            .contains("capability metadata"));
+        assert!(preview.safety.to_lowercase().contains("did not send prompts"));
+        assert!(preview
+            .entries
+            .iter()
+            .any(|entry| entry.command == "/plan" && entry.state == "live"));
+        assert!(preview
+            .entries
+            .iter()
+            .any(|entry| entry.command == "/mcp" && entry.state == "unsupported"));
+    }
+
+    #[test]
+    fn codex_command_catalog_preview_uses_preview_when_live_session_is_not_ready() {
+        let mut probe = fake_codex_transport_probe();
+        probe.app_server.stdio_handshake = false;
+        probe.app_server.protocol.agent_message_delta = false;
+
+        let preview = runtime_bridge::codex_command_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "provider-preview");
+        assert!(preview
+            .entries
+            .iter()
+            .any(|entry| entry.command == "/plan" && entry.state == "preview"));
+        assert!(preview
+            .entries
+            .iter()
+            .any(|entry| entry.command == "/status" && entry.state == "preview"));
+    }
+
+    #[test]
+    fn codex_command_catalog_preview_reports_unavailable_without_provider_detection() {
+        let mut probe = fake_codex_transport_probe();
+        probe.cli.available = false;
+        probe.app_server.available = false;
+        probe.app_server.stdio_handshake = false;
+        probe.exec_json.available = false;
+
+        let preview = runtime_bridge::codex_command_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "unavailable");
+        assert!(preview.entries.is_empty());
+        assert!(preview
+            .detail
+            .to_lowercase()
+            .contains("no provider command capability"));
+    }
+
+    #[test]
+    fn codex_command_catalog_preview_excludes_secret_and_path_details() {
+        let preview =
+            runtime_bridge::codex_command_catalog_preview_from_probe(fake_codex_transport_probe());
+        let serialized = serde_json::to_string(&preview)
+            .unwrap_or_default()
+            .to_lowercase();
+
+        assert!(!serialized.contains("auth.json"));
+        assert!(!serialized.contains("token"));
+        assert!(!serialized.contains("c:\\"));
+        assert!(!serialized.contains("/home/"));
+        assert!(!serialized.contains("raw transcript:"));
+        assert!(serialized.contains("capability"));
+        assert!(serialized.contains("raw transcripts"));
     }
 
     #[test]

@@ -5,6 +5,7 @@ import {
   findCommandCatalogEntry,
   getCommandCatalogSuggestions,
   buildCommandCatalogSnapshot,
+  buildCommandCatalogSnapshotFromProviderCapabilities,
   summarizeCommandCatalog,
   normalizeCommandCatalog,
   type CommandCatalogEntry
@@ -306,5 +307,72 @@ describe("command catalog refresh snapshots", () => {
       total: defaultCommandCatalog.length,
       preview: defaultCommandCatalog.filter((item) => item.state === "preview").length
     });
+  });
+});
+
+describe("provider capability snapshots", () => {
+  it("builds a provider-backed snapshot from safe live capability flags", () => {
+    const snapshot = buildCommandCatalogSnapshotFromProviderCapabilities({
+      canRunLive: true,
+      canRunPreview: true,
+      commands: [
+        { command: "/plan", state: "live" },
+        { command: "/handoff", state: "preview" },
+        { command: "/review", state: "unsupported" }
+      ]
+    });
+
+    expect(snapshot.source).toBe("provider-live");
+    expect(snapshot.summary).toMatchObject({
+      source: "provider-live",
+      total: defaultCommandCatalog.length,
+      live: 2,
+      preview: 3,
+      unsupported: 2
+    });
+    expect(snapshot.catalog.find((entry) => entry.command === "/handoff")?.state).toBe("preview");
+    expect(snapshot.catalog.find((entry) => entry.command === "/review")?.state).toBe("unsupported");
+  });
+
+  it("falls back to provider-preview when live capability is unavailable and downgrades live states to preview", () => {
+    const snapshot = buildCommandCatalogSnapshotFromProviderCapabilities({
+      canRunLive: false,
+      canRunPreview: true,
+      commands: [
+        { command: "/plan", state: "live" },
+        { command: "/review", state: "preview" }
+      ]
+    });
+
+    expect(snapshot.source).toBe("provider-preview");
+    expect(snapshot.catalog.find((entry) => entry.command === "/plan")?.state).toBe("preview");
+    expect(snapshot.catalog.find((entry) => entry.command === "/status")?.state).toBe("preview");
+  });
+
+  it("represents empty and unavailable fallback behavior for provider capability refresh", () => {
+    const emptySnapshot = buildCommandCatalogSnapshotFromProviderCapabilities({
+      canRunLive: false,
+      canRunPreview: true,
+      commands: []
+    });
+
+    const unavailableSnapshot = buildCommandCatalogSnapshotFromProviderCapabilities(
+      null as unknown,
+      []
+    );
+
+    expect(emptySnapshot.source).toBe("empty-refresh");
+    expect(unavailableSnapshot.source).toBe("unavailable");
+  });
+
+  it("handles malformed capability flags by returning default fallback safely", () => {
+    const malformedSnapshot = buildCommandCatalogSnapshotFromProviderCapabilities({
+      canRunLive: "yes",
+      canRunPreview: true,
+      commands: [{ command: "/plan", state: "live" }]
+    } as unknown);
+
+    expect(malformedSnapshot.source).toBe("default-fallback");
+    expect(malformedSnapshot.catalog).toEqual(defaultCommandCatalog);
   });
 });

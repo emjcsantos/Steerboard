@@ -94,11 +94,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Platform capabilities",
     completion: "In progress",
     plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
-    completionPercent: 34,
+    completionPercent: 38,
     latestNote:
-      "Panel slash commands now use a refreshable provider-neutral catalog snapshot with ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable.",
+      "Panel slash commands now refresh through a desktop-backed safe provider capability bridge with ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable.",
     nextStep:
-      "Connect real provider catalog refresh calls beyond the safe seeded snapshot while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
+      "Extend the same safe provider refresh pattern to plugins, skills, MCP, automations, and personalization while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
     tone: "active",
     note:
       "Slash commands, platform catalogs, migration preview, and risk-gated approval/audit foundations exist; provider refresh and full execution remain live-disabled."
@@ -123,7 +123,7 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     latestNote:
       "A provider-neutral checklist and fixture layer now verify Phase 10B runner contract behavior for approved requests, read-only terminal probe constraints, disabled mutation paths, and redacted audit output.",
     nextStep:
-      "Run the full local testing checklist, verify approval-to-probe behavior and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
+      "Run the full local testing checklist, verify approval-to-probe behavior, provider command refresh behavior, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
     current: true,
     tone: "active",
     note: "Daily local testing and failure-state coverage are being hardened before broader live runner attachment."

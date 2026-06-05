@@ -43,6 +43,17 @@ export interface CommandCatalogSnapshot {
   summary: CommandCatalogSnapshotSummary;
 }
 
+export interface CommandCatalogProviderCapabilityCommand {
+  command: string;
+  state: CommandCatalogState;
+}
+
+export interface CommandCatalogProviderCapabilityFlags {
+  canRunLive: boolean;
+  canRunPreview: boolean;
+  commands: unknown[];
+}
+
 type CommandExecutionDecisionState = CommandCatalogState;
 
 type UnknownCommand = {
@@ -180,6 +191,92 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isCommandCatalogProviderCapabilityFlags(
+  value: unknown
+): value is CommandCatalogProviderCapabilityFlags {
+  return (
+    isRecord(value) &&
+    typeof value.canRunLive === "boolean" &&
+    typeof value.canRunPreview === "boolean" &&
+    Array.isArray(value.commands)
+  );
+}
+
+function coerceProviderCapabilityCommand(
+  value: unknown
+): CommandCatalogProviderCapabilityCommand | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const command = normalizeCommandToken(value.command, true);
+  if (!command) {
+    return undefined;
+  }
+
+  if (!isCommandCatalogState(value.state)) {
+    return undefined;
+  }
+
+  return { command, state: value.state };
+}
+
+function normalizeProviderCapabilityFlags(
+  value: unknown
+): {
+  source: CommandCatalogRefreshSource;
+  commands: CommandCatalogProviderCapabilityCommand[];
+  commandCount: number;
+  canRunLive: boolean;
+} {
+  const flags = isCommandCatalogProviderCapabilityFlags(value)
+    ? (value as CommandCatalogProviderCapabilityFlags)
+    : undefined;
+
+  if (!flags) {
+    return {
+      source: "default-fallback",
+      commands: [],
+      commandCount: -1,
+      canRunLive: false
+    };
+  }
+
+  return {
+    source: flags.canRunLive ? "provider-live" : flags.canRunPreview ? "provider-preview" : "default-fallback",
+    commands: flags.commands
+      .map(coerceProviderCapabilityCommand)
+      .filter((item): item is CommandCatalogProviderCapabilityCommand => Boolean(item)),
+    commandCount: flags.commands.length,
+    canRunLive: flags.canRunLive
+  };
+}
+
+function normalizeProviderBackedCatalog(
+  catalog: readonly CommandCatalogEntry[],
+  flags: {
+    canRunLive: boolean;
+    commands: CommandCatalogProviderCapabilityCommand[];
+  }
+): CommandCatalogEntry[] {
+  const fallbackCatalog = normalizeCommandCatalogInternal(catalog);
+  if (fallbackCatalog.length === 0) {
+    return [];
+  }
+
+  const byCommand = new Map<string, CommandCatalogState>(
+    flags.commands.map((item) => [item.command, item.state])
+  );
+
+  return fallbackCatalog.map((entry) => {
+    const overrideState = byCommand.get(entry.command) ?? entry.state;
+    return {
+      ...entry,
+      state: flags.canRunLive ? overrideState : overrideState === "live" ? "preview" : overrideState
+    };
+  });
+}
+
 function coerceCommandCatalogEntry(raw: unknown): CommandCatalogEntry | undefined {
   if (!isRecord(raw)) {
     return undefined;
@@ -309,6 +406,52 @@ export function buildCommandCatalogSnapshot(
     source: resolvedSource,
     catalog: safeCatalog,
     summary: summarizeCommandCatalogEntries(safeCatalog, resolvedSource)
+  };
+}
+
+export function buildCommandCatalogSnapshotFromProviderCapabilities(
+  providerCapabilities: unknown,
+  fallback: readonly CommandCatalogEntry[] = defaultCommandCatalog
+): CommandCatalogSnapshot {
+  const normalizedFallback = normalizeCommandCatalogInternal(fallback);
+  const normalizedFallbackCatalog = normalizeCommandCatalog([], fallback);
+  const { source, commands, commandCount, canRunLive } = normalizeProviderCapabilityFlags(
+    providerCapabilities
+  );
+
+  if (commandCount < 0) {
+    return {
+      source: normalizedFallback.length === 0 ? "unavailable" : "default-fallback",
+      catalog: normalizedFallbackCatalog,
+      summary: summarizeCommandCatalogEntries(
+        normalizedFallbackCatalog,
+        normalizedFallback.length === 0 ? "unavailable" : "default-fallback"
+      )
+    };
+  }
+
+  if (commandCount === 0) {
+    return {
+      source: "empty-refresh",
+      catalog: normalizedFallbackCatalog,
+      summary: summarizeCommandCatalogEntries(normalizedFallbackCatalog, "empty-refresh")
+    };
+  }
+
+  const providerSnapshot = normalizeProviderBackedCatalog(fallback, {
+    canRunLive,
+    commands
+  });
+
+  const providerSource = commands.length > 0 ? source : "default-fallback";
+
+  return {
+    source: providerSource,
+    catalog: commands.length > 0 ? providerSnapshot : normalizedFallbackCatalog,
+    summary: summarizeCommandCatalogEntries(
+      commands.length > 0 ? providerSnapshot : normalizedFallbackCatalog,
+      providerSource
+    )
   };
 }
 

@@ -245,13 +245,13 @@ describe("milestone status model", () => {
 
     expect(platform?.completion).toBe("In progress");
     expect(platform?.tone).toBe("active");
-    expect(platform?.completionPercent).toBe(34);
+    expect(platform?.completionPercent).toBe(38);
     expect(platform?.current).toBeUndefined();
     expect(platform?.latestNote).toBe(
-      "Panel slash commands now use a refreshable provider-neutral catalog snapshot with ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable."
+      "Panel slash commands now refresh through a desktop-backed safe provider capability bridge with ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable."
     );
     expect(platform?.nextStep).toBe(
-      "Connect real provider catalog refresh calls beyond the safe seeded snapshot while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
+      "Extend the same safe provider refresh pattern to plugins, skills, MCP, automations, and personalization while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
     );
   });
 
@@ -275,10 +275,10 @@ describe("milestone status model", () => {
       active: 9,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 40,
+      averageCompletionPercent: 41,
       nextTarget: "Owner testing hardening",
       nextStep:
-        "Run the full local testing checklist, verify approval-to-probe behavior and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
+        "Run the full local testing checklist, verify approval-to-probe behavior, provider command refresh behavior, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
       nextCompletionPercent: 34
     });
   });
@@ -313,7 +313,7 @@ describe("milestone status model", () => {
       "A provider-neutral checklist and fixture layer now verify Phase 10B runner contract behavior for approved requests, read-only terminal probe constraints, disabled mutation paths, and redacted audit output."
     );
     expect(ownerTesting?.nextStep).toBe(
-      "Run the full local testing checklist, verify approval-to-probe behavior and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
+      "Run the full local testing checklist, verify approval-to-probe behavior, provider command refresh behavior, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
     );
   });
 

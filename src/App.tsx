@@ -78,6 +78,7 @@ import {
   type CommandCatalogRefreshSource,
   type CommandCatalogSnapshot
 } from "./commandCatalog";
+import { loadProviderCommandCatalogSnapshot } from "./providerCommandCatalog";
 import {
   cockpitPresets,
   orchestrationTasks,
@@ -2055,11 +2056,9 @@ export function App() {
     }
   }
 
-  function refreshCommandCatalogSnapshot() {
-    const source: CommandCatalogRefreshSource = codexTransportDecision.canStartSession
-      ? "provider-live"
-      : "provider-preview";
-    const nextSnapshot = buildCommandCatalogSnapshot(panelSlashCommands, source, panelSlashCommands);
+  async function refreshCommandCatalogSnapshot() {
+    setAppNotice("Refreshing provider command catalog");
+    const nextSnapshot = await loadProviderCommandCatalogSnapshot(undefined, panelSlashCommands);
     setCommandCatalogSnapshot(nextSnapshot);
     setAppNotice(`${formatCommandCatalogSource(nextSnapshot.source)} command catalog refreshed`);
   }

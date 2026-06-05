@@ -34,6 +34,7 @@ Do not proceed to the next section until the current item is at least `review`.
 6. `Slash Commands`
    - Run at least one documented command and one invalid command.
    - Confirm valid output is clear and invalid input returns explicit guidance.
+   - Refresh the command catalog and confirm source/state changes are visible without running side-effectful actions.
 7. `Catalogs`
    - Open command, plugin, and tool catalogs.
    - Verify stable ordering and filtering output across repeated reloads.
