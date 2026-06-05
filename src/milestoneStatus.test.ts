@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
 import {
   MilestoneCompletion,
   MilestoneTone,
@@ -80,6 +82,40 @@ describe("milestone status model", () => {
       planned: 3,
       paused: 1
     });
+  });
+
+  it("enforces the public snapshot table contract", () => {
+    const snapshotText = fs.readFileSync(
+      path.join(process.cwd(), "docs/project/milestone-status.md"),
+      "utf8"
+    );
+    const snapshotLines = snapshotText.split(/\r?\n/).map((line) => line.trim());
+
+    const headerIndex = snapshotLines.findIndex((line) =>
+      /^\|\s*Target\s*\|\s*Completion\s*\|\s*Note\s*\|$/i.test(line)
+    );
+    expect(headerIndex).toBeGreaterThanOrEqual(0);
+
+    const dataRows = snapshotLines
+      .slice(headerIndex + 2)
+      .filter(
+        (line) =>
+          line.startsWith("|") &&
+          line.endsWith("|") &&
+          line !== "| --- | --- | --- |" &&
+          line.length > 6
+      );
+
+    expect(dataRows.length).toBe(steerboardMilestoneStatuses.length);
+
+    for (const row of dataRows) {
+      const columns = row
+        .slice(1, -1)
+        .split("|")
+        .map((column) => column.trim());
+      expect(columns).toHaveLength(3);
+      expect(columns.every((column) => column.length > 0)).toBe(true);
+    }
   });
 
   it("keeps optional project management lane paused", () => {

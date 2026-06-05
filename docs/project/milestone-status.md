@@ -3,6 +3,8 @@
 This document is a public-facing milestone snapshot of the Steerboard roadmap status.  
 It is intended for external visibility and product-level communication, not an internal execution log.
 
+It is the complete public milestone contract. Every milestone must appear as one table row, and the table must use only these columns: **Target**, **Completion**, and **Note**.
+
 | Target | Completion | Note |
 | --- | --- | --- |
 | Product scaffold | Complete | Core Steerboard structure, navigation baseline, and documentation skeleton are in place. |
