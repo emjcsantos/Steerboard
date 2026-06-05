@@ -6,7 +6,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 | Target | Completion | Note |
 |---|---|---|
-| Phase 1: Product Scaffold | In progress | Core local shell, public fixture data, project sidebar, fixed cockpit presets, compact cockpit control row, layout dropdown, and operating modes are scaffolded for local review. |
+| Phase 1: Product Scaffold | In progress | Core local shell, restrained app menu, public fixture data, project sidebar, fixed cockpit presets, compact cockpit control row, layout dropdown, local panel chat, and operating modes are scaffolded for local review. |
 | Phase 2: Orchestration Model | In progress | Mock runs, task state, validation gates, handoff previews, selected-run evidence panels, and compact cockpit monitor summaries with local stream controls are available without external runtime execution. |
 | Phase 3: Optional Project Management Lane | In progress | Pipeline items can be inspected, request history is local, dispatch-ready items can create local cockpit run projections, and selected items can show linked local runs with status summaries. This lane supports visibility and change management, while cockpit chat remains primary. |
 | Phase 4: Runtime Adapters | In progress | Provider-neutral adapter previews, runtime profiles, local approvals, bridge status, permission previews, and evidence readiness are scaffolded as locked local previews. |
@@ -18,7 +18,10 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 ## Phase 1: Product Scaffold
 
 - Local desktop shell.
-- Top-left desktop app menu: `File`, `Edit`, `View`, `Window`, and `Help`.
+- Top-left desktop app menu with only useful MVP sections: `File`, `View`, `Connect`, and `Help`.
+- Local panel chat transcript and composer in every cockpit panel.
+- Local slash command discovery in panel composers.
+- Local Codex connection request preview with execution still locked.
 - Public-safe fixture data.
 - Project sidebar.
 - Fixed cockpit grid presets up to `3x3`.
@@ -76,6 +79,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 - Codex install and version detection.
 - Auth posture display for ChatGPT login, API-key login, and trusted access-token setup.
+- Provider connection flow that grows from the local Codex connection request preview into a real adapter handshake.
 - Read-only Codex default option seed for plugins, skills, slash commands, MCP servers, and personalization sources.
 - `File > Migrate...` preview for importing supported Codex settings, options, projects, threads/chats, skills, plugins, MCP servers, commands, and personalization into a Steerboard profile.
 - Local app-server initialization and health state.

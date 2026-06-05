@@ -105,6 +105,14 @@ import {
   type WorkspacePreferences
 } from "./preferences";
 import {
+  createPanelReplyMessage,
+  getPanelSlashCommandSuggestions,
+  loadPanelChatMessages,
+  panelSlashCommands,
+  savePanelChatMessages,
+  type PanelChatMessage
+} from "./panelChat";
+import {
   steerboardMilestoneStatuses,
   summarizeMilestoneStatuses,
   type MilestoneStatus,
@@ -512,75 +520,11 @@ const runtimeWorkspaceModeOptions: RuntimeWorkspaceMode[] = ["read-only", "read-
 type ToolEvidenceCaptureIntent = "idle" | "requested";
 type RuntimeProfilePermissionRequestIntent = "idle" | "requested";
 type PipelineDispatchRequestIntent = "idle" | "requested";
-type PanelChatRole = "codex" | "user" | "tool" | "system";
-
-type PanelChatMessage = {
-  id: string;
-  role: PanelChatRole;
-  label: string;
-  body: string;
-  meta: string;
-};
+type AppMenuId = "file" | "view" | "connect" | "help";
+type AppDialog = "migration" | "connection" | "slash-help";
 
 function classNames(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
-}
-
-function roleLabel(role: SessionSummary["role"]): string {
-  switch (role) {
-    case "orchestrator":
-      return "Codex Orchestrator";
-    case "implementer":
-      return "Worker";
-    case "validator":
-      return "Validator";
-    case "integration":
-      return "Integrator";
-  }
-}
-
-function buildInitialPanelChat(session: SessionSummary): PanelChatMessage[] {
-  const visibleTranscript = session.transcript.slice(0, 3);
-  const transcriptMessages = visibleTranscript.map((line, index) => ({
-    id: `${session.id}:transcript:${index}`,
-    role: index === 0 ? "codex" as const : "tool" as const,
-    label: index === 0 ? roleLabel(session.role) : "Activity",
-    body: line,
-    meta: index === 0 ? "session context" : `event ${index}`
-  }));
-
-  return [
-    {
-      id: `${session.id}:system`,
-      role: "system",
-      label: "Steerboard",
-      body:
-        "This lane is a local Codex-style chat scaffold. Messages are captured here and can be handed to a real adapter once connected.",
-      meta: "local"
-    },
-    ...transcriptMessages,
-    {
-      id: `${session.id}:validation`,
-      role: "codex",
-      label: roleLabel(session.role),
-      body: `Current validation: ${session.validation}`,
-      meta: session.state
-    }
-  ];
-}
-
-function createPanelReplyMessage(
-  session: SessionSummary,
-  sequence: number
-): PanelChatMessage {
-  return {
-    id: `${session.id}:codex-reply:${sequence}`,
-    role: "codex",
-    label: roleLabel(session.role),
-    body:
-      "Captured. This panel is ready to route the message through a Codex-compatible adapter when live session transport is connected.",
-    meta: "local adapter pending"
-  };
 }
 
 function parseRuntimeProfileList(value: string): string[] {
@@ -641,6 +585,10 @@ export function App() {
   const [mockRuns, setMockRuns] = useState<MockOrchestratorRun[]>(() => loadRunHistory());
   const [selectedRunId, setSelectedRunId] = useState<string>();
   const [focusedPanelId, setFocusedPanelId] = useState<string>();
+  const [activeAppMenu, setActiveAppMenu] = useState<AppMenuId>();
+  const [appDialog, setAppDialog] = useState<AppDialog>();
+  const [codexConnectionRequested, setCodexConnectionRequested] = useState(false);
+  const [appNotice, setAppNotice] = useState("Local preview mode");
   const { selectedProjectId, mode, layoutId, view } = preferences;
 
   useEffect(() => {
@@ -831,8 +779,43 @@ export function App() {
     updatePreferences({ view: "cockpit" });
   }
 
+  function toggleAppMenu(menuId: AppMenuId) {
+    setActiveAppMenu((currentMenu) => (currentMenu === menuId ? undefined : menuId));
+  }
+
+  function openAppDialog(nextDialog: AppDialog) {
+    setAppDialog(nextDialog);
+    setActiveAppMenu(undefined);
+  }
+
+  function handleViewMenuAction(nextView: WorkspacePreferences["view"]) {
+    updatePreferences({ view: nextView });
+    setActiveAppMenu(undefined);
+  }
+
+  function handleAdaptiveViewAction() {
+    updatePreferences({ layoutId: "adaptive", view: "cockpit" });
+    setActiveAppMenu(undefined);
+  }
+
+  function handleStageCodexConnection() {
+    setCodexConnectionRequested(true);
+    setAppNotice("Codex connection request staged locally");
+  }
+
   return (
     <main className="app-shell">
+      <AppMenuBar
+        activeMenu={activeAppMenu}
+        appNotice={appNotice}
+        codexConnectionRequested={codexConnectionRequested}
+        currentView={view}
+        onAdaptiveView={handleAdaptiveViewAction}
+        onAddDraft={handleAddDraft}
+        onOpenDialog={openAppDialog}
+        onSwitchView={handleViewMenuAction}
+        onToggleMenu={toggleAppMenu}
+      />
       <aside className="sidebar" aria-label="Steerboard navigation">
         <nav className="sidebar-command-list" aria-label="Primary actions">
           <button type="button">
@@ -1080,7 +1063,231 @@ export function App() {
           />
         </div>
       </section>
+      {appDialog ? (
+        <AppDialogSurface
+          codexConnectionRequested={codexConnectionRequested}
+          dialog={appDialog}
+          onClose={() => setAppDialog(undefined)}
+          onStageCodexConnection={handleStageCodexConnection}
+        />
+      ) : null}
     </main>
+  );
+}
+
+function AppMenuBar({
+  activeMenu,
+  appNotice,
+  codexConnectionRequested,
+  currentView,
+  onAdaptiveView,
+  onAddDraft,
+  onOpenDialog,
+  onSwitchView,
+  onToggleMenu
+}: {
+  activeMenu?: AppMenuId;
+  appNotice: string;
+  codexConnectionRequested: boolean;
+  currentView: WorkspacePreferences["view"];
+  onAdaptiveView: () => void;
+  onAddDraft: () => void;
+  onOpenDialog: (dialog: AppDialog) => void;
+  onSwitchView: (view: WorkspacePreferences["view"]) => void;
+  onToggleMenu: (menuId: AppMenuId) => void;
+}) {
+  return (
+    <header className="app-menu-bar" aria-label="Application menu">
+      <div className="app-menu-left">
+        <strong className="app-menu-brand">Steerboard</strong>
+        <div className="app-menu-items" role="menubar" aria-label="Steerboard menus">
+          {(["file", "view", "connect", "help"] as AppMenuId[]).map((menuId) => (
+            <div className="app-menu-item" key={menuId}>
+              <button
+                aria-expanded={activeMenu === menuId}
+                aria-haspopup="menu"
+                className={classNames(activeMenu === menuId && "is-active")}
+                onClick={() => onToggleMenu(menuId)}
+                type="button"
+              >
+                {menuId === "file" ? "File" : menuId === "view" ? "View" : menuId === "connect" ? "Connect" : "Help"}
+              </button>
+              {activeMenu === menuId ? (
+                <div className="app-menu-dropdown" role="menu">
+                  {menuId === "file" ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          onAddDraft();
+                          onToggleMenu("file");
+                        }}
+                        role="menuitem"
+                        type="button"
+                      >
+                        New planning draft
+                      </button>
+                      <button onClick={() => onOpenDialog("migration")} role="menuitem" type="button">
+                        Migrate settings...
+                      </button>
+                    </>
+                  ) : null}
+                  {menuId === "view" ? (
+                    <>
+                      <button
+                        className={classNames(currentView === "cockpit" && "is-selected")}
+                        onClick={() => onSwitchView("cockpit")}
+                        role="menuitem"
+                        type="button"
+                      >
+                        Cockpit
+                      </button>
+                      <button
+                        className={classNames(currentView === "pipeline" && "is-selected")}
+                        onClick={() => onSwitchView("pipeline")}
+                        role="menuitem"
+                        type="button"
+                      >
+                        Pipeline
+                      </button>
+                      <button
+                        className={classNames(currentView === "planning" && "is-selected")}
+                        onClick={() => onSwitchView("planning")}
+                        role="menuitem"
+                        type="button"
+                      >
+                        Planning
+                      </button>
+                      <button onClick={onAdaptiveView} role="menuitem" type="button">
+                        Use Adaptive cockpit
+                      </button>
+                    </>
+                  ) : null}
+                  {menuId === "connect" ? (
+                    <>
+                      <button onClick={() => onOpenDialog("connection")} role="menuitem" type="button">
+                        Codex connection...
+                      </button>
+                      <span className="app-menu-note" role="presentation">
+                        {codexConnectionRequested ? "Connection request staged" : "Local preview, execution locked"}
+                      </span>
+                    </>
+                  ) : null}
+                  {menuId === "help" ? (
+                    <>
+                      <button onClick={() => onOpenDialog("slash-help")} role="menuitem" type="button">
+                        Slash commands
+                      </button>
+                      <span className="app-menu-note" role="presentation">
+                        Commands are scoped to the active panel.
+                      </span>
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="app-menu-status" aria-live="polite">
+        {codexConnectionRequested ? <Link2 size={14} /> : <Link2Off size={14} />}
+        <span>{appNotice}</span>
+      </div>
+    </header>
+  );
+}
+
+function AppDialogSurface({
+  codexConnectionRequested,
+  dialog,
+  onClose,
+  onStageCodexConnection
+}: {
+  codexConnectionRequested: boolean;
+  dialog: AppDialog;
+  onClose: () => void;
+  onStageCodexConnection: () => void;
+}) {
+  const title =
+    dialog === "connection"
+      ? "Codex Connection"
+      : dialog === "migration"
+        ? "Migration Preview"
+        : "Slash Commands";
+
+  return (
+    <div className="app-dialog-backdrop" role="presentation">
+      <section
+        aria-label={title}
+        aria-modal="true"
+        className="app-dialog"
+        role="dialog"
+      >
+        <header>
+          <div>
+            <span className="eyebrow">Local setup</span>
+            <h3>{title}</h3>
+          </div>
+          <button aria-label="Close dialog" onClick={onClose} type="button">
+            Close
+          </button>
+        </header>
+
+        {dialog === "connection" ? (
+          <div className="app-dialog-body">
+            <div className="connection-summary">
+              <ShieldCheck size={18} />
+              <div>
+                <strong>{codexConnectionRequested ? "Connection request staged" : "Execution locked"}</strong>
+                <p>
+                  Steerboard can prepare the Codex adapter locally, but live auth, app-server transport,
+                  and session execution stay disabled until the provider bridge is implemented.
+                </p>
+              </div>
+            </div>
+            <div className="connection-checks" aria-label="Codex connection readiness">
+              <span className="is-ready">Panel chat state ready</span>
+              <span className="is-ready">Slash command surface ready</span>
+              <span>Auth handoff pending</span>
+              <span>Live stream bridge pending</span>
+            </div>
+            <button className="dialog-primary-action" onClick={onStageCodexConnection} type="button">
+              {codexConnectionRequested ? "Connection request staged" : "Stage Codex connection request"}
+            </button>
+          </div>
+        ) : null}
+
+        {dialog === "migration" ? (
+          <div className="app-dialog-body">
+            <p>
+              Migration will import working setup into Steerboard profiles without mutating the source app.
+              The first useful categories are settings, projects, threads, skills, plugins, MCP, and commands.
+            </p>
+            <div className="migration-grid" aria-label="Migration source preview">
+              <span>Codex</span>
+              <span>Settings, projects, chats, plugins, skills, MCP, commands</span>
+              <span>Claude Code</span>
+              <span>Projects, MCP, commands, local prompts</span>
+              <span>Manual files</span>
+              <span>JSON, TOML, MCP config, skill folders</span>
+            </div>
+          </div>
+        ) : null}
+
+        {dialog === "slash-help" ? (
+          <div className="app-dialog-body">
+            <p>Slash commands are local previews in this slice. They are scoped to the panel composer where they are typed.</p>
+            <div className="slash-command-list" aria-label="Available slash commands">
+              {panelSlashCommands.map((item) => (
+                <span key={item.command}>
+                  <strong>{item.command}</strong>
+                  <small>{item.detail}</small>
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </section>
+    </div>
   );
 }
 
@@ -1116,14 +1323,22 @@ function SessionCell({
   });
   const toolCoverageSignal = createCockpitPanelToolCoverage(session.tools);
   const [chatMessages, setChatMessages] = useState<PanelChatMessage[]>(() =>
-    buildInitialPanelChat(session)
+    loadPanelChatMessages(session)
   );
   const [draftMessage, setDraftMessage] = useState("");
+  const slashSuggestions = useMemo(
+    () => getPanelSlashCommandSuggestions(draftMessage),
+    [draftMessage]
+  );
 
   useEffect(() => {
-    setChatMessages(buildInitialPanelChat(session));
+    setChatMessages(loadPanelChatMessages(session));
     setDraftMessage("");
   }, [session]);
+
+  useEffect(() => {
+    savePanelChatMessages(session.id, chatMessages);
+  }, [chatMessages, session.id]);
 
   function handlePanelChatSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1142,7 +1357,7 @@ function SessionCell({
         body: trimmedMessage,
         meta: "draft"
       },
-      createPanelReplyMessage(session, currentMessages.length + 1)
+      createPanelReplyMessage(session, currentMessages.length + 1, trimmedMessage)
     ]);
     setDraftMessage("");
   }
@@ -1221,12 +1436,27 @@ function SessionCell({
                 event.currentTarget.form?.requestSubmit();
               }
             }}
-            placeholder="Ask Codex for follow-up changes"
+            placeholder="Ask Codex, or type / for commands"
             rows={1}
             value={draftMessage}
           />
+          {slashSuggestions.length > 0 ? (
+            <div className="slash-command-menu" aria-label="Panel slash commands">
+              {slashSuggestions.map((item) => (
+                <button
+                  key={item.command}
+                  onClick={() => setDraftMessage(`${item.command} `)}
+                  title={item.detail}
+                  type="button"
+                >
+                  <strong>{item.command}</strong>
+                  <small>{item.label}</small>
+                </button>
+              ))}
+            </div>
+          ) : null}
           <div className="chat-composer-meta">
-            <span>Local scaffold</span>
+            <span>Codex local preview</span>
             <button aria-label="Open lane options" title="Lane options" type="button">
               <MoreHorizontal size={15} />
             </button>

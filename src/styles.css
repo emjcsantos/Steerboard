@@ -47,13 +47,120 @@ textarea {
 .app-shell {
   display: grid;
   grid-template-columns: 252px minmax(0, 1fr);
+  grid-template-rows: 38px minmax(0, 1fr);
   height: 100vh;
   overflow: hidden;
   background: #111419;
 }
 
+.app-menu-bar {
+  position: relative;
+  z-index: 40;
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #252a31;
+  background: #12161c;
+  padding: 0 10px;
+}
+
+.app-menu-left,
+.app-menu-items,
+.app-menu-status {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.app-menu-left {
+  gap: 14px;
+}
+
+.app-menu-brand {
+  color: #e9eef5;
+  font-size: 13px;
+}
+
+.app-menu-items {
+  gap: 2px;
+}
+
+.app-menu-item {
+  position: relative;
+}
+
+.app-menu-item > button {
+  height: 28px;
+  border-radius: 7px;
+  background: transparent;
+  color: #cbd3dc;
+  padding: 0 9px;
+  font-size: 13px;
+}
+
+.app-menu-item > button:hover,
+.app-menu-item > button.is-active {
+  background: #252b34;
+  color: #ffffff;
+}
+
+.app-menu-dropdown {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  display: grid;
+  min-width: 196px;
+  gap: 3px;
+  border: 1px solid #303844;
+  border-radius: 8px;
+  background: #171d24;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.36);
+  padding: 6px;
+}
+
+.app-menu-dropdown button,
+.app-menu-note {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  padding: 7px 8px;
+  text-align: left;
+  font-size: 12px;
+}
+
+.app-menu-dropdown button {
+  background: transparent;
+  color: #dce3eb;
+}
+
+.app-menu-dropdown button:hover,
+.app-menu-dropdown button.is-selected {
+  background: #27303a;
+  color: #ffffff;
+}
+
+.app-menu-note {
+  color: #8f99a5;
+  line-height: 1.35;
+}
+
+.app-menu-status {
+  gap: 7px;
+  overflow: hidden;
+  color: #9fa9b4;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.app-menu-status svg {
+  flex: 0 0 auto;
+  color: #72d6a0;
+}
+
 .sidebar {
   display: flex;
+  grid-row: 2;
   min-height: 0;
   flex-direction: column;
   gap: 14px;
@@ -296,9 +403,140 @@ textarea {
 
 .workspace {
   display: grid;
+  grid-row: 2;
   min-width: 0;
   min-height: 0;
   grid-template-rows: 74px minmax(0, 1fr);
+}
+
+.app-dialog-backdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 6, 10, 0.58);
+  padding: 20px;
+}
+
+.app-dialog {
+  display: grid;
+  width: min(560px, 100%);
+  max-height: min(680px, calc(100vh - 40px));
+  overflow: hidden;
+  border: 1px solid #303844;
+  border-radius: 10px;
+  background: #151b22;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.42);
+}
+
+.app-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #252c35;
+  padding: 14px;
+}
+
+.app-dialog h3,
+.app-dialog p {
+  margin: 0;
+}
+
+.app-dialog h3 {
+  font-size: 18px;
+}
+
+.app-dialog header button,
+.dialog-primary-action {
+  border-radius: 8px;
+  background: #252b34;
+  color: #edf3f8;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.app-dialog header button:hover,
+.dialog-primary-action:hover {
+  background: #303844;
+}
+
+.app-dialog-body {
+  display: grid;
+  gap: 14px;
+  overflow: auto;
+  padding: 14px;
+  color: #cfd8e3;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.connection-summary {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid #274636;
+  border-radius: 8px;
+  background: #132119;
+  padding: 10px;
+}
+
+.connection-summary svg {
+  color: #72d6a0;
+}
+
+.connection-summary strong {
+  color: #edf3f8;
+}
+
+.connection-checks,
+.migration-grid,
+.slash-command-list {
+  display: grid;
+  gap: 6px;
+}
+
+.connection-checks {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.connection-checks span,
+.migration-grid span,
+.slash-command-list span {
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 8px;
+}
+
+.connection-checks .is-ready {
+  border-color: #254b36;
+  color: #8be1b2;
+}
+
+.migration-grid {
+  grid-template-columns: minmax(104px, auto) minmax(0, 1fr);
+}
+
+.migration-grid span:nth-child(odd) {
+  color: #edf3f8;
+  font-weight: 800;
+}
+
+.slash-command-list span {
+  display: grid;
+  gap: 2px;
+}
+
+.slash-command-list strong {
+  color: #8be1b2;
+}
+
+.slash-command-list small {
+  color: #9fa9b4;
 }
 
 .topbar {
@@ -1365,6 +1603,8 @@ textarea {
 }
 
 .chat-composer textarea {
+  grid-column: 2;
+  grid-row: 1;
   min-width: 0;
   max-height: 86px;
   min-height: 30px;
@@ -1410,6 +1650,8 @@ textarea {
 
 .chat-composer-meta {
   display: inline-flex;
+  grid-column: 3;
+  grid-row: 1;
   align-items: center;
   gap: 5px;
 }
@@ -1419,6 +1661,51 @@ textarea {
   font-size: 10px;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.slash-command-menu {
+  display: grid;
+  grid-column: 2 / -1;
+  grid-row: 2;
+  gap: 4px;
+  border-top: 1px solid #303743;
+  padding-top: 6px;
+}
+
+.slash-command-menu button {
+  display: grid;
+  width: 100%;
+  height: auto;
+  grid-template-columns: minmax(74px, auto) minmax(0, 1fr);
+  justify-content: stretch;
+  gap: 8px;
+  border-radius: 7px;
+  background: #171d24;
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.slash-command-menu button:hover,
+.slash-command-menu button:focus-visible {
+  background: #27303a;
+}
+
+.slash-command-menu strong,
+.slash-command-menu small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slash-command-menu strong {
+  color: #8be1b2;
+  font-size: 11px;
+}
+
+.slash-command-menu small {
+  color: #aeb8c4;
+  font-size: 11px;
 }
 
 .panel-validation-signal {
@@ -9140,10 +9427,30 @@ textarea {
     min-height: 100vh;
     height: auto;
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 38px auto auto;
     overflow: visible;
   }
 
+  .app-menu-brand {
+    display: none;
+  }
+
+  .app-menu-left {
+    gap: 6px;
+  }
+
+  .app-menu-item > button {
+    padding: 0 7px;
+  }
+
+  .app-menu-status span {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .sidebar {
+    grid-row: 2;
     max-height: 236px;
     overflow: auto;
     border-right: 0;
@@ -9152,6 +9459,7 @@ textarea {
   }
 
   .workspace {
+    grid-row: 3;
     min-height: 0;
     grid-template-rows: auto auto;
   }

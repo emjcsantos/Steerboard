@@ -21,7 +21,8 @@
 - Plugin, automation, MCP, and personalization surfaces must represent real provider state instead of static decorative navigation.
 - When Codex is connected, plugin, skill, slash command, and MCP defaults should be copied from the local Codex runtime into a read-only seed catalog that can be refreshed.
 - Migration center must let users request imports from supported agent platforms such as Codex, Claude Code, Antigravity, generic MCP config, generic skill/prompt folders, and manual JSON or TOML files.
-- Migration must be available from `File > Migrate...` in a Codex-like top menu bar with `File`, `Edit`, `View`, `Window`, and `Help`.
+- Migration must be available from `File > Migrate...` in a restrained desktop app menu.
+- The top-left app menu should include only useful working sections. MVP sections are `File`, `View`, `Connect`, and `Help`; add `Edit`, `Window`, or other menus later only when they expose implemented behavior.
 - The migration dialog must let users select the source platform and choose migration categories with checkboxes, including projects, threads/chats, plugins, skills, MCP, personalization, commands, settings, automations, and UI preferences.
 - Migration imports must create Steerboard profiles or provider mappings without silently mutating the source platform.
 - Imported tool functions must be limited to those actually needed by the selected migration categories; broad or unused tool access stays disabled until the user explicitly enables it.
@@ -112,6 +113,10 @@
 - A Codex default option seed preview should show discovered plugins, skills, MCP servers, commands, and personalization sources without enabling live execution.
 - Migration previews should show importable, review-required, unsupported, and excluded items before writing any Steerboard profile data.
 - Unsupported migration categories should remain visible but disabled with a clear reason.
+- Each cockpit panel should expose a local chat composer and transcript surface even before live provider execution is enabled.
+- Local panel chat messages should persist per panel and repair malformed saved state to a safe initial transcript.
+- Slash command suggestions should appear from the panel composer as local previews before provider-backed slash execution exists.
+- A Codex connection dialog should allow users to stage a local connection request without authenticating, launching a runtime, or enabling execution.
 
 ## Later Functional Scope
 
@@ -173,7 +178,7 @@
 - User can drag a chat or whole project from navigation into the cockpit to create or replace panels.
 - User can switch cockpit modes without losing active session state.
 - Steerboard must have its own visual identity and interaction model rather than copying a reference product screen-for-screen.
-- Steerboard should use a familiar desktop menu pattern with stable `File`, `Edit`, `View`, `Window`, and `Help` labels.
+- Steerboard should use a familiar desktop menu pattern, but only expose menus that are helpful and backed by working or clearly staged behavior.
 - Animations must be restrained, fast, and purposeful: use them to preserve spatial continuity when sessions move, resize, start, pause, or complete.
 - Every cockpit cell must keep transcript, status, tool activity, and validation evidence readable without overlap.
 - Icon buttons must have accessible labels, visible focus states, and clear hover/pressed/disabled states.

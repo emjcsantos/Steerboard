@@ -19,7 +19,9 @@ The UI should not feel like a marketing page, a decorative dashboard, or a loose
 
 ## Layout Principles
 
-- Steerboard must include a Codex-like desktop command menu at the top-left: `File`, `Edit`, `View`, `Window`, and `Help`.
+- Steerboard must include a familiar desktop command menu at the top-left without copying a reference app wholesale.
+- The MVP top menu should stay restrained to useful sections: `File`, `View`, `Connect`, and `Help`.
+- Add `Edit`, `Window`, or other menu sections only when they expose implemented behavior or a concrete setup flow.
 - The top menu should remain visible in browser preview and desktop preview; native menu integration can follow later if the desktop shell supports it.
 - `File > Migrate...` is the primary entry point for importing settings and working context from supported source platforms.
 - The cockpit is the first screen.
@@ -38,6 +40,8 @@ The UI should not feel like a marketing page, a decorative dashboard, or a loose
 ## Interaction Principles
 
 - Primary actions should be clear and limited per surface.
+- Top-menu actions should either perform a local UI state change, open a real setup/preview dialog, or be omitted until useful.
+- Panel composers should always feel chat-capable: text entry, submit, local transcript updates, persistence, and slash command discovery are baseline behavior.
 - Icon-only buttons require accessible labels and tooltips.
 - Hover, focus, pressed, loading, disabled, success, warning, error, and blocked states must all be designed.
 - Keyboard navigation must cover session switching, cockpit focus, task review, approvals, and search.
