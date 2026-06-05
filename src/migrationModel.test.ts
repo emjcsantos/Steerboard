@@ -1,15 +1,26 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   buildDefaultMigrationPreview,
-  buildMigrationPreviewCounts,
+  type CreateMigrationProfileDraftOptions,
+  createMigrationProfileDraft,
+  createMigrationProfileDraftAuditRecord,
   defaultMigrationCategories,
+  type MigrationProfileDraftHistoryRecord,
+  MIGRATION_DRAFT_HISTORY_STORAGE_KEY,
+  saveMigrationProfileDraftHistory,
+  rollbackMigrationProfileDraftHistory,
+  summarizeMigrationProfileDrafts,
+  parseStoredMigrationProfileDraftHistory,
+  loadMigrationProfileDraftHistory,
+  appendMigrationProfileDraftHistory,
+  buildMigrationPreviewCounts,
   defaultMigrationSources,
   defaultMigrationSource,
   migrationSourceIds,
   normalizeMigrationPreview,
   redactMigrationPreviewDetail,
   toggleMigrationCategory,
-  type MigrationCategoryState
+  type MigrationProfileDraftImportState
 } from "./migrationModel";
 
 describe("migration model", () => {
@@ -155,5 +166,323 @@ describe("migration model", () => {
     expect(counts.excluded + counts.accepted + counts.reviewRequired + counts.unsupported).toEqual(
       15
     );
+  });
+});
+
+describe("migration draft persistence and rollback model", () => {
+  it("creates deterministic drafts with redacted selected category details", () => {
+    const rawPreview = normalizeMigrationPreview({
+      source: "codex",
+      categories: [
+        {
+          id: "projects",
+          selected: true,
+          detail: "Imported from /tmp/project/export.json"
+        },
+        {
+          id: "commands",
+          selected: true,
+          detail: "raw transcript bearer abc123token and api_key=sekrit-credential-12345678901234567890"
+        }
+      ]
+    });
+
+    const options: CreateMigrationProfileDraftOptions = {
+      createdAt: "2026-01-01T00:00:00.000Z",
+      safetyNote: "Raw transcript path /tmp/token.txt and sk-ABCDEF1234567890123456 not imported."
+    };
+    const firstDraft = createMigrationProfileDraft(rawPreview, options);
+    const secondDraft = createMigrationProfileDraft(rawPreview, options);
+
+    expect(firstDraft.id).toBe(
+      "migration-profile-draft:codex:2026-01-01T00:00:00.000Z:projects,commands"
+    );
+    expect(firstDraft).toEqual(secondDraft);
+    expect(firstDraft.importState).toBe("review");
+    expect(firstDraft.selectedCategoryIds).toEqual(["projects", "commands"]);
+    expect(firstDraft.selectedCategories.map((item) => item.id)).toEqual(["projects", "commands"]);
+    expect(firstDraft.safetyNote).not.toContain("/tmp");
+    expect(firstDraft.safetyNote).not.toContain("sk-ABCDEF");
+    expect(firstDraft.selectedCategories.find((item) => item.id === "commands")?.detail).not.toContain("raw transcript");
+    expect(firstDraft.selectedCategories.find((item) => item.id === "commands")?.detail).not.toContain("api_key");
+  });
+
+  it("keeps empty selections from reaching ready/import-ready states", () => {
+    const emptyDraft = createMigrationProfileDraft(buildDefaultMigrationPreview("codex"), {
+      createdAt: "2026-01-02T00:00:00.000Z"
+    });
+    expect(emptyDraft.importState).toBe("waiting");
+
+    const unsupportedHistory = parseStoredMigrationProfileDraftHistory(
+      JSON.stringify([
+        {
+          draft: {
+            id: "repair-unsupported",
+            sourceId: "codex",
+            sourceLabel: "Codex",
+            createdAt: "2026-01-03T00:00:00.000Z",
+            selectedCategories: [
+              {
+                id: "skills",
+                label: "Skills",
+                state: "unsupported",
+                itemCount: 4,
+                detail: "/tmp/token.txt with sk-ABCDEF"
+              }
+            ],
+            selectedCategoryIds: ["skills"],
+            counts: { accepted: 0, reviewRequired: 0, unsupported: 1, excluded: 14 },
+            importState: "ready",
+            readiness: 0,
+            summary: "imported",
+            safetyNote: "safe"
+          },
+          audit: {
+            id: "repair-unsupported:created:2026-01-03T00:00:00.000Z",
+            action: "created",
+            createdAt: "2026-01-03T00:00:00.000Z",
+            sourceId: "codex",
+            importState: "ready",
+            selectedCategoryCount: 1,
+            reviewRequiredCategoryCount: 0,
+            unsupportedCategoryCount: 1,
+            detail: "unsafe raw transcript"
+          }
+        }
+      ])
+    );
+
+    expect(unsupportedHistory).toHaveLength(1);
+    expect(unsupportedHistory[0]?.draft.importState).toBe("blocked");
+    expect(unsupportedHistory[0]?.draft.selectedCategories[0]?.detail).not.toContain("raw transcript");
+  });
+
+  it("adds drafts to history, rolls back the latest draft, and preserves immutability", () => {
+    const first = createMigrationProfileDraft(
+      buildDefaultMigrationPreview("codex"),
+      { createdAt: "2026-01-01T00:00:00.000Z" }
+    );
+    const firstHistory = appendMigrationProfileDraftHistory(
+      [],
+      first,
+      "created",
+      8,
+      "2026-01-01T00:00:00.000Z"
+    );
+    const firstHistorySnapshot = [...firstHistory];
+
+    const second = createMigrationProfileDraft(
+      {
+        ...buildDefaultMigrationPreview("claude-code"),
+        categories: buildDefaultMigrationPreview("claude-code").categories.map((category) =>
+          category.id === "projects" || category.id === "commands"
+            ? { ...category, selected: true }
+            : category
+        )
+      },
+      { createdAt: "2026-01-01T00:00:01.000Z" }
+    );
+    const secondHistory = appendMigrationProfileDraftHistory(
+      firstHistory,
+      second,
+      "created",
+      8,
+      "2026-01-01T00:00:01.000Z"
+    );
+    const secondHistorySnapshot = [...secondHistory];
+
+    expect(firstHistory).toEqual(firstHistorySnapshot);
+
+    expect(firstHistory).toHaveLength(1);
+    expect(firstHistory[0].draft).toEqual(first);
+    expect(firstHistory[0].audit.createdAt).toBe("2026-01-01T00:00:00.000Z");
+    expect(secondHistory).toHaveLength(2);
+    expect(secondHistory[0].draft).toEqual(second);
+    expect(secondHistory[1].draft).toEqual(first);
+
+    const rollback = rollbackMigrationProfileDraftHistory(secondHistory, "2026-01-01T00:00:02.000Z");
+    expect(secondHistory).toEqual(secondHistorySnapshot);
+    expect(rollback.rolledBackDraft).toEqual(second);
+    expect(rollback.previousDraft).toEqual(first);
+    expect(rollback.rollbackAudit?.action).toBe("rolled-back");
+    expect(rollback.history).toHaveLength(1);
+    expect(rollback.history[0].draft).toEqual(first);
+  });
+
+  it("summarizes migration draft history by import state", () => {
+    const readyDraft = createMigrationProfileDraft(
+      {
+        ...buildDefaultMigrationPreview("codex"),
+        categories: buildDefaultMigrationPreview("codex").categories.map((category) =>
+          category.id === "projects"
+            ? { ...category, selected: true, itemCount: 2 }
+            : category
+        )
+      },
+      { createdAt: "2026-01-01T00:00:00.000Z" }
+    );
+    const reviewDraft = createMigrationProfileDraft({
+      ...buildDefaultMigrationPreview("codex"),
+      categories: buildDefaultMigrationPreview("codex").categories.map((category) =>
+        category.id === "commands"
+          ? { ...category, selected: true, itemCount: 1 }
+          : category
+      )
+    });
+    const blockedDraft = parseStoredMigrationProfileDraftHistory(
+      JSON.stringify([
+        {
+          draft: {
+            id: "repair-blocked",
+            sourceId: "codex",
+            sourceLabel: "Codex",
+            createdAt: "2026-01-03T00:00:00.000Z",
+            selectedCategories: [
+              {
+                id: "skills",
+                label: "Skills",
+                state: "unsupported",
+                itemCount: 4,
+                detail: "blocked category"
+              }
+            ],
+            selectedCategoryIds: ["skills"],
+            counts: { accepted: 0, reviewRequired: 0, unsupported: 1, excluded: 14 },
+            importState: "ready",
+            readiness: 0,
+            summary: "imported",
+            safetyNote: "safe"
+          },
+          audit: {
+            id: "repair-blocked:created:2026-01-03T00:00:00.000Z",
+            action: "created",
+            createdAt: "2026-01-03T00:00:00.000Z",
+            sourceId: "codex",
+            importState: "ready",
+            selectedCategoryCount: 1,
+            reviewRequiredCategoryCount: 0,
+            unsupportedCategoryCount: 1,
+            detail: "unsafe raw"
+          }
+        }
+      ])
+    )[0].draft;
+
+    const history = [
+      {
+        draft: readyDraft,
+        audit: createMigrationProfileDraftAuditRecord(
+          readyDraft,
+          "created"
+        )
+      },
+      {
+        draft: reviewDraft,
+        audit: createMigrationProfileDraftAuditRecord(
+          reviewDraft,
+          "created"
+        )
+      },
+      {
+        draft: { ...blockedDraft, importState: "blocked" as MigrationProfileDraftImportState },
+        audit: createMigrationProfileDraftAuditRecord(
+          { ...blockedDraft, importState: "blocked" as MigrationProfileDraftImportState },
+          "created"
+        )
+      }
+    ];
+
+    const summary = summarizeMigrationProfileDrafts(history);
+
+    expect(summary.ready).toBe(1);
+    expect(summary.review).toBe(1);
+    expect(summary.blocked).toBe(1);
+    expect(summary.total).toBe(3);
+    expect(summary.latestDraftId).toBe(history[0].draft.id);
+  });
+
+  it("repairs malformed persisted history safely and redacts draft audit detail", () => {
+    const malformedEntry = {
+      draft: {
+        id: "bad-id",
+        sourceId: "codex",
+        sourceLabel: "Codex Source",
+        createdAt: "not-a-date",
+        selectedCategories: [
+          {
+            id: "projects",
+            label: "Projects",
+            state: "accepted",
+            itemCount: "99",
+            detail: "/tmp/session.log and bearer sk-ABCDEF1234567890 from raw transcript."
+          }
+        ],
+        selectedCategoryIds: ["projects"],
+        counts: {
+          accepted: "1",
+          reviewRequired: 0,
+          unsupported: 0,
+          excluded: 14
+        },
+        importState: "ready",
+        readiness: "100",
+        summary: "Raw token=supersecret-abc"
+      },
+      audit: {
+        detail: "Raw transcript token sk-ABCDEF1234567890",
+        action: "created",
+        selectedCategoryCount: "1",
+        reviewRequiredCategoryCount: 0,
+        unsupportedCategoryCount: 0
+      }
+    };
+
+    const recovered = parseStoredMigrationProfileDraftHistory(JSON.stringify([malformedEntry]), []);
+    const repairedDraft = recovered[0].draft;
+    const repairedAudit = recovered[0].audit;
+
+    expect(recovered).toHaveLength(1);
+    expect(repairedDraft.createdAt).toBe("1970-01-01T00:00:00.000Z");
+    expect(repairedDraft.selectedCategories[0].itemCount).toBe(99);
+    expect(repairedDraft.selectedCategories[0].detail).not.toContain("/tmp");
+    expect(repairedDraft.selectedCategories[0].detail).not.toContain("sk-ABCDEF");
+    expect(repairedAudit.detail).not.toContain("raw transcript");
+    expect(repairedAudit.detail).not.toContain("sk-ABCDEF");
+  });
+
+  it("roundtrips migration draft history with mocked local storage", () => {
+    const seedStorage: MigrationProfileDraftHistoryRecord[] = [];
+    const storage = { value: "" };
+    const memoryStorage = {
+      getItem: vi.fn(() => (storage.value.length ? storage.value : null)),
+      setItem: vi.fn((_key: string, next: string) => {
+        storage.value = next;
+      })
+    };
+
+    const draft = createMigrationProfileDraft(buildDefaultMigrationPreview("codex"), {
+      createdAt: "2026-01-01T00:00:00.000Z"
+    });
+    const history = appendMigrationProfileDraftHistory(seedStorage, draft);
+
+    vi.stubGlobal("window", { localStorage: memoryStorage });
+    loadMigrationProfileDraftHistory([], 8);
+    parseStoredMigrationProfileDraftHistory(null);
+    loadMigrationProfileDraftHistory([], 8);
+
+    const write = parseStoredMigrationProfileDraftHistory(
+      JSON.stringify(history),
+      [],
+      8
+    );
+
+    expect(write).toEqual(history);
+    expect(memoryStorage.getItem).toHaveBeenCalledWith(MIGRATION_DRAFT_HISTORY_STORAGE_KEY);
+    saveMigrationProfileDraftHistory(history);
+    const loaded = loadMigrationProfileDraftHistory([], 8);
+    expect(loaded).toEqual(history);
+    expect(memoryStorage.setItem).toHaveBeenCalled();
+
+    vi.unstubAllGlobals();
   });
 });

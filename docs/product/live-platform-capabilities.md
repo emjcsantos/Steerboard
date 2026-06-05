@@ -49,6 +49,7 @@ Steerboard should let users migrate settings and integrations from supported sou
 - Secrets, auth caches, cookies, browser state, raw transcripts, and access tokens are always excluded.
 - Imported live execution is disabled by default until the user approves provider, workspace, permission, and audit gates.
 - Refresh from source is allowed, but write-back to the source platform requires a separate explicit approval.
+- The migration center now also persists reviewed metadata into local profile drafts with rollback-friendly state and a local audit summary so users can safely inspect and apply/revert migration edits before activation.
 
 ## Required Live Surfaces
 
@@ -148,5 +149,5 @@ Phase 10B defines the first desktop-backed runner attachment:
 | Plugin Manager | 20% | Provider-neutral plugin model, dialog surface, provider-only row support, and desktop-backed safe provider metadata refresh are in place; plugin execution remains pending. |
 | Automations Manager | 20% | Provider-neutral automation model, dialog surface, provider-only row support, and desktop-backed safe provider metadata refresh are in place; scheduling and execution remain pending. |
 | Personalization Center | 20% | Provider-neutral personalization model, settings entry, provider-only row support, and desktop-backed safe provider metadata refresh are in place; profile mutation remains pending. |
-| Migration Center | 20% | `File > Migrate...` now exposes a safe source selector, desktop metadata scan, category checkboxes, excluded secrets summary, and local profile draft staging. Reviewed persistence and rollback remain pending. |
+| Migration Center | 30% | `File > Migrate...` now exposes a safe source selector, desktop metadata scan, category checkboxes, excluded secrets summary, local reviewed draft persistence, and rollback/audit summary for safe metadata. Full source migration and source mutation remain pending by design. |
 | Permission And Audit Layer | 45% | Provider-neutral approval gates, approval-first read-only terminal probe runner, and redacted local audit records are visible; Git/MCP/plugin/automation/runtime/profile/external mutation remains deferred. |

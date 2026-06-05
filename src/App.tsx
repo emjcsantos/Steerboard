@@ -184,10 +184,20 @@ import { loadProviderMcpCatalogSnapshot } from "./providerMcpCatalog";
 import {
   buildDefaultMigrationPreview,
   buildMigrationPreviewCounts,
+  appendMigrationProfileDraftHistory,
   defaultMigrationSource,
   defaultMigrationSources,
+  createMigrationProfileDraft,
+  loadMigrationProfileDraftHistory,
+  MIGRATION_DRAFT_HISTORY_LIMIT,
   redactMigrationPreviewDetail,
+  rollbackMigrationProfileDraftHistory,
+  saveMigrationProfileDraftHistory,
+  summarizeMigrationProfileDrafts,
   toggleMigrationCategory,
+  type MigrationProfileDraft,
+  type MigrationProfileDraftHistoryRecord,
+  type MigrationProfileDraftHistorySummary,
   type MigrationCategoryId,
   type MigrationCategoryState,
   type MigrationPreview,
@@ -1222,27 +1232,6 @@ function formatMigrationState(state: MigrationCategoryState): string {
   return state.replace("-", " ");
 }
 
-function selectedMigrationCategoryIds(preview: MigrationPreview): string[] {
-  return preview.categories
-    .filter((category) => category.selected && category.state !== "unsupported")
-    .map((category) => category.label);
-}
-
-function buildMigrationProfileDraft(
-  sourcePreview: MigrationSourcePreviewPayload,
-  preview: MigrationPreview
-): MigrationProfileDraft {
-  return {
-    sourceId: preview.source,
-    sourceLabel: sourcePreview.sourceLabel,
-    createdAt: new Date().toISOString(),
-    selectedCategories: selectedMigrationCategoryIds(preview),
-    counts: buildMigrationPreviewCounts(preview),
-    safetyNote:
-      "Profile draft created from selected metadata categories only. Source app, credentials, raw transcripts, and browser state were not mutated or copied."
-  };
-}
-
 type LivePanelChatStatus =
   | "preview"
   | "idle"
@@ -1297,15 +1286,6 @@ interface MigrationSourcePreviewPayload {
   categories: MigrationSourceCategoryPreviewPayload[];
   counts: MigrationPreviewCounts;
   excludedSecretsSummary: string[];
-  safetyNote: string;
-}
-
-interface MigrationProfileDraft {
-  sourceId: MigrationSourceId;
-  sourceLabel: string;
-  createdAt: string;
-  selectedCategories: string[];
-  counts: MigrationPreviewCounts;
   safetyNote: string;
 }
 
@@ -1415,7 +1395,10 @@ export function App() {
     fallbackMigrationSourcePreview(defaultMigrationSource)
   );
   const [migrationPreviewLoading, setMigrationPreviewLoading] = useState(false);
-  const [migrationProfileDraft, setMigrationProfileDraft] = useState<MigrationProfileDraft>();
+  const [migrationProfileDraftHistory, setMigrationProfileDraftHistory] = useState<MigrationProfileDraftHistoryRecord[]>(() =>
+    loadMigrationProfileDraftHistory([], MIGRATION_DRAFT_HISTORY_LIMIT)
+  );
+  const [migrationProfileDraftActionNotice, setMigrationProfileDraftActionNotice] = useState("");
   const { selectedProjectId, mode, layoutId, view, adaptiveProjectTemplateId } = preferences;
   const codexTransportDecision = useMemo(
     () => decideCodexTransport(codexTransportProbe, codexLiveSmokeProof),
@@ -1445,6 +1428,10 @@ export function App() {
   useEffect(() => {
     savePanelSessionState(panelSessionState);
   }, [panelSessionState]);
+
+  useEffect(() => {
+    saveMigrationProfileDraftHistory(migrationProfileDraftHistory);
+  }, [migrationProfileDraftHistory]);
 
   useEffect(() => {
     if (appDialog === "migration") {
@@ -1479,6 +1466,12 @@ export function App() {
   const registrySummary = summarizeRegistry(registryEntries);
   const runtimeSummary = summarizeRuntimeAdapters(runtimeAdapters);
   const runtimeProfileSummary = summarizeRuntimeProfiles(runtimeProfiles);
+  const migrationProfileDraftHistorySummary: MigrationProfileDraftHistorySummary = useMemo(
+    () => summarizeMigrationProfileDrafts(migrationProfileDraftHistory),
+    [migrationProfileDraftHistory]
+  );
+  const latestMigrationProfileDraftRecord = migrationProfileDraftHistory[0];
+  const migrationProfileDraft = latestMigrationProfileDraftRecord?.draft;
   const projectMockRuns = useMemo(
     () => filterRunsByProject(mockRuns, project.id),
     [mockRuns, project.id]
@@ -2144,13 +2137,13 @@ export function App() {
   function handleMigrationSourceChange(nextSourceId: MigrationSourceId) {
     setMigrationSourceId(nextSourceId);
     setMigrationPreview(buildDefaultMigrationPreview(nextSourceId));
-    setMigrationProfileDraft(undefined);
+    setMigrationProfileDraftActionNotice("");
     refreshMigrationSourcePreview(nextSourceId);
   }
 
   function handleMigrationCategoryChange(categoryId: MigrationCategoryId, selected: boolean) {
     setMigrationPreview((current) => toggleMigrationCategory(current, categoryId, selected));
-    setMigrationProfileDraft(undefined);
+    setMigrationProfileDraftActionNotice("");
   }
 
   function handleSelectReviewableMigrationCategories() {
@@ -2163,11 +2156,44 @@ export function App() {
         buildDefaultMigrationPreview(current.source)
       )
     );
-    setMigrationProfileDraft(undefined);
+    setMigrationProfileDraftActionNotice("");
   }
 
   function handleCreateMigrationProfileDraft() {
-    setMigrationProfileDraft(buildMigrationProfileDraft(migrationSourcePreview, migrationPreview));
+    const draft = createMigrationProfileDraft(migrationPreview, {
+      sourceLabel: migrationSourcePreview.sourceLabel,
+      safetyNote: migrationSourcePreview.safetyNote,
+      createdAt: new Date().toISOString()
+    });
+    setMigrationProfileDraftHistory((current) => {
+      const nextHistory = appendMigrationProfileDraftHistory(
+        current,
+        draft,
+        "created",
+        MIGRATION_DRAFT_HISTORY_LIMIT,
+        draft.createdAt
+      );
+      setMigrationProfileDraftActionNotice(nextHistory[0]?.audit.detail ?? `Created migration draft for ${draft.sourceLabel}`);
+      return nextHistory;
+    });
+  }
+
+  function handleRollbackLatestMigrationProfileDraft() {
+    if (migrationProfileDraftHistory.length === 0) {
+      setMigrationProfileDraftActionNotice("No migration draft history to roll back.");
+      return;
+    }
+
+    setMigrationProfileDraftHistory((current) => {
+      const rollbackResult = rollbackMigrationProfileDraftHistory(
+        current,
+        new Date().toISOString()
+      );
+      setMigrationProfileDraftActionNotice(
+        rollbackResult.rollbackAudit?.detail ?? "Rolled back latest migration draft."
+      );
+      return rollbackResult.history;
+    });
   }
 
   async function runCodexLiveSmokeProof() {
@@ -2744,11 +2770,15 @@ export function App() {
           migrationPreview={migrationPreview}
           migrationPreviewLoading={migrationPreviewLoading}
           migrationProfileDraft={migrationProfileDraft}
+          migrationProfileDraftHistory={migrationProfileDraftHistory}
+          migrationProfileDraftHistorySummary={migrationProfileDraftHistorySummary}
+          migrationDraftActionNotice={migrationProfileDraftActionNotice}
           migrationSourceId={migrationSourceId}
           migrationSourcePreview={migrationSourcePreview}
           mcpCatalogLoading={mcpCatalogLoading}
           mcpCatalogSnapshot={mcpCatalogSnapshot}
           onCreateMigrationProfileDraft={handleCreateMigrationProfileDraft}
+          onRollbackLatestMigrationProfileDraft={handleRollbackLatestMigrationProfileDraft}
           onMigrationCategoryChange={handleMigrationCategoryChange}
           onMigrationSourceChange={handleMigrationSourceChange}
           onClose={() => setAppDialog(undefined)}
@@ -2921,11 +2951,15 @@ function AppDialogSurface({
   migrationPreview,
   migrationPreviewLoading,
   migrationProfileDraft,
+  migrationProfileDraftHistory,
+  migrationProfileDraftHistorySummary,
+  migrationDraftActionNotice,
   migrationSourceId,
   migrationSourcePreview,
   mcpCatalogLoading,
   mcpCatalogSnapshot,
   onCreateMigrationProfileDraft,
+  onRollbackLatestMigrationProfileDraft,
   onMigrationCategoryChange,
   onMigrationSourceChange,
   onClose,
@@ -2959,11 +2993,15 @@ function AppDialogSurface({
   migrationPreview: MigrationPreview;
   migrationPreviewLoading: boolean;
   migrationProfileDraft?: MigrationProfileDraft;
+  migrationProfileDraftHistory: MigrationProfileDraftHistoryRecord[];
+  migrationProfileDraftHistorySummary: MigrationProfileDraftHistorySummary;
+  migrationDraftActionNotice?: string;
   migrationSourceId: MigrationSourceId;
   migrationSourcePreview: MigrationSourcePreviewPayload;
   mcpCatalogLoading: boolean;
   mcpCatalogSnapshot: McpCatalogSnapshot;
   onCreateMigrationProfileDraft: () => void;
+  onRollbackLatestMigrationProfileDraft: () => void;
   onMigrationCategoryChange: (categoryId: MigrationCategoryId, selected: boolean) => void;
   onMigrationSourceChange: (sourceId: MigrationSourceId) => void;
   onClose: () => void;
@@ -2993,6 +3031,7 @@ function AppDialogSurface({
   );
   const migrationCounts = buildMigrationPreviewCounts(migrationPreview);
   const selectedCategoryCount = migrationPreview.categories.filter((category) => category.selected).length;
+  const migrationProfileDraftHistoryLatestAudit = migrationProfileDraftHistory[0]?.audit;
   const title =
     dialog === "connection"
       ? "Codex Connection"
@@ -3081,7 +3120,7 @@ function AppDialogSurface({
         {dialog === "migration" ? (
           <div className="app-dialog-body">
             <p>
-              Migration previews source metadata, lets you select exactly what to bring over, and keeps
+              Migration previews local source metadata, lets you stage a reviewed snapshot, and keeps
               credentials, browser state, and raw transcripts excluded.
             </p>
             <div className="migration-controls" aria-label="Migration controls">
@@ -3180,15 +3219,56 @@ function AppDialogSurface({
               >
                 Create profile draft
               </button>
+              <button
+                className="dialog-secondary-action"
+                disabled={migrationProfileDraftHistory.length === 0}
+                onClick={onRollbackLatestMigrationProfileDraft}
+                type="button"
+              >
+                Roll back latest draft
+              </button>
             </div>
             {migrationProfileDraft ? (
               <div className="migration-draft" aria-label="Migration profile draft">
-                <strong>Profile draft staged</strong>
+                <strong>Latest reviewed draft</strong>
                 <span>{migrationProfileDraft.sourceLabel}</span>
-                <small>{migrationProfileDraft.selectedCategories.join(", ")}</small>
+                <small>{migrationProfileDraft.selectedCategories.map((category) => category.label).join(", ") || "No categories selected."}</small>
+                <small>{`State: ${migrationProfileDraft.importState} - Readiness: ${migrationProfileDraft.readiness}%`}</small>
+                <small>{`Selected: ${migrationProfileDraft.selectedCategories.length} - Accepted: ${migrationProfileDraft.counts.accepted}, Review: ${migrationProfileDraft.counts.reviewRequired}, Unsupported: ${migrationProfileDraft.counts.unsupported}, Excluded: ${migrationProfileDraft.counts.excluded}`}</small>
+                <small>{migrationProfileDraft.summary}</small>
                 <small>{migrationProfileDraft.safetyNote}</small>
+                {migrationProfileDraftHistoryLatestAudit?.detail ? (
+                  <small>{migrationProfileDraftHistoryLatestAudit.detail}</small>
+                ) : null}
               </div>
             ) : null}
+            {migrationDraftActionNotice ? <small className="migration-draft-audit">{migrationDraftActionNotice}</small> : null}
+            <div className="migration-history-strip" aria-label="Migration draft history summary">
+              <span>
+                <strong>{migrationProfileDraftHistorySummary.total}</strong>
+                Total
+              </span>
+              <span>
+                <strong>{migrationProfileDraftHistorySummary.ready}</strong>
+                Ready
+              </span>
+              <span>
+                <strong>{migrationProfileDraftHistorySummary.review}</strong>
+                Review
+              </span>
+              <span>
+                <strong>{migrationProfileDraftHistorySummary.waiting}</strong>
+                Waiting
+              </span>
+              <span>
+                <strong>{migrationProfileDraftHistorySummary.blocked}</strong>
+                Blocked
+              </span>
+              <span>
+                <strong>{migrationProfileDraftHistorySummary.applied}</strong>
+                Applied
+              </span>
+            </div>
           </div>
         ) : null}
 

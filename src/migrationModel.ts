@@ -62,12 +62,81 @@ export interface MigrationPreview {
   categories: MigrationCategoryPreview[];
 }
 
+export type MigrationProfileDraftImportState = "ready" | "review" | "waiting" | "blocked" | "applied";
+export type MigrationProfileDraftAuditAction = "created" | "applied" | "rolled-back";
+
+export interface MigrationProfileDraftCategory {
+  id: MigrationCategoryId;
+  label: string;
+  state: MigrationCategoryState;
+  itemCount: number;
+  detail: string;
+}
+
+export interface MigrationProfileDraft {
+  id: string;
+  sourceId: MigrationSourceId;
+  sourceLabel: string;
+  createdAt: string;
+  selectedCategories: MigrationProfileDraftCategory[];
+  selectedCategoryIds: MigrationCategoryId[];
+  counts: MigrationPreviewCounts;
+  importState: MigrationProfileDraftImportState;
+  readiness: number;
+  summary: string;
+  safetyNote: string;
+}
+
+export interface MigrationProfileDraftAudit {
+  id: string;
+  draftId: string;
+  action: MigrationProfileDraftAuditAction;
+  createdAt: string;
+  sourceId: MigrationSourceId;
+  importState: MigrationProfileDraftImportState;
+  selectedCategoryCount: number;
+  reviewRequiredCategoryCount: number;
+  unsupportedCategoryCount: number;
+  detail: string;
+}
+
+export interface MigrationProfileDraftHistoryRecord {
+  draft: MigrationProfileDraft;
+  audit: MigrationProfileDraftAudit;
+}
+
+export interface MigrationProfileDraftHistorySummary {
+  total: number;
+  ready: number;
+  review: number;
+  waiting: number;
+  blocked: number;
+  applied: number;
+  latestDraftId?: string;
+}
+
+export interface CreateMigrationProfileDraftOptions {
+  sourceLabel?: string;
+  safetyNote?: string;
+  createdAt?: string;
+}
+
+export interface RollbackMigrationProfileDraftResult {
+  rolledBackDraft?: MigrationProfileDraft;
+  rollbackAudit?: MigrationProfileDraftAudit;
+  previousDraft?: MigrationProfileDraft;
+  history: MigrationProfileDraftHistoryRecord[];
+}
+
 export interface MigrationPreviewCounts {
   accepted: number;
   reviewRequired: number;
   unsupported: number;
   excluded: number;
 }
+
+export const MIGRATION_DRAFT_HISTORY_STORAGE_KEY = "steerboard.migrationProfileDraftHistory.v1";
+export const MIGRATION_DRAFT_HISTORY_LIMIT = 24;
 
 const migrationCategoryOrder: readonly MigrationCategoryId[] = [
   "projects",
@@ -615,4 +684,626 @@ export function redactMigrationPreviewDetail(value: string): string {
   safe = safe.trim();
 
   return safe.length > 0 ? safe.slice(0, 200).trim() : "No preview detail available.";
+}
+
+const DEFAULT_DRAFT_SAFETY_NOTE =
+  "Profile draft created from reviewed local profile metadata only. Source app settings, credentials, tokens, and raw transcripts are not imported.";
+const DEFAULT_DRAFT_CREATED_AT = "1970-01-01T00:00:00.000Z";
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+function safeText(value: unknown, fallback = ""): string {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? fallback : trimmed;
+}
+
+function safeDateText(value: unknown): string {
+  if (typeof value !== "string") {
+    return DEFAULT_DRAFT_CREATED_AT;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return DEFAULT_DRAFT_CREATED_AT;
+  }
+
+  const date = new Date(trimmed);
+  return Number.isNaN(date.getTime()) ? DEFAULT_DRAFT_CREATED_AT : date.toISOString();
+}
+
+function safeNumber(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.max(0, Math.floor(value));
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
+  }
+
+  return 0;
+}
+
+function safeLimit(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return MIGRATION_DRAFT_HISTORY_LIMIT;
+  }
+
+  const normalized = Math.floor(value);
+  if (normalized < 0) {
+    return 0;
+  }
+
+  return normalized;
+}
+
+function buildDraftId(
+  sourceId: MigrationSourceId,
+  createdAt: string,
+  selectedCategoryIds: MigrationCategoryId[]
+): string {
+  const normalizedIds = selectedCategoryIds.length > 0
+    ? selectedCategoryIds.join(",")
+    : "none";
+  return `migration-profile-draft:${sourceId}:${createdAt}:${normalizedIds}`;
+}
+
+function normalizeDraftSourceLabel(preview: MigrationPreview, sourceLabel?: string): string {
+  if (typeof sourceLabel === "string" && sourceLabel.trim()) {
+    return redactMigrationPreviewDetail(sourceLabel);
+  }
+
+  return buildSafeSourceDefinition(preview.source).label;
+}
+
+function normalizeDraftSafetyNote(safetyNote?: string): string {
+  return redactMigrationPreviewDetail(
+    typeof safetyNote === "string" && safetyNote.trim()
+      ? safetyNote
+      : DEFAULT_DRAFT_SAFETY_NOTE
+  );
+}
+
+function buildMigrationDraftSummary(
+  preview: MigrationPreview,
+  selectedCategoryCount: number
+): string {
+  const selectedIds = selectedMigrationCategoryIds(preview);
+  if (selectedIds.length === 0) {
+    return "No migration categories were selected for draft.";
+  }
+
+  const readyCount = preview.categories.filter(
+    (category) => category.selected && category.state === "accepted"
+  ).length;
+
+  return `${preview.categories.length} categories scanned; ${selectedCategoryCount} selected, ${readyCount} ready.`;
+}
+
+function selectedMigrationCategoryIds(preview: MigrationPreview): MigrationCategoryId[] {
+  return preview.categories
+    .filter((category) => category.selected)
+    .map((category) => category.id);
+}
+
+function resolveDraftImportState(
+  selectedCategories: readonly MigrationProfileDraftCategory[]
+): MigrationProfileDraftImportState {
+  const selectedCount = selectedCategories.length;
+  if (selectedCount === 0) {
+    return "waiting";
+  }
+
+  const hasUnsupported = selectedCategories.some((item) => item.state === "unsupported");
+  if (hasUnsupported) {
+    return "blocked";
+  }
+
+  const hasReview = selectedCategories.some((item) => item.state === "review-required");
+  if (hasReview) {
+    return "review";
+  }
+
+  return "ready";
+}
+
+function normalizeDraftCounts(
+  preview: MigrationPreview,
+  selectedCategories: readonly MigrationProfileDraftCategory[]
+): MigrationPreviewCounts {
+  const base = buildMigrationPreviewCounts(preview);
+  if (selectedCategories.length === 0) {
+    return {
+      accepted: 0,
+      reviewRequired: 0,
+      unsupported: 0,
+      excluded: base.excluded
+    };
+  }
+
+  return selectedCategories.reduce<MigrationPreviewCounts>(
+    (acc, category) => {
+      if (category.state === "accepted") {
+        acc.accepted += 1;
+      } else if (category.state === "review-required") {
+        acc.reviewRequired += 1;
+      } else if (category.state === "unsupported") {
+        acc.unsupported += 1;
+      } else {
+        acc.excluded += 1;
+      }
+      return acc;
+    },
+    { accepted: 0, reviewRequired: 0, unsupported: 0, excluded: base.excluded }
+  );
+}
+
+function normalizeDraftCategoryEntries(
+  preview: MigrationPreview
+): MigrationProfileDraftCategory[] {
+  return preview.categories
+    .filter((category) => category.selected)
+    .map((category) => ({
+      id: category.id,
+      label: category.label,
+      state: category.state,
+      itemCount: Math.max(0, Math.floor(category.itemCount)),
+      detail: redactMigrationPreviewDetail(category.detail)
+    }))
+    .sort((a, b) => migrationCategoryOrder.indexOf(a.id) - migrationCategoryOrder.indexOf(b.id));
+}
+
+function normalizeDraftReadiness(
+  selectedCategories: readonly MigrationProfileDraftCategory[]
+): number {
+  if (selectedCategories.length === 0) {
+    return 0;
+  }
+
+  const readyCount = selectedCategories.filter((item) => item.state === "accepted").length;
+  return Math.round((readyCount / selectedCategories.length) * 100);
+}
+
+export function createMigrationProfileDraft(
+  preview: MigrationPreview,
+  options: CreateMigrationProfileDraftOptions = {}
+): MigrationProfileDraft {
+  const normalizedPreview = normalizeMigrationPreview(preview);
+  const selectedCategories = normalizeDraftCategoryEntries(normalizedPreview);
+  const selectedCategoryIds = selectedCategoryIdsFromEntries(selectedCategories);
+
+  const importState = resolveDraftImportState(selectedCategories);
+  const readiness = normalizeDraftReadiness(selectedCategories);
+  const createdAt = safeDateText(options.createdAt ?? new Date().toISOString());
+  const sourceLabel = normalizeDraftSourceLabel(
+    normalizedPreview,
+    options.sourceLabel ?? buildSafeSourceDefinition(normalizedPreview.source).label
+  );
+  const counts = normalizeDraftCounts(normalizedPreview, selectedCategories);
+
+  const id = buildDraftId(normalizedPreview.source, createdAt, selectedCategoryIds);
+
+  return {
+    id,
+    sourceId: normalizedPreview.source,
+    sourceLabel,
+    createdAt,
+    selectedCategories,
+    selectedCategoryIds,
+    counts,
+    importState,
+    readiness,
+    summary: normalizeDraftSummary(
+      buildMigrationDraftSummary(normalizedPreview, selectedCategoryIds.length)
+    ),
+    safetyNote: normalizeDraftSafetyNote(options.safetyNote)
+  };
+}
+
+function selectedCategoryIdsFromEntries(
+  categories: readonly MigrationProfileDraftCategory[]
+): MigrationCategoryId[] {
+  return categories.map((category) => category.id);
+}
+
+function normalizeDraftSummary(value: string): string {
+  return normalizeValue(value, "Draft was not fully normalized.");
+}
+
+function normalizeValue(value: string, fallback: string): string {
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized.slice(0, 260).trim() : fallback;
+}
+
+export function createMigrationProfileDraftAuditRecord(
+  draft: MigrationProfileDraft,
+  action: MigrationProfileDraftAuditAction,
+  createdAt = new Date().toISOString()
+): MigrationProfileDraftAudit {
+  const timestamp = safeDateText(createdAt);
+  const reviewRequiredCount = draft.selectedCategories.filter(
+    (category) => category.state === "review-required"
+  ).length;
+  const unsupportedCount = draft.selectedCategories.filter(
+    (category) => category.state === "unsupported"
+  ).length;
+
+  return {
+    id: `${draft.id}:${action}:${timestamp}`,
+    draftId: draft.id,
+    action,
+    createdAt: timestamp,
+    sourceId: draft.sourceId,
+    importState: draft.importState,
+    selectedCategoryCount: draft.selectedCategories.length,
+    reviewRequiredCategoryCount: reviewRequiredCount,
+    unsupportedCategoryCount: unsupportedCount,
+    detail: redactMigrationPreviewDetail(
+      `${action} for ${draft.sourceLabel} migration draft with ${draft.selectedCategories.length} selected categories`
+    )
+  };
+}
+
+export function appendMigrationProfileDraftHistory(
+  records: readonly MigrationProfileDraftHistoryRecord[],
+  draft: MigrationProfileDraft,
+  action: MigrationProfileDraftAuditAction = "created",
+  limit = MIGRATION_DRAFT_HISTORY_LIMIT,
+  createdAt = new Date().toISOString()
+): MigrationProfileDraftHistoryRecord[] {
+  const existing = [...records];
+  const normalizedLimit = safeLimit(limit);
+  if (normalizedLimit === 0) {
+    return [];
+  }
+
+  const nextAudit = createMigrationProfileDraftAuditRecord(draft, action, createdAt);
+  const nextRecords = [{ draft, audit: nextAudit }, ...existing];
+  const seenDrafts = new Set<string>();
+  const deduped: MigrationProfileDraftHistoryRecord[] = [];
+
+  for (const record of nextRecords) {
+    if (seenDrafts.has(record.draft.id)) {
+      continue;
+    }
+
+    seenDrafts.add(record.draft.id);
+    deduped.push(repairMigrationProfileDraftHistoryRecord(record));
+    if (deduped.length >= normalizedLimit) {
+      break;
+    }
+  }
+
+  return deduped;
+}
+
+export function rollbackMigrationProfileDraftHistory(
+  records: readonly MigrationProfileDraftHistoryRecord[],
+  createdAt = new Date().toISOString()
+): RollbackMigrationProfileDraftResult {
+  const history = [...records];
+  if (history.length === 0) {
+    return { history };
+  }
+
+  const [latest, ...rest] = history;
+  const nextHistory = rest.map((entry) => repairMigrationProfileDraftHistoryRecord(entry));
+  const rollbackAudit = createMigrationProfileDraftAuditRecord(
+    latest.draft,
+    "rolled-back",
+    createdAt
+  );
+  const rolledBackDraft = repairMigrationProfileDraftHistoryRecord(latest).draft;
+
+  return {
+    rolledBackDraft,
+    rollbackAudit,
+    previousDraft: nextHistory[0]?.draft,
+    history: nextHistory
+  };
+}
+
+export function summarizeMigrationProfileDrafts(
+  records: readonly MigrationProfileDraftHistoryRecord[]
+): MigrationProfileDraftHistorySummary {
+  const summary: MigrationProfileDraftHistorySummary = {
+    total: 0,
+    ready: 0,
+    review: 0,
+    waiting: 0,
+    blocked: 0,
+    applied: 0
+  };
+
+  for (const record of records) {
+    summary.total += 1;
+    switch (record.draft.importState) {
+      case "ready":
+        summary.ready += 1;
+        break;
+      case "review":
+        summary.review += 1;
+        break;
+      case "waiting":
+        summary.waiting += 1;
+        break;
+      case "blocked":
+        summary.blocked += 1;
+        break;
+      case "applied":
+        summary.applied += 1;
+        break;
+      default:
+        break;
+    }
+  }
+
+  summary.latestDraftId = records[0]?.draft.id;
+  return summary;
+}
+
+function repairMigrationProfileDraftRecord(
+  value: unknown
+): MigrationProfileDraftHistoryRecord {
+  const record = asRecord(value);
+  if (!record) {
+    const fallback = createFallbackMigrationProfileDraft();
+    return { draft: fallback, audit: createMigrationProfileDraftAuditRecord(fallback, "created", fallback.createdAt) };
+  }
+
+  const repairedDraft = repairMigrationProfileDraft(record.draft, createFallbackMigrationProfileDraft());
+  const repairedAudit = repairMigrationProfileDraftAudit(
+    record.audit,
+    repairedDraft,
+    "created"
+  );
+
+  return {
+    draft: repairedDraft,
+    audit: {
+      ...repairedAudit,
+      draftId: repairedDraft.id
+    }
+  };
+}
+
+function createFallbackMigrationProfileDraft(): MigrationProfileDraft {
+  return {
+    id: buildDraftId(defaultMigrationSource, DEFAULT_DRAFT_CREATED_AT, []),
+    sourceId: defaultMigrationSource,
+    sourceLabel: buildSafeSourceDefinition(defaultMigrationSource).label,
+    createdAt: DEFAULT_DRAFT_CREATED_AT,
+    selectedCategories: [],
+    selectedCategoryIds: [],
+    counts: { accepted: 0, reviewRequired: 0, unsupported: 0, excluded: 15 },
+    importState: "waiting",
+    readiness: 0,
+    summary: "No migration draft selected.",
+    safetyNote: normalizeDraftSafetyNote(DEFAULT_DRAFT_SAFETY_NOTE)
+  };
+}
+
+function repairMigrationProfileDraft(
+  value: unknown,
+  fallback: MigrationProfileDraft
+): MigrationProfileDraft {
+  const record = asRecord(value);
+  if (!record) {
+    return fallback;
+  }
+
+  const sourceId = normalizeSource(
+    (record as Record<string, unknown>).sourceId ?? record.source
+  );
+  const sourceLabel = safeText(record.sourceLabel, buildSafeSourceDefinition(sourceId).label);
+  const createdAt = safeDateText(record.createdAt);
+  const selectedCategoryIds = Array.isArray(record.selectedCategoryIds)
+    ? record.selectedCategoryIds.map((id) => normalizeCategoryId(id)).filter((id): id is MigrationCategoryId => Boolean(id))
+    : [];
+  const selectedCategories = Array.isArray(record.selectedCategories)
+    ? record.selectedCategories
+      .map((entry) => {
+        const candidate = asRecord(entry);
+        if (!candidate) {
+          return undefined;
+        }
+
+        const categoryId = normalizeCategoryId(candidate.id);
+        if (!categoryId) {
+          return undefined;
+        }
+
+        const label = safeText(candidate.label, categoryId);
+        const state = candidate.state === "accepted" || candidate.state === "review-required"
+          || candidate.state === "unsupported" || candidate.state === "excluded"
+          ? candidate.state
+          : "excluded";
+        const itemCount = safeNumber(candidate.itemCount);
+        const detail = redactMigrationPreviewDetail(safeText(candidate.detail, ""));
+        return { id: categoryId, label, state, itemCount, detail };
+      })
+      .filter((entry): entry is MigrationProfileDraftCategory => entry !== undefined)
+    : [];
+
+  const sortedSelectedCategories = selectedCategories
+    .sort((a, b) => migrationCategoryOrder.indexOf(a.id) - migrationCategoryOrder.indexOf(b.id));
+  const countsRecord = asRecord(record.counts);
+  const normalizedCounts = {
+    accepted: safeNumber(countsRecord?.accepted),
+    reviewRequired: safeNumber(countsRecord?.reviewRequired),
+    unsupported: safeNumber(countsRecord?.unsupported),
+    excluded: safeNumber(countsRecord?.excluded)
+  };
+  const importState = resolveDraftImportState(sortedSelectedCategories);
+  const readiness = normalizeDraftReadiness(sortedSelectedCategories);
+  const summary = normalizeDraftSummary(safeText(record.summary, "Draft was repaired from malformed storage."));
+  const normalizedSelectedCategories = selectedCategories.sort(
+    (a, b) => migrationCategoryOrder.indexOf(a.id) - migrationCategoryOrder.indexOf(b.id)
+  );
+  const normalizedSelectedCategoryIds = selectedCategoryIds.length > 0
+    ? selectedCategoryIds
+    : selectedCategoryIdsFromEntries(normalizedSelectedCategories);
+
+  return {
+    id: safeText(record.id, buildDraftId(sourceId, createdAt, normalizedSelectedCategoryIds)),
+    sourceId,
+    sourceLabel: normalizeDraftSourceLabel(
+      { source: sourceId, categories: buildDefaultMigrationPreview(sourceId).categories },
+      sourceLabel
+    ),
+    createdAt,
+    selectedCategories: normalizedSelectedCategories,
+    selectedCategoryIds: normalizedSelectedCategoryIds,
+    counts: normalizedCounts.accepted ||
+      normalizedCounts.reviewRequired ||
+      normalizedCounts.unsupported ||
+      normalizedCounts.excluded
+      ? {
+          accepted: normalizedCounts.accepted,
+          reviewRequired: normalizedCounts.reviewRequired,
+          unsupported: normalizedCounts.unsupported,
+          excluded: normalizedCounts.excluded
+        }
+      : normalizeDraftCounts({ source: sourceId, categories: sortedSelectedCategories.map((item) => ({
+          id: item.id,
+          label: item.label,
+          baseState: "accepted",
+          detail: item.detail,
+          selected: true,
+          state: item.state,
+          itemCount: item.itemCount
+        })) }, sortedSelectedCategories),
+    importState: importState,
+    readiness,
+    summary,
+    safetyNote: normalizeDraftSafetyNote(safeText(record.safetyNote, DEFAULT_DRAFT_SAFETY_NOTE))
+  };
+}
+
+function repairMigrationProfileDraftHistoryRecord(
+  value: unknown
+): MigrationProfileDraftHistoryRecord {
+  return repairMigrationProfileDraftRecord(value);
+}
+
+function repairMigrationProfileDraftAudit(
+  value: unknown,
+  draft: MigrationProfileDraft,
+  fallbackAction: MigrationProfileDraftAuditAction
+): MigrationProfileDraftAudit {
+  const record = asRecord(value);
+  const action = isMigrationProfileDraftAuditAction(record?.action)
+    ? (record!.action as MigrationProfileDraftAuditAction)
+    : fallbackAction;
+  const createdAt = safeDateText(record?.createdAt);
+
+  return {
+    id: safeText(record?.id, `${draft.id}:${action}:${createdAt}`),
+    draftId: draft.id,
+    action,
+    createdAt,
+    sourceId: draft.sourceId,
+    importState: draft.importState,
+    selectedCategoryCount: safeNumber(record?.selectedCategoryCount ?? draft.selectedCategories.length),
+    reviewRequiredCategoryCount: safeNumber(record?.reviewRequiredCategoryCount ?? draft.selectedCategories.filter((category) => category.state === "review-required").length),
+    unsupportedCategoryCount: safeNumber(record?.unsupportedCategoryCount ?? draft.selectedCategories.filter((category) => category.state === "unsupported").length),
+    detail: redactMigrationPreviewDetail(safeText(record?.detail, `${action} migration draft ${draft.id}`))
+  };
+}
+
+function isMigrationProfileDraftAuditAction(value: unknown): value is MigrationProfileDraftAuditAction {
+  return value === "created" || value === "applied" || value === "rolled-back";
+}
+
+export function parseStoredMigrationProfileDraftHistory(
+  serialized: string | null,
+  fallback: MigrationProfileDraftHistoryRecord[] = [],
+  limit = MIGRATION_DRAFT_HISTORY_LIMIT
+): MigrationProfileDraftHistoryRecord[] {
+  if (!serialized) {
+    return [...fallback];
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(serialized);
+  } catch {
+    return [...fallback];
+  }
+
+  if (!Array.isArray(parsed)) {
+    return [...fallback];
+  }
+
+  const normalizedLimit = safeLimit(limit);
+  if (normalizedLimit === 0) {
+    return [];
+  }
+
+  const repaired: MigrationProfileDraftHistoryRecord[] = [];
+  const seen = new Set<string>();
+
+  for (const entry of parsed) {
+    const repairedEntry = repairMigrationProfileDraftHistoryRecord(entry);
+    if (seen.has(repairedEntry.draft.id)) {
+      continue;
+    }
+
+    seen.add(repairedEntry.draft.id);
+    repaired.push(repairedEntry);
+
+    if (repaired.length >= normalizedLimit) {
+      break;
+    }
+  }
+
+  return repaired;
+}
+
+function readMigrationProfileDraftStorage(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const value = window.localStorage?.getItem?.(MIGRATION_DRAFT_HISTORY_STORAGE_KEY);
+    return value === undefined ? null : value;
+  } catch {
+    return null;
+  }
+}
+
+function writeMigrationProfileDraftStorage(value: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage?.setItem?.(MIGRATION_DRAFT_HISTORY_STORAGE_KEY, value);
+  } catch {
+    return;
+  }
+}
+
+export function loadMigrationProfileDraftHistory(
+  fallback: MigrationProfileDraftHistoryRecord[] = [],
+  limit = MIGRATION_DRAFT_HISTORY_LIMIT
+): MigrationProfileDraftHistoryRecord[] {
+  return parseStoredMigrationProfileDraftHistory(
+    readMigrationProfileDraftStorage(),
+    fallback,
+    limit
+  );
+}
+
+export function saveMigrationProfileDraftHistory(records: MigrationProfileDraftHistoryRecord[]): void {
+  writeMigrationProfileDraftStorage(JSON.stringify(records.map((record) => repairMigrationProfileDraftHistoryRecord(record))));
 }

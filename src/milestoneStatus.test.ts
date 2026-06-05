@@ -173,6 +173,7 @@ describe("milestone status model", () => {
     expect(targets).toContain("Runtime adapter previews");
     expect(targets).toContain("Live adapter integration");
     expect(targets).toContain("Platform capabilities");
+    expect(targets).toContain("Migration Center");
     expect(targets).toContain("Security and privacy model");
     expect(targets).toContain("Owner testing hardening");
     expect(targets).toContain("Packaging and installation");
@@ -255,6 +256,23 @@ describe("milestone status model", () => {
     );
   });
 
+  it("tracks Migration Center as an active metadata-only transition milestone", () => {
+    const migrationCenter = steerboardMilestoneStatuses.find(
+      (milestone) => milestone.target === "Migration Center"
+    );
+
+    expect(migrationCenter?.completion).toBe("In progress");
+    expect(migrationCenter?.tone).toBe("active");
+    expect(migrationCenter?.completionPercent).toBe(30);
+    expect(migrationCenter?.current).toBeUndefined();
+    expect(migrationCenter?.latestNote).toBe(
+      "Reviewed profile-draft persistence and rollback/audit summaries are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded."
+    );
+    expect(migrationCenter?.nextStep).toBe(
+      "Keep migration metadata checks owner-reviewed, verify rollback audit coverage, and require explicit apply before changing active profile state."
+    );
+  });
+
   it("maps completion values to tone in required way for exported data", () => {
     const toneByCompletion: Record<MilestoneCompletion, MilestoneTone> = {
       Complete: "complete",
@@ -270,12 +288,12 @@ describe("milestone status model", () => {
 
   it("summarizes exported milestone list counts correctly", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
-      total: 10,
+      total: 11,
       complete: 0,
-      active: 9,
+      active: 10,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 42,
+      averageCompletionPercent: 41,
       nextTarget: "Platform capabilities",
       nextStep:
         "Run safe metadata/status catalog refresh owner tests for command, skill, plugin, MCP, automation, and personalization, then continue migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",

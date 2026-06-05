@@ -69,9 +69,9 @@ The migration dialog should present these categories as checkboxes. Unsupported 
 8. Steerboard shows a migration preview grouped by category.
 9. Secrets, tokens, auth caches, private browser state, and raw transcripts are marked excluded.
 10. User confirms the import.
-11. Steerboard writes imported data into a named Steerboard profile.
-12. Steerboard records a local migration audit summary.
-13. User can roll back the imported profile or refresh from the source later.
+11. Steerboard writes imported data into a named, reviewable Steerboard profile draft.
+12. Steerboard records a local migration audit summary for the draft, including import mode, selected categories, acceptance decisions, excluded fields, and safe metadata diffs.
+13. User can review the draft, apply it as an active profile, refresh from source, or roll it back safely.
 
 ## Desktop Menu Requirement
 
@@ -109,7 +109,13 @@ The `File > Migrate...` dialog should include:
 - confirmation step,
 - rollback summary after import.
 
-The goal is that a user can end with the same practical working condition as the source application: projects visible, usable chat/session context where safely exportable, matching plugins and skills, matching MCP server definitions, matching personalization posture, and matching relevant settings without copying credentials or unsafe runtime state.
+The goal is that a user can end with the same practical working condition as the source application: projects visible, usable chat/session context where safely exportable, matching plugins and skills, matching MCP server definitions, matching personalization posture, and matching relevant settings.
+
+Reviewed profile draft persistence is contractually read-only until explicitly applied:
+
+- Draft state includes normalized migration metadata only and excludes secrets, tokens, auth files, browser state, raw transcripts, and source artifacts.
+- Each draft stores a rollback/undo summary so the migration can be reverted without touching source data.
+- A local audit summary is kept with a compact event log and a source-fingerprint note for operator review and traceability.
 
 ## Safety Rules
 
@@ -121,6 +127,18 @@ The goal is that a user can end with the same practical working condition as the
 - Disable imported live execution by default until the user approves the target provider, workspace posture, and permission gates.
 - Limit imported tools to the functions that are actually needed for the selected migration categories. Extra tools, broad tool suites, and unused MCP tools should stay disabled until explicitly enabled.
 - Imported threads or chats must be metadata-only unless the source offers an explicit safe export path and the user selects it.
+
+## Reviewed Draft Persistence
+
+- Migration creates a local draft profile in Steerboard before any active profile is changed.
+- The draft stores approved metadata and reversible diffs only.
+- The audit summary is written locally and must include:
+  - migration source and detected adapter,
+  - selected source categories,
+  - item counts by category (`accepted`, `review`, `skipped`, `excluded`),
+  - checksumable manifest references used for rollback.
+- Rollback restores the previous active profile pointer and archive-safe draft snapshot metadata.
+- There is no full source migration claim in this milestone; source data and secrets remain excluded by design.
 
 ## Adapter Contract
 

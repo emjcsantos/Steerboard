@@ -446,6 +446,7 @@ textarea {
 
 .app-dialog {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   width: min(560px, 100%);
   max-height: min(680px, calc(100vh - 40px));
   overflow: hidden;
@@ -491,6 +492,7 @@ textarea {
 .app-dialog-body {
   display: grid;
   gap: 14px;
+  min-height: 0;
   overflow: auto;
   padding: 14px;
   color: #cfd8e3;
@@ -716,7 +718,14 @@ textarea {
   gap: 6px;
 }
 
+.migration-history-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
 .migration-summary-strip span,
+.migration-history-strip span,
 .migration-source-card,
 .migration-draft {
   border: 1px solid #28313b;
@@ -738,6 +747,23 @@ textarea {
   display: block;
   color: #edf3f8;
   font-size: 15px;
+  line-height: 1.1;
+}
+
+.migration-history-strip span,
+.migration-history-strip strong {
+  padding: 8px;
+  min-width: 0;
+  color: #9fa9b4;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.migration-history-strip strong {
+  color: #edf3f8;
+  font-size: 14px;
   line-height: 1.1;
 }
 
@@ -909,6 +935,14 @@ textarea {
   display: grid;
   gap: 4px;
   padding: 9px 10px;
+}
+
+.migration-draft-audit {
+  display: block;
+  color: #8ec8f6;
+  padding-top: 6px;
+  border-top: 1px solid #28313b;
+  margin-top: 6px;
 }
 
 .migration-draft strong {

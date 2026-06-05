@@ -45,8 +45,10 @@ Do not proceed to the next section until the current item is at least `review`.
    - Refresh the automation catalog as a safe metadata/status refresh and confirm source/state changes are visible without scheduling or running automations.
    - Refresh the personalization catalog as a safe metadata/status refresh and confirm source/state changes are visible without mutating profile or instruction sources.
 8. `Migration`
-   - Validate migration plan preview and staged execution flow.
-   - Confirm irreversible steps are explicit and recoverable.
+   - Validate migration plan preview and reviewed-draft staging flow.
+   - Confirm migration audit summary exists locally and includes accepted, review-required, unsupported, and excluded counts.
+   - Confirm rollback metadata exists for applied drafts and that rollback restores the prior profile pointer without source mutation.
+   - Confirm secrets, raw transcripts, and source auth state remain excluded from persisted migration metadata.
 9. `Planning`
    - Create or update a plan item and confirm expected persistence updates.
    - Confirm planning metadata remains readable after a refresh.

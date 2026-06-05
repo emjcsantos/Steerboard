@@ -105,6 +105,19 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
       "Slash commands, Skills catalog, platform catalogs, migration preview, and risk-gated approval/audit foundations exist; broader provider refresh and full execution remain live-disabled."
   },
   {
+    target: "Migration Center",
+    completion: "In progress",
+    plan: "Implement safe migration metadata review and safe-to-apply profile transitions.",
+    completionPercent: 30,
+    latestNote:
+      "Reviewed profile-draft persistence and rollback/audit summaries are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded.",
+    nextStep:
+      "Keep migration metadata checks owner-reviewed, verify rollback audit coverage, and require explicit apply before changing active profile state.",
+    tone: "active",
+    note:
+      "Reviewed profile-draft persistence and rollback/audit summaries are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded."
+  },
+  {
     target: "Security and privacy model",
     completion: "In progress",
     plan: "Set baseline protections, data-handling boundaries, and reviewable controls.",
