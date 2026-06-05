@@ -200,9 +200,13 @@ import {
 } from "./pluginCatalog";
 import {
   defaultSkillCatalog,
+  buildSkillCatalogSnapshot,
   summarizeSkillCatalog,
-  type SkillCatalogEntry
+  type SkillCatalogEntry,
+  type SkillCatalogRefreshSource,
+  type SkillCatalogSnapshot
 } from "./skillCatalog";
+import { loadProviderSkillCatalogSnapshot } from "./providerSkillCatalog";
 import {
   normalizeCodexPanelTurnResultEvents,
   reduceCodexSessionEvents,
@@ -810,6 +814,7 @@ type PlatformCatalogView = {
   lead: string;
   rows: PlatformCatalogRow[];
   summary: PlatformCatalogSummary;
+  sourceLabel?: string;
 };
 
 function classNames(...parts: Array<string | false | undefined>): string {
@@ -969,6 +974,21 @@ function formatCommandCatalogSource(source: CommandCatalogRefreshSource): string
   }
 }
 
+function formatSkillCatalogSource(source: SkillCatalogRefreshSource): string {
+  switch (source) {
+    case "provider-live":
+      return "Provider live";
+    case "provider-preview":
+      return "Provider preview";
+    case "default-fallback":
+      return "Default fallback";
+    case "empty-refresh":
+      return "Empty refresh";
+    case "unavailable":
+      return "Unavailable";
+  }
+}
+
 function buildPluginCatalogRows(catalog: readonly PluginCatalogEntry[]): PlatformCatalogRow[] {
   return catalog.map((entry) => ({
     id: entry.id,
@@ -1021,7 +1041,10 @@ function buildPersonalizationCatalogRows(
   }));
 }
 
-function getPlatformCatalogView(dialog: AppDialog): PlatformCatalogView | undefined {
+function getPlatformCatalogView(
+  dialog: AppDialog,
+  skillCatalogSnapshot: SkillCatalogSnapshot
+): PlatformCatalogView | undefined {
   if (dialog === "plugins") {
     return {
       title: "Plugins",
@@ -1036,9 +1059,10 @@ function getPlatformCatalogView(dialog: AppDialog): PlatformCatalogView | undefi
     return {
       title: "Skills",
       eyebrow: "Platform catalog",
-      lead: "Skill entries show source, trigger, and invocation posture before runtime-backed execution is enabled.",
-      rows: buildSkillCatalogRows(defaultSkillCatalog),
-      summary: summarizeSkillCatalog(defaultSkillCatalog)
+      lead: "Skill entries show source, trigger, invocation posture, and safe provider refresh state before runtime-backed execution is enabled.",
+      rows: buildSkillCatalogRows(skillCatalogSnapshot.catalog),
+      summary: skillCatalogSnapshot.summary,
+      sourceLabel: formatSkillCatalogSource(skillCatalogSnapshot.source)
     };
   }
 
@@ -1274,8 +1298,12 @@ export function App() {
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
+  const [skillCatalogSnapshot, setSkillCatalogSnapshot] = useState<SkillCatalogSnapshot>(() =>
+    buildSkillCatalogSnapshot(defaultSkillCatalog, "default-fallback", defaultSkillCatalog)
+  );
   const [codexTransportLoading, setCodexTransportLoading] = useState(false);
   const [codexLiveSmokeLoading, setCodexLiveSmokeLoading] = useState(false);
+  const [skillCatalogLoading, setSkillCatalogLoading] = useState(false);
   const [panelSessionState, setPanelSessionState] = useState<CodexPanelSessionState>(() =>
     loadPanelSessionState()
   );
@@ -2063,6 +2091,18 @@ export function App() {
     setAppNotice(`${formatCommandCatalogSource(nextSnapshot.source)} command catalog refreshed`);
   }
 
+  async function refreshSkillCatalogSnapshot() {
+    setSkillCatalogLoading(true);
+    setAppNotice("Refreshing provider skill catalog");
+    try {
+      const nextSnapshot = await loadProviderSkillCatalogSnapshot(undefined, defaultSkillCatalog);
+      setSkillCatalogSnapshot(nextSnapshot);
+      setAppNotice(`${formatSkillCatalogSource(nextSnapshot.source)} skill catalog refreshed`);
+    } finally {
+      setSkillCatalogLoading(false);
+    }
+  }
+
   function recordLivePanelSessionStart(result: CodexPanelSessionStartPayload) {
     setPanelSessionState((currentState) =>
       upsertPanelSession(
@@ -2555,9 +2595,12 @@ export function App() {
           onRefreshCommandCatalog={refreshCommandCatalogSnapshot}
           onRefreshCodexTransport={refreshCodexTransportProbe}
           onRefreshMigrationPreview={() => refreshMigrationSourcePreview()}
+          onRefreshSkillCatalog={refreshSkillCatalogSnapshot}
           onRunCodexLiveSmokeProof={runCodexLiveSmokeProof}
           onSelectReviewableMigrationCategories={handleSelectReviewableMigrationCategories}
           onStageCodexConnection={handleStageCodexConnection}
+          skillCatalogLoading={skillCatalogLoading}
+          skillCatalogSnapshot={skillCatalogSnapshot}
         />
       ) : null}
     </main>
@@ -2717,9 +2760,12 @@ function AppDialogSurface({
   onRefreshCommandCatalog,
   onRefreshCodexTransport,
   onRefreshMigrationPreview,
+  onRefreshSkillCatalog,
   onRunCodexLiveSmokeProof,
   onSelectReviewableMigrationCategories,
-  onStageCodexConnection
+  onStageCodexConnection,
+  skillCatalogLoading,
+  skillCatalogSnapshot
 }: {
   commandCatalogSnapshot: CommandCatalogSnapshot;
   codexConnectionRequested: boolean;
@@ -2740,11 +2786,14 @@ function AppDialogSurface({
   onRefreshCommandCatalog: () => void;
   onRefreshCodexTransport: () => void;
   onRefreshMigrationPreview: () => void;
+  onRefreshSkillCatalog: () => void;
   onRunCodexLiveSmokeProof: () => void;
   onSelectReviewableMigrationCategories: () => void;
   onStageCodexConnection: () => void;
+  skillCatalogLoading: boolean;
+  skillCatalogSnapshot: SkillCatalogSnapshot;
 }) {
-  const platformCatalogView = getPlatformCatalogView(dialog);
+  const platformCatalogView = getPlatformCatalogView(dialog, skillCatalogSnapshot);
   const migrationCounts = buildMigrationPreviewCounts(migrationPreview);
   const selectedCategoryCount = migrationPreview.categories.filter((category) => category.selected).length;
   const title =
@@ -3020,7 +3069,20 @@ function AppDialogSurface({
                 <strong>{formatCatalogAvailability(platformCatalogView.summary.availability)}</strong>
                 Ready
               </span>
+              {platformCatalogView.sourceLabel ? (
+                <span>
+                  <strong>{platformCatalogView.sourceLabel}</strong>
+                  Source
+                </span>
+              ) : null}
             </div>
+            {dialog === "skills" ? (
+              <div className="dialog-action-row">
+                <button className="dialog-secondary-action" onClick={onRefreshSkillCatalog} type="button">
+                  {skillCatalogLoading ? "Refreshing..." : "Refresh skills catalog"}
+                </button>
+              </div>
+            ) : null}
             <div className="catalog-list" aria-label={`${platformCatalogView.title} catalog`}>
               {platformCatalogView.rows.map((item) => (
                 <article className="catalog-row" key={item.id}>

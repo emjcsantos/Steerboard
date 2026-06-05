@@ -238,20 +238,20 @@ describe("milestone status model", () => {
     );
   });
 
-  it("keeps Platform capabilities active after orchestration takes current focus", () => {
+  it("tracks Platform capabilities as the current live-functionality focus", () => {
     const platform = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Platform capabilities"
     );
 
     expect(platform?.completion).toBe("In progress");
     expect(platform?.tone).toBe("active");
-    expect(platform?.completionPercent).toBe(38);
-    expect(platform?.current).toBeUndefined();
+    expect(platform?.completionPercent).toBe(40);
+    expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Panel slash commands now refresh through a desktop-backed safe provider capability bridge with ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable."
+      "Panel slash commands and Skills catalog refresh through desktop-backed safe provider capability bridges with ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable."
     );
     expect(platform?.nextStep).toBe(
-      "Extend the same safe provider refresh pattern to plugins, skills, MCP, automations, and personalization while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
+      "Extend the same safe provider refresh pattern to plugins, MCP, automations, and personalization, then run the owner testing checklist for command and skill refresh behavior while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
     );
   });
 
@@ -276,10 +276,10 @@ describe("milestone status model", () => {
       planned: 0,
       paused: 1,
       averageCompletionPercent: 41,
-      nextTarget: "Owner testing hardening",
+      nextTarget: "Platform capabilities",
       nextStep:
-        "Run the full local testing checklist, verify approval-to-probe behavior, provider command refresh behavior, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
-      nextCompletionPercent: 34
+        "Extend the same safe provider refresh pattern to plugins, MCP, automations, and personalization, then run the owner testing checklist for command and skill refresh behavior while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
+      nextCompletionPercent: 40
     });
   });
 
@@ -308,12 +308,12 @@ describe("milestone status model", () => {
     expect(ownerTesting?.completion).toBe("In progress");
     expect(ownerTesting?.tone).toBe("active");
     expect(ownerTesting?.completionPercent).toBe(34);
-    expect(ownerTesting?.current).toBe(true);
+    expect(ownerTesting?.current).toBeUndefined();
     expect(ownerTesting?.latestNote).toBe(
       "A provider-neutral checklist and fixture layer now verify Phase 10B runner contract behavior for approved requests, read-only terminal probe constraints, disabled mutation paths, and redacted audit output."
     );
     expect(ownerTesting?.nextStep).toBe(
-      "Run the full local testing checklist, verify approval-to-probe behavior, provider command refresh behavior, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
+      "Run the full local testing checklist, verify approval-to-probe behavior, provider command and skill refresh behavior, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
     );
   });
 

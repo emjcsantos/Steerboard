@@ -3,6 +3,8 @@ import {
   defaultSkillCatalog,
   normalizeSkillCatalog,
   summarizeSkillCatalog,
+  snapshotFromProviderSkillCatalogPayload,
+  buildSkillCatalogSnapshotFromProviderCapabilities,
   type SkillCatalogEntry,
   type SkillCatalogState
 } from "./skillCatalog";
@@ -225,5 +227,150 @@ describe("state typing", () => {
       "unavailable"
     ];
     expect(states).toHaveLength(6);
+  });
+});
+
+describe("skill catalog provider snapshots", () => {
+  const providerFallbackCatalog: SkillCatalogEntry[] = [
+    {
+      id: "health-check",
+      label: "Health Check",
+      source: "automation",
+      trigger: "menu",
+      invocationLabel: "Check",
+      state: "live",
+      detail: "Fallback baseline should remain stable."
+    },
+    {
+      id: "remote-lens",
+      label: "Remote Lens",
+      source: "remote",
+      trigger: "button",
+      invocationLabel: "Open Lens",
+      state: "unavailable"
+    }
+  ];
+
+  it("builds provider-live snapshot from sanitized provider capabilities", () => {
+    const snapshot = snapshotFromProviderSkillCatalogPayload(
+      {
+        source: "provider-live",
+        entries: [
+          {
+            id: "health-check",
+            state: "live",
+            detail: "/tmp/unsafe-detail",
+            localPath: "/Users/hidden/secrets.json"
+          }
+        ]
+      },
+      providerFallbackCatalog
+    );
+
+    expect(snapshot.source).toBe("provider-live");
+    expect(snapshot.catalog).toHaveLength(1);
+    expect(snapshot.catalog[0]).toMatchObject({
+      id: "health-check",
+      state: "live",
+      detail: "Fallback baseline should remain stable."
+    });
+  });
+
+  it("includes safe provider-only skill entries after refresh", () => {
+    const snapshot = snapshotFromProviderSkillCatalogPayload(
+      {
+        source: "provider-live",
+        entries: [
+          {
+            id: "provider-local-skills",
+            label: "Local Skills",
+            source: "builtin",
+            trigger: "command",
+            invocationLabel: "Open Skills",
+            state: "live",
+            detail: "4 metadata-visible skill entries were detected."
+          }
+        ]
+      },
+      providerFallbackCatalog
+    );
+
+    expect(snapshot.source).toBe("provider-live");
+    expect(snapshot.catalog).toHaveLength(1);
+    expect(snapshot.catalog[0]).toMatchObject({
+      id: "provider-local-skills",
+      label: "Local Skills",
+      state: "live",
+      detail: "4 metadata-visible skill entries were detected."
+    });
+  });
+
+  it("downgrades live skills to preview when live runtime is unavailable", () => {
+    const snapshot = snapshotFromProviderSkillCatalogPayload(
+      {
+        source: "provider-preview",
+        entries: [
+          { id: "health-check", state: "live" },
+          {
+            id: "provider-local-skills",
+            label: "Local Skills",
+            source: "builtin",
+            trigger: "command",
+            invocationLabel: "Open Skills",
+            state: "live",
+            detail: "Safe metadata only."
+          }
+        ]
+      },
+      providerFallbackCatalog
+    );
+
+    expect(snapshot.source).toBe("provider-preview");
+    expect(snapshot.catalog.find((entry) => entry.id === "health-check")?.state).toBe("preview");
+    expect(snapshot.catalog.find((entry) => entry.id === "provider-local-skills")?.state).toBe("preview");
+  });
+
+  it("returns an empty-refresh result when provider sends no capabilities", () => {
+    const snapshot = snapshotFromProviderSkillCatalogPayload(
+      {
+        source: "provider-live",
+        entries: []
+      },
+      providerFallbackCatalog
+    );
+
+    expect(snapshot.source).toBe("empty-refresh");
+    expect(snapshot.summary.source).toBe("empty-refresh");
+    expect(snapshot.catalog).toEqual(providerFallbackCatalog);
+  });
+
+  it("handles unavailable or malformed provider inputs while preserving safe fallback", () => {
+    expect(snapshotFromProviderSkillCatalogPayload("not-a-payload", providerFallbackCatalog).source).toBe(
+      "unavailable"
+    );
+    expect(
+      snapshotFromProviderSkillCatalogPayload("not-a-payload", providerFallbackCatalog).catalog[0]?.state
+    ).toBe("unavailable");
+    expect(
+      snapshotFromProviderSkillCatalogPayload("not-a-payload", providerFallbackCatalog).catalog[0]?.id
+    ).toBe("health-check");
+  });
+
+  it("preserves caller-provided fallback when capability payload is malformed", () => {
+    const explicitFallback = buildSkillCatalogSnapshotFromProviderCapabilities(
+      {
+        source: "provider-live",
+        canRunLive: true,
+        canRunPreview: false,
+        // malformed skill payload should be rejected and fallback should remain
+        // the single string entry should sanitize to zero capability rows.
+        skills: "malformed-rows" as unknown as unknown[]
+      } as unknown,
+      providerFallbackCatalog
+    );
+
+    expect(explicitFallback.source).toBe("default-fallback");
+    expect(explicitFallback.catalog).toEqual(providerFallbackCatalog);
+    expect(explicitFallback.catalog.find((entry) => entry.id === "health-check")?.state).toBe("live");
   });
 });

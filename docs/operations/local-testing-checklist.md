@@ -38,6 +38,7 @@ Do not proceed to the next section until the current item is at least `review`.
 7. `Catalogs`
    - Open command, plugin, and tool catalogs.
    - Verify stable ordering and filtering output across repeated reloads.
+   - Refresh the Skills catalog and confirm source/state changes are visible without executing skills.
 8. `Migration`
    - Validate migration plan preview and staged execution flow.
    - Confirm irreversible steps are explicit and recoverable.

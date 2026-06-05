@@ -32,6 +32,38 @@ export type SkillCatalogSummary = {
   availability: number;
 };
 
+export type SkillCatalogRefreshSource =
+  | "provider-live"
+  | "provider-preview"
+  | "default-fallback"
+  | "empty-refresh"
+  | "unavailable";
+
+export type SkillCatalogProviderCapabilityState = SkillCatalogState;
+
+export interface SkillCatalogSnapshotSummary extends Omit<SkillCatalogSummary, "availability"> {
+  source: SkillCatalogRefreshSource;
+  availability: number;
+}
+
+export interface SkillCatalogSnapshot {
+  source: SkillCatalogRefreshSource;
+  catalog: readonly SkillCatalogEntry[];
+  summary: SkillCatalogSnapshotSummary;
+}
+
+export interface SkillCatalogProviderCapabilitySkill {
+  id: string;
+  state: SkillCatalogProviderCapabilityState;
+}
+
+export interface SkillCatalogProviderCapabilityInput {
+  canRunLive: boolean;
+  canRunPreview: boolean;
+  skills: unknown[];
+  source: SkillCatalogRefreshSource;
+}
+
 export const defaultSkillCatalog: readonly SkillCatalogEntry[] = [
   {
     id: "plan-tasks",
@@ -92,9 +124,20 @@ export const defaultSkillCatalog: readonly SkillCatalogEntry[] = [
 const DEFAULT_INVOCATION_LABEL = "Run";
 const FALLBACK_SOURCE: SkillCatalogSource = "builtin";
 const FALLBACK_TRIGGER: SkillCatalogTrigger = "command";
+const REFRESH_SOURCES: readonly SkillCatalogRefreshSource[] = [
+  "provider-live",
+  "provider-preview",
+  "default-fallback",
+  "empty-refresh",
+  "unavailable"
+];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isProviderRecord(value: unknown): value is Record<string, unknown> {
+  return isRecord(value);
 }
 
 function normalizeSkillId(value: unknown): string | undefined {
@@ -224,6 +267,250 @@ function normalizeSkillCatalogInternal(value: unknown): SkillCatalogEntry[] {
   return deduped;
 }
 
+function summarizeSkillCatalogWithSource(
+  catalog: unknown,
+  source: SkillCatalogRefreshSource
+): SkillCatalogSnapshotSummary {
+  const safeCatalog = normalizeSkillCatalog(catalog);
+
+  const summary = {
+    total: safeCatalog.length,
+    live: 0,
+    preview: 0,
+    disconnected: 0,
+    setupRequired: 0,
+    unsupported: 0,
+    unavailable: 0
+  };
+
+  for (const entry of safeCatalog) {
+    switch (entry.state) {
+      case "live":
+        summary.live += 1;
+        break;
+      case "preview":
+        summary.preview += 1;
+        break;
+      case "disconnected":
+        summary.disconnected += 1;
+        break;
+      case "setup-required":
+        summary.setupRequired += 1;
+        break;
+      case "unsupported":
+        summary.unsupported += 1;
+        break;
+      default:
+        summary.unavailable += 1;
+        break;
+    }
+  }
+
+  const actionable =
+    summary.live +
+    summary.preview +
+    summary.disconnected +
+    summary.setupRequired +
+    summary.unsupported +
+    summary.unavailable;
+  const availability =
+    summary.total > 0 ? Number(((summary.live + summary.preview) / summary.total).toFixed(2)) : 0;
+
+  return {
+    ...summary,
+    actionable,
+    availability,
+    source
+  };
+}
+
+function normalizeRefreshSource(value: unknown): SkillCatalogRefreshSource {
+  return typeof value === "string" &&
+    (REFRESH_SOURCES as readonly string[]).includes(value)
+    ? (value as SkillCatalogRefreshSource)
+    : "unavailable";
+}
+
+function isSkillCatalogProviderCapabilityState(value: unknown): value is SkillCatalogProviderCapabilityState {
+  return value === "live" ||
+    value === "preview" ||
+    value === "disconnected" ||
+    value === "setup-required" ||
+    value === "unsupported" ||
+    value === "unavailable";
+}
+
+function isSkillCatalogProviderCapabilityInput(
+  value: unknown
+): value is SkillCatalogProviderCapabilityInput {
+  return (
+    isProviderRecord(value) &&
+    typeof value.canRunLive === "boolean" &&
+    typeof value.canRunPreview === "boolean" &&
+    Array.isArray(value.skills)
+  );
+}
+
+function coerceProviderCapabilitySkill(
+  value: unknown
+): SkillCatalogProviderCapabilitySkill | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const id = normalizeSkillId(value.id);
+  if (!id) {
+    return undefined;
+  }
+
+  if (!isSkillCatalogProviderCapabilityState(value.state)) {
+    return undefined;
+  }
+
+  return { id, state: value.state };
+}
+
+function normalizeSkillCatalogProviderCapabilityInput(
+  value: unknown
+): {
+  source: SkillCatalogRefreshSource;
+  skills: SkillCatalogProviderCapabilitySkill[];
+  skillCount: number;
+  canRunLive: boolean;
+} {
+  const raw = isSkillCatalogProviderCapabilityInput(value)
+    ? (value as SkillCatalogProviderCapabilityInput)
+    : undefined;
+
+  if (!raw) {
+    return {
+      source: "default-fallback",
+      skills: [],
+      skillCount: -1,
+      canRunLive: false
+    };
+  }
+
+  return {
+    source: raw.canRunLive
+      ? "provider-live"
+      : raw.canRunPreview
+        ? "provider-preview"
+        : "default-fallback",
+    skills: raw.skills
+      .map(coerceProviderCapabilitySkill)
+      .filter((item): item is SkillCatalogProviderCapabilitySkill => item !== undefined),
+    skillCount: raw.skills.length,
+    canRunLive: raw.canRunLive
+  };
+}
+
+function normalizeSkillCatalogWithProviderCapabilities(
+  catalog: unknown,
+  providerCapabilities: {
+    canRunLive: boolean;
+    skills: SkillCatalogProviderCapabilitySkill[];
+  }
+): SkillCatalogEntry[] {
+  const fallbackCatalog = normalizeSkillCatalog(catalog);
+  const bySkill = new Map<string, SkillCatalogProviderCapabilityState>(
+    providerCapabilities.skills.map((item) => [item.id, item.state])
+  );
+
+  return fallbackCatalog.map((entry) => {
+    const override = bySkill.get(entry.id);
+    if (!override) {
+      return entry;
+    }
+
+    const resolvedState = providerCapabilities.canRunLive
+      ? override
+      : override === "live"
+        ? "preview"
+        : override;
+
+    return {
+      ...entry,
+      state: resolvedState
+    };
+  });
+}
+
+function normalizeSkillCatalogWithProviderEntries(
+  entries: unknown,
+  source: SkillCatalogRefreshSource,
+  fallback: readonly SkillCatalogEntry[]
+): SkillCatalogEntry[] {
+  const providerEntries = normalizeSkillCatalogInternal(entries);
+  const fallbackEntries = normalizeSkillCatalogInternal(fallback);
+
+  if (providerEntries.length === 0) {
+    return [];
+  }
+
+  return providerEntries.map((entry) => {
+    const fallbackEntry = fallbackEntries.find((item) => item.id === entry.id);
+    const state = source === "provider-preview" && entry.state === "live"
+      ? "preview"
+      : entry.state;
+
+    return {
+      ...(fallbackEntry ?? entry),
+      state
+    };
+  });
+}
+
+function unavailableSnapshot(
+  fallback: readonly SkillCatalogEntry[]
+): SkillCatalogSnapshot {
+  const catalog = normalizeSkillCatalog([], fallback).map((entry) => ({
+    ...entry,
+    state: entry.state === "live" ? ("unavailable" as const) : entry.state
+  }));
+
+  return {
+    source: "unavailable",
+    catalog,
+    summary: summarizeSkillCatalogWithSource(catalog, "unavailable")
+  };
+}
+
+export function buildSkillCatalogSnapshot(
+  catalog: unknown,
+  source: SkillCatalogRefreshSource = "default-fallback",
+  fallback: readonly SkillCatalogEntry[] = defaultSkillCatalog
+): SkillCatalogSnapshot {
+  const providedIsArray = Array.isArray(catalog);
+  const normalizedCatalog = providedIsArray ? normalizeSkillCatalogInternal(catalog) : [];
+  const normalizedFallback = normalizeSkillCatalogInternal(fallback);
+
+  if (normalizedCatalog.length > 0) {
+    const resolvedSource = source === "provider-live" || source === "provider-preview" ? source : "default-fallback";
+    return {
+      source: resolvedSource,
+      catalog: normalizedCatalog,
+      summary: summarizeSkillCatalogWithSource(normalizedCatalog, resolvedSource)
+    };
+  }
+
+  let resolvedSource: SkillCatalogRefreshSource;
+  if (providedIsArray) {
+    resolvedSource = catalog.length === 0 ? "empty-refresh" : "default-fallback";
+  } else if (normalizedFallback.length === 0) {
+    resolvedSource = "unavailable";
+  } else {
+    resolvedSource = "default-fallback";
+  }
+
+  const safeCatalog = normalizeSkillCatalog(catalog, fallback);
+  return {
+    source: resolvedSource,
+    catalog: safeCatalog,
+    summary: summarizeSkillCatalogWithSource(safeCatalog, resolvedSource)
+  };
+}
+
 export function normalizeSkillCatalog(
   value: unknown,
   fallback: readonly SkillCatalogEntry[] = defaultSkillCatalog
@@ -305,4 +592,90 @@ export function summarizeSkillCatalog(
     actionable,
     availability
   };
+}
+
+export function buildSkillCatalogSnapshotFromProviderCapabilities(
+  providerCapabilities: unknown,
+  fallback: readonly SkillCatalogEntry[] = defaultSkillCatalog
+): SkillCatalogSnapshot {
+  const normalizedFallback = normalizeSkillCatalogInternal(fallback);
+  const normalizedFallbackCatalog = normalizeSkillCatalog([], fallback);
+  const { source, skills, skillCount, canRunLive } =
+    normalizeSkillCatalogProviderCapabilityInput(providerCapabilities);
+
+  if (skillCount < 0) {
+    return normalizedFallback.length === 0
+      ? unavailableSnapshot(fallback)
+      : {
+          source: "default-fallback",
+          catalog: normalizedFallbackCatalog,
+          summary: summarizeSkillCatalogWithSource(normalizedFallbackCatalog, "default-fallback")
+        };
+  }
+
+  if (skillCount === 0) {
+    return buildSkillCatalogSnapshot([], "empty-refresh", fallback);
+  }
+
+  const providerCatalog = normalizeSkillCatalogWithProviderCapabilities(fallback, {
+    canRunLive,
+    skills
+  });
+
+  const providerSource = skills.length > 0 ? source : normalizeRefreshSource("default-fallback");
+  const safeSource = normalizeRefreshSource(providerSource);
+
+  return {
+    source: safeSource,
+    catalog: skills.length > 0 ? providerCatalog : normalizedFallbackCatalog,
+    summary: summarizeSkillCatalogWithSource(
+      skills.length > 0 ? providerCatalog : normalizedFallbackCatalog,
+      safeSource
+    )
+  };
+}
+
+export function snapshotFromProviderSkillCatalogPayload(
+  value: unknown,
+  fallback: readonly SkillCatalogEntry[] = defaultSkillCatalog
+): SkillCatalogSnapshot {
+  if (!isProviderRecord(value)) {
+    return unavailableSnapshot(fallback);
+  }
+
+  const source = normalizeRefreshSource(value.source);
+  if (source === "provider-live" || source === "provider-preview") {
+    const providerEntries = normalizeSkillCatalogWithProviderEntries(
+      value.entries,
+      source,
+      fallback
+    );
+    if (providerEntries.length > 0) {
+      return {
+        source,
+        catalog: providerEntries,
+        summary: summarizeSkillCatalogWithSource(providerEntries, source)
+      };
+    }
+
+    return buildSkillCatalogSnapshotFromProviderCapabilities(
+      {
+        canRunLive: source === "provider-live",
+        canRunPreview: true,
+        source,
+        skills: isRecord(value) ? value.entries : []
+      },
+      fallback
+    );
+  }
+
+  if (source === "default-fallback" || source === "empty-refresh") {
+    return buildSkillCatalogSnapshot(value.entries, source, fallback);
+  }
+
+  if (source === "unavailable") {
+    return unavailableSnapshot(fallback);
+  }
+
+  return buildSkillCatalogSnapshot([], "unavailable", fallback);
 }

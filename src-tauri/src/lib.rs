@@ -211,6 +211,28 @@ pub struct ProviderCommandCatalogPreview {
     pub safety: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderSkillCatalogEntry {
+    pub id: String,
+    pub label: String,
+    pub source: String,
+    pub trigger: String,
+    pub invocation_label: String,
+    pub state: String,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderSkillCatalogPreview {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub entries: Vec<ProviderSkillCatalogEntry>,
+    pub detail: String,
+    pub safety: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LiveActionRunnerRequest {
@@ -286,7 +308,8 @@ mod runtime_bridge {
         CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelTurnResult, CodexTransportProbe,
         LiveActionRunnerRequest, LiveActionRunnerResult, MigrationSourceCategoryPreview,
         MigrationSourcePreview, MigrationSourcePreviewCounts, PermissionApprovalStatus,
-        ProviderCommandCatalogEntry, ProviderCommandCatalogPreview, RuntimeBridgeStatus,
+        ProviderCommandCatalogEntry, ProviderCommandCatalogPreview, ProviderSkillCatalogEntry,
+        ProviderSkillCatalogPreview, RuntimeBridgeStatus,
     };
     use serde_json::Value;
     use std::collections::{BTreeMap, BTreeSet};
@@ -943,6 +966,135 @@ mod runtime_bridge {
     #[tauri::command]
     pub fn codex_command_catalog_preview() -> ProviderCommandCatalogPreview {
         codex_command_catalog_preview_from_probe(codex_transport_probe())
+    }
+
+    fn skill_catalog_entry(
+        id: &str,
+        label: &str,
+        source: &str,
+        trigger: &str,
+        invocation_label: &str,
+        state: &str,
+        detail: &str,
+    ) -> ProviderSkillCatalogEntry {
+        ProviderSkillCatalogEntry {
+            id: id.to_string(),
+            label: label.to_string(),
+            source: source.to_string(),
+            trigger: trigger.to_string(),
+            invocation_label: invocation_label.to_string(),
+            state: state.to_string(),
+            detail: detail.to_string(),
+        }
+    }
+
+    pub(crate) fn codex_skill_catalog_preview_from_probe(
+        probe: CodexTransportProbe,
+    ) -> ProviderSkillCatalogPreview {
+        let panel_protocol_ready = probe.app_server.protocol.thread_start
+            && probe.app_server.protocol.turn_start
+            && probe.app_server.protocol.agent_message_delta;
+        let app_server_ready = probe.app_server.available
+            && probe.app_server.stdio_handshake
+            && panel_protocol_ready;
+        let provider_detected = probe.cli.available
+            || probe.codex_home.present
+            || probe.app_server.available
+            || probe.exec_json.available;
+        let skills_detected = probe.codex_home.skills_count > 0;
+        let skills_schema_detected = probe.app_server.protocol.skills_list;
+
+        if !provider_detected {
+            return ProviderSkillCatalogPreview {
+                source: "unavailable".to_string(),
+                checked_at: probe.checked_at,
+                entries: Vec::new(),
+                detail: "No provider skill capability was detected.".to_string(),
+                safety:
+                    "Skill refresh did not read skill bodies, copy credentials, or expose local paths."
+                        .to_string(),
+            };
+        }
+
+        let source = if app_server_ready && (skills_detected || skills_schema_detected) {
+            "provider-live"
+        } else {
+            "provider-preview"
+        };
+        let runnable_state = if source == "provider-live" {
+            "live"
+        } else if skills_detected || skills_schema_detected {
+            "preview"
+        } else if probe.codex_home.present {
+            "setup-required"
+        } else {
+            "unavailable"
+        };
+
+        let mut entries = Vec::new();
+        if skills_detected {
+            entries.push(skill_catalog_entry(
+                "provider-local-skills",
+                "Local Skills",
+                "builtin",
+                "command",
+                "Open Skills",
+                runnable_state,
+                &format!(
+                    "{} metadata-visible skill {} detected.",
+                    probe.codex_home.skills_count,
+                    if probe.codex_home.skills_count == 1 {
+                        "entry was"
+                    } else {
+                        "entries were"
+                    }
+                ),
+            ));
+        }
+
+        if skills_schema_detected {
+            entries.push(skill_catalog_entry(
+                "provider-skills-schema",
+                "Provider Skills Schema",
+                "api",
+                "menu",
+                "Inspect Skills",
+                if app_server_ready { "preview" } else { "disconnected" },
+                "Provider app-server exposes skill-list capability metadata.",
+            ));
+        }
+
+        if entries.is_empty() && probe.codex_home.present {
+            entries.push(skill_catalog_entry(
+                "provider-skills-setup",
+                "Skills Setup",
+                "builtin",
+                "menu",
+                "Review Setup",
+                "setup-required",
+                "Provider profile is present, but no metadata-visible skills were detected.",
+            ));
+        }
+
+        ProviderSkillCatalogPreview {
+            source: source.to_string(),
+            checked_at: probe.checked_at,
+            entries,
+            detail: if skills_detected || skills_schema_detected {
+                "Provider skill catalog refreshed from safe capability metadata.".to_string()
+            } else {
+                "Provider skill catalog refreshed in setup mode from safe profile metadata."
+                    .to_string()
+            },
+            safety:
+                "Skill refresh did not read skill bodies, copy credentials, or expose local paths."
+                    .to_string(),
+        }
+    }
+
+    #[tauri::command]
+    pub fn codex_skill_catalog_preview() -> ProviderSkillCatalogPreview {
+        codex_skill_catalog_preview_from_probe(codex_transport_probe())
     }
 
     #[tauri::command]
@@ -2195,6 +2347,7 @@ pub fn run() {
             runtime_bridge::migration_source_preview,
             runtime_bridge::codex_transport_probe,
             runtime_bridge::codex_command_catalog_preview,
+            runtime_bridge::codex_skill_catalog_preview,
             runtime_bridge::codex_transport_live_smoke,
             runtime_bridge::codex_panel_session_readiness,
             runtime_bridge::codex_panel_session_start,
@@ -2682,6 +2835,73 @@ mod tests {
         assert!(!serialized.contains("raw transcript:"));
         assert!(serialized.contains("capability"));
         assert!(serialized.contains("raw transcripts"));
+    }
+
+    #[test]
+    fn codex_skill_catalog_preview_marks_skills_live_from_safe_metadata() {
+        let preview =
+            runtime_bridge::codex_skill_catalog_preview_from_probe(fake_codex_transport_probe());
+
+        assert_eq!(preview.source, "provider-live");
+        assert!(preview.safety.to_lowercase().contains("did not read skill bodies"));
+        assert!(preview.entries.iter().any(|entry| {
+            entry.id == "provider-local-skills"
+                && entry.state == "live"
+                && entry.detail.contains("4 metadata-visible")
+        }));
+        assert!(preview
+            .entries
+            .iter()
+            .any(|entry| entry.id == "provider-skills-schema"));
+    }
+
+    #[test]
+    fn codex_skill_catalog_preview_uses_setup_required_when_profile_has_no_skills() {
+        let mut probe = fake_codex_transport_probe();
+        probe.codex_home.skills_count = 0;
+        probe.app_server.protocol.skills_list = false;
+
+        let preview = runtime_bridge::codex_skill_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "provider-preview");
+        assert_eq!(preview.entries.len(), 1);
+        assert_eq!(preview.entries[0].id, "provider-skills-setup");
+        assert_eq!(preview.entries[0].state, "setup-required");
+    }
+
+    #[test]
+    fn codex_skill_catalog_preview_reports_unavailable_without_provider_detection() {
+        let mut probe = fake_codex_transport_probe();
+        probe.cli.available = false;
+        probe.codex_home.present = false;
+        probe.codex_home.skills_count = 0;
+        probe.app_server.available = false;
+        probe.exec_json.available = false;
+
+        let preview = runtime_bridge::codex_skill_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "unavailable");
+        assert!(preview.entries.is_empty());
+        assert!(preview
+            .detail
+            .to_lowercase()
+            .contains("no provider skill capability"));
+    }
+
+    #[test]
+    fn codex_skill_catalog_preview_excludes_secret_bodies_and_path_details() {
+        let preview =
+            runtime_bridge::codex_skill_catalog_preview_from_probe(fake_codex_transport_probe());
+        let serialized = serde_json::to_string(&preview)
+            .unwrap_or_default()
+            .to_lowercase();
+
+        assert!(!serialized.contains("auth.json"));
+        assert!(!serialized.contains("token"));
+        assert!(!serialized.contains("c:\\"));
+        assert!(!serialized.contains("/home/"));
+        assert!(!serialized.contains("skill.md"));
+        assert!(serialized.contains("metadata"));
     }
 
     #[test]
