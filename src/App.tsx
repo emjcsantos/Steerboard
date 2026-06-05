@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import packageManifest from "../package.json";
 import {
   cockpitPresets,
   orchestrationTasks,
@@ -418,6 +419,10 @@ import {
   buildDesktopPackagingReadinessSnapshot,
   type DesktopPackagingReadinessSnapshot
 } from "./desktopPackagingReadiness";
+import {
+  createSourceInstallReadiness,
+  type SourceInstallReadinessSnapshot
+} from "./sourceInstallReadiness";
 import {
   buildLocalEvidenceReadinessSnapshot,
   type LocalEvidenceReadinessSnapshot
@@ -2563,6 +2568,10 @@ function RightPanel({
       ),
     [desktopBridgeStatus, desktopPermissionApprovalStatus]
   );
+  const sourceInstallReadinessSnapshot = useMemo(
+    () => createSourceInstallReadiness(packageManifest),
+    []
+  );
   const canActivateDraftProfile =
     runtimeProfileApprovalSnapshot.state === "requested" &&
     canActivateRuntimeProfile(runtimeProfileDraftReadiness);
@@ -3278,7 +3287,10 @@ function RightPanel({
         </div>
       </section>
 
-      <DesktopPackagingReadinessPanel packaging={desktopPackagingReadinessSnapshot} />
+      <DesktopPackagingReadinessPanel
+        packaging={desktopPackagingReadinessSnapshot}
+        sourceInstall={sourceInstallReadinessSnapshot}
+      />
 
       <RuntimeProfilePanel
         activation={runtimeProfileActivationSnapshot}
@@ -4543,9 +4555,11 @@ function DesktopRuntimeBridgeStatusBlock({
 }
 
 function DesktopPackagingReadinessPanel({
-  packaging
+  packaging,
+  sourceInstall
 }: {
   packaging: DesktopPackagingReadinessSnapshot;
+  sourceInstall: SourceInstallReadinessSnapshot;
 }) {
   return (
     <section className="panel-section">
@@ -4591,6 +4605,36 @@ function DesktopPackagingReadinessPanel({
             </li>
           ))}
         </ol>
+        <div
+          aria-label={sourceInstall.ariaLabel}
+          className={classNames(
+            "source-install-readiness",
+            `source-install-${sourceInstall.state}`
+          )}
+        >
+          <div className="source-install-header">
+            <span className="source-install-state">
+              <span aria-hidden="true" />
+              {sourceInstall.statusLabel}
+            </span>
+            <strong title={sourceInstall.label}>Source install</strong>
+            <b>{sourceInstall.readiness}%</b>
+          </div>
+          <p title={sourceInstall.detail}>{sourceInstall.detail}</p>
+          <ol className="source-install-items">
+            {sourceInstall.items.map((item) => (
+              <li
+                className={`source-install-item-${item.status}`}
+                key={item.id}
+                title={item.detail}
+              >
+                <span>{item.status}</span>
+                <strong>{item.label}</strong>
+              </li>
+            ))}
+          </ol>
+          <small title={sourceInstall.safety}>{sourceInstall.safety}</small>
+        </div>
         <small title={packaging.safety}>{packaging.safety}</small>
       </div>
     </section>

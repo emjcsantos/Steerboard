@@ -88,13 +88,14 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
   },
   {
     target: "Packaging and installation",
-    completion: "Planned",
+    completion: "In progress",
     plan: "Prepare install, environment, and distribution path for dependable rollout.",
-    completionPercent: 15,
-    latestNote: "Basic packaging decisions are started and setup planning is underway.",
-    nextStep: "Finalize release packaging and installation scripts for repeatable onboarding.",
-    tone: "planned",
-    note: "Distribution, environment setup, and installation workflow are being prepared for dependable rollout."
+    completionPercent: 30,
+    latestNote:
+      "Source-first install readiness gates are now defined and visible in documentation, before any distribution promotion.",
+    nextStep: "Expose source-install readiness in the cockpit and validate build/package guidance.",
+    tone: "active",
+    note: "Distribution, source setup readiness checks, and install safety documentation are now in visible progress."
   },
   {
     target: "Optional project management lane",
