@@ -12,7 +12,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 | Phase 4: Runtime Adapters | In progress | Provider-neutral adapter previews, runtime profiles, local approvals, bridge status, permission previews, and evidence readiness are scaffolded as locked local previews. |
 | Phase 5: Live Codex Integration | In progress | Codex transport spike identifies supervised app-server stdio as the safest first session bridge, with no-prompt readiness on startup and explicit live smoke for one read-only send/stream proof. |
 | Phase 6: Adaptive Cockpit Canvas | In progress | Adaptive mode now supports persisted panel geometry, add/reveal, hide, resize, reset, keyboard move/resize, magnetic panel dragging, project stack drag-in, chat drag-in, and visible drop-preview states from the left rail. |
-| Phase 7: Platform Capabilities | In progress | Slash commands and Skills catalog now expose structured feedback plus desktop-backed safe provider capability refresh; plugins, automations, MCP, personalization, permissions, and audit state continue toward live provider-backed surfaces. |
+| Phase 7: Platform Capabilities | In progress | Slash commands, Skills catalog, and Plugin manager now expose structured feedback plus desktop-backed safe provider capability refresh; automations, MCP, personalization, permissions, and audit state continue toward live provider-backed surfaces. |
 | Phase 8: Local Execution And Packaging | Planned | Real runtime execution, permissioned terminal/Git capture, audit exports, build signing, and installer checks remain behind future explicit approval gates. |
 
 ## Phase 1: Product Scaffold
@@ -108,6 +108,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Slash command registry and composer command menu with ready, preview, blocked, unsupported, and unavailable feedback.
 - Desktop-backed safe provider capability refresh for slash commands, with seeded fallback in browser preview.
 - Desktop-backed safe provider capability refresh for Skills catalog metadata, with seeded fallback in browser preview.
+- Desktop-backed safe provider capability refresh for Plugin catalog metadata, with seeded fallback in browser preview.
 - Migration center for supported agent tools, generic MCP config, generic skill/prompt folders, and manual JSON or TOML imports, with source picker, category checkboxes, and minimum-needed tool scope.
 - Provider-backed command execution with unsupported-state handling.
 - Plugin manager showing installed, enabled, disabled, setup-required, and unavailable states.

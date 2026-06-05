@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildPluginCatalogSnapshot,
   defaultPluginCatalog,
   normalizePluginCatalog,
+  snapshotFromProviderPluginCatalogPayload,
   summarizePluginCatalog,
   type PluginCatalogEntry,
   type PluginCatalogState
@@ -167,6 +169,126 @@ describe("plugin catalog summary", () => {
       actionable: 7,
       availability: 0.43
     });
+  });
+});
+
+describe("plugin catalog snapshots", () => {
+  const fallbackCatalog: PluginCatalogEntry[] = [
+    { id: "notes-sync", label: "Notes Sync", detail: "Fallback notes.", state: "preview" },
+    { id: "provider-live-plugin", label: "Live Plugin", detail: "Fallback live.", state: "live" }
+  ];
+
+  it("builds a default fallback snapshot from safe defaults", () => {
+    const snapshot = buildPluginCatalogSnapshot(undefined, "default-fallback", fallbackCatalog);
+
+    expect(snapshot.source).toBe("default-fallback");
+    expect(snapshot.catalog).toEqual(fallbackCatalog);
+    expect(snapshot.summary.source).toBe("default-fallback");
+    expect(snapshot.summary.availability).toBe(1);
+  });
+
+  it("builds provider-live snapshot from normalized provider rows", () => {
+    const snapshot = snapshotFromProviderPluginCatalogPayload(
+      {
+        source: "provider-live",
+        entries: [
+          {
+            id: "provider-local-plugins",
+            label: "Local Plugins",
+            detail: "4 metadata-visible plugin entries were detected.",
+            state: "live"
+          }
+        ]
+      },
+      fallbackCatalog
+    );
+
+    expect(snapshot.source).toBe("provider-live");
+    expect(snapshot.catalog).toEqual([
+      {
+        id: "provider-local-plugins",
+        label: "Local Plugins",
+        detail: "4 metadata-visible plugin entries were detected.",
+        state: "live"
+      }
+    ]);
+  });
+
+  it("downgrades provider-live rows to preview for preview-only provider payloads", () => {
+    const snapshot = snapshotFromProviderPluginCatalogPayload(
+      {
+        source: "provider-preview",
+        entries: [
+          {
+            id: "provider-local-plugins",
+            label: "Local Plugins",
+            detail: "Detected from metadata.",
+            state: "live"
+          }
+        ]
+      },
+      fallbackCatalog
+    );
+
+    expect(snapshot.source).toBe("provider-preview");
+    expect(snapshot.catalog[0]?.state).toBe("preview");
+  });
+
+  it("returns empty-refresh source for empty refresh payloads", () => {
+    const snapshot = snapshotFromProviderPluginCatalogPayload(
+      {
+        source: "empty-refresh",
+        entries: []
+      },
+      fallbackCatalog
+    );
+
+    expect(snapshot.source).toBe("empty-refresh");
+    expect(snapshot.catalog).toEqual(fallbackCatalog);
+  });
+
+  it("returns unavailable snapshot for malformed or unavailable payloads", () => {
+    const malformed = snapshotFromProviderPluginCatalogPayload("not-a-payload", fallbackCatalog);
+    const unavailable = snapshotFromProviderPluginCatalogPayload(
+      {
+        source: "unavailable",
+        entries: []
+      },
+      fallbackCatalog
+    );
+
+    expect(malformed.source).toBe("unavailable");
+    expect(unavailable.source).toBe("unavailable");
+    expect(malformed.catalog.find((entry) => entry.id === "provider-live-plugin")?.state).toBe(
+      "unavailable"
+    );
+    expect(unavailable.catalog.find((entry) => entry.id === "notes-sync")?.state).toBe("preview");
+  });
+
+  it("supports provider-only rows without requiring fallback entries", () => {
+    const snapshot = snapshotFromProviderPluginCatalogPayload(
+      {
+        source: "provider-live",
+        entries: [
+          {
+            id: "provider-only-plugin",
+            label: "Provider Only Plugin",
+            detail: "Only reported by the provider.",
+            state: "preview"
+          }
+        ]
+      },
+      fallbackCatalog
+    );
+
+    expect(snapshot.catalog).toEqual([
+      {
+        id: "provider-only-plugin",
+        label: "Provider Only Plugin",
+        detail: "Only reported by the provider.",
+        state: "preview"
+      }
+    ]);
   });
 });
 

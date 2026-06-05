@@ -145,7 +145,7 @@ Phase 10B defines the first desktop-backed runner attachment:
 | Slash Command Registry | 30% | Provider-neutral command catalog, command state model, composer suggestions, preview routing, unsupported/unavailable blocking, and desktop-backed safe provider capability refresh are in place; live command execution remains pending. |
 | Skills Catalog | 20% | Provider-neutral skill model, dialog surface, provider-only row support, and desktop-backed safe provider metadata refresh are in place; skill execution remains pending. |
 | MCP Manager | 12% | Provider-neutral MCP model and dialog surface show transport, setup/health posture, and tool policy without starting servers. |
-| Plugin Manager | 12% | Provider-neutral plugin model and dialog surface show setup/enabled posture and supported invocation metadata as a safe seed catalog. |
+| Plugin Manager | 20% | Provider-neutral plugin model, dialog surface, provider-only row support, and desktop-backed safe provider metadata refresh are in place; plugin execution remains pending. |
 | Automations Manager | 12% | Provider-neutral automation model and dialog surface show lifecycle, trigger, and approval posture without scheduling or running automations. |
 | Personalization Center | 12% | Provider-neutral personalization model and settings entry show instruction/config layers and privacy posture without exposing private paths. |
 | Migration Center | 20% | `File > Migrate...` now exposes a safe source selector, desktop metadata scan, category checkboxes, excluded secrets summary, and local profile draft staging. Reviewed persistence and rollback remain pending. |

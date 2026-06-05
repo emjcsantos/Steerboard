@@ -233,6 +233,28 @@ pub struct ProviderSkillCatalogPreview {
     pub safety: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderPluginCatalogEntry {
+    pub id: String,
+    pub label: String,
+    pub source: String,
+    pub state: String,
+    pub capability: String,
+    pub count: usize,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderPluginCatalogPreview {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub entries: Vec<ProviderPluginCatalogEntry>,
+    pub detail: String,
+    pub safety: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LiveActionRunnerRequest {
@@ -308,8 +330,9 @@ mod runtime_bridge {
         CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelTurnResult, CodexTransportProbe,
         LiveActionRunnerRequest, LiveActionRunnerResult, MigrationSourceCategoryPreview,
         MigrationSourcePreview, MigrationSourcePreviewCounts, PermissionApprovalStatus,
-        ProviderCommandCatalogEntry, ProviderCommandCatalogPreview, ProviderSkillCatalogEntry,
-        ProviderSkillCatalogPreview, RuntimeBridgeStatus,
+        ProviderCommandCatalogEntry, ProviderCommandCatalogPreview, ProviderPluginCatalogEntry,
+        ProviderPluginCatalogPreview, ProviderSkillCatalogEntry, ProviderSkillCatalogPreview,
+        RuntimeBridgeStatus,
     };
     use serde_json::Value;
     use std::collections::{BTreeMap, BTreeSet};
@@ -1095,6 +1118,126 @@ mod runtime_bridge {
     #[tauri::command]
     pub fn codex_skill_catalog_preview() -> ProviderSkillCatalogPreview {
         codex_skill_catalog_preview_from_probe(codex_transport_probe())
+    }
+
+    fn plugin_catalog_entry(
+        id: &str,
+        label: &str,
+        source: &str,
+        state: &str,
+        capability: &str,
+        count: usize,
+        detail: &str,
+    ) -> ProviderPluginCatalogEntry {
+        ProviderPluginCatalogEntry {
+            id: id.to_string(),
+            label: label.to_string(),
+            source: source.to_string(),
+            state: state.to_string(),
+            capability: capability.to_string(),
+            count,
+            detail: detail.to_string(),
+        }
+    }
+
+    pub(crate) fn codex_plugin_catalog_preview_from_probe(
+        probe: CodexTransportProbe,
+    ) -> ProviderPluginCatalogPreview {
+        let panel_protocol_ready = probe.app_server.protocol.thread_start
+            && probe.app_server.protocol.turn_start
+            && probe.app_server.protocol.agent_message_delta;
+        let app_server_ready = probe.app_server.available
+            && probe.app_server.stdio_handshake
+            && panel_protocol_ready;
+        let provider_detected = probe.cli.available
+            || probe.codex_home.present
+            || probe.app_server.available
+            || probe.exec_json.available;
+        let local_plugins_detected = probe.codex_home.plugins_present;
+        let plugin_schema_detected = probe.app_server.protocol.plugin_list;
+
+        if !provider_detected {
+            return ProviderPluginCatalogPreview {
+                source: "unavailable".to_string(),
+                checked_at: probe.checked_at,
+                entries: Vec::new(),
+                detail: "No provider plugin capability was detected.".to_string(),
+                safety:
+                    "Plugin refresh did not read plugin bodies, copy credentials, or expose local paths."
+                        .to_string(),
+            };
+        }
+
+        let metadata_detected = local_plugins_detected || plugin_schema_detected;
+        let source = if app_server_ready && plugin_schema_detected {
+            "provider-live"
+        } else {
+            "provider-preview"
+        };
+        let runnable_state = if source == "provider-live" {
+            "live"
+        } else if metadata_detected {
+            "preview"
+        } else {
+            "setup-required"
+        };
+
+        let mut entries = Vec::new();
+        if local_plugins_detected {
+            entries.push(plugin_catalog_entry(
+                "provider-local-plugins",
+                "Local Plugins",
+                "builtin",
+                runnable_state,
+                "plugin-metadata",
+                1,
+                "Provider profile reports metadata-visible plugin availability.",
+            ));
+        }
+
+        if plugin_schema_detected {
+            entries.push(plugin_catalog_entry(
+                "provider-plugin-schema",
+                "Provider Plugin Schema",
+                "api",
+                if app_server_ready { "live" } else { "preview" },
+                "plugin-list",
+                1,
+                "Provider app-server exposes plugin-list capability metadata.",
+            ));
+        }
+
+        if entries.is_empty() {
+            entries.push(plugin_catalog_entry(
+                "provider-plugin-setup",
+                "Plugin Setup",
+                "builtin",
+                "setup-required",
+                "provider-profile",
+                0,
+                "Provider profile is present, but no metadata-visible plugins were detected.",
+            ));
+        }
+
+        ProviderPluginCatalogPreview {
+            source: source.to_string(),
+            checked_at: probe.checked_at,
+            entries,
+            detail: if metadata_detected {
+                "Provider plugin catalog refreshed from safe capability metadata.".to_string()
+            } else {
+                "Provider plugin catalog refreshed in setup mode from safe profile metadata."
+                    .to_string()
+            },
+            safety:
+                "Plugin refresh did not read plugin bodies, copy credentials, or expose local paths."
+                    .to_string(),
+        }
+    }
+
+    #[tauri::command]
+    pub fn codex_plugin_catalog_preview() -> ProviderPluginCatalogPreview {
+        codex_plugin_catalog_preview_from_probe(codex_transport_probe())
     }
 
     #[tauri::command]
@@ -2348,6 +2491,7 @@ pub fn run() {
             runtime_bridge::codex_transport_probe,
             runtime_bridge::codex_command_catalog_preview,
             runtime_bridge::codex_skill_catalog_preview,
+            runtime_bridge::codex_plugin_catalog_preview,
             runtime_bridge::codex_transport_live_smoke,
             runtime_bridge::codex_panel_session_readiness,
             runtime_bridge::codex_panel_session_start,
@@ -2901,6 +3045,81 @@ mod tests {
         assert!(!serialized.contains("c:\\"));
         assert!(!serialized.contains("/home/"));
         assert!(!serialized.contains("skill.md"));
+        assert!(serialized.contains("metadata"));
+    }
+
+    #[test]
+    fn codex_plugin_catalog_preview_marks_plugins_live_from_safe_metadata() {
+        let preview =
+            runtime_bridge::codex_plugin_catalog_preview_from_probe(fake_codex_transport_probe());
+
+        assert_eq!(preview.source, "provider-live");
+        assert!(preview.safety.to_lowercase().contains("did not read plugin bodies"));
+        assert!(preview
+            .detail
+            .to_lowercase()
+            .contains("capability metadata"));
+        assert!(preview.entries.iter().any(|entry| {
+            entry.id == "provider-local-plugins"
+                && entry.state == "live"
+                && entry.capability == "plugin-metadata"
+        }));
+        assert!(preview.entries.iter().any(|entry| {
+            entry.id == "provider-plugin-schema"
+                && entry.state == "live"
+                && entry.capability == "plugin-list"
+        }));
+    }
+
+    #[test]
+    fn codex_plugin_catalog_preview_uses_setup_required_when_profile_has_no_plugins() {
+        let mut probe = fake_codex_transport_probe();
+        probe.codex_home.plugins_present = false;
+        probe.app_server.protocol.plugin_list = false;
+
+        let preview = runtime_bridge::codex_plugin_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "provider-preview");
+        assert_eq!(preview.entries.len(), 1);
+        assert_eq!(preview.entries[0].id, "provider-plugin-setup");
+        assert_eq!(preview.entries[0].state, "setup-required");
+        assert_eq!(preview.entries[0].count, 0);
+    }
+
+    #[test]
+    fn codex_plugin_catalog_preview_reports_unavailable_without_provider_detection() {
+        let mut probe = fake_codex_transport_probe();
+        probe.cli.available = false;
+        probe.codex_home.present = false;
+        probe.codex_home.plugins_present = false;
+        probe.app_server.available = false;
+        probe.exec_json.available = false;
+
+        let preview = runtime_bridge::codex_plugin_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "unavailable");
+        assert!(preview.entries.is_empty());
+        assert!(preview
+            .detail
+            .to_lowercase()
+            .contains("no provider plugin capability"));
+    }
+
+    #[test]
+    fn codex_plugin_catalog_preview_excludes_secret_bodies_and_path_details() {
+        let preview =
+            runtime_bridge::codex_plugin_catalog_preview_from_probe(fake_codex_transport_probe());
+        let serialized = serde_json::to_string(&preview)
+            .unwrap_or_default()
+            .to_lowercase();
+
+        assert!(!serialized.contains("auth.json"));
+        assert!(!serialized.contains("token"));
+        assert!(!serialized.contains("c:\\"));
+        assert!(!serialized.contains("/home/"));
+        assert!(!serialized.contains("plugin.json"));
+        assert!(!serialized.contains("plugin.md"));
+        assert!(!serialized.contains("manifest"));
         assert!(serialized.contains("metadata"));
     }
 

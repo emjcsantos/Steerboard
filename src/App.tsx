@@ -194,10 +194,13 @@ import {
   type PersonalizationCatalogEntry
 } from "./personalizationCatalog";
 import {
+  buildPluginCatalogSnapshot,
   defaultPluginCatalog,
-  summarizePluginCatalog,
-  type PluginCatalogEntry
+  type PluginCatalogEntry,
+  type PluginCatalogRefreshSource,
+  type PluginCatalogSnapshot
 } from "./pluginCatalog";
+import { loadProviderPluginCatalogSnapshot } from "./providerPluginCatalog";
 import {
   defaultSkillCatalog,
   buildSkillCatalogSnapshot,
@@ -989,6 +992,21 @@ function formatSkillCatalogSource(source: SkillCatalogRefreshSource): string {
   }
 }
 
+function formatPluginCatalogSource(source: PluginCatalogRefreshSource): string {
+  switch (source) {
+    case "provider-live":
+      return "Provider live";
+    case "provider-preview":
+      return "Provider preview";
+    case "default-fallback":
+      return "Default fallback";
+    case "empty-refresh":
+      return "Empty refresh";
+    case "unavailable":
+      return "Unavailable";
+  }
+}
+
 function buildPluginCatalogRows(catalog: readonly PluginCatalogEntry[]): PlatformCatalogRow[] {
   return catalog.map((entry) => ({
     id: entry.id,
@@ -1043,15 +1061,17 @@ function buildPersonalizationCatalogRows(
 
 function getPlatformCatalogView(
   dialog: AppDialog,
+  pluginCatalogSnapshot: PluginCatalogSnapshot,
   skillCatalogSnapshot: SkillCatalogSnapshot
 ): PlatformCatalogView | undefined {
   if (dialog === "plugins") {
     return {
       title: "Plugins",
       eyebrow: "Platform catalog",
-      lead: "Plugin entries are staged as a safe catalog foundation. Live execution waits for provider refresh and permission gates.",
-      rows: buildPluginCatalogRows(defaultPluginCatalog),
-      summary: summarizePluginCatalog(defaultPluginCatalog)
+      lead: "Plugin entries show setup posture and safe provider refresh state before runtime-backed plugin actions are enabled.",
+      rows: buildPluginCatalogRows(pluginCatalogSnapshot.catalog),
+      summary: pluginCatalogSnapshot.summary,
+      sourceLabel: formatPluginCatalogSource(pluginCatalogSnapshot.source)
     };
   }
 
@@ -1298,11 +1318,15 @@ export function App() {
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
+  const [pluginCatalogSnapshot, setPluginCatalogSnapshot] = useState<PluginCatalogSnapshot>(() =>
+    buildPluginCatalogSnapshot(defaultPluginCatalog, "default-fallback", defaultPluginCatalog)
+  );
   const [skillCatalogSnapshot, setSkillCatalogSnapshot] = useState<SkillCatalogSnapshot>(() =>
     buildSkillCatalogSnapshot(defaultSkillCatalog, "default-fallback", defaultSkillCatalog)
   );
   const [codexTransportLoading, setCodexTransportLoading] = useState(false);
   const [codexLiveSmokeLoading, setCodexLiveSmokeLoading] = useState(false);
+  const [pluginCatalogLoading, setPluginCatalogLoading] = useState(false);
   const [skillCatalogLoading, setSkillCatalogLoading] = useState(false);
   const [panelSessionState, setPanelSessionState] = useState<CodexPanelSessionState>(() =>
     loadPanelSessionState()
@@ -2091,6 +2115,18 @@ export function App() {
     setAppNotice(`${formatCommandCatalogSource(nextSnapshot.source)} command catalog refreshed`);
   }
 
+  async function refreshPluginCatalogSnapshot() {
+    setPluginCatalogLoading(true);
+    setAppNotice("Refreshing provider plugin catalog");
+    try {
+      const nextSnapshot = await loadProviderPluginCatalogSnapshot(undefined, defaultPluginCatalog);
+      setPluginCatalogSnapshot(nextSnapshot);
+      setAppNotice(`${formatPluginCatalogSource(nextSnapshot.source)} plugin catalog refreshed`);
+    } finally {
+      setPluginCatalogLoading(false);
+    }
+  }
+
   async function refreshSkillCatalogSnapshot() {
     setSkillCatalogLoading(true);
     setAppNotice("Refreshing provider skill catalog");
@@ -2595,10 +2631,13 @@ export function App() {
           onRefreshCommandCatalog={refreshCommandCatalogSnapshot}
           onRefreshCodexTransport={refreshCodexTransportProbe}
           onRefreshMigrationPreview={() => refreshMigrationSourcePreview()}
+          onRefreshPluginCatalog={refreshPluginCatalogSnapshot}
           onRefreshSkillCatalog={refreshSkillCatalogSnapshot}
           onRunCodexLiveSmokeProof={runCodexLiveSmokeProof}
           onSelectReviewableMigrationCategories={handleSelectReviewableMigrationCategories}
           onStageCodexConnection={handleStageCodexConnection}
+          pluginCatalogLoading={pluginCatalogLoading}
+          pluginCatalogSnapshot={pluginCatalogSnapshot}
           skillCatalogLoading={skillCatalogLoading}
           skillCatalogSnapshot={skillCatalogSnapshot}
         />
@@ -2760,10 +2799,13 @@ function AppDialogSurface({
   onRefreshCommandCatalog,
   onRefreshCodexTransport,
   onRefreshMigrationPreview,
+  onRefreshPluginCatalog,
   onRefreshSkillCatalog,
   onRunCodexLiveSmokeProof,
   onSelectReviewableMigrationCategories,
   onStageCodexConnection,
+  pluginCatalogLoading,
+  pluginCatalogSnapshot,
   skillCatalogLoading,
   skillCatalogSnapshot
 }: {
@@ -2786,14 +2828,21 @@ function AppDialogSurface({
   onRefreshCommandCatalog: () => void;
   onRefreshCodexTransport: () => void;
   onRefreshMigrationPreview: () => void;
+  onRefreshPluginCatalog: () => void;
   onRefreshSkillCatalog: () => void;
   onRunCodexLiveSmokeProof: () => void;
   onSelectReviewableMigrationCategories: () => void;
   onStageCodexConnection: () => void;
+  pluginCatalogLoading: boolean;
+  pluginCatalogSnapshot: PluginCatalogSnapshot;
   skillCatalogLoading: boolean;
   skillCatalogSnapshot: SkillCatalogSnapshot;
 }) {
-  const platformCatalogView = getPlatformCatalogView(dialog, skillCatalogSnapshot);
+  const platformCatalogView = getPlatformCatalogView(
+    dialog,
+    pluginCatalogSnapshot,
+    skillCatalogSnapshot
+  );
   const migrationCounts = buildMigrationPreviewCounts(migrationPreview);
   const selectedCategoryCount = migrationPreview.categories.filter((category) => category.selected).length;
   const title =
@@ -3076,6 +3125,13 @@ function AppDialogSurface({
                 </span>
               ) : null}
             </div>
+            {dialog === "plugins" ? (
+              <div className="dialog-action-row">
+                <button className="dialog-secondary-action" onClick={onRefreshPluginCatalog} type="button">
+                  {pluginCatalogLoading ? "Refreshing..." : "Refresh plugins catalog"}
+                </button>
+              </div>
+            ) : null}
             {dialog === "skills" ? (
               <div className="dialog-action-row">
                 <button className="dialog-secondary-action" onClick={onRefreshSkillCatalog} type="button">
