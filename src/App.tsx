@@ -5,23 +5,30 @@ import {
   CircleDot,
   ClipboardList,
   Columns3,
+  Folder,
   GitBranch,
   Grid2X2,
   Link2,
   LayoutDashboard,
   Link2Off,
+  MessageSquare,
+  MoreHorizontal,
   PanelRight,
+  Paperclip,
   Pause,
   Play,
+  Plus,
   RotateCcw,
   Rows3,
   Search,
+  Send,
   Settings2,
   ShieldCheck,
   Terminal,
+  UserRound,
   Workflow
 } from "lucide-react";
-import type { ReactNode } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   cockpitPresets,
@@ -504,9 +511,75 @@ const runtimeWorkspaceModeOptions: RuntimeWorkspaceMode[] = ["read-only", "read-
 type ToolEvidenceCaptureIntent = "idle" | "requested";
 type RuntimeProfilePermissionRequestIntent = "idle" | "requested";
 type PipelineDispatchRequestIntent = "idle" | "requested";
+type PanelChatRole = "codex" | "user" | "tool" | "system";
+
+type PanelChatMessage = {
+  id: string;
+  role: PanelChatRole;
+  label: string;
+  body: string;
+  meta: string;
+};
 
 function classNames(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
+}
+
+function roleLabel(role: SessionSummary["role"]): string {
+  switch (role) {
+    case "orchestrator":
+      return "Codex Orchestrator";
+    case "implementer":
+      return "Worker";
+    case "validator":
+      return "Validator";
+    case "integration":
+      return "Integrator";
+  }
+}
+
+function buildInitialPanelChat(session: SessionSummary): PanelChatMessage[] {
+  const visibleTranscript = session.transcript.slice(0, 3);
+  const transcriptMessages = visibleTranscript.map((line, index) => ({
+    id: `${session.id}:transcript:${index}`,
+    role: index === 0 ? "codex" as const : "tool" as const,
+    label: index === 0 ? roleLabel(session.role) : "Activity",
+    body: line,
+    meta: index === 0 ? "session context" : `event ${index}`
+  }));
+
+  return [
+    {
+      id: `${session.id}:system`,
+      role: "system",
+      label: "Steerboard",
+      body:
+        "This lane is a local Codex-style chat scaffold. Messages are captured here and can be handed to a real adapter once connected.",
+      meta: "local"
+    },
+    ...transcriptMessages,
+    {
+      id: `${session.id}:validation`,
+      role: "codex",
+      label: roleLabel(session.role),
+      body: `Current validation: ${session.validation}`,
+      meta: session.state
+    }
+  ];
+}
+
+function createPanelReplyMessage(
+  session: SessionSummary,
+  sequence: number
+): PanelChatMessage {
+  return {
+    id: `${session.id}:codex-reply:${sequence}`,
+    role: "codex",
+    label: roleLabel(session.role),
+    body:
+      "Captured. This panel is ready to route the message through a Codex-compatible adapter when live session transport is connected.",
+    meta: "local adapter pending"
+  };
 }
 
 function parseRuntimeProfileList(value: string): string[] {
@@ -755,28 +828,63 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <aside className="sidebar" aria-label="Projects">
-        <div className="brand-row">
-          <div className="brand-mark" aria-hidden="true">
-            S
-          </div>
-          <div>
-            <h1>Steerboard</h1>
-            <p>Local cockpit</p>
-          </div>
-        </div>
+      <aside className="sidebar" aria-label="Steerboard navigation">
+        <nav className="sidebar-command-list" aria-label="Primary actions">
+          <button type="button">
+            <Plus size={16} />
+            <span>New chat</span>
+          </button>
+          <button type="button">
+            <Search size={16} />
+            <span>Search</span>
+          </button>
+          <button type="button">
+            <Grid2X2 size={16} />
+            <span>Plugins</span>
+          </button>
+          <button type="button">
+            <CircleDot size={16} />
+            <span>Automations</span>
+          </button>
+        </nav>
 
-        <label className="search-box">
-          <Search size={16} />
-          <input aria-label="Search projects" placeholder="Search" />
-        </label>
+        <nav className="project-list codex-sidebar-list" aria-label="Pinned chats and projects">
+          <span className="sidebar-section-label">Pinned</span>
+          <div className="sidebar-workspace-group">
+            <div className="sidebar-workspace-heading">
+              <span>STEERBOARD</span>
+              <small>now</small>
+            </div>
+            <button
+              className="project-folder-button"
+              onClick={() => updatePreferences({ selectedProjectId: projects[0].id, view: "cockpit" })}
+              type="button"
+            >
+              <Folder size={16} />
+              <span>Steerboard</span>
+            </button>
+            {projects.slice(0, 3).map((item) => (
+              <button
+                className={classNames("project-button", selectedProjectId === item.id && "is-selected")}
+                key={item.id}
+                onClick={() => updatePreferences({ selectedProjectId: item.id, view: "cockpit" })}
+                type="button"
+              >
+                <span className={classNames("project-status", `is-${item.status}`)} />
+                <span className="project-copy">
+                  <span>{item.name}</span>
+                </span>
+                <span className="project-time">{item.updated}</span>
+              </button>
+            ))}
+          </div>
 
-        <nav className="project-list">
-          {projects.map((item) => (
+          <span className="sidebar-section-label">Projects</span>
+          {projects.slice(3).map((item) => (
             <button
               className={classNames("project-button", selectedProjectId === item.id && "is-selected")}
               key={item.id}
-              onClick={() => updatePreferences({ selectedProjectId: item.id })}
+              onClick={() => updatePreferences({ selectedProjectId: item.id, view: "cockpit" })}
               type="button"
             >
               <span className={classNames("project-status", `is-${item.status}`)} />
@@ -790,8 +898,9 @@ export function App() {
         </nav>
 
         <div className="sidebar-footer">
-          <button aria-label="Open runtime settings" title="Runtime settings" type="button">
+          <button aria-label="Open settings" title="Settings" type="button">
             <Settings2 size={18} />
+            <span>Settings</span>
           </button>
           <button aria-label="Open local terminal" title="Terminal" type="button">
             <Terminal size={18} />
@@ -1007,6 +1116,37 @@ function SessionCell({
     validation: session.validation
   });
   const toolCoverageSignal = createCockpitPanelToolCoverage(session.tools);
+  const [chatMessages, setChatMessages] = useState<PanelChatMessage[]>(() =>
+    buildInitialPanelChat(session)
+  );
+  const [draftMessage, setDraftMessage] = useState("");
+
+  useEffect(() => {
+    setChatMessages(buildInitialPanelChat(session));
+    setDraftMessage("");
+  }, [session]);
+
+  function handlePanelChatSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmedMessage = draftMessage.trim();
+
+    if (!trimmedMessage) {
+      return;
+    }
+
+    setChatMessages((currentMessages) => [
+      ...currentMessages,
+      {
+        id: `${session.id}:user:${currentMessages.length}`,
+        role: "user",
+        label: "You",
+        body: trimmedMessage,
+        meta: "draft"
+      },
+      createPanelReplyMessage(session, currentMessages.length + 1)
+    ]);
+    setDraftMessage("");
+  }
 
   return (
     <article
@@ -1033,19 +1173,74 @@ function SessionCell({
         <PanelAttemptSignal attempt={attemptSignal} />
       </div>
 
-      <div className="cell-transcript">
-        {session.transcript.map((line) => (
-          <p key={line}>{line}</p>
-        ))}
-      </div>
-
-      <footer className="cell-footer">
-        <PanelValidationSignal validation={validationSignal} />
-        <div className="cell-footer-actions">
+      <div className="cell-chat" aria-label={`${identity.title} chat lane`}>
+        <div className="cell-chat-context" aria-label="Panel context">
+          <PanelValidationSignal validation={validationSignal} />
           <PanelActivitySignal activity={activitySignal} />
           <PanelFileScopeSignal scope={fileScope} />
           <PanelToolCoverageSignal coverage={toolCoverageSignal} />
         </div>
+        <ol className="cell-chat-thread" aria-label={`${identity.title} messages`}>
+          {chatMessages.map((message) => (
+            <li
+              className={classNames("chat-message", `chat-message-${message.role}`)}
+              key={message.id}
+              title={message.meta}
+            >
+              <span className="chat-avatar" aria-hidden="true">
+                {message.role === "user" ? (
+                  <UserRound size={13} />
+                ) : message.role === "tool" ? (
+                  <Terminal size={13} />
+                ) : (
+                  <MessageSquare size={13} />
+                )}
+              </span>
+              <div className="chat-bubble">
+                <div className="chat-message-header">
+                  <strong>{message.label}</strong>
+                  <small>{message.meta}</small>
+                </div>
+                <p>{message.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <footer className="cell-footer chat-composer-shell">
+        <form className="chat-composer" onSubmit={handlePanelChatSubmit}>
+          <button aria-label="Attach context" title="Attach context" type="button">
+            <Paperclip size={15} />
+          </button>
+          <textarea
+            aria-label={`Message ${identity.title}`}
+            onChange={(event) => setDraftMessage(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                event.currentTarget.form?.requestSubmit();
+              }
+            }}
+            placeholder="Ask Codex for follow-up changes"
+            rows={1}
+            value={draftMessage}
+          />
+          <div className="chat-composer-meta">
+            <span>Local scaffold</span>
+            <button aria-label="Open lane options" title="Lane options" type="button">
+              <MoreHorizontal size={15} />
+            </button>
+            <button
+              aria-label={`Send message to ${identity.title}`}
+              disabled={draftMessage.trim().length === 0}
+              title="Send"
+              type="submit"
+            >
+              <Send size={15} />
+            </button>
+          </div>
+        </form>
       </footer>
     </article>
   );
