@@ -52,14 +52,14 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
   },
   {
     target: "Orchestration model",
-    completion: "In progress",
+    completion: "Complete",
     plan: "Define a consistent model for sequencing cross-cutting tasks and status propagation.",
-    completionPercent: 75,
+    completionPercent: 100,
     latestNote:
-      "Accepted-result propagation and integration handoff evidence now track result evidence, dependency propagation, integration readiness, and complete-run validation gates.",
+      "Final orchestration acceptance coverage now confirms lifecycle signals, task coverage, regression checks, and run closure evidence for end-to-end monitoring.",
     nextStep:
-      "Close orchestration milestone with final end-to-end acceptance coverage and regression checks.",
-    tone: "active",
+      "Monitor orchestration regressions while runtime adapter validation advances.",
+    tone: "complete",
     note:
       "Standardized orchestration flow is being finalized to coordinate cockpit tasks and health signals."
   },

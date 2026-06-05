@@ -8,7 +8,7 @@ The cockpit also expands the current next milestone into readable plan, latest-n
 It is the complete public milestone report contract. Every milestone must appear as one row and include these columns:
 **Target**, **Plan**, **Completion**, **% Completion**, **Latest Note**, and **Next Step**.
 
-Overall completion: 51%. Next milestone: Orchestration model. Next step: Close orchestration milestone with final end-to-end acceptance coverage and regression checks.
+Overall completion: 54%. Next milestone: Runtime adapters. Next step: Validate adapter behavior against core runtime entry points and close remaining gaps.
 
 Milestone reports should be readable at minimum by Target, Completion, and Latest Note.
 
@@ -16,7 +16,7 @@ Milestone reports should be readable at minimum by Target, Completion, and Lates
 | --- | --- | --- | --- | --- | --- |
 | Product scaffold | Establish a stable baseline structure, public docs contract, and navigation foundations. | Complete | 100% | Initial platform scaffolding, public milestone reporting format, and baseline docs are complete. | Monitor for documentation drift and align updates with routine roadmap reviews. |
 | Cockpit monitor and operating modes | Complete core cockpit panels, control affordances, and visible operating-mode cues. | Complete | 100% | Final desktop and narrow-pane acceptance coverage is complete for cockpit monitor depth, mode handoff QA, and mode/layout/focus/clear interaction readiness. | Monitor for regressions while orchestration and runtime adapter milestones advance. |
-| Orchestration model | Define a consistent model for sequencing cross-cutting tasks and status propagation. | In progress | 75% | Accepted-result propagation and integration handoff evidence now track result evidence, dependency propagation, integration readiness, and complete-run validation gates. | Close orchestration milestone with final end-to-end acceptance coverage and regression checks. |
+| Orchestration model | Define a consistent model for sequencing cross-cutting tasks and status propagation. | Complete | 100% | Final orchestration acceptance coverage now confirms lifecycle signals, task coverage, regression checks, and run closure evidence for end-to-end monitoring. | Monitor orchestration regressions while runtime adapter validation advances. |
 | Runtime adapters | Deliver and stabilize adapter surfaces for consistent runtime status intake. | In progress | 45% | Key adapter boundaries are in place, and interface contracts are being aligned. | Validate adapter behavior against core runtime entry points and close remaining gaps. |
 | Security and privacy model | Set baseline protections, data-handling boundaries, and reviewable controls. | Planned | 20% | Security and privacy requirements are being translated into an initial shared model. | Complete threat modeling and publish practical control guidance for implementation. |
 | Packaging and installation | Prepare install, environment, and distribution path for dependable rollout. | Planned | 15% | Basic packaging decisions are started and setup planning is underway. | Finalize release packaging and installation scripts for repeatable onboarding. |

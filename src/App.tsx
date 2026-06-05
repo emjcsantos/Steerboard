@@ -65,6 +65,10 @@ import {
   type OrchestrationResultHandoffEvidence
 } from "./orchestrationResultHandoffEvidence";
 import {
+  createOrchestrationAcceptanceCoverage,
+  type OrchestrationAcceptanceCoverage
+} from "./orchestrationAcceptanceCoverage";
+import {
   buildPipelineItemDispatchPreview,
   type PipelineItemDispatchPreview
 } from "./pipelineItemDispatchPreview";
@@ -2278,6 +2282,10 @@ function RightPanel({
     () => createOrchestrationResultHandoffEvidence(tasks, mockRuns),
     [mockRuns, tasks]
   );
+  const orchestrationAcceptanceCoverage: OrchestrationAcceptanceCoverage = useMemo(
+    () => createOrchestrationAcceptanceCoverage(tasks, mockRuns),
+    [mockRuns, tasks]
+  );
   const runSummary = summarizeRunHistory(mockRuns);
   const milestoneStatusSummary = useMemo(
     () => summarizeMilestoneStatuses(steerboardMilestoneStatuses),
@@ -2971,6 +2979,38 @@ function RightPanel({
                 className={classNames(
                   "orchestration-result-handoff-check",
                   `orchestration-result-handoff-check-${check.tone}`
+                )}
+                key={check.label}
+                title={`${check.label}: ${check.value}`}
+              >
+                <strong>{check.value}</strong>
+                <small>{check.label}</small>
+              </span>
+            ))}
+          </div>
+        </div>
+        <div
+          aria-label={orchestrationAcceptanceCoverage.ariaLabel}
+          className={classNames(
+            "orchestration-acceptance-coverage",
+            `orchestration-acceptance-coverage-${orchestrationAcceptanceCoverage.tone}`
+          )}
+          title={orchestrationAcceptanceCoverage.detail}
+        >
+          <div className="orchestration-acceptance-coverage-header">
+            <strong>{orchestrationAcceptanceCoverage.label}</strong>
+            <b>{orchestrationAcceptanceCoverage.checkLabel}</b>
+          </div>
+          <p>{orchestrationAcceptanceCoverage.detail}</p>
+          <div
+            className="orchestration-acceptance-coverage-checks"
+            aria-label="Orchestration acceptance coverage checks"
+          >
+            {orchestrationAcceptanceCoverage.checks.map((check) => (
+              <span
+                className={classNames(
+                  "orchestration-acceptance-coverage-check",
+                  `orchestration-acceptance-coverage-check-${check.tone}`
                 )}
                 key={check.label}
                 title={`${check.label}: ${check.value}`}

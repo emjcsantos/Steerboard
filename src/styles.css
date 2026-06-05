@@ -3141,7 +3141,8 @@ textarea {
 
 .orchestration-readiness,
 .orchestration-dispatch-audit,
-.orchestration-result-handoff {
+.orchestration-result-handoff,
+.orchestration-acceptance-coverage {
   display: grid;
   min-width: 0;
   gap: 7px;
@@ -3154,7 +3155,8 @@ textarea {
 
 .orchestration-readiness-header,
 .orchestration-dispatch-audit-header,
-.orchestration-result-handoff-header {
+.orchestration-result-handoff-header,
+.orchestration-acceptance-coverage-header {
   display: grid;
   min-width: 0;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -3167,7 +3169,9 @@ textarea {
 .orchestration-dispatch-audit-header strong,
 .orchestration-dispatch-audit-header b,
 .orchestration-result-handoff-header strong,
-.orchestration-result-handoff-header b {
+.orchestration-result-handoff-header b,
+.orchestration-acceptance-coverage-header strong,
+.orchestration-acceptance-coverage-header b {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3176,7 +3180,8 @@ textarea {
 
 .orchestration-readiness-header strong,
 .orchestration-dispatch-audit-header strong,
-.orchestration-result-handoff-header strong {
+.orchestration-result-handoff-header strong,
+.orchestration-acceptance-coverage-header strong {
   color: #edf3f8;
   font-size: 11px;
   font-weight: 900;
@@ -3184,7 +3189,8 @@ textarea {
 
 .orchestration-readiness-header b,
 .orchestration-dispatch-audit-header b,
-.orchestration-result-handoff-header b {
+.orchestration-result-handoff-header b,
+.orchestration-acceptance-coverage-header b {
   border-radius: 999px;
   background: #10161d;
   color: #cfd8e3;
@@ -3196,7 +3202,8 @@ textarea {
 
 .orchestration-readiness p,
 .orchestration-dispatch-audit p,
-.orchestration-result-handoff p {
+.orchestration-result-handoff p,
+.orchestration-acceptance-coverage p {
   margin: 0;
   overflow-wrap: anywhere;
   color: #9fa9b4;
@@ -3206,7 +3213,8 @@ textarea {
 
 .orchestration-readiness-checks,
 .orchestration-dispatch-audit-checks,
-.orchestration-result-handoff-checks {
+.orchestration-result-handoff-checks,
+.orchestration-acceptance-coverage-checks {
   display: grid;
   min-width: 0;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3215,7 +3223,8 @@ textarea {
 
 .orchestration-readiness-check,
 .orchestration-dispatch-audit-check,
-.orchestration-result-handoff-check {
+.orchestration-result-handoff-check,
+.orchestration-acceptance-coverage-check {
   display: grid;
   min-width: 0;
   gap: 2px;
@@ -3231,7 +3240,9 @@ textarea {
 .orchestration-dispatch-audit-check strong,
 .orchestration-dispatch-audit-check small,
 .orchestration-result-handoff-check strong,
-.orchestration-result-handoff-check small {
+.orchestration-result-handoff-check small,
+.orchestration-acceptance-coverage-check strong,
+.orchestration-acceptance-coverage-check small {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3240,7 +3251,8 @@ textarea {
 
 .orchestration-readiness-check strong,
 .orchestration-dispatch-audit-check strong,
-.orchestration-result-handoff-check strong {
+.orchestration-result-handoff-check strong,
+.orchestration-acceptance-coverage-check strong {
   color: #f4f7fa;
   font-size: 10px;
   font-weight: 900;
@@ -3248,7 +3260,8 @@ textarea {
 
 .orchestration-readiness-check small,
 .orchestration-dispatch-audit-check small,
-.orchestration-result-handoff-check small {
+.orchestration-result-handoff-check small,
+.orchestration-acceptance-coverage-check small {
   color: #8f99a4;
   font-size: 9px;
   font-weight: 800;
@@ -3257,49 +3270,57 @@ textarea {
 
 .orchestration-readiness-ready,
 .orchestration-dispatch-audit-ready,
-.orchestration-result-handoff-ready {
+.orchestration-result-handoff-ready,
+.orchestration-acceptance-coverage-accepted {
   border-color: #254634;
 }
 
 .orchestration-readiness-review,
 .orchestration-dispatch-audit-review,
-.orchestration-result-handoff-review {
+.orchestration-result-handoff-review,
+.orchestration-acceptance-coverage-review {
   border-color: #5c4b1b;
 }
 
 .orchestration-readiness-blocked,
 .orchestration-dispatch-audit-blocked,
-.orchestration-result-handoff-blocked {
+.orchestration-result-handoff-blocked,
+.orchestration-acceptance-coverage-blocked {
   border-color: #69343a;
 }
 
 .orchestration-readiness-empty,
 .orchestration-dispatch-audit-empty,
-.orchestration-result-handoff-empty {
+.orchestration-result-handoff-empty,
+.orchestration-acceptance-coverage-empty {
   border-color: #303844;
 }
 
 .orchestration-readiness-check-ok,
 .orchestration-dispatch-audit-check-ok,
-.orchestration-result-handoff-check-ok {
+.orchestration-result-handoff-check-ok,
+.orchestration-acceptance-coverage-check-ok {
   border-color: #254634;
 }
 
 .orchestration-readiness-check-review,
 .orchestration-dispatch-audit-check-review,
-.orchestration-result-handoff-check-review {
+.orchestration-result-handoff-check-review,
+.orchestration-acceptance-coverage-check-review {
   border-color: #5c4b1b;
 }
 
 .orchestration-readiness-check-blocked,
 .orchestration-dispatch-audit-check-blocked,
-.orchestration-result-handoff-check-blocked {
+.orchestration-result-handoff-check-blocked,
+.orchestration-acceptance-coverage-check-blocked {
   border-color: #69343a;
 }
 
 .orchestration-readiness-check-neutral,
 .orchestration-dispatch-audit-check-neutral,
-.orchestration-result-handoff-check-neutral {
+.orchestration-result-handoff-check-neutral,
+.orchestration-acceptance-coverage-check-neutral {
   border-color: #303844;
 }
 

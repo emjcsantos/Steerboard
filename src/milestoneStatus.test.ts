@@ -133,13 +133,14 @@ describe("milestone status model", () => {
       (milestone) => milestone.target === "Orchestration model"
     );
 
-    expect(orchestration?.completion).toBe("In progress");
-    expect(orchestration?.tone).toBe("active");
+    expect(orchestration?.completion).toBe("Complete");
+    expect(orchestration?.tone).toBe("complete");
+    expect(orchestration?.completionPercent).toBe(100);
     expect(orchestration?.latestNote).toBe(
-      "Accepted-result propagation and integration handoff evidence now track result evidence, dependency propagation, integration readiness, and complete-run validation gates."
+      "Final orchestration acceptance coverage now confirms lifecycle signals, task coverage, regression checks, and run closure evidence for end-to-end monitoring."
     );
     expect(orchestration?.nextStep).toBe(
-      "Close orchestration milestone with final end-to-end acceptance coverage and regression checks."
+      "Monitor orchestration regressions while runtime adapter validation advances."
     );
   });
 
@@ -159,15 +160,15 @@ describe("milestone status model", () => {
   it("summarizes exported milestone list counts correctly", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
       total: 7,
-      complete: 2,
-      active: 2,
+      complete: 3,
+      active: 1,
       planned: 2,
       paused: 1,
-      averageCompletionPercent: 51,
-      nextTarget: "Orchestration model",
+      averageCompletionPercent: 54,
+      nextTarget: "Runtime adapters",
       nextStep:
-        "Close orchestration milestone with final end-to-end acceptance coverage and regression checks.",
-      nextCompletionPercent: 75
+        "Validate adapter behavior against core runtime entry points and close remaining gaps.",
+      nextCompletionPercent: 45
     });
   });
 
