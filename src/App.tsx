@@ -102,8 +102,8 @@ import {
   type CockpitFocusedPanelStatus
 } from "./cockpitFocusedPanelStatus";
 import {
-  createCockpitFocusedPanelControls
-} from "./cockpitFocusedPanelControls";
+  createCockpitToolbarFocusAction
+} from "./cockpitToolbarFocusAction";
 import {
   canDeployPlanningDraft,
   evaluatePlanningReadiness,
@@ -591,6 +591,14 @@ export function App() {
     () => createCockpitLayoutCapacity(layout, cockpitSessions.length, visibleSessions.length),
     [cockpitSessions.length, layout, visibleSessions.length]
   );
+  const cockpitToolbarPanelPriority = useMemo(
+    () => createCockpitPanelPriority(visibleSessions),
+    [visibleSessions]
+  );
+  const cockpitToolbarFocusTarget = useMemo(
+    () => createCockpitPanelFocusTarget(visibleSessions, cockpitToolbarPanelPriority, focusedPanelId),
+    [cockpitToolbarPanelPriority, focusedPanelId, visibleSessions]
+  );
   const cockpitFocusedPanelStatus = useMemo(
     () => createCockpitFocusedPanelStatus(visibleSessions, focusedPanelId),
     [focusedPanelId, visibleSessions]
@@ -781,7 +789,13 @@ export function App() {
                   <div className="toolbar-status">
                     <LayoutCapacitySignal capacity={cockpitLayoutCapacity} />
                     <FocusedPanelStatusChip
+                      focusTarget={cockpitToolbarFocusTarget}
                       onClearFocus={() => setFocusedPanelId(undefined)}
+                      onFocus={() => {
+                        if (cockpitToolbarFocusTarget.canFocus) {
+                          setFocusedPanelId(cockpitToolbarFocusTarget.panelId);
+                        }
+                      }}
                       status={cockpitFocusedPanelStatus}
                     />
                     <PanelRosterSignal roster={cockpitPanelRoster} />
@@ -1112,13 +1126,17 @@ function LayoutCapacitySignal({ capacity }: { capacity: CockpitLayoutCapacity })
 }
 
 function FocusedPanelStatusChip({
+  focusTarget,
   onClearFocus,
+  onFocus,
   status
 }: {
+  focusTarget: CockpitPanelFocusTarget;
   onClearFocus: () => void;
+  onFocus: () => void;
   status: CockpitFocusedPanelStatus;
 }) {
-  const controls = createCockpitFocusedPanelControls(status);
+  const controls = createCockpitToolbarFocusAction(focusTarget, status);
 
   return (
     <div
@@ -1127,19 +1145,30 @@ function FocusedPanelStatusChip({
       title={controls.statusTitle}
     >
       <CircleDot size={14} />
-      <div>
+      <div className="focused-panel-copy">
         <strong>{status.label}</strong>
         <small>{status.detail}</small>
       </div>
-      <button
-        aria-label={controls.ariaLabel}
-        disabled={controls.clearDisabled}
-        onClick={onClearFocus}
-        title={controls.clearTitle}
-        type="button"
-      >
-        {controls.clearLabel}
-      </button>
+      <div className="focused-panel-actions">
+        <button
+          aria-label={controls.focusAriaLabel}
+          disabled={controls.focusDisabled}
+          onClick={onFocus}
+          title={controls.focusTitle}
+          type="button"
+        >
+          {controls.focusLabel}
+        </button>
+        <button
+          aria-label={controls.clearAriaLabel}
+          disabled={controls.clearDisabled}
+          onClick={onClearFocus}
+          title={controls.clearTitle}
+          type="button"
+        >
+          {controls.clearLabel}
+        </button>
+      </div>
     </div>
   );
 }

@@ -447,8 +447,8 @@ textarea {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  min-width: 220px;
-  max-width: 300px;
+  min-width: min(100%, 284px);
+  max-width: 390px;
   gap: 7px;
   border: 1px solid #2f3540;
   border-radius: 8px;
@@ -457,10 +457,17 @@ textarea {
   padding: 6px 8px;
 }
 
-.focused-panel-chip div {
+.focused-panel-copy {
   display: grid;
   min-width: 0;
   gap: 1px;
+}
+
+.focused-panel-actions {
+  display: flex;
+  min-width: max-content;
+  align-items: center;
+  gap: 4px;
 }
 
 .focused-panel-chip strong,
