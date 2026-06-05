@@ -232,6 +232,10 @@ import {
   type SecurityAcceptanceRepeatedRunsSnapshot
 } from "./securityAcceptanceRepeatedRuns";
 import {
+  createSecurityFinalReview,
+  type SecurityFinalReviewSnapshot
+} from "./securityFinalReview";
+import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
   type DispatchPackage
@@ -1774,13 +1778,13 @@ function MilestoneStatusPanel({
       </div>
       <table
         className="milestone-target-table"
-        aria-label="Milestone targets, completion, and latest notes"
+        aria-label="Milestone targets, completion, and notes"
       >
         <thead>
           <tr>
             <th scope="col">Target</th>
             <th scope="col">Completion</th>
-            <th scope="col">Latest Note</th>
+            <th scope="col">Note</th>
           </tr>
         </thead>
         <tbody>
@@ -2683,6 +2687,22 @@ function RightPanel({
       ),
     [desktopBridgeStatus, desktopPermissionApprovalStatus]
   );
+  const securityFinalReviewSnapshot = useMemo(
+    () =>
+      createSecurityFinalReview({
+        releasePrivacy: releasePrivacyReadinessSnapshot,
+        currentAcceptance: securityAcceptanceCoverageSnapshot,
+        repeatedRuns: securityAcceptanceRepeatedRunsSnapshot,
+        packagingPaused: true,
+        packagingLocked: desktopPackagingReadinessSnapshot.packagingLocked
+      }),
+    [
+      desktopPackagingReadinessSnapshot.packagingLocked,
+      releasePrivacyReadinessSnapshot,
+      securityAcceptanceCoverageSnapshot,
+      securityAcceptanceRepeatedRunsSnapshot
+    ]
+  );
   const canActivateDraftProfile =
     runtimeProfileApprovalSnapshot.state === "requested" &&
     canActivateRuntimeProfile(runtimeProfileDraftReadiness);
@@ -3340,6 +3360,7 @@ function RightPanel({
       />
       <SecurityPrivacyThreatModelPanel
         acceptance={securityAcceptanceCoverageSnapshot}
+        finalReview={securityFinalReviewSnapshot}
         model={securityPrivacyThreatModel}
         releasePrivacy={releasePrivacyReadinessSnapshot}
         repeatedRuns={securityAcceptanceRepeatedRunsSnapshot}
@@ -4888,11 +4909,13 @@ function ToolEvidenceReadinessPanel({
 
 function SecurityPrivacyThreatModelPanel({
   acceptance,
+  finalReview,
   model,
   releasePrivacy,
   repeatedRuns
 }: {
   acceptance: SecurityAcceptanceCoverageSnapshot;
+  finalReview: SecurityFinalReviewSnapshot;
   model: SecurityPrivacyThreatModel;
   releasePrivacy: ReleasePrivacyReadinessSnapshot;
   repeatedRuns: SecurityAcceptanceRepeatedRunsSnapshot;
@@ -5039,6 +5062,51 @@ function SecurityPrivacyThreatModelPanel({
             ))}
           </ol>
           <small title={repeatedRuns.safety}>{repeatedRuns.safety}</small>
+        </div>
+        <div
+          aria-label={finalReview.ariaLabel}
+          className={classNames(
+            "security-final-review",
+            `security-final-state-${finalReview.state}`
+          )}
+        >
+          <div className="security-final-header">
+            <span className="security-final-state">
+              <span aria-hidden="true" />
+              {finalReview.statusLabel}
+            </span>
+            <strong title={finalReview.label}>Final review</strong>
+            <b>{finalReview.readiness}%</b>
+          </div>
+          <p title={finalReview.detail}>{finalReview.detail}</p>
+          <dl className="security-final-grid" aria-label="Final security review readiness">
+            <div>
+              <dt>Close</dt>
+              <dd>{finalReview.canCloseSecurity ? "Ready" : "Held"}</dd>
+            </div>
+            <div>
+              <dt>Package</dt>
+              <dd>{finalReview.canResumePackaging ? "Ready" : "Paused"}</dd>
+            </div>
+            <div>
+              <dt>State</dt>
+              <dd>{finalReview.state}</dd>
+            </div>
+          </dl>
+          <ol className="security-final-items">
+            {finalReview.items.map((item) => (
+              <li
+                className={`security-final-item-${item.status}`}
+                key={item.id}
+                title={item.detail}
+              >
+                <span>{item.status}</span>
+                <strong>{item.label}</strong>
+                <small>{item.detail}</small>
+              </li>
+            ))}
+          </ol>
+          <small title={finalReview.safety}>{finalReview.safety}</small>
         </div>
       </div>
     </section>

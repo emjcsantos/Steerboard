@@ -94,6 +94,12 @@ Before packaging resumes, the cockpit should make repeated live-run evidence vis
 
 Repeated live-run evidence is a status summary only. It must not start packaging, install dependencies, export artifacts, mutate runtime state, or perform external actions.
 
+## Final Security Review Gate
+
+The final security review gate combines the visible release privacy check, current-run security acceptance, repeated evidence closure, packaging pause lock, and close-security decision into one reviewable status.
+
+This gate is decision support only. It must not resume packaging, build installers, mutate files, mutate runtime state, call a network endpoint, start a process, or perform release actions. Packaging remains paused until core development is complete and a separate release decision explicitly resumes it.
+
 ## Implementation Controls
 
 - Root-scoped file access: keep reads/writes constrained to project roots with explicit path allowlists.

@@ -80,11 +80,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Security and privacy model",
     completion: "In progress",
     plan: "Set baseline protections, data-handling boundaries, and reviewable controls.",
-    completionPercent: 95,
+    completionPercent: 98,
     latestNote:
-      "Repeated live cockpit security evidence now shows sample coverage, ready/review/blocked run counts, and close-evidence status before packaging resumes.",
+      "Final security review now surfaces release privacy, current-run acceptance, repeated evidence, packaging pause lock, and close-security decision status.",
     nextStep:
-      "Run final security acceptance review and keep packaging paused until core development is complete.",
+      "Resolve any blocked or review-state security evidence before closing security and resuming packaging later.",
     tone: "active",
     note: "Security and privacy posture is being documented, with production controls being designed for release readiness."
   },
