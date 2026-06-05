@@ -1,6 +1,6 @@
 # Live Platform Capabilities
 
-Steerboard must make core agent-platform functions live, not decorative. The cockpit should support real chat sessions first, then expose the surrounding capabilities users expect from a Codex-class desktop surface: commands, plugins, automations, MCP servers, personalization, approvals, and service connection status.
+Steerboard must make core agent-platform functions live, not decorative. The cockpit should support real chat sessions first, then expose surrounding capabilities users expect from a modern desktop surface: commands, plugins, automations, MCP servers, personalization, approvals, and service connection status.
 
 ## Product Principle
 
@@ -11,37 +11,37 @@ Every visible capability must have an honest state:
 - preview when the UI can model the workflow but cannot execute it yet,
 - live when a provider adapter can read, write, stream, or execute through an approved path.
 
-Steerboard should start with a Codex adapter, but the product contract must stay provider-neutral so other services can implement the same surfaces later.
+Steerboard should start with a runtime adapter, but the product contract must stay provider-neutral so other services can implement the same surfaces later.
 
-## First Live Adapter: Codex
+## First Live Adapter
 
-The Codex adapter should use the local Codex runtime instead of storing Codex secrets in Steerboard.
+The first adapter should use a local provider runtime instead of storing runtime secrets in Steerboard.
 
-- Authentication delegates to Codex login, API-key login, or trusted access-token setup.
-- Session transport uses Codex app-server where available.
-- The first transport spike targets supervised app-server `stdio://` because it can prove local reachability with a no-prompt initialize handshake before any model prompt is sent.
+- Authentication delegates to runtime-specific login or trusted access-token setup.
+- Session transport uses local adapter transport where available.
+- The first transport spike targets supervised `stdio://` transport because it can prove local reachability with a no-prompt initialize handshake before any request is sent.
 - A separate explicit live smoke should prove one ephemeral read-only send/stream turn by observing `item/agentMessage/delta` and `turn/completed`.
-- Codex CLI `exec --json` is treated as a one-shot fallback, not a replacement for live multi-panel session transport.
-- Thread, turn, item, tool, approval, and stream events are normalized into Steerboard cockpit events.
-- Codex config, plugins, MCP, automations, memories, rules, and slash commands are reflected through adapter APIs rather than hardcoded as static UI.
+- Command-line fallback is treated as a one-shot fallback, not a replacement for live multi-panel session transport.
+- Session, tool, approval, and stream events are normalized into Steerboard cockpit events.
+- Runtime config, plugins, MCP, automations, memories, rules, and slash commands are reflected through adapter APIs rather than hardcoded as static UI.
 
-## Codex Default Option Seeding
+## Runtime Default Option Seeding
 
-Steerboard should copy Codex's default options as a read-only seed catalog during Codex adapter setup, then refresh that catalog from the connected Codex runtime.
+Steerboard should copy connected adapter defaults as a read-only seed catalog during adapter setup, then refresh that catalog from the active runtime.
 
-- Plugin defaults should mirror Codex plugin groups and installed plugin metadata, including bundled skills, app connectors, bundled MCP servers, enabled/disabled state, setup-required state, and invocation hints.
-- Skill defaults should mirror Codex's available skill registry across system, admin, user, repository, and plugin-provided skills, while preserving each skill's source, trigger description, explicit invocation name, and enablement state.
-- MCP defaults should mirror Codex MCP configuration layers, including user config, trusted project config, plugin-provided MCP servers, stdio servers, HTTP servers, OAuth/login-required state, tool policy, timeout settings, and enabled/disabled state.
+- Plugin defaults should mirror connected plugin metadata, including bundled skills, app connectors, bundled MCP servers, enabled/disabled state, setup-required state, and invocation hints.
+- Skill defaults should mirror runtime skill registry across system, admin, user, repository, and plugin-provided skills, while preserving each skill's source, trigger description, explicit invocation name, and enablement state.
+- MCP defaults should mirror runtime MCP configuration layers, including user config, project config, plugin-provided MCP servers, stdio servers, HTTP servers, OAuth/login-required state, tool policy, timeout settings, and enabled/disabled state.
 - Slash command defaults should mirror the connected runtime's command registry and include command availability, scope, required capability, and unsupported-state copy.
 - Seeded defaults are not secrets and must not include tokens, raw auth files, private browser state, or raw transcripts.
-- If a user customizes a seeded option in Steerboard, save it as a Steerboard profile override instead of mutating Codex config silently.
-- Provide a refresh action so users can re-sync Steerboard with Codex after installing plugins, adding skills, or changing MCP servers.
+- If a user customizes a seeded option in Steerboard, save it as a Steerboard profile override instead of mutating runtime config silently.
+- Provide a refresh action so users can re-sync Steerboard with the active runtime after installing plugins, adding skills, or changing MCP servers.
 
 ## Migration Center
 
 Steerboard should let users migrate settings and integrations from supported source platforms through `File > Migrate...`, then convert them into Steerboard profiles through a reviewed import flow. Natural-language migration requests should open the same dialog.
 
-- Planned source adapters include Codex, Claude Code, Antigravity, generic MCP config, generic skill/prompt folders, and manual JSON or TOML imports.
+- Planned source adapters include generic MCP config, skill/prompt folders, and manual JSON or TOML imports.
 - Importable categories include projects, threads/chats, settings, model/provider preferences, commands, skills, prompts, agents, plugins, MCP servers, tool policy, project instructions, automations, personalization, and safe UI preferences.
 - The migration dialog should expose category checkboxes and disabled unsupported options with clear reasons.
 - Imported tools should be limited to the functions needed by the selected categories; broad or unused tool access remains disabled until explicitly enabled.
@@ -64,14 +64,14 @@ Steerboard should let users migrate settings and integrations from supported sou
 
 - Show a command menu from `/` in every composer.
 - Support provider-reported commands first.
-- Codex baseline commands should include status, plan, goal, review, MCP, feedback, and memory controls when available.
+- Built-in baseline commands should include status, plan, review, MCP, feedback, and memory controls when available.
 - Commands must be discoverable, keyboard accessible, scoped to the active panel, and capable of reporting unsupported states.
 - Skills and plugins should be invocable with explicit prefixes when the connected runtime supports them.
 
 ### Plugin Manager
 
 - Show installed, enabled, disabled, unavailable, and setup-required plugin states.
-- Start from the Codex-seeded plugin catalog when the active provider is Codex.
+- Start from adapter-seeded plugin catalog data for the active adapter.
 - Distinguish plugin skills, app connectors, and bundled MCP servers.
 - Let users open setup, enable, disable, or inspect a plugin through the provider adapter.
 - Never store third-party app secrets in Steerboard.
@@ -87,7 +87,7 @@ Steerboard should let users migrate settings and integrations from supported sou
 ### MCP Manager
 
 - List configured MCP servers and their health.
-- Start from the Codex-seeded MCP catalog when the active provider is Codex.
+- Start from adapter-seeded MCP catalog data for the active adapter.
 - Add, edit, enable, disable, or remove servers through provider-supported flows.
 - Support stdio and HTTP server configuration where the provider supports them.
 - Surface OAuth/login-required states without storing tokens directly.
@@ -97,7 +97,7 @@ Steerboard should let users migrate settings and integrations from supported sou
 
 - Expose user and project configuration layers.
 - Show instruction sources such as project docs, local agent guidance, rules, skills, memories, and custom prompts.
-- Start from the Codex-seeded skill and personalization catalog when the active provider is Codex.
+- Start from adapter-seeded skill and personalization catalog data when the active adapter is connected.
 - Let users inspect which personalization sources are active in a panel before sending a prompt.
 - Keep durable team rules in checked-in docs or project config, not only in generated memories.
 - Do not persist secrets, private browser state, or raw transcripts in public project files.
@@ -124,15 +124,24 @@ Each provider adapter should declare:
 - permission and approval requirements,
 - safe mock fixtures for tests and demos.
 
-The cockpit consumes only normalized adapter events. Provider-specific payloads stay inside the adapter.
+The cockpit consumes only normalized adapter events. Adapter-specific payloads stay inside the adapter.
+
+## Runner Contract and Dry-Run Attachment
+
+Phase 10A keeps approved external actions on an explicit dry-run path:
+
+- Approved requests evaluate to a run contract outcome but only emit a dry-run result by default.
+- Dry-run results include redacted action summaries for audit and review.
+- No desktop-backed writes or destructive actions are attached in Phase 10A by default.
+- Real desktop-backed execution and mutation stay explicitly reserved for a future phase and must be enabled by a separate intentional milestone.
 
 ## Milestone Path
 
 | Target | Completion | Note |
 |---|---|---|
 | Connection Center | 25% | Local transport probe model added; desktop bridge can distinguish browser preview, CLI detection, app-server stdio handshake, explicit live-smoke result, and locked startup execution. |
-| Codex App-Server Adapter | 50% | Supervised app-server stdio now has no-prompt readiness, explicit live smoke, panel-keyed session start/send/interrupt/close commands, retry/steer foundations, and normalized event collection. |
-| Live Panel Chat | 42% | Visible desktop panels can send through the Codex adapter, render normalized assistant/status/error output, and expose compact interrupt/retry/steer controls; browser preview remains local fallback. Panel-session persistence and stream isolation foundations are in place; native two-panel smoke, live control smoke, and incremental UI streaming remain pending. |
+| Primary Runtime Adapter | 50% | Supervised adapter transport now has no-prompt readiness, explicit live smoke, panel-keyed session start/send/interrupt/close commands, retry/steer foundations, and normalized event collection. |
+| Live Panel Chat | 42% | Visible desktop panels can send through the runtime adapter, render normalized assistant/status/error output, and expose compact interrupt/retry/steer controls; browser preview remains local fallback. Panel-session persistence and stream isolation foundations are in place; native two-panel smoke, live control smoke, and incremental UI streaming remain pending. |
 | Slash Command Registry | 20% | Provider-neutral command catalog, command state model, composer suggestions, preview routing, and unsupported/unavailable blocking are in place; provider-reported command refresh and live command execution remain pending. |
 | Skills Catalog | 12% | Provider-neutral skill model and dialog surface show source, trigger, invocation label, and honest state; provider refresh and execution remain pending. |
 | MCP Manager | 12% | Provider-neutral MCP model and dialog surface show transport, setup/health posture, and tool policy without starting servers. |
@@ -140,4 +149,4 @@ The cockpit consumes only normalized adapter events. Provider-specific payloads 
 | Automations Manager | 12% | Provider-neutral automation model and dialog surface show lifecycle, trigger, and approval posture without scheduling or running automations. |
 | Personalization Center | 12% | Provider-neutral personalization model and settings entry show instruction/config layers and privacy posture without exposing private paths. |
 | Migration Center | 20% | `File > Migrate...` now exposes a safe source selector, desktop metadata scan, category checkboxes, excluded secrets summary, and local profile draft staging. Reviewed persistence and rollback remain pending. |
-| Permission And Audit Layer | 0% | Gate live actions and preserve reviewable local audit records. |
+| Permission And Audit Layer | 45% | Provider-neutral approval gates, dry-run runner attachment, and redacted local audit records are visible; real desktop-backed mutation remains deferred. |

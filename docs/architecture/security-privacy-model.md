@@ -10,6 +10,8 @@
 - Terminal and git destructive actions require confirmation.
 - Worker commands run with the least capability needed for the task.
 - Runtime adapters start disabled until configured and explicitly enabled.
+- Approved requests execute through a dry-run runner path by default, with redacted summaries only.
+- Real desktop-backed mutation is a deferred phase and is not part of the default runner contract.
 
 ## Sensitive Data Rules
 
@@ -53,6 +55,10 @@ This section tracks visible runtime and project-data readiness checks only. Thes
   - Verify that real data examples use redacted identifiers and minimal fields.
   - Confirm no direct raw file path disclosure in public outputs.
   - Confirm no private credential-like material appears in review artifacts.
+- Runner contract behavior
+  - Confirm approved actions are routed to dry-run execution outcomes and not to immediate mutation.
+  - Confirm redacted summary output is always available for approved and blocked runner outcomes.
+  - Confirm desktop-backed mutation remains explicitly deferred until a future phase.
 - Runtime adapter fallback states
   - Confirm documented behavior for missing data, partial data, malformed adapter payloads, and transient unavailability.
   - Confirm fallback state appears as a reviewed decision before runtime status is advanced.
@@ -98,6 +104,8 @@ Repeated live-run evidence is a status summary only. It must not start packaging
 
 The final security review gate combines the visible release privacy check, current-run security acceptance, repeated evidence closure, packaging pause lock, and close-security decision into one reviewable status.
 
+- The final gate explicitly includes dry-run runner audit behavior and requires that mutation-capable execution is not claimed while this phase remains deferred.
+
 This gate is decision support only. It must not resume packaging, build installers, mutate files, mutate runtime state, call a network endpoint, start a process, or perform release actions. Packaging remains paused until core development is complete and a separate release decision explicitly resumes it.
 
 Browser-preview safety locks can satisfy the security closure posture when execution remains locked and no desktop action is available. Desktop runtime errors, unlocked execution, missing packaging locks, or blocked validation evidence still prevent closure.
@@ -108,6 +116,7 @@ Browser-preview safety locks can satisfy the security closure posture when execu
 - Explicit permission review: surface concrete permissions before enabling new actions.
 - Locked execution preview: gate risky commands behind explicit review before run.
 - Audit/export preview: require diff-like review before exporting logs, snapshots, or checkpoints.
+- Runner output redaction: apply redaction to action labels, details, and result summaries before they enter the public audit stream.
 - Public-safe fixtures: sanitize fixtures and redact sensitive fields before publishing examples.
 - No secrets in docs: never include secrets, private credentials, or sensitive identifiers in documentation.
 
@@ -137,5 +146,10 @@ Each runtime, model, or provider adapter must declare:
 - network behavior,
 - mock mode,
 - disable and rollback path.
+
+- Approved-action behavior
+  - Approved action path defaults to dry-run execution.
+  - Redacted audit evidence records every ready/blocked action outcome.
+  - Real desktop-backed actions require an explicit phase transition.
 
 Adapter configuration must be testable without real project data or real credentials whenever possible.

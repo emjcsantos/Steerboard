@@ -242,7 +242,7 @@ function compactWhitespace(value: string): string {
 function redactSensitiveValues(value: string): string {
   return compactWhitespace(value)
     .replace(
-      /\b(api[_-]?key|auth[_-]?token|access[_-]?token|bearer|secret|password)\b[^\\s"'`]+/gi,
+      /\b(api[_-]?key|auth[_-]?token|access[_-]?token|bearer|secret|password)\b\s*[:=]?\s*[^\s"'`]+/gi,
       "[redacted secret]"
     )
     .replace(/\bsk-[A-Za-z0-9]{8,}\b/g, "[redacted secret]")

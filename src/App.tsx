@@ -526,6 +526,14 @@ import {
   type LiveActionRiskLevel
 } from "./liveActionPermission";
 import {
+  evaluateLiveActionRunnerExecution,
+  LIVE_ACTION_RUNNER_DEFINITIONS,
+  summarizeLiveActionRunnerExecutions,
+  type LiveActionRunnerExecutionResult,
+  type LiveActionRunnerNextAction,
+  type LiveActionRunnerSummary
+} from "./liveActionRunner";
+import {
   buildRuntimeExecutionAuditSnapshot,
   type RuntimeExecutionAuditItem,
   type RuntimeExecutionAuditSnapshot
@@ -4403,6 +4411,38 @@ function RightPanel({
       ).length,
     [liveActionRequestsByProvider]
   );
+  const liveActionRunnerEvaluations = useMemo(
+    () =>
+      LIVE_ACTION_RUNNER_DEFINITIONS.map((runnerDefinition) => {
+        const gateDefinition = liveActionGateDefinitions.find(
+          (definition) => definition.provider === runnerDefinition.provider
+        );
+        const fallbackRequest: LiveActionPermissionRequest = gateDefinition
+          ? createLiveActionPermissionRequest(
+              gateDefinition,
+              "idle",
+              "1970-01-01T00:00:00.000Z"
+            )
+          : {
+              id: `${runnerDefinition.provider}:live-action-permission`,
+              provider: runnerDefinition.provider,
+              actionLabel: runnerDefinition.actionLabel,
+              state: "idle",
+              requestedAt: "1970-01-01T00:00:00.000Z",
+              risk: runnerDefinition.risk
+            };
+
+        return evaluateLiveActionRunnerExecution(
+          runnerDefinition,
+          liveActionRequestsByProvider[runnerDefinition.provider] ?? fallbackRequest
+        );
+      }),
+    [liveActionRequestsByProvider]
+  );
+  const liveActionRunnerSummary = useMemo(
+    () => summarizeLiveActionRunnerExecutions(liveActionRunnerEvaluations),
+    [liveActionRunnerEvaluations]
+  );
   const ownerTestingChecklist: OwnerTestingChecklist = useMemo(
     () =>
       buildOwnerTestingChecklist({
@@ -4821,6 +4861,39 @@ function RightPanel({
     const record = createLiveActionAuditRecord(
       buildLiveActionAuditInput(definition, resultSummary),
       auditAction,
+      timestamp
+    );
+
+    setLiveActionAuditHistory((current) => appendLiveActionAuditRecord(current, record));
+  }
+
+  function recordLiveActionRunnerDryRun(definition: LiveActionGateDefinition) {
+    const runnerDefinition = LIVE_ACTION_RUNNER_DEFINITIONS.find(
+      (runner) => runner.provider === definition.provider
+    );
+
+    if (!runnerDefinition) {
+      return;
+    }
+
+    const timestamp = new Date().toISOString();
+    const request =
+      liveActionRequestsByProvider[definition.provider] ??
+      createLiveActionPermissionRequest(definition, "idle", timestamp);
+    const evaluation = evaluateLiveActionRunnerExecution(
+      runnerDefinition,
+      request,
+      timestamp,
+      timestamp
+    );
+    const record = createLiveActionAuditRecord(
+      buildLiveActionAuditInput(
+        definition,
+        evaluation.canExecute
+          ? `Dry-run completed with no live side effects. ${evaluation.reason}`
+          : `Dry-run blocked. ${evaluation.reason}`
+      ),
+      evaluation.canExecute ? "executed" : "failed",
       timestamp
     );
 
@@ -5543,7 +5616,10 @@ function RightPanel({
             "Permission request timed out locally; action remains locked."
           )
         }
+        onRunDryRun={recordLiveActionRunnerDryRun}
         requestsByProvider={liveActionRequestsByProvider}
+        runnerEvaluations={liveActionRunnerEvaluations}
+        runnerSummary={liveActionRunnerSummary}
         summaries={liveActionPermissionSummaries}
       />
 
@@ -6527,6 +6603,15 @@ function RuntimeProfilePermissionRequestRecordRow({
   );
 }
 
+const liveActionRunnerNextActionLabels: Record<LiveActionRunnerNextAction, string> = {
+  "run-dry-run": "Dry-run ready",
+  "resolve-provider-mismatch": "Fix provider",
+  "request-approval": "Request approval",
+  "re-request-approval": "Re-approve",
+  "resolve-denial": "Review denial",
+  "review-risk-policy": "Review risk"
+};
+
 function LiveActionRiskGatePanel({
   auditExportMarkdown,
   auditHistory,
@@ -6536,7 +6621,10 @@ function LiveActionRiskGatePanel({
   onRequest,
   onReset,
   onTimeout,
+  onRunDryRun,
   requestsByProvider,
+  runnerEvaluations,
+  runnerSummary,
   summaries
 }: {
   auditExportMarkdown: string;
@@ -6547,10 +6635,16 @@ function LiveActionRiskGatePanel({
   onRequest: (definition: LiveActionGateDefinition) => void;
   onReset: (definition: LiveActionGateDefinition) => void;
   onTimeout: (definition: LiveActionGateDefinition) => void;
+  onRunDryRun: (definition: LiveActionGateDefinition) => void;
   requestsByProvider: Record<string, LiveActionPermissionRequest>;
+  runnerEvaluations: LiveActionRunnerExecutionResult[];
+  runnerSummary: LiveActionRunnerSummary;
   summaries: LiveActionPermissionRequestSummary[];
 }) {
   const summaryByProvider = new Map(summaries.map((summary) => [summary.provider, summary]));
+  const runnerByProvider = new Map<string, LiveActionRunnerExecutionResult>(
+    runnerEvaluations.map((runner) => [runner.provider, runner])
+  );
   const requestedCount = summaries.filter((summary) => summary.state === "requested").length;
   const approvedCount = summaries.filter((summary) => summary.state === "approved").length;
   const blockedCount = summaries.filter((summary) => summary.state === "denied" || summary.state === "timed-out").length;
@@ -6594,6 +6688,20 @@ function LiveActionRiskGatePanel({
             <dd>{auditHistory.length}</dd>
           </div>
         </dl>
+        <div className="live-action-runner-summary" aria-label="Live action runner readiness">
+          <span>
+            <strong>{runnerSummary.ready}/{runnerSummary.total}</strong>
+            Runner ready
+          </span>
+          <span>
+            <strong>{runnerSummary.readiness}%</strong>
+            Dry-run readiness
+          </span>
+          <span>
+            <strong>{liveActionRunnerNextActionLabels[runnerSummary.nextAction]}</strong>
+            Next runner action
+          </span>
+        </div>
         <ol className="live-action-gate-list">
           {liveActionGateDefinitions.map((definition) => {
             const request =
@@ -6607,9 +6715,16 @@ function LiveActionRiskGatePanel({
                 requestedBy: "operator"
               });
             const canExecute = canExecuteLiveAction(request);
+            const runner = runnerByProvider.get(definition.provider);
             const canRequest = summary.state === "idle";
             const canReview = summary.state === "requested";
             const canReset = summary.state !== "idle";
+            const runnerLabel =
+              runner?.status === "ready"
+                ? "Runner ready"
+                : runner?.blockReason
+                  ? `Runner ${runner.blockReason}`
+                  : "Runner locked";
 
             return (
               <li
@@ -6627,6 +6742,7 @@ function LiveActionRiskGatePanel({
                   <span>{summary.risk}</span>
                   <span>{canExecute ? "Execute ready" : "Locked"}</span>
                   <span title={summary.expiresAt}>Expires {summary.expiresAt === "none" ? "none" : formatShortDate(summary.expiresAt)}</span>
+                  <span title={runner?.reason ?? "Runner contract has not evaluated this action yet."}>{runnerLabel}</span>
                 </div>
                 <div className="live-action-gate-actions">
                   <button
@@ -6668,6 +6784,15 @@ function LiveActionRiskGatePanel({
                     type="button"
                   >
                     Reset
+                  </button>
+                  <button
+                    aria-label={`Dry-run ${definition.actionLabel}`}
+                    disabled={!runner?.canExecute}
+                    onClick={() => onRunDryRun(definition)}
+                    title={runner?.reason ?? "Runner is locked."}
+                    type="button"
+                  >
+                    Dry run
                   </button>
                 </div>
               </li>

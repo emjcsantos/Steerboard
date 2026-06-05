@@ -44,7 +44,7 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Complete core cockpit panels, control affordances, and visible operating-mode cues.",
     completionPercent: 58,
     latestNote:
-      "Multi-panel cockpit and local chat-lane scaffold exist; visible panels can use panel-keyed live Codex chat and per-panel session controls, with native two-panel smoke still pending.",
+      "Multi-panel cockpit and local chat-lane scaffold exist; visible panels can use panel-keyed live session chat and per-panel session controls, with native two-panel smoke still pending.",
     nextStep:
       "Run native two-panel smoke and live-control smoke, then continue command capability work.",
     tone: "active",
@@ -78,17 +78,17 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
       "Provider-neutral profile, bridge, permission, launch, and evidence previews exist as locked local scaffolds."
   },
   {
-    target: "Live Codex integration",
+    target: "Live adapter integration",
     completion: "In progress",
-    plan: "Connect real Codex auth/session transport to cockpit panels.",
+    plan: "Connect runtime auth/session transport to cockpit panels.",
     completionPercent: 42,
     latestNote:
-      "Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations.",
+      "Runtime app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations.",
     nextStep:
       "Run native two-panel smoke and live-control smoke as recurring regression checks.",
     tone: "active",
     note:
-      "Codex connection center, app-server bridge, live panel chat, and normalized stream ingestion are the next core milestone."
+      "Runtime connection center, adapter bridge, live panel chat, and normalized stream ingestion are the next core milestone."
   },
   {
     target: "Platform capabilities",
@@ -96,9 +96,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
     completionPercent: 34,
     latestNote:
-      "Slash commands, platform catalogs, migration preview/profile-draft foundations, and live-action risk gates are provider-neutral and state-aware.",
+      "Phase 10A runner contract and approval attachment are now provider-neutral and state-aware for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions.",
     nextStep:
-      "Connect provider refresh, reviewed import persistence, and approved actions to live runners.",
+      "Complete dry-run runner attachment coverage, prove redacted audit capture, and then phase real desktop-backed mutation into a later security milestone.",
     tone: "active",
     note:
       "Slash commands, platform catalogs, migration preview, and risk-gated approval/audit foundations exist; provider refresh and execution still need live backing."
@@ -109,9 +109,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Set baseline protections, data-handling boundaries, and reviewable controls.",
     completionPercent: 45,
     latestNote:
-      "Provider-neutral live-action permission gates and redacted audit records are visible for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions.",
+      "Approved actions now route through the Phase 10A runner contract: dry-run execution by default with redacted audit entries, while desktop-backed mutation remains a future phase.",
     nextStep:
-      "Attach approved risk gates to specific tool runners without bypassing audit.",
+      "Enforce explicit approval-to-dry-run transitions and keep real mutation disabled until a future runtime phase is intentionally enabled.",
     tone: "active",
     note: "Local-first safety boundaries, live-action approval gates, and redacted audit records are visible before real tool execution."
   },
@@ -121,9 +121,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Make live-functionality checks repeatable through a local checklist, failure fixtures, and docs consistency checks.",
     completionPercent: 34,
     latestNote:
-      "A provider-neutral checklist and failure-state fixture layer now make launch, chat, panels, commands, catalogs, migration, dispatch, permissions, reload, and recovery testable.",
+      "A provider-neutral checklist and failure-state fixture layer now verify Phase 10A runner contract behavior for approved requests, dry-run attachment, and redacted audit output.",
     nextStep:
-      "Run the full local testing checklist, verify failure fixtures in the cockpit, and attach the approved gates to live runners.",
+      "Run the full local testing checklist, verify dry-run runner attachment with redacted records, and keep desktop-backed execution as a future attachment phase.",
     current: true,
     tone: "active",
     note: "Daily local testing and failure-state coverage are being hardened before broader live runner attachment."

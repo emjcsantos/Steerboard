@@ -6378,6 +6378,32 @@ textarea {
   font-weight: 800;
 }
 
+.live-action-runner-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.live-action-runner-summary span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  border: 1px solid #263545;
+  border-radius: 8px;
+  background: #101923;
+  color: #8f99a5;
+  padding: 7px;
+  font-size: 10px;
+}
+
+.live-action-runner-summary strong {
+  overflow: hidden;
+  color: #edf2f7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
 .live-action-gate-list,
 .live-action-audit-history ol {
   display: grid;
@@ -6454,7 +6480,7 @@ textarea {
 
 .live-action-gate-meta {
   display: grid;
-  grid-template-columns: 58px 92px minmax(0, 1fr);
+  grid-template-columns: 58px 86px minmax(0, 1fr) 98px;
   gap: 5px;
 }
 
@@ -6470,7 +6496,7 @@ textarea {
 
 .live-action-gate-actions {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 5px;
 }
 

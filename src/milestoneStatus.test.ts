@@ -171,7 +171,7 @@ describe("milestone status model", () => {
     expect(targets).toContain("Cockpit monitor and operating modes");
     expect(targets).toContain("Orchestration model");
     expect(targets).toContain("Runtime adapter previews");
-    expect(targets).toContain("Live Codex integration");
+    expect(targets).toContain("Live adapter integration");
     expect(targets).toContain("Platform capabilities");
     expect(targets).toContain("Security and privacy model");
     expect(targets).toContain("Owner testing hardening");
@@ -185,7 +185,7 @@ describe("milestone status model", () => {
     );
     expect(cockpit?.completion).toBe("In progress");
     expect(cockpit?.tone).toBe("active");
-    expect(cockpit?.latestNote.toLowerCase()).toContain("panel-keyed live codex chat");
+    expect(cockpit?.latestNote.toLowerCase()).toContain("panel-keyed live session chat");
     expect(cockpit?.nextStep.toLowerCase()).toContain("two-panel smoke");
   });
 
@@ -222,9 +222,9 @@ describe("milestone status model", () => {
     );
   });
 
-  it("keeps Live Codex integration active while platform capabilities take focus", () => {
+  it("keeps Live adapter integration active while platform capabilities take focus", () => {
     const liveCodex = steerboardMilestoneStatuses.find(
-      (milestone) => milestone.target === "Live Codex integration"
+      (milestone) => milestone.target === "Live adapter integration"
     );
 
     expect(liveCodex?.completion).toBe("In progress");
@@ -246,10 +246,10 @@ describe("milestone status model", () => {
     expect(platform?.completionPercent).toBe(34);
     expect(platform?.current).toBeUndefined();
     expect(platform?.latestNote).toBe(
-      "Slash commands, platform catalogs, migration preview/profile-draft foundations, and live-action risk gates are provider-neutral and state-aware."
+      "Phase 10A runner contract and approval attachment are now provider-neutral and state-aware for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions."
     );
     expect(platform?.nextStep).toBe(
-      "Connect provider refresh, reviewed import persistence, and approved actions to live runners."
+      "Complete dry-run runner attachment coverage, prove redacted audit capture, and then phase real desktop-backed mutation into a later security milestone."
     );
   });
 
@@ -275,7 +275,7 @@ describe("milestone status model", () => {
       paused: 1,
       averageCompletionPercent: 40,
       nextTarget: "Owner testing hardening",
-      nextStep: "Run the full local testing checklist, verify failure fixtures in the cockpit, and attach the approved gates to live runners.",
+      nextStep: "Run the full local testing checklist, verify dry-run runner attachment with redacted records, and keep desktop-backed execution as a future attachment phase.",
       nextCompletionPercent: 34
     });
   });
@@ -290,10 +290,10 @@ describe("milestone status model", () => {
     expect(securityMilestone?.completionPercent).toBe(45);
     expect(securityMilestone?.current).toBeUndefined();
     expect(securityMilestone?.latestNote).toBe(
-      "Provider-neutral live-action permission gates and redacted audit records are visible for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions."
+      "Approved actions now route through the Phase 10A runner contract: dry-run execution by default with redacted audit entries, while desktop-backed mutation remains a future phase."
     );
     expect(securityMilestone?.nextStep).toBe(
-      "Attach approved risk gates to specific tool runners without bypassing audit."
+      "Enforce explicit approval-to-dry-run transitions and keep real mutation disabled until a future runtime phase is intentionally enabled."
     );
   });
 
@@ -307,10 +307,10 @@ describe("milestone status model", () => {
     expect(ownerTesting?.completionPercent).toBe(34);
     expect(ownerTesting?.current).toBe(true);
     expect(ownerTesting?.latestNote).toBe(
-      "A provider-neutral checklist and failure-state fixture layer now make launch, chat, panels, commands, catalogs, migration, dispatch, permissions, reload, and recovery testable."
+      "A provider-neutral checklist and failure-state fixture layer now verify Phase 10A runner contract behavior for approved requests, dry-run attachment, and redacted audit output."
     );
     expect(ownerTesting?.nextStep).toBe(
-      "Run the full local testing checklist, verify failure fixtures in the cockpit, and attach the approved gates to live runners."
+      "Run the full local testing checklist, verify dry-run runner attachment with redacted records, and keep desktop-backed execution as a future attachment phase."
     );
   });
 
