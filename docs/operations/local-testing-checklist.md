@@ -34,15 +34,16 @@ Do not proceed to the next section until the current item is at least `review`.
 6. `Slash Commands`
    - Run at least one documented command and one invalid command.
    - Confirm valid output is clear and invalid input returns explicit guidance.
-   - Refresh the command catalog and confirm source/state changes are visible without running side-effectful actions.
+   - Refresh the command catalog and confirm metadata/status is updated as a safe metadata/status refresh (no side-effectful actions).
 7. `Catalogs`
-   - Open command, plugin, and tool catalogs.
+   - Open command, skill, plugin, MCP, automation, and personalization catalogs.
    - Verify stable ordering and filtering output across repeated reloads.
-   - Refresh the Skills catalog and confirm source/state changes are visible without executing skills.
-   - Refresh the Plugins catalog and confirm source/state changes are visible without executing plugins.
-   - Refresh the MCP catalog and confirm source/state changes are visible without executing MCP tools.
-   - Refresh the Automations catalog and confirm source/state changes are visible without scheduling or running automations.
-   - Refresh the Personalization catalog and confirm source/state changes are visible without mutating profile or instruction sources.
+   - Refresh the command catalog as a safe metadata/status refresh and confirm source/state changes are visible without side effects.
+   - Refresh the skill catalog as a safe metadata/status refresh and confirm source/state changes are visible without executing skills.
+   - Refresh the plugin catalog as a safe metadata/status refresh and confirm source/state changes are visible without invoking plugin actions.
+   - Refresh the MCP catalog as a safe metadata/status refresh and confirm source/state changes are visible without running MCP tools.
+   - Refresh the automation catalog as a safe metadata/status refresh and confirm source/state changes are visible without scheduling or running automations.
+   - Refresh the personalization catalog as a safe metadata/status refresh and confirm source/state changes are visible without mutating profile or instruction sources.
 8. `Migration`
    - Validate migration plan preview and staged execution flow.
    - Confirm irreversible steps are explicit and recoverable.

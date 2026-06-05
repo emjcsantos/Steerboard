@@ -5601,7 +5601,13 @@ function RightPanel({
         "multi-panel": "review",
         controls: "review",
         "slash-commands": "ready",
-        catalogs: "ready",
+        catalogs: "review",
+        "catalog-command-refresh": "review",
+        "catalog-skill-refresh": "review",
+        "catalog-plugin-refresh": "review",
+        "catalog-mcp-refresh": "review",
+        "catalog-automation-refresh": "review",
+        "catalog-personalization-refresh": "review",
         migration: "ready",
         planning: "ready",
         dispatch: "ready",
@@ -8574,6 +8580,7 @@ function OwnerTestingReadinessPanel({
   failureSummary: FailureStateFixtureSummary;
 }) {
   const visibleChecklistItems = checklist.items.slice(0, 6);
+  const catalogRefreshItems = checklist.items.filter((item) => item.id.startsWith("catalog-"));
   const visibleFailureFixtures = failureFixtures.slice(0, 4);
 
   return (
@@ -8612,6 +8619,52 @@ function OwnerTestingReadinessPanel({
             <dd>{checklist.summary.waiting}</dd>
           </div>
         </dl>
+        <div
+          aria-label={`Catalog refresh owner testing ${checklist.summary.catalogRefresh.statusLabel}; ${checklist.summary.catalogRefresh.readiness}% ready`}
+          className={classNames(
+            "owner-testing-catalog-refresh",
+            `owner-testing-catalog-${checklist.summary.catalogRefresh.state}`
+          )}
+        >
+          <div className="owner-testing-catalog-header">
+            <span className="owner-testing-state">
+              <span aria-hidden="true" />
+              {checklist.summary.catalogRefresh.statusLabel}
+            </span>
+            <strong>Catalog refreshes</strong>
+            <b>{checklist.summary.catalogRefresh.readiness}%</b>
+          </div>
+          <div className="owner-testing-catalog-grid" aria-label="Catalog refresh checklist counts">
+            <span>
+              <strong>{checklist.summary.catalogRefresh.ready}</strong>
+              Ready
+            </span>
+            <span>
+              <strong>{checklist.summary.catalogRefresh.review}</strong>
+              Review
+            </span>
+            <span>
+              <strong>{checklist.summary.catalogRefresh.blocked}</strong>
+              Blocked
+            </span>
+            <span>
+              <strong>{checklist.summary.catalogRefresh.waiting}</strong>
+              Waiting
+            </span>
+          </div>
+          <ol className="owner-testing-catalog-list" aria-label="Catalog refresh owner test items">
+            {catalogRefreshItems.map((item) => (
+              <li
+                className={`owner-testing-catalog-item-${item.state}`}
+                key={item.id}
+                title={item.checks}
+              >
+                <strong>{item.name}</strong>
+                <span>{item.state}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
         <ol className="owner-testing-list" aria-label="Owner testing checklist preview">
           {visibleChecklistItems.map((item) => (
             <li

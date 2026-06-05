@@ -17,6 +17,18 @@ export interface OwnerTestingChecklistSummary {
   readonly readiness: number;
   readonly state: OwnerTestingReadinessState;
   readonly statusLabel: string;
+  readonly catalogRefresh: OwnerTestingCatalogRefreshSummary;
+}
+
+export interface OwnerTestingCatalogRefreshSummary {
+  readonly total: number;
+  readonly ready: number;
+  readonly review: number;
+  readonly blocked: number;
+  readonly waiting: number;
+  readonly readiness: number;
+  readonly state: OwnerTestingReadinessState;
+  readonly statusLabel: string;
 }
 
 export interface OwnerTestingChecklist {
@@ -29,6 +41,9 @@ export interface OwnerTestingChecklist {
 
 export type OwnerTestingChecklistItemId =
   (typeof OWNER_TESTING_CHECKLIST_ORDER)[number];
+
+export type OwnerTestingCatalogRefreshChecklistItemId =
+  (typeof OWNER_TESTING_CATALOG_REFRESH_ORDER)[number];
 
 export type OwnerTestingChecklistOverrides = Partial<
   Record<OwnerTestingChecklistItemId, OwnerTestingReadinessState>
@@ -65,12 +80,27 @@ export const OWNER_TESTING_CHECKLIST_ORDER = [
   "controls",
   "slash-commands",
   "catalogs",
+  "catalog-command-refresh",
+  "catalog-skill-refresh",
+  "catalog-plugin-refresh",
+  "catalog-mcp-refresh",
+  "catalog-automation-refresh",
+  "catalog-personalization-refresh",
   "migration",
   "planning",
   "dispatch",
   "permissions",
   "reload",
   "recovery"
+] as const;
+
+export const OWNER_TESTING_CATALOG_REFRESH_ORDER = [
+  "catalog-command-refresh",
+  "catalog-skill-refresh",
+  "catalog-plugin-refresh",
+  "catalog-mcp-refresh",
+  "catalog-automation-refresh",
+  "catalog-personalization-refresh"
 ] as const;
 
 const OWNER_TESTING_CHECKLIST_TEMPLATE: readonly ChecklistTemplateItem[] = [
@@ -124,11 +154,59 @@ const OWNER_TESTING_CHECKLIST_TEMPLATE: readonly ChecklistTemplateItem[] = [
   },
   {
     id: "catalogs",
-    name: "Catalogs",
+    name: "Catalog Refreshes",
     focus:
-      "Validate command, plugin, and tool catalogs are discoverable with stable metadata and deterministic ordering.",
+      "Keep catalog refresh behavior deterministic across command, skill, plugin, MCP, automation, and personalization surfaces.",
     checks:
-      "Catalog contents remain ordered, stable, and filterable across multiple loads."
+      "Refreshes should remain deterministic when payloads are valid, invalid, or missing."
+  },
+  {
+    id: "catalog-command-refresh",
+    name: "Command Refresh",
+    focus:
+      "Verify slash-command catalog refresh paths stay stable when content updates or payloads are malformed.",
+    checks:
+      "Command catalog refresh has deterministic ordering and safe fallback behavior under empty or invalid payloads."
+  },
+  {
+    id: "catalog-skill-refresh",
+    name: "Skill Refresh",
+    focus:
+      "Verify skill catalog refresh paths stay deterministic across provider-backed payload updates and malformed payloads.",
+    checks:
+      "Skill catalog refresh remains ordered, stable, and safe when fallback paths are required."
+  },
+  {
+    id: "catalog-plugin-refresh",
+    name: "Plugin Refresh",
+    focus:
+      "Verify plugin catalog refresh paths remain deterministic across valid, blocked, and unavailable payload shapes.",
+    checks:
+      "Plugin catalog refresh handles availability changes, fallbacks, and deterministic ordering without mutation."
+  },
+  {
+    id: "catalog-mcp-refresh",
+    name: "MCP Refresh",
+    focus:
+      "Verify MCP catalog refresh behavior is deterministic across provider-backed updates and unavailable catalog states.",
+    checks:
+      "MCP catalog refresh reports safe fallback states and keeps stable ordering through repeated refreshes."
+  },
+  {
+    id: "catalog-automation-refresh",
+    name: "Automation Refresh",
+    focus:
+      "Verify automation catalog refresh paths stay deterministic across payload changes and temporary unavailability.",
+    checks:
+      "Automation catalog refresh handles empty and unavailable payloads with safe defaults and predictable status."
+  },
+  {
+    id: "catalog-personalization-refresh",
+    name: "Personalization Refresh",
+    focus:
+      "Verify personalization catalog refresh behavior remains deterministic during updates and malformed payloads.",
+    checks:
+      "Personalization catalog refresh keeps deterministic ordering and safe fallback behavior consistently."
   },
   {
     id: "migration",
@@ -198,9 +276,76 @@ export function resolveOwnerTestingChecklistState(
   return "ready";
 }
 
+interface OwnerTestingChecklistStateCountItem {
+  readonly state: OwnerTestingChecklistItem["state"];
+  readonly id?: OwnerTestingChecklistItemId;
+}
+
 export function summarizeOwnerTestingChecklistItems(
-  items: readonly Pick<OwnerTestingChecklistItem, "state">[]
+  items: readonly OwnerTestingChecklistStateCountItem[]
 ): OwnerTestingChecklistSummary {
+  const catalogRefreshItems: OwnerTestingChecklistStateCountItem[] = [];
+  const stateOnlyItems: OwnerTestingChecklistItem["state"][] = [];
+
+  for (const item of items) {
+    if (item.id && isCatalogRefreshChecklistItemId(item.id)) {
+      catalogRefreshItems.push(item);
+    }
+    stateOnlyItems.push(item.state);
+  }
+
+  let ready = 0;
+  let review = 0;
+  let blocked = 0;
+  let waiting = 0;
+
+  for (const itemState of stateOnlyItems) {
+    switch (itemState) {
+      case "ready":
+        ready += 1;
+        break;
+      case "review":
+        review += 1;
+        break;
+      case "blocked":
+        blocked += 1;
+        break;
+      case "waiting":
+        waiting += 1;
+        break;
+      default:
+        waiting += 1;
+        break;
+    }
+  }
+
+  const total = items.length;
+  const catalogRefreshSummary = summarizeCatalogRefreshOwnerTestingItems(
+    catalogRefreshItems
+  );
+  const weightedTotal =
+    items.length === 0
+      ? 0
+      : items.reduce((acc, item) => acc + STATE_WEIGHT[item.state], 0);
+  const readiness = total === 0 ? 0 : Math.round(weightedTotal / total);
+  const state = resolveOwnerTestingChecklistState({ blocked, review, waiting });
+
+  return {
+    total,
+    ready,
+    review,
+    blocked,
+    waiting,
+    readiness,
+    state,
+    statusLabel: STATE_LABEL[state],
+    catalogRefresh: catalogRefreshSummary
+  };
+}
+
+function summarizeCatalogRefreshOwnerTestingItems(
+  items: readonly Pick<OwnerTestingChecklistItem, "state">[]
+): OwnerTestingCatalogRefreshSummary {
   let ready = 0;
   let review = 0;
   let blocked = 0;
@@ -228,9 +373,7 @@ export function summarizeOwnerTestingChecklistItems(
 
   const total = items.length;
   const weightedTotal =
-    items.length === 0
-      ? 0
-      : items.reduce((acc, item) => acc + STATE_WEIGHT[item.state], 0);
+    items.length === 0 ? 0 : items.reduce((acc, item) => acc + STATE_WEIGHT[item.state], 0);
   const readiness = total === 0 ? 0 : Math.round(weightedTotal / total);
   const state = resolveOwnerTestingChecklistState({ blocked, review, waiting });
 
@@ -244,6 +387,12 @@ export function summarizeOwnerTestingChecklistItems(
     state,
     statusLabel: STATE_LABEL[state]
   };
+}
+
+function isCatalogRefreshChecklistItemId(
+  id: string
+): id is OwnerTestingCatalogRefreshChecklistItemId {
+  return OWNER_TESTING_CATALOG_REFRESH_ORDER.includes(id as OwnerTestingCatalogRefreshChecklistItemId);
 }
 
 function stateForItem(

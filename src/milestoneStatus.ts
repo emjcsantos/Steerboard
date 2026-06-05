@@ -96,9 +96,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
     completionPercent: 48,
     latestNote:
-      "Panel slash commands, Skills catalog, Plugin manager, MCP manager, Automations manager, and Personalization center refresh through desktop-backed safe provider capability bridges with ready, preview, setup-required, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable.",
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Metadata/status refresh owner validation is still in progress and therefore not yet complete.",
     nextStep:
-      "Run the owner testing checklist for command, skill, plugin, MCP, automation, and personalization refresh behavior, then continue migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
+      "Run safe metadata/status catalog refresh owner tests for command, skill, plugin, MCP, automation, and personalization, then continue migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
     current: true,
     tone: "active",
     note:
@@ -122,9 +122,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Make live-functionality checks repeatable through a local checklist, failure fixtures, and docs consistency checks.",
     completionPercent: 34,
     latestNote:
-      "A provider-neutral checklist and fixture layer now verify Phase 10B runner contract behavior for approved requests, read-only terminal probe constraints, disabled mutation paths, and redacted audit output.",
+      "A provider-neutral checklist and fixture layer now verify Phase 10B runner contract behavior for approved requests, read-only terminal probe constraints, disabled mutation paths, and redacted audit output. This includes owner tests for safe metadata/status refresh of command, skill, plugin, MCP, automation, and personalization catalogs, with no full completion claimed yet.",
     nextStep:
-      "Run the full local testing checklist, verify approval-to-probe behavior, provider command, skill, plugin, MCP, automation, and personalization refresh behavior, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
+      "Run the full local testing checklist, verify approval-to-probe behavior, command/skill/plugin/MCP/automation/personalization metadata-status catalog refresh checks, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
     tone: "active",
     note: "Daily local testing and failure-state coverage are being hardened before broader live runner attachment."
   },

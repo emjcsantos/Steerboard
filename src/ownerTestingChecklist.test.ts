@@ -4,6 +4,7 @@ import {
   resolveOwnerTestingChecklistState,
   summarizeOwnerTestingChecklistItems,
   OWNER_TESTING_CHECKLIST_ORDER,
+  OWNER_TESTING_CATALOG_REFRESH_ORDER,
   OWNER_TESTING_CHECKLIST_ID,
   OWNER_TESTING_CHECKLIST_LABEL
 } from "./ownerTestingChecklist";
@@ -23,7 +24,13 @@ describe("owner testing checklist model", () => {
       "Multi-Panel",
       "Controls",
       "Slash Commands",
-      "Catalogs",
+      "Catalog Refreshes",
+      "Command Refresh",
+      "Skill Refresh",
+      "Plugin Refresh",
+      "MCP Refresh",
+      "Automation Refresh",
+      "Personalization Refresh",
       "Migration",
       "Planning",
       "Dispatch",
@@ -37,14 +44,24 @@ describe("owner testing checklist model", () => {
 
   it("defaults all checklist items to waiting and reports full waiting summary", () => {
     expect(checklistBase.summary).toEqual({
-      total: 13,
+      total: 19,
       ready: 0,
       review: 0,
       blocked: 0,
-      waiting: 13,
+      waiting: 19,
       readiness: 25,
       state: "waiting",
-      statusLabel: "Waiting"
+      statusLabel: "Waiting",
+      catalogRefresh: {
+        total: 6,
+        ready: 0,
+        review: 0,
+        blocked: 0,
+        waiting: 6,
+        readiness: 25,
+        state: "waiting",
+        statusLabel: "Waiting"
+      }
     });
   });
 
@@ -57,6 +74,12 @@ describe("owner testing checklist model", () => {
       controls: "ready",
       "slash-commands": "ready",
       catalogs: "ready",
+      "catalog-command-refresh": "ready",
+      "catalog-skill-refresh": "ready",
+      "catalog-plugin-refresh": "ready",
+      "catalog-mcp-refresh": "ready",
+      "catalog-automation-refresh": "ready",
+      "catalog-personalization-refresh": "ready",
       migration: "ready",
       planning: "ready",
       dispatch: "ready",
@@ -67,29 +90,56 @@ describe("owner testing checklist model", () => {
 
     const summary = custom.summary;
 
-    expect(summary.total).toBe(13);
-    expect(summary.ready).toBe(12);
+    expect(summary.total).toBe(19);
+    expect(summary.ready).toBe(18);
     expect(summary.review).toBe(1);
     expect(summary.blocked).toBe(0);
     expect(summary.waiting).toBe(0);
     expect(summary.state).toBe("review");
     expect(summary.statusLabel).toBe("Review");
-    expect(summary.readiness).toBe(97);
+    expect(summary.readiness).toBe(98);
+    expect(summary.catalogRefresh).toEqual({
+      total: 6,
+      ready: 6,
+      review: 0,
+      blocked: 0,
+      waiting: 0,
+      readiness: 100,
+      state: "ready",
+      statusLabel: "Ready"
+    });
   });
 
   it("returns blocked summary state when any item is blocked", () => {
     const blocked = buildOwnerTestingChecklist({
       connect: "blocked",
+      "catalog-plugin-refresh": "blocked",
+      launch: "ready",
+      chat: "ready",
+      "multi-panel": "ready",
+      controls: "ready",
+      "slash-commands": "ready",
+      catalogs: "ready",
+      "catalog-command-refresh": "ready",
+      "catalog-skill-refresh": "ready",
+      "catalog-automation-refresh": "ready",
+      "catalog-personalization-refresh": "ready",
       migration: "ready",
-      dispatch: "review"
+      planning: "ready",
+      dispatch: "review",
+      permissions: "ready",
+      reload: "ready",
+      recovery: "ready"
     });
     const summary = blocked.summary;
 
-    expect(summary.blocked).toBe(1);
+    expect(summary.blocked).toBe(2);
     expect(summary.review).toBe(1);
     expect(summary.state).toBe("blocked");
     expect(summary.statusLabel).toBe("Blocked");
-    expect(summary.readiness).toBe(32);
+    expect(summary.catalogRefresh.blocked).toBe(1);
+    expect(summary.catalogRefresh.state).toBe("blocked");
+    expect(summary.catalogRefresh.readiness).toBe(71);
   });
 
   it("computes counts via summary helper and keeps deterministic key order", () => {
@@ -109,7 +159,17 @@ describe("owner testing checklist model", () => {
       waiting: 1,
       readiness: 57,
       state: "blocked",
-      statusLabel: "Blocked"
+      statusLabel: "Blocked",
+      catalogRefresh: {
+        total: 0,
+        ready: 0,
+        review: 0,
+        blocked: 0,
+        waiting: 0,
+        readiness: 0,
+        state: "ready",
+        statusLabel: "Ready"
+      }
     });
     expect(resolveOwnerTestingChecklistState({ blocked: 0, review: 0, waiting: 2 })).toBe(
       "waiting"
@@ -120,6 +180,37 @@ describe("owner testing checklist model", () => {
     expect(resolveOwnerTestingChecklistState({ blocked: 2, review: 0, waiting: 0 })).toBe(
       "blocked"
     );
+  });
+
+  it("exposes catalog-refresh-specific summary counts and ordering", () => {
+    expect(OWNER_TESTING_CATALOG_REFRESH_ORDER).toEqual([
+      "catalog-command-refresh",
+      "catalog-skill-refresh",
+      "catalog-plugin-refresh",
+      "catalog-mcp-refresh",
+      "catalog-automation-refresh",
+      "catalog-personalization-refresh"
+    ]);
+
+    const custom = buildOwnerTestingChecklist({
+      "catalog-command-refresh": "ready",
+      "catalog-skill-refresh": "review",
+      "catalog-plugin-refresh": "review",
+      "catalog-mcp-refresh": "blocked",
+      "catalog-automation-refresh": "ready",
+      "catalog-personalization-refresh": "waiting"
+    });
+
+    expect(custom.summary.catalogRefresh).toEqual({
+      total: 6,
+      ready: 2,
+      review: 2,
+      blocked: 1,
+      waiting: 1,
+      readiness: 58,
+      state: "blocked",
+      statusLabel: "Blocked"
+    });
   });
 
   it("keeps helper inputs immutable", () => {

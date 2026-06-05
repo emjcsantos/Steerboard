@@ -5310,6 +5310,116 @@ textarea {
   font-size: 10px;
 }
 
+.owner-testing-catalog-refresh {
+  display: grid;
+  gap: 6px;
+  border-top: 1px solid #272d36;
+  padding-top: 8px;
+}
+
+.owner-testing-catalog-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.owner-testing-catalog-header strong,
+.owner-testing-catalog-header b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-catalog-header strong {
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.owner-testing-catalog-header b {
+  border-radius: 999px;
+  background: #10161d;
+  color: #cfd8e3;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.owner-testing-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.owner-testing-catalog-grid span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #26303a;
+  border-radius: 8px;
+  background: #10161d;
+  color: #8f99a4;
+  padding: 6px 5px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.owner-testing-catalog-grid strong {
+  overflow: hidden;
+  color: #f4f7fa;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.owner-testing-catalog-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.owner-testing-catalog-list li {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #26303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 6px;
+}
+
+.owner-testing-catalog-list strong,
+.owner-testing-catalog-list span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-catalog-list strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.owner-testing-catalog-list span {
+  border-radius: 999px;
+  background: #252c35;
+  color: #cbd5df;
+  padding: 2px 6px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .failure-fixture-coverage {
   display: grid;
   gap: 6px;
@@ -5333,18 +5443,29 @@ textarea {
 
 .owner-testing-review,
 .owner-testing-waiting,
+.owner-testing-catalog-review,
+.owner-testing-catalog-waiting,
 .owner-testing-item-review,
 .owner-testing-item-waiting,
+.owner-testing-catalog-item-review,
+.owner-testing-catalog-item-waiting,
 .failure-fixture-review,
 .failure-fixture-item-review {
   border-color: #5c4b1b;
 }
 
 .owner-testing-blocked,
+.owner-testing-catalog-blocked,
 .owner-testing-item-blocked,
+.owner-testing-catalog-item-blocked,
 .failure-fixture-blocked,
 .failure-fixture-item-blocked {
   border-color: #69343a;
+}
+
+.owner-testing-catalog-ready,
+.owner-testing-catalog-item-ready {
+  border-color: #254634;
 }
 
 .registry-detail strong {
