@@ -124,6 +124,7 @@ pub struct CodexPanelSessionReadiness {
 #[serde(rename_all = "camelCase")]
 pub struct CodexPanelSessionStart {
     pub source: String,
+    pub panel_id: String,
     pub session_id: String,
     pub thread_id: String,
     pub started: bool,
@@ -145,6 +146,7 @@ pub struct CodexPanelEvent {
 #[serde(rename_all = "camelCase")]
 pub struct CodexPanelTurnResult {
     pub source: String,
+    pub panel_id: String,
     pub session_id: String,
     pub thread_id: String,
     pub turn_id: Option<String>,
@@ -160,6 +162,7 @@ pub struct CodexPanelTurnResult {
 #[serde(rename_all = "camelCase")]
 pub struct CodexPanelInterruptResult {
     pub source: String,
+    pub panel_id: Option<String>,
     pub session_id: Option<String>,
     pub thread_id: Option<String>,
     pub turn_id: Option<String>,
@@ -171,6 +174,7 @@ pub struct CodexPanelInterruptResult {
 #[serde(rename_all = "camelCase")]
 pub struct CodexPanelCloseResult {
     pub source: String,
+    pub panel_id: Option<String>,
     pub closed: bool,
     pub detail: String,
 }
@@ -180,11 +184,11 @@ mod runtime_bridge {
         CodexAppServerProbe, CodexAppServerProtocolProbe, CodexCliProbe, CodexExecJsonProbe,
         CodexExecutionProbe, CodexHomeProbe, CodexLiveSmokeProof, CodexPanelCloseResult,
         CodexPanelEvent, CodexPanelInterruptResult, CodexPanelSessionReadiness,
-        CodexPanelSessionStart, CodexPanelTurnResult, CodexTransportProbe, PermissionApprovalStatus,
-        RuntimeBridgeStatus,
+        CodexPanelSessionStart, CodexPanelTurnResult, CodexTransportProbe,
+        PermissionApprovalStatus, RuntimeBridgeStatus,
     };
     use serde_json::Value;
-    use std::collections::BTreeSet;
+    use std::collections::{BTreeMap, BTreeSet};
     use std::fs;
     use std::io::{BufRead, BufReader, Write};
     use std::path::{Path, PathBuf};
@@ -195,7 +199,8 @@ mod runtime_bridge {
     use std::thread;
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-    static PANEL_SESSION: OnceLock<Mutex<Option<Arc<CodexPanelSession>>>> = OnceLock::new();
+    static PANEL_SESSIONS: OnceLock<Mutex<BTreeMap<String, Arc<CodexPanelSession>>>> =
+        OnceLock::new();
 
     #[tauri::command]
     pub fn runtime_bridge_status() -> RuntimeBridgeStatus {
@@ -239,7 +244,8 @@ mod runtime_bridge {
         let protocol = generate_protocol_probe();
         let handshake = probe_app_server_initialize();
         let app_server = CodexAppServerProbe {
-            available: app_server_help.contains("app server") || app_server_help.contains("app-server"),
+            available: app_server_help.contains("app server")
+                || app_server_help.contains("app-server"),
             stdio_handshake: handshake.success,
             daemon_lifecycle: daemon_lifecycle(),
             user_agent: handshake.user_agent,
@@ -265,8 +271,9 @@ mod runtime_bridge {
             execution: CodexExecutionProbe {
                 process_execution_allowed: false,
                 prompt_execution_allowed: false,
-                detail: "Read-only transport spike: no prompt was sent and execution remains locked."
-                    .to_string(),
+                detail:
+                    "Read-only transport spike: no prompt was sent and execution remains locked."
+                        .to_string(),
             },
         }
     }
@@ -301,8 +308,10 @@ mod runtime_bridge {
         }
         drain_stderr(&mut child);
 
-        let initialized = send_json(&mut child, &initialize_request(1, "steerboard-panel-readiness"))
-            && wait_for_json_rpc_id(&rx, 1, Duration::from_secs(8)).is_some();
+        let initialized = send_json(
+            &mut child,
+            &initialize_request(1, "steerboard-panel-readiness"),
+        ) && wait_for_json_rpc_id(&rx, 1, Duration::from_secs(8)).is_some();
         cleanup_child(&mut child);
 
         CodexPanelSessionReadiness {
@@ -321,11 +330,26 @@ mod runtime_bridge {
     }
 
     #[tauri::command]
-    pub fn codex_panel_session_start() -> Result<CodexPanelSessionStart, String> {
-        let session = start_panel_session()?;
-        replace_panel_session(session.clone());
+    pub fn codex_panel_session_start(
+        panel_id: Option<String>,
+    ) -> Result<CodexPanelSessionStart, String> {
+        let panel_id = panel_session_key(panel_id);
+        if let Some(session) = get_panel_session(&panel_id)? {
+            return Ok(CodexPanelSessionStart {
+                source: "desktop".to_string(),
+                panel_id,
+                session_id: session.session_id.clone(),
+                thread_id: session.thread_id.clone(),
+                started: true,
+                detail: "Reused existing Codex panel session for this cockpit panel.".to_string(),
+            });
+        }
+
+        let session = start_panel_session(&panel_id)?;
+        replace_panel_session(&panel_id, session.clone())?;
         Ok(CodexPanelSessionStart {
             source: "desktop".to_string(),
+            panel_id,
             session_id: session.session_id.clone(),
             thread_id: session.thread_id.clone(),
             started: true,
@@ -334,13 +358,17 @@ mod runtime_bridge {
     }
 
     #[tauri::command]
-    pub fn codex_panel_session_send_turn(prompt: String) -> Result<CodexPanelTurnResult, String> {
+    pub fn codex_panel_session_send_turn(
+        panel_id: Option<String>,
+        prompt: String,
+    ) -> Result<CodexPanelTurnResult, String> {
+        let panel_id = panel_session_key(panel_id);
         let prompt = prompt.trim().to_string();
         if prompt.is_empty() {
             return Err("Prompt is required to send a live panel turn.".to_string());
         }
 
-        let session = get_panel_session()?.ok_or_else(|| {
+        let session = get_panel_session(&panel_id)?.ok_or_else(|| {
             "No Codex panel session is active. Start a session before sending a turn.".to_string()
         })?;
 
@@ -348,10 +376,14 @@ mod runtime_bridge {
     }
 
     #[tauri::command]
-    pub fn codex_panel_session_interrupt() -> Result<CodexPanelInterruptResult, String> {
-        let Some(session) = get_panel_session()? else {
+    pub fn codex_panel_session_interrupt(
+        panel_id: Option<String>,
+    ) -> Result<CodexPanelInterruptResult, String> {
+        let panel_id = panel_session_key(panel_id);
+        let Some(session) = get_panel_session(&panel_id)? else {
             return Ok(CodexPanelInterruptResult {
                 source: "desktop".to_string(),
+                panel_id: Some(panel_id),
                 session_id: None,
                 thread_id: None,
                 turn_id: None,
@@ -364,10 +396,12 @@ mod runtime_bridge {
     }
 
     #[tauri::command]
-    pub fn codex_panel_session_close() -> CodexPanelCloseResult {
-        let closed = take_panel_session().is_some();
+    pub fn codex_panel_session_close(panel_id: Option<String>) -> CodexPanelCloseResult {
+        let panel_id = panel_session_key(panel_id);
+        let closed = take_panel_session(&panel_id).is_some();
         CodexPanelCloseResult {
             source: "desktop".to_string(),
+            panel_id: Some(panel_id),
             closed,
             detail: if closed {
                 "Closed Codex panel session and cleaned up the app-server process.".to_string()
@@ -398,6 +432,7 @@ mod runtime_bridge {
     }
 
     struct CodexPanelSession {
+        panel_id: String,
         session_id: String,
         thread_id: String,
         child: Mutex<std::process::Child>,
@@ -558,10 +593,8 @@ mod runtime_bridge {
     }
 
     fn generate_protocol_probe() -> CodexAppServerProtocolProbe {
-        let temp_dir = std::env::temp_dir().join(format!(
-            "steerboard-codex-protocol-{}",
-            timestamp_millis()
-        ));
+        let temp_dir =
+            std::env::temp_dir().join(format!("steerboard-codex-protocol-{}", timestamp_millis()));
         let _ = fs::create_dir_all(&temp_dir);
         let out_arg = temp_dir.to_string_lossy().to_string();
         let generated = run_codex_output(&[
@@ -577,7 +610,10 @@ mod runtime_bridge {
             CodexAppServerProtocolProbe {
                 thread_start: temp_dir.join("v2").join("ThreadStartParams.json").is_file(),
                 turn_start: temp_dir.join("v2").join("TurnStartParams.json").is_file(),
-                turn_interrupt: temp_dir.join("v2").join("TurnInterruptParams.json").is_file(),
+                turn_interrupt: temp_dir
+                    .join("v2")
+                    .join("TurnInterruptParams.json")
+                    .is_file(),
                 turn_steer: temp_dir.join("v2").join("TurnSteerParams.json").is_file(),
                 agent_message_delta: temp_dir
                     .join("v2")
@@ -861,7 +897,7 @@ mod runtime_bridge {
         live_smoke_result(checked_at, true, state)
     }
 
-    fn start_panel_session() -> Result<Arc<CodexPanelSession>, String> {
+    fn start_panel_session(panel_id: &str) -> Result<Arc<CodexPanelSession>, String> {
         let mut child = spawn_codex(&["app-server", "--listen", "stdio://"])
             .map_err(|_| "Unable to launch Codex app-server stdio.".to_string())?;
 
@@ -878,7 +914,10 @@ mod runtime_bridge {
         });
         drain_stderr(&mut child);
 
-        if !send_json(&mut child, &initialize_request(1, "steerboard-panel-session")) {
+        if !send_json(
+            &mut child,
+            &initialize_request(1, "steerboard-panel-session"),
+        ) {
             cleanup_child(&mut child);
             return Err("Unable to write initialize request to Codex app-server.".to_string());
         }
@@ -916,7 +955,8 @@ mod runtime_bridge {
             .ok_or_else(|| "thread/start response did not include a thread id.".to_string())?;
 
         Ok(Arc::new(CodexPanelSession {
-            session_id: format!("panel-session-{}", timestamp_millis()),
+            panel_id: panel_id.to_string(),
+            session_id: format!("panel-session-{panel_id}-{}", timestamp_millis()),
             thread_id,
             child: Mutex::new(child),
             rx: Mutex::new(rx),
@@ -957,15 +997,16 @@ mod runtime_bridge {
             return Err("Unable to write turn/start request.".to_string());
         }
 
-        let turn_response = wait_for_session_json_rpc_id(&session, request_id, Duration::from_secs(15))
-            .map_err(|error| {
-                clear_current_turn(&session);
-                error
-            })?
-            .ok_or_else(|| {
-                clear_current_turn(&session);
-                "Codex app-server did not return turn/start response.".to_string()
-            })?;
+        let turn_response =
+            wait_for_session_json_rpc_id(&session, request_id, Duration::from_secs(15))
+                .map_err(|error| {
+                    clear_current_turn(&session);
+                    error
+                })?
+                .ok_or_else(|| {
+                    clear_current_turn(&session);
+                    "Codex app-server did not return turn/start response.".to_string()
+                })?;
         let turn_id = extract_turn_id(&turn_response);
         set_current_turn(&session, turn_id.clone());
 
@@ -986,7 +1027,9 @@ mod runtime_bridge {
                 }
                 completed = completed || event.status.as_deref() == Some("completed");
                 interrupted = interrupted || event.status.as_deref() == Some("interrupted");
-                failed = failed || event.status.as_deref() == Some("failed") || event.event_type == "error";
+                failed = failed
+                    || event.status.as_deref() == Some("failed")
+                    || event.event_type == "error";
                 events.push(event);
             }
 
@@ -998,6 +1041,7 @@ mod runtime_bridge {
         clear_current_turn(&session);
         Ok(CodexPanelTurnResult {
             source: "desktop".to_string(),
+            panel_id: session.panel_id.clone(),
             session_id: session.session_id.clone(),
             thread_id: session.thread_id.clone(),
             turn_id,
@@ -1029,6 +1073,7 @@ mod runtime_bridge {
         let Some(turn_id) = turn_id.filter(|value| value != "starting") else {
             return Ok(CodexPanelInterruptResult {
                 source: "desktop".to_string(),
+                panel_id: Some(session.panel_id.clone()),
                 session_id: Some(session.session_id.clone()),
                 thread_id: Some(session.thread_id.clone()),
                 turn_id: None,
@@ -1053,6 +1098,7 @@ mod runtime_bridge {
 
         Ok(CodexPanelInterruptResult {
             source: "desktop".to_string(),
+            panel_id: Some(session.panel_id.clone()),
             session_id: Some(session.session_id.clone()),
             thread_id: Some(session.thread_id.clone()),
             turn_id: Some(turn_id),
@@ -1075,29 +1121,41 @@ mod runtime_bridge {
         }
     }
 
-    fn panel_session_cell() -> &'static Mutex<Option<Arc<CodexPanelSession>>> {
-        PANEL_SESSION.get_or_init(|| Mutex::new(None))
+    pub(crate) fn panel_session_key(panel_id: Option<String>) -> String {
+        panel_id
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty())
+            .unwrap_or_else(|| "default".to_string())
     }
 
-    fn replace_panel_session(session: Arc<CodexPanelSession>) {
-        let previous = {
-            let mut guard = panel_session_cell()
-                .lock()
-                .expect("panel session lock should not be poisoned");
-            guard.replace(session)
-        };
-        drop(previous);
+    fn panel_session_registry() -> &'static Mutex<BTreeMap<String, Arc<CodexPanelSession>>> {
+        PANEL_SESSIONS.get_or_init(|| Mutex::new(BTreeMap::new()))
     }
 
-    fn get_panel_session() -> Result<Option<Arc<CodexPanelSession>>, String> {
-        panel_session_cell()
+    fn replace_panel_session(
+        panel_id: &str,
+        session: Arc<CodexPanelSession>,
+    ) -> Result<(), String> {
+        let previous = panel_session_registry()
             .lock()
-            .map(|guard| guard.clone())
-            .map_err(|_| "Codex panel session lock was poisoned.".to_string())
+            .map_err(|_| "Codex panel session registry lock was poisoned.".to_string())?
+            .insert(panel_id.to_string(), session);
+        drop(previous);
+        Ok(())
     }
 
-    fn take_panel_session() -> Option<Arc<CodexPanelSession>> {
-        panel_session_cell().lock().ok().and_then(|mut guard| guard.take())
+    fn get_panel_session(panel_id: &str) -> Result<Option<Arc<CodexPanelSession>>, String> {
+        panel_session_registry()
+            .lock()
+            .map(|guard| guard.get(panel_id).cloned())
+            .map_err(|_| "Codex panel session registry lock was poisoned.".to_string())
+    }
+
+    fn take_panel_session(panel_id: &str) -> Option<Arc<CodexPanelSession>> {
+        panel_session_registry()
+            .lock()
+            .ok()
+            .and_then(|mut guard| guard.remove(panel_id))
     }
 
     fn mark_turn_starting(session: &Arc<CodexPanelSession>) -> Result<(), String> {
@@ -1130,7 +1188,9 @@ mod runtime_bridge {
         let deadline = std::time::Instant::now() + timeout;
         while std::time::Instant::now() < deadline {
             let remaining = deadline.saturating_duration_since(std::time::Instant::now());
-            let Some(value) = recv_session_value(session, remaining.min(Duration::from_millis(250)))? else {
+            let Some(value) =
+                recv_session_value(session, remaining.min(Duration::from_millis(250)))?
+            else {
                 continue;
             };
             if value.get("id").and_then(Value::as_i64) == Some(id) {
@@ -1446,23 +1506,38 @@ mod tests {
         assert_eq!(probe.source, "desktop");
         assert!(!probe.execution.process_execution_allowed);
         assert!(!probe.execution.prompt_execution_allowed);
-        assert!(probe
-            .execution
-            .detail
-            .to_lowercase()
-            .contains("no prompt"));
+        assert!(probe.execution.detail.to_lowercase().contains("no prompt"));
     }
 
     #[test]
     fn panel_initialize_request_does_not_start_thread_or_prompt() {
         let request = runtime_bridge::initialize_request(7, "unit-test-client");
-        assert_eq!(request.get("method").and_then(serde_json::Value::as_str), Some("initialize"));
-        assert_eq!(request.get("id").and_then(serde_json::Value::as_i64), Some(7));
+        assert_eq!(
+            request.get("method").and_then(serde_json::Value::as_str),
+            Some("initialize")
+        );
+        assert_eq!(
+            request.get("id").and_then(serde_json::Value::as_i64),
+            Some(7)
+        );
         let serialized = request.to_string();
         assert!(!serialized.contains("thread/start"));
         assert!(!serialized.contains("turn/start"));
         assert!(!serialized.contains("input"));
         assert!(!serialized.contains("prompt"));
+    }
+
+    #[test]
+    fn panel_session_key_preserves_panel_identity_with_default_fallback() {
+        assert_eq!(runtime_bridge::panel_session_key(None), "default");
+        assert_eq!(
+            runtime_bridge::panel_session_key(Some("  cockpit-panel-a  ".to_string())),
+            "cockpit-panel-a"
+        );
+        assert_eq!(
+            runtime_bridge::panel_session_key(Some("   ".to_string())),
+            "default"
+        );
     }
 
     #[test]

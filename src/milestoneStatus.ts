@@ -42,11 +42,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Cockpit monitor and operating modes",
     completion: "In progress",
     plan: "Complete core cockpit panels, control affordances, and visible operating-mode cues.",
-    completionPercent: 45,
+    completionPercent: 55,
     latestNote:
-      "Multi-panel cockpit and local chat-lane scaffold exist, but provider-backed chat and commands are not live.",
+      "Multi-panel cockpit and local chat-lane scaffold exist; visible panels can use panel-keyed live Codex chat, with native two-panel smoke still pending.",
     nextStep:
-      "Connect panels to the first live provider adapter.",
+      "Run native two-panel smoke and harden session controls.",
     tone: "active",
     note:
       "Cockpit layouts, local monitor previews, and chat-lane scaffolding exist, but live provider-backed behavior is not complete."
@@ -68,26 +68,26 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Runtime adapter previews",
     completion: "In progress",
     plan: "Deliver and stabilize adapter surfaces for consistent runtime status intake.",
-    completionPercent: 35,
+    completionPercent: 45,
     latestNote:
-      "Runtime profiles, bridge previews, permission previews, and local event simulations exist.",
+      "Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, and stream-routing foundations exist.",
     nextStep:
-      "Build the Codex app-server adapter as the first live adapter.",
+      "Connect routed stream state to richer monitor surfaces.",
     tone: "active",
     note:
       "Provider-neutral profile, bridge, permission, launch, and evidence previews exist as locked local scaffolds."
   },
   {
     target: "Live Codex integration",
-    completion: "Planned",
+    completion: "In progress",
     plan: "Connect real Codex auth/session transport to cockpit panels.",
-    completionPercent: 0,
+    completionPercent: 35,
     latestNote:
-      "Product plan now requires connection center, app-server bridge, and live panel chat.",
+      "Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, and visible-panel live chat paths.",
     nextStep:
-      "Implement runtime detection, auth posture, and app-server initialization.",
+      "Run native two-panel smoke, then add session controls.",
     current: true,
-    tone: "planned",
+    tone: "active",
     note:
       "Codex connection center, app-server bridge, live panel chat, and normalized stream ingestion are the next core milestone."
   },

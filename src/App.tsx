@@ -121,6 +121,14 @@ import {
   type CodexPanelTurnResultPayload
 } from "./codexSession";
 import {
+  loadPanelSessionState,
+  savePanelSessionState,
+  upsertPanelSession,
+  type CodexPanelSessionState,
+  type CodexPanelSessionStateRecord,
+  type CodexPanelSessionStatus
+} from "./codexPanelSessionState";
+import {
   decideCodexTransport,
   getFallbackCodexLiveSmokeProof,
   getFallbackCodexTransportProbe,
@@ -636,6 +644,7 @@ type LivePanelChatStatus =
 
 interface CodexPanelSessionStartPayload {
   source: string;
+  panelId: string;
   sessionId: string;
   threadId: string;
   started: boolean;
@@ -677,6 +686,9 @@ export function App() {
   );
   const [codexTransportLoading, setCodexTransportLoading] = useState(false);
   const [codexLiveSmokeLoading, setCodexLiveSmokeLoading] = useState(false);
+  const [panelSessionState, setPanelSessionState] = useState<CodexPanelSessionState>(() =>
+    loadPanelSessionState()
+  );
   const { selectedProjectId, mode, layoutId, view } = preferences;
   const codexTransportDecision = useMemo(
     () => decideCodexTransport(codexTransportProbe, codexLiveSmokeProof),
@@ -698,6 +710,10 @@ export function App() {
   useEffect(() => {
     saveRunHistory(mockRuns);
   }, [mockRuns]);
+
+  useEffect(() => {
+    savePanelSessionState(panelSessionState);
+  }, [panelSessionState]);
 
   const preset = cockpitPresets.find((entry) => entry.mode === mode) ?? cockpitPresets[0];
   const layout = getLayoutSpec(layoutId);
@@ -765,7 +781,6 @@ export function App() {
     () => cockpitSessions.slice(0, maxVisibleSessions),
     [cockpitSessions, maxVisibleSessions]
   );
-  const liveCodexPanelId = visibleSessions[0]?.id;
   const displayGrid = useMemo(
     () => getDisplayGrid(layout, visibleSessions.length),
     [layout, visibleSessions.length]
@@ -926,6 +941,41 @@ export function App() {
     if (nextDecision.state === "live") {
       setAppNotice(codexNotice(nextDecision));
     }
+  }
+
+  function recordLivePanelSessionStart(result: CodexPanelSessionStartPayload) {
+    setPanelSessionState((currentState) =>
+      upsertPanelSession(
+        currentState,
+        result.panelId,
+        {
+          provider: "codex",
+          sessionId: result.sessionId,
+          threadId: result.threadId,
+          status: "active",
+          stale: false,
+          detail: result.detail
+        }
+      )
+    );
+  }
+
+  function recordLivePanelSessionStatus(
+    panelId: string,
+    status: CodexPanelSessionStatus,
+    detail: string
+  ) {
+    setPanelSessionState((currentState) =>
+      upsertPanelSession(
+        currentState,
+        panelId,
+        {
+          status,
+          detail,
+          stale: false
+        }
+      )
+    );
   }
 
   return (
@@ -1129,7 +1179,10 @@ export function App() {
                     <SessionCell
                       isFocused={session.id === focusedPanelId}
                       key={session.id}
-                      liveCodexEnabled={session.id === liveCodexPanelId && codexTransportDecision.canStartSession}
+                      liveCodexEnabled={codexTransportDecision.canStartSession}
+                      onPanelSessionStart={recordLivePanelSessionStart}
+                      onPanelSessionStatus={recordLivePanelSessionStatus}
+                      panelSessionRecord={panelSessionState[session.id]}
                       projectLabel={
                         projectLabelById.get(session.projectId) ??
                         registryByProject.get(session.projectId)?.workspaceLabel ??
@@ -1472,11 +1525,21 @@ function AppDialogSurface({
 function SessionCell({
   isFocused = false,
   liveCodexEnabled = false,
+  onPanelSessionStart,
+  onPanelSessionStatus,
+  panelSessionRecord,
   projectLabel,
   session
 }: {
   isFocused?: boolean;
   liveCodexEnabled?: boolean;
+  onPanelSessionStart?: (result: CodexPanelSessionStartPayload) => void;
+  onPanelSessionStatus?: (
+    panelId: string,
+    status: CodexPanelSessionStatus,
+    detail: string
+  ) => void;
+  panelSessionRecord?: CodexPanelSessionStateRecord;
   projectLabel?: string;
   session: SessionSummary;
 }) {
@@ -1506,12 +1569,22 @@ function SessionCell({
     loadPanelChatMessages(session)
   );
   const [draftMessage, setDraftMessage] = useState("");
-  const [liveChatStatus, setLiveChatStatus] = useState<LivePanelChatStatus>(
-    liveCodexEnabled ? "idle" : "preview"
+  const restoredSessionAvailable = Boolean(
+    liveCodexEnabled &&
+      panelSessionRecord &&
+      !panelSessionRecord.stale &&
+      !["closed", "error"].includes(panelSessionRecord.status)
   );
-  const [liveSessionStarted, setLiveSessionStarted] = useState(false);
+  const [liveChatStatus, setLiveChatStatus] = useState<LivePanelChatStatus>(
+    restoredSessionAvailable || liveCodexEnabled ? "idle" : "preview"
+  );
+  const [liveSessionStarted, setLiveSessionStarted] = useState(restoredSessionAvailable);
   const [liveChatDetail, setLiveChatDetail] = useState(
-    liveCodexEnabled ? "Codex live session ready" : "Codex local preview"
+    restoredSessionAvailable
+      ? panelSessionRecord?.detail ?? "Restored Codex panel session metadata."
+      : liveCodexEnabled
+        ? "Codex live session ready"
+        : "Codex local preview"
   );
   const slashSuggestions = useMemo(
     () => getPanelSlashCommandSuggestions(draftMessage),
@@ -1536,10 +1609,31 @@ function SessionCell({
   useEffect(() => {
     setChatMessages(loadPanelChatMessages(session));
     setDraftMessage("");
-    setLiveSessionStarted(false);
+    const restored = Boolean(
+      liveCodexEnabled &&
+        panelSessionRecord &&
+        !panelSessionRecord.stale &&
+        !["closed", "error"].includes(panelSessionRecord.status)
+    );
+    setLiveSessionStarted(restored);
     setLiveChatStatus(liveCodexEnabled ? "idle" : "preview");
-    setLiveChatDetail(liveCodexEnabled ? "Codex live session ready" : "Codex local preview");
-  }, [liveCodexEnabled, session]);
+    setLiveChatDetail(
+      restored
+        ? panelSessionRecord?.detail ?? "Restored Codex panel session metadata."
+        : panelSessionRecord?.stale
+          ? "Saved Codex session is stale; a new session will start on next message."
+          : liveCodexEnabled
+            ? "Codex live session ready"
+            : "Codex local preview"
+    );
+  }, [
+    liveCodexEnabled,
+    panelSessionRecord?.detail,
+    panelSessionRecord?.sessionId,
+    panelSessionRecord?.stale,
+    panelSessionRecord?.status,
+    session
+  ]);
 
   useEffect(() => {
     savePanelChatMessages(session.id, chatMessages);
@@ -1553,10 +1647,14 @@ function SessionCell({
     setLiveChatStatus("starting");
     setLiveChatDetail("Starting Codex app-server panel session.");
     const result = await invokeDesktopCommand<CodexPanelSessionStartPayload>(
-      "codex_panel_session_start"
+      "codex_panel_session_start",
+      { panelId: session.id }
     );
     setLiveSessionStarted(result.started);
     setLiveChatDetail(result.detail);
+    if (result.started) {
+      onPanelSessionStart?.(result);
+    }
   }
 
   async function handlePanelChatSubmit(event: FormEvent<HTMLFormElement>) {
@@ -1595,7 +1693,7 @@ function SessionCell({
         setLiveChatDetail("Codex turn is running.");
         const result = await invokeDesktopCommand<CodexPanelTurnResultPayload>(
           "codex_panel_session_send_turn",
-          { prompt: trimmedMessage }
+          { panelId: session.id, prompt: trimmedMessage }
         );
         const state = reduceCodexSessionEvents(
           normalizeCodexPanelTurnResultEvents(result, trimmedMessage)
@@ -1628,6 +1726,11 @@ function SessionCell({
                 : "failed"
         );
         setLiveChatDetail(result.detail);
+        onPanelSessionStatus?.(
+          session.id,
+          result.failed ? "error" : result.interrupted ? "idle" : "active",
+          result.detail
+        );
         setChatMessages((currentMessages) => [
           ...currentMessages.filter((message) => message.id !== pendingMessage.id),
           ...nextMessages,
@@ -1637,6 +1740,7 @@ function SessionCell({
         const message = error instanceof Error ? error.message : String(error);
         setLiveChatStatus("failed");
         setLiveChatDetail(message);
+        onPanelSessionStatus?.(session.id, "error", message);
         setChatMessages((currentMessages) => [
           ...currentMessages.filter((item) => item.id !== pendingMessage.id),
           createPanelLiveErrorMessage(session, sequence + 2, message)

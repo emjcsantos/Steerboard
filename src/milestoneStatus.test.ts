@@ -184,8 +184,8 @@ describe("milestone status model", () => {
     );
     expect(cockpit?.completion).toBe("In progress");
     expect(cockpit?.tone).toBe("active");
-    expect(cockpit?.latestNote.toLowerCase()).toContain("provider-backed chat");
-    expect(cockpit?.nextStep.toLowerCase()).toContain("live provider adapter");
+    expect(cockpit?.latestNote.toLowerCase()).toContain("panel-keyed live codex chat");
+    expect(cockpit?.nextStep.toLowerCase()).toContain("two-panel smoke");
   });
 
   it("requires a compact public-safe summary for orchestration model", () => {
@@ -211,12 +211,12 @@ describe("milestone status model", () => {
 
     expect(runtimeAdapters?.completion).toBe("In progress");
     expect(runtimeAdapters?.tone).toBe("active");
-    expect(runtimeAdapters?.completionPercent).toBe(35);
+    expect(runtimeAdapters?.completionPercent).toBe(45);
     expect(runtimeAdapters?.latestNote).toBe(
-      "Runtime profiles, bridge previews, permission previews, and local event simulations exist."
+      "Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, and stream-routing foundations exist."
     );
     expect(runtimeAdapters?.nextStep).toBe(
-      "Build the Codex app-server adapter as the first live adapter."
+      "Connect routed stream state to richer monitor surfaces."
     );
   });
 
@@ -225,12 +225,12 @@ describe("milestone status model", () => {
       (milestone) => milestone.target === "Live Codex integration"
     );
 
-    expect(liveCodex?.completion).toBe("Planned");
-    expect(liveCodex?.tone).toBe("planned");
-    expect(liveCodex?.completionPercent).toBe(0);
+    expect(liveCodex?.completion).toBe("In progress");
+    expect(liveCodex?.tone).toBe("active");
+    expect(liveCodex?.completionPercent).toBe(35);
     expect(liveCodex?.current).toBe(true);
     expect(liveCodex?.nextStep).toBe(
-      "Implement runtime detection, auth posture, and app-server initialization."
+      "Run native two-panel smoke, then add session controls."
     );
   });
 
@@ -251,13 +251,13 @@ describe("milestone status model", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
       total: 9,
       complete: 0,
-      active: 6,
-      planned: 2,
+      active: 7,
+      planned: 1,
       paused: 1,
-      averageCompletionPercent: 26,
+      averageCompletionPercent: 32,
       nextTarget: "Live Codex integration",
-      nextStep: "Implement runtime detection, auth posture, and app-server initialization.",
-      nextCompletionPercent: 0
+      nextStep: "Run native two-panel smoke, then add session controls.",
+      nextCompletionPercent: 35
     });
   });
 

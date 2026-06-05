@@ -131,8 +131,8 @@ The cockpit consumes only normalized adapter events. Provider-specific payloads 
 | Target | Completion | Note |
 |---|---|---|
 | Connection Center | 25% | Local transport probe model added; desktop bridge can distinguish browser preview, CLI detection, app-server stdio handshake, explicit live-smoke result, and locked startup execution. |
-| Codex App-Server Adapter | 35% | Supervised app-server stdio now has no-prompt readiness, explicit live smoke, one-panel session start/send/interrupt/close commands, and normalized event collection. |
-| Live Panel Chat | 25% | First visible desktop panel can send through the Codex adapter and render normalized assistant/status/error output; browser preview remains local fallback. Multi-panel sessions and incremental UI streaming remain pending. |
+| Codex App-Server Adapter | 45% | Supervised app-server stdio now has no-prompt readiness, explicit live smoke, panel-keyed session start/send/interrupt/close commands, and normalized event collection. |
+| Live Panel Chat | 35% | Visible desktop panels can send through the Codex adapter and render normalized assistant/status/error output; browser preview remains local fallback. Panel-session persistence and stream isolation foundations are in place; native two-panel smoke and incremental UI streaming remain pending. |
 | Slash Command Registry | 0% | Provide command discovery and command execution from the composer. |
 | MCP Manager | 0% | Show configured servers, health, OAuth/setup state, and tool policy. |
 | Plugin Manager | 0% | Show plugin install/setup/enabled state and supported invocations. |

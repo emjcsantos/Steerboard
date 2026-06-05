@@ -123,6 +123,7 @@ export interface CodexPanelEventPayload {
 
 export interface CodexPanelTurnResultPayload {
   source: string;
+  panelId?: string;
   sessionId: string;
   threadId: string;
   turnId: string | null;

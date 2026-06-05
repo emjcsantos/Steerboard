@@ -13,12 +13,13 @@ Each visible panel should provide:
 The current implementation supports a first live-panel milestone:
 
 - browser preview captures local messages and shows a local preview response,
-- the first visible cockpit panel can use the desktop Codex adapter when the Tauri runtime and Codex app-server transport are available,
+- visible cockpit panels can use the desktop Codex adapter when the Tauri runtime and Codex app-server transport are available,
 - the live panel starts an explicit ephemeral read-only session only after the user submits a message,
 - the panel renders normalized assistant output, completion, interruption, and error states,
+- panel session metadata is keyed by cockpit panel ID so hidden/revealed panels can preserve identity,
 - passive readiness checks must not send prompts or spend model tokens.
 
-This is still a one-panel milestone. Multi-panel live session isolation, true incremental UI streaming, richer session controls, and provider catalogs remain future milestones.
+This is still an early live milestone. Multi-panel state and event isolation now have foundations, while native two-panel smoke, true incremental UI streaming, richer session controls, and provider catalogs remain future milestones.
 
 The next live milestone is to connect panel chat to the provider adapter layer:
 

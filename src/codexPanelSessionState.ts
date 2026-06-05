@@ -23,8 +23,6 @@ export interface CodexPanelSessionStateRecord {
 
 export type CodexPanelSessionState = Record<string, CodexPanelSessionStateRecord>;
 
-type PanelSessionRawState = Partial<CodexPanelSessionStateRecord> | null | undefined;
-
 export interface RepairPanelSessionsOptions {
   now?: number;
   staleAfterMs?: number;
@@ -87,7 +85,7 @@ function nowStamp(now: number): string {
 
 function hydratePanelSessionStateRecord(
   panelId: string,
-  raw: PanelSessionRawState,
+  raw: unknown,
   seen: Set<string>,
   options: RepairPanelSessionsOptions
 ): CodexPanelSessionStateRecord | undefined {

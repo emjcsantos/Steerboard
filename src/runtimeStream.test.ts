@@ -3,6 +3,15 @@ import {
   buildRuntimeStreamSnapshot,
   clampRuntimeStreamPosition,
   nextRuntimeStreamPosition,
+  createRuntimeStreamPanelRouterState,
+  reduceRuntimeStreamPanelRouter,
+  selectActiveRuntimePanels,
+  selectPanelLatestRuntimeStatus,
+  selectPanelRuntimeEvents,
+  selectRuntimeStreamQuarantineEvents,
+  selectRunningRuntimePanels,
+  type RuntimeStreamPanelOwnership,
+  type RuntimeStreamEventBatch,
   type RuntimeStreamPlaybackState,
   type RuntimeStreamSnapshot
 } from "./runtimeStream";
@@ -23,6 +32,112 @@ function makeIngestionEvent(
     sequence: Number(id.replace("evt-", ""))
   };
 }
+
+function makeRoutedEventBatch(
+  panelId: string,
+  provider: string,
+  sessionId: string,
+  turnId: string,
+  turnSequence: number,
+  eventIds: readonly string[]
+): RuntimeStreamEventBatch {
+  return {
+    panelId,
+    provider,
+    sessionId,
+    turnId,
+    turnSequence,
+    events: eventIds.map((id, index) =>
+      makeIngestionEvent(`${panelId}-${id}`, index % 2 === 0 ? "accepted" : "review")
+    )
+  };
+}
+
+describe("runtime stream panel router", () => {
+  const ownerPanelA: RuntimeStreamPanelOwnership = {
+    panelId: "panel-a",
+    provider: "codex",
+    sessionId: "shared-session"
+  };
+  const ownerPanelB: RuntimeStreamPanelOwnership = {
+    panelId: "panel-b",
+    provider: "codex",
+    sessionId: "shared-session"
+  };
+
+  it("keeps overlapping turn and session ids in per-panel logs without cross-talk", () => {
+    const state = createRuntimeStreamPanelRouterState([ownerPanelA, ownerPanelB]);
+    const eventBatches: RuntimeStreamEventBatch[] = [
+      makeRoutedEventBatch("panel-a", "codex", "shared-session", "turn-1", 1, ["a1", "a2"]),
+      makeRoutedEventBatch("panel-b", "codex", "shared-session", "turn-1", 1, ["b1", "b2"])
+    ];
+
+    const next = reduceRuntimeStreamPanelRouter(state, eventBatches);
+
+    expect(selectPanelRuntimeEvents(next, "panel-a").map((event) => event.id)).toEqual([
+      "panel-a-a1",
+      "panel-a-a2"
+    ]);
+    expect(selectPanelRuntimeEvents(next, "panel-b").map((event) => event.id)).toEqual([
+      "panel-b-b1",
+      "panel-b-b2"
+    ]);
+
+    expect(selectActiveRuntimePanels(next).sort()).toEqual(["panel-a", "panel-b"]);
+    expect(selectRunningRuntimePanels(next).sort()).toEqual(["panel-a", "panel-b"]);
+    expect(selectPanelLatestRuntimeStatus(next, "panel-a")?.latestStatus).toBe("review");
+    expect(selectPanelLatestRuntimeStatus(next, "panel-b")?.latestStatus).toBe("review");
+    expect(selectRuntimeStreamQuarantineEvents(next)).toHaveLength(0);
+  });
+
+  it("quarantines unknown panel events with explicit reason", () => {
+    const state = createRuntimeStreamPanelRouterState([ownerPanelA]);
+    const next = reduceRuntimeStreamPanelRouter(state, [
+      makeRoutedEventBatch("panel-unknown", "codex", "unknown-session", "turn-1", 1, ["x"])
+    ]);
+
+    const quarantined = selectRuntimeStreamQuarantineEvents(next);
+    expect(quarantined).toHaveLength(1);
+    expect(quarantined[0]).toMatchObject({
+      reason: "unknown-panel",
+      event: {
+        panelId: "panel-unknown",
+        sessionId: "unknown-session"
+      }
+    });
+    expect(selectPanelRuntimeEvents(next, "panel-unknown")).toEqual([]);
+  });
+
+  it("quarantines events with mismatched session/provider ownership and records reason", () => {
+    const state = createRuntimeStreamPanelRouterState([ownerPanelA]);
+    const next = reduceRuntimeStreamPanelRouter(state, [
+      makeRoutedEventBatch("panel-a", "codex", "wrong-session", "turn-1", 1, ["bad"])
+    ]);
+
+    const quarantined = selectRuntimeStreamQuarantineEvents(next, "unknown-session");
+    expect(quarantined).toHaveLength(1);
+    expect(quarantined[0]).toMatchObject({
+      reason: "unknown-session",
+      detail: expect.stringContaining("Session/provider mismatch")
+    });
+    expect(selectPanelRuntimeEvents(next, "panel-a")).toHaveLength(0);
+  });
+
+  it("quarantines stale turn batches while preserving current panel log state", () => {
+    const state = createRuntimeStreamPanelRouterState([ownerPanelA]);
+    const withCurrentTurn = reduceRuntimeStreamPanelRouter(state, [
+      makeRoutedEventBatch("panel-a", "codex", "shared-session", "turn-2", 2, ["fresh"])
+    ]);
+    const withStaleTurn = reduceRuntimeStreamPanelRouter(withCurrentTurn, [
+      makeRoutedEventBatch("panel-a", "codex", "shared-session", "turn-1", 1, ["stale"])
+    ]);
+
+    expect(selectPanelRuntimeEvents(withStaleTurn, "panel-a").map((event) => event.id)).toEqual([
+      "panel-a-fresh"
+    ]);
+    expect(selectRuntimeStreamQuarantineEvents(withStaleTurn, "stale-turn")).toHaveLength(1);
+  });
+});
 
 describe("runtime stream position", () => {
   it("clamps position to 0 for negative, decimal, and non-finite values", () => {
