@@ -136,10 +136,10 @@ describe("milestone status model", () => {
     expect(orchestration?.completion).toBe("In progress");
     expect(orchestration?.tone).toBe("active");
     expect(orchestration?.latestNote).toBe(
-      "Dispatch sequencing and handoff audit coverage now tracks queued, active, blocked, and dependency-order signals for orchestration handoff."
+      "Accepted-result propagation and integration handoff evidence now track result evidence, dependency propagation, integration readiness, and complete-run validation gates."
     );
     expect(orchestration?.nextStep).toBe(
-      "Add accepted-result propagation and integration handoff evidence for orchestration runs."
+      "Close orchestration milestone with final end-to-end acceptance coverage and regression checks."
     );
   });
 
@@ -163,11 +163,11 @@ describe("milestone status model", () => {
       active: 2,
       planned: 2,
       paused: 1,
-      averageCompletionPercent: 49,
+      averageCompletionPercent: 51,
       nextTarget: "Orchestration model",
       nextStep:
-        "Add accepted-result propagation and integration handoff evidence for orchestration runs.",
-      nextCompletionPercent: 60
+        "Close orchestration milestone with final end-to-end acceptance coverage and regression checks.",
+      nextCompletionPercent: 75
     });
   });
 
@@ -196,6 +196,7 @@ describe("milestone status model", () => {
       expect(Number.isInteger(row.completionPercent)).toBe(true);
       expect(row.target.length).toBeGreaterThan(0);
       expect(row.completion.length).toBeGreaterThan(0);
+      expect(row.plan.length).toBeGreaterThan(0);
       expect(row.latestNote.length).toBeGreaterThan(0);
     }
 

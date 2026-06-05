@@ -54,11 +54,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Orchestration model",
     completion: "In progress",
     plan: "Define a consistent model for sequencing cross-cutting tasks and status propagation.",
-    completionPercent: 60,
+    completionPercent: 75,
     latestNote:
-      "Dispatch sequencing and handoff audit coverage now tracks queued, active, blocked, and dependency-order signals for orchestration handoff.",
+      "Accepted-result propagation and integration handoff evidence now track result evidence, dependency propagation, integration readiness, and complete-run validation gates.",
     nextStep:
-      "Add accepted-result propagation and integration handoff evidence for orchestration runs.",
+      "Close orchestration milestone with final end-to-end acceptance coverage and regression checks.",
     tone: "active",
     note:
       "Standardized orchestration flow is being finalized to coordinate cockpit tasks and health signals."

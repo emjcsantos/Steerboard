@@ -61,6 +61,10 @@ import {
   type OrchestrationDispatchAudit
 } from "./orchestrationDispatchAudit";
 import {
+  createOrchestrationResultHandoffEvidence,
+  type OrchestrationResultHandoffEvidence
+} from "./orchestrationResultHandoffEvidence";
+import {
   buildPipelineItemDispatchPreview,
   type PipelineItemDispatchPreview
 } from "./pipelineItemDispatchPreview";
@@ -2270,6 +2274,10 @@ function RightPanel({
     () => createOrchestrationDispatchAudit(tasks),
     [tasks]
   );
+  const orchestrationResultHandoffEvidence: OrchestrationResultHandoffEvidence = useMemo(
+    () => createOrchestrationResultHandoffEvidence(tasks, mockRuns),
+    [mockRuns, tasks]
+  );
   const runSummary = summarizeRunHistory(mockRuns);
   const milestoneStatusSummary = useMemo(
     () => summarizeMilestoneStatuses(steerboardMilestoneStatuses),
@@ -2931,6 +2939,38 @@ function RightPanel({
                 className={classNames(
                   "orchestration-dispatch-audit-check",
                   `orchestration-dispatch-audit-check-${check.tone}`
+                )}
+                key={check.label}
+                title={`${check.label}: ${check.value}`}
+              >
+                <strong>{check.value}</strong>
+                <small>{check.label}</small>
+              </span>
+            ))}
+          </div>
+        </div>
+        <div
+          aria-label={orchestrationResultHandoffEvidence.ariaLabel}
+          className={classNames(
+            "orchestration-result-handoff",
+            `orchestration-result-handoff-${orchestrationResultHandoffEvidence.tone}`
+          )}
+          title={orchestrationResultHandoffEvidence.detail}
+        >
+          <div className="orchestration-result-handoff-header">
+            <strong>{orchestrationResultHandoffEvidence.label}</strong>
+            <b>{orchestrationResultHandoffEvidence.checkLabel}</b>
+          </div>
+          <p>{orchestrationResultHandoffEvidence.detail}</p>
+          <div
+            className="orchestration-result-handoff-checks"
+            aria-label="Orchestration result handoff evidence checks"
+          >
+            {orchestrationResultHandoffEvidence.checks.map((check) => (
+              <span
+                className={classNames(
+                  "orchestration-result-handoff-check",
+                  `orchestration-result-handoff-check-${check.tone}`
                 )}
                 key={check.label}
                 title={`${check.label}: ${check.value}`}

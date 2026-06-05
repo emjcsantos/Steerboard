@@ -3140,7 +3140,8 @@ textarea {
 }
 
 .orchestration-readiness,
-.orchestration-dispatch-audit {
+.orchestration-dispatch-audit,
+.orchestration-result-handoff {
   display: grid;
   min-width: 0;
   gap: 7px;
@@ -3152,7 +3153,8 @@ textarea {
 }
 
 .orchestration-readiness-header,
-.orchestration-dispatch-audit-header {
+.orchestration-dispatch-audit-header,
+.orchestration-result-handoff-header {
   display: grid;
   min-width: 0;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -3163,7 +3165,9 @@ textarea {
 .orchestration-readiness-header strong,
 .orchestration-readiness-header b,
 .orchestration-dispatch-audit-header strong,
-.orchestration-dispatch-audit-header b {
+.orchestration-dispatch-audit-header b,
+.orchestration-result-handoff-header strong,
+.orchestration-result-handoff-header b {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3171,14 +3175,16 @@ textarea {
 }
 
 .orchestration-readiness-header strong,
-.orchestration-dispatch-audit-header strong {
+.orchestration-dispatch-audit-header strong,
+.orchestration-result-handoff-header strong {
   color: #edf3f8;
   font-size: 11px;
   font-weight: 900;
 }
 
 .orchestration-readiness-header b,
-.orchestration-dispatch-audit-header b {
+.orchestration-dispatch-audit-header b,
+.orchestration-result-handoff-header b {
   border-radius: 999px;
   background: #10161d;
   color: #cfd8e3;
@@ -3189,7 +3195,8 @@ textarea {
 }
 
 .orchestration-readiness p,
-.orchestration-dispatch-audit p {
+.orchestration-dispatch-audit p,
+.orchestration-result-handoff p {
   margin: 0;
   overflow-wrap: anywhere;
   color: #9fa9b4;
@@ -3198,7 +3205,8 @@ textarea {
 }
 
 .orchestration-readiness-checks,
-.orchestration-dispatch-audit-checks {
+.orchestration-dispatch-audit-checks,
+.orchestration-result-handoff-checks {
   display: grid;
   min-width: 0;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3206,7 +3214,8 @@ textarea {
 }
 
 .orchestration-readiness-check,
-.orchestration-dispatch-audit-check {
+.orchestration-dispatch-audit-check,
+.orchestration-result-handoff-check {
   display: grid;
   min-width: 0;
   gap: 2px;
@@ -3220,7 +3229,9 @@ textarea {
 .orchestration-readiness-check strong,
 .orchestration-readiness-check small,
 .orchestration-dispatch-audit-check strong,
-.orchestration-dispatch-audit-check small {
+.orchestration-dispatch-audit-check small,
+.orchestration-result-handoff-check strong,
+.orchestration-result-handoff-check small {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3228,14 +3239,16 @@ textarea {
 }
 
 .orchestration-readiness-check strong,
-.orchestration-dispatch-audit-check strong {
+.orchestration-dispatch-audit-check strong,
+.orchestration-result-handoff-check strong {
   color: #f4f7fa;
   font-size: 10px;
   font-weight: 900;
 }
 
 .orchestration-readiness-check small,
-.orchestration-dispatch-audit-check small {
+.orchestration-dispatch-audit-check small,
+.orchestration-result-handoff-check small {
   color: #8f99a4;
   font-size: 9px;
   font-weight: 800;
@@ -3243,42 +3256,50 @@ textarea {
 }
 
 .orchestration-readiness-ready,
-.orchestration-dispatch-audit-ready {
+.orchestration-dispatch-audit-ready,
+.orchestration-result-handoff-ready {
   border-color: #254634;
 }
 
 .orchestration-readiness-review,
-.orchestration-dispatch-audit-review {
+.orchestration-dispatch-audit-review,
+.orchestration-result-handoff-review {
   border-color: #5c4b1b;
 }
 
 .orchestration-readiness-blocked,
-.orchestration-dispatch-audit-blocked {
+.orchestration-dispatch-audit-blocked,
+.orchestration-result-handoff-blocked {
   border-color: #69343a;
 }
 
 .orchestration-readiness-empty,
-.orchestration-dispatch-audit-empty {
+.orchestration-dispatch-audit-empty,
+.orchestration-result-handoff-empty {
   border-color: #303844;
 }
 
 .orchestration-readiness-check-ok,
-.orchestration-dispatch-audit-check-ok {
+.orchestration-dispatch-audit-check-ok,
+.orchestration-result-handoff-check-ok {
   border-color: #254634;
 }
 
 .orchestration-readiness-check-review,
-.orchestration-dispatch-audit-check-review {
+.orchestration-dispatch-audit-check-review,
+.orchestration-result-handoff-check-review {
   border-color: #5c4b1b;
 }
 
 .orchestration-readiness-check-blocked,
-.orchestration-dispatch-audit-check-blocked {
+.orchestration-dispatch-audit-check-blocked,
+.orchestration-result-handoff-check-blocked {
   border-color: #69343a;
 }
 
 .orchestration-readiness-check-neutral,
-.orchestration-dispatch-audit-check-neutral {
+.orchestration-dispatch-audit-check-neutral,
+.orchestration-result-handoff-check-neutral {
   border-color: #303844;
 }
 
