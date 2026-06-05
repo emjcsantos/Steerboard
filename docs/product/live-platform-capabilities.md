@@ -146,7 +146,7 @@ Phase 10B defines the first desktop-backed runner attachment:
 | Skills Catalog | 20% | Provider-neutral skill model, dialog surface, provider-only row support, and desktop-backed safe provider metadata refresh are in place; skill execution remains pending. |
 | MCP Manager | 20% | Provider-neutral MCP model, dialog surface, provider-only row support, and desktop-backed safe provider metadata refresh are in place; MCP tool execution remains pending. |
 | Plugin Manager | 20% | Provider-neutral plugin model, dialog surface, provider-only row support, and desktop-backed safe provider metadata refresh are in place; plugin execution remains pending. |
-| Automations Manager | 12% | Provider-neutral automation model and dialog surface show lifecycle, trigger, and approval posture without scheduling or running automations. |
+| Automations Manager | 20% | Provider-neutral automation model, dialog surface, provider-only row support, and desktop-backed safe provider metadata refresh are in place; scheduling and execution remain pending. |
 | Personalization Center | 12% | Provider-neutral personalization model and settings entry show instruction/config layers and privacy posture without exposing private paths. |
 | Migration Center | 20% | `File > Migrate...` now exposes a safe source selector, desktop metadata scan, category checkboxes, excluded secrets summary, and local profile draft staging. Reviewed persistence and rollback remain pending. |
 | Permission And Audit Layer | 45% | Provider-neutral approval gates, approval-first read-only terminal probe runner, and redacted local audit records are visible; Git/MCP/plugin/automation/runtime/profile/external mutation remains deferred. |

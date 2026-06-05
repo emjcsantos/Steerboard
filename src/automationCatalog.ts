@@ -42,6 +42,24 @@ export type AutomationCatalogSummary = {
   availability: number;
 };
 
+export type AutomationCatalogRefreshSource =
+  | "provider-live"
+  | "provider-preview"
+  | "default-fallback"
+  | "empty-refresh"
+  | "unavailable";
+
+export interface AutomationCatalogSnapshotSummary extends Omit<AutomationCatalogSummary, "availability"> {
+  source: AutomationCatalogRefreshSource;
+  availability: number;
+}
+
+export interface AutomationCatalogSnapshot {
+  source: AutomationCatalogRefreshSource;
+  catalog: readonly AutomationCatalogEntry[];
+  summary: AutomationCatalogSnapshotSummary;
+}
+
 export const defaultAutomationCatalog: readonly AutomationCatalogEntry[] = [
   {
     id: "workflow-checks",
@@ -123,7 +141,6 @@ const defaultLifecycle: AutomationLifecycle = "idle";
 const defaultTrigger: AutomationTrigger = "manual";
 const defaultApprovalPosture: AutomationApprovalPosture = "approval-required";
 const defaultState: AutomationState = "unavailable";
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -237,6 +254,59 @@ function normalizeAutomationCatalogInternal(
   }
 
   return deduped;
+}
+
+function summarizeAutomationCatalogWithSource(
+  catalog: unknown,
+  source: AutomationCatalogRefreshSource
+): AutomationCatalogSnapshotSummary {
+  const summary = summarizeAutomationCatalog(catalog);
+  return {
+    ...summary,
+    source
+  };
+}
+
+export function buildAutomationCatalogSnapshot(
+  catalog: unknown,
+  source: AutomationCatalogRefreshSource = "default-fallback",
+  fallback: readonly AutomationCatalogEntry[] = defaultAutomationCatalog
+): AutomationCatalogSnapshot {
+  const providedIsArray = Array.isArray(catalog);
+  const normalizedCatalog = providedIsArray ? normalizeAutomationCatalogInternal(catalog) : [];
+  const normalizedFallback = normalizeAutomationCatalogInternal(fallback);
+
+  if (normalizedCatalog.length > 0) {
+    const resolvedSource =
+      source === "provider-live" || source === "provider-preview" ? source : "default-fallback";
+    return {
+      source: resolvedSource,
+      catalog: normalizedCatalog,
+      summary: summarizeAutomationCatalogWithSource(normalizedCatalog, resolvedSource)
+    };
+  }
+
+  let resolvedSource: AutomationCatalogRefreshSource;
+  if (providedIsArray) {
+    resolvedSource = catalog.length === 0 ? "empty-refresh" : "default-fallback";
+  } else if (normalizedFallback.length === 0) {
+    resolvedSource = "unavailable";
+  } else {
+    resolvedSource = "default-fallback";
+  }
+
+  const safeCatalog = normalizeAutomationCatalog(catalog, fallback);
+  return {
+    source: resolvedSource,
+    catalog: safeCatalog,
+    summary: summarizeAutomationCatalogWithSource(safeCatalog, resolvedSource)
+  };
+}
+
+export function normalizeAutomationCatalogEntries(
+  value: unknown
+): AutomationCatalogEntry[] {
+  return normalizeAutomationCatalogInternal(value);
 }
 
 export function normalizeAutomationCatalog(

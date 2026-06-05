@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   defaultAutomationCatalog,
+  buildAutomationCatalogSnapshot,
   normalizeAutomationCatalog,
   summarizeAutomationCatalog,
   type AutomationApprovalPosture,
@@ -261,6 +262,37 @@ describe("automation catalog summary", () => {
       needsAttention: 4,
       availability: 0.43
     });
+  });
+});
+
+describe("automation catalog snapshot", () => {
+  it("builds default-fallback snapshots from safe catalog rows", () => {
+    const snapshot = buildAutomationCatalogSnapshot(
+      [
+        {
+          id: "task-handoff",
+          label: "Task Handoff",
+          lifecycle: "active",
+          trigger: "event",
+          approvalPosture: "manual",
+          state: "preview"
+        }
+      ],
+      "provider-live",
+      defaultAutomationCatalog
+    );
+
+    expect(snapshot.source).toBe("provider-live");
+    expect(snapshot.summary.total).toBe(1);
+    expect(snapshot.summary.live).toBe(0);
+    expect(snapshot.summary.preview).toBe(1);
+  });
+
+  it("falls back to default-fallback snapshots when normalized rows are missing", () => {
+    const snapshot = buildAutomationCatalogSnapshot([], "provider-live", defaultAutomationCatalog);
+    expect(snapshot.source).toBe("empty-refresh");
+    expect(snapshot.catalog).toEqual(defaultAutomationCatalog);
+    expect(snapshot.summary.availability).toBeGreaterThan(0);
   });
 });
 

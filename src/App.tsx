@@ -69,10 +69,13 @@ import {
   saveAdaptiveCockpitLayout
 } from "./adaptiveCockpitLayoutStorage";
 import {
+  buildAutomationCatalogSnapshot,
   defaultAutomationCatalog,
-  summarizeAutomationCatalog,
+  type AutomationCatalogRefreshSource,
+  type AutomationCatalogSnapshot,
   type AutomationCatalogEntry
 } from "./automationCatalog";
+import { loadProviderAutomationCatalogSnapshot } from "./providerAutomationCatalog";
 import {
   buildCommandCatalogSnapshot,
   type CommandCatalogRefreshSource,
@@ -1025,6 +1028,21 @@ function formatMcpCatalogSource(source: McpCatalogRefreshSource): string {
   }
 }
 
+function formatAutomationCatalogSource(source: AutomationCatalogRefreshSource): string {
+  switch (source) {
+    case "provider-live":
+      return "Provider live";
+    case "provider-preview":
+      return "Provider preview";
+    case "default-fallback":
+      return "Default fallback";
+    case "empty-refresh":
+      return "Empty refresh";
+    case "unavailable":
+      return "Unavailable";
+  }
+}
+
 function buildPluginCatalogRows(catalog: readonly PluginCatalogEntry[]): PlatformCatalogRow[] {
   return catalog.map((entry) => ({
     id: entry.id,
@@ -1079,6 +1097,7 @@ function buildPersonalizationCatalogRows(
 
 function getPlatformCatalogView(
   dialog: AppDialog,
+  automationCatalogSnapshot: AutomationCatalogSnapshot,
   mcpCatalogSnapshot: McpCatalogSnapshot,
   pluginCatalogSnapshot: PluginCatalogSnapshot,
   skillCatalogSnapshot: SkillCatalogSnapshot
@@ -1120,9 +1139,10 @@ function getPlatformCatalogView(
     return {
       title: "Automations",
       eyebrow: "Platform catalog",
-      lead: "Automation entries show lifecycle, trigger, and approval posture. Nothing is scheduled or run from this catalog.",
-      rows: buildAutomationCatalogRows(defaultAutomationCatalog),
-      summary: summarizeAutomationCatalog(defaultAutomationCatalog)
+      lead: "Automation entries show lifecycle, trigger, approval posture, and safe provider refresh state. Nothing is scheduled or run from this catalog.",
+      rows: buildAutomationCatalogRows(automationCatalogSnapshot.catalog),
+      summary: automationCatalogSnapshot.summary,
+      sourceLabel: formatAutomationCatalogSource(automationCatalogSnapshot.source)
     };
   }
 
@@ -1338,6 +1358,9 @@ export function App() {
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
+  const [automationCatalogSnapshot, setAutomationCatalogSnapshot] = useState<AutomationCatalogSnapshot>(() =>
+    buildAutomationCatalogSnapshot(defaultAutomationCatalog, "default-fallback", defaultAutomationCatalog)
+  );
   const [mcpCatalogSnapshot, setMcpCatalogSnapshot] = useState<McpCatalogSnapshot>(() =>
     buildMcpCatalogSnapshot(defaultMcpCatalog, "default-fallback", defaultMcpCatalog)
   );
@@ -1349,6 +1372,7 @@ export function App() {
   );
   const [codexTransportLoading, setCodexTransportLoading] = useState(false);
   const [codexLiveSmokeLoading, setCodexLiveSmokeLoading] = useState(false);
+  const [automationCatalogLoading, setAutomationCatalogLoading] = useState(false);
   const [mcpCatalogLoading, setMcpCatalogLoading] = useState(false);
   const [pluginCatalogLoading, setPluginCatalogLoading] = useState(false);
   const [skillCatalogLoading, setSkillCatalogLoading] = useState(false);
@@ -2175,6 +2199,21 @@ export function App() {
     }
   }
 
+  async function refreshAutomationCatalogSnapshot() {
+    setAutomationCatalogLoading(true);
+    setAppNotice("Refreshing provider automation catalog");
+    try {
+      const nextSnapshot = await loadProviderAutomationCatalogSnapshot(
+        undefined,
+        defaultAutomationCatalog
+      );
+      setAutomationCatalogSnapshot(nextSnapshot);
+      setAppNotice(`${formatAutomationCatalogSource(nextSnapshot.source)} automation catalog refreshed`);
+    } finally {
+      setAutomationCatalogLoading(false);
+    }
+  }
+
   function recordLivePanelSessionStart(result: CodexPanelSessionStartPayload) {
     setPanelSessionState((currentState) =>
       upsertPanelSession(
@@ -2649,6 +2688,8 @@ export function App() {
       {appDialog ? (
         <AppDialogSurface
           commandCatalogSnapshot={commandCatalogSnapshot}
+          automationCatalogLoading={automationCatalogLoading}
+          automationCatalogSnapshot={automationCatalogSnapshot}
           codexConnectionRequested={codexConnectionRequested}
           codexLiveSmokeLoading={codexLiveSmokeLoading}
           codexLiveSmokeProof={codexLiveSmokeProof}
@@ -2667,6 +2708,7 @@ export function App() {
           onMigrationSourceChange={handleMigrationSourceChange}
           onClose={() => setAppDialog(undefined)}
           onRefreshCommandCatalog={refreshCommandCatalogSnapshot}
+          onRefreshAutomationCatalog={refreshAutomationCatalogSnapshot}
           onRefreshCodexTransport={refreshCodexTransportProbe}
           onRefreshMcpCatalog={refreshMcpCatalogSnapshot}
           onRefreshMigrationPreview={() => refreshMigrationSourcePreview()}
@@ -2820,6 +2862,8 @@ function AppMenuBar({
 
 function AppDialogSurface({
   commandCatalogSnapshot,
+  automationCatalogLoading,
+  automationCatalogSnapshot,
   codexConnectionRequested,
   codexLiveSmokeLoading,
   codexLiveSmokeProof,
@@ -2838,6 +2882,7 @@ function AppDialogSurface({
   onMigrationSourceChange,
   onClose,
   onRefreshCommandCatalog,
+  onRefreshAutomationCatalog,
   onRefreshCodexTransport,
   onRefreshMcpCatalog,
   onRefreshMigrationPreview,
@@ -2852,6 +2897,8 @@ function AppDialogSurface({
   skillCatalogSnapshot
 }: {
   commandCatalogSnapshot: CommandCatalogSnapshot;
+  automationCatalogLoading: boolean;
+  automationCatalogSnapshot: AutomationCatalogSnapshot;
   codexConnectionRequested: boolean;
   codexLiveSmokeLoading: boolean;
   codexLiveSmokeProof: CodexLiveSmokeProof;
@@ -2870,6 +2917,7 @@ function AppDialogSurface({
   onMigrationSourceChange: (sourceId: MigrationSourceId) => void;
   onClose: () => void;
   onRefreshCommandCatalog: () => void;
+  onRefreshAutomationCatalog: () => void;
   onRefreshCodexTransport: () => void;
   onRefreshMcpCatalog: () => void;
   onRefreshMigrationPreview: () => void;
@@ -2885,6 +2933,7 @@ function AppDialogSurface({
 }) {
   const platformCatalogView = getPlatformCatalogView(
     dialog,
+    automationCatalogSnapshot,
     mcpCatalogSnapshot,
     pluginCatalogSnapshot,
     skillCatalogSnapshot
@@ -3189,6 +3238,13 @@ function AppDialogSurface({
               <div className="dialog-action-row">
                 <button className="dialog-secondary-action" onClick={onRefreshSkillCatalog} type="button">
                   {skillCatalogLoading ? "Refreshing..." : "Refresh skills catalog"}
+                </button>
+              </div>
+            ) : null}
+            {dialog === "automations" ? (
+              <div className="dialog-action-row">
+                <button className="dialog-secondary-action" onClick={onRefreshAutomationCatalog} type="button">
+                  {automationCatalogLoading ? "Refreshing..." : "Refresh automations catalog"}
                 </button>
               </div>
             ) : null}

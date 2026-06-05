@@ -276,6 +276,35 @@ pub struct ProviderMcpCatalogPreview {
     pub safety: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderAutomationCatalogEntry {
+    pub id: String,
+    pub label: String,
+    pub lifecycle: String,
+    pub trigger: String,
+    pub approval_posture: String,
+    pub state: String,
+    pub readiness: String,
+    pub setup: bool,
+    pub unsupported: bool,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderAutomationCatalogPreview {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub provider_state: String,
+    pub readiness: String,
+    pub setup: bool,
+    pub unsupported: bool,
+    pub entries: Vec<ProviderAutomationCatalogEntry>,
+    pub detail: String,
+    pub safety: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LiveActionRunnerRequest {
@@ -353,7 +382,8 @@ mod runtime_bridge {
         MigrationSourcePreview, MigrationSourcePreviewCounts, PermissionApprovalStatus,
         ProviderCommandCatalogEntry, ProviderCommandCatalogPreview, ProviderPluginCatalogEntry,
         ProviderPluginCatalogPreview, ProviderMcpCatalogEntry, ProviderMcpCatalogPreview,
-        ProviderSkillCatalogEntry, ProviderSkillCatalogPreview, RuntimeBridgeStatus,
+        ProviderSkillCatalogEntry, ProviderSkillCatalogPreview, ProviderAutomationCatalogEntry,
+        ProviderAutomationCatalogPreview, RuntimeBridgeStatus,
     };
     use serde_json::Value;
     use std::collections::{BTreeMap, BTreeSet};
@@ -1361,6 +1391,155 @@ mod runtime_bridge {
     #[tauri::command]
     pub fn codex_mcp_catalog_preview() -> ProviderMcpCatalogPreview {
         codex_mcp_catalog_preview_from_probe(codex_transport_probe())
+    }
+
+    fn automation_catalog_entry(
+        id: &str,
+        label: &str,
+        lifecycle: &str,
+        trigger: &str,
+        approval_posture: &str,
+        state: &str,
+        readiness: &str,
+        setup: bool,
+        unsupported: bool,
+        detail: &str,
+    ) -> ProviderAutomationCatalogEntry {
+        ProviderAutomationCatalogEntry {
+            id: id.to_string(),
+            label: label.to_string(),
+            lifecycle: lifecycle.to_string(),
+            trigger: trigger.to_string(),
+            approval_posture: approval_posture.to_string(),
+            state: state.to_string(),
+            readiness: readiness.to_string(),
+            setup,
+            unsupported,
+            detail: detail.to_string(),
+        }
+    }
+
+    pub(crate) fn codex_automation_catalog_preview_from_probe(
+        probe: CodexTransportProbe,
+    ) -> ProviderAutomationCatalogPreview {
+        let panel_protocol_ready = probe.app_server.protocol.thread_start
+            && probe.app_server.protocol.turn_start
+            && probe.app_server.protocol.agent_message_delta;
+        let app_server_ready = probe.app_server.available
+            && probe.app_server.stdio_handshake
+            && panel_protocol_ready;
+        let provider_detected = probe.cli.available
+            || probe.codex_home.present
+            || probe.app_server.available
+            || probe.exec_json.available;
+        let automation_api_detected = probe.app_server.protocol.mcp_status
+            || probe.app_server.protocol.skills_list
+            || probe.app_server.protocol.plugin_list;
+
+        if !provider_detected {
+            return ProviderAutomationCatalogPreview {
+                source: "unavailable".to_string(),
+                checked_at: probe.checked_at,
+                provider_state: "absent".to_string(),
+                readiness: "unavailable".to_string(),
+                setup: false,
+                unsupported: true,
+                entries: Vec::new(),
+                detail: "No provider automation capability was detected.".to_string(),
+                safety:
+                    "Automation catalog refresh did not read sensitive metadata, tool bodies, transcript content, or private paths."
+                        .to_string(),
+            };
+        }
+
+        let readiness = if app_server_ready && automation_api_detected {
+            "ready"
+        } else if automation_api_detected {
+            "preview"
+        } else {
+            "setup-required"
+        };
+        let source = if app_server_ready && automation_api_detected {
+            "provider-live"
+        } else {
+            "provider-preview"
+        };
+        let setup = readiness == "setup-required";
+        let unsupported = readiness == "setup-required";
+        let entry_state = if app_server_ready && automation_api_detected {
+            "live"
+        } else if automation_api_detected {
+            "preview"
+        } else {
+            "setup-required"
+        };
+        let mut entries = Vec::new();
+
+        if automation_api_detected {
+            entries.push(automation_catalog_entry(
+                "provider-automation-actions",
+                "Automation Actions",
+                "active",
+                "event",
+                "approval-required",
+                if setup {
+                    "setup-required"
+                } else {
+                    entry_state
+                },
+                readiness,
+                setup,
+                false,
+                if app_server_ready {
+                    "Automation action catalog metadata is available in this provider session."
+                } else {
+                    "Automation action capability metadata is present in preview mode."
+                },
+            ));
+        } else {
+            entries.push(automation_catalog_entry(
+                "provider-automation-setup",
+                "Automation Setup",
+                "idle",
+                "manual",
+                "approval-required",
+                "setup-required",
+                readiness,
+                true,
+                true,
+                "No explicit provider automation API was exposed during metadata probe.",
+            ));
+        }
+
+        ProviderAutomationCatalogPreview {
+            source: source.to_string(),
+            checked_at: probe.checked_at,
+            provider_state: "present".to_string(),
+            readiness: readiness.to_string(),
+            setup,
+            unsupported,
+            entries,
+            detail: if automation_api_detected {
+                if app_server_ready {
+                    "Provider automation catalog refreshed from safe app-server capability metadata."
+                        .to_string()
+                } else {
+                    "Provider automation catalog refreshed in preview mode from safe metadata."
+                        .to_string()
+                }
+            } else {
+                "Provider automation API is not explicitly exposed; setup metadata-only snapshot is available."
+                    .to_string()
+            },
+            safety:
+                "Automation catalog refresh did not read sensitive metadata, tool bodies, transcript content, or private paths."
+                    .to_string(),
+        }
+    }
+
+    #[tauri::command]
+    pub fn codex_automation_catalog_preview() -> ProviderAutomationCatalogPreview {
+        codex_automation_catalog_preview_from_probe(codex_transport_probe())
     }
 
     #[tauri::command]
@@ -2613,6 +2792,7 @@ pub fn run() {
             runtime_bridge::migration_source_preview,
             runtime_bridge::codex_transport_probe,
             runtime_bridge::codex_command_catalog_preview,
+            runtime_bridge::codex_automation_catalog_preview,
             runtime_bridge::codex_skill_catalog_preview,
             runtime_bridge::codex_plugin_catalog_preview,
             runtime_bridge::codex_mcp_catalog_preview,
@@ -3333,6 +3513,101 @@ mod tests {
         assert!(!serialized.contains("raw transcript:"));
         assert!(serialized.contains("metadata"));
         assert!(serialized.contains("raw transcripts"));
+    }
+
+    #[test]
+    fn codex_automation_catalog_preview_marks_automation_live_from_safe_metadata() {
+        let preview = runtime_bridge::codex_automation_catalog_preview_from_probe(
+            fake_codex_transport_probe(),
+        );
+
+        assert_eq!(preview.source, "provider-live");
+        assert_eq!(preview.provider_state, "present");
+        assert_eq!(preview.readiness, "ready");
+        assert!(!preview.setup);
+        assert!(!preview.unsupported);
+        assert!(!preview.entries.is_empty());
+        assert!(preview
+            .entries
+            .iter()
+            .any(|entry| entry.id == "provider-automation-actions" && entry.state == "live"));
+        assert_eq!(
+            preview.entries[0].setup,
+            false,
+            "setup-required should be false when automation is exposed."
+        );
+        assert!(preview.safety.to_lowercase().contains("private paths"));
+    }
+
+    #[test]
+    fn codex_automation_catalog_preview_uses_setup_required_when_provider_has_no_exposed_api() {
+        let mut probe = fake_codex_transport_probe();
+        probe.app_server.protocol.mcp_status = false;
+        probe.app_server.protocol.skills_list = false;
+        probe.app_server.protocol.plugin_list = false;
+
+        let preview = runtime_bridge::codex_automation_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "provider-preview");
+        assert_eq!(preview.readiness, "setup-required");
+        assert!(preview.setup);
+        assert!(preview.unsupported);
+        assert_eq!(preview.entries.len(), 1);
+        assert_eq!(preview.entries[0].id, "provider-automation-setup");
+        assert_eq!(preview.entries[0].state, "setup-required");
+    }
+
+    #[test]
+    fn codex_automation_catalog_preview_uses_preview_when_live_session_is_not_ready() {
+        let mut probe = fake_codex_transport_probe();
+        probe.app_server.stdio_handshake = false;
+        probe.app_server.protocol.agent_message_delta = false;
+
+        let preview = runtime_bridge::codex_automation_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "provider-preview");
+        assert_eq!(preview.readiness, "preview");
+        assert!(!preview.setup);
+        assert!(!preview.unsupported);
+        assert_eq!(preview.entries.len(), 1);
+        assert_eq!(preview.entries[0].state, "preview");
+    }
+
+    #[test]
+    fn codex_automation_catalog_preview_reports_unavailable_without_provider_detection() {
+        let mut probe = fake_codex_transport_probe();
+        probe.cli.available = false;
+        probe.app_server.available = false;
+        probe.app_server.stdio_handshake = false;
+        probe.exec_json.available = false;
+        probe.codex_home.present = false;
+        probe.app_server.protocol.mcp_status = false;
+        probe.app_server.protocol.skills_list = false;
+        probe.app_server.protocol.plugin_list = false;
+
+        let preview = runtime_bridge::codex_automation_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "unavailable");
+        assert_eq!(preview.entries.len(), 0);
+        assert_eq!(preview.readiness, "unavailable");
+        assert!(preview.detail.to_lowercase().contains("no provider automation capability"));
+    }
+
+    #[test]
+    fn codex_automation_catalog_preview_excludes_secrets_auth_paths_and_transcripts() {
+        let preview = runtime_bridge::codex_automation_catalog_preview_from_probe(
+            fake_codex_transport_probe(),
+        );
+        let serialized = serde_json::to_string(&preview)
+            .unwrap_or_default()
+            .to_lowercase();
+
+        assert!(!serialized.contains("auth.json"));
+        assert!(!serialized.contains("token"));
+        assert!(!serialized.contains("c:\\"));
+        assert!(!serialized.contains("/home/"));
+        assert!(!serialized.contains("raw transcript"));
+        assert!(!serialized.contains("secret"));
     }
 
     #[test]
