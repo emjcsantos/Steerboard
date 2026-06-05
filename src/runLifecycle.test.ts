@@ -3,7 +3,7 @@ import { buildDispatchPackage } from "./dispatch";
 import { createMockRunFromDispatchPackage } from "./run";
 import type { MockOrchestratorRun, MockRunStatus } from "./run";
 import type { PlanningDraft } from "./planning";
-import { transitionMockRunStatus } from "./runLifecycle";
+import { recordWorkerValidationAttemptResult, transitionMockRunStatus } from "./runLifecycle";
 
 const testProject = {
   id: "lifecycle-project",
@@ -156,5 +156,123 @@ describe("run status transition", () => {
     expect(next.sessions.at(-1)?.state).toBe("failed");
     expect(next.sessions.at(-1)?.transcript).toContain("Status: blocked");
     expect(next.sessions.at(-1)?.transcript).toContain("Gate status: failed");
+  });
+});
+
+describe("worker validation attempts", () => {
+  it("records a passing validation result as accepted and completes the task session", () => {
+    const run = buildRun("running");
+    const task = run.tasks.find((candidate) => candidate.role === "validation");
+    const sessionId = task ? `${run.id}:${task.id}` : "missing";
+
+    if (!task) {
+      throw new Error("Expected validation task fixture");
+    }
+
+    const next = recordWorkerValidationAttemptResult(run, {
+      taskId: task.id,
+      sessionId,
+      outcome: "pass"
+    });
+
+    const updatedTask = next.tasks.find((candidate) => candidate.id === task.id);
+    const updatedSession = next.sessions.find((candidate) => candidate.id === sessionId);
+
+    expect(updatedTask?.status).toBe("accepted");
+    expect(updatedTask?.attempt).toBe(task.attempt);
+    expect(updatedSession?.state).toBe("complete");
+    expect(updatedSession?.transcript).toContain(`Status: accepted`);
+    expect(next.validationGates.every((gate) => gate.status === "pending")).toBe(true);
+    expect(next.status).toBe("running");
+  });
+
+  it("records a failed validation attempt by incrementing attempt and preserving active state for retry", () => {
+    const run = buildRun("running");
+    const task = run.tasks.find((candidate) => candidate.role === "validation");
+    const sessionId = task ? `${run.id}:${task.id}` : "missing";
+
+    if (!task) {
+      throw new Error("Expected validation task fixture");
+    }
+
+    const next = recordWorkerValidationAttemptResult(run, {
+      taskId: task.id,
+      sessionId,
+      outcome: "fail"
+    });
+
+    const updatedTask = next.tasks.find((candidate) => candidate.id === task.id);
+    const updatedSession = next.sessions.find((candidate) => candidate.id === sessionId);
+
+    expect(updatedTask?.attempt).toBe(task.attempt + 1);
+    expect(updatedTask?.status).toBe("validating");
+    expect(updatedSession?.attempt).toBe(task.attempt + 1);
+    expect(updatedSession?.state).toBe("validating");
+    expect(updatedSession?.transcript).toContain(`Status: validating`);
+    expect(updatedSession?.transcript).toContain(`Gate status: running`);
+    expect(next.validationGates.every((gate) => gate.status === "pending")).toBe(true);
+    expect(next.status).toBe("running");
+  });
+
+  it("caps validation attempts at attemptLimit and blocks the task and run when exhausted", () => {
+    const run = buildRun("running");
+    const task = run.tasks.find((candidate) => candidate.role === "validation");
+    const sessionId = task ? `${run.id}:${task.id}` : "missing";
+
+    if (!task) {
+      throw new Error("Expected validation task fixture");
+    }
+
+    const cappedRun = {
+      ...run,
+      tasks: run.tasks.map((candidate) =>
+        candidate.id === task.id ? { ...candidate, attemptLimit: 3 } : candidate
+      )
+    };
+
+    let next = cappedRun;
+    for (let index = 0; index < 5; index += 1) {
+      next = recordWorkerValidationAttemptResult(next, {
+        taskId: task.id,
+        sessionId,
+        outcome: "fail"
+      });
+    }
+
+    const updatedTask = next.tasks.find((candidate) => candidate.id === task.id);
+    const updatedSession = next.sessions.find((candidate) => candidate.id === sessionId);
+
+    expect(updatedTask?.attempt).toBe(3);
+    expect(updatedTask?.status).toBe("blocked");
+    expect(updatedSession?.attempt).toBe(3);
+    expect(updatedSession?.state).toBe("failed");
+    expect(next.status).toBe("failed");
+    expect(next.validationGates.every((gate) => gate.status === "failed")).toBe(true);
+  });
+
+  it("does not mutate input run object for validation attempts", () => {
+    const run = buildRun("running");
+    const task = run.tasks.find((candidate) => candidate.role === "validation");
+    const sessionId = task ? `${run.id}:${task.id}` : "missing";
+
+    if (!task) {
+      throw new Error("Expected validation task fixture");
+    }
+
+    const baseline = JSON.parse(JSON.stringify(run));
+    const next = recordWorkerValidationAttemptResult(run, {
+      taskId: task.id,
+      sessionId,
+      outcome: "fail"
+    });
+
+    expect(next).not.toBe(run);
+    expect(next.tasks).not.toBe(run.tasks);
+    expect(next.sessions).not.toBe(run.sessions);
+    expect(next.validationGates).not.toBe(run.validationGates);
+    expect(next.tasks[0]).not.toBe(run.tasks[0]);
+    expect(next.sessions[0]).not.toBe(run.sessions[0]);
+    expect(next.validationGates[0]).not.toBe(run.validationGates[0]);
+    expect(run).toEqual(baseline);
   });
 });

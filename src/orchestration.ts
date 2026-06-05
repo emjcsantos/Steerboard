@@ -37,7 +37,42 @@ export interface TaskSummary {
   accepted: number;
 }
 
+export interface HandoffSummary {
+  totalWorkerTasks: number;
+  implementerCount: number;
+  validatorCount: number;
+  integrationCount: number;
+  maxAttempts: number;
+  readyCount: number;
+  blockedCount: number;
+  acceptedCount: number;
+  nextTaskId?: string;
+  nextTaskTitle?: string;
+}
+
 const dispatchableStages = new Set<PipelineItem["stage"]>(["ready"]);
+const DEFAULT_MAX_ATTEMPTS = 3;
+
+function normalizeRole(taskRole: TaskRole): "implementer" | "validator" | "integration" | undefined {
+  switch (taskRole) {
+    case "implementation":
+      return "implementer";
+    case "validation":
+      return "validator";
+    case "integration":
+      return "integration";
+    default:
+      return undefined;
+  }
+}
+
+function sanitizeAttemptLimit(limit: number): number {
+  if (!Number.isFinite(limit)) {
+    return 0;
+  }
+
+  return Math.min(Math.max(Math.trunc(limit), 0), DEFAULT_MAX_ATTEMPTS);
+}
 
 function renderList(items: string[]): string {
   if (items.length === 0) {
@@ -67,6 +102,43 @@ export function summarizeTasks(tasks: OrchestrationTask[]): TaskSummary {
       accepted: 0
     }
   );
+}
+
+export function summarizeWorkerHandoff(tasks: OrchestrationTask[]): HandoffSummary {
+  const nextTask = nextHandoffTask(tasks);
+  const counts = tasks.reduce(
+    (summary, task) => {
+      const normalizedRole = normalizeRole(task.role);
+
+      return {
+        ...summary,
+        totalWorkerTasks: summary.totalWorkerTasks + (normalizedRole ? 1 : 0),
+        implementerCount: summary.implementerCount + (normalizedRole === "implementer" ? 1 : 0),
+        validatorCount: summary.validatorCount + (normalizedRole === "validator" ? 1 : 0),
+        integrationCount: summary.integrationCount + (normalizedRole === "integration" ? 1 : 0),
+        maxAttempts: Math.max(summary.maxAttempts, sanitizeAttemptLimit(task.attemptLimit)),
+        readyCount: summary.readyCount + (task.status === "queued" ? 1 : 0),
+        blockedCount: summary.blockedCount + (task.status === "blocked" ? 1 : 0),
+        acceptedCount: summary.acceptedCount + (task.status === "accepted" ? 1 : 0)
+      };
+    },
+    {
+      totalWorkerTasks: 0,
+      implementerCount: 0,
+      validatorCount: 0,
+      integrationCount: 0,
+      maxAttempts: 0,
+      readyCount: 0,
+      blockedCount: 0,
+      acceptedCount: 0
+    }
+  );
+
+  return {
+    ...counts,
+    nextTaskId: nextTask?.id,
+    nextTaskTitle: nextTask?.title
+  };
 }
 
 export function nextHandoffTask(tasks: OrchestrationTask[]): OrchestrationTask | undefined {

@@ -62,6 +62,7 @@ import {
 import {
   buildHandoffBrief,
   nextHandoffTask,
+  summarizeWorkerHandoff,
   summarizeTasks,
   type OrchestrationTask
 } from "./orchestration";
@@ -344,6 +345,7 @@ import {
   saveRunHistory
 } from "./runHistoryStorage";
 import {
+  recordWorkerValidationAttemptResult,
   transitionMockRunStatus,
   type RunLifecycleStatus
 } from "./runLifecycle";
@@ -1211,6 +1213,26 @@ export function App() {
     updatePreferences({ view: "cockpit" });
   }
 
+  function handleWorkerValidationAttempt(
+    runId: string,
+    taskId: string,
+    outcome: "pass" | "fail"
+  ) {
+    setSelectedRunId(runId);
+    setMockRuns((currentRuns) =>
+      currentRuns.map((run) =>
+        run.id === runId
+          ? recordWorkerValidationAttemptResult(run, {
+              taskId,
+              sessionId: `${run.id}:${taskId}`,
+              outcome
+            })
+          : run
+      )
+    );
+    updatePreferences({ view: "cockpit" });
+  }
+
   function toggleAppMenu(menuId: AppMenuId) {
     setActiveAppMenu((currentMenu) => (currentMenu === menuId ? undefined : menuId));
   }
@@ -1619,6 +1641,7 @@ export function App() {
             modeHandoff={cockpitModeHandoff}
             modeHandoffQa={cockpitModeHandoffQa}
             mockRuns={projectMockRuns}
+            onRecordWorkerValidationAttempt={handleWorkerValidationAttempt}
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
             project={project}
@@ -3199,7 +3222,7 @@ function PipelineItemDispatchDetail({
           <div className="pipeline-cockpit-link">
             <div>
               <strong>Local cockpit run</strong>
-              <small>Creates a mock run projection from this pipeline item.</small>
+              <small>Creates a local run projection from this pipeline item.</small>
             </div>
             <button
               aria-label="Create local cockpit run from selected pipeline item"
@@ -3873,6 +3896,7 @@ function RightPanel({
   modeHandoff,
   modeHandoffQa,
   mockRuns,
+  onRecordWorkerValidationAttempt,
   onSelectRun,
   onUpdateRunStatus,
   project,
@@ -3894,6 +3918,11 @@ function RightPanel({
   modeHandoffQa: CockpitModeHandoffQa;
   mockRuns: MockOrchestratorRun[];
   onFocusPanel: (panelId: string | undefined) => void;
+  onRecordWorkerValidationAttempt: (
+    runId: string,
+    taskId: string,
+    outcome: "pass" | "fail"
+  ) => void;
   onSelectRun: (runId: string) => void;
   onUpdateRunStatus: (runId: string, nextStatus: MockRunStatus) => void;
   project: ProjectSummary;
@@ -3948,6 +3977,37 @@ function RightPanel({
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
+  const selectedRunTasks = selectedRun?.tasks ?? [];
+  const workerHandoffSummary = useMemo(
+    () => summarizeWorkerHandoff(selectedRunTasks),
+    [selectedRunTasks]
+  );
+  const selectedRunHandoffTask = useMemo(
+    () => nextHandoffTask(selectedRunTasks),
+    [selectedRunTasks]
+  );
+  const selectedRunHandoffBrief = useMemo(
+    () => (selectedRunHandoffTask ? buildHandoffBrief(selectedRunHandoffTask, project) : undefined),
+    [project, selectedRunHandoffTask]
+  );
+  const nextValidationTask = useMemo(
+    () =>
+      selectedRunTasks.find(
+        (task) =>
+          task.role === "validation" &&
+          task.status !== "accepted" &&
+          task.status !== "blocked"
+      ) ?? selectedRunTasks.find((task) => task.role === "validation"),
+    [selectedRunTasks]
+  );
+  const canRecordValidationAttempt =
+    Boolean(selectedRun) &&
+    Boolean(nextValidationTask) &&
+    nextValidationTask?.status !== "accepted" &&
+    nextValidationTask?.status !== "blocked" &&
+    selectedRun?.status !== "complete" &&
+    selectedRun?.status !== "failed" &&
+    selectedRun?.status !== "blocked";
   const orchestrationDependencyReadiness: OrchestrationDependencyReadiness = useMemo(
     () => createOrchestrationDependencyReadiness(tasks),
     [tasks]
@@ -4845,7 +4905,7 @@ function RightPanel({
       </section>
 
       <section className="panel-section">
-        <h4>Mock Runs</h4>
+        <h4>Local Runs</h4>
         <div className="registry-detail">
           <span>
             <strong>{runSummary.total}</strong>
@@ -4863,7 +4923,7 @@ function RightPanel({
 
         {mockRuns.length > 0 ? (
           <>
-            <div className="run-history-list" aria-label="Local mock run history">
+            <div className="run-history-list" aria-label="Local staged run history">
               {mockRuns.slice(0, 4).map((run) => (
                 <button
                   aria-pressed={selectedRun?.id === run.id}
@@ -4883,10 +4943,10 @@ function RightPanel({
 
             {selectedRun ? (
               <>
-                <div className="run-control-grid" aria-label="Selected mock run lifecycle controls">
+                <div className="run-control-grid" aria-label="Selected local run lifecycle controls">
                   {runLifecycleActions.map((action) => (
                     <button
-                      aria-label={`${action.label} selected mock run`}
+                      aria-label={`${action.label} selected local run`}
                       className={classNames(
                         "run-control-button",
                         `control-${action.status}`,
@@ -4904,7 +4964,7 @@ function RightPanel({
                   ))}
                 </div>
 
-                <dl className="run-detail" aria-label="Selected mock run detail">
+                <dl className="run-detail" aria-label="Selected local run detail">
                   <div>
                     <dt>Source package</dt>
                     <dd title={selectedRun.sourcePackageId}>{selectedRun.sourcePackageId}</dd>
@@ -4923,7 +4983,96 @@ function RightPanel({
                   </div>
                 </dl>
 
-                <section className="run-timeline" aria-label="Selected mock run event timeline">
+                <section className="worker-handoff-monitor" aria-label="Selected run worker handoff loop">
+                  <div className="worker-handoff-header">
+                    <div>
+                      <span className="eyebrow">Worker Handoff</span>
+                      <strong>{selectedRunHandoffBrief?.title ?? "No scoped task"}</strong>
+                    </div>
+                    <span className={classNames("task-status", selectedRunHandoffTask && `task-${selectedRunHandoffTask.status}`)}>
+                      {selectedRunHandoffTask?.status ?? "idle"}
+                    </span>
+                  </div>
+                  <div className="worker-handoff-summary" aria-label="Selected run worker summary">
+                    <span>
+                      <strong>{workerHandoffSummary.totalWorkerTasks}</strong>
+                      Workers
+                    </span>
+                    <span>
+                      <strong>{workerHandoffSummary.implementerCount}</strong>
+                      Implement
+                    </span>
+                    <span>
+                      <strong>{workerHandoffSummary.validatorCount}</strong>
+                      Validate
+                    </span>
+                    <span>
+                      <strong>{workerHandoffSummary.integrationCount}</strong>
+                      Integrate
+                    </span>
+                  </div>
+                  <div className="worker-handoff-summary" aria-label="Selected run handoff state">
+                    <span>
+                      <strong>{workerHandoffSummary.maxAttempts}</strong>
+                      Max attempts
+                    </span>
+                    <span>
+                      <strong>{workerHandoffSummary.readyCount}</strong>
+                      Ready
+                    </span>
+                    <span>
+                      <strong>{workerHandoffSummary.acceptedCount}</strong>
+                      Accepted
+                    </span>
+                    <span>
+                      <strong>{workerHandoffSummary.blockedCount}</strong>
+                      Blocked
+                    </span>
+                  </div>
+                  <div className="worker-validation-card" aria-label="Selected validation worker attempt">
+                    <div>
+                      <strong title={nextValidationTask?.title}>{nextValidationTask?.title ?? "No validation worker"}</strong>
+                      <small>
+                        {nextValidationTask
+                          ? `Attempt ${nextValidationTask.attempt}/${nextValidationTask.attemptLimit}`
+                          : "No validation task staged"}
+                      </small>
+                    </div>
+                    <div className="worker-validation-actions">
+                      <button
+                        aria-label="Mark selected validation worker attempt passed"
+                        disabled={!canRecordValidationAttempt || !nextValidationTask}
+                        onClick={() => {
+                          if (nextValidationTask) {
+                            onRecordWorkerValidationAttempt(selectedRun.id, nextValidationTask.id, "pass");
+                          }
+                        }}
+                        type="button"
+                      >
+                        Pass
+                      </button>
+                      <button
+                        aria-label="Mark selected validation worker attempt failed"
+                        disabled={!canRecordValidationAttempt || !nextValidationTask}
+                        onClick={() => {
+                          if (nextValidationTask) {
+                            onRecordWorkerValidationAttempt(selectedRun.id, nextValidationTask.id, "fail");
+                          }
+                        }}
+                        type="button"
+                      >
+                        Fail
+                      </button>
+                    </div>
+                  </div>
+                  <p title={selectedRunHandoffBrief?.markdown}>
+                    {selectedRunHandoffBrief
+                      ? `Next: ${selectedRunHandoffBrief.title}`
+                      : "No selected run task is ready for handoff."}
+                  </p>
+                </section>
+
+                <section className="run-timeline" aria-label="Selected local run event timeline">
                   <div className="timeline-summary" aria-label="Timeline summary">
                     <span>
                       <strong>{timelineSummary.activeCount}</strong>

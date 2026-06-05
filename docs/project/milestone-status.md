@@ -9,7 +9,7 @@ It is the complete public milestone report contract. Every milestone must appear
 The compact target table must include **Target**, **Completion**, and **Note**.
 The detailed milestone table must include **Target**, **Plan**, **Completion**, **% Completion**, **Latest Note**, and **Next Step**.
 
-Overall completion: 37%. Next milestone: Platform capabilities. Next step: connect provider refresh, reviewed import persistence, and permission gates.
+Overall completion: 38%. Next milestone: Orchestration model. Next step: connect the local handoff loop to configured runtime profiles and live worker session spawning.
 
 Milestone reports should be readable at minimum by Target, Completion, and Note.
 
@@ -17,7 +17,7 @@ Milestone reports should be readable at minimum by Target, Completion, and Note.
 | --- | --- | --- |
 | Product scaffold | In progress | Local shell, public docs, navigation, and cockpit scaffolding are in place. |
 | Cockpit monitor and operating modes | In progress | Multi-panel cockpit and local chat-lane scaffold exist; visible panels can use panel-keyed live Codex chat and per-panel session controls, with native two-panel smoke still pending. |
-| Orchestration model | In progress | Mock orchestration, validation, and handoff projections are modeled. |
+| Orchestration model | In progress | Local orchestration now creates orchestrator, implementer, validator, and integration panels with visible handoff and retry state. |
 | Runtime adapter previews | In progress | Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, stream routing, and control capability foundations exist. |
 | Live Codex integration | In progress | Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations. |
 | Platform capabilities | In progress | Slash commands, platform catalogs, and migration preview/profile-draft foundations are provider-neutral and state-aware. |
@@ -29,7 +29,7 @@ Milestone reports should be readable at minimum by Target, Completion, and Note.
 | --- | --- | --- | --- | --- | --- |
 | Product scaffold | Establish a stable baseline structure, public docs contract, and navigation foundations. | In progress | 60% | Local shell, public docs, navigation, and cockpit scaffolding are in place. | Keep scaffold stable while live provider integration starts. |
 | Cockpit monitor and operating modes | Complete core cockpit panels, control affordances, and visible operating-mode cues. | In progress | 58% | Multi-panel cockpit and local chat-lane scaffold exist; visible panels can use panel-keyed live Codex chat and per-panel session controls, with native two-panel smoke still pending. | Run native two-panel smoke and live-control smoke, then continue command capability work. |
-| Orchestration model | Define a consistent model for sequencing cross-cutting tasks and status propagation. | In progress | 40% | Mock orchestration, validation, and handoff projections are modeled. | Feed real provider session events into the same model. |
+| Orchestration model | Define a consistent model for sequencing cross-cutting tasks and status propagation. | In progress | 52% | Local orchestration now creates orchestrator, implementer, validator, and integration panels with visible handoff and retry state. | Connect the local handoff loop to configured runtime profiles and live worker session spawning. |
 | Runtime adapter previews | Deliver and stabilize adapter surfaces for consistent runtime status intake. | In progress | 50% | Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, stream routing, and control capability foundations exist. | Connect routed stream and control state to richer monitor surfaces. |
 | Live Codex integration | Connect real Codex auth/session transport to cockpit panels. | In progress | 42% | Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations. | Run native two-panel smoke and live-control smoke as recurring regression checks. |
 | Platform capabilities | Make commands, plugins, automations, MCP, personalization, permissions, and audit state live. | In progress | 28% | Slash commands, platform catalogs, and migration preview/profile-draft foundations are provider-neutral and state-aware. | Connect provider refresh, reviewed import persistence, and permission gates. |

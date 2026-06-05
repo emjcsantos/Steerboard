@@ -6233,6 +6233,120 @@ textarea {
   font-weight: 700;
 }
 
+.worker-handoff-monitor {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  border-top: 1px solid #272d36;
+  padding-top: 10px;
+}
+
+.worker-handoff-header,
+.worker-validation-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.worker-handoff-header div,
+.worker-validation-card div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.worker-handoff-header strong,
+.worker-validation-card strong,
+.worker-validation-card small,
+.worker-handoff-monitor p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.worker-handoff-header strong,
+.worker-validation-card strong {
+  color: #eef3f8;
+  font-size: 12px;
+}
+
+.worker-validation-card small,
+.worker-handoff-monitor p {
+  color: #8f99a5;
+  font-size: 11px;
+}
+
+.worker-handoff-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.worker-handoff-summary span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #272d36;
+  border-radius: 8px;
+  background: #151a20;
+  padding: 7px;
+}
+
+.worker-handoff-summary strong,
+.worker-handoff-summary small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.worker-handoff-summary strong {
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.worker-handoff-summary span {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.worker-validation-card {
+  border: 1px solid #272d36;
+  border-radius: 8px;
+  background: #151a20;
+  padding: 8px;
+}
+
+.worker-validation-actions {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.worker-validation-actions button {
+  min-height: 30px;
+  border: 1px solid #303741;
+  border-radius: 7px;
+  background: #1b222b;
+  color: #dce3eb;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.worker-validation-actions button:hover:not(:disabled) {
+  border-color: #4d5968;
+  background: #252b34;
+}
+
+.worker-validation-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.64;
+}
+
+.worker-handoff-monitor p {
+  margin: 0;
+}
+
 .run-timeline {
   display: grid;
   gap: 9px;

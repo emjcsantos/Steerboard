@@ -55,14 +55,15 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Orchestration model",
     completion: "In progress",
     plan: "Define a consistent model for sequencing cross-cutting tasks and status propagation.",
-    completionPercent: 40,
+    completionPercent: 52,
     latestNote:
-      "Mock orchestration, validation, and handoff projections are modeled.",
+      "Local orchestration now creates orchestrator, implementer, validator, and integration panels with visible handoff and retry state.",
     nextStep:
-      "Feed real provider session events into the same model.",
+      "Connect the local handoff loop to configured runtime profiles and live worker session spawning.",
+    current: true,
     tone: "active",
     note:
-      "Mock runs, task state, validation gates, and handoff previews are modeled before real runtime dispatch."
+      "Local runs, task state, validation gates, handoff previews, and retry state are modeled before live runtime dispatch."
   },
   {
     target: "Runtime adapter previews",
@@ -99,7 +100,6 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
       "Slash commands, platform catalogs, and migration preview/profile-draft foundations are provider-neutral and state-aware.",
     nextStep:
       "Connect provider refresh, reviewed import persistence, and permission gates.",
-    current: true,
     tone: "active",
     note:
       "Slash commands, platform catalogs, and migration preview now have provider-neutral foundations; provider refresh, execution, permissions, and audit still need live backing."

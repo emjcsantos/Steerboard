@@ -4,6 +4,8 @@ import type { OrchestrationTask, TaskRole, TaskStatus } from "./orchestration";
 const DEFAULT_RUN_ID_SEED = "mock-orchestrator-run";
 const DEFAULT_ORCHESTRATOR_RUNTIME = "Model-only orchestrator";
 const DEFAULT_BRANCH = "mock/orchestrator";
+const WORKER_ATTEMPT_LIMIT = 3;
+const ORCHESTRATOR_ATTEMPT_LIMIT = 1;
 
 export type MockRunStatus = "queued" | "running" | "complete" | "blocked" | "failed";
 export type ValidationGateStatus = "pending" | "passed" | "failed";
@@ -219,6 +221,27 @@ function buildValidationObjective(pack: DispatchPackage): string {
     : "No objective was provided for this staged package.";
 }
 
+function buildValidationCommandFallback(): string {
+  return "No validation command configured for this package.";
+}
+
+function formatHandoffField(values: string[]): string {
+  return values.length > 0 ? values.join(" | ") : "No values recorded.";
+}
+
+function buildSessionTranscript(task: OrchestrationTask): string[] {
+  return [
+    `Handoff for ${task.role}`,
+    `Objective: ${task.objective}`,
+    `Scope: ${formatHandoffField(task.scope)}`,
+    `File ownership: ${formatHandoffField(task.fileOwnership)}`,
+    `Acceptance criteria: ${formatHandoffField(task.acceptanceCriteria)}`,
+    `Validation commands: ${formatHandoffField(task.validationCommands)}`,
+    `Dependencies: ${formatHandoffField(task.dependencies)}`,
+    `Rollback: ${task.rollback}`
+  ];
+}
+
 function createMockTasks(
   runId: string,
   dispatchPackage: DispatchPackage,
@@ -243,7 +266,7 @@ function createMockTasks(
     role: "planning",
     status: resolveTaskStatus(runStatus, "planning"),
     attempt: 0,
-    attemptLimit: 1,
+    attemptLimit: ORCHESTRATOR_ATTEMPT_LIMIT,
     owner: "Orchestrator",
     objective: buildValidationObjective(dispatchPackage),
     scope: fallbackScope,
@@ -262,10 +285,13 @@ function createMockTasks(
     role: "implementation",
     status: resolveTaskStatus(runStatus, "implementation"),
     attempt: 0,
-    attemptLimit: 1,
+    attemptLimit: WORKER_ATTEMPT_LIMIT,
     owner: "Mock Worker",
-    objective: `Prepare model-bound work packages from: ${dispatchPackage.sourceDraftTitle}`,
-    scope: fallbackScope,
+    objective: `Implement ${dispatchPackage.sourceDraftTitle} from orchestrator plan.`,
+    scope: [
+      "Apply staged scope in small, verifiable edits.",
+      ...fallbackScope
+    ],
     fileOwnership: fallbackFiles,
     acceptanceCriteria: fallbackAcceptance,
     validationCommands: ["Capture implementation notes", "Record ownership boundaries"],
@@ -275,7 +301,7 @@ function createMockTasks(
 
   fallbackList(
     dispatchPackage.validationPlan,
-    "No validation plan was provided for staged execution."
+    buildValidationCommandFallback()
   ).forEach((command, index) => {
     tasks.push({
       id: `${runId}-task-validation-${normalizeSegment(String(index + 1))}`,
@@ -284,13 +310,13 @@ function createMockTasks(
       role: "validation",
       status: resolveTaskStatus(runStatus, "validation"),
       attempt: 0,
-      attemptLimit: 1,
+      attemptLimit: WORKER_ATTEMPT_LIMIT,
       owner: `Validation Worker ${index + 1}`,
-      objective: `Validate the staged plan by executing a local evidence step.`,
-      scope: [command],
+      objective: `Validate the implementation handoff for ${dispatchPackage.sourceDraftTitle}.`,
+      scope: [`Evidence command: ${command}`, ...fallbackScope],
       fileOwnership: fallbackFiles,
       acceptanceCriteria: fallbackAcceptance,
-      validationCommands: [command],
+      validationCommands: ["Collect evidence summary", command],
       dependencies: [implementerTaskId],
       rollback: "No runtime rollback is required for mocked validation commands."
     });
@@ -303,10 +329,13 @@ function createMockTasks(
     role: "integration",
     status: resolveTaskStatus(runStatus, "integration"),
     attempt: 0,
-    attemptLimit: 1,
+    attemptLimit: ORCHESTRATOR_ATTEMPT_LIMIT,
     owner: "Orchestrator",
     objective: "Collect summaries, task state, and handoff gates for operator review.",
-    scope: ["Collect validated command evidence.", "Prepare operator-visible cockpit rows."],
+    scope: [
+      "Collect validated command evidence.",
+      "Prepare operator-visible cockpit rows and handoff metadata."
+    ],
     fileOwnership: ["run summary", "session rows"],
     acceptanceCriteria: fallbackAcceptance,
     validationCommands: ["Handoff complete"],
@@ -332,7 +361,7 @@ function convertTaskToSession(run: MockOrchestratorRun, task: OrchestrationTask)
     attempt: task.attempt,
     validation: validationLine,
     files: task.fileOwnership.length > 0 ? task.fileOwnership : ["No files listed."],
-    transcript: [task.objective, `Status: ${task.status}`, `Gate status: ${run.status}`],
+    transcript: [...buildSessionTranscript(task), `Status: ${task.status}`, `Gate status: ${run.status}`],
     tools: taskRoleTools(task.role)
   };
 }

@@ -3,6 +3,7 @@ import type { PipelineItem, ProjectSummary } from "./fixtures";
 import {
   buildHandoffBrief,
   canDispatchPipelineItem,
+  summarizeWorkerHandoff,
   nextHandoffTask,
   summarizeTasks,
   type OrchestrationTask
@@ -87,6 +88,29 @@ describe("orchestration model", () => {
       validating: 1,
       blocked: 1,
       accepted: 1
+    });
+  });
+
+  it("summarizes orchestrator handoff worker mix and attempt limits", () => {
+    expect(
+      summarizeWorkerHandoff([
+        baseTask,
+        { ...baseTask, id: "task-2", role: "implementation", status: "accepted", attemptLimit: 2 },
+        { ...baseTask, id: "task-3", role: "validation", status: "blocked", attemptLimit: 1 },
+        { ...baseTask, id: "task-4", role: "integration", status: "implementing", attemptLimit: 5 },
+        { ...baseTask, id: "task-5", role: "planning", status: "accepted", attemptLimit: 2 }
+      ])
+    ).toEqual({
+      totalWorkerTasks: 4,
+      implementerCount: 2,
+      validatorCount: 1,
+      integrationCount: 1,
+      maxAttempts: 3,
+      readyCount: 1,
+      blockedCount: 1,
+      acceptedCount: 2,
+      nextTaskId: "task-1",
+      nextTaskTitle: "Example Task"
     });
   });
 

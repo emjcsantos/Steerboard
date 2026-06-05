@@ -63,6 +63,54 @@ describe("mock run creation", () => {
     expect(first.validationGates).toHaveLength(dispatchPackage.validationPlan.length);
     expect(first.summary.objective).toBe(basePlanningDraft.objective);
   });
+
+  it("creates required orchestrator and worker session roles", () => {
+    const dispatchPackage = buildDispatchPackage(basePlanningDraft, stagedProject, {
+      idSeed: "role-seed",
+      createdAt: "2026-06-04T09:20:00.000Z",
+      status: "ready"
+    });
+    const run = createMockRunFromDispatchPackage(dispatchPackage, {
+      idSeed: "role-run-seed",
+      createdAt: "2026-06-04T09:20:00.000Z",
+      status: "running"
+    });
+
+    const sessionRoles = run.sessions.map((session) => session.role);
+
+    expect(sessionRoles).toContain("orchestrator");
+    expect(sessionRoles).toContain("implementer");
+    expect(sessionRoles).toContain("validator");
+    expect(sessionRoles).toContain("integration");
+
+    const implementerCount = run.tasks.filter((task) => task.role === "implementation").length;
+    const validatorCount = run.tasks.filter((task) => task.role === "validation").length;
+    expect(implementerCount).toBeGreaterThan(0);
+    expect(validatorCount).toBeGreaterThan(0);
+  });
+
+  it("uses role-specific attempt limits for orchestrator and worker tasks", () => {
+    const dispatchPackage = buildDispatchPackage(basePlanningDraft, stagedProject, {
+      idSeed: "attempt-seed",
+      createdAt: "2026-06-04T09:30:00.000Z",
+      status: "ready"
+    });
+    const run = createMockRunFromDispatchPackage(dispatchPackage, {
+      idSeed: "attempt-run-seed",
+      createdAt: "2026-06-04T09:30:00.000Z",
+      status: "running"
+    });
+
+    const plannerTasks = run.tasks.filter((task) => task.role === "planning");
+    const integrationTasks = run.tasks.filter((task) => task.role === "integration");
+    const implementationTasks = run.tasks.filter((task) => task.role === "implementation");
+    const validationTasks = run.tasks.filter((task) => task.role === "validation");
+
+    expect(plannerTasks.every((task) => task.attemptLimit === 1)).toBe(true);
+    expect(integrationTasks.every((task) => task.attemptLimit === 1)).toBe(true);
+    expect(implementationTasks.every((task) => task.attemptLimit === 3)).toBe(true);
+    expect(validationTasks.every((task) => task.attemptLimit === 3)).toBe(true);
+  });
 });
 
 describe("mock run resilience", () => {
@@ -125,6 +173,64 @@ describe("mock run resilience", () => {
 
     expect(runToSessionSummaries(emptyAwareRun)).toEqual([]);
     expect(runToOrchestrationTasks(emptyAwareRun)).toEqual([]);
+  });
+
+  it("stores explicit non-empty worker handoff fields", () => {
+    const dispatchPackage = buildDispatchPackage(basePlanningDraft, stagedProject, {
+      idSeed: "handoff-seed",
+      createdAt: "2026-06-04T09:40:00.000Z",
+      status: "ready"
+    });
+    const run = createMockRunFromDispatchPackage(dispatchPackage, {
+      idSeed: "handoff-run-seed",
+      createdAt: "2026-06-04T09:40:00.000Z",
+      status: "running"
+    });
+    const workerTasks = run.tasks.filter(
+      (task) => task.role === "implementation" || task.role === "validation" || task.role === "integration"
+    );
+
+    for (const task of workerTasks) {
+      expect(task.objective.trim().length).toBeGreaterThan(0);
+      expect(task.scope.length).toBeGreaterThan(0);
+      expect(task.fileOwnership.length).toBeGreaterThan(0);
+      expect(task.acceptanceCriteria.length).toBeGreaterThan(0);
+      expect(task.validationCommands.length).toBeGreaterThan(0);
+      expect(task.dependencies.length).toBeGreaterThan(0);
+      expect(task.rollback.trim().length).toBeGreaterThan(0);
+      expect(task.scope.every((scopeValue) => scopeValue.trim().length > 0)).toBe(true);
+      expect(task.fileOwnership.every((file) => file.trim().length > 0)).toBe(true);
+      expect(task.acceptanceCriteria.every((criterion) => criterion.trim().length > 0)).toBe(true);
+      expect(task.validationCommands.every((command) => command.trim().length > 0)).toBe(true);
+      expect(task.rollback.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it("exposes handoff transcripts without claiming external runtime execution", () => {
+    const dispatchPackage = buildDispatchPackage(basePlanningDraft, stagedProject, {
+      idSeed: "transcript-seed",
+      createdAt: "2026-06-04T09:50:00.000Z",
+      status: "ready"
+    });
+    const run = createMockRunFromDispatchPackage(dispatchPackage, {
+      idSeed: "transcript-run-seed",
+      createdAt: "2026-06-04T09:50:00.000Z",
+      status: "running"
+    });
+
+    const forbiddenTokens = ["runtime execution", "external execution", "executed", "executing"];
+    const hasHandoffText = run.sessions.every((session) =>
+      session.transcript.some((line) => line.toLowerCase().includes("handoff"))
+    );
+
+    expect(hasHandoffText).toBe(true);
+    expect(
+      run.sessions.every((session) =>
+        session.transcript.every((line) =>
+          forbiddenTokens.every((token) => !line.toLowerCase().includes(token))
+        )
+      )
+    ).toBe(true);
   });
 });
 

@@ -195,12 +195,13 @@ describe("milestone status model", () => {
 
     expect(orchestration?.completion).toBe("In progress");
     expect(orchestration?.tone).toBe("active");
-    expect(orchestration?.completionPercent).toBe(40);
+    expect(orchestration?.completionPercent).toBe(52);
+    expect(orchestration?.current).toBe(true);
     expect(orchestration?.latestNote).toBe(
-      "Mock orchestration, validation, and handoff projections are modeled."
+      "Local orchestration now creates orchestrator, implementer, validator, and integration panels with visible handoff and retry state."
     );
     expect(orchestration?.nextStep).toBe(
-      "Feed real provider session events into the same model."
+      "Connect the local handoff loop to configured runtime profiles and live worker session spawning."
     );
   });
 
@@ -234,7 +235,7 @@ describe("milestone status model", () => {
     );
   });
 
-  it("marks Platform capabilities as the current selected milestone", () => {
+  it("keeps Platform capabilities active after orchestration takes current focus", () => {
     const platform = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Platform capabilities"
     );
@@ -242,7 +243,7 @@ describe("milestone status model", () => {
     expect(platform?.completion).toBe("In progress");
     expect(platform?.tone).toBe("active");
     expect(platform?.completionPercent).toBe(28);
-    expect(platform?.current).toBe(true);
+    expect(platform?.current).toBeUndefined();
     expect(platform?.latestNote).toBe(
       "Slash commands, platform catalogs, and migration preview/profile-draft foundations are provider-neutral and state-aware."
     );
@@ -271,10 +272,10 @@ describe("milestone status model", () => {
       active: 8,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 37,
-      nextTarget: "Platform capabilities",
-      nextStep: "Connect provider refresh, reviewed import persistence, and permission gates.",
-      nextCompletionPercent: 28
+      averageCompletionPercent: 38,
+      nextTarget: "Orchestration model",
+      nextStep: "Connect the local handoff loop to configured runtime profiles and live worker session spawning.",
+      nextCompletionPercent: 52
     });
   });
 
