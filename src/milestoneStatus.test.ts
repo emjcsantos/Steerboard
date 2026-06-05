@@ -238,11 +238,11 @@ describe("milestone status model", () => {
       active: 1,
       planned: 0,
       paused: 2,
-      averageCompletionPercent: 67,
+      averageCompletionPercent: 69,
       nextTarget: "Security and privacy model",
       nextStep:
-        "Complete security acceptance checks from live cockpit runs before packaging resumes.",
-      nextCompletionPercent: 70
+        "Close final security acceptance evidence from repeated live cockpit runs before packaging resumes.",
+      nextCompletionPercent: 85
     });
   });
 
@@ -253,12 +253,12 @@ describe("milestone status model", () => {
 
     expect(securityMilestone?.completion).toBe("In progress");
     expect(securityMilestone?.tone).toBe("active");
-    expect(securityMilestone?.completionPercent).toBe(70);
+    expect(securityMilestone?.completionPercent).toBe(85);
     expect(securityMilestone?.latestNote).toBe(
-      "Real-project-data and runtime-adapter edge gates are now represented in release privacy readiness."
+      "Live cockpit security acceptance now connects selected-run evidence, release privacy readiness, real-data boundaries, runtime-adapter edge evidence, and audit review."
     );
     expect(securityMilestone?.nextStep).toBe(
-      "Complete security acceptance checks from live cockpit runs before packaging resumes."
+      "Close final security acceptance evidence from repeated live cockpit runs before packaging resumes."
     );
   });
 
@@ -388,6 +388,11 @@ describe("milestone status model", () => {
     expect(securityDocText).toContain("Permission and execution lock");
     expect(securityDocText).toContain("Dependency and fixture safety");
     expect(securityDocText).toContain("Audit and export trail");
+    expect(securityDocText).toContain("## Live Cockpit Security Acceptance");
+    expect(securityDocText).toContain("Live cockpit run selected");
+    expect(securityDocText).toContain("Release privacy readiness");
+    expect(securityDocText).toContain("Runtime adapter edge evidence");
+    expect(securityDocText).toContain("Audit review trail");
 
     for (const pattern of securityDocForbiddenTerms) {
       expect(pattern.test(securityDocText)).toBe(false);

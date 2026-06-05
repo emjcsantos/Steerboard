@@ -70,6 +70,18 @@ This section tracks visible runtime and project-data readiness checks only. Thes
   - Confirm dependency additions are reviewed for update safety and least privilege.
   - Confirm fixture/dependency reviews are captured as explicit readiness items.
 
+## Live Cockpit Security Acceptance
+
+The cockpit presents a visible security acceptance coverage check before packaging work resumes. The check connects five read-only signals:
+
+- Live cockpit run selected
+- Release privacy readiness
+- Real project data boundary
+- Runtime adapter edge evidence
+- Audit review trail
+
+Security acceptance coverage is a monitoring and decision-support surface only. It must not start a process, mutate files, call a network endpoint, build release artifacts, or trigger installation or packaging actions.
+
 ## Implementation Controls
 
 - Root-scoped file access: keep reads/writes constrained to project roots with explicit path allowlists.

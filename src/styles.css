@@ -5756,14 +5756,16 @@ textarea {
   color: #8f99a5;
 }
 
-.release-privacy-readiness {
+.release-privacy-readiness,
+.security-acceptance-coverage {
   display: grid;
   gap: 8px;
   border-top: 1px solid #272d36;
   padding-top: 8px;
 }
 
-.release-privacy-header {
+.release-privacy-header,
+.security-acceptance-header {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -5771,25 +5773,30 @@ textarea {
 }
 
 .release-privacy-header strong,
-.release-privacy-header b {
+.release-privacy-header b,
+.security-acceptance-header strong,
+.security-acceptance-header b {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 12px;
 }
 
-.release-privacy-header strong {
+.release-privacy-header strong,
+.security-acceptance-header strong {
   color: #edf2f7;
 }
 
-.release-privacy-header b {
+.release-privacy-header b,
+.security-acceptance-header b {
   border-radius: 999px;
   background: #252b34;
   color: #dce3eb;
   padding: 4px 7px;
 }
 
-.release-privacy-state {
+.release-privacy-state,
+.security-acceptance-state {
   display: inline-flex;
   align-items: center;
   min-width: 0;
@@ -5805,7 +5812,8 @@ textarea {
   font-weight: 800;
 }
 
-.release-privacy-state span {
+.release-privacy-state span,
+.security-acceptance-state span {
   width: 7px;
   height: 7px;
   flex: 0 0 auto;
@@ -5814,24 +5822,34 @@ textarea {
 }
 
 .release-privacy-ready .release-privacy-state span,
-.release-privacy-item-ready span {
+.release-privacy-item-ready span,
+.security-acceptance-ready .security-acceptance-state span,
+.security-acceptance-item-ready span {
   background: #89dda9;
 }
 
 .release-privacy-review .release-privacy-state span,
 .release-privacy-waiting .release-privacy-state span,
 .release-privacy-item-review span,
-.release-privacy-item-waiting span {
+.release-privacy-item-waiting span,
+.security-acceptance-review .security-acceptance-state span,
+.security-acceptance-waiting .security-acceptance-state span,
+.security-acceptance-item-review span,
+.security-acceptance-item-waiting span {
   background: #f0d984;
 }
 
 .release-privacy-blocked .release-privacy-state span,
-.release-privacy-item-blocked span {
+.release-privacy-item-blocked span,
+.security-acceptance-blocked .security-acceptance-state span,
+.security-acceptance-item-blocked span {
   background: #ff9e85;
 }
 
 .release-privacy-readiness p,
-.release-privacy-readiness small {
+.release-privacy-readiness small,
+.security-acceptance-coverage p,
+.security-acceptance-coverage small {
   overflow: hidden;
   margin: 0;
   color: #8f99a5;
@@ -5840,7 +5858,8 @@ textarea {
   font-size: 11px;
 }
 
-.release-privacy-items {
+.release-privacy-items,
+.security-acceptance-items {
   display: grid;
   gap: 5px;
   margin: 0;
@@ -5848,7 +5867,8 @@ textarea {
   list-style: none;
 }
 
-.release-privacy-items li {
+.release-privacy-items li,
+.security-acceptance-items li {
   display: grid;
   grid-template-columns: 58px minmax(96px, 0.42fr) minmax(0, 1fr);
   min-width: 0;
@@ -5861,14 +5881,18 @@ textarea {
 
 .release-privacy-items span,
 .release-privacy-items strong,
-.release-privacy-items small {
+.release-privacy-items small,
+.security-acceptance-items span,
+.security-acceptance-items strong,
+.security-acceptance-items small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 10px;
 }
 
-.release-privacy-items span {
+.release-privacy-items span,
+.security-acceptance-items span {
   display: inline-flex;
   min-width: 0;
   justify-content: center;
@@ -5879,11 +5903,13 @@ textarea {
   text-transform: capitalize;
 }
 
-.release-privacy-items strong {
+.release-privacy-items strong,
+.security-acceptance-items strong {
   color: #dce3eb;
 }
 
-.release-privacy-items small {
+.release-privacy-items small,
+.security-acceptance-items small {
   color: #8f99a5;
 }
 

@@ -220,8 +220,13 @@ import {
 } from "./securityPrivacyThreatModel";
 import {
   createReleasePrivacyReadiness,
+  type ReleasePrivacyReadinessItemStatus,
   type ReleasePrivacyReadinessSnapshot
 } from "./releasePrivacyReadiness";
+import {
+  createSecurityAcceptanceCoverage,
+  type SecurityAcceptanceCoverageSnapshot
+} from "./securityAcceptanceCoverage";
 import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
@@ -2613,6 +2618,35 @@ function RightPanel({
       }),
     [securityPrivacyThreatModel]
   );
+  const releasePrivacyItemStatus = useMemo(
+    () =>
+      new Map(
+        releasePrivacyReadinessSnapshot.items.map((item) => [
+          item.label,
+          item.status
+        ])
+      ),
+    [releasePrivacyReadinessSnapshot]
+  );
+  const securityAcceptanceCoverageSnapshot = useMemo(
+    () =>
+      createSecurityAcceptanceCoverage({
+        hasSelectedRun: Boolean(selectedRun),
+        selectedRunStatus: selectedRun?.status,
+        releasePrivacyState: releasePrivacyReadinessSnapshot.state,
+        releasePrivacyReadiness: releasePrivacyReadinessSnapshot.readiness,
+        realProjectDataReady: toSecurityAcceptanceEvidenceState(
+          releasePrivacyItemStatus.get("Sensitive data boundary")
+        ),
+        runtimeAdapterEdgesReady: toSecurityAcceptanceEvidenceState(
+          releasePrivacyItemStatus.get("Permission and execution lock")
+        ),
+        auditReviewReady: toSecurityAcceptanceEvidenceState(
+          releasePrivacyItemStatus.get("Audit and export trail")
+        )
+      }),
+    [releasePrivacyItemStatus, releasePrivacyReadinessSnapshot, selectedRun]
+  );
   const desktopPackagingReadinessSnapshot = useMemo(
     () =>
       buildDesktopPackagingReadinessSnapshot(
@@ -3277,6 +3311,7 @@ function RightPanel({
         tools={toolEvidenceReadinessSnapshot}
       />
       <SecurityPrivacyThreatModelPanel
+        acceptance={securityAcceptanceCoverageSnapshot}
         model={securityPrivacyThreatModel}
         releasePrivacy={releasePrivacyReadinessSnapshot}
       />
@@ -4823,9 +4858,11 @@ function ToolEvidenceReadinessPanel({
 }
 
 function SecurityPrivacyThreatModelPanel({
+  acceptance,
   model,
   releasePrivacy
 }: {
+  acceptance: SecurityAcceptanceCoverageSnapshot;
   model: SecurityPrivacyThreatModel;
   releasePrivacy: ReleasePrivacyReadinessSnapshot;
 }) {
@@ -4892,9 +4929,50 @@ function SecurityPrivacyThreatModelPanel({
           </ol>
           <small title={releasePrivacy.safety}>{releasePrivacy.safety}</small>
         </div>
+        <div
+          aria-label={acceptance.ariaLabel}
+          className={classNames(
+            "security-acceptance-coverage",
+            `security-acceptance-${acceptance.state}`
+          )}
+        >
+          <div className="security-acceptance-header">
+            <span className="security-acceptance-state">
+              <span aria-hidden="true" />
+              {acceptance.statusLabel}
+            </span>
+            <strong title={acceptance.label}>Security acceptance</strong>
+            <b>{acceptance.readiness}%</b>
+          </div>
+          <p title={acceptance.detail}>{acceptance.detail}</p>
+          <ol className="security-acceptance-items">
+            {acceptance.items.map((item) => (
+              <li
+                className={`security-acceptance-item-${item.status}`}
+                key={item.id}
+                title={item.detail}
+              >
+                <span>{item.status}</span>
+                <strong>{item.label}</strong>
+                <small>{item.detail}</small>
+              </li>
+            ))}
+          </ol>
+          <small title={acceptance.safety}>{acceptance.safety}</small>
+        </div>
       </div>
     </section>
   );
+}
+
+function toSecurityAcceptanceEvidenceState(
+  status?: ReleasePrivacyReadinessItemStatus
+): "ready" | "review" | "blocked" | undefined {
+  if (status === "waiting" || status === undefined) {
+    return undefined;
+  }
+
+  return status;
 }
 
 function ToolEvidenceCaptureRecordRow({

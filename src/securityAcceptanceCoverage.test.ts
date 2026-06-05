@@ -5,7 +5,7 @@ describe("security acceptance coverage", () => {
   it("returns ready/100 when all evidence is ready", () => {
     const snapshot = createSecurityAcceptanceCoverage({
       hasSelectedRun: true,
-      selectedRunStatus: "running",
+      selectedRunStatus: "complete",
       releasePrivacyState: "ready",
       releasePrivacyReadiness: 100,
       realProjectDataReady: true,

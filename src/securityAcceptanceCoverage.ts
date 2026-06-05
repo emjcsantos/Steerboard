@@ -46,6 +46,7 @@ const STATUS_LABELS: Record<SecurityAcceptanceCoverageState, string> = {
 };
 
 const LIVE_RUN_READY_STATUSES = new Set<string>([
+  "complete",
   "completed",
   "running",
   "validating",
