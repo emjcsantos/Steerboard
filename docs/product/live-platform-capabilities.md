@@ -134,8 +134,9 @@ The cockpit consumes only normalized adapter events. Provider-specific payloads 
 | Codex App-Server Adapter | 50% | Supervised app-server stdio now has no-prompt readiness, explicit live smoke, panel-keyed session start/send/interrupt/close commands, retry/steer foundations, and normalized event collection. |
 | Live Panel Chat | 42% | Visible desktop panels can send through the Codex adapter, render normalized assistant/status/error output, and expose compact interrupt/retry/steer controls; browser preview remains local fallback. Panel-session persistence and stream isolation foundations are in place; native two-panel smoke, live control smoke, and incremental UI streaming remain pending. |
 | Slash Command Registry | 20% | Provider-neutral command catalog, command state model, composer suggestions, preview routing, and unsupported/unavailable blocking are in place; provider-reported command refresh and live command execution remain pending. |
-| MCP Manager | 0% | Show configured servers, health, OAuth/setup state, and tool policy. |
-| Plugin Manager | 0% | Show plugin install/setup/enabled state and supported invocations. |
-| Automations Manager | 0% | Show and manage thread/project/standalone automation lifecycle. |
-| Personalization Center | 0% | Show active instructions, config layers, rules, skills, and memory state. |
+| Skills Catalog | 12% | Provider-neutral skill model and dialog surface show source, trigger, invocation label, and honest state; provider refresh and execution remain pending. |
+| MCP Manager | 12% | Provider-neutral MCP model and dialog surface show transport, setup/health posture, and tool policy without starting servers. |
+| Plugin Manager | 12% | Provider-neutral plugin model and dialog surface show setup/enabled posture and supported invocation metadata as a safe seed catalog. |
+| Automations Manager | 12% | Provider-neutral automation model and dialog surface show lifecycle, trigger, and approval posture without scheduling or running automations. |
+| Personalization Center | 12% | Provider-neutral personalization model and settings entry show instruction/config layers and privacy posture without exposing private paths. |
 | Permission And Audit Layer | 0% | Gate live actions and preserve reviewable local audit records. |

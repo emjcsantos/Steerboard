@@ -681,6 +681,120 @@ textarea {
   color: #9fa9b4;
 }
 
+.catalog-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.catalog-summary-strip span {
+  min-width: 0;
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 8px;
+  color: #9fa9b4;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalog-summary-strip strong {
+  display: block;
+  color: #edf3f8;
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.catalog-list {
+  display: grid;
+  gap: 6px;
+  max-height: min(46vh, 420px);
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.catalog-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 9px 10px;
+}
+
+.catalog-row-main {
+  min-width: 0;
+}
+
+.catalog-row-main strong {
+  color: #edf3f8;
+  font-size: 13px;
+}
+
+.catalog-row-main p {
+  margin: 3px 0 7px;
+  color: #aab4c0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.catalog-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.catalog-meta-row span {
+  min-width: 0;
+  border: 1px solid #303844;
+  border-radius: 999px;
+  background: #171d25;
+  color: #9fa9b4;
+  padding: 2px 6px;
+  font-size: 10px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.catalog-state-pill {
+  justify-self: end;
+  border: 1px solid #303743;
+  border-radius: 999px;
+  color: #aeb8c4;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.catalog-state-live {
+  border-color: #2f6a49;
+  color: #8be1b2;
+}
+
+.catalog-state-preview {
+  border-color: #7a6530;
+  color: #f3d88a;
+}
+
+.catalog-state-disconnected,
+.catalog-state-setup-required {
+  border-color: #315977;
+  color: #8ec8f6;
+}
+
+.catalog-state-unsupported,
+.catalog-state-unavailable {
+  border-color: #633337;
+  color: #ff9fa7;
+}
+
 .topbar {
   display: flex;
   align-items: center;

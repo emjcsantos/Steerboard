@@ -94,15 +94,15 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Platform capabilities",
     completion: "In progress",
     plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
-    completionPercent: 8,
+    completionPercent: 18,
     latestNote:
-      "Slash command catalog and panel composer routing are now provider-neutral and state-aware.",
+      "Slash commands plus plugin, skill, MCP, automation, and personalization catalog foundations are provider-neutral and state-aware.",
     nextStep:
-      "Expand provider-backed catalogs for plugins, skills, MCP, automations, and personalization.",
+      "Build safe migration preview and provider refresh on top of the catalog schemas.",
     current: true,
     tone: "active",
     note:
-      "Slash commands, plugins, automations, MCP, personalization, permissions, and audit state must become live provider-backed surfaces."
+      "Slash commands and platform catalogs now have provider-neutral foundations; provider refresh, execution, permissions, and audit still need live backing."
   },
   {
     target: "Security and privacy model",

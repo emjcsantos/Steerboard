@@ -9,7 +9,7 @@ It is the complete public milestone report contract. Every milestone must appear
 The compact target table must include **Target**, **Completion**, and **Note**.
 The detailed milestone table must include **Target**, **Plan**, **Completion**, **% Completion**, **Latest Note**, and **Next Step**.
 
-Overall completion: 35%. Next milestone: Platform capabilities. Next step: expand provider-backed catalogs for plugins, skills, MCP, automations, and personalization.
+Overall completion: 36%. Next milestone: Platform capabilities. Next step: build safe migration preview and provider refresh on top of the catalog schemas.
 
 Milestone reports should be readable at minimum by Target, Completion, and Note.
 
@@ -20,7 +20,7 @@ Milestone reports should be readable at minimum by Target, Completion, and Note.
 | Orchestration model | In progress | Mock orchestration, validation, and handoff projections are modeled. |
 | Runtime adapter previews | In progress | Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, stream routing, and control capability foundations exist. |
 | Live Codex integration | In progress | Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations. |
-| Platform capabilities | In progress | Slash command catalog and panel composer routing are now provider-neutral and state-aware. |
+| Platform capabilities | In progress | Slash commands plus plugin, skill, MCP, automation, and personalization catalog foundations are provider-neutral and state-aware. |
 | Security and privacy model | In progress | Local-first safety boundaries are documented; live-provider secrets and approvals still need hardening. |
 | Packaging and installation | Paused | Packaging is intentionally deferred until core development is complete. |
 | Optional project management lane | In progress | Pipeline visibility, dispatch previews, linked local runs, and readiness language are scaffolded. |
@@ -32,7 +32,7 @@ Milestone reports should be readable at minimum by Target, Completion, and Note.
 | Orchestration model | Define a consistent model for sequencing cross-cutting tasks and status propagation. | In progress | 40% | Mock orchestration, validation, and handoff projections are modeled. | Feed real provider session events into the same model. |
 | Runtime adapter previews | Deliver and stabilize adapter surfaces for consistent runtime status intake. | In progress | 50% | Runtime profiles, bridge previews, permission previews, local event simulations, panel-session persistence, stream routing, and control capability foundations exist. | Connect routed stream and control state to richer monitor surfaces. |
 | Live Codex integration | Connect real Codex auth/session transport to cockpit panels. | In progress | 42% | Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations. | Run native two-panel smoke and live-control smoke as recurring regression checks. |
-| Platform capabilities | Make commands, plugins, automations, MCP, personalization, permissions, and audit state live. | In progress | 8% | Slash command catalog and panel composer routing are now provider-neutral and state-aware. | Expand provider-backed catalogs for plugins, skills, MCP, automations, and personalization. |
+| Platform capabilities | Make commands, plugins, automations, MCP, personalization, permissions, and audit state live. | In progress | 18% | Slash commands plus plugin, skill, MCP, automation, and personalization catalog foundations are provider-neutral and state-aware. | Build safe migration preview and provider refresh on top of the catalog schemas. |
 | Security and privacy model | Set baseline protections, data-handling boundaries, and reviewable controls. | In progress | 30% | Local-first safety boundaries are documented; live-provider secrets and approvals still need hardening. | Add provider credential, permission, and audit acceptance criteria before live execution. |
 | Packaging and installation | Prepare install, environment, and distribution path for dependable rollout. | Paused | 0% | Packaging is intentionally deferred until core development is complete. | Remain paused until core development is complete. |
 | Optional project management lane | Define the optional lane scope while keeping cockpit chat primary. | In progress | 25% | Pipeline visibility, dispatch previews, linked local runs, and readiness language are scaffolded. | Keep secondary and connect it to provider capability readiness after live chat works. |

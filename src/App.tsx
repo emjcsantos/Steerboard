@@ -29,6 +29,11 @@ import {
 import type { FormEvent, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
+  defaultAutomationCatalog,
+  summarizeAutomationCatalog,
+  type AutomationCatalogEntry
+} from "./automationCatalog";
+import {
   cockpitPresets,
   orchestrationTasks,
   permissionSurfaces,
@@ -117,6 +122,26 @@ import {
   savePanelChatMessages,
   type PanelChatMessage
 } from "./panelChat";
+import {
+  defaultMcpCatalog,
+  summarizeMcpCatalog,
+  type McpCatalogEntry
+} from "./mcpCatalog";
+import {
+  defaultPersonalizationCatalog,
+  summarizePersonalizationCatalog,
+  type PersonalizationCatalogEntry
+} from "./personalizationCatalog";
+import {
+  defaultPluginCatalog,
+  summarizePluginCatalog,
+  type PluginCatalogEntry
+} from "./pluginCatalog";
+import {
+  defaultSkillCatalog,
+  summarizeSkillCatalog,
+  type SkillCatalogEntry
+} from "./skillCatalog";
 import {
   normalizeCodexPanelTurnResultEvents,
   reduceCodexSessionEvents,
@@ -553,7 +578,43 @@ type ToolEvidenceCaptureIntent = "idle" | "requested";
 type RuntimeProfilePermissionRequestIntent = "idle" | "requested";
 type PipelineDispatchRequestIntent = "idle" | "requested";
 type AppMenuId = "file" | "view" | "connect" | "help";
-type AppDialog = "migration" | "connection" | "slash-help";
+type PlatformCatalogDialog = "plugins" | "skills" | "mcp" | "automations" | "personalization";
+type AppDialog = "migration" | "connection" | "slash-help" | PlatformCatalogDialog;
+
+type PlatformCatalogState =
+  | "live"
+  | "preview"
+  | "disconnected"
+  | "setup-required"
+  | "unsupported"
+  | "unavailable";
+
+type PlatformCatalogSummary = {
+  total: number;
+  live: number;
+  preview: number;
+  disconnected: number;
+  setupRequired: number;
+  unsupported: number;
+  unavailable: number;
+  availability: number;
+};
+
+type PlatformCatalogRow = {
+  id: string;
+  label: string;
+  detail: string;
+  state: PlatformCatalogState;
+  meta: string[];
+};
+
+type PlatformCatalogView = {
+  title: string;
+  eyebrow: string;
+  lead: string;
+  rows: PlatformCatalogRow[];
+  summary: PlatformCatalogSummary;
+};
 
 function classNames(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
@@ -636,6 +697,120 @@ function transportStatusLabel(state: CodexTransportState): string {
     case "unavailable":
       return "Unavailable";
   }
+}
+
+function formatCatalogState(state: PlatformCatalogState): string {
+  return state.replace("-", " ");
+}
+
+function formatCatalogAvailability(value: number): string {
+  return `${Math.round(value * 100)}%`;
+}
+
+function buildPluginCatalogRows(catalog: readonly PluginCatalogEntry[]): PlatformCatalogRow[] {
+  return catalog.map((entry) => ({
+    id: entry.id,
+    label: entry.label,
+    detail: entry.detail,
+    state: entry.state,
+    meta: ["plugin", entry.id]
+  }));
+}
+
+function buildSkillCatalogRows(catalog: readonly SkillCatalogEntry[]): PlatformCatalogRow[] {
+  return catalog.map((entry) => ({
+    id: entry.id,
+    label: entry.label,
+    detail: entry.detail ?? "No provider detail is available for this skill yet.",
+    state: entry.state,
+    meta: [entry.source, entry.trigger, entry.invocationLabel]
+  }));
+}
+
+function buildMcpCatalogRows(catalog: readonly McpCatalogEntry[]): PlatformCatalogRow[] {
+  return catalog.map((entry) => ({
+    id: entry.id,
+    label: entry.label,
+    detail: entry.detail ?? "No server health signal is available yet.",
+    state: entry.state,
+    meta: [entry.transport, entry.toolPolicy]
+  }));
+}
+
+function buildAutomationCatalogRows(catalog: readonly AutomationCatalogEntry[]): PlatformCatalogRow[] {
+  return catalog.map((entry) => ({
+    id: entry.id,
+    label: entry.label,
+    detail: entry.detail ?? "No automation detail is available yet.",
+    state: entry.state,
+    meta: [entry.lifecycle, entry.trigger, entry.approvalPosture]
+  }));
+}
+
+function buildPersonalizationCatalogRows(
+  catalog: readonly PersonalizationCatalogEntry[]
+): PlatformCatalogRow[] {
+  return catalog.map((entry) => ({
+    id: entry.id,
+    label: entry.label,
+    detail: entry.detail ?? "No personalization detail is available yet.",
+    state: entry.state,
+    meta: [entry.layer, entry.source, entry.privacyPosture]
+  }));
+}
+
+function getPlatformCatalogView(dialog: AppDialog): PlatformCatalogView | undefined {
+  if (dialog === "plugins") {
+    return {
+      title: "Plugins",
+      eyebrow: "Platform catalog",
+      lead: "Plugin entries are staged as a safe catalog foundation. Live execution waits for provider refresh and permission gates.",
+      rows: buildPluginCatalogRows(defaultPluginCatalog),
+      summary: summarizePluginCatalog(defaultPluginCatalog)
+    };
+  }
+
+  if (dialog === "skills") {
+    return {
+      title: "Skills",
+      eyebrow: "Platform catalog",
+      lead: "Skill entries show source, trigger, and invocation posture before runtime-backed execution is enabled.",
+      rows: buildSkillCatalogRows(defaultSkillCatalog),
+      summary: summarizeSkillCatalog(defaultSkillCatalog)
+    };
+  }
+
+  if (dialog === "mcp") {
+    return {
+      title: "MCP Servers",
+      eyebrow: "Platform catalog",
+      lead: "MCP entries show transport and tool policy posture without starting or mutating any server.",
+      rows: buildMcpCatalogRows(defaultMcpCatalog),
+      summary: summarizeMcpCatalog(defaultMcpCatalog)
+    };
+  }
+
+  if (dialog === "automations") {
+    return {
+      title: "Automations",
+      eyebrow: "Platform catalog",
+      lead: "Automation entries show lifecycle, trigger, and approval posture. Nothing is scheduled or run from this catalog.",
+      rows: buildAutomationCatalogRows(defaultAutomationCatalog),
+      summary: summarizeAutomationCatalog(defaultAutomationCatalog)
+    };
+  }
+
+  if (dialog === "personalization") {
+    return {
+      title: "Personalization",
+      eyebrow: "Platform catalog",
+      lead: "Personalization entries describe local configuration layers without exposing private paths or raw profile data.",
+      rows: buildPersonalizationCatalogRows(defaultPersonalizationCatalog),
+      summary: summarizePersonalizationCatalog(defaultPersonalizationCatalog)
+    };
+  }
+
+  return undefined;
 }
 
 type LivePanelChatStatus =
@@ -1026,11 +1201,11 @@ export function App() {
             <Search size={16} />
             <span>Search</span>
           </button>
-          <button type="button">
+          <button onClick={() => openAppDialog("plugins")} type="button">
             <Grid2X2 size={16} />
             <span>Plugins</span>
           </button>
-          <button type="button">
+          <button onClick={() => openAppDialog("automations")} type="button">
             <CircleDot size={16} />
             <span>Automations</span>
           </button>
@@ -1086,7 +1261,12 @@ export function App() {
         </nav>
 
         <div className="sidebar-footer">
-          <button aria-label="Open settings" title="Settings" type="button">
+          <button
+            aria-label="Open personalization settings"
+            onClick={() => openAppDialog("personalization")}
+            title="Personalization"
+            type="button"
+          >
             <Settings2 size={18} />
             <span>Settings</span>
           </button>
@@ -1377,6 +1557,15 @@ function AppMenuBar({
                       <button onClick={() => onOpenDialog("connection")} role="menuitem" type="button">
                         Codex connection...
                       </button>
+                      <button onClick={() => onOpenDialog("plugins")} role="menuitem" type="button">
+                        Plugins
+                      </button>
+                      <button onClick={() => onOpenDialog("mcp")} role="menuitem" type="button">
+                        MCP servers
+                      </button>
+                      <button onClick={() => onOpenDialog("personalization")} role="menuitem" type="button">
+                        Personalization
+                      </button>
                       <span className="app-menu-note" role="presentation">
                         {codexConnectionRequested ? "Connection request staged" : "Local preview, execution locked"}
                       </span>
@@ -1386,6 +1575,9 @@ function AppMenuBar({
                     <>
                       <button onClick={() => onOpenDialog("slash-help")} role="menuitem" type="button">
                         Slash commands
+                      </button>
+                      <button onClick={() => onOpenDialog("skills")} role="menuitem" type="button">
+                        Skills
                       </button>
                       <span className="app-menu-note" role="presentation">
                         Commands are scoped to the active panel.
@@ -1429,12 +1621,15 @@ function AppDialogSurface({
   onRunCodexLiveSmokeProof: () => void;
   onStageCodexConnection: () => void;
 }) {
+  const platformCatalogView = getPlatformCatalogView(dialog);
   const title =
     dialog === "connection"
       ? "Codex Connection"
       : dialog === "migration"
         ? "Migration Preview"
-        : "Slash Commands";
+        : dialog === "slash-help"
+          ? "Slash Commands"
+          : platformCatalogView?.title ?? "Platform Catalog";
 
   return (
     <div className="app-dialog-backdrop" role="presentation">
@@ -1446,7 +1641,7 @@ function AppDialogSurface({
       >
         <header>
           <div>
-            <span className="eyebrow">Local setup</span>
+            <span className="eyebrow">{platformCatalogView?.eyebrow ?? "Local setup"}</span>
             <h3>{title}</h3>
           </div>
           <button aria-label="Close dialog" onClick={onClose} type="button">
@@ -1539,6 +1734,56 @@ function AppDialogSurface({
                   <b>{item.state}</b>
                   <small>{item.detail} Scope: {item.scopes.join(", ")}</small>
                 </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {platformCatalogView ? (
+          <div className="app-dialog-body">
+            <p>{platformCatalogView.lead}</p>
+            <div className="catalog-summary-strip" aria-label={`${platformCatalogView.title} summary`}>
+              <span>
+                <strong>{platformCatalogView.summary.total}</strong>
+                Total
+              </span>
+              <span>
+                <strong>{platformCatalogView.summary.live}</strong>
+                Live
+              </span>
+              <span>
+                <strong>{platformCatalogView.summary.preview}</strong>
+                Preview
+              </span>
+              <span>
+                <strong>{platformCatalogView.summary.setupRequired}</strong>
+                Setup
+              </span>
+              <span>
+                <strong>{platformCatalogView.summary.disconnected}</strong>
+                Disconnected
+              </span>
+              <span>
+                <strong>{formatCatalogAvailability(platformCatalogView.summary.availability)}</strong>
+                Ready
+              </span>
+            </div>
+            <div className="catalog-list" aria-label={`${platformCatalogView.title} catalog`}>
+              {platformCatalogView.rows.map((item) => (
+                <article className="catalog-row" key={item.id}>
+                  <div className="catalog-row-main">
+                    <strong>{item.label}</strong>
+                    <p>{item.detail}</p>
+                    <div className="catalog-meta-row">
+                      {item.meta.map((meta) => (
+                        <span key={`${item.id}-${meta}`}>{meta}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <span className={classNames("catalog-state-pill", `catalog-state-${item.state}`)}>
+                    {formatCatalogState(item.state)}
+                  </span>
+                </article>
               ))}
             </div>
           </div>
