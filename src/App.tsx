@@ -38,8 +38,13 @@ import {
   buildProjectDropPayload,
   buildSessionDropPayload,
   parseAdaptiveCockpitDropPayload,
-  resolveAdaptiveDropPanelId
+  resolveAdaptiveDropPanelId,
+  type AdaptiveCockpitDropPayload
 } from "./adaptiveCockpitDrop";
+import {
+  createAdaptiveCockpitDropPreview,
+  type AdaptiveCockpitDropPreview
+} from "./adaptiveCockpitDropPreview";
 import {
   ADAPTIVE_LAYOUT_MAX_PANELS,
   createAdaptiveCockpitLayoutForPanelIds,
@@ -1202,6 +1207,7 @@ export function App() {
   const [focusedPanelId, setFocusedPanelId] = useState<string>();
   const [adaptiveDraggingPanelId, setAdaptiveDraggingPanelId] = useState<string>();
   const [adaptiveDraggingProjectId, setAdaptiveDraggingProjectId] = useState<string>();
+  const [adaptiveDropPreview, setAdaptiveDropPreview] = useState<AdaptiveCockpitDropPreview | null>(null);
   const [activeAppMenu, setActiveAppMenu] = useState<AppMenuId>();
   const [appDialog, setAppDialog] = useState<AppDialog>();
   const [codexConnectionRequested, setCodexConnectionRequested] = useState(false);
@@ -1338,6 +1344,31 @@ export function App() {
     () => new Map(cockpitSessions.map((session) => [session.id, session])),
     [cockpitSessions]
   );
+  const allKnownSessionById = useMemo(() => {
+    const nextMap = new Map<string, SessionSummary>();
+    for (const session of [...sessions, ...projectMockSessions, ...cockpitSessions]) {
+      if (!nextMap.has(session.id)) {
+        nextMap.set(session.id, session);
+      }
+    }
+
+    return nextMap;
+  }, [cockpitSessions, projectMockSessions]);
+  const sidebarSessions = useMemo(() => {
+    const seenSessionIds = new Set<string>();
+    const nextSessions: SessionSummary[] = [];
+
+    for (const session of [...cockpitSessions, ...sessions]) {
+      if (seenSessionIds.has(session.id)) {
+        continue;
+      }
+
+      seenSessionIds.add(session.id);
+      nextSessions.push(session);
+    }
+
+    return nextSessions.slice(0, 6);
+  }, [cockpitSessions]);
   const adaptivePanelIds = useMemo(
     () => cockpitSessions.slice(0, ADAPTIVE_LAYOUT_MAX_PANELS).map((session) => session.id),
     [cockpitSessions]
@@ -1567,6 +1598,27 @@ export function App() {
     setFocusedPanelId(panelId);
   }
 
+  function previewAdaptiveDrop(payload: AdaptiveCockpitDropPayload | null) {
+    const resolvedPanelId = resolveAdaptiveDropPanelId(payload, adaptiveDropSessionIdsByProject);
+    setAdaptiveDropPreview(
+      createAdaptiveCockpitDropPreview(payload, resolvedPanelId, {
+        isAdaptiveMode: layout.kind === "adaptive"
+      })
+    );
+  }
+
+  function readAdaptiveDropPayload(event: DragEvent<HTMLDivElement>) {
+    return parseAdaptiveCockpitDropPayload(
+      event.dataTransfer.getData(ADAPTIVE_COCKPIT_DROP_JSON_MIME)
+    );
+  }
+
+  function clearAdaptiveDragState() {
+    setAdaptiveDraggingPanelId(undefined);
+    setAdaptiveDraggingProjectId(undefined);
+    setAdaptiveDropPreview(null);
+  }
+
   function handleAdaptiveProjectDragStart(
     event: DragEvent<HTMLButtonElement>,
     item: ProjectSummary
@@ -1574,7 +1626,20 @@ export function App() {
     const payload = buildProjectDropPayload(item.id, item.name);
     event.dataTransfer.effectAllowed = "copyMove";
     event.dataTransfer.setData(ADAPTIVE_COCKPIT_DROP_JSON_MIME, JSON.stringify(payload));
+    previewAdaptiveDrop(payload);
     setAppNotice(`${item.name} ready for Adaptive cockpit drop`);
+  }
+
+  function handleAdaptiveSessionDragStart(
+    event: DragEvent<HTMLButtonElement>,
+    session: SessionSummary
+  ) {
+    const payload = buildSessionDropPayload(session.id, session.title);
+    event.dataTransfer.effectAllowed = "copyMove";
+    event.dataTransfer.setData(ADAPTIVE_COCKPIT_DROP_JSON_MIME, JSON.stringify(payload));
+    event.dataTransfer.setData(ADAPTIVE_COCKPIT_DROP_PANEL_ID_MIME, session.id);
+    previewAdaptiveDrop(payload);
+    setAppNotice(`${session.title} ready for Adaptive cockpit drop`);
   }
 
   function handleAdaptiveProjectPointerStart(
@@ -1605,6 +1670,51 @@ export function App() {
     setAppNotice(`${item.name} opened in Adaptive cockpit`);
   }
 
+  function panelIdsForSessionDrop(session: SessionSummary) {
+    if (adaptivePanelIds.includes(session.id)) {
+      return adaptivePanelIds;
+    }
+
+    const monitorPreset = cockpitPresets.find((entry) => entry.mode === "monitor");
+    const monitorPanelIds = monitorPreset?.sessionIds.filter((sessionId) =>
+      allKnownSessionById.has(sessionId)
+    ) ?? [];
+    const nextPanelIds = [session.id, ...monitorPanelIds].filter(
+      (sessionId, index, panelIds) => panelIds.indexOf(sessionId) === index
+    );
+
+    return nextPanelIds.slice(0, ADAPTIVE_LAYOUT_MAX_PANELS);
+  }
+
+  function openSessionInAdaptiveCockpit(
+    session: SessionSummary,
+    event?: DragEvent<HTMLDivElement>
+  ) {
+    const nextPanelIds = panelIdsForSessionDrop(session);
+    const nextMode = adaptivePanelIds.includes(session.id) ? mode : "monitor";
+
+    updatePreferences({
+      selectedProjectId: session.projectId,
+      mode: nextMode,
+      layoutId: "adaptive",
+      view: "cockpit"
+    });
+
+    if (event) {
+      revealAndPlaceAdaptivePanel(session.id, event, nextPanelIds);
+    } else {
+      setAdaptiveCockpitLayout((currentLayout) =>
+        revealAdaptiveCockpitPanel(
+          syncAdaptiveCockpitLayoutToPanelIds(currentLayout, nextPanelIds),
+          session.id
+        )
+      );
+    }
+
+    setFocusedPanelId(session.id);
+    setAppNotice(`${session.title} opened in Adaptive cockpit`);
+  }
+
   function handleAdaptivePanelDragStart(
     event: DragEvent<HTMLDivElement>,
     panelId: string,
@@ -1614,6 +1724,7 @@ export function App() {
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData(ADAPTIVE_COCKPIT_DROP_JSON_MIME, JSON.stringify(payload));
     event.dataTransfer.setData(ADAPTIVE_COCKPIT_DROP_PANEL_ID_MIME, panelId);
+    previewAdaptiveDrop(payload);
   }
 
   function handleAdaptivePanelPointerStart(
@@ -1642,9 +1753,13 @@ export function App() {
     setFocusedPanelId(panelId);
   }
 
-  function revealAndPlaceAdaptivePanel(panelId: string, event: DragEvent<HTMLDivElement>) {
+  function revealAndPlaceAdaptivePanel(
+    panelId: string,
+    event: DragEvent<HTMLDivElement>,
+    panelIds = adaptivePanelIds
+  ) {
     setAdaptiveCockpitLayout((currentLayout) => {
-      const syncedLayout = syncAdaptiveCockpitLayoutToPanelIds(currentLayout, adaptivePanelIds);
+      const syncedLayout = syncAdaptiveCockpitLayoutToPanelIds(currentLayout, panelIds);
       const withPanelVisible = revealAdaptiveCockpitPanel(syncedLayout, panelId);
       const bounds = event.currentTarget.getBoundingClientRect();
       const x = Math.floor(
@@ -1692,7 +1807,7 @@ export function App() {
     if (adaptiveDraggingPanelId) {
       event.preventDefault();
       moveAdaptivePanelToPointer(adaptiveDraggingPanelId, event);
-      setAdaptiveDraggingPanelId(undefined);
+      clearAdaptiveDragState();
       return;
     }
 
@@ -1704,19 +1819,36 @@ export function App() {
       }
     }
 
-    setAdaptiveDraggingPanelId(undefined);
-    setAdaptiveDraggingProjectId(undefined);
+    clearAdaptiveDragState();
+  }
+
+  function handleAdaptiveGridDragOver(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+
+    const payload = readAdaptiveDropPayload(event);
+    if (payload) {
+      previewAdaptiveDrop(payload);
+    }
+  }
+
+  function handleAdaptiveGridDragLeave(event: DragEvent<HTMLDivElement>) {
+    const nextTarget = event.relatedTarget;
+    if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) {
+      return;
+    }
+
+    setAdaptiveDropPreview(null);
   }
 
   function handleAdaptivePanelDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
-    const payload = parseAdaptiveCockpitDropPayload(
-      event.dataTransfer.getData(ADAPTIVE_COCKPIT_DROP_JSON_MIME)
-    );
+    const payload = readAdaptiveDropPayload(event);
     const resolvedPanelId = resolveAdaptiveDropPanelId(payload, adaptiveDropSessionIdsByProject);
     const fallbackPanelId = event.dataTransfer.getData(ADAPTIVE_COCKPIT_DROP_PANEL_ID_MIME);
     const panelId = resolvedPanelId ?? fallbackPanelId;
     if (!panelId) {
+      previewAdaptiveDrop(payload);
       return;
     }
 
@@ -1725,13 +1857,20 @@ export function App() {
       if (draggedProject) {
         openProjectInAdaptiveCockpit(draggedProject);
       }
+    } else if (payload?.source === "session") {
+      const draggedSession = allKnownSessionById.get(panelId);
+      if (draggedSession) {
+        openSessionInAdaptiveCockpit(draggedSession, event);
+      } else {
+        revealAndPlaceAdaptivePanel(panelId, event);
+        setAppNotice("Panel moved in Adaptive cockpit");
+      }
     } else {
       revealAndPlaceAdaptivePanel(panelId, event);
       setAppNotice("Panel moved in Adaptive cockpit");
     }
 
-    setAdaptiveDraggingPanelId(undefined);
-    setAdaptiveDraggingProjectId(undefined);
+    clearAdaptiveDragState();
   }
 
   function handleStageCodexConnection() {
@@ -1914,6 +2053,7 @@ export function App() {
               className="project-folder-button"
               data-adaptive-drop-source={projects[0].id}
               draggable
+              onDragEnd={clearAdaptiveDragState}
               onDragStart={(event) => handleAdaptiveProjectDragStart(event, projects[0])}
               onClick={() => {
                 setAdaptiveDraggingProjectId(undefined);
@@ -1932,6 +2072,7 @@ export function App() {
                 data-adaptive-drop-source={item.id}
                 draggable
                 key={item.id}
+                onDragEnd={clearAdaptiveDragState}
                 onDragStart={(event) => handleAdaptiveProjectDragStart(event, item)}
                 onClick={() => {
                   setAdaptiveDraggingProjectId(undefined);
@@ -1950,6 +2091,32 @@ export function App() {
             ))}
           </div>
 
+          <span className="sidebar-section-label">Chats</span>
+          {sidebarSessions.map((session) => (
+            <button
+              className={classNames(
+                "project-button",
+                "sidebar-session-button",
+                focusedPanelId === session.id && "is-selected"
+              )}
+              data-adaptive-session-source={session.id}
+              draggable
+              key={session.id}
+              onClick={() => openSessionInAdaptiveCockpit(session)}
+              onDragEnd={clearAdaptiveDragState}
+              onDragStart={(event) => handleAdaptiveSessionDragStart(event, session)}
+              title="Drag chat into Adaptive cockpit"
+              type="button"
+            >
+              <MessageSquare size={14} />
+              <span className="project-copy">
+                <span>{session.title}</span>
+                <small>{projectLabelById.get(session.projectId) ?? session.role}</small>
+              </span>
+              <span className="project-time">{session.state}</span>
+            </button>
+          ))}
+
           <span className="sidebar-section-label">Projects</span>
           {projects.slice(3).map((item) => (
             <button
@@ -1957,6 +2124,7 @@ export function App() {
               data-adaptive-drop-source={item.id}
               draggable
               key={item.id}
+              onDragEnd={clearAdaptiveDragState}
               onDragStart={(event) => handleAdaptiveProjectDragStart(event, item)}
               onClick={() => {
                 setAdaptiveDraggingProjectId(undefined);
@@ -2117,21 +2285,18 @@ export function App() {
                 </div>
 
                 <div
-                  className={classNames("cockpit-grid", layout.kind === "adaptive" && "cockpit-grid-adaptive")}
-                  onDragOver={
-                    layout.kind === "adaptive"
-                      ? (event) => {
-                          event.preventDefault();
-                          event.dataTransfer.dropEffect = "move";
-                        }
-                      : undefined
-                  }
+                  className={classNames(
+                    "cockpit-grid",
+                    layout.kind === "adaptive" && "cockpit-grid-adaptive",
+                    adaptiveDropPreview ? `is-drop-${adaptiveDropPreview.status}` : undefined
+                  )}
+                  onDragLeave={layout.kind === "adaptive" ? handleAdaptiveGridDragLeave : undefined}
+                  onDragOver={layout.kind === "adaptive" ? handleAdaptiveGridDragOver : undefined}
                   onDrop={layout.kind === "adaptive" ? handleAdaptivePanelDrop : undefined}
                   onPointerCancel={
                     layout.kind === "adaptive"
                       ? () => {
-                          setAdaptiveDraggingPanelId(undefined);
-                          setAdaptiveDraggingProjectId(undefined);
+                          clearAdaptiveDragState();
                         }
                       : undefined
                   }
@@ -2141,6 +2306,19 @@ export function App() {
                     gridTemplateRows: `repeat(${displayGrid.rows}, minmax(190px, 1fr))`
                   }}
                 >
+                  {layout.kind === "adaptive" && adaptiveDropPreview ? (
+                    <div
+                      aria-live="polite"
+                      className={classNames(
+                        "adaptive-drop-preview",
+                        `is-${adaptiveDropPreview.tone}`
+                      )}
+                      data-adaptive-drop-preview={adaptiveDropPreview.status}
+                    >
+                      <strong>{adaptiveDropPreview.label}</strong>
+                      <span>{adaptiveDropPreview.detail}</span>
+                    </div>
+                  ) : null}
                   {layout.kind === "adaptive"
                     ? visibleAdaptivePanels.map((panel) => {
                         const session = sessionById.get(panel.id);

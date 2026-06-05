@@ -12,9 +12,9 @@ The visual direction is dense, calm, and workbench-like: one compact control row
 |---|---|---|
 | Compact cockpit control row | In progress | Layout, focus, roster, hidden queue, and monitor indicators share one dense row; adaptive controls now join that row only when needed. |
 | Layout dropdown | Complete | Fixed presets and `Adaptive` are presented from one dropdown. |
-| Adaptive canvas | In progress | Adaptive mode renders cockpit panels as user-added frames with add/reveal, hide, resize, reset, keyboard adjustment, drag-to-move, and project drag-in controls. |
+| Adaptive canvas | In progress | Adaptive mode renders cockpit panels as user-added frames with add/reveal, hide, resize, reset, keyboard adjustment, drag-to-move, project drag-in, session drag-in, and drop-preview controls. |
 | Magnetic behavior | In progress | Panels snap to a bounded 3x3 grid with deterministic collision handling and safe saved-state repair. |
-| Drag-in sessions and projects | In progress | Projects can be dragged from the left rail into Adaptive cockpit; direct chat/session drag-in from navigation remains planned. |
+| Drag-in sessions and projects | In progress | Projects and chats can be dragged from the left rail into Adaptive cockpit with visible ready, unsupported, and unavailable drop-preview states. |
 | Persistence and recovery | In progress | Adaptive geometry is saved locally and repaired when saved state is malformed or no longer matches active cockpit sessions. |
 | Accessibility | In progress | Layout selection, add/reveal, hide, resize, focus, reset, arrow-key move, and shift-arrow resize paths exist; broader shortcut polish remains planned. |
 
@@ -88,3 +88,4 @@ Adaptive panels should feel free, but not sloppy. The first implementation shoul
 6. Add drag-in from sidebar projects and payload handling for provider-neutral cockpit sources.
 7. Add keyboard move/resize/reset paths and interaction tests.
 8. Add direct chat/session drag-in from navigation and richer drop-zone previews.
+9. Add richer panel templates for whole-project drops and cross-project session stacks.

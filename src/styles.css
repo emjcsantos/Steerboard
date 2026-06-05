@@ -327,6 +327,21 @@ textarea {
   cursor: grabbing;
 }
 
+.sidebar-session-button {
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  padding-left: 18px;
+}
+
+.sidebar-session-button svg {
+  color: #8bd7f4;
+}
+
+.sidebar-session-button .project-time {
+  max-width: 74px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .project-status {
   width: 8px;
   height: 8px;
@@ -1681,6 +1696,7 @@ textarea {
 }
 
 .cockpit-grid {
+  position: relative;
   display: grid;
   min-width: 0;
   min-height: 0;
@@ -1691,6 +1707,63 @@ textarea {
   grid-auto-flow: dense;
   outline: 1px solid rgba(114, 214, 160, 0.28);
   outline-offset: -1px;
+}
+
+.cockpit-grid-adaptive.is-drop-ready {
+  outline-color: rgba(114, 214, 160, 0.68);
+}
+
+.cockpit-grid-adaptive.is-drop-unavailable,
+.cockpit-grid-adaptive.is-drop-unsupported {
+  outline-color: rgba(255, 191, 105, 0.62);
+}
+
+.adaptive-drop-preview {
+  position: absolute;
+  z-index: 8;
+  top: 10px;
+  left: 50%;
+  display: grid;
+  width: min(420px, calc(100% - 24px));
+  gap: 2px;
+  border: 1px solid #35463d;
+  border-radius: 8px;
+  background: rgba(14, 21, 27, 0.94);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+  color: #dce3eb;
+  padding: 8px 10px;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.adaptive-drop-preview strong,
+.adaptive-drop-preview span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adaptive-drop-preview strong {
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.adaptive-drop-preview span {
+  color: #9fa9b4;
+  font-size: 11px;
+}
+
+.adaptive-drop-preview.is-success {
+  border-color: rgba(114, 214, 160, 0.72);
+}
+
+.adaptive-drop-preview.is-warning {
+  border-color: rgba(255, 191, 105, 0.72);
+}
+
+.adaptive-drop-preview.is-danger {
+  border-color: rgba(255, 118, 118, 0.72);
 }
 
 .adaptive-panel-frame {
