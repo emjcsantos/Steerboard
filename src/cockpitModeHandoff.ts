@@ -77,13 +77,13 @@ export function createCockpitModeHandoff(
   return {
     currentModeLabel: MODE_LABEL[safeMode],
     nextModeLabel: MODE_LABEL[nextMode],
-    currentLayoutLabel: layout.id,
-    nextLayoutLabel: nextLayout.id,
+    currentLayoutLabel: layout.label,
+    nextLayoutLabel: nextLayout.label,
     preservedLabel: computePreservedLabel(visibleCount, totalCount),
     detail: MODE_DETAIL[safeMode],
     tone,
     ariaLabel:
-      `Cockpit handoff from ${MODE_LABEL[safeMode]} (${layout.id}) to ${MODE_LABEL[nextMode]} (${nextLayout.id}); ` +
+      `Cockpit handoff from ${MODE_LABEL[safeMode]} (${layout.label}) to ${MODE_LABEL[nextMode]} (${nextLayout.label}); ` +
       computePreservedLabel(visibleCount, totalCount)
   };
 }

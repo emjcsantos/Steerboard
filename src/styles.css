@@ -253,8 +253,7 @@ textarea {
   padding-top: 12px;
 }
 
-.right-panel header button,
-.layout-buttons button {
+.right-panel header button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -408,51 +407,92 @@ textarea {
 .surface-toolbar {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 12px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
   padding-bottom: 10px;
 }
 
-.layout-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.layout-buttons button {
-  gap: 6px;
-  height: 30px;
-  padding: 0 8px;
+.layout-select {
+  display: grid;
+  grid-template-columns: auto minmax(106px, 120px);
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 174px;
+  max-width: 190px;
+  gap: 7px;
   border: 1px solid #2f3540;
+  border-radius: 8px;
+  background: #151b22;
+  color: #dce3eb;
+  padding: 5px 6px;
 }
 
-.layout-buttons button.is-active {
+.layout-select span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layout-select span {
+  color: #edf3f8;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.layout-select select {
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  border: 1px solid #343d49;
+  border-radius: 7px;
+  background: #10161d;
+  color: #edf3f8;
+  padding: 0 28px 0 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.layout-select select:hover,
+.layout-select select:focus-visible {
   border-color: #72d6a0;
+  outline: none;
+}
+
+.layout-select.is-adaptive {
+  border-color: #4d4527;
+}
+
+.layout-select.is-adaptive select {
   color: #72d6a0;
 }
 
 .toolbar-status {
   display: flex;
   min-width: 0;
-  flex: 1 1 280px;
-  flex-wrap: wrap;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
+  justify-content: flex-start;
+  gap: 5px;
+  overflow: hidden;
 }
 
 .layout-capacity-chip {
   display: grid;
-  grid-template-columns: minmax(44px, auto) minmax(0, 1fr);
+  grid-template-columns: minmax(36px, auto) minmax(0, 1fr);
   align-items: center;
-  min-width: 176px;
-  gap: 8px;
+  flex: 0 1 126px;
+  min-width: 116px;
+  gap: 6px;
   border: 1px solid #2f3540;
   border-radius: 8px;
   background: #151b22;
   color: #dce3eb;
-  padding: 6px 8px;
+  padding: 5px 7px;
 }
 
 .layout-capacity-chip div {
@@ -530,14 +570,15 @@ textarea {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  min-width: min(100%, 284px);
-  max-width: 390px;
-  gap: 7px;
+  flex: 1 1 214px;
+  min-width: 170px;
+  max-width: 280px;
+  gap: 6px;
   border: 1px solid #2f3540;
   border-radius: 8px;
   background: #151b22;
   color: #dce3eb;
-  padding: 6px 8px;
+  padding: 5px 7px;
 }
 
 .focused-panel-copy {
@@ -574,7 +615,7 @@ textarea {
 
 .focused-panel-chip button {
   display: inline-flex;
-  height: 24px;
+  height: 22px;
   align-items: center;
   justify-content: center;
   border: 1px solid #343d49;
@@ -644,16 +685,17 @@ textarea {
 
 .panel-roster-chip {
   display: grid;
-  grid-template-columns: minmax(96px, auto) minmax(0, 1fr);
+  grid-template-columns: minmax(82px, auto) minmax(0, 1fr);
   align-items: center;
-  min-width: 280px;
-  max-width: 520px;
-  gap: 8px;
+  flex: 1 1 266px;
+  min-width: 214px;
+  max-width: 356px;
+  gap: 6px;
   border: 1px solid #2f3540;
   border-radius: 8px;
   background: #151b22;
   color: #dce3eb;
-  padding: 6px 8px;
+  padding: 5px 7px;
 }
 
 .panel-roster-copy {
@@ -686,7 +728,7 @@ textarea {
   display: grid;
   min-width: 0;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px;
+  gap: 3px;
 }
 
 .panel-roster-metric {
@@ -695,7 +737,7 @@ textarea {
   gap: 1px;
   border-radius: 7px;
   background: #10161d;
-  padding: 4px 5px;
+  padding: 3px 4px;
   text-align: center;
 }
 
@@ -743,16 +785,17 @@ textarea {
 
 .panel-overflow-chip {
   display: grid;
-  grid-template-columns: minmax(76px, auto) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(68px, auto) minmax(0, 1fr) auto;
   align-items: center;
-  min-width: 240px;
-  max-width: 420px;
-  gap: 8px;
+  flex: 1 1 214px;
+  min-width: 172px;
+  max-width: 300px;
+  gap: 6px;
   border: 1px solid #2f3540;
   border-radius: 8px;
   background: #151b22;
   color: #dce3eb;
-  padding: 6px 8px;
+  padding: 5px 7px;
 }
 
 .panel-overflow-copy,
@@ -824,14 +867,16 @@ textarea {
 
 .run-chip {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 6px;
   border: 1px solid #2f3540;
   border-radius: 999px;
   background: #171c22;
   color: #b8c0ca;
-  padding: 6px 10px;
+  padding: 6px 8px;
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .cockpit-grid {
@@ -839,6 +884,11 @@ textarea {
   min-width: 0;
   min-height: 0;
   gap: 10px;
+}
+
+.cockpit-grid-adaptive {
+  outline: 1px solid rgba(114, 214, 160, 0.28);
+  outline-offset: -1px;
 }
 
 .session-cell {
@@ -8936,6 +8986,83 @@ textarea {
   padding: 10px;
   font-size: 12px;
   line-height: 1.4;
+}
+
+@media (max-width: 1450px) {
+  .content-split {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+
+  .layout-select {
+    grid-template-columns: auto minmax(92px, 104px);
+    min-width: 160px;
+    max-width: 172px;
+  }
+
+  .toolbar-status {
+    gap: 4px;
+  }
+
+  .layout-capacity-chip {
+    grid-template-columns: minmax(0, 1fr);
+    flex-basis: 96px;
+    min-width: 96px;
+  }
+
+  .layout-capacity-chip small {
+    display: none;
+  }
+
+  .layout-capacity-chip b {
+    justify-self: start;
+  }
+
+  .focused-panel-chip {
+    flex-basis: 156px;
+    min-width: 150px;
+    max-width: 172px;
+  }
+
+  .focused-panel-actions {
+    gap: 2px;
+  }
+
+  .panel-roster-chip {
+    grid-template-columns: minmax(64px, auto) minmax(0, 1fr);
+    flex-basis: 190px;
+    min-width: 184px;
+    max-width: 214px;
+  }
+
+  .panel-roster-copy small {
+    display: none;
+  }
+
+  .panel-overflow-chip {
+    grid-template-columns: minmax(52px, auto) minmax(0, 1fr) auto;
+    flex-basis: 150px;
+    min-width: 144px;
+    max-width: 172px;
+  }
+
+  .panel-overflow-copy small,
+  .panel-overflow-next small {
+    display: none;
+  }
+
+  .run-chip {
+    width: 34px;
+    justify-content: center;
+    gap: 0;
+    overflow: hidden;
+    padding: 0;
+    color: transparent;
+  }
+
+  .run-chip svg {
+    flex: 0 0 auto;
+    color: #b8c0ca;
+  }
 }
 
 @media (max-width: 1180px) {

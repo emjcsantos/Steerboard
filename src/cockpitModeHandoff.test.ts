@@ -5,15 +5,18 @@ import type { LayoutSpec } from "./layout";
 function buildLayout(override: Partial<LayoutSpec>): LayoutSpec {
   return {
     id: "2x1",
+    label: "2x1",
+    description: "Two panels side by side.",
     columns: 2,
     rows: 1,
+    kind: "fixed",
     ...override
   };
 }
 
 describe("createCockpitModeHandoff", () => {
   it("builds focus handoff details and labels", () => {
-    const handoff = createCockpitModeHandoff("focus", buildLayout({ id: "2x1" }), 3, 5);
+    const handoff = createCockpitModeHandoff("focus", buildLayout({ id: "2x1", label: "2x1" }), 3, 5);
 
     expect(handoff).toEqual({
       currentModeLabel: "Focus",
@@ -30,7 +33,7 @@ describe("createCockpitModeHandoff", () => {
   });
 
   it("builds orchestrator handoff details and labels", () => {
-    const handoff = createCockpitModeHandoff("orchestrator", buildLayout({ id: "3x2" }), 2, 2);
+    const handoff = createCockpitModeHandoff("orchestrator", buildLayout({ id: "3x2", label: "3x2" }), 2, 2);
 
     expect(handoff).toEqual({
       currentModeLabel: "Orchestrator",
@@ -47,7 +50,7 @@ describe("createCockpitModeHandoff", () => {
   });
 
   it("builds monitor handoff details and labels", () => {
-    const handoff = createCockpitModeHandoff("monitor", buildLayout({ id: "1x3" }), 1, 4);
+    const handoff = createCockpitModeHandoff("monitor", buildLayout({ id: "1x3", label: "1x3" }), 1, 4);
 
     expect(handoff).toEqual({
       currentModeLabel: "Monitor",
@@ -85,6 +88,25 @@ describe("createCockpitModeHandoff", () => {
     expect(createCockpitModeHandoff("focus", buildLayout({ id: "1x1" }), 1, 1).nextLayoutLabel).toBe("2x2");
     expect(createCockpitModeHandoff("orchestrator", buildLayout({ id: "1x1" }), 1, 1).nextLayoutLabel).toBe("3x2");
     expect(createCockpitModeHandoff("monitor", buildLayout({ id: "1x1" }), 1, 1).nextLayoutLabel).toBe("2x1");
+  });
+
+  it("uses the adaptive label when adaptive is the selected placeholder layout", () => {
+    const handoff = createCockpitModeHandoff(
+      "orchestrator",
+      buildLayout({
+        id: "adaptive",
+        label: "Adaptive",
+        description: "Freeform cockpit entry point.",
+        columns: 3,
+        rows: 3,
+        kind: "adaptive"
+      }),
+      4,
+      4
+    );
+
+    expect(handoff.currentLayoutLabel).toBe("Adaptive");
+    expect(handoff.ariaLabel).toContain("Orchestrator (Adaptive)");
   });
 
   it("falls back to stable tone when mode is unexpected", () => {

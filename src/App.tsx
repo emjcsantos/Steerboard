@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   CircleDot,
   ClipboardList,
-  Columns3,
   Folder,
   GitBranch,
   Grid2X2,
@@ -19,7 +18,6 @@ import {
   Play,
   Plus,
   RotateCcw,
-  Rows3,
   Search,
   Send,
   Settings2,
@@ -48,8 +46,11 @@ import {
 } from "./fixtures";
 import {
   defaultLayoutByMode,
+  getDisplayGrid,
   getLayoutSpec,
+  layoutAriaLabel,
   layoutOptions,
+  maxVisibleCells,
   type CockpitMode,
   type LayoutId
 } from "./layout";
@@ -715,10 +716,14 @@ export function App() {
     () => [...projectMockSessions, ...basePresetSessions],
     [basePresetSessions, projectMockSessions]
   );
-  const maxVisibleSessions = layout.columns * layout.rows;
+  const maxVisibleSessions = maxVisibleCells(layoutId);
   const visibleSessions = useMemo(
     () => cockpitSessions.slice(0, maxVisibleSessions),
     [cockpitSessions, maxVisibleSessions]
+  );
+  const displayGrid = useMemo(
+    () => getDisplayGrid(layout, visibleSessions.length),
+    [layout, visibleSessions.length]
   );
   useEffect(() => {
     setFocusedPanelId((currentPanelId) =>
@@ -969,27 +974,21 @@ export function App() {
             {view === "cockpit" ? (
               <>
                 <div className="surface-toolbar">
-                  <div className="layout-buttons" aria-label="Layout">
-                    {layoutOptions.map((option) => (
-                      <button
-                        aria-label={`Use ${option.id} layout`}
-                        className={classNames(option.id === layoutId && "is-active")}
-                        key={option.id}
-                        onClick={() => updatePreferences({ layoutId: option.id })}
-                        title={option.id}
-                        type="button"
-                      >
-                        {option.columns === option.rows ? (
-                          <Grid2X2 size={15} />
-                        ) : option.columns > option.rows ? (
-                          <Columns3 size={15} />
-                        ) : (
-                          <Rows3 size={15} />
-                        )}
-                        <span>{option.id}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <label className={classNames("layout-select", layout.kind === "adaptive" && "is-adaptive")}>
+                    <span>Layout</span>
+                    <select
+                      aria-label="Select cockpit layout"
+                      onChange={(event) => updatePreferences({ layoutId: event.target.value as LayoutId })}
+                      title={layoutAriaLabel(layout)}
+                      value={layoutId}
+                    >
+                      {layoutOptions.map((option) => (
+                        <option key={option.id} title={option.description} value={option.id}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <div className="toolbar-status">
                     <LayoutCapacitySignal capacity={cockpitLayoutCapacity} />
                     <FocusedPanelStatusChip
@@ -1012,10 +1011,10 @@ export function App() {
                 </div>
 
                 <div
-                  className="cockpit-grid"
+                  className={classNames("cockpit-grid", layout.kind === "adaptive" && "cockpit-grid-adaptive")}
                   style={{
-                    gridTemplateColumns: `repeat(${layout.columns}, minmax(0, 1fr))`,
-                    gridTemplateRows: `repeat(${layout.rows}, minmax(190px, 1fr))`
+                    gridTemplateColumns: `repeat(${displayGrid.columns}, minmax(0, 1fr))`,
+                    gridTemplateRows: `repeat(${displayGrid.rows}, minmax(190px, 1fr))`
                   }}
                 >
                   {visibleSessions.map((session) => (
@@ -1383,6 +1382,8 @@ function PanelRosterSignal({ roster }: { roster: CockpitPanelRoster }) {
 }
 
 function PanelOverflowSignal({ overflow }: { overflow: CockpitPanelOverflow }) {
+  const visibleLabel = overflow.tone === "clear" ? "All visible" : "Hidden queue";
+
   return (
     <div
       aria-label={`Hidden panel queue: ${overflow.label}`}
@@ -1390,7 +1391,7 @@ function PanelOverflowSignal({ overflow }: { overflow: CockpitPanelOverflow }) {
       title={overflow.detail}
     >
       <div className="panel-overflow-copy">
-        <strong>{overflow.label}</strong>
+        <strong>{visibleLabel}</strong>
         <small>{overflow.hiddenLabel}</small>
       </div>
       <div className="panel-overflow-next">
@@ -1450,7 +1451,7 @@ function FocusedPanelStatusChip({
           title={controls.focusTitle}
           type="button"
         >
-          {controls.focusLabel}
+          <span>{controls.focusLabel}</span>
         </button>
         <button
           aria-label={controls.clearAriaLabel}
@@ -1459,7 +1460,7 @@ function FocusedPanelStatusChip({
           title={controls.clearTitle}
           type="button"
         >
-          {controls.clearLabel}
+          <span>{controls.clearLabel}</span>
         </button>
       </div>
     </div>

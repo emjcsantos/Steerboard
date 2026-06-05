@@ -1,5 +1,6 @@
 export interface LayoutDimensions {
   id: string;
+  label?: string;
   columns: number;
   rows: number;
 }
@@ -27,6 +28,11 @@ function sanitizeDimension(value: number): number {
 }
 
 function buildLayoutLabel(layout: LayoutDimensions): string {
+  const label = layout.label?.trim();
+  if (label) {
+    return label;
+  }
+
   const id = layout.id.trim();
   if (id) {
     return id;

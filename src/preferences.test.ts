@@ -20,6 +20,17 @@ describe("workspace preferences", () => {
     expect(normalizePreferences(stored, validProjects)).toEqual(stored);
   });
 
+  it("preserves the adaptive layout from saved preferences", () => {
+    const stored: WorkspacePreferences = {
+      selectedProjectId: "website-refresh",
+      mode: "orchestrator",
+      layoutId: "adaptive",
+      view: "cockpit"
+    };
+
+    expect(normalizePreferences(stored, validProjects)).toEqual(stored);
+  });
+
   it("falls back when stored values are malformed", () => {
     expect(parseStoredPreferences("{", validProjects)).toEqual(fallbackPreferences);
     expect(normalizePreferences(null, validProjects)).toEqual(fallbackPreferences);
