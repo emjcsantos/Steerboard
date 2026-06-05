@@ -114,8 +114,11 @@ import {
 } from "./panelChat";
 import {
   decideCodexTransport,
+  getFallbackCodexLiveSmokeProof,
   getFallbackCodexTransportProbe,
+  loadCodexLiveSmokeProof,
   loadCodexTransportProbe,
+  type CodexLiveSmokeProof,
   type CodexTransportDecision,
   type CodexTransportProbe,
   type CodexTransportState
@@ -635,11 +638,15 @@ export function App() {
   const [codexTransportProbe, setCodexTransportProbe] = useState<CodexTransportProbe>(() =>
     getFallbackCodexTransportProbe()
   );
+  const [codexLiveSmokeProof, setCodexLiveSmokeProof] = useState<CodexLiveSmokeProof>(() =>
+    getFallbackCodexLiveSmokeProof()
+  );
   const [codexTransportLoading, setCodexTransportLoading] = useState(false);
+  const [codexLiveSmokeLoading, setCodexLiveSmokeLoading] = useState(false);
   const { selectedProjectId, mode, layoutId, view } = preferences;
   const codexTransportDecision = useMemo(
-    () => decideCodexTransport(codexTransportProbe),
-    [codexTransportProbe]
+    () => decideCodexTransport(codexTransportProbe, codexLiveSmokeProof),
+    [codexLiveSmokeProof, codexTransportProbe]
   );
 
   useEffect(() => {
@@ -865,11 +872,25 @@ export function App() {
   async function refreshCodexTransportProbe() {
     setCodexTransportLoading(true);
     const nextProbe = await loadCodexTransportProbe();
-    const nextDecision = decideCodexTransport(nextProbe);
+    const nextDecision = decideCodexTransport(nextProbe, codexLiveSmokeProof);
 
     setCodexTransportProbe(nextProbe);
     setCodexTransportLoading(false);
     setAppNotice(codexNotice(nextDecision));
+  }
+
+  async function runCodexLiveSmokeProof() {
+    setCodexLiveSmokeLoading(true);
+    const nextProof = await loadCodexLiveSmokeProof();
+    const nextDecision = decideCodexTransport(codexTransportProbe, nextProof);
+
+    setCodexLiveSmokeProof(nextProof);
+    setCodexLiveSmokeLoading(false);
+    setCodexConnectionRequested(true);
+    setAppNotice(nextProof.ok ? "Codex send/stream smoke passed" : "Codex live smoke did not pass");
+    if (nextDecision.state === "live") {
+      setAppNotice(codexNotice(nextDecision));
+    }
   }
 
   return (
@@ -1135,11 +1156,14 @@ export function App() {
       {appDialog ? (
         <AppDialogSurface
           codexConnectionRequested={codexConnectionRequested}
+          codexLiveSmokeLoading={codexLiveSmokeLoading}
+          codexLiveSmokeProof={codexLiveSmokeProof}
           codexTransportDecision={codexTransportDecision}
           codexTransportLoading={codexTransportLoading}
           dialog={appDialog}
           onClose={() => setAppDialog(undefined)}
           onRefreshCodexTransport={refreshCodexTransportProbe}
+          onRunCodexLiveSmokeProof={runCodexLiveSmokeProof}
           onStageCodexConnection={handleStageCodexConnection}
         />
       ) : null}
@@ -1270,19 +1294,25 @@ function AppMenuBar({
 
 function AppDialogSurface({
   codexConnectionRequested,
+  codexLiveSmokeLoading,
+  codexLiveSmokeProof,
   codexTransportDecision,
   codexTransportLoading,
   dialog,
   onClose,
   onRefreshCodexTransport,
+  onRunCodexLiveSmokeProof,
   onStageCodexConnection
 }: {
   codexConnectionRequested: boolean;
+  codexLiveSmokeLoading: boolean;
+  codexLiveSmokeProof: CodexLiveSmokeProof;
   codexTransportDecision: CodexTransportDecision;
   codexTransportLoading: boolean;
   dialog: AppDialog;
   onClose: () => void;
   onRefreshCodexTransport: () => void;
+  onRunCodexLiveSmokeProof: () => void;
   onStageCodexConnection: () => void;
 }) {
   const title =
@@ -1339,10 +1369,27 @@ function AppDialogSurface({
                 </span>
               ))}
             </div>
+            <div className="transport-live-proof" aria-label="Codex live smoke proof">
+              <span>Live smoke</span>
+              <strong>{codexLiveSmokeProof.ok ? "Passed" : codexLiveSmokeProof.executed ? "Failed" : "Not run"}</strong>
+              <small>
+                {codexLiveSmokeProof.executed
+                  ? `${codexLiveSmokeProof.agentDeltaMethodSeen ? "Delta seen" : "No delta"}; ${codexLiveSmokeProof.turnCompletedSeen ? "turn completed" : "turn incomplete"}`
+                  : "Runs one tiny explicit Codex turn with read-only sandbox."}
+              </small>
+            </div>
             <p className="transport-fallback">{codexTransportDecision.fallback}</p>
             <div className="dialog-action-row">
               <button className="dialog-secondary-action" onClick={onRefreshCodexTransport} type="button">
                 {codexTransportLoading ? "Checking..." : "Refresh probe"}
+              </button>
+              <button
+                className="dialog-secondary-action"
+                disabled={!codexTransportDecision.canStartSession || codexLiveSmokeLoading}
+                onClick={onRunCodexLiveSmokeProof}
+                type="button"
+              >
+                {codexLiveSmokeLoading ? "Running smoke..." : "Run live smoke"}
               </button>
               <button className="dialog-primary-action" onClick={onStageCodexConnection} type="button">
                 {codexConnectionRequested ? "Connection request staged" : "Stage Codex connection request"}

@@ -553,6 +553,33 @@ textarea {
   color: #b7c3cf;
 }
 
+.transport-live-proof {
+  display: grid;
+  grid-template-columns: minmax(96px, auto) minmax(72px, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 8px 10px;
+}
+
+.transport-live-proof span {
+  color: #8793a0;
+}
+
+.transport-live-proof strong {
+  color: #edf3f8;
+}
+
+.transport-live-proof small {
+  min-width: 0;
+  color: #9fa9b4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .connection-checks,
 .migration-grid,
 .slash-command-list {
@@ -612,6 +639,11 @@ textarea {
 
 .dialog-secondary-action:hover {
   background: #19212b;
+}
+
+.dialog-secondary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .migration-grid {

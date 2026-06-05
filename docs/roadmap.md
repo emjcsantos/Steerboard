@@ -10,7 +10,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 | Phase 2: Orchestration Model | In progress | Mock runs, task state, validation gates, handoff previews, selected-run evidence panels, and compact cockpit monitor summaries with local stream controls are available without external runtime execution. |
 | Phase 3: Optional Project Management Lane | In progress | Pipeline items can be inspected, request history is local, dispatch-ready items can create local cockpit run projections, and selected items can show linked local runs with status summaries. This lane supports visibility and change management, while cockpit chat remains primary. |
 | Phase 4: Runtime Adapters | In progress | Provider-neutral adapter previews, runtime profiles, local approvals, bridge status, permission previews, and evidence readiness are scaffolded as locked local previews. |
-| Phase 5: Live Codex Integration | In progress | Codex transport spike identifies supervised app-server stdio as the safest first session bridge, with prompt execution still locked behind future approval gates. |
+| Phase 5: Live Codex Integration | In progress | Codex transport spike identifies supervised app-server stdio as the safest first session bridge, with no-prompt readiness on startup and explicit live smoke for one read-only send/stream proof. |
 | Phase 6: Adaptive Cockpit Canvas | Planned | Adaptive layout enables user-added panels, drag-in chats/projects, magnetic snapping, resizing, repositioning, keyboard control, and persisted safe geometry. |
 | Phase 7: Platform Capabilities | Planned | Slash commands, plugins, automations, MCP, personalization, permissions, and audit state become live provider-backed surfaces. |
 | Phase 8: Local Execution And Packaging | Planned | Real runtime execution, permissioned terminal/Git capture, audit exports, build signing, and installer checks remain behind future explicit approval gates. |
@@ -81,6 +81,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Auth posture display for ChatGPT login, API-key login, and trusted access-token setup.
 - Provider connection flow that grows from the local Codex connection request preview into a real adapter handshake.
 - Desktop-gated app-server stdio transport probe with no-prompt initialize handshake.
+- Explicit live smoke action for one ephemeral read-only `turn/start` and `item/agentMessage/delta` proof.
 - Documented fallback to local preview or explicit one-shot `exec --json` behavior when stable session transport is unavailable.
 - Read-only Codex default option seed for plugins, skills, slash commands, MCP servers, and personalization sources.
 - `File > Migrate...` preview for importing supported Codex settings, options, projects, threads/chats, skills, plugins, MCP servers, commands, and personalization into a Steerboard profile.

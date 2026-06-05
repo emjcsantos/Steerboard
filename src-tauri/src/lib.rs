@@ -91,13 +91,32 @@ pub struct CodexTransportProbe {
     pub execution: CodexExecutionProbe,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexLiveSmokeProof {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub executed: bool,
+    pub ok: bool,
+    pub detail: String,
+    pub thread_id_seen: bool,
+    pub turn_id_seen: bool,
+    pub agent_delta_method_seen: bool,
+    pub turn_completed_seen: bool,
+    pub failed_seen: bool,
+    pub expected_token_seen: bool,
+    pub method_count: usize,
+    pub unique_methods: Vec<String>,
+}
+
 mod runtime_bridge {
     use super::{
         CodexAppServerProbe, CodexAppServerProtocolProbe, CodexCliProbe, CodexExecJsonProbe,
-        CodexExecutionProbe, CodexHomeProbe, CodexTransportProbe, PermissionApprovalStatus,
-        RuntimeBridgeStatus,
+        CodexExecutionProbe, CodexHomeProbe, CodexLiveSmokeProof, CodexTransportProbe,
+        PermissionApprovalStatus, RuntimeBridgeStatus,
     };
     use serde_json::Value;
+    use std::collections::BTreeSet;
     use std::fs;
     use std::io::{BufRead, BufReader, Write};
     use std::path::{Path, PathBuf};
@@ -180,10 +199,46 @@ mod runtime_bridge {
         }
     }
 
+    #[tauri::command]
+    pub fn codex_transport_live_smoke() -> CodexLiveSmokeProof {
+        run_live_smoke()
+    }
+
     struct HandshakeProbe {
         success: bool,
         user_agent: Option<String>,
         platform_os: Option<String>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct LiveSmokeState {
+        thread_id_seen: bool,
+        turn_id_seen: bool,
+        agent_delta_method_seen: bool,
+        turn_completed_seen: bool,
+        failed_seen: bool,
+        expected_token_seen: bool,
+        method_count: usize,
+        unique_methods: BTreeSet<String>,
+        answer: String,
+        detail: String,
+    }
+
+    impl Default for LiveSmokeState {
+        fn default() -> Self {
+            Self {
+                thread_id_seen: false,
+                turn_id_seen: false,
+                agent_delta_method_seen: false,
+                turn_completed_seen: false,
+                failed_seen: false,
+                expected_token_seen: false,
+                method_count: 0,
+                unique_methods: BTreeSet::new(),
+                answer: String::new(),
+                detail: "Live smoke did not complete.".to_string(),
+            }
+        }
     }
 
     fn run_codex_output(args: &[&str]) -> Option<String> {
@@ -409,6 +464,328 @@ mod runtime_bridge {
         }
     }
 
+    fn run_live_smoke() -> CodexLiveSmokeProof {
+        const EXPECTED_TOKEN: &str = "STEERBOARD_TRANSPORT_OK";
+        let checked_at = Some(current_timestamp());
+        let Ok(mut child) = spawn_codex(&["app-server", "--listen", "stdio://"]) else {
+            return live_smoke_result(
+                checked_at,
+                false,
+                LiveSmokeState {
+                    detail: "Unable to launch Codex app-server stdio.".to_string(),
+                    ..LiveSmokeState::default()
+                },
+            );
+        };
+
+        let (tx, rx) = mpsc::channel();
+        if let Some(stdout) = child.stdout.take() {
+            thread::spawn(move || {
+                let reader = BufReader::new(stdout);
+                for line in reader.lines().map_while(Result::ok) {
+                    let _ = tx.send(line);
+                }
+            });
+        }
+
+        let initialize = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "clientInfo": {
+                    "name": "steerboard-live-smoke",
+                    "version": "0.1.0"
+                },
+                "capabilities": {
+                    "experimentalApi": true
+                }
+            }
+        });
+
+        if !send_json(&mut child, &initialize) {
+            cleanup_child(&mut child);
+            return live_smoke_result(
+                checked_at,
+                false,
+                LiveSmokeState {
+                    detail: "Unable to write initialize request to Codex app-server.".to_string(),
+                    ..LiveSmokeState::default()
+                },
+            );
+        }
+
+        if wait_for_json_rpc_id(&rx, 1, Duration::from_secs(8)).is_none() {
+            cleanup_child(&mut child);
+            return live_smoke_result(
+                checked_at,
+                true,
+                LiveSmokeState {
+                    detail: "Codex app-server did not return initialize response.".to_string(),
+                    ..LiveSmokeState::default()
+                },
+            );
+        }
+
+        let cwd = std::env::current_dir()
+            .ok()
+            .map(|path| path.to_string_lossy().to_string());
+        let thread_start = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "thread/start",
+            "params": {
+                "cwd": cwd,
+                "ephemeral": true,
+                "approvalPolicy": "never",
+                "sandbox": "read-only",
+                "baseInstructions": "You are validating a Steerboard transport smoke test. Do not use tools. Answer the user's exact request only.",
+                "threadSource": "user"
+            }
+        });
+
+        if !send_json(&mut child, &thread_start) {
+            cleanup_child(&mut child);
+            return live_smoke_result(
+                checked_at,
+                true,
+                LiveSmokeState {
+                    detail: "Unable to write thread/start request.".to_string(),
+                    ..LiveSmokeState::default()
+                },
+            );
+        }
+
+        let Some(thread_response) = wait_for_json_rpc_id(&rx, 2, Duration::from_secs(12)) else {
+            cleanup_child(&mut child);
+            return live_smoke_result(
+                checked_at,
+                true,
+                LiveSmokeState {
+                    detail: "Codex app-server did not return thread/start response.".to_string(),
+                    ..LiveSmokeState::default()
+                },
+            );
+        };
+
+        let thread_id = thread_response
+            .get("result")
+            .and_then(|result| result.get("thread"))
+            .and_then(|thread| thread.get("id"))
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned);
+
+        let Some(thread_id) = thread_id else {
+            cleanup_child(&mut child);
+            return live_smoke_result(
+                checked_at,
+                true,
+                LiveSmokeState {
+                    detail: "thread/start response did not include a thread id.".to_string(),
+                    ..LiveSmokeState::default()
+                },
+            );
+        };
+
+        let prompt = format!("Reply with exactly this token and nothing else: {EXPECTED_TOKEN}");
+        let turn_start = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "turn/start",
+            "params": {
+                "threadId": thread_id,
+                "input": [
+                    {
+                        "type": "text",
+                        "text": prompt
+                    }
+                ],
+                "approvalPolicy": "never",
+                "sandboxPolicy": {
+                    "type": "readOnly",
+                    "networkAccess": false
+                },
+                "effort": "low"
+            }
+        });
+
+        if !send_json(&mut child, &turn_start) {
+            cleanup_child(&mut child);
+            return live_smoke_result(
+                checked_at,
+                true,
+                LiveSmokeState {
+                    detail: "Unable to write turn/start request.".to_string(),
+                    ..LiveSmokeState::default()
+                },
+            );
+        }
+
+        let Some(turn_response) = wait_for_json_rpc_id(&rx, 3, Duration::from_secs(15)) else {
+            cleanup_child(&mut child);
+            return live_smoke_result(
+                checked_at,
+                true,
+                LiveSmokeState {
+                    detail: "Codex app-server did not return turn/start response.".to_string(),
+                    ..LiveSmokeState::default()
+                },
+            );
+        };
+
+        let mut state = LiveSmokeState {
+            thread_id_seen: true,
+            turn_id_seen: turn_response
+                .get("result")
+                .and_then(|result| result.get("turn"))
+                .and_then(|turn| turn.get("id"))
+                .and_then(Value::as_str)
+                .is_some(),
+            detail: "Live smoke turn started; waiting for agent delta.".to_string(),
+            ..LiveSmokeState::default()
+        };
+
+        let deadline = std::time::Instant::now() + Duration::from_secs(90);
+        while std::time::Instant::now() < deadline {
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            let timeout = remaining.min(Duration::from_millis(500));
+            let Ok(line) = rx.recv_timeout(timeout) else {
+                continue;
+            };
+            let Ok(value) = serde_json::from_str::<Value>(&line) else {
+                continue;
+            };
+
+            observe_live_smoke_event(&mut state, &value, EXPECTED_TOKEN);
+
+            if state.turn_completed_seen || state.failed_seen {
+                break;
+            }
+        }
+
+        state.expected_token_seen = state.answer.contains(EXPECTED_TOKEN);
+        state.detail = if state.turn_completed_seen
+            && state.agent_delta_method_seen
+            && state.expected_token_seen
+            && !state.failed_seen
+        {
+            "Live app-server stdio send/stream smoke passed.".to_string()
+        } else if state.failed_seen {
+            "Live app-server stdio smoke failed during the turn.".to_string()
+        } else {
+            "Live app-server stdio smoke timed out before proof completed.".to_string()
+        };
+
+        cleanup_child(&mut child);
+        live_smoke_result(checked_at, true, state)
+    }
+
+    fn send_json(child: &mut std::process::Child, value: &Value) -> bool {
+        let Some(stdin) = child.stdin.as_mut() else {
+            return false;
+        };
+
+        writeln!(stdin, "{value}").is_ok()
+    }
+
+    fn wait_for_json_rpc_id(
+        rx: &mpsc::Receiver<String>,
+        id: i64,
+        timeout: Duration,
+    ) -> Option<Value> {
+        let deadline = std::time::Instant::now() + timeout;
+        while std::time::Instant::now() < deadline {
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            let Ok(line) = rx.recv_timeout(remaining.min(Duration::from_millis(250))) else {
+                continue;
+            };
+            let Ok(value) = serde_json::from_str::<Value>(&line) else {
+                continue;
+            };
+            if value.get("id").and_then(Value::as_i64) == Some(id) {
+                return Some(value);
+            }
+        }
+
+        None
+    }
+
+    fn observe_live_smoke_event(state: &mut LiveSmokeState, value: &Value, expected_token: &str) {
+        let Some(method) = value.get("method").and_then(Value::as_str) else {
+            return;
+        };
+
+        state.method_count += 1;
+        state.unique_methods.insert(method.to_string());
+
+        let params = value.get("params").and_then(Value::as_object);
+        if method == "item/agentMessage/delta" {
+            state.agent_delta_method_seen = true;
+            if let Some(delta) = params
+                .and_then(|object| object.get("delta"))
+                .and_then(Value::as_str)
+            {
+                state.answer.push_str(delta);
+            }
+        }
+
+        if method == "error" {
+            state.failed_seen = true;
+        }
+
+        if let Some(turn) = params
+            .and_then(|object| object.get("turn"))
+            .and_then(Value::as_object)
+        {
+            match turn.get("status").and_then(Value::as_str) {
+                Some("completed") => state.turn_completed_seen = true,
+                Some("failed") => state.failed_seen = true,
+                _ => {}
+            }
+        }
+
+        if method == "turn/completed" && !state.failed_seen {
+            state.turn_completed_seen = true;
+        }
+
+        state.expected_token_seen = state.answer.contains(expected_token);
+    }
+
+    fn live_smoke_result(
+        checked_at: Option<String>,
+        executed: bool,
+        state: LiveSmokeState,
+    ) -> CodexLiveSmokeProof {
+        let ok = executed
+            && state.thread_id_seen
+            && state.turn_id_seen
+            && state.agent_delta_method_seen
+            && state.turn_completed_seen
+            && state.expected_token_seen
+            && !state.failed_seen;
+
+        CodexLiveSmokeProof {
+            source: "desktop".to_string(),
+            checked_at,
+            executed,
+            ok,
+            detail: state.detail,
+            thread_id_seen: state.thread_id_seen,
+            turn_id_seen: state.turn_id_seen,
+            agent_delta_method_seen: state.agent_delta_method_seen,
+            turn_completed_seen: state.turn_completed_seen,
+            failed_seen: state.failed_seen,
+            expected_token_seen: state.expected_token_seen,
+            method_count: state.method_count,
+            unique_methods: state.unique_methods.into_iter().collect(),
+        }
+    }
+
+    fn cleanup_child(child: &mut std::process::Child) {
+        let _ = child.kill();
+        let _ = child.wait();
+    }
+
     fn timestamp_millis() -> u128 {
         SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -427,7 +804,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             runtime_bridge::runtime_bridge_status,
             runtime_bridge::runtime_permission_approval_status,
-            runtime_bridge::codex_transport_probe
+            runtime_bridge::codex_transport_probe,
+            runtime_bridge::codex_transport_live_smoke
         ])
         .run(tauri::generate_context!())
         .expect("error while running Steerboard");

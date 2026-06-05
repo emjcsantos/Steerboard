@@ -91,7 +91,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Worker adapter for configured implementer and validator profiles.
 - Future adapters for ACP-compatible workers.
 - Codex adapter should be the first live adapter and should delegate authentication to Codex rather than storing Codex secrets in Steerboard.
-- The first Codex transport target is a desktop-gated, supervised `app-server stdio` bridge. Readiness detection can prove CLI availability, protocol schema, and no-prompt initialize handshake before prompt execution is allowed.
+- The first Codex transport target is a desktop-gated, supervised `app-server stdio` bridge. Readiness detection can prove CLI availability, protocol schema, and no-prompt initialize handshake; an explicit live smoke can prove one read-only send/stream turn through `item/agentMessage/delta`.
 - `codex exec --json` is a fallback for deliberate one-shot work, not the default live cockpit session transport.
 - Live provider adapters should expose session, command, plugin, automation, MCP, personalization, approval, and audit capabilities through one normalized contract.
 - The Codex adapter should expose a read-only default option seed that mirrors Codex plugins, skills, slash commands, MCP servers, and personalization sources from the connected runtime.

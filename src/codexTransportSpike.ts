@@ -79,6 +79,22 @@ export interface CodexTransportDecision {
   evidence: CodexTransportEvidenceItem[];
 }
 
+export interface CodexLiveSmokeProof {
+  source: CodexProbeSource;
+  checkedAt: string | null;
+  executed: boolean;
+  ok: boolean;
+  detail: string;
+  threadIdSeen: boolean;
+  turnIdSeen: boolean;
+  agentDeltaMethodSeen: boolean;
+  turnCompletedSeen: boolean;
+  failedSeen: boolean;
+  expectedTokenSeen: boolean;
+  methodCount: number;
+  uniqueMethods: string[];
+}
+
 type UnknownRecord = Record<string, unknown>;
 
 const emptyProtocol: CodexAppServerProtocolProbe = {
@@ -126,6 +142,22 @@ const fallbackProbe: CodexTransportProbe = {
   }
 };
 
+const fallbackLiveSmokeProof: CodexLiveSmokeProof = {
+  source: "browser",
+  checkedAt: null,
+  executed: false,
+  ok: false,
+  detail: "Browser preview cannot launch a Codex live smoke test.",
+  threadIdSeen: false,
+  turnIdSeen: false,
+  agentDeltaMethodSeen: false,
+  turnCompletedSeen: false,
+  failedSeen: false,
+  expectedTokenSeen: false,
+  methodCount: 0,
+  uniqueMethods: []
+};
+
 function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -153,6 +185,12 @@ function bool(value: unknown): boolean {
 
 function nonNegativeInteger(value: unknown): number {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : 0;
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function daemonLifecycle(value: unknown): CodexDaemonLifecycle {
@@ -236,6 +274,37 @@ export function normalizeCodexTransportProbe(value: unknown): CodexTransportProb
   };
 }
 
+export function getFallbackCodexLiveSmokeProof(): CodexLiveSmokeProof {
+  return {
+    ...fallbackLiveSmokeProof,
+    uniqueMethods: [...fallbackLiveSmokeProof.uniqueMethods]
+  };
+}
+
+export function normalizeCodexLiveSmokeProof(value: unknown): CodexLiveSmokeProof {
+  if (!isRecord(value)) {
+    return getFallbackCodexLiveSmokeProof();
+  }
+
+  const fallback = getFallbackCodexLiveSmokeProof();
+
+  return {
+    source: value.source === "desktop" ? "desktop" : "browser",
+    checkedAt: optionalDate(value.checkedAt),
+    executed: bool(value.executed),
+    ok: bool(value.ok),
+    detail: optionalString(value.detail) ?? fallback.detail,
+    threadIdSeen: bool(value.threadIdSeen),
+    turnIdSeen: bool(value.turnIdSeen),
+    agentDeltaMethodSeen: bool(value.agentDeltaMethodSeen),
+    turnCompletedSeen: bool(value.turnCompletedSeen),
+    failedSeen: bool(value.failedSeen),
+    expectedTokenSeen: bool(value.expectedTokenSeen),
+    methodCount: nonNegativeInteger(value.methodCount),
+    uniqueMethods: stringArray(value.uniqueMethods)
+  };
+}
+
 function hasPanelProtocol(probe: CodexTransportProbe): boolean {
   return (
     probe.appServer.protocol.threadStart &&
@@ -248,12 +317,17 @@ function evidenceStatus(value: boolean, readyState: CodexTransportState = "ready
   return value ? readyState : "blocked";
 }
 
-export function decideCodexTransport(probeInput: unknown): CodexTransportDecision {
+export function decideCodexTransport(
+  probeInput: unknown,
+  liveProofInput?: unknown
+): CodexTransportDecision {
   const probe = normalizeCodexTransportProbe(probeInput);
+  const liveProof = liveProofInput ? normalizeCodexLiveSmokeProof(liveProofInput) : undefined;
+  const liveProofOk = liveProof?.ok === true;
   const protocolReady = hasPanelProtocol(probe);
   const appServerReady = probe.appServer.available && probe.appServer.stdioHandshake && protocolReady;
   const cliOnlyFallback = probe.cli.available && probe.execJson.available;
-  const canSendPanelMessage = appServerReady && probe.execution.promptExecutionAllowed;
+  const canSendPanelMessage = appServerReady && (probe.execution.promptExecutionAllowed || liveProofOk);
   const proof: CodexSendStreamProof = canSendPanelMessage
     ? "send-stream"
     : appServerReady
@@ -323,7 +397,9 @@ export function decideCodexTransport(probeInput: unknown): CodexTransportDecisio
         id: "codex-send-stream",
         label: "Send/stream proof",
         detail: canSendPanelMessage
-          ? "Prompt send and stream path is unlocked."
+          ? liveProofOk
+            ? "Live smoke returned the expected token via agent message delta."
+            : "Prompt send and stream path is unlocked."
           : "Prompt send remains locked until an explicit execution approval bridge exists.",
         status: canSendPanelMessage ? "live" : "preview"
       }
@@ -383,6 +459,15 @@ async function invokeCodexTransportProbe(): Promise<unknown> {
   return invoke("codex_transport_probe");
 }
 
+async function invokeCodexLiveSmokeProof(): Promise<unknown> {
+  if (!hasTauriRuntime()) {
+    return getFallbackCodexLiveSmokeProof();
+  }
+
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke("codex_transport_live_smoke");
+}
+
 export async function loadCodexTransportProbe(
   invokeProbe: () => Promise<unknown> = invokeCodexTransportProbe
 ): Promise<CodexTransportProbe> {
@@ -401,6 +486,24 @@ export async function loadCodexTransportProbe(
         promptExecutionAllowed: false,
         detail: "Codex transport probe failed; execution remains locked."
       }
+    };
+  }
+}
+
+export async function loadCodexLiveSmokeProof(
+  invokeProof: () => Promise<unknown> = invokeCodexLiveSmokeProof
+): Promise<CodexLiveSmokeProof> {
+  try {
+    if (!hasTauriRuntime() && invokeProof === invokeCodexLiveSmokeProof) {
+      return getFallbackCodexLiveSmokeProof();
+    }
+
+    return normalizeCodexLiveSmokeProof(await invokeProof());
+  } catch {
+    return {
+      ...getFallbackCodexLiveSmokeProof(),
+      source: "desktop",
+      detail: "Codex live smoke failed before a transport result was returned."
     };
   }
 }

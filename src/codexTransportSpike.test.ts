@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   decideCodexTransport,
+  getFallbackCodexLiveSmokeProof,
   getFallbackCodexTransportProbe,
+  loadCodexLiveSmokeProof,
   loadCodexTransportProbe,
+  normalizeCodexLiveSmokeProof,
   normalizeCodexTransportProbe,
+  type CodexLiveSmokeProof,
   type CodexTransportProbe
 } from "./codexTransportSpike";
 
@@ -48,6 +52,22 @@ const readyProbe: CodexTransportProbe = {
     promptExecutionAllowed: false,
     detail: "Prompt execution is locked pending desktop approval."
   }
+};
+
+const liveProof: CodexLiveSmokeProof = {
+  source: "desktop",
+  checkedAt: "2026-06-05T13:31:00.000Z",
+  executed: true,
+  ok: true,
+  detail: "Live smoke succeeded.",
+  threadIdSeen: true,
+  turnIdSeen: true,
+  agentDeltaMethodSeen: true,
+  turnCompletedSeen: true,
+  failedSeen: false,
+  expectedTokenSeen: true,
+  methodCount: 19,
+  uniqueMethods: ["item/agentMessage/delta", "turn/completed"]
 };
 
 describe("codex transport spike", () => {
@@ -141,6 +161,45 @@ describe("codex transport spike", () => {
     });
   });
 
+  it("marks transport live after an explicit send and stream smoke proof", () => {
+    const decision = decideCodexTransport(readyProbe, liveProof);
+
+    expect(decision).toMatchObject({
+      state: "live",
+      preferredTransport: "app-server-stdio",
+      canSendPanelMessage: true,
+      proof: "send-stream"
+    });
+    expect(decision.evidence.find((item) => item.id === "codex-send-stream")).toMatchObject({
+      status: "live"
+    });
+  });
+
+  it("keeps failed or malformed live smoke proofs locked", () => {
+    const proof = normalizeCodexLiveSmokeProof({
+      source: "desktop",
+      checkedAt: "1780666260000",
+      executed: true,
+      ok: false,
+      detail: "",
+      uniqueMethods: ["turn/completed", 7]
+    });
+    const decision = decideCodexTransport(readyProbe, proof);
+
+    expect(proof).toMatchObject({
+      source: "desktop",
+      checkedAt: "2026-06-05T13:31:00.000Z",
+      executed: true,
+      ok: false,
+      uniqueMethods: ["turn/completed"]
+    });
+    expect(decision).toMatchObject({
+      state: "ready",
+      canSendPanelMessage: false,
+      proof: "handshake"
+    });
+  });
+
   it("falls back to exec-json for one-shot work when app-server handshake is absent", () => {
     const decision = decideCodexTransport({
       ...readyProbe,
@@ -190,6 +249,29 @@ describe("codex transport spike", () => {
         processExecutionAllowed: false,
         promptExecutionAllowed: false
       }
+    });
+  });
+
+  it("normalizes injected live smoke loads and falls back safely", async () => {
+    await expect(loadCodexLiveSmokeProof(async () => liveProof)).resolves.toMatchObject({
+      source: "desktop",
+      ok: true,
+      agentDeltaMethodSeen: true
+    });
+
+    await expect(
+      loadCodexLiveSmokeProof(async () => {
+        throw new Error("smoke failed");
+      })
+    ).resolves.toMatchObject({
+      source: "desktop",
+      ok: false,
+      executed: false
+    });
+
+    expect(getFallbackCodexLiveSmokeProof()).toMatchObject({
+      source: "browser",
+      ok: false
     });
   });
 });
