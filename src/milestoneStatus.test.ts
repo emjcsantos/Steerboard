@@ -192,11 +192,11 @@ describe("milestone status model", () => {
       active: 1,
       planned: 0,
       paused: 2,
-      averageCompletionPercent: 65,
+      averageCompletionPercent: 67,
       nextTarget: "Security and privacy model",
       nextStep:
-        "Harden release privacy gates against real project data and runtime adapter edge cases.",
-      nextCompletionPercent: 55
+        "Complete security acceptance checks from live cockpit runs before packaging resumes.",
+      nextCompletionPercent: 70
     });
   });
 
@@ -207,9 +207,12 @@ describe("milestone status model", () => {
 
     expect(securityMilestone?.completion).toBe("In progress");
     expect(securityMilestone?.tone).toBe("active");
-    expect(securityMilestone?.completionPercent).toBe(55);
+    expect(securityMilestone?.completionPercent).toBe(70);
+    expect(securityMilestone?.latestNote).toBe(
+      "Real-project-data and runtime-adapter edge gates are now represented in release privacy readiness."
+    );
     expect(securityMilestone?.nextStep).toBe(
-      "Harden release privacy gates against real project data and runtime adapter edge cases."
+      "Complete security acceptance checks from live cockpit runs before packaging resumes."
     );
   });
 
@@ -313,6 +316,24 @@ describe("milestone status model", () => {
     for (const pattern of securityDocForbiddenTerms) {
       expect(pattern.test(securityDocText)).toBe(false);
     }
+  });
+
+  it("captures review-gate labels for real project data and adapter edge hardening", () => {
+    const securityDocText = fs.readFileSync(
+      path.join(process.cwd(), "docs/architecture/security-privacy-model.md"),
+      "utf8"
+    );
+
+    expect(securityDocText).toContain(
+      "## Real Project Data And Runtime Adapter Edge Hardening"
+    );
+    expect(securityDocText).toContain("Real project data boundary");
+    expect(securityDocText).toContain("Runtime adapter fallback states");
+    expect(securityDocText).toContain("Permission lock edge cases");
+    expect(securityDocText).toContain("Audit export review");
+    expect(securityDocText).toContain("Fixture and dependency review");
+    expect(securityDocText).toMatch(/checks? only/i);
+    expect(securityDocText).toMatch(/must not/i);
   });
 
   it("pauses packaging and installation to 0%", () => {

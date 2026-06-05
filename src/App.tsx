@@ -2564,7 +2564,10 @@ function RightPanel({
       createReleasePrivacyReadiness(securityPrivacyThreatModel, {
         localFirstDefaultsReady: true,
         dependencyReviewReady: "review",
-        publicFixtureReady: true
+        publicFixtureReady: true,
+        realProjectDataReady: "review",
+        runtimeAdapterEdgeCasesReady: "review",
+        auditExportReviewReady: "review"
       }),
     [securityPrivacyThreatModel]
   );
@@ -4841,6 +4844,7 @@ function SecurityPrivacyThreatModelPanel({
               >
                 <span>{item.status}</span>
                 <strong>{item.label}</strong>
+                <small>{item.detail}</small>
               </li>
             ))}
           </ol>

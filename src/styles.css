@@ -5819,7 +5819,7 @@ textarea {
 
 .release-privacy-items li {
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
+  grid-template-columns: 58px minmax(96px, 0.42fr) minmax(0, 1fr);
   min-width: 0;
   align-items: center;
   gap: 6px;
@@ -5829,7 +5829,8 @@ textarea {
 }
 
 .release-privacy-items span,
-.release-privacy-items strong {
+.release-privacy-items strong,
+.release-privacy-items small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -5849,6 +5850,10 @@ textarea {
 
 .release-privacy-items strong {
   color: #dce3eb;
+}
+
+.release-privacy-items small {
+  color: #8f99a5;
 }
 
 .adapter-contract-summary {

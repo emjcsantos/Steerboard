@@ -27,7 +27,10 @@ const baseThreatModel: SecurityPrivacyThreatModel = {
 const baseEvidence: ReleasePrivacyEvidence = {
   localFirstDefaultsReady: true,
   dependencyReviewReady: true,
-  publicFixtureReady: true
+  publicFixtureReady: true,
+  realProjectDataReady: true,
+  runtimeAdapterEdgeCasesReady: true,
+  auditExportReviewReady: true
 };
 
 function cloneThreatModel(
@@ -46,8 +49,8 @@ describe("createReleasePrivacyReadiness", () => {
 
     expect(snapshot.state).toBe("ready");
     expect(snapshot.readiness).toBe(100);
-    expect(snapshot.canRecommendRelease).toBe(true);
     expect(snapshot.statusLabel).toBe("Ready");
+    expect(snapshot.canRecommendRelease).toBe(true);
     expect(snapshot.items.map((item) => item.status)).toEqual([
       "ready",
       "ready",
@@ -71,6 +74,27 @@ describe("createReleasePrivacyReadiness", () => {
     expect(snapshot.items[1].label).toBe("Sensitive data boundary");
     expect(snapshot.items[1].status).toBe("blocked");
     expect(snapshot.readiness).toBe(80);
+  });
+
+  it("returns review when threat model is present but edge evidence is missing", () => {
+    const missingEdgeEvidence = {
+      localFirstDefaultsReady: true,
+      dependencyReviewReady: true,
+      publicFixtureReady: true,
+      realProjectDataReady: undefined,
+      runtimeAdapterEdgeCasesReady: true,
+      auditExportReviewReady: true
+    };
+
+    const snapshot = createReleasePrivacyReadiness(
+      baseThreatModel,
+      missingEdgeEvidence
+    );
+
+    expect(snapshot.state).toBe("review");
+    expect(snapshot.items[1].status).toBe("review");
+    expect(snapshot.items[1].detail).toContain("real project data");
+    expect(snapshot.canRecommendRelease).toBe(false);
   });
 
   it("returns waiting when all inputs are missing", () => {
@@ -109,6 +133,33 @@ describe("createReleasePrivacyReadiness", () => {
     expect(blockedSnapshot.items[3].status).toBe("blocked");
   });
 
+  it("returns blocked when runtime adapter edge case evidence is blocked", () => {
+    const runtimeEdgeBlockedSnapshot = createReleasePrivacyReadiness(
+      baseThreatModel,
+      {
+        ...baseEvidence,
+        runtimeAdapterEdgeCasesReady: false
+      }
+    );
+
+    expect(runtimeEdgeBlockedSnapshot.state).toBe("blocked");
+    expect(runtimeEdgeBlockedSnapshot.items[2].label).toBe("Permission and execution lock");
+    expect(runtimeEdgeBlockedSnapshot.items[2].status).toBe("blocked");
+    expect(runtimeEdgeBlockedSnapshot.items[2].detail).toContain("runtime adapter edge cases");
+  });
+
+  it("returns blocked when real project data readiness is blocked", () => {
+    const realDataBlockedSnapshot = createReleasePrivacyReadiness(baseThreatModel, {
+      ...baseEvidence,
+      realProjectDataReady: "blocked"
+    });
+
+    expect(realDataBlockedSnapshot.state).toBe("blocked");
+    expect(realDataBlockedSnapshot.items[1].label).toBe("Sensitive data boundary");
+    expect(realDataBlockedSnapshot.items[1].status).toBe("blocked");
+    expect(realDataBlockedSnapshot.items[1].detail).toContain("real project data");
+  });
+
   it("maps audit check into audit and export trail review state", () => {
     const auditReviewModel = cloneThreatModel(baseThreatModel);
     auditReviewModel.checks[3] = {
@@ -122,6 +173,24 @@ describe("createReleasePrivacyReadiness", () => {
     expect(snapshot.state).toBe("review");
     expect(snapshot.items[4].label).toBe("Audit and export trail");
     expect(snapshot.items[4].status).toBe("review");
+  });
+
+  it("maps audit/export review readiness missing and review states", () => {
+    const missingAuditExportReview = createReleasePrivacyReadiness(baseThreatModel, {
+      ...baseEvidence,
+      auditExportReviewReady: undefined
+    });
+
+    expect(missingAuditExportReview.state).toBe("review");
+    expect(missingAuditExportReview.items[4].status).toBe("review");
+
+    const reviewAuditExport = createReleasePrivacyReadiness(baseThreatModel, {
+      ...baseEvidence,
+      auditExportReviewReady: "review"
+    });
+
+    expect(reviewAuditExport.state).toBe("review");
+    expect(reviewAuditExport.items[4].status).toBe("review");
   });
 
   it("preserves exact item order", () => {

@@ -36,6 +36,9 @@ export interface ReleasePrivacyEvidence {
   localFirstDefaultsReady?: ReleasePrivacyEvidenceState;
   dependencyReviewReady?: ReleasePrivacyEvidenceState;
   publicFixtureReady?: ReleasePrivacyEvidenceState;
+  realProjectDataReady?: ReleasePrivacyEvidenceState;
+  runtimeAdapterEdgeCasesReady?: ReleasePrivacyEvidenceState;
+  auditExportReviewReady?: ReleasePrivacyEvidenceState;
 }
 
 const SNAPSHOT_ID = "release-privacy-readiness";
@@ -50,7 +53,7 @@ const STATUS_LABELS: Record<ReleasePrivacyReadinessState, string> = {
   waiting: "Waiting"
 };
 
-function readynessForStatus(
+function readinessForStatus(
   status: ReleasePrivacyReadinessItemStatus
 ): number {
   if (status === "ready") {
@@ -118,27 +121,6 @@ function resolveThreatModelCheck(
   return check.tone === "ok" ? "ready" : "review";
 }
 
-function resolvePermissionAndExecution(
-  threatModel?: SecurityPrivacyThreatModel
-): ReleasePrivacyReadinessItemStatus {
-  const permission = resolveThreatModelCheck(threatModel, "Permission gates");
-  const execution = resolveThreatModelCheck(threatModel, "Execution lock");
-
-  if (permission === "blocked" || execution === "blocked") {
-    return "blocked";
-  }
-
-  if (permission === "ready" && execution === "ready") {
-    return "ready";
-  }
-
-  if (permission === "waiting" || execution === "waiting") {
-    return "waiting";
-  }
-
-  return "review";
-}
-
 function resolveDependencyAndFixtureSafety(
   evidence?: ReleasePrivacyEvidence
 ): ReleasePrivacyReadinessItemStatus {
@@ -167,14 +149,83 @@ function resolveDependencyAndFixtureSafety(
   return "waiting";
 }
 
-function resolveAuditAndExportTrail(
-  threatModel?: SecurityPrivacyThreatModel
+function resolveEdgeAwareStatus(
+  coreStatus: ReleasePrivacyReadinessItemStatus,
+  edgeStatus: ReleasePrivacyEvidenceState | undefined,
+  hasThreatModel: boolean
 ): ReleasePrivacyReadinessItemStatus {
-  return resolveThreatModelCheck(threatModel, "Audit trail");
+  const edge = normalizeGateState(edgeStatus);
+
+  if (coreStatus === "blocked" || edge === "blocked") {
+    return "blocked";
+  }
+
+  if (coreStatus === "ready" && edge === "ready") {
+    return "ready";
+  }
+
+  if (edge === "ready") {
+    return coreStatus;
+  }
+
+  if (coreStatus === "ready") {
+    return hasThreatModel ? "review" : "waiting";
+  }
+
+  return hasThreatModel ? "review" : "waiting";
+}
+
+function resolveAuditAndExportTrail(
+  threatModel?: SecurityPrivacyThreatModel,
+  evidence?: ReleasePrivacyEvidence
+): ReleasePrivacyReadinessItemStatus {
+  const coreStatus = resolveThreatModelCheck(threatModel, "Audit trail");
+
+  return resolveEdgeAwareStatus(
+    coreStatus,
+    evidence?.auditExportReviewReady,
+    threatModel !== undefined
+  );
+}
+
+function resolveSensitiveDataBoundary(
+  threatModel?: SecurityPrivacyThreatModel,
+  evidence?: ReleasePrivacyEvidence
+): ReleasePrivacyReadinessItemStatus {
+  const coreStatus = resolveThreatModelCheck(threatModel, "Data boundary");
+
+  return resolveEdgeAwareStatus(
+    coreStatus,
+    evidence?.realProjectDataReady,
+    threatModel !== undefined
+  );
+}
+
+function resolvePermissionAndExecutionWithEdgeCases(
+  threatModel?: SecurityPrivacyThreatModel,
+  evidence?: ReleasePrivacyEvidence
+): ReleasePrivacyReadinessItemStatus {
+  const permission = resolveThreatModelCheck(threatModel, "Permission gates");
+  const execution = resolveThreatModelCheck(threatModel, "Execution lock");
+
+  const coreStatus =
+    permission === "blocked" || execution === "blocked"
+      ? "blocked"
+      : permission === "ready" && execution === "ready"
+        ? "ready"
+        : permission === "waiting" || execution === "waiting"
+          ? "waiting"
+          : "review";
+
+  return resolveEdgeAwareStatus(
+    coreStatus,
+    evidence?.runtimeAdapterEdgeCasesReady,
+    threatModel !== undefined
+  );
 }
 
 function summarizeReadiness(items: ReleasePrivacyReadinessItem[]): number {
-  return items.reduce((acc, item) => acc + readynessForStatus(item.status), 0);
+  return items.reduce((acc, item) => acc + readinessForStatus(item.status), 0);
 }
 
 function hasBlocked(items: ReleasePrivacyReadinessItem[]): boolean {
@@ -211,13 +262,19 @@ export function createReleasePrivacyReadiness(
   const hasInputs = threatModel !== undefined || evidence !== undefined;
 
   const localFirstDefaultsStatus = resolveLocalFirstDefaults(evidence);
-  const sensitiveDataBoundaryStatus = resolveThreatModelCheck(
+  const sensitiveDataBoundaryStatus = resolveSensitiveDataBoundary(
     threatModel,
-    "Data boundary"
+    evidence
   );
-  const permissionAndExecutionStatus = resolvePermissionAndExecution(threatModel);
+  const permissionAndExecutionStatus = resolvePermissionAndExecutionWithEdgeCases(
+    threatModel,
+    evidence
+  );
   const dependencyFixtureStatus = resolveDependencyAndFixtureSafety(evidence);
-  const auditAndExportStatus = resolveAuditAndExportTrail(threatModel);
+  const auditAndExportStatus = resolveAuditAndExportTrail(
+    threatModel,
+    evidence
+  );
 
   const items: ReleasePrivacyReadinessItem[] = [
     {
@@ -230,13 +287,15 @@ export function createReleasePrivacyReadiness(
       id: `${SNAPSHOT_ID}:sensitive-data-boundary`,
       label: "Sensitive data boundary",
       status: sensitiveDataBoundaryStatus,
-      detail: `Sensitive data boundary check is ${sensitiveDataBoundaryStatus}.`
+      detail:
+        `Sensitive data boundary check and real project data readiness are ${sensitiveDataBoundaryStatus}.`
     },
     {
       id: `${SNAPSHOT_ID}:permission-and-execution-lock`,
       label: "Permission and execution lock",
       status: permissionAndExecutionStatus,
-      detail: `Permission and execution lock checks are ${permissionAndExecutionStatus}.`
+      detail:
+        `Permission and execution lock checks plus runtime adapter edge cases are ${permissionAndExecutionStatus}.`
     },
     {
       id: `${SNAPSHOT_ID}:dependency-and-fixture-safety`,
@@ -248,7 +307,8 @@ export function createReleasePrivacyReadiness(
       id: `${SNAPSHOT_ID}:audit-and-export-trail`,
       label: "Audit and export trail",
       status: auditAndExportStatus,
-      detail: `Audit and export trail are ${auditAndExportStatus}.`
+      detail:
+        `Audit and export trail check plus audit/export review are ${auditAndExportStatus}.`
     }
   ];
 

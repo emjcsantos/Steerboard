@@ -35,7 +35,7 @@ Never commit:
 
 ## Release Privacy Readiness Gates
 
-Before release promotion, the following five gates are visible checks only (no install actions, network operations, or artifact writes during evaluation).
+Before release promotion, the following five gates are visible checks only (no environment mutation, network operations, or artifact writes during evaluation).
 
 - Local-first defaults
 - Sensitive data boundary
@@ -44,6 +44,31 @@ Before release promotion, the following five gates are visible checks only (no i
 - Audit and export trail
 
 Release privacy readiness gates are intended to be explicit controls for pre-release visibility and decision support. They are checks only; they do not execute distribution actions, environment mutation, or outbound release actions.
+
+## Real Project Data And Runtime Adapter Edge Hardening
+
+This section tracks visible runtime and project-data readiness checks only. These are manual/automated review gates and must not trigger installation actions, artifact output, environment mutation, or real-time side effects.
+
+- Real project data boundary
+  - Verify that real data examples use redacted identifiers and minimal fields.
+  - Confirm no direct raw file path disclosure in public outputs.
+  - Confirm no private credential-like material appears in review artifacts.
+- Runtime adapter fallback states
+  - Confirm documented behavior for missing data, partial data, malformed adapter payloads, and transient unavailability.
+  - Confirm fallback state appears as a reviewed decision before runtime status is advanced.
+  - Confirm no silent downgrade of critical checks through automatic recovery.
+- Permission lock edge cases
+  - Confirm permission gates are visible for each high-risk action.
+  - Confirm lock exceptions are explicit, minimal, and auditable.
+  - Confirm lock re-check behavior when task context changes.
+- Audit export review
+  - Confirm audit and export outputs are reviewed before any publication step.
+  - Confirm outputs remain metadata-aware and redacted for sensitive context.
+  - Confirm review history includes what changed and why.
+- Fixture and dependency review
+  - Confirm fixtures are sanitized and limited to non-sensitive exemplars.
+  - Confirm dependency additions are reviewed for update safety and least privilege.
+  - Confirm fixture/dependency reviews are captured as explicit readiness items.
 
 ## Implementation Controls
 
@@ -68,20 +93,6 @@ Before importing third-party code:
 8. Review network endpoints and analytics.
 9. Confirm no private data is bundled.
 10. Record an explicit reuse decision.
-
-## Worker Safety
-
-Worker task briefs must include:
-
-- exact files allowed,
-- exact files forbidden,
-- acceptance criteria,
-- validation command,
-- max three implementation attempts,
-- required handoff summary,
-- rollback note.
-
-The main orchestrator must run final validation after worker completion.
 
 ## Runtime Adapter Safety
 

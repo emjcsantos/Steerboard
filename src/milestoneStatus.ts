@@ -80,9 +80,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Security and privacy model",
     completion: "In progress",
     plan: "Set baseline protections, data-handling boundaries, and reviewable controls.",
-    completionPercent: 55,
-    latestNote: "Release/privacy readiness gates are now defined and visible for release promotion checks.",
-    nextStep: "Harden release privacy gates against real project data and runtime adapter edge cases.",
+    completionPercent: 70,
+    latestNote:
+      "Real-project-data and runtime-adapter edge gates are now represented in release privacy readiness.",
+    nextStep:
+      "Complete security acceptance checks from live cockpit runs before packaging resumes.",
     tone: "active",
     note: "Security and privacy posture is being documented, with production controls being designed for release readiness."
   },
