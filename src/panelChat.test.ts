@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   buildInitialPanelChat,
+  codexSessionStateToPanelMessages,
+  createPanelLiveErrorMessage,
+  createPanelLiveStatusMessage,
   createPanelReplyMessage,
   getPanelSlashCommandSuggestions,
   normalizePanelChatMessages,
@@ -45,6 +48,55 @@ describe("panel chat helpers", () => {
   it("creates a command-aware local reply", () => {
     expect(createPanelReplyMessage(session, 4, "/validate this").meta).toBe("slash command preview");
     expect(createPanelReplyMessage(session, 4, "regular message").meta).toBe("local adapter pending");
+  });
+
+  it("creates live status and error messages for Codex panel activity", () => {
+    expect(createPanelLiveStatusMessage(session, 2, "Starting live session")).toMatchObject({
+      role: "system",
+      label: "Steerboard",
+      body: "Starting live session",
+      meta: "live codex"
+    });
+    expect(createPanelLiveErrorMessage(session, 3, "Transport failed")).toMatchObject({
+      role: "system",
+      label: "Codex connection",
+      body: "Transport failed",
+      meta: "live error"
+    });
+  });
+
+  it("maps normalized Codex session messages into panel chat messages", () => {
+    expect(
+      codexSessionStateToPanelMessages(session, {
+        connection: { status: "connected" },
+        messages: [
+          {
+            id: "assistant-a",
+            role: "assistant",
+            body: "Live answer",
+            status: "completed"
+          },
+          {
+            id: "empty",
+            role: "assistant",
+            body: " ",
+            status: "completed"
+          }
+        ],
+        turns: [],
+        usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+        errors: [],
+        unknownEvents: []
+      })
+    ).toEqual([
+      {
+        id: "panel-1:live:assistant-a:0",
+        role: "codex",
+        label: "Codex Live",
+        body: "Live answer",
+        meta: "completed"
+      }
+    ]);
   });
 
   it("repairs malformed stored thread payloads", () => {

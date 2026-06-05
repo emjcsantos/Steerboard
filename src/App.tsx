@@ -105,13 +105,21 @@ import {
   type WorkspacePreferences
 } from "./preferences";
 import {
+  codexSessionStateToPanelMessages,
   createPanelReplyMessage,
+  createPanelLiveErrorMessage,
+  createPanelLiveStatusMessage,
   getPanelSlashCommandSuggestions,
   loadPanelChatMessages,
   panelSlashCommands,
   savePanelChatMessages,
   type PanelChatMessage
 } from "./panelChat";
+import {
+  normalizeCodexPanelTurnResultEvents,
+  reduceCodexSessionEvents,
+  type CodexPanelTurnResultPayload
+} from "./codexSession";
 import {
   decideCodexTransport,
   getFallbackCodexLiveSmokeProof,
@@ -617,6 +625,32 @@ function transportStatusLabel(state: CodexTransportState): string {
   }
 }
 
+type LivePanelChatStatus =
+  | "preview"
+  | "idle"
+  | "starting"
+  | "running"
+  | "completed"
+  | "interrupted"
+  | "failed";
+
+interface CodexPanelSessionStartPayload {
+  source: string;
+  sessionId: string;
+  threadId: string;
+  started: boolean;
+  detail: string;
+}
+
+function hasDesktopRuntime(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
+async function invokeDesktopCommand<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<T>(command, args);
+}
+
 export function App() {
   const validProjectIds = useMemo(() => projects.map((item) => item.id), []);
   const defaultPlanningDrafts = useMemo(
@@ -731,6 +765,7 @@ export function App() {
     () => cockpitSessions.slice(0, maxVisibleSessions),
     [cockpitSessions, maxVisibleSessions]
   );
+  const liveCodexPanelId = visibleSessions[0]?.id;
   const displayGrid = useMemo(
     () => getDisplayGrid(layout, visibleSessions.length),
     [layout, visibleSessions.length]
@@ -1094,6 +1129,7 @@ export function App() {
                     <SessionCell
                       isFocused={session.id === focusedPanelId}
                       key={session.id}
+                      liveCodexEnabled={session.id === liveCodexPanelId && codexTransportDecision.canStartSession}
                       projectLabel={
                         projectLabelById.get(session.projectId) ??
                         registryByProject.get(session.projectId)?.workspaceLabel ??
@@ -1435,10 +1471,12 @@ function AppDialogSurface({
 
 function SessionCell({
   isFocused = false,
+  liveCodexEnabled = false,
   projectLabel,
   session
 }: {
   isFocused?: boolean;
+  liveCodexEnabled?: boolean;
   projectLabel?: string;
   session: SessionSummary;
 }) {
@@ -1468,25 +1506,142 @@ function SessionCell({
     loadPanelChatMessages(session)
   );
   const [draftMessage, setDraftMessage] = useState("");
+  const [liveChatStatus, setLiveChatStatus] = useState<LivePanelChatStatus>(
+    liveCodexEnabled ? "idle" : "preview"
+  );
+  const [liveSessionStarted, setLiveSessionStarted] = useState(false);
+  const [liveChatDetail, setLiveChatDetail] = useState(
+    liveCodexEnabled ? "Codex live session ready" : "Codex local preview"
+  );
   const slashSuggestions = useMemo(
     () => getPanelSlashCommandSuggestions(draftMessage),
     [draftMessage]
   );
+  const canUseLiveCodex = liveCodexEnabled && hasDesktopRuntime();
+  const liveChatBusy = liveChatStatus === "starting" || liveChatStatus === "running";
+  const composerStatusLabel = canUseLiveCodex
+    ? liveChatStatus === "idle"
+      ? "Codex live ready"
+      : liveChatStatus === "starting"
+        ? "Starting Codex"
+        : liveChatStatus === "running"
+          ? "Codex running"
+          : liveChatStatus === "completed"
+            ? "Codex complete"
+            : liveChatStatus === "interrupted"
+              ? "Codex interrupted"
+              : "Codex failed"
+    : "Codex local preview";
 
   useEffect(() => {
     setChatMessages(loadPanelChatMessages(session));
     setDraftMessage("");
-  }, [session]);
+    setLiveSessionStarted(false);
+    setLiveChatStatus(liveCodexEnabled ? "idle" : "preview");
+    setLiveChatDetail(liveCodexEnabled ? "Codex live session ready" : "Codex local preview");
+  }, [liveCodexEnabled, session]);
 
   useEffect(() => {
     savePanelChatMessages(session.id, chatMessages);
   }, [chatMessages, session.id]);
 
-  function handlePanelChatSubmit(event: FormEvent<HTMLFormElement>) {
+  async function ensureLivePanelSession() {
+    if (liveSessionStarted) {
+      return;
+    }
+
+    setLiveChatStatus("starting");
+    setLiveChatDetail("Starting Codex app-server panel session.");
+    const result = await invokeDesktopCommand<CodexPanelSessionStartPayload>(
+      "codex_panel_session_start"
+    );
+    setLiveSessionStarted(result.started);
+    setLiveChatDetail(result.detail);
+  }
+
+  async function handlePanelChatSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmedMessage = draftMessage.trim();
 
     if (!trimmedMessage) {
+      return;
+    }
+
+    if (canUseLiveCodex) {
+      const sequence = chatMessages.length;
+      const pendingMessage = createPanelLiveStatusMessage(
+        session,
+        sequence + 1,
+        "Sending to live Codex...",
+        "running"
+      );
+
+      setChatMessages((currentMessages) => [
+        ...currentMessages,
+        {
+          id: `${session.id}:user:${currentMessages.length}`,
+          role: "user",
+          label: "You",
+          body: trimmedMessage,
+          meta: "live"
+        },
+        pendingMessage
+      ]);
+      setDraftMessage("");
+
+      try {
+        await ensureLivePanelSession();
+        setLiveChatStatus("running");
+        setLiveChatDetail("Codex turn is running.");
+        const result = await invokeDesktopCommand<CodexPanelTurnResultPayload>(
+          "codex_panel_session_send_turn",
+          { prompt: trimmedMessage }
+        );
+        const state = reduceCodexSessionEvents(
+          normalizeCodexPanelTurnResultEvents(result, trimmedMessage)
+        );
+        const nextMessages = codexSessionStateToPanelMessages(session, state, sequence + 2);
+        const statusMessages = result.failed || result.interrupted || nextMessages.length === 0
+          ? [
+              result.failed
+                ? createPanelLiveErrorMessage(
+                    session,
+                    sequence + 2,
+                    result.detail || "Codex did not return a live response."
+                  )
+                : createPanelLiveStatusMessage(
+                    session,
+                    sequence + 2,
+                    result.detail || "Codex turn ended without a live response.",
+                    result.interrupted ? "interrupted" : "live codex"
+                  )
+            ]
+          : [];
+
+        setLiveChatStatus(
+          result.failed
+            ? "failed"
+            : result.interrupted
+              ? "interrupted"
+              : result.completed
+                ? "completed"
+                : "failed"
+        );
+        setLiveChatDetail(result.detail);
+        setChatMessages((currentMessages) => [
+          ...currentMessages.filter((message) => message.id !== pendingMessage.id),
+          ...nextMessages,
+          ...statusMessages
+        ]);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        setLiveChatStatus("failed");
+        setLiveChatDetail(message);
+        setChatMessages((currentMessages) => [
+          ...currentMessages.filter((item) => item.id !== pendingMessage.id),
+          createPanelLiveErrorMessage(session, sequence + 2, message)
+        ]);
+      }
       return;
     }
 
@@ -1571,6 +1726,7 @@ function SessionCell({
           </button>
           <textarea
             aria-label={`Message ${identity.title}`}
+            disabled={liveChatBusy}
             onChange={(event) => setDraftMessage(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
@@ -1598,13 +1754,15 @@ function SessionCell({
             </div>
           ) : null}
           <div className="chat-composer-meta">
-            <span>Codex local preview</span>
+            <span className={classNames("composer-status", `composer-status-${liveChatStatus}`)} title={liveChatDetail}>
+              {composerStatusLabel}
+            </span>
             <button aria-label="Open lane options" title="Lane options" type="button">
               <MoreHorizontal size={15} />
             </button>
             <button
               aria-label={`Send message to ${identity.title}`}
-              disabled={draftMessage.trim().length === 0}
+              disabled={draftMessage.trim().length === 0 || liveChatBusy}
               title="Send"
               type="submit"
             >

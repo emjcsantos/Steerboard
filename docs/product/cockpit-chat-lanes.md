@@ -10,7 +10,15 @@ Each visible panel should provide:
 - a visible role and runtime state,
 - a clear boundary between local scaffold behavior and future live adapter transport.
 
-The current implementation captures local messages and shows an adapter-pending response. It does not call a network endpoint, start a process, mutate project files, or claim that a live model session is connected.
+The current implementation supports a first live-panel milestone:
+
+- browser preview captures local messages and shows a local preview response,
+- the first visible cockpit panel can use the desktop Codex adapter when the Tauri runtime and Codex app-server transport are available,
+- the live panel starts an explicit ephemeral read-only session only after the user submits a message,
+- the panel renders normalized assistant output, completion, interruption, and error states,
+- passive readiness checks must not send prompts or spend model tokens.
+
+This is still a one-panel milestone. Multi-panel live session isolation, true incremental UI streaming, richer session controls, and provider catalogs remain future milestones.
 
 The next live milestone is to connect panel chat to the provider adapter layer:
 

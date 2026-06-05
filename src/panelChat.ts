@@ -1,4 +1,5 @@
 import type { SessionSummary } from "./fixtures";
+import type { CodexSessionMessage, CodexSessionState } from "./codexSession";
 
 export type PanelChatRole = "codex" | "user" | "tool" | "system";
 
@@ -138,6 +139,64 @@ export function createPanelReplyMessage(
       "Captured locally. This panel is ready to route the message through the connected provider when live session transport is enabled.",
     meta: "local adapter pending"
   };
+}
+
+export function createPanelLiveStatusMessage(
+  session: SessionSummary,
+  sequence: number,
+  body: string,
+  meta = "live codex"
+): PanelChatMessage {
+  return {
+    id: `${session.id}:live-status:${sequence}`,
+    role: "system",
+    label: "Steerboard",
+    body,
+    meta
+  };
+}
+
+export function createPanelLiveErrorMessage(
+  session: SessionSummary,
+  sequence: number,
+  body: string
+): PanelChatMessage {
+  return {
+    id: `${session.id}:live-error:${sequence}`,
+    role: "system",
+    label: "Codex connection",
+    body,
+    meta: "live error"
+  };
+}
+
+function codexRoleToPanelRole(role: CodexSessionMessage["role"]): PanelChatRole {
+  switch (role) {
+    case "user":
+      return "user";
+    case "tool":
+      return "tool";
+    case "system":
+      return "system";
+    case "assistant":
+      return "codex";
+  }
+}
+
+export function codexSessionStateToPanelMessages(
+  session: SessionSummary,
+  state: CodexSessionState,
+  sequenceStart = 0
+): PanelChatMessage[] {
+  return state.messages
+    .filter((message) => message.body.trim().length > 0)
+    .map((message, index) => ({
+      id: `${session.id}:live:${message.id}:${sequenceStart + index}`,
+      role: codexRoleToPanelRole(message.role),
+      label: message.role === "assistant" ? "Codex Live" : message.role,
+      body: message.body,
+      meta: message.status
+    }));
 }
 
 export function normalizePanelChatMessages(

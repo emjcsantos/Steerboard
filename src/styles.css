@@ -1751,6 +1751,11 @@ textarea {
   color: #777f89;
 }
 
+.chat-composer textarea:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .chat-composer button {
   display: inline-flex;
   width: 30px;
@@ -1790,6 +1795,24 @@ textarea {
   font-size: 10px;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.chat-composer-meta .composer-status-idle,
+.chat-composer-meta .composer-status-completed {
+  color: #82dba9;
+}
+
+.chat-composer-meta .composer-status-starting,
+.chat-composer-meta .composer-status-running {
+  color: #8bd7f4;
+}
+
+.chat-composer-meta .composer-status-interrupted {
+  color: #f0d984;
+}
+
+.chat-composer-meta .composer-status-failed {
+  color: #ff9e85;
 }
 
 .slash-command-menu {
