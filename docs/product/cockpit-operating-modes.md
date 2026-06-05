@@ -1,6 +1,6 @@
 # Cockpit Operating Modes
 
-Steerboard's cockpit is a flexible monitoring surface, not a single workflow. The same panel system must support focused work, orchestrated multi-agent work, and independent project monitoring.
+Steerboard's cockpit is the primary planning, chat, and monitoring surface. The same panel system must support focused work, orchestrated multi-agent work, and independent project monitoring.
 
 ## Mode 1: Focus Lane
 
@@ -28,6 +28,7 @@ Use Steerboard to watch several unrelated projects or runs at the same time.
 - Projects do not share task ownership unless the user explicitly links them.
 - Each panel keeps its own workspace context, branch state, validation status, and notification state.
 - This mode is optimized for portfolio visibility and quick triage.
+- Each panel should expose the live capability state of its connected provider, including chat, commands, plugins, automations, MCP, personalization, approvals, and audit readiness.
 
 ## Shared Interaction Requirements
 
@@ -37,13 +38,14 @@ Use Steerboard to watch several unrelated projects or runs at the same time.
 - `3x3` remains the visible panel maximum.
 - Long-running panels must show idle, active, waiting, blocked, failed, and complete states without layout shift.
 - Panel headers must make project/run identity clear without exposing private data in public examples.
+- Slash commands and integration controls are scoped to the focused panel unless the user explicitly applies them to a run, project, or cockpit group.
 
-## Project Management Lane Relationship
+## Optional Project Management Lane Relationship
 
-The project management lane can deploy work into any cockpit mode:
+The project management lane is optional. It can deploy structured work into any cockpit mode when users want stronger pipeline visibility, tracking, readiness review, or change management:
 
 - a single focused run,
 - one orchestrator with worker panels,
 - or several independent project panels.
 
-The deploy preview must show which mode will open and which panels will be created.
+The deploy preview must show which mode will open and which panels will be created, but users should still be able to plan directly in the cockpit chat without using this lane.

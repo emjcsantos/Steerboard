@@ -2,7 +2,9 @@
 
 Steerboard is a local-first desktop cockpit for planning, coordinating, and monitoring agent-assisted project execution.
 
-The product goal is a focused workspace where a human operator can plan project work, dispatch small validated tasks to configured agent runtimes, compare progress across sessions, and steer several project lanes at once. The first-class workflow is:
+The product goal is a focused workspace where a human operator can plan project work through the cockpit chat, connect live agent runtimes, use commands and integrations, dispatch small validated tasks, compare progress across sessions, and steer several project lanes at once. The project management lane is optional support for visibility, tracking, and change management; it does not replace the cockpit chat as the main planning surface.
+
+The first-class workflow is:
 
 1. The main orchestrator plans the work.
 2. The main orchestrator splits the work into small, non-overlapping tasks.
@@ -36,6 +38,7 @@ The desktop shell uses Tauri and loads the same local Vite UI during development
 - [Requirements](docs/product/requirements.md)
 - [UI Direction](docs/product/ui-direction.md)
 - [Cockpit Operating Modes](docs/product/cockpit-operating-modes.md)
+- [Live Platform Capabilities](docs/product/live-platform-capabilities.md)
 - [Project Management Lane](docs/product/project-management-lane.md)
 - [Architecture Overview](docs/architecture/architecture-plan.md)
 - [Platform Strategy](docs/architecture/platform-strategy.md)

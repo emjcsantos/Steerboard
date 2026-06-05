@@ -1,0 +1,110 @@
+# Live Platform Capabilities
+
+Steerboard must make core agent-platform functions live, not decorative. The cockpit should support real chat sessions first, then expose the surrounding capabilities users expect from a Codex-class desktop surface: commands, plugins, automations, MCP servers, personalization, approvals, and service connection status.
+
+## Product Principle
+
+Every visible capability must have an honest state:
+
+- unavailable when the local runtime does not expose it,
+- disconnected when credentials or configuration are missing,
+- preview when the UI can model the workflow but cannot execute it yet,
+- live when a provider adapter can read, write, stream, or execute through an approved path.
+
+Steerboard should start with a Codex adapter, but the product contract must stay provider-neutral so other services can implement the same surfaces later.
+
+## First Live Adapter: Codex
+
+The Codex adapter should use the local Codex runtime instead of storing Codex secrets in Steerboard.
+
+- Authentication delegates to Codex login, API-key login, or trusted access-token setup.
+- Session transport uses Codex app-server where available.
+- Thread, turn, item, tool, approval, and stream events are normalized into Steerboard cockpit events.
+- Codex config, plugins, MCP, automations, memories, rules, and slash commands are reflected through adapter APIs rather than hardcoded as static UI.
+
+## Required Live Surfaces
+
+### Chat And Session Control
+
+- Start a new session from any cockpit panel.
+- Resume or fork existing sessions.
+- Send messages through the panel composer.
+- Stream agent messages, tool events, command output summaries, approvals, and final status.
+- Interrupt, retry, or steer an active turn.
+
+### Slash Command Registry
+
+- Show a command menu from `/` in every composer.
+- Support provider-reported commands first.
+- Codex baseline commands should include status, plan, goal, review, MCP, feedback, and memory controls when available.
+- Commands must be discoverable, keyboard accessible, scoped to the active panel, and capable of reporting unsupported states.
+- Skills and plugins should be invocable with explicit prefixes when the connected runtime supports them.
+
+### Plugin Manager
+
+- Show installed, enabled, disabled, unavailable, and setup-required plugin states.
+- Distinguish plugin skills, app connectors, and bundled MCP servers.
+- Let users open setup, enable, disable, or inspect a plugin through the provider adapter.
+- Never store third-party app secrets in Steerboard.
+- External app sign-in and data-sharing warnings must be visible before use.
+
+### Automations
+
+- List thread, project, and standalone automations.
+- Create, edit, pause, resume, archive, or inspect automations when the provider exposes those operations.
+- Show schedule, run mode, worktree/local execution posture, latest run state, findings, and triage status.
+- Make unattended execution risk visible, especially sandbox mode, approval policy, and workspace access.
+
+### MCP Manager
+
+- List configured MCP servers and their health.
+- Add, edit, enable, disable, or remove servers through provider-supported flows.
+- Support stdio and HTTP server configuration where the provider supports them.
+- Surface OAuth/login-required states without storing tokens directly.
+- Show tool allowlists, denylists, approval modes, startup failures, and timeout state.
+
+### Personalization
+
+- Expose user and project configuration layers.
+- Show instruction sources such as project docs, local agent guidance, rules, skills, memories, and custom prompts.
+- Let users inspect which personalization sources are active in a panel before sending a prompt.
+- Keep durable team rules in checked-in docs or project config, not only in generated memories.
+- Do not persist secrets, private browser state, or raw transcripts in public project files.
+
+### Approvals, Permissions, And Audit
+
+- Any live external action must pass through a visible permission path.
+- The cockpit should show what action is requested, which runtime requested it, what workspace or service is affected, and how to reject or approve.
+- Automation and plugin actions need stronger warning states because they may run without active supervision.
+- Audit records should capture decisions and normalized event summaries without storing secrets.
+
+## Adapter Contract
+
+Each provider adapter should declare:
+
+- auth methods and current connection state,
+- supported session lifecycle methods,
+- supported stream event types,
+- command registry entries,
+- plugin registry capability,
+- automation registry capability,
+- MCP registry capability,
+- personalization sources,
+- permission and approval requirements,
+- safe mock fixtures for tests and demos.
+
+The cockpit consumes only normalized adapter events. Provider-specific payloads stay inside the adapter.
+
+## Milestone Path
+
+| Target | Completion | Note |
+|---|---|---|
+| Connection Center | 0% | Detect runtime, auth method, login state, and safe credential posture. |
+| Codex App-Server Adapter | 0% | Initialize the local app-server, start/resume sessions, and stream normalized events. |
+| Live Panel Chat | 0% | Send real messages and render real streamed panel events. |
+| Slash Command Registry | 0% | Provide command discovery and command execution from the composer. |
+| MCP Manager | 0% | Show configured servers, health, OAuth/setup state, and tool policy. |
+| Plugin Manager | 0% | Show plugin install/setup/enabled state and supported invocations. |
+| Automations Manager | 0% | Show and manage thread/project/standalone automation lifecycle. |
+| Personalization Center | 0% | Show active instructions, config layers, rules, skills, and memory state. |
+| Permission And Audit Layer | 0% | Gate live actions and preserve reviewable local audit records. |

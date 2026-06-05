@@ -21,6 +21,8 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Tool-call stream.
 - File-change stream.
 - Validation result stream.
+- Slash command stream and command-result events.
+- Provider session lifecycle state for start, resume, fork, steer, interrupt, retry, and archive.
 
 ### Cockpit Layout
 
@@ -29,6 +31,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Layout state is independent from the session registry.
 - Users can resize and reassign cells without mutating session data.
 - Mode presets support focus lane, orchestrator-with-workers, and independent project monitor.
+- Cockpit chat remains the primary planning and steering surface; structured pipeline views are optional support surfaces.
 
 ### Orchestration Core
 
@@ -38,9 +41,9 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Validator runner dispatches validation tasks.
 - Integration runner checks, revises, commits, pushes, and reports.
 
-### Project Management Lane
+### Optional Project Management Lane
 
-- Pipeline registry for user-defined development work.
+- Optional pipeline registry for user-defined development work.
 - Backlog, milestone, task, blocker, and release-gate entities.
 - Readiness checks before dispatch to a configured agent runtime.
 - Dispatch gates combine pipeline item readiness, project registry state, runtime adapter state, and required permission status.
@@ -49,6 +52,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Dispatch-ready pipeline items can create local mock cockpit run projections through the same dispatch package and run-history path used by planning drafts.
 - Selected pipeline item run links are derived from local run history and exact task ownership labels, so the pipeline can reopen matching cockpit runs without storing full run payloads in the item detail.
 - Pipeline item run status summaries are derived from stripped linked-run records so pipeline monitoring stays local, compact, and independent from full cockpit run payloads.
+- The lane supports visibility, monitoring, tracking, and change management; it does not replace cockpit chat as the normal planning medium.
 - A local dispatch package preview is staged before any real runtime execution starts.
 - Mock orchestrator run projection converts staged packages into session and task rows for cockpit review before runtime adapters execute anything.
 - Local run history records staged package projections, task counts, panel counts, and validation gate counts for selected-run inspection.
@@ -77,6 +81,8 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Agent-runtime adapter for configured local or remote runtimes.
 - Worker adapter for configured implementer and validator profiles.
 - Future adapters for ACP-compatible workers.
+- Codex adapter should be the first live adapter and should delegate authentication to Codex rather than storing Codex secrets in Steerboard.
+- Live provider adapters should expose session, command, plugin, automation, MCP, personalization, approval, and audit capabilities through one normalized contract.
 - Adapter APIs should normalize events into the session core instead of leaking provider-specific event shapes into the UI.
 - Adapter contracts must be easy to add, test, and disable.
 - Runtime profiles describe configured transports, commands, permissions, workspace posture, and capabilities without executing them during readiness evaluation.
@@ -117,10 +123,22 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - The scaffold shows desktop packaging readiness as a preview only; packaging commands remain unavailable until a dedicated security and signing path exists.
 - The desktop shell approval command currently reports locked status only and does not grant permissions, access files, or launch processes.
 
+### Live Platform Capability Layer
+
+- Connection center detects provider install/version, auth posture, credential storage posture, and service availability.
+- Command registry powers `/` menus in every cockpit composer and maps command invocations to the active provider adapter.
+- Plugin manager reads provider plugin state, distinguishes skills, app connectors, and bundled MCP servers, and surfaces setup-required or disabled states.
+- Automation manager reads thread, project, and standalone automation state, including schedule, worktree/local mode, latest findings, and unattended-execution risk.
+- MCP manager reads configured server state, tool policy, OAuth/login state, startup failures, and health.
+- Personalization center reads active instruction and context sources such as project docs, config layers, rules, skills, memories, and custom prompts.
+- Permission layer normalizes approval requests from sessions, plugins, MCP tools, automations, terminal commands, Git operations, and external services.
+- Audit layer stores reviewable local records of decisions and normalized event summaries without persisting secrets or raw private transcripts.
+
 ### Persistence
 
 - Project registry.
 - Runtime adapter configuration and readiness state.
+- Provider connection metadata and capability availability.
 - Session metadata.
 - Handoff records.
 - Validation reports.
@@ -129,5 +147,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Local runtime profile activation state.
 - Audit trail.
 - User preferences.
+- Slash command preferences and recent command state.
+- Plugin, automation, MCP, and personalization visibility state.
 
 Do not persist credentials, raw private browser state, or unredacted secrets.

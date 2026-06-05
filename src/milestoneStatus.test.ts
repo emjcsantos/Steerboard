@@ -170,7 +170,9 @@ describe("milestone status model", () => {
     expect(targets).toContain("Product scaffold");
     expect(targets).toContain("Cockpit monitor and operating modes");
     expect(targets).toContain("Orchestration model");
-    expect(targets).toContain("Runtime adapters");
+    expect(targets).toContain("Runtime adapter previews");
+    expect(targets).toContain("Live Codex integration");
+    expect(targets).toContain("Platform capabilities");
     expect(targets).toContain("Security and privacy model");
     expect(targets).toContain("Packaging and installation");
     expect(targets).toContain("Optional project management lane");
@@ -180,10 +182,10 @@ describe("milestone status model", () => {
     const cockpit = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Cockpit monitor and operating modes"
     );
-    expect(cockpit?.completion).toBe("Complete");
-    expect(cockpit?.tone).toBe("complete");
-    expect(cockpit?.latestNote.toLowerCase()).toContain("acceptance coverage is complete");
-    expect(cockpit?.nextStep.toLowerCase()).toContain("regressions");
+    expect(cockpit?.completion).toBe("In progress");
+    expect(cockpit?.tone).toBe("active");
+    expect(cockpit?.latestNote.toLowerCase()).toContain("provider-backed chat");
+    expect(cockpit?.nextStep.toLowerCase()).toContain("live provider adapter");
   });
 
   it("requires a compact public-safe summary for orchestration model", () => {
@@ -191,30 +193,44 @@ describe("milestone status model", () => {
       (milestone) => milestone.target === "Orchestration model"
     );
 
-    expect(orchestration?.completion).toBe("Complete");
-    expect(orchestration?.tone).toBe("complete");
-    expect(orchestration?.completionPercent).toBe(100);
+    expect(orchestration?.completion).toBe("In progress");
+    expect(orchestration?.tone).toBe("active");
+    expect(orchestration?.completionPercent).toBe(40);
     expect(orchestration?.latestNote).toBe(
-      "Final orchestration acceptance coverage now confirms lifecycle signals, task coverage, regression checks, and run closure evidence for end-to-end monitoring."
+      "Mock orchestration, validation, and handoff projections are modeled."
     );
     expect(orchestration?.nextStep).toBe(
-      "Monitor orchestration regressions while runtime adapter validation advances."
+      "Feed real provider session events into the same model."
     );
   });
 
-  it("requires a compact public-safe summary for runtime adapters", () => {
+  it("requires a compact public-safe summary for runtime adapter previews", () => {
     const runtimeAdapters = steerboardMilestoneStatuses.find(
-      (milestone) => milestone.target === "Runtime adapters"
+      (milestone) => milestone.target === "Runtime adapter previews"
     );
 
-    expect(runtimeAdapters?.completion).toBe("Complete");
-    expect(runtimeAdapters?.tone).toBe("complete");
-    expect(runtimeAdapters?.completionPercent).toBe(100);
+    expect(runtimeAdapters?.completion).toBe("In progress");
+    expect(runtimeAdapters?.tone).toBe("active");
+    expect(runtimeAdapters?.completionPercent).toBe(35);
     expect(runtimeAdapters?.latestNote).toBe(
-      "Runtime adapter recovery and external-source failure-state coverage now closes the runtime intake milestone with visible recovery, source, failure, and safe-handoff checks."
+      "Runtime profiles, bridge previews, permission previews, and local event simulations exist."
     );
     expect(runtimeAdapters?.nextStep).toBe(
-      "Monitor runtime adapter regressions while security and privacy controls advance."
+      "Build the Codex app-server adapter as the first live adapter."
+    );
+  });
+
+  it("marks Live Codex integration as the current selected milestone", () => {
+    const liveCodex = steerboardMilestoneStatuses.find(
+      (milestone) => milestone.target === "Live Codex integration"
+    );
+
+    expect(liveCodex?.completion).toBe("Planned");
+    expect(liveCodex?.tone).toBe("planned");
+    expect(liveCodex?.completionPercent).toBe(0);
+    expect(liveCodex?.current).toBe(true);
+    expect(liveCodex?.nextStep).toBe(
+      "Implement runtime detection, auth posture, and app-server initialization."
     );
   });
 
@@ -233,15 +249,15 @@ describe("milestone status model", () => {
 
   it("summarizes exported milestone list counts correctly", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
-      total: 7,
-      complete: 5,
-      active: 0,
-      planned: 0,
-      paused: 2,
-      averageCompletionPercent: 71,
-      nextTarget: "No active milestone",
-      nextStep: "No active next step.",
-      nextCompletionPercent: 100
+      total: 9,
+      complete: 0,
+      active: 6,
+      planned: 2,
+      paused: 1,
+      averageCompletionPercent: 26,
+      nextTarget: "Live Codex integration",
+      nextStep: "Implement runtime detection, auth posture, and app-server initialization.",
+      nextCompletionPercent: 0
     });
   });
 
@@ -250,14 +266,14 @@ describe("milestone status model", () => {
       (milestone) => milestone.target === "Security and privacy model"
     );
 
-    expect(securityMilestone?.completion).toBe("Complete");
-    expect(securityMilestone?.tone).toBe("complete");
-    expect(securityMilestone?.completionPercent).toBe(100);
+    expect(securityMilestone?.completion).toBe("In progress");
+    expect(securityMilestone?.tone).toBe("active");
+    expect(securityMilestone?.completionPercent).toBe(30);
     expect(securityMilestone?.latestNote).toBe(
-      "Final security review is closed, with release privacy and current-run acceptance evidence now complete."
+      "Local-first safety boundaries are documented; live-provider secrets and approvals still need hardening."
     );
     expect(securityMilestone?.nextStep).toBe(
-      "Monitor for security and privacy regressions while packaging and optional lanes remain paused."
+      "Add provider credential, permission, and audit acceptance criteria before live execution."
     );
   });
 
@@ -359,15 +375,15 @@ describe("milestone status model", () => {
     }
   });
 
-  it("keeps optional project management lane paused", () => {
+  it("keeps optional project management lane secondary but active", () => {
     const pmLane = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Optional project management lane"
     );
 
-    expect(pmLane?.completion).toBe("Paused");
-    expect(pmLane?.tone).toBe("paused");
-    expect(pmLane?.completionPercent).toBe(0);
-    expect(pmLane?.nextStep.toLowerCase()).toContain("remain paused");
+    expect(pmLane?.completion).toBe("In progress");
+    expect(pmLane?.tone).toBe("active");
+    expect(pmLane?.completionPercent).toBe(25);
+    expect(pmLane?.nextStep.toLowerCase()).toContain("after live chat works");
   });
 
   it("keeps the public security and privacy architecture doc current and public-safe", () => {

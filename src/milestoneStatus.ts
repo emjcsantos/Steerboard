@@ -9,6 +9,7 @@ export interface MilestoneStatus {
   completionPercent: number;
   latestNote: string;
   nextStep: string;
+  current?: boolean;
   note?: string;
   tone: MilestoneTone;
 }
@@ -28,65 +29,92 @@ export interface MilestoneStatusSummary {
 export const steerboardMilestoneStatuses: MilestoneStatus[] = [
   {
     target: "Product scaffold",
-    completion: "Complete",
+    completion: "In progress",
     plan: "Establish a stable baseline structure, public docs contract, and navigation foundations.",
-    completionPercent: 100,
+    completionPercent: 60,
     latestNote:
-      "Initial platform scaffolding, public milestone reporting format, and baseline docs are complete.",
-    nextStep: "Monitor for documentation drift and align updates with routine roadmap reviews.",
-    tone: "complete",
-    note: "Core Steerboard structure, navigation baseline, and documentation skeleton are in place."
+      "Local shell, public docs, navigation, and cockpit scaffolding are in place.",
+    nextStep: "Keep scaffold stable while live provider integration starts.",
+    tone: "active",
+    note: "Local desktop shell, public fixture data, project sidebar, cockpit layouts, and docs are available for review."
   },
   {
     target: "Cockpit monitor and operating modes",
-    completion: "Complete",
+    completion: "In progress",
     plan: "Complete core cockpit panels, control affordances, and visible operating-mode cues.",
-    completionPercent: 100,
+    completionPercent: 45,
     latestNote:
-      "Final desktop and narrow-pane acceptance coverage is complete for cockpit monitor depth, mode handoff QA, and mode/layout/focus/clear interaction readiness.",
+      "Multi-panel cockpit and local chat-lane scaffold exist, but provider-backed chat and commands are not live.",
     nextStep:
-      "Monitor for regressions while orchestration and runtime adapter milestones advance.",
-    tone: "complete",
+      "Connect panels to the first live provider adapter.",
+    tone: "active",
     note:
-      "The cockpit monitor includes visible milestone/status tracking, panel focus/highlight controls, and toolbar actions to focus or clear the current attention panel."
+      "Cockpit layouts, local monitor previews, and chat-lane scaffolding exist, but live provider-backed behavior is not complete."
   },
   {
     target: "Orchestration model",
-    completion: "Complete",
+    completion: "In progress",
     plan: "Define a consistent model for sequencing cross-cutting tasks and status propagation.",
-    completionPercent: 100,
+    completionPercent: 40,
     latestNote:
-      "Final orchestration acceptance coverage now confirms lifecycle signals, task coverage, regression checks, and run closure evidence for end-to-end monitoring.",
+      "Mock orchestration, validation, and handoff projections are modeled.",
     nextStep:
-      "Monitor orchestration regressions while runtime adapter validation advances.",
-    tone: "complete",
+      "Feed real provider session events into the same model.",
+    tone: "active",
     note:
-      "Standardized orchestration flow is being finalized to coordinate cockpit tasks and health signals."
+      "Mock runs, task state, validation gates, and handoff previews are modeled before real runtime dispatch."
   },
   {
-    target: "Runtime adapters",
-    completion: "Complete",
+    target: "Runtime adapter previews",
+    completion: "In progress",
     plan: "Deliver and stabilize adapter surfaces for consistent runtime status intake.",
-    completionPercent: 100,
+    completionPercent: 35,
     latestNote:
-      "Runtime adapter recovery and external-source failure-state coverage now closes the runtime intake milestone with visible recovery, source, failure, and safe-handoff checks.",
+      "Runtime profiles, bridge previews, permission previews, and local event simulations exist.",
     nextStep:
-      "Monitor runtime adapter regressions while security and privacy controls advance.",
-    tone: "complete",
+      "Build the Codex app-server adapter as the first live adapter.",
+    tone: "active",
     note:
-      "Adapter interfaces are being stabilized across runtime surfaces to support consistent signal ingestion."
+      "Provider-neutral profile, bridge, permission, launch, and evidence previews exist as locked local scaffolds."
+  },
+  {
+    target: "Live Codex integration",
+    completion: "Planned",
+    plan: "Connect real Codex auth/session transport to cockpit panels.",
+    completionPercent: 0,
+    latestNote:
+      "Product plan now requires connection center, app-server bridge, and live panel chat.",
+    nextStep:
+      "Implement runtime detection, auth posture, and app-server initialization.",
+    current: true,
+    tone: "planned",
+    note:
+      "Codex connection center, app-server bridge, live panel chat, and normalized stream ingestion are the next core milestone."
+  },
+  {
+    target: "Platform capabilities",
+    completion: "Planned",
+    plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
+    completionPercent: 0,
+    latestNote:
+      "The plan now treats these as required provider-backed surfaces, not decorative sidebar entries.",
+    nextStep:
+      "Define adapter capability schemas and UI states for each surface.",
+    tone: "planned",
+    note:
+      "Slash commands, plugins, automations, MCP, personalization, permissions, and audit state must become live provider-backed surfaces."
   },
   {
     target: "Security and privacy model",
-    completion: "Complete",
+    completion: "In progress",
     plan: "Set baseline protections, data-handling boundaries, and reviewable controls.",
-    completionPercent: 100,
+    completionPercent: 30,
     latestNote:
-      "Final security review is closed, with release privacy and current-run acceptance evidence now complete.",
+      "Local-first safety boundaries are documented; live-provider secrets and approvals still need hardening.",
     nextStep:
-      "Monitor for security and privacy regressions while packaging and optional lanes remain paused.",
-    tone: "complete",
-    note: "Security and privacy posture is being documented, with production controls being designed for release readiness."
+      "Add provider credential, permission, and audit acceptance criteria before live execution.",
+    tone: "active",
+    note: "Baseline local-first boundaries exist, but live provider permissions, secret handling, and audit gates still need implementation."
   },
   {
     target: "Packaging and installation",
@@ -100,15 +128,15 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
   },
   {
     target: "Optional project management lane",
-    completion: "Paused",
-    plan: "Define the optional lane scope and keep it intentionally dormant unless priority changes.",
-    completionPercent: 0,
-    latestNote: "Paused: optional lane is deferred while core delivery milestones advance.",
+    completion: "In progress",
+    plan: "Define the optional lane scope while keeping cockpit chat primary.",
+    completionPercent: 25,
+    latestNote: "Pipeline visibility, dispatch previews, linked local runs, and readiness language are scaffolded.",
     nextStep:
-      "Remain paused; reassess only after critical milestones move to a stable operating state.",
-    tone: "paused",
+      "Keep secondary and connect it to provider capability readiness after live chat works.",
+    tone: "active",
     note:
-      "Optional by design and clearly not the current development focus while core cockpit milestones are completed."
+      "Optional pipeline visibility, dispatch previews, and linked local run state are scaffolded; it remains secondary to cockpit chat."
   }
 ];
 
@@ -127,6 +155,13 @@ export function summarizeMilestoneStatuses(
     nextStep: "No active next step.",
     nextCompletionPercent: 100
   };
+
+  const currentMilestone = milestones.find(
+    (milestone) =>
+      milestone.current &&
+      milestone.completion !== "Complete" &&
+      milestone.completion !== "Paused"
+  );
 
   for (const milestone of milestones) {
     summary.total += 1;
@@ -148,16 +183,22 @@ export function summarizeMilestoneStatuses(
         break;
     }
 
-    if (
-      !foundNextActive &&
-      milestone.completion !== "Complete" &&
-      milestone.completion !== "Paused"
-    ) {
+    if (currentMilestone) {
+      continue;
+    }
+
+    if (!foundNextActive && milestone.completion !== "Complete" && milestone.completion !== "Paused") {
       foundNextActive = true;
       summary.nextTarget = milestone.target;
       summary.nextStep = milestone.nextStep;
       summary.nextCompletionPercent = milestone.completionPercent;
     }
+  }
+
+  if (currentMilestone) {
+    summary.nextTarget = currentMilestone.target;
+    summary.nextStep = currentMilestone.nextStep;
+    summary.nextCompletionPercent = currentMilestone.completionPercent;
   }
 
   if (summary.total > 0) {

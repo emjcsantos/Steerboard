@@ -8,9 +8,13 @@
 - Adaptive cockpit layouts: `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, and `3x3`.
 - `3x3` hard maximum for visible cockpit cells.
 - Cockpit operating modes: focused single-project lane, orchestrator with worker panels, and independent multi-project monitor.
+- Cockpit chat is the primary planning, instruction, review, and steering surface.
+- Cockpit panels must support live chat sessions through configured provider adapters, starting with Codex.
+- Slash command discovery and execution must be available from every panel composer when the active provider supports commands.
+- Plugin, automation, MCP, and personalization surfaces must represent real provider state instead of static decorative navigation.
 - Per-cell session state: idle, planning, implementing, validating, blocked, failed, complete.
 - Orchestrator task board showing task ownership, attempt count, validation state, files touched, and handoff result.
-- Project management lane for planning and managing a user's development pipeline before dispatching selected work to a configured agent runtime.
+- Optional project management lane for pipeline visibility, monitoring, tracking, readiness, and change management before dispatching selected work to a configured agent runtime.
 - Dispatch controls must combine pipeline readiness, project registry readiness, and runtime adapter readiness before enabling a launch action.
 - Worker handoff format with scope, allowed files, acceptance criteria, validation command, and rollback note.
 - Separate implementer and validator roles when task risk requires it.
@@ -18,6 +22,8 @@
 - Model-agnostic worker profiles so model/provider choice stays configurable.
 - Easy agent-runtime integration through pluggable adapters, documented worker profiles, mockable transports, and no cockpit-specific rewrites.
 - Runtime profile setup must be provider-neutral and should separate profile readiness from actual process execution.
+- Connection setup must make it easy to add Codex or another model/service adapter without rewriting cockpit panels.
+- Steerboard must not store Codex, plugin, MCP, or third-party service secrets directly; secrets stay in provider credential stores, OS keyrings, environment variables, or approved secret managers.
 
 ## MVP Functional Scope
 
@@ -29,7 +35,7 @@
 - Handoff document generation.
 - Audit and progress panels.
 - Local-only persistence for mock projects and runs.
-- Placeholder project-management lane with generic sample pipelines and no private project names.
+- Placeholder optional project-management lane with generic sample pipelines and no private project names.
 - Selected pipeline items should expose a local dispatch detail preview with item, registry, and runtime gates before any runtime is launched.
 - Selected pipeline item dispatch requests should support local request and cancellation records that survive reloads without launching a runtime.
 - Dispatch-ready pipeline items should create a local cockpit run projection and switch users to the cockpit without launching an external runtime.
@@ -85,12 +91,22 @@
 - The desktop shell should expose a safe permission approval status so the cockpit can show whether the approval command is unavailable, locked, ready, or errored.
 - Desktop permission state should expose a local audit and export preview that combines approval state, shell approval status, request history, and execution lock status without writing files.
 - The environment panel should expose desktop packaging readiness so users can see shell, bridge, permission, and packaging-lock state before any installer or signed build command exists.
+- Live platform capability plans must track connection center, app-server/session bridge, slash command registry, plugin manager, automation manager, MCP manager, personalization center, and permission/audit layers.
 
 ## Later Functional Scope
 
 - Real agent-runtime session ownership.
 - Real worker spawning.
 - Live transcript streaming.
+- Codex connection center backed by local Codex auth state, version detection, and safe credential posture.
+- Codex app-server adapter for thread, turn, item, approval, and streamed event lifecycle.
+- Live panel chat that can start, resume, fork, interrupt, retry, and steer sessions.
+- Slash command registry backed by provider-reported commands and unsupported-state handling.
+- Plugin manager backed by provider plugin state, setup requirements, and explicit invocation.
+- Automation manager backed by provider automation lifecycle and triage/run state.
+- MCP manager backed by provider MCP configuration, server health, OAuth/setup state, and tool policy.
+- Personalization center for active instructions, config layers, rules, skills, memories, and custom prompts.
+- Permission and audit layer for live actions, plugin/service calls, MCP tool use, and unattended automation runs.
 - Live runtime event ingestion from configured adapters.
 - Live stream controls backed by configured adapter sessions.
 - Adapter session monitor backed by real configured runtime events.
@@ -104,7 +120,6 @@
 - Exportable execution audit records for team review.
 - Git diff, test, commit, and push panels.
 - Browser and terminal panes.
-- MCP configuration and status.
 - Additional worker adapters beyond the default configured runtime.
 - Deploy-to-runtime action that converts a selected pipeline item into an orchestrator run, task split, and worker handoff set.
 - Runtime integration wizard for adding or testing a configured model/provider adapter.

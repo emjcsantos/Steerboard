@@ -2,9 +2,9 @@
 
 ## Purpose
 
-The project management lane is a future Steerboard tab where users manage development pipelines before deploying selected work to configured agent runtimes.
+The project management lane is an optional Steerboard tab where users manage development pipelines before deploying selected work to configured agent runtimes.
 
-It should make the product useful before a coding agent starts: the user can organize priorities, define scope, attach acceptance criteria, inspect readiness, and then dispatch a clean task package into the orchestration workflow.
+The primary planning medium remains the cockpit chat, where the user gives goals, refines scope, reviews plans, and steers the orchestrator. The project management lane adds better visibility, monitoring, tracking, readiness review, and change management around that cockpit workflow.
 
 ## Core Jobs
 
@@ -14,16 +14,18 @@ It should make the product useful before a coding agent starts: the user can org
 - Track pipeline state: idea, planned, ready, dispatched, running, validating, blocked, accepted, shipped.
 - Select one or more ready items and deploy them to a configured runtime.
 - Show which pipeline item created each orchestrator run and which worker tasks were spawned.
+- Preserve the cockpit chat as the source of planning intent when the user does not need structured pipeline management.
 
 ## User Flow
 
-1. User opens the project management tab.
-2. User creates or selects a generic project workspace.
-3. User adds pipeline items with scope, priority, acceptance criteria, and validation.
-4. Steerboard checks readiness and highlights missing fields.
-5. User clicks deploy to runtime.
-6. The main orchestrator turns the selected item into a run plan, small worker tasks, validation tasks, and integration steps.
-7. The cockpit opens the resulting run while the project management lane keeps the pipeline status synchronized.
+1. User plans and steers work through the cockpit chat.
+2. User optionally opens the project management tab when they need structured tracking or change-management visibility.
+3. User creates or selects a generic project workspace.
+4. User adds pipeline items with scope, priority, acceptance criteria, and validation.
+5. Steerboard checks readiness and highlights missing fields.
+6. User clicks deploy to runtime.
+7. The main orchestrator turns the selected item into a run plan, small worker tasks, validation tasks, and integration steps.
+8. The cockpit opens the resulting run while the project management lane keeps the pipeline status synchronized.
 
 ## MVP Shape
 
@@ -56,6 +58,7 @@ It should make the product useful before a coding agent starts: the user can org
 - Event source preview showing the queued normalized events that will feed the stream monitor.
 - Source connection preview showing whether the queued events can attach to the selected runtime adapter.
 - Adapter bridge preview showing whether a local event source has been attached to the selected runtime stream.
+- Provider capability readiness showing whether the selected runtime supports live chat, slash commands, plugins, automations, MCP, personalization, approvals, and audit state before deployment.
 - Deploy-mode selector for focused run, orchestrator-with-workers, or independent project monitor.
 
 ## Required Fields For Dispatch
@@ -71,6 +74,7 @@ It should make the product useful before a coding agent starts: the user can org
 - rollback note.
 - project registry readiness,
 - runtime adapter readiness and required permissions.
+- live provider capability readiness for commands, plugins, automations, MCP, and personalization.
 
 ## Privacy Rules
 
@@ -96,6 +100,7 @@ Deploying to a configured runtime creates:
 - event source preview state,
 - source connection readiness state,
 - adapter bridge preview state,
+- provider capability readiness state,
 - a future real orchestrator run,
 - selected cockpit operating mode,
 - a task split proposal,
