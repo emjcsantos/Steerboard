@@ -195,10 +195,13 @@ import {
   type MigrationSourceId
 } from "./migrationModel";
 import {
+  buildPersonalizationCatalogSnapshot,
   defaultPersonalizationCatalog,
-  summarizePersonalizationCatalog,
+  type PersonalizationCatalogRefreshSource,
+  type PersonalizationCatalogSnapshot,
   type PersonalizationCatalogEntry
 } from "./personalizationCatalog";
+import { loadProviderPersonalizationCatalogSnapshot } from "./providerPersonalizationCatalog";
 import {
   buildPluginCatalogSnapshot,
   defaultPluginCatalog,
@@ -1043,6 +1046,21 @@ function formatAutomationCatalogSource(source: AutomationCatalogRefreshSource): 
   }
 }
 
+function formatPersonalizationCatalogSource(source: PersonalizationCatalogRefreshSource): string {
+  switch (source) {
+    case "provider-live":
+      return "Provider live";
+    case "provider-preview":
+      return "Provider preview";
+    case "default-fallback":
+      return "Default fallback";
+    case "empty-refresh":
+      return "Empty refresh";
+    case "unavailable":
+      return "Unavailable";
+  }
+}
+
 function buildPluginCatalogRows(catalog: readonly PluginCatalogEntry[]): PlatformCatalogRow[] {
   return catalog.map((entry) => ({
     id: entry.id,
@@ -1099,6 +1117,7 @@ function getPlatformCatalogView(
   dialog: AppDialog,
   automationCatalogSnapshot: AutomationCatalogSnapshot,
   mcpCatalogSnapshot: McpCatalogSnapshot,
+  personalizationCatalogSnapshot: PersonalizationCatalogSnapshot,
   pluginCatalogSnapshot: PluginCatalogSnapshot,
   skillCatalogSnapshot: SkillCatalogSnapshot
 ): PlatformCatalogView | undefined {
@@ -1150,9 +1169,10 @@ function getPlatformCatalogView(
     return {
       title: "Personalization",
       eyebrow: "Platform catalog",
-      lead: "Personalization entries describe local configuration layers without exposing private paths or raw profile data.",
-      rows: buildPersonalizationCatalogRows(defaultPersonalizationCatalog),
-      summary: summarizePersonalizationCatalog(defaultPersonalizationCatalog)
+      lead: "Personalization entries describe instruction and configuration layers with safe provider refresh state, without exposing private paths or raw profile data.",
+      rows: buildPersonalizationCatalogRows(personalizationCatalogSnapshot.catalog),
+      summary: personalizationCatalogSnapshot.summary,
+      sourceLabel: formatPersonalizationCatalogSource(personalizationCatalogSnapshot.source)
     };
   }
 
@@ -1361,6 +1381,13 @@ export function App() {
   const [automationCatalogSnapshot, setAutomationCatalogSnapshot] = useState<AutomationCatalogSnapshot>(() =>
     buildAutomationCatalogSnapshot(defaultAutomationCatalog, "default-fallback", defaultAutomationCatalog)
   );
+  const [personalizationCatalogSnapshot, setPersonalizationCatalogSnapshot] = useState<PersonalizationCatalogSnapshot>(() =>
+    buildPersonalizationCatalogSnapshot(
+      defaultPersonalizationCatalog,
+      "default-fallback",
+      defaultPersonalizationCatalog
+    )
+  );
   const [mcpCatalogSnapshot, setMcpCatalogSnapshot] = useState<McpCatalogSnapshot>(() =>
     buildMcpCatalogSnapshot(defaultMcpCatalog, "default-fallback", defaultMcpCatalog)
   );
@@ -1373,6 +1400,7 @@ export function App() {
   const [codexTransportLoading, setCodexTransportLoading] = useState(false);
   const [codexLiveSmokeLoading, setCodexLiveSmokeLoading] = useState(false);
   const [automationCatalogLoading, setAutomationCatalogLoading] = useState(false);
+  const [personalizationCatalogLoading, setPersonalizationCatalogLoading] = useState(false);
   const [mcpCatalogLoading, setMcpCatalogLoading] = useState(false);
   const [pluginCatalogLoading, setPluginCatalogLoading] = useState(false);
   const [skillCatalogLoading, setSkillCatalogLoading] = useState(false);
@@ -2214,6 +2242,21 @@ export function App() {
     }
   }
 
+  async function refreshPersonalizationCatalogSnapshot() {
+    setPersonalizationCatalogLoading(true);
+    setAppNotice("Refreshing provider personalization catalog");
+    try {
+      const nextSnapshot = await loadProviderPersonalizationCatalogSnapshot(
+        undefined,
+        defaultPersonalizationCatalog
+      );
+      setPersonalizationCatalogSnapshot(nextSnapshot);
+      setAppNotice(`${formatPersonalizationCatalogSource(nextSnapshot.source)} personalization catalog refreshed`);
+    } finally {
+      setPersonalizationCatalogLoading(false);
+    }
+  }
+
   function recordLivePanelSessionStart(result: CodexPanelSessionStartPayload) {
     setPanelSessionState((currentState) =>
       upsertPanelSession(
@@ -2690,6 +2733,8 @@ export function App() {
           commandCatalogSnapshot={commandCatalogSnapshot}
           automationCatalogLoading={automationCatalogLoading}
           automationCatalogSnapshot={automationCatalogSnapshot}
+          personalizationCatalogLoading={personalizationCatalogLoading}
+          personalizationCatalogSnapshot={personalizationCatalogSnapshot}
           codexConnectionRequested={codexConnectionRequested}
           codexLiveSmokeLoading={codexLiveSmokeLoading}
           codexLiveSmokeProof={codexLiveSmokeProof}
@@ -2713,6 +2758,7 @@ export function App() {
           onRefreshMcpCatalog={refreshMcpCatalogSnapshot}
           onRefreshMigrationPreview={() => refreshMigrationSourcePreview()}
           onRefreshPluginCatalog={refreshPluginCatalogSnapshot}
+          onRefreshPersonalizationCatalog={refreshPersonalizationCatalogSnapshot}
           onRefreshSkillCatalog={refreshSkillCatalogSnapshot}
           onRunCodexLiveSmokeProof={runCodexLiveSmokeProof}
           onSelectReviewableMigrationCategories={handleSelectReviewableMigrationCategories}
@@ -2864,6 +2910,8 @@ function AppDialogSurface({
   commandCatalogSnapshot,
   automationCatalogLoading,
   automationCatalogSnapshot,
+  personalizationCatalogLoading,
+  personalizationCatalogSnapshot,
   codexConnectionRequested,
   codexLiveSmokeLoading,
   codexLiveSmokeProof,
@@ -2887,6 +2935,7 @@ function AppDialogSurface({
   onRefreshMcpCatalog,
   onRefreshMigrationPreview,
   onRefreshPluginCatalog,
+  onRefreshPersonalizationCatalog,
   onRefreshSkillCatalog,
   onRunCodexLiveSmokeProof,
   onSelectReviewableMigrationCategories,
@@ -2899,6 +2948,8 @@ function AppDialogSurface({
   commandCatalogSnapshot: CommandCatalogSnapshot;
   automationCatalogLoading: boolean;
   automationCatalogSnapshot: AutomationCatalogSnapshot;
+  personalizationCatalogLoading: boolean;
+  personalizationCatalogSnapshot: PersonalizationCatalogSnapshot;
   codexConnectionRequested: boolean;
   codexLiveSmokeLoading: boolean;
   codexLiveSmokeProof: CodexLiveSmokeProof;
@@ -2922,6 +2973,7 @@ function AppDialogSurface({
   onRefreshMcpCatalog: () => void;
   onRefreshMigrationPreview: () => void;
   onRefreshPluginCatalog: () => void;
+  onRefreshPersonalizationCatalog: () => void;
   onRefreshSkillCatalog: () => void;
   onRunCodexLiveSmokeProof: () => void;
   onSelectReviewableMigrationCategories: () => void;
@@ -2935,6 +2987,7 @@ function AppDialogSurface({
     dialog,
     automationCatalogSnapshot,
     mcpCatalogSnapshot,
+    personalizationCatalogSnapshot,
     pluginCatalogSnapshot,
     skillCatalogSnapshot
   );
@@ -3245,6 +3298,13 @@ function AppDialogSurface({
               <div className="dialog-action-row">
                 <button className="dialog-secondary-action" onClick={onRefreshAutomationCatalog} type="button">
                   {automationCatalogLoading ? "Refreshing..." : "Refresh automations catalog"}
+                </button>
+              </div>
+            ) : null}
+            {dialog === "personalization" ? (
+              <div className="dialog-action-row">
+                <button className="dialog-secondary-action" onClick={onRefreshPersonalizationCatalog} type="button">
+                  {personalizationCatalogLoading ? "Refreshing..." : "Refresh personalization catalog"}
                 </button>
               </div>
             ) : null}

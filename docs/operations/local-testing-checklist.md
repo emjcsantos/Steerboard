@@ -42,6 +42,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Refresh the Plugins catalog and confirm source/state changes are visible without executing plugins.
    - Refresh the MCP catalog and confirm source/state changes are visible without executing MCP tools.
    - Refresh the Automations catalog and confirm source/state changes are visible without scheduling or running automations.
+   - Refresh the Personalization catalog and confirm source/state changes are visible without mutating profile or instruction sources.
 8. `Migration`
    - Validate migration plan preview and staged execution flow.
    - Confirm irreversible steps are explicit and recoverable.

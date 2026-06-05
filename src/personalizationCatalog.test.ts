@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildPersonalizationCatalogSnapshot,
   defaultPersonalizationCatalog,
+  type PersonalizationCatalogRefreshSource,
   normalizePersonalizationCatalog,
   summarizePersonalizationCatalog,
   type PersonalizationCatalogEntry,
@@ -235,6 +237,43 @@ describe("personalization catalog summary", () => {
   });
 });
 
+describe("personalization catalog snapshot", () => {
+  it("builds provider-refresh snapshots from safe rows", () => {
+    const snapshot = buildPersonalizationCatalogSnapshot(
+      [
+        {
+          id: "layout-memory",
+          label: "Layout Memory",
+          layer: "memory",
+          source: "builtin",
+          privacyPosture: "device-only",
+          state: "preview"
+        }
+      ],
+      "provider-live",
+      defaultPersonalizationCatalog
+    );
+
+    expect(snapshot.source).toBe("provider-live");
+    expect(snapshot.catalog).toEqual([
+      {
+        id: "layout-memory",
+        label: "Layout Memory",
+        layer: "memory",
+        source: "builtin",
+        privacyPosture: "device-only",
+        state: "preview"
+      }
+    ]);
+  });
+
+  it("falls back on empty-refresh with the safe catalog", () => {
+    const snapshot = buildPersonalizationCatalogSnapshot([], "provider-live", defaultPersonalizationCatalog);
+    expect(snapshot.source).toBe("empty-refresh");
+    expect(snapshot.catalog).toEqual(defaultPersonalizationCatalog);
+  });
+});
+
 describe("state typing", () => {
   it("includes all expected states", () => {
     const states: PersonalizationCatalogState[] = [
@@ -246,5 +285,16 @@ describe("state typing", () => {
       "unavailable"
     ];
     expect(states).toHaveLength(6);
+  });
+
+  it("includes every refresh source", () => {
+    const sources: PersonalizationCatalogRefreshSource[] = [
+      "provider-live",
+      "provider-preview",
+      "default-fallback",
+      "empty-refresh",
+      "unavailable"
+    ];
+    expect(sources).toHaveLength(5);
   });
 });

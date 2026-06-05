@@ -305,6 +305,36 @@ pub struct ProviderAutomationCatalogPreview {
     pub safety: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderPersonalizationCatalogEntry {
+    pub id: String,
+    pub label: String,
+    pub layer: String,
+    pub source: String,
+    pub privacy_posture: String,
+    pub state: String,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderPersonalizationCatalogPreview {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub provider_state: String,
+    pub readiness: String,
+    pub setup: bool,
+    pub unsupported: bool,
+    pub instruction_source_posture: String,
+    pub config_source_posture: String,
+    pub layer: String,
+    pub privacy_posture: String,
+    pub entries: Vec<ProviderPersonalizationCatalogEntry>,
+    pub detail: String,
+    pub safety: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LiveActionRunnerRequest {
@@ -383,7 +413,8 @@ mod runtime_bridge {
         ProviderCommandCatalogEntry, ProviderCommandCatalogPreview, ProviderPluginCatalogEntry,
         ProviderPluginCatalogPreview, ProviderMcpCatalogEntry, ProviderMcpCatalogPreview,
         ProviderSkillCatalogEntry, ProviderSkillCatalogPreview, ProviderAutomationCatalogEntry,
-        ProviderAutomationCatalogPreview, RuntimeBridgeStatus,
+        ProviderAutomationCatalogPreview, ProviderPersonalizationCatalogEntry,
+        ProviderPersonalizationCatalogPreview, RuntimeBridgeStatus,
     };
     use serde_json::Value;
     use std::collections::{BTreeMap, BTreeSet};
@@ -1540,6 +1571,175 @@ mod runtime_bridge {
     #[tauri::command]
     pub fn codex_automation_catalog_preview() -> ProviderAutomationCatalogPreview {
         codex_automation_catalog_preview_from_probe(codex_transport_probe())
+    }
+
+    fn personalization_posture_from_config(present: bool) -> (&'static str, &'static str) {
+        if present {
+            ("local-config", "local-config-file")
+        } else {
+            ("builtin", "provider-default")
+        }
+    }
+
+    fn personalization_layer() -> &'static str {
+        "governance"
+    }
+
+    fn personalization_privacy_posture(auth_present: bool) -> &'static str {
+        if auth_present {
+            "local-process-only"
+        } else {
+            "device-only"
+        }
+    }
+
+    fn personalization_catalog_entry(
+        id: &str,
+        label: &str,
+        layer: &str,
+        source: &str,
+        privacy_posture: &str,
+        state: &str,
+        detail: &str,
+    ) -> ProviderPersonalizationCatalogEntry {
+        ProviderPersonalizationCatalogEntry {
+            id: id.to_string(),
+            label: label.to_string(),
+            layer: layer.to_string(),
+            source: source.to_string(),
+            privacy_posture: privacy_posture.to_string(),
+            state: state.to_string(),
+            detail: detail.to_string(),
+        }
+    }
+
+    pub(crate) fn codex_personalization_catalog_preview_from_probe(
+        probe: CodexTransportProbe,
+    ) -> ProviderPersonalizationCatalogPreview {
+        let panel_protocol_ready = probe.app_server.protocol.thread_start
+            && probe.app_server.protocol.turn_start
+            && probe.app_server.protocol.agent_message_delta;
+        let app_server_ready = probe.app_server.available
+            && probe.app_server.stdio_handshake
+            && panel_protocol_ready;
+        let provider_detected = probe.cli.available
+            || probe.codex_home.present
+            || probe.app_server.available
+            || probe.exec_json.available;
+        let personalization_api_detected = probe.app_server.protocol.skills_list
+            || probe.app_server.protocol.plugin_list
+            || probe.app_server.protocol.mcp_status;
+
+        if !provider_detected {
+            return ProviderPersonalizationCatalogPreview {
+                source: "unavailable".to_string(),
+                checked_at: probe.checked_at,
+                provider_state: "absent".to_string(),
+                readiness: "unavailable".to_string(),
+                setup: false,
+                unsupported: true,
+                instruction_source_posture: "builtin".to_string(),
+                config_source_posture: "provider-default".to_string(),
+                layer: personalization_layer().to_string(),
+                privacy_posture: "device-only".to_string(),
+                entries: Vec::new(),
+                detail: "No provider personalization capability was detected.".to_string(),
+                safety:
+                    "Personalization catalog preview did not read skill bodies, auth files, config bodies, transcript data, or private paths."
+                        .to_string(),
+            };
+        }
+
+        let readiness = if app_server_ready && personalization_api_detected {
+            "ready"
+        } else if personalization_api_detected {
+            "preview"
+        } else {
+            "setup-required"
+        };
+        let source = if app_server_ready && personalization_api_detected {
+            "provider-live"
+        } else {
+            "provider-preview"
+        };
+        let setup = readiness == "setup-required";
+        let unsupported = readiness == "setup-required";
+        let (instruction_source_posture, config_source_posture) =
+            personalization_posture_from_config(probe.codex_home.config_present);
+        let entry_state = if app_server_ready && personalization_api_detected {
+            "live"
+        } else if personalization_api_detected {
+            "preview"
+        } else {
+            "setup-required"
+        };
+        let entry_source = if probe.codex_home.config_present {
+            "user-config"
+        } else {
+            "builtin"
+        };
+        let privacy_posture = personalization_privacy_posture(probe.codex_home.auth_present);
+        let mut entries = Vec::new();
+
+        if personalization_api_detected {
+            entries.push(personalization_catalog_entry(
+                "provider-personalization-sources",
+                "Provider Personalization Sources",
+                personalization_layer(),
+                entry_source,
+                privacy_posture,
+                entry_state,
+                if app_server_ready {
+                    "Provider exposes safe personalization capability metadata for this session."
+                } else {
+                    "Provider exposes safe personalization capability metadata in preview mode."
+                },
+            ));
+        } else {
+            entries.push(personalization_catalog_entry(
+                "provider-personalization-setup",
+                "Personalization Setup",
+                personalization_layer(),
+                entry_source,
+                privacy_posture,
+                "setup-required",
+                "No explicit provider personalization API was exposed during metadata probe.",
+            ));
+        }
+
+        ProviderPersonalizationCatalogPreview {
+            source: source.to_string(),
+            checked_at: probe.checked_at,
+            provider_state: "present".to_string(),
+            readiness: readiness.to_string(),
+            setup,
+            unsupported,
+            instruction_source_posture: instruction_source_posture.to_string(),
+            config_source_posture: config_source_posture.to_string(),
+            layer: personalization_layer().to_string(),
+            privacy_posture: privacy_posture.to_string(),
+            entries,
+            detail: if personalization_api_detected {
+                if app_server_ready {
+                    "Provider personalization catalog refreshed from safe metadata in live mode."
+                        .to_string()
+                } else {
+                    "Provider personalization catalog refreshed from safe metadata in preview mode."
+                        .to_string()
+                }
+            } else {
+                "No explicit provider personalization API was exposed; preview includes safe provider metadata only."
+                    .to_string()
+            },
+            safety:
+                "Personalization catalog preview did not read skill bodies, config bodies, auth content, transcript data, or private paths."
+                    .to_string(),
+        }
+    }
+
+    #[tauri::command]
+    pub fn codex_personalization_catalog_preview() -> ProviderPersonalizationCatalogPreview {
+        codex_personalization_catalog_preview_from_probe(codex_transport_probe())
     }
 
     #[tauri::command]
@@ -2796,6 +2996,7 @@ pub fn run() {
             runtime_bridge::codex_skill_catalog_preview,
             runtime_bridge::codex_plugin_catalog_preview,
             runtime_bridge::codex_mcp_catalog_preview,
+            runtime_bridge::codex_personalization_catalog_preview,
             runtime_bridge::codex_transport_live_smoke,
             runtime_bridge::codex_panel_session_readiness,
             runtime_bridge::codex_panel_session_start,
@@ -3608,6 +3809,110 @@ mod tests {
         assert!(!serialized.contains("/home/"));
         assert!(!serialized.contains("raw transcript"));
         assert!(!serialized.contains("secret"));
+    }
+
+    #[test]
+    fn codex_personalization_catalog_preview_marks_provider_live_from_safe_metadata() {
+        let preview = runtime_bridge::codex_personalization_catalog_preview_from_probe(
+            fake_codex_transport_probe(),
+        );
+
+        assert_eq!(preview.source, "provider-live");
+        assert_eq!(preview.readiness, "ready");
+        assert!(!preview.setup);
+        assert!(!preview.unsupported);
+        assert_eq!(preview.provider_state, "present");
+        assert_eq!(preview.entries.len(), 1);
+        assert_eq!(preview.entries[0].id, "provider-personalization-sources");
+        assert_eq!(preview.entries[0].state, "live");
+        assert_eq!(preview.entries[0].source, "user-config");
+        assert_eq!(preview.entries[0].privacy_posture, "local-process-only");
+    }
+
+    #[test]
+    fn codex_personalization_catalog_preview_marks_provider_preview_from_safe_metadata() {
+        let mut probe = fake_codex_transport_probe();
+        probe.app_server.stdio_handshake = false;
+        probe.app_server.protocol.agent_message_delta = false;
+
+        let preview = runtime_bridge::codex_personalization_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "provider-preview");
+        assert_eq!(preview.readiness, "preview");
+        assert!(!preview.setup);
+        assert!(!preview.unsupported);
+        assert_eq!(preview.provider_state, "present");
+        assert_eq!(preview.instruction_source_posture, "local-config");
+        assert_eq!(preview.config_source_posture, "local-config-file");
+        assert_eq!(preview.layer, "governance");
+        assert_eq!(preview.privacy_posture, "local-process-only");
+        assert_eq!(preview.entries.len(), 1);
+        assert_eq!(preview.entries[0].id, "provider-personalization-sources");
+        assert_eq!(preview.entries[0].state, "preview");
+        assert!(preview
+            .detail
+            .to_lowercase()
+            .contains("safe metadata"));
+    }
+
+    #[test]
+    fn codex_personalization_catalog_preview_uses_setup_required_when_no_api_exposed() {
+        let mut probe = fake_codex_transport_probe();
+        probe.app_server.protocol.mcp_status = false;
+        probe.app_server.protocol.skills_list = false;
+        probe.app_server.protocol.plugin_list = false;
+
+        let preview = runtime_bridge::codex_personalization_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "provider-preview");
+        assert_eq!(preview.readiness, "setup-required");
+        assert!(preview.setup);
+        assert!(preview.unsupported);
+        assert_eq!(preview.config_source_posture, "local-config-file");
+        assert_eq!(preview.entries.len(), 1);
+        assert_eq!(preview.entries[0].id, "provider-personalization-setup");
+        assert_eq!(preview.entries[0].state, "setup-required");
+    }
+
+    #[test]
+    fn codex_personalization_catalog_preview_reports_unavailable_without_provider_detection() {
+        let mut probe = fake_codex_transport_probe();
+        probe.cli.available = false;
+        probe.app_server.available = false;
+        probe.app_server.stdio_handshake = false;
+        probe.exec_json.available = false;
+        probe.codex_home.present = false;
+
+        let preview = runtime_bridge::codex_personalization_catalog_preview_from_probe(probe);
+
+        assert_eq!(preview.source, "unavailable");
+        assert_eq!(preview.readiness, "unavailable");
+        assert!(preview.entries.is_empty());
+        assert!(preview
+            .detail
+            .to_lowercase()
+            .contains("no provider personalization capability"));
+    }
+
+    #[test]
+    fn codex_personalization_catalog_preview_excludes_secrets_auth_paths_and_config_bodies() {
+        let preview = runtime_bridge::codex_personalization_catalog_preview_from_probe(
+            fake_codex_transport_probe(),
+        );
+        let serialized = serde_json::to_string(&preview)
+            .unwrap_or_default()
+            .to_lowercase();
+
+        assert!(!serialized.contains("auth.json"));
+        assert!(!serialized.contains("config.toml"));
+        assert!(!serialized.contains("token"));
+        assert!(!serialized.contains("secret"));
+        assert!(!serialized.contains("c:\\"));
+        assert!(!serialized.contains("/home/"));
+        assert!(!serialized.contains("raw transcript"));
+        assert!(!serialized.contains("skill.md"));
+        assert!(serialized.contains("provider"));
+        assert!(serialized.contains("metadata"));
     }
 
     #[test]

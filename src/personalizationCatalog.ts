@@ -38,6 +38,25 @@ export type PersonalizationCatalogSummary = {
   availability: number;
 };
 
+export type PersonalizationCatalogRefreshSource =
+  | "provider-live"
+  | "provider-preview"
+  | "default-fallback"
+  | "empty-refresh"
+  | "unavailable";
+
+export interface PersonalizationCatalogSnapshotSummary
+  extends Omit<PersonalizationCatalogSummary, "availability"> {
+  source: PersonalizationCatalogRefreshSource;
+  availability: number;
+}
+
+export interface PersonalizationCatalogSnapshot {
+  source: PersonalizationCatalogRefreshSource;
+  catalog: readonly PersonalizationCatalogEntry[];
+  summary: PersonalizationCatalogSnapshotSummary;
+}
+
 export const defaultPersonalizationCatalog: readonly PersonalizationCatalogEntry[] = [
   {
     id: "focus-priority",
@@ -98,6 +117,13 @@ export const defaultPersonalizationCatalog: readonly PersonalizationCatalogEntry
 const FALLBACK_LAYER: PersonalizationCatalogLayer = "ui";
 const FALLBACK_SOURCE: PersonalizationCatalogSource = "builtin";
 const FALLBACK_PRIVACY: PersonalizationCatalogPrivacyPosture = "device-only";
+const REFRESH_SOURCES: readonly PersonalizationCatalogRefreshSource[] = [
+  "provider-live",
+  "provider-preview",
+  "default-fallback",
+  "empty-refresh",
+  "unavailable"
+];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -246,6 +272,65 @@ function normalizePersonalizationCatalogInternal(value: unknown): Personalizatio
   }
 
   return deduped;
+}
+
+function summarizePersonalizationCatalogWithSource(
+  catalog: unknown,
+  source: PersonalizationCatalogRefreshSource
+): PersonalizationCatalogSnapshotSummary {
+  const summary = summarizePersonalizationCatalog(catalog);
+  return {
+    ...summary,
+    source
+  };
+}
+
+function normalizeRefreshSource(value: unknown): PersonalizationCatalogRefreshSource {
+  return typeof value === "string" && (REFRESH_SOURCES as readonly string[]).includes(value)
+    ? (value as PersonalizationCatalogRefreshSource)
+    : "unavailable";
+}
+
+export function buildPersonalizationCatalogSnapshot(
+  catalog: unknown,
+  source: PersonalizationCatalogRefreshSource = "default-fallback",
+  fallback: readonly PersonalizationCatalogEntry[] = defaultPersonalizationCatalog
+): PersonalizationCatalogSnapshot {
+  const providedIsArray = Array.isArray(catalog);
+  const normalizedCatalog = providedIsArray ? normalizePersonalizationCatalogInternal(catalog) : [];
+  const normalizedFallback = normalizePersonalizationCatalogInternal(fallback);
+
+  if (normalizedCatalog.length > 0) {
+    const resolvedSource =
+      source === "provider-live" || source === "provider-preview" ? source : "default-fallback";
+    return {
+      source: resolvedSource,
+      catalog: normalizedCatalog,
+      summary: summarizePersonalizationCatalogWithSource(normalizedCatalog, resolvedSource)
+    };
+  }
+
+  let resolvedSource: PersonalizationCatalogRefreshSource;
+  if (providedIsArray) {
+    resolvedSource = catalog.length === 0 ? "empty-refresh" : "default-fallback";
+  } else if (normalizedFallback.length === 0) {
+    resolvedSource = "unavailable";
+  } else {
+    resolvedSource = "default-fallback";
+  }
+
+  const safeCatalog = normalizePersonalizationCatalog(catalog, fallback);
+  return {
+    source: resolvedSource,
+    catalog: safeCatalog,
+    summary: summarizePersonalizationCatalogWithSource(safeCatalog, resolvedSource)
+  };
+}
+
+export function normalizePersonalizationCatalogEntries(
+  value: unknown
+): PersonalizationCatalogEntry[] {
+  return normalizePersonalizationCatalogInternal(value);
 }
 
 export function normalizePersonalizationCatalog(
