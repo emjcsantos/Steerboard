@@ -5,12 +5,23 @@ It is intended for external visibility and product-level communication, not an i
 The compact summary below is the current next milestone selected for active monitoring.
 The cockpit also expands the current next milestone into readable plan, latest-note, and next-step detail for monitoring.
 
-It is the complete public milestone report contract. Every milestone must appear as one row and include these columns:
-**Target**, **Plan**, **Completion**, **% Completion**, **Latest Note**, and **Next Step**.
+It is the complete public milestone report contract. Every milestone must appear as one row in the compact target table and one row in the detailed milestone table.
+The compact target table must include **Target**, **Completion**, and **Latest Note**.
+The detailed milestone table must include **Target**, **Plan**, **Completion**, **% Completion**, **Latest Note**, and **Next Step**.
 
 Overall completion: 67%. Next milestone: Security and privacy model. Next step: Complete security acceptance checks from live cockpit runs before packaging resumes.
 
 Milestone reports should be readable at minimum by Target, Completion, and Latest Note.
+
+| Target | Completion | Latest Note |
+| --- | --- | --- |
+| Product scaffold | Complete | Initial platform scaffolding, public milestone reporting format, and baseline docs are complete. |
+| Cockpit monitor and operating modes | Complete | Final desktop and narrow-pane acceptance coverage is complete for cockpit monitor depth, mode handoff QA, and mode/layout/focus/clear interaction readiness. |
+| Orchestration model | Complete | Final orchestration acceptance coverage now confirms lifecycle signals, task coverage, regression checks, and run closure evidence for end-to-end monitoring. |
+| Runtime adapters | Complete | Runtime adapter recovery and external-source failure-state coverage now closes the runtime intake milestone with visible recovery, source, failure, and safe-handoff checks. |
+| Security and privacy model | In progress | Real-project-data and runtime-adapter edge gates are now represented in release privacy readiness. |
+| Packaging and installation | Paused | Packaging is intentionally deferred until core development is complete. |
+| Optional project management lane | Paused | Paused: optional lane is deferred while core delivery milestones advance. |
 
 | Target | Plan | Completion | % Completion | Latest Note | Next Step |
 | --- | --- | --- | --- | --- | --- |

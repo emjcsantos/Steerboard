@@ -1763,6 +1763,48 @@ function MilestoneStatusPanel({
           </div>
         </dl>
       </div>
+      <table
+        className="milestone-target-table"
+        aria-label="Milestone targets, completion, and latest notes"
+      >
+        <thead>
+          <tr>
+            <th scope="col">Target</th>
+            <th scope="col">Completion</th>
+            <th scope="col">Latest Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {milestones.map((milestone) => {
+            const rowState = createMilestoneReportRowState(milestone, summary);
+
+            return (
+              <tr
+                aria-current={rowState.isNext ? "step" : undefined}
+                aria-label={`${milestone.target}: ${milestone.completion}, ${milestone.latestNote}`}
+                className={classNames(rowState.isNext && "is-next-milestone")}
+                key={milestone.target}
+                title={`${milestone.target} - ${milestone.completion} - ${milestone.latestNote}`}
+              >
+                <td title={milestone.target}>
+                  <span className="milestone-target-cell">
+                    <span>{milestone.target}</span>
+                    {rowState.isNext ? (
+                      <b className="milestone-next-marker">{rowState.markerLabel}</b>
+                    ) : null}
+                  </span>
+                </td>
+                <td className="milestone-completion-cell" title={milestone.completion}>
+                  <span className={classNames("milestone-state-pill", `milestone-${milestone.tone}`)}>
+                    {milestone.completion}
+                  </span>
+                </td>
+                <td title={milestone.latestNote}>{milestone.latestNote}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
       <table className="milestone-status-table" aria-label="Milestone status table">
         <thead>
           <tr>

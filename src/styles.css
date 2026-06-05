@@ -2472,6 +2472,7 @@ textarea {
   line-height: 1.35;
 }
 
+.milestone-target-table,
 .milestone-status-table {
   width: 100%;
   table-layout: fixed;
@@ -2480,6 +2481,17 @@ textarea {
   font-size: 9px;
 }
 
+.milestone-target-table {
+  border: 1px solid #2f3540;
+  border-radius: 8px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  background: #121820;
+}
+
+.milestone-target-table th,
+.milestone-target-table td,
 .milestone-status-table th,
 .milestone-status-table td {
   overflow: hidden;
@@ -2489,6 +2501,21 @@ textarea {
   text-overflow: ellipsis;
   white-space: nowrap;
   vertical-align: middle;
+}
+
+.milestone-target-table th:nth-child(1),
+.milestone-target-table td:nth-child(1) {
+  width: 34%;
+}
+
+.milestone-target-table th:nth-child(2),
+.milestone-target-table td:nth-child(2) {
+  width: 20%;
+}
+
+.milestone-target-table th:nth-child(3),
+.milestone-target-table td:nth-child(3) {
+  width: 46%;
 }
 
 .milestone-status-table th:nth-child(1),
@@ -2521,6 +2548,7 @@ textarea {
   width: 15%;
 }
 
+.milestone-target-table th,
 .milestone-status-table th {
   color: #8f99a4;
   font-size: 9px;
@@ -2528,14 +2556,17 @@ textarea {
   text-transform: uppercase;
 }
 
+.milestone-target-table tbody tr.is-next-milestone td,
 .milestone-status-table tbody tr.is-next-milestone td {
   background: #14212a;
 }
 
+.milestone-target-table tbody tr.is-next-milestone td:first-child,
 .milestone-status-table tbody tr.is-next-milestone td:first-child {
   box-shadow: inset 2px 0 0 #8bd7f4;
 }
 
+.milestone-target-table tbody tr:last-child td,
 .milestone-status-table tbody tr:last-child td {
   border-bottom: none;
 }

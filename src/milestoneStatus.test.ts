@@ -47,6 +47,52 @@ type SnapshotMilestoneRow = {
   nextStep: string;
 };
 
+type SnapshotTargetRow = {
+  target: string;
+  completion: string;
+  latestNote: string;
+};
+
+function parseCompactTargetRows(markdown: string): SnapshotTargetRow[] {
+  const lines = markdown.split(/\r?\n/);
+  const headerIndex = lines.findIndex((line) =>
+    /^\|\s*Target\s*\|\s*Completion\s*\|\s*Latest Note\s*\|\s*$/i.test(
+      line.trim()
+    )
+  );
+  expect(headerIndex).toBeGreaterThanOrEqual(0);
+
+  const rows: SnapshotTargetRow[] = [];
+  for (let i = headerIndex + 2; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith("|") || !line.endsWith("|")) {
+      break;
+    }
+
+    if (line === "| --- | --- | --- |") {
+      continue;
+    }
+
+    const columns = line
+      .slice(1, -1)
+      .split("|")
+      .map((column) => column.trim());
+
+    if (columns.length !== 3) {
+      break;
+    }
+
+    const [target, completion, latestNote] = columns;
+    if (!target || !completion || !latestNote) {
+      break;
+    }
+
+    rows.push({ target, completion, latestNote });
+  }
+
+  return rows;
+}
+
 function parseSnapshotRows(markdown: string): SnapshotMilestoneRow[] {
   const lines = markdown.split(/\r?\n/);
   const headerIndex = lines.findIndex((line) =>
@@ -221,9 +267,17 @@ describe("milestone status model", () => {
       path.join(process.cwd(), "docs/project/milestone-status.md"),
       "utf8"
     );
+    const targetRows = parseCompactTargetRows(snapshotText);
     const snapshotRows = parseSnapshotRows(snapshotText);
 
+    expect(targetRows.length).toBe(steerboardMilestoneStatuses.length);
     expect(snapshotRows.length).toBe(steerboardMilestoneStatuses.length);
+
+    for (const targetRow of targetRows) {
+      expect(targetRow.target.trim().length).toBeGreaterThan(0);
+      expect(targetRow.completion.trim().length).toBeGreaterThan(0);
+      expect(targetRow.latestNote.trim().length).toBeGreaterThan(0);
+    }
 
     for (const row of snapshotRows) {
       const columns = [
@@ -251,7 +305,29 @@ describe("milestone status model", () => {
     expect(
       snapshotRows.every((row) => liveTargets.has(row.target))
     ).toBe(true);
+    expect(targetRows.every((row) => liveTargets.has(row.target))).toBe(true);
     expect(snapshotRows.length).toBe(liveTargets.size);
+    expect(targetRows.length).toBe(liveTargets.size);
+  });
+
+  it("keeps compact target/completion/latest note rows in sync with exported milestones", () => {
+    const snapshotText = fs.readFileSync(
+      path.join(process.cwd(), "docs/project/milestone-status.md"),
+      "utf8"
+    );
+    const targetRows = parseCompactTargetRows(snapshotText);
+    const liveRowsByTarget = new Map(
+      steerboardMilestoneStatuses.map((milestone) => [milestone.target, milestone])
+    );
+
+    expect(targetRows.length).toBe(steerboardMilestoneStatuses.length);
+
+    for (const targetRow of targetRows) {
+      const live = liveRowsByTarget.get(targetRow.target);
+      expect(live).toBeDefined();
+      expect(live?.completion).toBe(targetRow.completion);
+      expect(live?.latestNote).toBe(targetRow.latestNote);
+    }
   });
 
   it("keeps exported milestone target/plan/% completion/latest note/next step in sync with the public snapshot", () => {
