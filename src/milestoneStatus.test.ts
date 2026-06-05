@@ -246,10 +246,10 @@ describe("milestone status model", () => {
     expect(platform?.completionPercent).toBe(34);
     expect(platform?.current).toBeUndefined();
     expect(platform?.latestNote).toBe(
-      "Phase 10A runner contract and approval attachment are now provider-neutral and state-aware for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions."
+      "Phase 10B adds a fixed, approval-gated desktop runner for read-only terminal probes while all mutation-class actions remain non-executable."
     );
     expect(platform?.nextStep).toBe(
-      "Complete dry-run runner attachment coverage, prove redacted audit capture, and then phase real desktop-backed mutation into a later security milestone."
+      "Attach only the approved read-only terminal probe path, verify redaction and audit capture, and keep arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
     );
   });
 
@@ -275,7 +275,8 @@ describe("milestone status model", () => {
       paused: 1,
       averageCompletionPercent: 40,
       nextTarget: "Owner testing hardening",
-      nextStep: "Run the full local testing checklist, verify dry-run runner attachment with redacted records, and keep desktop-backed execution as a future attachment phase.",
+      nextStep:
+        "Run the full local testing checklist, verify approval-to-probe behavior and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
       nextCompletionPercent: 34
     });
   });
@@ -290,10 +291,10 @@ describe("milestone status model", () => {
     expect(securityMilestone?.completionPercent).toBe(45);
     expect(securityMilestone?.current).toBeUndefined();
     expect(securityMilestone?.latestNote).toBe(
-      "Approved actions now route through the Phase 10A runner contract: dry-run execution by default with redacted audit entries, while desktop-backed mutation remains a future phase."
+      "Phase 10B keeps the runner contract strict: approved requests can perform only fixed read-only terminal probe actions; all other terminal writes and platform mutations stay disabled."
     );
     expect(securityMilestone?.nextStep).toBe(
-      "Enforce explicit approval-to-dry-run transitions and keep real mutation disabled until a future runtime phase is intentionally enabled."
+      "Enforce explicit approval-to-probe transitions, verify disabled-path audit visibility, and preserve lockouts for Git, MCP, plugin, automation, runtime/profile, and external-service mutation."
     );
   });
 
@@ -307,10 +308,10 @@ describe("milestone status model", () => {
     expect(ownerTesting?.completionPercent).toBe(34);
     expect(ownerTesting?.current).toBe(true);
     expect(ownerTesting?.latestNote).toBe(
-      "A provider-neutral checklist and failure-state fixture layer now verify Phase 10A runner contract behavior for approved requests, dry-run attachment, and redacted audit output."
+      "A provider-neutral checklist and fixture layer now verify Phase 10B runner contract behavior for approved requests, read-only terminal probe constraints, disabled mutation paths, and redacted audit output."
     );
     expect(ownerTesting?.nextStep).toBe(
-      "Run the full local testing checklist, verify dry-run runner attachment with redacted records, and keep desktop-backed execution as a future attachment phase."
+      "Run the full local testing checklist, verify approval-to-probe behavior and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
     );
   });
 

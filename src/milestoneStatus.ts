@@ -96,12 +96,12 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
     completionPercent: 34,
     latestNote:
-      "Phase 10A runner contract and approval attachment are now provider-neutral and state-aware for terminal, Git, MCP, plugin, automation, external, runtime, and profile actions.",
+      "Phase 10B adds a fixed, approval-gated desktop runner for read-only terminal probes while all mutation-class actions remain non-executable.",
     nextStep:
-      "Complete dry-run runner attachment coverage, prove redacted audit capture, and then phase real desktop-backed mutation into a later security milestone.",
+      "Attach only the approved read-only terminal probe path, verify redaction and audit capture, and keep arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
     tone: "active",
     note:
-      "Slash commands, platform catalogs, migration preview, and risk-gated approval/audit foundations exist; provider refresh and execution still need live backing."
+      "Slash commands, platform catalogs, migration preview, and risk-gated approval/audit foundations exist; provider refresh and full execution remain live-disabled."
   },
   {
     target: "Security and privacy model",
@@ -109,9 +109,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Set baseline protections, data-handling boundaries, and reviewable controls.",
     completionPercent: 45,
     latestNote:
-      "Approved actions now route through the Phase 10A runner contract: dry-run execution by default with redacted audit entries, while desktop-backed mutation remains a future phase.",
+      "Phase 10B keeps the runner contract strict: approved requests can perform only fixed read-only terminal probe actions; all other terminal writes and platform mutations stay disabled.",
     nextStep:
-      "Enforce explicit approval-to-dry-run transitions and keep real mutation disabled until a future runtime phase is intentionally enabled.",
+      "Enforce explicit approval-to-probe transitions, verify disabled-path audit visibility, and preserve lockouts for Git, MCP, plugin, automation, runtime/profile, and external-service mutation.",
     tone: "active",
     note: "Local-first safety boundaries, live-action approval gates, and redacted audit records are visible before real tool execution."
   },
@@ -121,9 +121,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Make live-functionality checks repeatable through a local checklist, failure fixtures, and docs consistency checks.",
     completionPercent: 34,
     latestNote:
-      "A provider-neutral checklist and failure-state fixture layer now verify Phase 10A runner contract behavior for approved requests, dry-run attachment, and redacted audit output.",
+      "A provider-neutral checklist and fixture layer now verify Phase 10B runner contract behavior for approved requests, read-only terminal probe constraints, disabled mutation paths, and redacted audit output.",
     nextStep:
-      "Run the full local testing checklist, verify dry-run runner attachment with redacted records, and keep desktop-backed execution as a future attachment phase.",
+      "Run the full local testing checklist, verify approval-to-probe behavior and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
     current: true,
     tone: "active",
     note: "Daily local testing and failure-state coverage are being hardened before broader live runner attachment."

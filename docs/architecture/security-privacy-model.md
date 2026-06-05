@@ -10,7 +10,7 @@
 - Terminal and git destructive actions require confirmation.
 - Worker commands run with the least capability needed for the task.
 - Runtime adapters start disabled until configured and explicitly enabled.
-- Approved requests execute through a dry-run runner path by default, with redacted summaries only.
+- Approved requests execute through a fixed, approval-gated read-only terminal probe by default, with redacted summaries only.
 - Real desktop-backed mutation is a deferred phase and is not part of the default runner contract.
 
 ## Sensitive Data Rules
@@ -56,7 +56,8 @@ This section tracks visible runtime and project-data readiness checks only. Thes
   - Confirm no direct raw file path disclosure in public outputs.
   - Confirm no private credential-like material appears in review artifacts.
 - Runner contract behavior
-  - Confirm approved actions are routed to dry-run execution outcomes and not to immediate mutation.
+  - Confirm approved actions are routed to the read-only terminal probe outcome and not to arbitrary command or mutation execution.
+  - Confirm blocked actions for Git mutation, plugin execution, MCP execution, automations, runtime mutation, profile mutation, and external services remain non-executable.
   - Confirm redacted summary output is always available for approved and blocked runner outcomes.
   - Confirm desktop-backed mutation remains explicitly deferred until a future phase.
 - Runtime adapter fallback states
@@ -104,7 +105,7 @@ Repeated live-run evidence is a status summary only. It must not start packaging
 
 The final security review gate combines the visible release privacy check, current-run security acceptance, repeated evidence closure, packaging pause lock, and close-security decision into one reviewable status.
 
-- The final gate explicitly includes dry-run runner audit behavior and requires that mutation-capable execution is not claimed while this phase remains deferred.
+- The final gate explicitly includes read-only probe audit behavior and requires that mutation-capable execution is not claimed while this phase remains deferred.
 
 This gate is decision support only. It must not resume packaging, build installers, mutate files, mutate runtime state, call a network endpoint, start a process, or perform release actions. Packaging remains paused until core development is complete and a separate release decision explicitly resumes it.
 
@@ -148,7 +149,7 @@ Each runtime, model, or provider adapter must declare:
 - disable and rollback path.
 
 - Approved-action behavior
-  - Approved action path defaults to dry-run execution.
+  - Approved action path defaults to a fixed, approval-gated terminal probe.
   - Redacted audit evidence records every ready/blocked action outcome.
   - Real desktop-backed actions require an explicit phase transition.
 

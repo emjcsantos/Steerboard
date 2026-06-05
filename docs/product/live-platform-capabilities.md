@@ -1,6 +1,6 @@
 # Live Platform Capabilities
 
-Steerboard must make core agent-platform functions live, not decorative. The cockpit should support real chat sessions first, then expose surrounding capabilities users expect from a modern desktop surface: commands, plugins, automations, MCP servers, personalization, approvals, and service connection status.
+Steerboard must make core agent-platform functions live, not decorative. The first live action surface is a fixed read-only terminal probe, while adjacent capability UIs (commands, plugins, automations, MCP, personalization, approvals, service status) remain visible but non-mutating until later phases.
 
 ## Product Principle
 
@@ -64,7 +64,7 @@ Steerboard should let users migrate settings and integrations from supported sou
 
 - Show a command menu from `/` in every composer.
 - Support provider-reported commands first.
-- Built-in baseline commands should include status, plan, review, MCP, feedback, and memory controls when available.
+- Built-in baseline commands should include status, plan, review, MCP, feedback, and memory controls when available; command execution is preview-only and must not run side-effectful actions yet.
 - Commands must be discoverable, keyboard accessible, scoped to the active panel, and capable of reporting unsupported states.
 - Skills and plugins should be invocable with explicit prefixes when the connected runtime supports them.
 
@@ -73,14 +73,14 @@ Steerboard should let users migrate settings and integrations from supported sou
 - Show installed, enabled, disabled, unavailable, and setup-required plugin states.
 - Start from adapter-seeded plugin catalog data for the active adapter.
 - Distinguish plugin skills, app connectors, and bundled MCP servers.
-- Let users open setup, enable, disable, or inspect a plugin through the provider adapter.
+- Let users open setup, enable, disable, or inspect a plugin through the provider adapter; runtime plugin invocation and plugin-backed actions stay disabled in this phase.
 - Never store third-party app secrets in Steerboard.
 - External app sign-in and data-sharing warnings must be visible before use.
 
 ### Automations
 
 - List thread, project, and standalone automations.
-- Create, edit, pause, resume, archive, or inspect automations when the provider exposes those operations.
+- Create, edit, pause, resume, archive, or inspect automations when the provider exposes those operations; scheduling and execution are disabled by design in this phase.
 - Show schedule, run mode, worktree/local execution posture, latest run state, findings, and triage status.
 - Make unattended execution risk visible, especially sandbox mode, approval policy, and workspace access.
 
@@ -91,7 +91,7 @@ Steerboard should let users migrate settings and integrations from supported sou
 - Add, edit, enable, disable, or remove servers through provider-supported flows.
 - Support stdio and HTTP server configuration where the provider supports them.
 - Surface OAuth/login-required states without storing tokens directly.
-- Show tool allowlists, denylists, approval modes, startup failures, and timeout state.
+- Show tool allowlists, denylists, approval modes, startup failures, and timeout state; MCP tool execution is cataloged and disabled until a later phase.
 
 ### Personalization
 
@@ -106,7 +106,7 @@ Steerboard should let users migrate settings and integrations from supported sou
 
 - Any live external action must pass through a visible permission path.
 - The cockpit should show what action is requested, which runtime requested it, what workspace or service is affected, and how to reject or approve.
-- Automation and plugin actions need stronger warning states because they may run without active supervision.
+- Automation and plugin actions need stronger warning states because they are cataloged but explicitly non-executable in this phase.
 - Audit records should capture decisions and normalized event summaries without storing secrets.
 
 ## Adapter Contract
@@ -128,12 +128,12 @@ The cockpit consumes only normalized adapter events. Adapter-specific payloads s
 
 ## Runner Contract and Dry-Run Attachment
 
-Phase 10A keeps approved external actions on an explicit dry-run path:
+Phase 10B defines the first desktop-backed runner attachment:
 
-- Approved requests evaluate to a run contract outcome but only emit a dry-run result by default.
-- Dry-run results include redacted action summaries for audit and review.
-- No desktop-backed writes or destructive actions are attached in Phase 10A by default.
-- Real desktop-backed execution and mutation stay explicitly reserved for a future phase and must be enabled by a separate intentional milestone.
+- Approved requests can progress into a fixed read-only terminal probe only.
+- The probe returns terminal output summaries and redacted action evidence for review.
+- Arbitrary terminal commands, Git mutation, MCP execution, plugin execution, automation execution, runtime mutation, profile mutation, and external-service actions are disabled in this phase.
+- Real desktop-backed execution and mutation remain explicitly deferred to a later intentional phase.
 
 ## Milestone Path
 
@@ -149,4 +149,4 @@ Phase 10A keeps approved external actions on an explicit dry-run path:
 | Automations Manager | 12% | Provider-neutral automation model and dialog surface show lifecycle, trigger, and approval posture without scheduling or running automations. |
 | Personalization Center | 12% | Provider-neutral personalization model and settings entry show instruction/config layers and privacy posture without exposing private paths. |
 | Migration Center | 20% | `File > Migrate...` now exposes a safe source selector, desktop metadata scan, category checkboxes, excluded secrets summary, and local profile draft staging. Reviewed persistence and rollback remain pending. |
-| Permission And Audit Layer | 45% | Provider-neutral approval gates, dry-run runner attachment, and redacted local audit records are visible; real desktop-backed mutation remains deferred. |
+| Permission And Audit Layer | 45% | Provider-neutral approval gates, approval-first read-only terminal probe runner, and redacted local audit records are visible; Git/MCP/plugin/automation/runtime/profile/external mutation remains deferred. |

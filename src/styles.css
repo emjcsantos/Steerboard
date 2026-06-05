@@ -6404,6 +6404,53 @@ textarea {
   font-size: 12px;
 }
 
+.live-action-desktop-runner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #263545;
+  border-radius: 8px;
+  background: #111923;
+  padding: 7px;
+}
+
+.live-action-desktop-runner span,
+.live-action-desktop-runner strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.live-action-desktop-runner span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #c7d0da;
+  padding: 4px 7px;
+  font-weight: 900;
+}
+
+.live-action-desktop-runner strong {
+  color: #edf2f7;
+}
+
+.live-action-desktop-runner-executed span {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.live-action-desktop-runner-blocked span,
+.live-action-desktop-runner-failed span {
+  background: #442119;
+  color: #ff9e85;
+}
+
+.live-action-desktop-runner-unavailable span {
+  background: #352e18;
+  color: #f0d984;
+}
+
 .live-action-gate-list,
 .live-action-audit-history ol {
   display: grid;
@@ -6496,7 +6543,7 @@ textarea {
 
 .live-action-gate-actions {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 5px;
 }
 

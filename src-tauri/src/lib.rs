@@ -191,6 +191,32 @@ pub struct CodexPanelCloseResult {
     pub detail: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LiveActionRunnerRequest {
+    pub provider: String,
+    pub state: String,
+    pub action_label: String,
+    pub request_id: String,
+    pub requested_timestamp: String,
+    pub timeout: Option<u128>,
+    pub expiry: Option<String>,
+    pub intent: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LiveActionRunnerResult {
+    pub provider: String,
+    pub intent: String,
+    pub executed: bool,
+    pub blocked: bool,
+    pub action_label: String,
+    pub result_summary: String,
+    pub timestamp: String,
+    pub safety: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MigrationSourceCategoryPreview {
@@ -228,14 +254,19 @@ mod runtime_bridge {
     const MIGRATION_STATUS_REVIEW_REQUIRED: &str = "review-required";
     const MIGRATION_STATUS_UNSUPPORTED: &str = "unsupported";
     const MIGRATION_STATUS_EXCLUDED: &str = "excluded";
+    const LIVE_ACTION_PROBE_PROVIDER: &str = "terminal";
+    const LIVE_ACTION_PROBE_STATE_APPROVED: &str = "approved";
+    const LIVE_ACTION_PROBE_INTENT: &str = "terminal-readonly-probe";
+    const LIVE_ACTION_PROBE_TOKEN: &str = "STEERBOARD_LIVE_ACTION_PROBE_TOKEN";
 
     use super::{
         CodexAppServerProbe, CodexAppServerProtocolProbe, CodexCliProbe, CodexExecJsonProbe,
         CodexExecutionProbe, CodexHomeProbe, CodexLiveSmokeProof, CodexPanelCloseResult,
         CodexPanelEvent, CodexPanelInterruptResult, CodexPanelSessionReadiness,
         CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelTurnResult, CodexTransportProbe,
-        MigrationSourceCategoryPreview, MigrationSourcePreview, MigrationSourcePreviewCounts,
-        PermissionApprovalStatus, RuntimeBridgeStatus,
+        LiveActionRunnerRequest, LiveActionRunnerResult, MigrationSourceCategoryPreview,
+        MigrationSourcePreview, MigrationSourcePreviewCounts, PermissionApprovalStatus,
+        RuntimeBridgeStatus,
     };
     use serde_json::Value;
     use std::collections::{BTreeMap, BTreeSet};
@@ -268,7 +299,9 @@ mod runtime_bridge {
         }
     }
 
-    fn migration_counts(categories: &[MigrationSourceCategoryPreview]) -> MigrationSourcePreviewCounts {
+    fn migration_counts(
+        categories: &[MigrationSourceCategoryPreview],
+    ) -> MigrationSourcePreviewCounts {
         let mut counts = MigrationSourcePreviewCounts {
             accepted: 0,
             review_required: 0,
@@ -289,12 +322,127 @@ mod runtime_bridge {
         counts
     }
 
+    fn parse_millis_timestamp(raw: &str) -> Option<u128> {
+        raw.trim().parse::<u128>().ok()
+    }
+
+    fn blocked_live_action_result(
+        request: &LiveActionRunnerRequest,
+        reason: &str,
+    ) -> LiveActionRunnerResult {
+        LiveActionRunnerResult {
+            provider: request.provider.clone(),
+            intent: request.intent.clone(),
+            executed: false,
+            blocked: true,
+            action_label: request.action_label.clone(),
+            result_summary: reason.to_string(),
+            timestamp: current_timestamp(),
+            safety: "Action blocked by policy: process execution was not started.".to_string(),
+        }
+    }
+
+    fn execute_readonly_probe_command() -> Result<String, String> {
+        #[cfg(windows)]
+        let output = Command::new("cmd")
+            .args(["/C", "echo", LIVE_ACTION_PROBE_TOKEN])
+            .output();
+
+        #[cfg(not(windows))]
+        let output = Command::new("printf").arg(LIVE_ACTION_PROBE_TOKEN).output();
+
+        let output = output.map_err(|error| error.to_string())?;
+        if !output.status.success() {
+            return Err(format!(
+                "terminal probe exited with status: {}",
+                output.status.code().unwrap_or(-1)
+            ));
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        Ok(stdout)
+    }
+
+    #[tauri::command]
+    pub fn live_action_runner_execute(request: LiveActionRunnerRequest) -> LiveActionRunnerResult {
+        let requested_timestamp = match parse_millis_timestamp(&request.requested_timestamp) {
+            Some(value) => value,
+            None => {
+                return blocked_live_action_result(&request, "blocked_invalid_requested_timestamp");
+            }
+        };
+
+        let provider = request.provider.trim().to_lowercase();
+        if provider != LIVE_ACTION_PROBE_PROVIDER {
+            return blocked_live_action_result(&request, "blocked_unsupported_provider");
+        }
+
+        let state = request.state.trim().to_lowercase();
+        if state != LIVE_ACTION_PROBE_STATE_APPROVED {
+            return blocked_live_action_result(&request, "blocked_request_state_not_approved");
+        }
+
+        let intent = request.intent.trim().to_lowercase();
+        if intent != LIVE_ACTION_PROBE_INTENT {
+            return blocked_live_action_result(&request, "blocked_unsupported_intent");
+        }
+
+        let expiry_timestamp = match request.expiry.as_deref() {
+            Some(raw) => match parse_millis_timestamp(raw) {
+                Some(value) => Some(value),
+                None => {
+                    return blocked_live_action_result(&request, "blocked_invalid_expiry_timestamp")
+                }
+            },
+            None => request
+                .timeout
+                .and_then(|timeout| requested_timestamp.checked_add(timeout)),
+        };
+
+        let Some(expiry_timestamp) = expiry_timestamp else {
+            return blocked_live_action_result(&request, "blocked_missing_expiry");
+        };
+
+        if timestamp_millis() >= expiry_timestamp {
+            return blocked_live_action_result(&request, "blocked_expired");
+        }
+
+        let result_summary = match execute_readonly_probe_command() {
+            Ok(value) => value,
+            Err(error) => {
+                return LiveActionRunnerResult {
+                    provider,
+                    intent: request.intent,
+                    executed: false,
+                    blocked: true,
+                    action_label: request.action_label,
+                    result_summary: format!("blocked_probe_execution_error:{error}"),
+                    timestamp: current_timestamp(),
+                    safety: "Terminal command execution failed; no arbitrary command was used."
+                        .to_string(),
+                };
+            }
+        };
+
+        LiveActionRunnerResult {
+            provider,
+            intent,
+            executed: true,
+            blocked: false,
+            action_label: request.action_label,
+            result_summary,
+            timestamp: current_timestamp(),
+            safety: "Executed fixed terminal read-only probe command for audit trail.".to_string(),
+        }
+    }
+
     fn codex_safe_location_label() -> String {
         "Default Codex home".to_string()
     }
 
     fn codex_migration_preview_from_probe(probe: &CodexTransportProbe) -> MigrationSourcePreview {
-        let detected = probe.cli.available || probe.codex_home.present || probe.app_server.available;
+        let detected =
+            probe.cli.available || probe.codex_home.present || probe.app_server.available;
 
         let categories = vec![
             migration_category(
@@ -322,7 +470,11 @@ mod runtime_bridge {
                 } else {
                     MIGRATION_STATUS_UNSUPPORTED
                 },
-                if probe.codex_home.config_present { 1 } else { 0 },
+                if probe.codex_home.config_present {
+                    1
+                } else {
+                    0
+                },
                 if probe.codex_home.config_present {
                     "A Codex config file location is present."
                 } else {
@@ -352,7 +504,11 @@ mod runtime_bridge {
                 } else {
                     MIGRATION_STATUS_EXCLUDED
                 },
-                if probe.codex_home.plugins_present { 1 } else { 0 },
+                if probe.codex_home.plugins_present {
+                    1
+                } else {
+                    0
+                },
                 if probe.codex_home.plugins_present {
                     "Plugin manifests are detected and require review before import."
                 } else {
@@ -390,7 +546,11 @@ mod runtime_bridge {
                 } else {
                     MIGRATION_STATUS_UNSUPPORTED
                 },
-                if probe.app_server.protocol.mcp_status { 1 } else { 0 },
+                if probe.app_server.protocol.mcp_status {
+                    1
+                } else {
+                    0
+                },
                 if probe.app_server.protocol.mcp_status {
                     "MCP capability signatures are available and require review."
                 } else {
@@ -423,7 +583,7 @@ mod runtime_bridge {
                 "Browser and cookie state",
                 MIGRATION_STATUS_EXCLUDED,
                 0,
-                "Browser state is intentionally excluded from metadata import."
+                "Browser state is intentionally excluded from metadata import.",
             ),
         ];
 
@@ -1865,6 +2025,7 @@ mod runtime_bridge {
 pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            runtime_bridge::live_action_runner_execute,
             runtime_bridge::runtime_bridge_status,
             runtime_bridge::runtime_permission_approval_status,
             runtime_bridge::migration_source_preview,
@@ -1885,6 +2046,7 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
 
     #[test]
     fn runtime_bridge_status_returns_locked_state() {
@@ -1934,6 +2096,182 @@ mod tests {
             .safety
             .to_lowercase()
             .contains("no process execution"));
+    }
+
+    fn now_timestamp() -> String {
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system time should be after UNIX epoch")
+            .as_millis()
+            .to_string()
+    }
+
+    fn live_action_request(
+        state: &str,
+        provider: &str,
+        intent: &str,
+        requested_timestamp: String,
+        expiry_timestamp: Option<String>,
+    ) -> LiveActionRunnerRequest {
+        LiveActionRunnerRequest {
+            provider: provider.to_string(),
+            state: state.to_string(),
+            action_label: "Terminal Readonly Probe".to_string(),
+            request_id: "req-live-action".to_string(),
+            requested_timestamp,
+            timeout: None,
+            expiry: expiry_timestamp,
+            intent: intent.to_string(),
+        }
+    }
+
+    fn now_plus_millis(base: &str, add_millis: u128) -> Option<String> {
+        base.parse::<u128>()
+            .ok()
+            .and_then(|value| value.checked_add(add_millis))
+            .map(|value| value.to_string())
+    }
+
+    #[test]
+    fn live_action_runner_approved_request_executes_fixed_probe() {
+        let requested_timestamp = now_timestamp();
+        let request = live_action_request(
+            "approved",
+            "terminal",
+            "terminal-readonly-probe",
+            requested_timestamp.clone(),
+            now_plus_millis(&requested_timestamp, 5000),
+        );
+        let result = runtime_bridge::live_action_runner_execute(request);
+
+        assert_eq!(result.provider, "terminal");
+        assert_eq!(result.intent, "terminal-readonly-probe");
+        assert_eq!(result.action_label, "Terminal Readonly Probe");
+        assert!(result.executed);
+        assert!(!result.blocked);
+        assert!(!result.result_summary.contains("blocked_"));
+    }
+
+    #[test]
+    fn live_action_runner_non_approved_state_is_blocked() {
+        let requested_timestamp = now_timestamp();
+        let request = live_action_request(
+            "requested",
+            "terminal",
+            "terminal-readonly-probe",
+            requested_timestamp,
+            Some(now_timestamp()),
+        );
+        let result = runtime_bridge::live_action_runner_execute(request);
+
+        assert!(!result.executed);
+        assert!(result.blocked);
+        assert_eq!(result.result_summary, "blocked_request_state_not_approved");
+    }
+
+    #[test]
+    fn live_action_runner_expired_request_is_blocked() {
+        let requested_timestamp = now_timestamp();
+        let request = live_action_request(
+            "approved",
+            "terminal",
+            "terminal-readonly-probe",
+            requested_timestamp,
+            Some("0".to_string()),
+        );
+        let result = runtime_bridge::live_action_runner_execute(request);
+
+        assert!(!result.executed);
+        assert!(result.blocked);
+        assert_eq!(result.result_summary, "blocked_expired");
+    }
+
+    #[test]
+    fn live_action_runner_missing_expiry_is_blocked() {
+        let request = live_action_request(
+            "approved",
+            "terminal",
+            "terminal-readonly-probe",
+            now_timestamp(),
+            None,
+        );
+        let result = runtime_bridge::live_action_runner_execute(request);
+
+        assert!(!result.executed);
+        assert!(result.blocked);
+        assert_eq!(result.result_summary, "blocked_missing_expiry");
+    }
+
+    #[test]
+    fn live_action_runner_unsupported_provider_is_blocked() {
+        let requested_timestamp = now_timestamp();
+        let request = live_action_request(
+            "approved",
+            "filesystem",
+            "terminal-readonly-probe",
+            requested_timestamp.clone(),
+            now_plus_millis(&requested_timestamp, 5000),
+        );
+        let result = runtime_bridge::live_action_runner_execute(request);
+
+        assert!(!result.executed);
+        assert!(result.blocked);
+        assert_eq!(result.result_summary, "blocked_unsupported_provider");
+    }
+
+    #[test]
+    fn live_action_runner_unsupported_intent_is_blocked() {
+        let requested_timestamp = now_timestamp();
+        let request = live_action_request(
+            "approved",
+            "terminal",
+            "unsafe-command",
+            requested_timestamp.clone(),
+            now_plus_millis(&requested_timestamp, 5000),
+        );
+        let result = runtime_bridge::live_action_runner_execute(request);
+
+        assert!(!result.executed);
+        assert!(result.blocked);
+        assert_eq!(result.result_summary, "blocked_unsupported_intent");
+    }
+
+    #[test]
+    fn live_action_runner_rejects_invalid_timestamps() {
+        let request = live_action_request(
+            "approved",
+            "terminal",
+            "terminal-readonly-probe",
+            "not-a-timestamp".to_string(),
+            Some("not-a-timestamp".to_string()),
+        );
+        let result = runtime_bridge::live_action_runner_execute(request);
+
+        assert!(!result.executed);
+        assert!(result.blocked);
+        assert_eq!(result.result_summary, "blocked_invalid_requested_timestamp");
+    }
+
+    #[test]
+    fn live_action_runner_request_does_not_execute_arbitrary_fields() {
+        let requested_timestamp = now_timestamp();
+        let request = LiveActionRunnerRequest {
+            provider: "terminal".to_string(),
+            state: "approved".to_string(),
+            action_label: "terminal; rm -rf /".to_string(),
+            request_id: "unsafe-request-id-$(whoami)".to_string(),
+            requested_timestamp: requested_timestamp.clone(),
+            timeout: None,
+            expiry: now_plus_millis(&requested_timestamp, 5000),
+            intent: "terminal-readonly-probe".to_string(),
+        };
+        let result = runtime_bridge::live_action_runner_execute(request);
+
+        assert!(!result.blocked);
+        assert!(!result.result_summary.contains("terminal; rm -rf /"));
+        assert!(!result
+            .result_summary
+            .contains("unsafe-request-id-$(whoami)"));
     }
 
     #[test]
@@ -2109,9 +2447,13 @@ mod tests {
     #[test]
     fn migration_source_preview_marks_auth_and_transcripts_as_excluded_for_codex() {
         let probe = fake_codex_transport_probe();
-        let preview =
-            runtime_bridge::migration_source_preview_from_probe(Some("codex".to_string()), Some(probe));
-        let serialized = serde_json::to_string(&preview).unwrap_or_default().to_lowercase();
+        let preview = runtime_bridge::migration_source_preview_from_probe(
+            Some("codex".to_string()),
+            Some(probe),
+        );
+        let serialized = serde_json::to_string(&preview)
+            .unwrap_or_default()
+            .to_lowercase();
         assert_eq!(preview.source_id, "codex");
         assert_eq!(preview.source_label, "Codex");
         assert!(preview.detected);
@@ -2131,10 +2473,7 @@ mod tests {
         assert!(!serialized.contains("/home/"));
         assert!(!serialized.contains("auth.json"));
         assert!(preview.excluded_secrets_summary.len() >= 3);
-        assert!(preview
-            .safety_note
-            .to_lowercase()
-            .contains("metadata-only"));
+        assert!(preview.safety_note.to_lowercase().contains("metadata-only"));
         assert!(!preview.safe_location_label.contains('/'));
         assert!(!preview.safe_location_label.contains('\\'));
         let total_counts = preview.counts.accepted
@@ -2146,17 +2485,25 @@ mod tests {
 
     #[test]
     fn migration_source_preview_unsupported_source_is_marked_reviewable_without_probe_dependency() {
-        let preview =
-            runtime_bridge::migration_source_preview_from_probe(Some("antigravity".to_string()), None);
+        let preview = runtime_bridge::migration_source_preview_from_probe(
+            Some("antigravity".to_string()),
+            None,
+        );
         assert_eq!(preview.source_id, "antigravity");
         assert!(!preview.detected);
         assert!(preview.source_label.contains("Unsupported"));
-        assert_eq!(preview.categories.iter().filter(|category| category.status == "accepted").count(), 0);
+        assert_eq!(
+            preview
+                .categories
+                .iter()
+                .filter(|category| category.status == "accepted")
+                .count(),
+            0
+        );
         assert!(preview.counts.unsupported >= 3);
+        assert!(preview.safety_note.to_lowercase().contains("no filesystem"));
         assert!(preview
-            .safety_note
-            .to_lowercase()
-            .contains("no filesystem"));
-        assert!(preview.safe_location_label.contains("No local source location"));
+            .safe_location_label
+            .contains("No local source location"));
     }
 }

@@ -534,6 +534,16 @@ import {
   type LiveActionRunnerSummary
 } from "./liveActionRunner";
 import {
+  buildDesktopActionRunnerBrowserFallbackResult,
+  buildDesktopActionRunnerBuildFailureResult,
+  buildTerminalReadonlyProbeRequest,
+  normalizeDesktopActionRunnerBackendResult,
+  summarizeDesktopActionRunnerResult,
+  type DesktopActionRunnerBackendResult,
+  type DesktopActionRunnerExecuteResult,
+  type DesktopActionRunnerResultSummary
+} from "./desktopActionRunner";
+import {
   buildRuntimeExecutionAuditSnapshot,
   type RuntimeExecutionAuditItem,
   type RuntimeExecutionAuditSnapshot
@@ -4126,6 +4136,15 @@ function RightPanel({
   const [liveActionAuditHistory, setLiveActionAuditHistory] = useState<LiveActionAuditRecord[]>(
     () => loadLiveActionAuditRecords()
   );
+  const [desktopActionRunnerResult, setDesktopActionRunnerResult] =
+    useState<DesktopActionRunnerExecuteResult>(() =>
+      buildDesktopActionRunnerBrowserFallbackResult(
+        "desktop-action-runner-initial",
+        "1970-01-01T00:00:00.000Z"
+      )
+    );
+  const [desktopActionRunnerBusyProvider, setDesktopActionRunnerBusyProvider] =
+    useState<string>();
   const [toolEvidenceCaptureHistory, setToolEvidenceCaptureHistory] = useState<
     ToolEvidenceCaptureRecord[]
   >(() => loadToolEvidenceCaptureHistory());
@@ -4477,6 +4496,10 @@ function RightPanel({
   const liveActionAuditMarkdown = useMemo(
     () => buildLiveActionAuditExportMarkdown(liveActionAuditHistory),
     [liveActionAuditHistory]
+  );
+  const desktopActionRunnerSummary = useMemo(
+    () => summarizeDesktopActionRunnerResult(desktopActionRunnerResult),
+    [desktopActionRunnerResult]
   );
   const selectedRuntimeProfile = useMemo(
     () => selectRuntimeProfileForAdapter(runtimeProfiles, runtimeAdapter?.id ?? project.id),
@@ -4898,6 +4921,79 @@ function RightPanel({
     );
 
     setLiveActionAuditHistory((current) => appendLiveActionAuditRecord(current, record));
+  }
+
+  async function recordDesktopActionRunnerProbe(definition: LiveActionGateDefinition) {
+    const runnerDefinition = LIVE_ACTION_RUNNER_DEFINITIONS.find(
+      (runner) => runner.provider === definition.provider
+    );
+
+    if (!runnerDefinition || definition.provider !== "terminal") {
+      return;
+    }
+
+    const timestamp = new Date().toISOString();
+    setDesktopActionRunnerBusyProvider(definition.provider);
+
+    try {
+      const request =
+        liveActionRequestsByProvider[definition.provider] ??
+        createLiveActionPermissionRequest(definition, "idle", timestamp);
+      const evaluation = evaluateLiveActionRunnerExecution(
+        runnerDefinition,
+        request,
+        timestamp,
+        timestamp
+      );
+      const builtRequest = buildTerminalReadonlyProbeRequest(evaluation, request, timestamp);
+
+      let result: DesktopActionRunnerExecuteResult;
+      if (!builtRequest.ok) {
+        result = buildDesktopActionRunnerBuildFailureResult(
+          request.id,
+          builtRequest.reason,
+          builtRequest.message,
+          timestamp
+        );
+      } else if (!hasDesktopRuntime()) {
+        result = buildDesktopActionRunnerBrowserFallbackResult(request.id, timestamp);
+      } else {
+        try {
+          const backendResult = await invokeDesktopCommand<DesktopActionRunnerBackendResult>(
+            "live_action_runner_execute",
+            { request: builtRequest.request }
+          );
+          result = normalizeDesktopActionRunnerBackendResult(backendResult, request.id);
+        } catch (error) {
+          result = {
+            provider: "terminal",
+            intent: "terminal-readonly-probe",
+            requestId: request.id,
+            status: "failed",
+            code: "execution-failed",
+            canExecute: false,
+            summary: "Desktop terminal read-only probe failed before completion.",
+            detail: error instanceof Error ? error.message : "Desktop runner command failed.",
+            evaluatedAt: timestamp
+          };
+        }
+      }
+
+      setDesktopActionRunnerResult(result);
+      const resultSummary = summarizeDesktopActionRunnerResult(result);
+      const record = createLiveActionAuditRecord(
+        buildLiveActionAuditInput(
+          definition,
+          `${resultSummary.statusLabel}: ${resultSummary.auditText}. ${resultSummary.detail}`
+        ),
+        result.status === "executed" ? "executed" : "failed",
+        timestamp
+      );
+
+      setLiveActionAuditHistory((current) => appendLiveActionAuditRecord(current, record));
+    } finally {
+      setDesktopActionRunnerBusyProvider(undefined);
+    }
   }
 
   function updateRuntimeProfileDraft(nextDraft: Partial<RuntimeProfile>) {
@@ -5617,6 +5713,9 @@ function RightPanel({
           )
         }
         onRunDryRun={recordLiveActionRunnerDryRun}
+        onRunDesktopProbe={recordDesktopActionRunnerProbe}
+        desktopActionRunnerBusyProvider={desktopActionRunnerBusyProvider}
+        desktopActionRunnerSummary={desktopActionRunnerSummary}
         requestsByProvider={liveActionRequestsByProvider}
         runnerEvaluations={liveActionRunnerEvaluations}
         runnerSummary={liveActionRunnerSummary}
@@ -6622,6 +6721,9 @@ function LiveActionRiskGatePanel({
   onReset,
   onTimeout,
   onRunDryRun,
+  onRunDesktopProbe,
+  desktopActionRunnerBusyProvider,
+  desktopActionRunnerSummary,
   requestsByProvider,
   runnerEvaluations,
   runnerSummary,
@@ -6636,6 +6738,9 @@ function LiveActionRiskGatePanel({
   onReset: (definition: LiveActionGateDefinition) => void;
   onTimeout: (definition: LiveActionGateDefinition) => void;
   onRunDryRun: (definition: LiveActionGateDefinition) => void;
+  onRunDesktopProbe: (definition: LiveActionGateDefinition) => void;
+  desktopActionRunnerBusyProvider?: string;
+  desktopActionRunnerSummary: DesktopActionRunnerResultSummary;
   requestsByProvider: Record<string, LiveActionPermissionRequest>;
   runnerEvaluations: LiveActionRunnerExecutionResult[];
   runnerSummary: LiveActionRunnerSummary;
@@ -6702,6 +6807,17 @@ function LiveActionRiskGatePanel({
             Next runner action
           </span>
         </div>
+        <div
+          className={classNames(
+            "live-action-desktop-runner",
+            `live-action-desktop-runner-${desktopActionRunnerSummary.statusLabel.toLowerCase()}`
+          )}
+          aria-label="Desktop action runner result"
+          title={desktopActionRunnerSummary.detail}
+        >
+          <span>{desktopActionRunnerSummary.statusLabel}</span>
+          <strong>{desktopActionRunnerSummary.auditText}</strong>
+        </div>
         <ol className="live-action-gate-list">
           {liveActionGateDefinitions.map((definition) => {
             const request =
@@ -6719,6 +6835,8 @@ function LiveActionRiskGatePanel({
             const canRequest = summary.state === "idle";
             const canReview = summary.state === "requested";
             const canReset = summary.state !== "idle";
+            const canRunDesktopProbe = definition.provider === "terminal" && Boolean(runner?.canExecute);
+            const isDesktopProbeBusy = desktopActionRunnerBusyProvider === definition.provider;
             const runnerLabel =
               runner?.status === "ready"
                 ? "Runner ready"
@@ -6793,6 +6911,19 @@ function LiveActionRiskGatePanel({
                     type="button"
                   >
                     Dry run
+                  </button>
+                  <button
+                    aria-label={`Probe ${definition.actionLabel}`}
+                    disabled={!canRunDesktopProbe || isDesktopProbeBusy}
+                    onClick={() => onRunDesktopProbe(definition)}
+                    title={
+                      definition.provider === "terminal"
+                        ? "Run a fixed read-only terminal probe through the desktop runner."
+                        : "Desktop probe is not enabled for this provider yet."
+                    }
+                    type="button"
+                  >
+                    {isDesktopProbeBusy ? "..." : "Probe"}
                   </button>
                 </div>
               </li>
