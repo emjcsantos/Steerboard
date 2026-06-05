@@ -53,6 +53,10 @@ import {
   type OrchestrationTask
 } from "./orchestration";
 import {
+  createOrchestrationDependencyReadiness,
+  type OrchestrationDependencyReadiness
+} from "./orchestrationDependencyReadiness";
+import {
   buildPipelineItemDispatchPreview,
   type PipelineItemDispatchPreview
 } from "./pipelineItemDispatchPreview";
@@ -2254,6 +2258,10 @@ function RightPanel({
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
+  const orchestrationDependencyReadiness: OrchestrationDependencyReadiness = useMemo(
+    () => createOrchestrationDependencyReadiness(tasks),
+    [tasks]
+  );
   const runSummary = summarizeRunHistory(mockRuns);
   const milestoneStatusSummary = useMemo(
     () => summarizeMilestoneStatuses(steerboardMilestoneStatuses),
@@ -2866,6 +2874,32 @@ function RightPanel({
             <strong>{taskSummary.blocked}</strong>
             Blocked
           </span>
+        </div>
+        <div
+          aria-label={orchestrationDependencyReadiness.ariaLabel}
+          className={classNames(
+            "orchestration-readiness",
+            `orchestration-readiness-${orchestrationDependencyReadiness.tone}`
+          )}
+          title={orchestrationDependencyReadiness.detail}
+        >
+          <div className="orchestration-readiness-header">
+            <strong>{orchestrationDependencyReadiness.label}</strong>
+            <b>{orchestrationDependencyReadiness.checkLabel}</b>
+          </div>
+          <p>{orchestrationDependencyReadiness.detail}</p>
+          <div className="orchestration-readiness-checks" aria-label="Orchestration dependency readiness checks">
+            {orchestrationDependencyReadiness.checks.map((check) => (
+              <span
+                className={classNames("orchestration-readiness-check", `orchestration-readiness-check-${check.tone}`)}
+                key={check.label}
+                title={`${check.label}: ${check.value}`}
+              >
+                <strong>{check.value}</strong>
+                <small>{check.label}</small>
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 

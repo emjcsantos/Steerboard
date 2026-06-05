@@ -128,6 +128,21 @@ describe("milestone status model", () => {
     expect(cockpit?.nextStep.toLowerCase()).toContain("regressions");
   });
 
+  it("requires a compact public-safe summary for orchestration model", () => {
+    const orchestration = steerboardMilestoneStatuses.find(
+      (milestone) => milestone.target === "Orchestration model"
+    );
+
+    expect(orchestration?.completion).toBe("In progress");
+    expect(orchestration?.tone).toBe("active");
+    expect(orchestration?.latestNote.toLowerCase()).toContain(
+      "dependency-readiness coverage"
+    );
+    expect(orchestration?.nextStep).toBe(
+      "Add dispatch sequencing and handoff audit coverage across queued, active, and blocked tasks."
+    );
+  });
+
   it("maps completion values to tone in required way for exported data", () => {
     const toneByCompletion: Record<MilestoneCompletion, MilestoneTone> = {
       Complete: "complete",
@@ -145,14 +160,14 @@ describe("milestone status model", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
       total: 7,
       complete: 2,
-      active: 1,
-      planned: 3,
+      active: 2,
+      planned: 2,
       paused: 1,
-      averageCompletionPercent: 44,
+      averageCompletionPercent: 46,
       nextTarget: "Orchestration model",
       nextStep:
-        "Expand execution rules and complete dependency ordering for broader subsystem coverage.",
-      nextCompletionPercent: 30
+        "Add dispatch sequencing and handoff audit coverage across queued, active, and blocked tasks.",
+      nextCompletionPercent: 45
     });
   });
 
