@@ -1630,23 +1630,35 @@ function MilestoneStatusPanel({
         <thead>
           <tr>
             <th scope="col">Target</th>
-            <th scope="col">Completion</th>
-            <th scope="col">Note</th>
+            <th scope="col">Plan</th>
+            <th scope="col">% Completion</th>
+            <th scope="col">Latest Note</th>
+            <th scope="col">Next Step</th>
           </tr>
         </thead>
         <tbody>
           {milestones.map((milestone) => (
             <tr key={milestone.target}>
               <td title={milestone.target}>{milestone.target}</td>
+              <td title={milestone.plan}>{milestone.plan}</td>
               <td>
-                <span
-                  className={classNames("milestone-status-pill", `milestone-${milestone.tone}`)}
-                  title={milestone.completion}
+                <div
+                  className="milestone-percent-cell"
+                  title={`${milestone.completionPercent}% - ${milestone.completion}`}
                 >
-                  {milestone.completion}
-                </span>
+                  <span className={classNames("milestone-status-pill", `milestone-${milestone.tone}`)}>
+                    {milestone.completionPercent}%
+                  </span>
+                  <span className="milestone-percent-track" aria-hidden="true">
+                    <span
+                      className={classNames("milestone-percent-fill", `milestone-${milestone.tone}`)}
+                      style={{ width: `${milestone.completionPercent}%` }}
+                    />
+                  </span>
+                </div>
               </td>
-              <td title={milestone.note}>{milestone.note}</td>
+              <td title={milestone.latestNote}>{milestone.latestNote}</td>
+              <td title={milestone.nextStep}>{milestone.nextStep}</td>
             </tr>
           ))}
         </tbody>
