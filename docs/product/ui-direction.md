@@ -2,9 +2,11 @@
 
 ## Product Feel
 
-Steerboard should feel like a calm, high-control engineering cockpit: focused, dense, legible, and smooth under pressure.
+Steerboard should feel familiar to users of common IDEs and agent desktops: focused, dense, legible, keyboard-friendly, and smooth under pressure.
 
-The UI should not feel like a marketing page, a decorative dashboard, or a loose clone of an existing agent IDE.
+The UI should use familiar workbench patterns such as a top menu, left project/thread rail, split panes, command surfaces, status bars, tool panels, and modal setup flows so coders can migrate without relearning the basics.
+
+The UI should not feel like a marketing page, a decorative dashboard, or a loose clone of any one existing agent IDE.
 
 ## Visual Identity
 
@@ -12,6 +14,7 @@ The UI should not feel like a marketing page, a decorative dashboard, or a loose
 - Use color semantically: orchestrator, implementer, validator, blocked, failed, complete.
 - Avoid one-note color themes and decorative gradients.
 - Keep surfaces restrained: panels, split panes, tool docks, and overlays should feel native to a workbench.
+- Prefer conventional IDE affordances before inventing custom controls, especially for menus, tabs, sidebars, terminals, settings, search, command palettes, and migration dialogs.
 - Use consistent icon language, preferably a single stroke icon set.
 
 ## Layout Principles
