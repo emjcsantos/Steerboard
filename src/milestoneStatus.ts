@@ -19,6 +19,10 @@ export interface MilestoneStatusSummary {
   active: number;
   planned: number;
   paused: number;
+  averageCompletionPercent: number;
+  nextTarget: string;
+  nextStep: string;
+  nextCompletionPercent: number;
 }
 
 export const steerboardMilestoneStatuses: MilestoneStatus[] = [
@@ -106,16 +110,22 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
 export function summarizeMilestoneStatuses(
   milestones: readonly MilestoneStatus[]
 ): MilestoneStatusSummary {
+  let foundNextActive = false;
   const summary: MilestoneStatusSummary = {
     total: 0,
     complete: 0,
     active: 0,
     planned: 0,
-    paused: 0
+    paused: 0,
+    averageCompletionPercent: 0,
+    nextTarget: "No active milestone",
+    nextStep: "No active next step.",
+    nextCompletionPercent: 100
   };
 
   for (const milestone of milestones) {
     summary.total += 1;
+    summary.averageCompletionPercent += milestone.completionPercent;
     switch (milestone.completion) {
       case "Complete":
         summary.complete += 1;
@@ -132,6 +142,23 @@ export function summarizeMilestoneStatuses(
       default:
         break;
     }
+
+    if (
+      !foundNextActive &&
+      milestone.completion !== "Complete" &&
+      milestone.completion !== "Paused"
+    ) {
+      foundNextActive = true;
+      summary.nextTarget = milestone.target;
+      summary.nextStep = milestone.nextStep;
+      summary.nextCompletionPercent = milestone.completionPercent;
+    }
+  }
+
+  if (summary.total > 0) {
+    summary.averageCompletionPercent = Math.round(
+      summary.averageCompletionPercent / summary.total
+    );
   }
 
   return summary;

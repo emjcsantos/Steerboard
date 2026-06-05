@@ -150,7 +150,12 @@ describe("milestone status model", () => {
       complete: 1,
       active: 2,
       planned: 3,
-      paused: 1
+      paused: 1,
+      averageCompletionPercent: 39,
+      nextTarget: "Cockpit monitor and operating modes",
+      nextStep:
+        "Finalize monitoring depth and keep toolbar focus/clear behavior consistent before hardening operating-mode handoffs.",
+      nextCompletionPercent: 60
     });
   });
 
@@ -305,6 +310,69 @@ describe("milestone status model", () => {
       }
     ]);
 
-    expect(customSummary).toEqual({ total: 5, complete: 1, active: 2, planned: 1, paused: 1 });
+    expect(customSummary).toEqual({
+      total: 5,
+      complete: 1,
+      active: 2,
+      planned: 1,
+      paused: 1,
+      averageCompletionPercent: 48,
+      nextTarget: "B",
+      nextStep: "B next step.",
+      nextCompletionPercent: 50
+    });
+  });
+
+  it("falls back to no active milestone when all milestones are complete or paused", () => {
+    const customSummary = summarizeMilestoneStatuses([
+      {
+        target: "A",
+        plan: "A plan.",
+        completionPercent: 100,
+        latestNote: "A latest note.",
+        nextStep: "A next step.",
+        completion: "Complete",
+        tone: "complete",
+        note: "Public note."
+      },
+      {
+        target: "D",
+        plan: "D plan.",
+        completionPercent: 0,
+        latestNote: "D latest note.",
+        nextStep: "D next step.",
+        completion: "Paused",
+        tone: "paused",
+        note: "Public note."
+      }
+    ]);
+
+    expect(customSummary).toEqual({
+      total: 2,
+      complete: 1,
+      active: 0,
+      planned: 0,
+      paused: 1,
+      averageCompletionPercent: 50,
+      nextTarget: "No active milestone",
+      nextStep: "No active next step.",
+      nextCompletionPercent: 100
+    });
+  });
+
+  it("handles empty milestone lists with defaults", () => {
+    const customSummary = summarizeMilestoneStatuses([]);
+
+    expect(customSummary).toEqual({
+      total: 0,
+      complete: 0,
+      active: 0,
+      planned: 0,
+      paused: 0,
+      averageCompletionPercent: 0,
+      nextTarget: "No active milestone",
+      nextStep: "No active next step.",
+      nextCompletionPercent: 100
+    });
   });
 });

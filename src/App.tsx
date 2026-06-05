@@ -1621,10 +1621,32 @@ function MilestoneStatusPanel({
       <div className="milestone-status-header">
         <h4>Milestones</h4>
         <span
-          title={`${summary.complete} complete, ${summary.active} in progress, ${summary.planned} planned, ${summary.paused} paused`}
+          title={`${summary.complete} complete, ${summary.active} in progress, ${summary.planned} planned, ${summary.paused} paused, ${summary.averageCompletionPercent}% overall`}
         >
-          {summary.complete}/{summary.total} complete
+          {summary.averageCompletionPercent}% overall
         </span>
+      </div>
+      <div
+        aria-label={`Milestone report summary: ${summary.averageCompletionPercent}% overall. Next milestone: ${summary.nextTarget}. Next step: ${summary.nextStep}`}
+        className="milestone-report-summary"
+      >
+        <div className="milestone-report-meter">
+          <strong>{summary.averageCompletionPercent}%</strong>
+          <span>Overall</span>
+          <b aria-hidden="true">
+            <i style={{ width: `${summary.averageCompletionPercent}%` }} />
+          </b>
+        </div>
+        <div className="milestone-report-next">
+          <small>Next milestone</small>
+          <strong title={summary.nextTarget}>{summary.nextTarget}</strong>
+          <span title={summary.nextStep}>{summary.nextStep}</span>
+        </div>
+        <div className="milestone-report-counts">
+          <span title={`${summary.complete} complete`}>{summary.complete} complete</span>
+          <span title={`${summary.active} in progress`}>{summary.active} active</span>
+          <span title={`${summary.paused} paused`}>{summary.paused} paused</span>
+        </div>
       </div>
       <table className="milestone-status-table" aria-label="Milestone status table">
         <thead>

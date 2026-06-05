@@ -6,6 +6,8 @@ It is intended for external visibility and product-level communication, not an i
 It is the complete public milestone report contract. Every milestone must appear as one row and include these columns:
 **Target**, **Plan**, **% Completion**, **Latest Note**, and **Next Step**.
 
+Overall completion: 39%. Next milestone: Cockpit monitor and operating modes. Next step: Finalize monitoring depth and keep toolbar focus/clear behavior consistent before hardening operating-mode handoffs.
+
 | Target | Plan | % Completion | Latest Note | Next Step |
 | --- | --- | --- | --- | --- |
 | Product scaffold | Establish a stable baseline structure, public docs contract, and navigation foundations. | 100% | Initial platform scaffolding, public milestone reporting format, and baseline docs are complete. | Monitor for documentation drift and align updates with routine roadmap reviews. |
