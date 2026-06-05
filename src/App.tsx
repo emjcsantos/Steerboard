@@ -111,6 +111,10 @@ import {
   createCockpitToolbarFocusAction
 } from "./cockpitToolbarFocusAction";
 import {
+  createCockpitInteractionReadiness,
+  type CockpitInteractionReadiness
+} from "./cockpitInteractionReadiness";
+import {
   canDeployPlanningDraft,
   evaluatePlanningReadiness,
   normalizePlanningDraft,
@@ -894,6 +898,7 @@ export function App() {
           </section>
 
           <RightPanel
+            layoutCapacity={cockpitLayoutCapacity}
             mode={mode}
             modeHandoff={cockpitModeHandoff}
             modeHandoffQa={cockpitModeHandoffQa}
@@ -2165,6 +2170,7 @@ function PlanningView({
 }
 
 function RightPanel({
+  layoutCapacity,
   mode,
   modeHandoff,
   modeHandoffQa,
@@ -2184,6 +2190,7 @@ function RightPanel({
   tasks
 }: {
   focusedPanelId?: string;
+  layoutCapacity: CockpitLayoutCapacity;
   mode: CockpitMode;
   modeHandoff: CockpitModeHandoff;
   modeHandoffQa: CockpitModeHandoffQa;
@@ -2255,6 +2262,25 @@ function RightPanel({
   const panelFocusTarget = useMemo(
     () => createCockpitPanelFocusTarget(sessions, panelPriority, focusedPanelId),
     [focusedPanelId, panelPriority, sessions]
+  );
+  const focusedStatus = useMemo(
+    () => createCockpitFocusedPanelStatus(sessions, focusedPanelId),
+    [focusedPanelId, sessions]
+  );
+  const toolbarFocusAction = useMemo(
+    () => createCockpitToolbarFocusAction(panelFocusTarget, focusedStatus),
+    [focusedStatus, panelFocusTarget]
+  );
+  const interactionReadiness: CockpitInteractionReadiness = useMemo(
+    () =>
+      createCockpitInteractionReadiness({
+        focusedStatus,
+        focusTarget: panelFocusTarget,
+        layoutCapacity,
+        modeHandoffQa,
+        toolbarFocusAction
+      }),
+    [focusedStatus, layoutCapacity, modeHandoffQa, panelFocusTarget, toolbarFocusAction]
   );
   const latestRun = runSummary.latestRun;
   const selectedTimeline = useMemo(
@@ -2755,6 +2781,29 @@ function RightPanel({
             {modeHandoffQa.checks.map((check) => (
               <span
                 className={classNames("mode-handoff-qa-check", `mode-handoff-qa-check-${check.tone}`)}
+                key={check.label}
+                title={`${check.label}: ${check.value}`}
+              >
+                <strong>{check.value}</strong>
+                <small>{check.label}</small>
+              </span>
+            ))}
+          </div>
+        </div>
+        <div
+          aria-label={interactionReadiness.ariaLabel}
+          className={classNames("interaction-readiness", `interaction-readiness-${interactionReadiness.tone}`)}
+          title={interactionReadiness.detail}
+        >
+          <div className="interaction-readiness-header">
+            <strong>{interactionReadiness.label}</strong>
+            <b>{interactionReadiness.checkLabel}</b>
+          </div>
+          <p>{interactionReadiness.detail}</p>
+          <div className="interaction-readiness-checks" aria-label="Cockpit interaction readiness checks">
+            {interactionReadiness.checks.map((check) => (
+              <span
+                className={classNames("interaction-readiness-check", `interaction-readiness-check-${check.tone}`)}
                 key={check.label}
                 title={`${check.label}: ${check.value}`}
               >

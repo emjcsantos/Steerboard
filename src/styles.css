@@ -2881,6 +2881,127 @@ textarea {
   border-color: #303844;
 }
 
+.interaction-readiness {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  border: 1px solid #303844;
+  border-radius: 8px;
+  background: #111820;
+  padding: 8px;
+}
+
+.interaction-readiness-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.interaction-readiness-header strong,
+.interaction-readiness-header b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.interaction-readiness-header strong {
+  color: #edf3f8;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.interaction-readiness-header b {
+  border-radius: 999px;
+  background: #10161d;
+  color: #cfd8e3;
+  padding: 3px 6px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.interaction-readiness p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #9fa9b4;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.interaction-readiness-checks {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.interaction-readiness-check {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #26303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 6px 5px;
+  text-align: center;
+}
+
+.interaction-readiness-check strong,
+.interaction-readiness-check small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.interaction-readiness-check strong {
+  color: #f4f7fa;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.interaction-readiness-check small {
+  color: #8f99a4;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.interaction-readiness-ready {
+  border-color: #254634;
+}
+
+.interaction-readiness-review {
+  border-color: #5c4b1b;
+}
+
+.interaction-readiness-blocked {
+  border-color: #69343a;
+}
+
+.interaction-readiness-idle {
+  border-color: #303844;
+}
+
+.interaction-readiness-check-ok {
+  border-color: #254634;
+}
+
+.interaction-readiness-check-review {
+  border-color: #5c4b1b;
+}
+
+.interaction-readiness-check-blocked {
+  border-color: #69343a;
+}
+
+.interaction-readiness-check-neutral {
+  border-color: #303844;
+}
+
 .orchestration-summary {
   justify-content: space-between;
 }

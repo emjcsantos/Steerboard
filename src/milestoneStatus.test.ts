@@ -124,13 +124,8 @@ describe("milestone status model", () => {
     );
     expect(cockpit?.completion).toBe("In progress");
     expect(cockpit?.tone).toBe("active");
-    const latestNote = cockpit?.latestNote.toLowerCase() ?? "";
-    const nextStep = cockpit?.nextStep.toLowerCase() ?? "";
-    expect(latestNote).toContain("focus/clear");
-    expect(latestNote).toContain("toolbar");
-    expect(nextStep).toContain("toolbar");
-    expect(nextStep).toContain("focus");
-    expect(nextStep).toContain("clear");
+    expect(cockpit?.latestNote.toLowerCase()).toContain("interaction-readiness");
+    expect(cockpit?.nextStep.toLowerCase()).toContain("acceptance pass");
   });
 
   it("maps completion values to tone in required way for exported data", () => {
@@ -153,11 +148,11 @@ describe("milestone status model", () => {
       active: 2,
       planned: 3,
       paused: 1,
-      averageCompletionPercent: 41,
+      averageCompletionPercent: 43,
       nextTarget: "Cockpit monitor and operating modes",
       nextStep:
-        "Run final visual QA and browser interaction verification, while preserving toolbar focus/clear behavior stability.",
-      nextCompletionPercent: 80
+        "Complete final desktop and narrow-pane acceptance pass, then close the cockpit operating modes milestone.",
+      nextCompletionPercent: 90
     });
   });
 
