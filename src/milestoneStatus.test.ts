@@ -26,6 +26,18 @@ const modelPatterns: RegExp[] = [
   /\bmistral\b/i
 ];
 
+const securityDocForbiddenTerms: RegExp[] = [
+  /projectatlas/i,
+  /project-atlas/i,
+  /carparts\.com/i,
+  /amicassa/i,
+  /hyperion/i,
+  /zenith/i,
+  /[A-Za-z]:\\/,
+  /\.\.\\|\.{2}\//,
+  /\braw private transcripts\b/i
+];
+
 type SnapshotMilestoneRow = {
   target: string;
   plan: string;
@@ -177,15 +189,28 @@ describe("milestone status model", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
       total: 7,
       complete: 4,
-      active: 0,
-      planned: 2,
+      active: 1,
+      planned: 1,
       paused: 1,
-      averageCompletionPercent: 62,
+      averageCompletionPercent: 65,
       nextTarget: "Security and privacy model",
       nextStep:
-        "Complete threat modeling and publish practical control guidance for implementation.",
-      nextCompletionPercent: 20
+        "Add visible security-control readiness checks to the cockpit and validate privacy-safe release guidance.",
+      nextCompletionPercent: 40
     });
+  });
+
+  it("tracks security and privacy model as in progress with updated completion", () => {
+    const securityMilestone = steerboardMilestoneStatuses.find(
+      (milestone) => milestone.target === "Security and privacy model"
+    );
+
+    expect(securityMilestone?.completion).toBe("In progress");
+    expect(securityMilestone?.tone).toBe("active");
+    expect(securityMilestone?.completionPercent).toBe(40);
+    expect(securityMilestone?.nextStep).toBe(
+      "Add visible security-control readiness checks to the cockpit and validate privacy-safe release guidance."
+    );
   });
 
   it("enforces the public snapshot table contract", () => {
@@ -267,6 +292,24 @@ describe("milestone status model", () => {
     expect(pmLane?.nextStep.toLowerCase()).toContain("remain paused");
   });
 
+  it("keeps the public security and privacy architecture doc current and public-safe", () => {
+    const docPath = path.join(process.cwd(), "docs/architecture/security-privacy-model.md");
+    const securityDocText = fs.readFileSync(docPath, "utf8");
+
+    expect(securityDocText).toContain("## Threat Model");
+    expect(securityDocText).toContain("## Implementation Controls");
+
+    expect(securityDocText).toContain("Private data leakage");
+    expect(securityDocText).toContain("Overbroad local permissions");
+    expect(securityDocText).toContain("Unsafe external execution");
+    expect(securityDocText).toContain("Unreviewed dependency adoption");
+    expect(securityDocText).toContain("Missing audit trail");
+
+    for (const pattern of securityDocForbiddenTerms) {
+      expect(pattern.test(securityDocText)).toBe(false);
+    }
+  });
+
   it("safeguards public-facing text from private details", () => {
     for (const milestone of steerboardMilestoneStatuses) {
       for (const pattern of privateTermPatterns) {
@@ -324,7 +367,7 @@ describe("milestone status model", () => {
       {
         target: "C",
         plan: "C plan.",
-        completionPercent: 20,
+        completionPercent: 21,
         latestNote: "C latest note.",
         nextStep: "C next step.",
         completion: "Planned",

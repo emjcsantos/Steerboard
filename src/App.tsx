@@ -215,6 +215,10 @@ import {
   type RuntimeProfilePermissionAuditSnapshot
 } from "./runtimeProfilePermissionAudit";
 import {
+  createSecurityPrivacyThreatModel,
+  type SecurityPrivacyThreatModel
+} from "./securityPrivacyThreatModel";
+import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
   type DispatchPackage
@@ -2532,6 +2536,25 @@ function RightPanel({
       runtimeProfilePermissionRequestHistory
     ]
   );
+  const securityPrivacyThreatModel = useMemo(
+    () =>
+      createSecurityPrivacyThreatModel(
+        desktopBridgeStatus,
+        desktopPermissionApprovalStatus,
+        localEvidenceReadinessSnapshot,
+        toolEvidenceReadinessSnapshot,
+        runtimeProfilePermissionApprovalSnapshot,
+        runtimeProfilePermissionAuditSnapshot
+      ),
+    [
+      desktopBridgeStatus,
+      desktopPermissionApprovalStatus,
+      localEvidenceReadinessSnapshot,
+      runtimeProfilePermissionApprovalSnapshot,
+      runtimeProfilePermissionAuditSnapshot,
+      toolEvidenceReadinessSnapshot
+    ]
+  );
   const desktopPackagingReadinessSnapshot = useMemo(
     () =>
       buildDesktopPackagingReadinessSnapshot(
@@ -3195,6 +3218,7 @@ function RightPanel({
         onRequestCapture={() => recordToolEvidenceCaptureAction("requested", "requested")}
         tools={toolEvidenceReadinessSnapshot}
       />
+      <SecurityPrivacyThreatModelPanel model={securityPrivacyThreatModel} />
 
       <section className="panel-section">
         <h4>Project Registry</h4>
@@ -4732,6 +4756,48 @@ function ToolEvidenceReadinessPanel({
           )}
         </div>
         <small title={tools.safety}>{tools.safety}</small>
+      </div>
+    </section>
+  );
+}
+
+function SecurityPrivacyThreatModelPanel({
+  model
+}: {
+  model: SecurityPrivacyThreatModel;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Security & Privacy</h4>
+      <div
+        aria-label={model.ariaLabel}
+        className={classNames(
+          "security-privacy-model",
+          `security-privacy-${model.tone}`
+        )}
+      >
+        <div className="security-privacy-header">
+          <span className="security-privacy-state">
+            <span aria-hidden="true" />
+            {model.tone}
+          </span>
+          <strong title={model.label}>{model.label}</strong>
+          <b>{model.checkLabel}</b>
+        </div>
+        <p title={model.detail}>{model.detail}</p>
+        <ol className="security-privacy-checks">
+          {model.checks.map((check) => (
+            <li
+              className={`security-privacy-check-${check.tone}`}
+              key={check.label}
+              title={check.value}
+            >
+              <span>{check.tone}</span>
+              <strong>{check.label}</strong>
+              <small>{check.value}</small>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

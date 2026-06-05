@@ -5596,6 +5596,135 @@ textarea {
   font-size: 11px;
 }
 
+.security-privacy-model {
+  display: grid;
+  gap: 8px;
+}
+
+.security-privacy-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.security-privacy-header strong,
+.security-privacy-header b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.security-privacy-header strong {
+  color: #edf2f7;
+}
+
+.security-privacy-header b {
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce3eb;
+  padding: 4px 7px;
+}
+
+.security-privacy-state {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #252b34;
+  color: #c4ccd6;
+  padding: 5px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.security-privacy-state span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #8f99a5;
+}
+
+.security-privacy-ready .security-privacy-state span,
+.security-privacy-check-ok span {
+  background: #89dda9;
+}
+
+.security-privacy-review .security-privacy-state span,
+.security-privacy-waiting .security-privacy-state span,
+.security-privacy-check-review span,
+.security-privacy-check-neutral span {
+  background: #f0d984;
+}
+
+.security-privacy-blocked .security-privacy-state span,
+.security-privacy-check-blocked span {
+  background: #ff9e85;
+}
+
+.security-privacy-model p {
+  overflow: hidden;
+  margin: 0;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.security-privacy-checks {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.security-privacy-checks li {
+  display: grid;
+  grid-template-columns: 56px minmax(94px, 0.44fr) minmax(0, 1fr);
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 6px;
+}
+
+.security-privacy-checks span,
+.security-privacy-checks strong,
+.security-privacy-checks small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+}
+
+.security-privacy-checks span {
+  display: inline-flex;
+  min-width: 0;
+  justify-content: center;
+  border-radius: 999px;
+  color: #0d1117;
+  padding: 3px 6px;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.security-privacy-checks strong {
+  color: #dce3eb;
+}
+
+.security-privacy-checks small {
+  color: #8f99a5;
+}
+
 .adapter-contract-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

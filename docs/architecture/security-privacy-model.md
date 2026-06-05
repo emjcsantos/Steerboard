@@ -20,11 +20,27 @@ Never commit:
 - cookies,
 - browser/session state,
 - OAuth tokens,
-- raw private transcripts,
 - customer records,
 - private application records,
 - local machine paths,
 - screenshots exposing private navigation or account state.
+
+## Threat Model
+
+- Private data leakage: risk of accidental export of sensitive files, logs, or pasted snippets through broad shares or outputs.
+- Overbroad local permissions: risk of exposing unnecessary filesystem or command capabilities for a given task.
+- Unsafe external execution: risk of running unreviewed or unsandboxed commands and scripts from untrusted sources.
+- Unreviewed dependency adoption: risk of security gaps entering through unchecked third-party code.
+- Missing audit trail: risk of operators lacking a visible history of who changed what and why.
+
+## Implementation Controls
+
+- Root-scoped file access: keep reads/writes constrained to project roots with explicit path allowlists.
+- Explicit permission review: surface concrete permissions before enabling new actions.
+- Locked execution preview: gate risky commands behind explicit review before run.
+- Audit/export preview: require diff-like review before exporting logs, snapshots, or checkpoints.
+- Public-safe fixtures: sanitize fixtures and redact sensitive fields before publishing examples.
+- No secrets in docs: never include secrets, private credentials, or sensitive identifiers in documentation.
 
 ## Third-Party Adoption Gates
 

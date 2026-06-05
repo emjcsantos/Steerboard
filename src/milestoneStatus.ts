@@ -78,12 +78,12 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
   },
   {
     target: "Security and privacy model",
-    completion: "Planned",
+    completion: "In progress",
     plan: "Set baseline protections, data-handling boundaries, and reviewable controls.",
-    completionPercent: 20,
-    latestNote: "Security and privacy requirements are being translated into an initial shared model.",
-    nextStep: "Complete threat modeling and publish practical control guidance for implementation.",
-    tone: "planned",
+    completionPercent: 40,
+    latestNote: "Threat-model and control guidance now covers private data leakage, local permission scope, external execution, dependency adoption, and audit trails.",
+    nextStep: "Add visible security-control readiness checks to the cockpit and validate privacy-safe release guidance.",
+    tone: "active",
     note: "Security and privacy posture is being documented, with production controls being designed for release readiness."
   },
   {
