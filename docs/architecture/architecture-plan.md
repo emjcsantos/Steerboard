@@ -7,6 +7,8 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 ### Desktop Shell
 
 - Desktop-first shell.
+- App shell exposes a top-left desktop menu bar with `File`, `Edit`, `View`, `Window`, and `Help`.
+- `File > Migrate...` opens the migration source picker and category checklist.
 - Tauri-first feasibility spike, with Electron as the fallback if core IDE integrations become slower or riskier in Tauri.
 - Shell-specific code stays behind adapters.
 - Main process owns filesystem, terminal, git, process, and app-server boundaries.
@@ -130,6 +132,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Connection center detects provider install/version, auth posture, credential storage posture, and service availability.
 - Default option seeding creates a read-only provider catalog before live execution: plugins, skills, commands, MCP servers, personalization sources, capability flags, and unsupported states.
 - Migration center scans supported source platforms, builds an import preview, redacts excluded data, creates Steerboard profiles, and records a local audit summary.
+- Migration center owns source selection, category checkbox state, minimum tool-scope calculation, conflict behavior, preview-only mode, profile write mode, and rollback metadata.
 - Command registry powers `/` menus in every cockpit composer and maps command invocations to the active provider adapter.
 - Plugin manager reads provider plugin state, distinguishes skills, app connectors, and bundled MCP servers, and surfaces setup-required or disabled states.
 - Automation manager reads thread, project, and standalone automation state, including schedule, worktree/local mode, latest findings, and unattended-execution risk.

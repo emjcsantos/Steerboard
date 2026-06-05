@@ -17,6 +17,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 ## Phase 1: Product Scaffold
 
 - Local desktop shell.
+- Top-left desktop app menu: `File`, `Edit`, `View`, `Window`, and `Help`.
 - Public-safe fixture data.
 - Project sidebar.
 - Adaptive cockpit grid up to `3x3`.
@@ -73,7 +74,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Codex install and version detection.
 - Auth posture display for ChatGPT login, API-key login, and trusted access-token setup.
 - Read-only Codex default option seed for plugins, skills, slash commands, MCP servers, and personalization sources.
-- Migration preview for importing supported Codex settings, options, skills, plugins, MCP servers, commands, and personalization into a Steerboard profile.
+- `File > Migrate...` preview for importing supported Codex settings, options, projects, threads/chats, skills, plugins, MCP servers, commands, and personalization into a Steerboard profile.
 - Local app-server initialization and health state.
 - Thread start, resume, fork, archive, turn start, steer, interrupt, retry, and completion handling.
 - Live panel chat backed by normalized stream events.
@@ -84,7 +85,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 - Slash command registry and composer command menu.
 - Refreshable seeded option catalog so default plugins, skills, MCP servers, and commands stay aligned with the connected provider.
-- Migration center for Codex, Claude Code, Antigravity, generic MCP config, generic skill/prompt folders, and manual JSON or TOML imports.
+- Migration center for Codex, Claude Code, Antigravity, generic MCP config, generic skill/prompt folders, and manual JSON or TOML imports, with source picker, category checkboxes, and minimum-needed tool scope.
 - Provider-backed command execution with unsupported-state handling.
 - Plugin manager showing installed, enabled, disabled, setup-required, and unavailable states.
 - Plugin invocation through prompt prefixes or provider-supported command actions.

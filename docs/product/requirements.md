@@ -14,7 +14,10 @@
 - Plugin, automation, MCP, and personalization surfaces must represent real provider state instead of static decorative navigation.
 - When Codex is connected, plugin, skill, slash command, and MCP defaults should be copied from the local Codex runtime into a read-only seed catalog that can be refreshed.
 - Migration center must let users request imports from supported agent platforms such as Codex, Claude Code, Antigravity, generic MCP config, generic skill/prompt folders, and manual JSON or TOML files.
+- Migration must be available from `File > Migrate...` in a Codex-like top menu bar with `File`, `Edit`, `View`, `Window`, and `Help`.
+- The migration dialog must let users select the source platform and choose migration categories with checkboxes, including projects, threads/chats, plugins, skills, MCP, personalization, commands, settings, automations, and UI preferences.
 - Migration imports must create Steerboard profiles or provider mappings without silently mutating the source platform.
+- Imported tool functions must be limited to those actually needed by the selected migration categories; broad or unused tool access stays disabled until the user explicitly enables it.
 - Per-cell session state: idle, planning, implementing, validating, blocked, failed, complete.
 - Orchestrator task board showing task ownership, attempt count, validation state, files touched, and handoff result.
 - Optional project management lane for pipeline visibility, monitoring, tracking, readiness, and change management before dispatching selected work to a configured agent runtime.
@@ -98,6 +101,7 @@
 - Live platform capability plans must track connection center, app-server/session bridge, slash command registry, plugin manager, automation manager, MCP manager, personalization center, and permission/audit layers.
 - A Codex default option seed preview should show discovered plugins, skills, MCP servers, commands, and personalization sources without enabling live execution.
 - Migration previews should show importable, review-required, unsupported, and excluded items before writing any Steerboard profile data.
+- Unsupported migration categories should remain visible but disabled with a clear reason.
 
 ## Later Functional Scope
 
@@ -155,6 +159,7 @@
 - User can collapse from `3x3` down to simpler layouts as needed.
 - User can switch cockpit modes without losing active session state.
 - Steerboard must have its own visual identity and interaction model rather than copying a reference product screen-for-screen.
+- Steerboard should use a familiar desktop menu pattern with stable `File`, `Edit`, `View`, `Window`, and `Help` labels.
 - Animations must be restrained, fast, and purposeful: use them to preserve spatial continuity when sessions move, resize, start, pause, or complete.
 - Every cockpit cell must keep transcript, status, tool activity, and validation evidence readable without overlap.
 - Icon buttons must have accessible labels, visible focus states, and clear hover/pressed/disabled states.

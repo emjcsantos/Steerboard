@@ -16,6 +16,9 @@ The UI should not feel like a marketing page, a decorative dashboard, or a loose
 
 ## Layout Principles
 
+- Steerboard must include a Codex-like desktop command menu at the top-left: `File`, `Edit`, `View`, `Window`, and `Help`.
+- The top menu should remain visible in browser preview and desktop preview; native menu integration can follow later if the desktop shell supports it.
+- `File > Migrate...` is the primary entry point for importing settings and working context from supported source platforms.
 - The cockpit is the first screen.
 - Supported layouts: `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, `3x3`.
 - `3x3` is the hard maximum.
@@ -30,6 +33,7 @@ The UI should not feel like a marketing page, a decorative dashboard, or a loose
 - Icon-only buttons require accessible labels and tooltips.
 - Hover, focus, pressed, loading, disabled, success, warning, error, and blocked states must all be designed.
 - Keyboard navigation must cover session switching, cockpit focus, task review, approvals, and search.
+- Keyboard navigation must cover top-menu access and migration dialog controls.
 - Reduced-motion users must get non-animated state changes.
 
 ## Motion
@@ -51,4 +55,3 @@ Before calling the scaffold acceptable:
 - Right panel does not cover cockpit content.
 - Focus ring is visible on all interactive elements.
 - Empty, loading, failed, blocked, validating, and complete states are present.
-

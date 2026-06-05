@@ -13,10 +13,11 @@ Single-lane agent surfaces make it hard to monitor concurrent work. Users often 
 Steerboard should feel like a practical command cockpit:
 
 - left project/thread navigation,
+- desktop-style top menu with `File`, `Edit`, `View`, `Window`, and `Help`,
 - cockpit chat as the main planning and instruction surface,
 - live provider connection state and service setup,
 - slash commands, plugin invocation, MCP status, automations, and personalization controls,
-- migration center for importing settings, options, skills, plugins, MCP servers, commands, and personalization from supported agent platforms,
+- `File > Migrate...` for importing settings, options, projects, threads/chats, skills, plugins, MCP servers, commands, and personalization from supported agent platforms,
 - adaptive multi-session cockpit in the main area,
 - focused single-project lane, orchestrator-with-workers mode, and independent multi-project monitoring mode,
 - per-session status, transcript, tool activity, diffs, tests, and approvals,
@@ -28,7 +29,7 @@ Steerboard should feel like a practical command cockpit:
 
 1. The user opens a project and plans through the cockpit chat.
 2. The main orchestrator prepares the plan from the chat context and splits it into small tasks.
-3. The user can ask Steerboard to migrate safe settings and integrations from a supported source platform into a Steerboard profile.
+3. The user can open `File > Migrate...`, choose the source application, select migration categories, preview what will import, and create a Steerboard profile.
 4. The user can use slash commands, plugins, MCP tools, automations, and personalization sources from the same cockpit surface when the connected runtime supports them.
 5. Configured worker agents receive non-overlapping tasks.
 6. Each worker implements and validates up to three attempts.

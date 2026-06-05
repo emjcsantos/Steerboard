@@ -10,6 +10,14 @@ Steerboard should let users ask for migration in natural language:
 
 The migration center is a guided import workflow, not a blind copy operation. It should inspect a source platform, show a preview, redact secrets, ask for approval, then create Steerboard profiles and provider mappings.
 
+The primary entry point is the desktop app menu:
+
+```text
+File > Migrate...
+```
+
+Natural-language requests such as "migrate my Codex setup" should open the same flow, but the menu path must always exist for users who expect a desktop-style command surface.
+
 ## Goals
 
 - Reduce setup friction for users already working in another agent desktop, CLI, or IDE.
@@ -34,6 +42,8 @@ Other platforms can be added by implementing the same migration adapter contract
 
 Adapters should declare which categories they support:
 
+- projects and workspace registry entries,
+- threads, chats, and session metadata where the source exposes exportable history safely,
 - account and connection posture, without importing credentials,
 - model/provider preferences,
 - sandbox, permission, and approval preferences,
@@ -45,17 +55,61 @@ Adapters should declare which categories they support:
 - automation definitions where the source exposes them safely,
 - UI preferences such as theme, sidebar visibility, layout, and notification posture.
 
+The migration dialog should present these categories as checkboxes. Unsupported categories remain visible but disabled with a short reason, so users understand why an item cannot be migrated from the selected source.
+
 ## Required Migration Flow
 
-1. User asks Steerboard to migrate from a source platform.
-2. Steerboard detects or asks for the source location.
-3. The source adapter scans metadata only by default.
-4. Steerboard shows a migration preview grouped by category.
-5. Secrets, tokens, auth caches, private browser state, and raw transcripts are marked excluded.
-6. User chooses which categories to import.
-7. Steerboard writes imported data into a named Steerboard profile.
-8. Steerboard records a local migration audit summary.
-9. User can roll back the imported profile or refresh from the source later.
+1. User opens `File > Migrate...` or asks Steerboard to migrate from a source platform.
+2. Steerboard opens a migration dialog with a source picker.
+3. User chooses the source platform, such as Codex, Claude Code, Antigravity, generic MCP config, skill/prompt folder, or manual JSON/TOML.
+4. Steerboard detects or asks for the source location.
+5. The source adapter scans metadata only by default.
+6. Steerboard shows checkbox categories for projects, threads/chats, plugins, skills, MCP, personalization, commands, settings, automations, and UI preferences.
+7. User chooses which categories to migrate.
+8. Steerboard shows a migration preview grouped by category.
+9. Secrets, tokens, auth caches, private browser state, and raw transcripts are marked excluded.
+10. User confirms the import.
+11. Steerboard writes imported data into a named Steerboard profile.
+12. Steerboard records a local migration audit summary.
+13. User can roll back the imported profile or refresh from the source later.
+
+## Desktop Menu Requirement
+
+Steerboard should expose a Codex-like desktop menu bar at the top-left of the application:
+
+```text
+File  Edit  View  Window  Help
+```
+
+`File` owns app-level project and migration operations:
+
+- New chat
+- Open project
+- Open recent
+- Migrate...
+- Import profile
+- Export profile
+- Settings
+
+The first implementation can render the menu in the app shell, with native desktop menu integration added when the shell supports it. The visible order and labels should remain stable across browser preview and desktop preview.
+
+## Migration Dialog Shape
+
+The `File > Migrate...` dialog should include:
+
+- source platform selector,
+- source location picker or auto-detected path summary,
+- category checkbox list,
+- import mode: create new profile, merge into profile, or preview only,
+- conflict behavior: keep existing, replace, duplicate, or ask per item,
+- live-execution toggle defaulting off,
+- tool-scope selector defaulting to minimum required tools only,
+- excluded secrets summary,
+- preview table grouped by category,
+- confirmation step,
+- rollback summary after import.
+
+The goal is that a user can end with the same practical working condition as the source application: projects visible, usable chat/session context where safely exportable, matching plugins and skills, matching MCP server definitions, matching personalization posture, and matching relevant settings without copying credentials or unsafe runtime state.
 
 ## Safety Rules
 
@@ -65,6 +119,8 @@ Adapters should declare which categories they support:
 - Redact local paths in public docs, screenshots, and demo fixtures.
 - Treat executable hooks, scripts, plugin commands, MCP server commands, and automation prompts as review-required before enabling.
 - Disable imported live execution by default until the user approves the target provider, workspace posture, and permission gates.
+- Limit imported tools to the functions that are actually needed for the selected migration categories. Extra tools, broad tool suites, and unused MCP tools should stay disabled until explicitly enabled.
+- Imported threads or chats must be metadata-only unless the source offers an explicit safe export path and the user selects it.
 
 ## Adapter Contract
 
@@ -81,6 +137,7 @@ Each migration adapter should expose:
 - rollback plan,
 - refresh plan,
 - unsupported-state copy.
+- minimum required tool list for each import category.
 
 The migration center should normalize source-specific concepts into Steerboard's provider-neutral model. If a source has no equivalent for a Steerboard feature, the preview must say so clearly instead of faking support.
 

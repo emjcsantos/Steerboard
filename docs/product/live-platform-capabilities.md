@@ -36,10 +36,12 @@ Steerboard should copy Codex's default options as a read-only seed catalog durin
 
 ## Migration Center
 
-Steerboard should let users ask to migrate settings and integrations from supported source platforms, then convert them into Steerboard profiles through a reviewed import flow.
+Steerboard should let users migrate settings and integrations from supported source platforms through `File > Migrate...`, then convert them into Steerboard profiles through a reviewed import flow. Natural-language migration requests should open the same dialog.
 
 - Planned source adapters include Codex, Claude Code, Antigravity, generic MCP config, generic skill/prompt folders, and manual JSON or TOML imports.
-- Importable categories include settings, model/provider preferences, commands, skills, prompts, agents, plugins, MCP servers, tool policy, project instructions, automations, and safe UI preferences.
+- Importable categories include projects, threads/chats, settings, model/provider preferences, commands, skills, prompts, agents, plugins, MCP servers, tool policy, project instructions, automations, personalization, and safe UI preferences.
+- The migration dialog should expose category checkboxes and disabled unsupported options with clear reasons.
+- Imported tools should be limited to the functions needed by the selected categories; broad or unused tool access remains disabled until explicitly enabled.
 - The migration center must show a preview before import, with counts for accepted, review-required, unsupported, and excluded items.
 - Secrets, auth caches, cookies, browser state, raw transcripts, and access tokens are always excluded.
 - Imported live execution is disabled by default until the user approves provider, workspace, permission, and audit gates.
