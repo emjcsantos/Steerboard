@@ -72,6 +72,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 - Codex install and version detection.
 - Auth posture display for ChatGPT login, API-key login, and trusted access-token setup.
+- Read-only Codex default option seed for plugins, skills, slash commands, MCP servers, and personalization sources.
 - Local app-server initialization and health state.
 - Thread start, resume, fork, archive, turn start, steer, interrupt, retry, and completion handling.
 - Live panel chat backed by normalized stream events.
@@ -81,6 +82,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 ## Phase 6: Platform Capabilities
 
 - Slash command registry and composer command menu.
+- Refreshable seeded option catalog so default plugins, skills, MCP servers, and commands stay aligned with the connected provider.
 - Provider-backed command execution with unsupported-state handling.
 - Plugin manager showing installed, enabled, disabled, setup-required, and unavailable states.
 - Plugin invocation through prompt prefixes or provider-supported command actions.

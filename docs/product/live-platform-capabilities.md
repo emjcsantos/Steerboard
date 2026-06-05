@@ -22,6 +22,18 @@ The Codex adapter should use the local Codex runtime instead of storing Codex se
 - Thread, turn, item, tool, approval, and stream events are normalized into Steerboard cockpit events.
 - Codex config, plugins, MCP, automations, memories, rules, and slash commands are reflected through adapter APIs rather than hardcoded as static UI.
 
+## Codex Default Option Seeding
+
+Steerboard should copy Codex's default options as a read-only seed catalog during Codex adapter setup, then refresh that catalog from the connected Codex runtime.
+
+- Plugin defaults should mirror Codex plugin groups and installed plugin metadata, including bundled skills, app connectors, bundled MCP servers, enabled/disabled state, setup-required state, and invocation hints.
+- Skill defaults should mirror Codex's available skill registry across system, admin, user, repository, and plugin-provided skills, while preserving each skill's source, trigger description, explicit invocation name, and enablement state.
+- MCP defaults should mirror Codex MCP configuration layers, including user config, trusted project config, plugin-provided MCP servers, stdio servers, HTTP servers, OAuth/login-required state, tool policy, timeout settings, and enabled/disabled state.
+- Slash command defaults should mirror the connected runtime's command registry and include command availability, scope, required capability, and unsupported-state copy.
+- Seeded defaults are not secrets and must not include tokens, raw auth files, private browser state, or raw transcripts.
+- If a user customizes a seeded option in Steerboard, save it as a Steerboard profile override instead of mutating Codex config silently.
+- Provide a refresh action so users can re-sync Steerboard with Codex after installing plugins, adding skills, or changing MCP servers.
+
 ## Required Live Surfaces
 
 ### Chat And Session Control
@@ -43,6 +55,7 @@ The Codex adapter should use the local Codex runtime instead of storing Codex se
 ### Plugin Manager
 
 - Show installed, enabled, disabled, unavailable, and setup-required plugin states.
+- Start from the Codex-seeded plugin catalog when the active provider is Codex.
 - Distinguish plugin skills, app connectors, and bundled MCP servers.
 - Let users open setup, enable, disable, or inspect a plugin through the provider adapter.
 - Never store third-party app secrets in Steerboard.
@@ -58,6 +71,7 @@ The Codex adapter should use the local Codex runtime instead of storing Codex se
 ### MCP Manager
 
 - List configured MCP servers and their health.
+- Start from the Codex-seeded MCP catalog when the active provider is Codex.
 - Add, edit, enable, disable, or remove servers through provider-supported flows.
 - Support stdio and HTTP server configuration where the provider supports them.
 - Surface OAuth/login-required states without storing tokens directly.
@@ -67,6 +81,7 @@ The Codex adapter should use the local Codex runtime instead of storing Codex se
 
 - Expose user and project configuration layers.
 - Show instruction sources such as project docs, local agent guidance, rules, skills, memories, and custom prompts.
+- Start from the Codex-seeded skill and personalization catalog when the active provider is Codex.
 - Let users inspect which personalization sources are active in a panel before sending a prompt.
 - Keep durable team rules in checked-in docs or project config, not only in generated memories.
 - Do not persist secrets, private browser state, or raw transcripts in public project files.

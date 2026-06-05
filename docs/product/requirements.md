@@ -12,6 +12,7 @@
 - Cockpit panels must support live chat sessions through configured provider adapters, starting with Codex.
 - Slash command discovery and execution must be available from every panel composer when the active provider supports commands.
 - Plugin, automation, MCP, and personalization surfaces must represent real provider state instead of static decorative navigation.
+- When Codex is connected, plugin, skill, slash command, and MCP defaults should be copied from the local Codex runtime into a read-only seed catalog that can be refreshed.
 - Per-cell session state: idle, planning, implementing, validating, blocked, failed, complete.
 - Orchestrator task board showing task ownership, attempt count, validation state, files touched, and handoff result.
 - Optional project management lane for pipeline visibility, monitoring, tracking, readiness, and change management before dispatching selected work to a configured agent runtime.
@@ -24,6 +25,7 @@
 - Runtime profile setup must be provider-neutral and should separate profile readiness from actual process execution.
 - Connection setup must make it easy to add Codex or another model/service adapter without rewriting cockpit panels.
 - Steerboard must not store Codex, plugin, MCP, or third-party service secrets directly; secrets stay in provider credential stores, OS keyrings, environment variables, or approved secret managers.
+- Steerboard profile overrides must be separate from Codex defaults so users can customize visibility and grouping without silently mutating Codex config.
 
 ## MVP Functional Scope
 
@@ -92,6 +94,7 @@
 - Desktop permission state should expose a local audit and export preview that combines approval state, shell approval status, request history, and execution lock status without writing files.
 - The environment panel should expose desktop packaging readiness so users can see shell, bridge, permission, and packaging-lock state before any installer or signed build command exists.
 - Live platform capability plans must track connection center, app-server/session bridge, slash command registry, plugin manager, automation manager, MCP manager, personalization center, and permission/audit layers.
+- A Codex default option seed preview should show discovered plugins, skills, MCP servers, commands, and personalization sources without enabling live execution.
 
 ## Later Functional Scope
 
@@ -100,6 +103,7 @@
 - Live transcript streaming.
 - Codex connection center backed by local Codex auth state, version detection, and safe credential posture.
 - Codex app-server adapter for thread, turn, item, approval, and streamed event lifecycle.
+- Codex default option import for plugins, skills, slash commands, MCP servers, and personalization sources.
 - Live panel chat that can start, resume, fork, interrupt, retry, and steer sessions.
 - Slash command registry backed by provider-reported commands and unsupported-state handling.
 - Plugin manager backed by provider plugin state, setup requirements, and explicit invocation.
