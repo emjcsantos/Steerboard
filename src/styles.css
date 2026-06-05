@@ -5757,7 +5757,8 @@ textarea {
 }
 
 .release-privacy-readiness,
-.security-acceptance-coverage {
+.security-acceptance-coverage,
+.security-repeated-runs {
   display: grid;
   gap: 8px;
   border-top: 1px solid #272d36;
@@ -5765,7 +5766,8 @@ textarea {
 }
 
 .release-privacy-header,
-.security-acceptance-header {
+.security-acceptance-header,
+.security-repeated-header {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -5775,7 +5777,9 @@ textarea {
 .release-privacy-header strong,
 .release-privacy-header b,
 .security-acceptance-header strong,
-.security-acceptance-header b {
+.security-acceptance-header b,
+.security-repeated-header strong,
+.security-repeated-header b {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -5783,12 +5787,14 @@ textarea {
 }
 
 .release-privacy-header strong,
-.security-acceptance-header strong {
+.security-acceptance-header strong,
+.security-repeated-header strong {
   color: #edf2f7;
 }
 
 .release-privacy-header b,
-.security-acceptance-header b {
+.security-acceptance-header b,
+.security-repeated-header b {
   border-radius: 999px;
   background: #252b34;
   color: #dce3eb;
@@ -5796,7 +5802,8 @@ textarea {
 }
 
 .release-privacy-state,
-.security-acceptance-state {
+.security-acceptance-state,
+.security-repeated-state {
   display: inline-flex;
   align-items: center;
   min-width: 0;
@@ -5813,7 +5820,8 @@ textarea {
 }
 
 .release-privacy-state span,
-.security-acceptance-state span {
+.security-acceptance-state span,
+.security-repeated-state span {
   width: 7px;
   height: 7px;
   flex: 0 0 auto;
@@ -5824,7 +5832,9 @@ textarea {
 .release-privacy-ready .release-privacy-state span,
 .release-privacy-item-ready span,
 .security-acceptance-ready .security-acceptance-state span,
-.security-acceptance-item-ready span {
+.security-acceptance-item-ready span,
+.security-repeated-ready .security-repeated-state span,
+.security-repeated-item-ready span {
   background: #89dda9;
 }
 
@@ -5835,21 +5845,29 @@ textarea {
 .security-acceptance-review .security-acceptance-state span,
 .security-acceptance-waiting .security-acceptance-state span,
 .security-acceptance-item-review span,
-.security-acceptance-item-waiting span {
+.security-acceptance-item-waiting span,
+.security-repeated-review .security-repeated-state span,
+.security-repeated-waiting .security-repeated-state span,
+.security-repeated-item-review span,
+.security-repeated-item-waiting span {
   background: #f0d984;
 }
 
 .release-privacy-blocked .release-privacy-state span,
 .release-privacy-item-blocked span,
 .security-acceptance-blocked .security-acceptance-state span,
-.security-acceptance-item-blocked span {
+.security-acceptance-item-blocked span,
+.security-repeated-blocked .security-repeated-state span,
+.security-repeated-item-blocked span {
   background: #ff9e85;
 }
 
 .release-privacy-readiness p,
 .release-privacy-readiness small,
 .security-acceptance-coverage p,
-.security-acceptance-coverage small {
+.security-acceptance-coverage small,
+.security-repeated-runs p,
+.security-repeated-runs small {
   overflow: hidden;
   margin: 0;
   color: #8f99a5;
@@ -5859,7 +5877,8 @@ textarea {
 }
 
 .release-privacy-items,
-.security-acceptance-items {
+.security-acceptance-items,
+.security-repeated-items {
   display: grid;
   gap: 5px;
   margin: 0;
@@ -5868,7 +5887,8 @@ textarea {
 }
 
 .release-privacy-items li,
-.security-acceptance-items li {
+.security-acceptance-items li,
+.security-repeated-items li {
   display: grid;
   grid-template-columns: 58px minmax(96px, 0.42fr) minmax(0, 1fr);
   min-width: 0;
@@ -5884,7 +5904,10 @@ textarea {
 .release-privacy-items small,
 .security-acceptance-items span,
 .security-acceptance-items strong,
-.security-acceptance-items small {
+.security-acceptance-items small,
+.security-repeated-items span,
+.security-repeated-items strong,
+.security-repeated-items small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -5892,7 +5915,8 @@ textarea {
 }
 
 .release-privacy-items span,
-.security-acceptance-items span {
+.security-acceptance-items span,
+.security-repeated-items span {
   display: inline-flex;
   min-width: 0;
   justify-content: center;
@@ -5904,13 +5928,51 @@ textarea {
 }
 
 .release-privacy-items strong,
-.security-acceptance-items strong {
+.security-acceptance-items strong,
+.security-repeated-items strong {
   color: #dce3eb;
 }
 
 .release-privacy-items small,
-.security-acceptance-items small {
+.security-acceptance-items small,
+.security-repeated-items small {
   color: #8f99a5;
+}
+
+.security-repeated-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.security-repeated-grid div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border-radius: 8px;
+  background: #13171d;
+  padding: 7px 6px;
+}
+
+.security-repeated-grid dt,
+.security-repeated-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.security-repeated-grid dt {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.security-repeated-grid dd {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .adapter-contract-summary {

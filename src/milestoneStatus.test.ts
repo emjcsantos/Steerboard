@@ -238,11 +238,11 @@ describe("milestone status model", () => {
       active: 1,
       planned: 0,
       paused: 2,
-      averageCompletionPercent: 69,
+      averageCompletionPercent: 71,
       nextTarget: "Security and privacy model",
       nextStep:
-        "Close final security acceptance evidence from repeated live cockpit runs before packaging resumes.",
-      nextCompletionPercent: 85
+        "Run final security acceptance review and keep packaging paused until core development is complete.",
+      nextCompletionPercent: 95
     });
   });
 
@@ -253,12 +253,12 @@ describe("milestone status model", () => {
 
     expect(securityMilestone?.completion).toBe("In progress");
     expect(securityMilestone?.tone).toBe("active");
-    expect(securityMilestone?.completionPercent).toBe(85);
+    expect(securityMilestone?.completionPercent).toBe(95);
     expect(securityMilestone?.latestNote).toBe(
-      "Live cockpit security acceptance now connects selected-run evidence, release privacy readiness, real-data boundaries, runtime-adapter edge evidence, and audit review."
+      "Repeated live cockpit security evidence now shows sample coverage, ready/review/blocked run counts, and close-evidence status before packaging resumes."
     );
     expect(securityMilestone?.nextStep).toBe(
-      "Close final security acceptance evidence from repeated live cockpit runs before packaging resumes."
+      "Run final security acceptance review and keep packaging paused until core development is complete."
     );
   });
 
@@ -393,6 +393,11 @@ describe("milestone status model", () => {
     expect(securityDocText).toContain("Release privacy readiness");
     expect(securityDocText).toContain("Runtime adapter edge evidence");
     expect(securityDocText).toContain("Audit review trail");
+    expect(securityDocText).toContain("## Repeated Live Run Evidence");
+    expect(securityDocText).toContain("reviewed run sample coverage");
+    expect(securityDocText).toContain("ready run count");
+    expect(securityDocText).toContain("blocked run count");
+    expect(securityDocText).toContain("evidence can be closed");
 
     for (const pattern of securityDocForbiddenTerms) {
       expect(pattern.test(securityDocText)).toBe(false);

@@ -228,6 +228,10 @@ import {
   type SecurityAcceptanceCoverageSnapshot
 } from "./securityAcceptanceCoverage";
 import {
+  createSecurityAcceptanceRepeatedRuns,
+  type SecurityAcceptanceRepeatedRunsSnapshot
+} from "./securityAcceptanceRepeatedRuns";
+import {
   renderDispatchPackageMarkdown,
   tryBuildDispatchPackage,
   type DispatchPackage
@@ -2647,6 +2651,30 @@ function RightPanel({
       }),
     [releasePrivacyItemStatus, releasePrivacyReadinessSnapshot, selectedRun]
   );
+  const securityAcceptanceRepeatedRunsSnapshot = useMemo(
+    () =>
+      createSecurityAcceptanceRepeatedRuns(
+        mockRuns.map((run) =>
+          createSecurityAcceptanceCoverage({
+            hasSelectedRun: true,
+            selectedRunStatus: run.status,
+            releasePrivacyState: releasePrivacyReadinessSnapshot.state,
+            releasePrivacyReadiness: releasePrivacyReadinessSnapshot.readiness,
+            realProjectDataReady: toSecurityAcceptanceEvidenceState(
+              releasePrivacyItemStatus.get("Sensitive data boundary")
+            ),
+            runtimeAdapterEdgesReady: toSecurityAcceptanceEvidenceState(
+              releasePrivacyItemStatus.get("Permission and execution lock")
+            ),
+            auditReviewReady: toSecurityAcceptanceEvidenceState(
+              releasePrivacyItemStatus.get("Audit and export trail")
+            )
+          })
+        ),
+        { requiredRunCount: 3 }
+      ),
+    [mockRuns, releasePrivacyItemStatus, releasePrivacyReadinessSnapshot]
+  );
   const desktopPackagingReadinessSnapshot = useMemo(
     () =>
       buildDesktopPackagingReadinessSnapshot(
@@ -3314,6 +3342,7 @@ function RightPanel({
         acceptance={securityAcceptanceCoverageSnapshot}
         model={securityPrivacyThreatModel}
         releasePrivacy={releasePrivacyReadinessSnapshot}
+        repeatedRuns={securityAcceptanceRepeatedRunsSnapshot}
       />
 
       <section className="panel-section">
@@ -4860,11 +4889,13 @@ function ToolEvidenceReadinessPanel({
 function SecurityPrivacyThreatModelPanel({
   acceptance,
   model,
-  releasePrivacy
+  releasePrivacy,
+  repeatedRuns
 }: {
   acceptance: SecurityAcceptanceCoverageSnapshot;
   model: SecurityPrivacyThreatModel;
   releasePrivacy: ReleasePrivacyReadinessSnapshot;
+  repeatedRuns: SecurityAcceptanceRepeatedRunsSnapshot;
 }) {
   return (
     <section className="panel-section">
@@ -4959,6 +4990,55 @@ function SecurityPrivacyThreatModelPanel({
             ))}
           </ol>
           <small title={acceptance.safety}>{acceptance.safety}</small>
+        </div>
+        <div
+          aria-label={repeatedRuns.ariaLabel}
+          className={classNames(
+            "security-repeated-runs",
+            `security-repeated-${repeatedRuns.state}`
+          )}
+        >
+          <div className="security-repeated-header">
+            <span className="security-repeated-state">
+              <span aria-hidden="true" />
+              {repeatedRuns.statusLabel}
+            </span>
+            <strong title={repeatedRuns.label}>Repeated evidence</strong>
+            <b>{repeatedRuns.readiness}%</b>
+          </div>
+          <p title={repeatedRuns.detail}>{repeatedRuns.detail}</p>
+          <dl className="security-repeated-grid" aria-label="Repeated security evidence counts">
+            <div>
+              <dt>Reviewed</dt>
+              <dd>{repeatedRuns.reviewedRunCount}/{repeatedRuns.requiredRunCount}</dd>
+            </div>
+            <div>
+              <dt>Ready</dt>
+              <dd>{repeatedRuns.readyRunCount}</dd>
+            </div>
+            <div>
+              <dt>Review</dt>
+              <dd>{repeatedRuns.reviewRunCount}</dd>
+            </div>
+            <div>
+              <dt>Blocked</dt>
+              <dd>{repeatedRuns.blockedRunCount}</dd>
+            </div>
+          </dl>
+          <ol className="security-repeated-items">
+            {repeatedRuns.items.map((item) => (
+              <li
+                className={`security-repeated-item-${item.status}`}
+                key={item.id}
+                title={item.detail}
+              >
+                <span>{item.status}</span>
+                <strong>{item.label}</strong>
+                <small>{item.detail}</small>
+              </li>
+            ))}
+          </ol>
+          <small title={repeatedRuns.safety}>{repeatedRuns.safety}</small>
         </div>
       </div>
     </section>

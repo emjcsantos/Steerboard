@@ -82,6 +82,18 @@ The cockpit presents a visible security acceptance coverage check before packagi
 
 Security acceptance coverage is a monitoring and decision-support surface only. It must not start a process, mutate files, call a network endpoint, build release artifacts, or trigger installation or packaging actions.
 
+## Repeated Live Run Evidence
+
+Before packaging resumes, the cockpit should make repeated live-run evidence visible across multiple local runs. The repeated evidence view tracks:
+
+- reviewed run sample coverage,
+- ready run count,
+- review run count,
+- blocked run count,
+- whether evidence can be closed.
+
+Repeated live-run evidence is a status summary only. It must not start packaging, install dependencies, export artifacts, mutate runtime state, or perform external actions.
+
 ## Implementation Controls
 
 - Root-scoped file access: keep reads/writes constrained to project roots with explicit path allowlists.
