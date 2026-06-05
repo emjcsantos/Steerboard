@@ -40,6 +40,16 @@ export interface ResizePanelInput {
   h?: number;
 }
 
+export interface NudgePanelInput {
+  dx?: number;
+  dy?: number;
+}
+
+export interface ResizePanelDeltaInput {
+  dw?: number;
+  dh?: number;
+}
+
 export function createDefaultAdaptiveCockpitLayout(
   columns: number = ADAPTIVE_LAYOUT_COLUMNS,
   rows: number = ADAPTIVE_LAYOUT_ROWS
@@ -330,6 +340,38 @@ export function resizeAdaptiveCockpitPanel(
     y: resolved.y,
     w: resolved.w,
     h: resolved.h
+  });
+}
+
+export function nudgeAdaptiveCockpitPanel(
+  layout: AdaptiveCockpitLayout,
+  panelId: string,
+  nudge: NudgePanelInput
+): AdaptiveCockpitLayout {
+  const panel = layout.panels.find((item) => item.id === panelId);
+  if (!panel) {
+    return layout;
+  }
+
+  return moveAdaptiveCockpitPanel(layout, panelId, {
+    x: panel.x + (nudge.dx ?? 0),
+    y: panel.y + (nudge.dy ?? 0)
+  });
+}
+
+export function resizeAdaptiveCockpitPanelByDelta(
+  layout: AdaptiveCockpitLayout,
+  panelId: string,
+  resize: ResizePanelDeltaInput
+): AdaptiveCockpitLayout {
+  const panel = layout.panels.find((item) => item.id === panelId);
+  if (!panel) {
+    return layout;
+  }
+
+  return resizeAdaptiveCockpitPanel(layout, panelId, {
+    w: panel.w + (resize.dw ?? 0),
+    h: panel.h + (resize.dh ?? 0)
   });
 }
 

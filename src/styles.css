@@ -317,6 +317,16 @@ textarea {
   background: #303740;
 }
 
+.project-button[draggable="true"],
+.project-folder-button[draggable="true"] {
+  cursor: grab;
+}
+
+.project-button[draggable="true"]:active,
+.project-folder-button[draggable="true"]:active {
+  cursor: grabbing;
+}
+
 .project-status {
   width: 8px;
   height: 8px;

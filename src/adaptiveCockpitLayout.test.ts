@@ -9,9 +9,11 @@ import {
   hiddenAdaptiveCockpitPanels,
   hideAdaptiveCockpitPanel,
   moveAdaptiveCockpitPanel,
+  nudgeAdaptiveCockpitPanel,
   repairAdaptiveCockpitLayout,
   removeAdaptiveCockpitPanel,
   resizeAdaptiveCockpitPanel,
+  resizeAdaptiveCockpitPanelByDelta,
   revealAdaptiveCockpitPanel,
   syncAdaptiveCockpitLayoutToPanelIds,
   visibleAdaptiveCockpitPanels
@@ -79,6 +81,23 @@ describe("adaptive cockpit layout model", () => {
       y: 1,
       w: 2,
       h: 1
+    });
+  });
+
+  it("nudges and delta-resizes panels for keyboard controls", () => {
+    let layout = createDefaultAdaptiveCockpitLayout();
+    layout = nudgeAdaptiveCockpitPanel(layout, "panel-1", { dx: 1, dy: 1 });
+
+    expect(layout.panels.find((panel) => panel.id === "panel-1")).toMatchObject({
+      x: 1,
+      y: 1
+    });
+
+    layout = resizeAdaptiveCockpitPanelByDelta(layout, "panel-1", { dw: 1, dh: 1 });
+
+    expect(layout.panels.find((panel) => panel.id === "panel-1")).toMatchObject({
+      w: 2,
+      h: 2
     });
   });
 
