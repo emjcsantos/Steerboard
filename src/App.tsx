@@ -45,6 +45,7 @@ import {
   createAdaptiveCockpitDropPreview,
   type AdaptiveCockpitDropPreview
 } from "./adaptiveCockpitDropPreview";
+import { createAdaptiveProjectPanelStack } from "./adaptiveCockpitProjectStack";
 import {
   ADAPTIVE_LAYOUT_MAX_PANELS,
   createAdaptiveCockpitLayoutForPanelIds,
@@ -1306,13 +1307,17 @@ export function App() {
 
     return projectMockRuns[0];
   }, [projectMockRuns, selectedRunId]);
+  const allMockSessions = useMemo(
+    () => mockRuns.flatMap((run) => runToSessionSummaries(run) as SessionSummary[]),
+    [mockRuns]
+  );
   const projectMockSessions = useMemo(
-    () => projectMockRuns.flatMap((run) => runToSessionSummaries(run) as SessionSummary[]),
-    [projectMockRuns]
+    () => allMockSessions.filter((session) => session.projectId === project.id),
+    [allMockSessions, project.id]
   );
   const adaptiveDropSessionIdsByProject = useMemo(() => {
     const nextMap: Record<string, string[]> = {};
-    for (const session of [...sessions, ...projectMockSessions]) {
+    for (const session of [...sessions, ...allMockSessions]) {
       nextMap[session.projectId] = nextMap[session.projectId] ?? [];
       if (!nextMap[session.projectId].includes(session.id)) {
         nextMap[session.projectId].push(session.id);
@@ -1320,7 +1325,7 @@ export function App() {
     }
 
     return nextMap;
-  }, [projectMockSessions]);
+  }, [allMockSessions]);
   const projectMockTasks = useMemo(
     () => projectMockRuns.flatMap((run) => runToOrchestrationTasks(run)),
     [projectMockRuns]
@@ -1340,20 +1345,24 @@ export function App() {
     () => [...projectMockSessions, ...basePresetSessions],
     [basePresetSessions, projectMockSessions]
   );
-  const sessionById = useMemo(
-    () => new Map(cockpitSessions.map((session) => [session.id, session])),
-    [cockpitSessions]
-  );
-  const allKnownSessionById = useMemo(() => {
+  const allKnownSessions = useMemo(() => {
     const nextMap = new Map<string, SessionSummary>();
-    for (const session of [...sessions, ...projectMockSessions, ...cockpitSessions]) {
+    for (const session of [...sessions, ...allMockSessions, ...cockpitSessions]) {
       if (!nextMap.has(session.id)) {
         nextMap.set(session.id, session);
       }
     }
 
-    return nextMap;
-  }, [cockpitSessions, projectMockSessions]);
+    return [...nextMap.values()];
+  }, [allMockSessions, cockpitSessions]);
+  const sessionById = useMemo(
+    () => new Map(cockpitSessions.map((session) => [session.id, session])),
+    [cockpitSessions]
+  );
+  const allKnownSessionById = useMemo(
+    () => new Map(allKnownSessions.map((session) => [session.id, session])),
+    [allKnownSessions]
+  );
   const sidebarSessions = useMemo(() => {
     const seenSessionIds = new Set<string>();
     const nextSessions: SessionSummary[] = [];
@@ -1653,21 +1662,38 @@ export function App() {
     setAdaptiveDraggingProjectId(projectId);
   }
 
+  function monitorFallbackSessionIds() {
+    return cockpitPresets.find((entry) => entry.mode === "monitor")?.sessionIds ?? adaptivePanelIds;
+  }
+
   function openProjectInAdaptiveCockpit(item: ProjectSummary) {
-    const panelId = resolveAdaptiveDropPanelId(
-      buildProjectDropPayload(item.id, item.name),
-      adaptiveDropSessionIdsByProject
-    );
+    const projectStack = createAdaptiveProjectPanelStack({
+      projectId: item.id,
+      sessions: allKnownSessions,
+      fallbackSessionIds: monitorFallbackSessionIds(),
+      maxPanelCount: ADAPTIVE_LAYOUT_MAX_PANELS
+    });
 
     updatePreferences({
       selectedProjectId: item.id,
+      mode: "monitor",
       layoutId: "adaptive",
       view: "cockpit"
     });
-    if (panelId) {
-      setFocusedPanelId(panelId);
+
+    if (projectStack.panelIds.length > 0) {
+      setAdaptiveCockpitLayout(
+        createAdaptiveCockpitLayoutForPanelIds(
+          projectStack.panelIds,
+          Math.min(4, projectStack.panelIds.length)
+        )
+      );
+      setFocusedPanelId(projectStack.primaryPanelId);
+      setAppNotice(`${item.name} opened as ${projectStack.label.toLowerCase()}`);
+      return;
     }
-    setAppNotice(`${item.name} opened in Adaptive cockpit`);
+
+    setAppNotice(`${item.name} has no available Adaptive cockpit panels`);
   }
 
   function panelIdsForSessionDrop(session: SessionSummary) {

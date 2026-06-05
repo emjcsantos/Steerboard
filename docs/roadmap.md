@@ -11,7 +11,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 | Phase 3: Optional Project Management Lane | In progress | Pipeline items can be inspected, request history is local, dispatch-ready items can create local cockpit run projections, and selected items can show linked local runs with status summaries. This lane supports visibility and change management, while cockpit chat remains primary. |
 | Phase 4: Runtime Adapters | In progress | Provider-neutral adapter previews, runtime profiles, local approvals, bridge status, permission previews, and evidence readiness are scaffolded as locked local previews. |
 | Phase 5: Live Codex Integration | In progress | Codex transport spike identifies supervised app-server stdio as the safest first session bridge, with no-prompt readiness on startup and explicit live smoke for one read-only send/stream proof. |
-| Phase 6: Adaptive Cockpit Canvas | In progress | Adaptive mode now supports persisted panel geometry, add/reveal, hide, resize, reset, keyboard move/resize, magnetic panel dragging, project drag-in, chat drag-in, and visible drop-preview states from the left rail. |
+| Phase 6: Adaptive Cockpit Canvas | In progress | Adaptive mode now supports persisted panel geometry, add/reveal, hide, resize, reset, keyboard move/resize, magnetic panel dragging, project stack drag-in, chat drag-in, and visible drop-preview states from the left rail. |
 | Phase 7: Platform Capabilities | Planned | Slash commands, plugins, automations, MCP, personalization, permissions, and audit state become live provider-backed surfaces. |
 | Phase 8: Local Execution And Packaging | Planned | Real runtime execution, permissioned terminal/Git capture, audit exports, build signing, and installer checks remain behind future explicit approval gates. |
 
@@ -95,12 +95,13 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 - Adaptive freeform cockpit mode.
 - User-created panels from existing cockpit sessions and tasks.
-- Drag-and-drop from the left rail into the cockpit center, starting with projects and chats.
+- Drag-and-drop from the left rail into the cockpit center, starting with project stacks and chats.
 - Resizable and repositionable panels with magnetic snapping.
 - Collision handling, safe drop zones, hidden queue integration, and reset to last safe layout.
 - Local persistence and saved-state repair for panel geometry.
 - Keyboard alternatives for add, move, resize, focus, hide, reveal, and reset.
 - Visible ready, unsupported, and unavailable drop-preview states for adaptive docking.
+- Default project stack selection that prioritizes orchestrator, implementer, validator, and integration panels before monitor fallbacks.
 
 ## Phase 7: Platform Capabilities
 
