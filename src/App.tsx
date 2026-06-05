@@ -354,6 +354,10 @@ import {
   type RuntimeAdapterSessionSnapshot
 } from "./runtimeAdapterSession";
 import {
+  createRuntimeCoreEntryValidation,
+  type RuntimeCoreEntryValidation
+} from "./runtimeCoreEntryValidation";
+import {
   buildRuntimeEventSourceSnapshot,
   type RuntimeEventSourceSnapshot
 } from "./runtimeEventSource";
@@ -2375,6 +2379,15 @@ function RightPanel({
     runtimeAdapter,
     runtimeStreamSnapshot
   );
+  const runtimeCoreEntryValidation: RuntimeCoreEntryValidation = useMemo(
+    () =>
+      createRuntimeCoreEntryValidation(
+        runtimeAdapter,
+        adapterContractItems,
+        runtimeAdapterSessionSnapshot
+      ),
+    [adapterContractItems, runtimeAdapter, runtimeAdapterSessionSnapshot]
+  );
   const runtimeEventSourceSnapshot = buildRuntimeEventSourceSnapshot(
     runtimeAdapterSessionSnapshot,
     runtimeStreamSnapshot,
@@ -3167,6 +3180,35 @@ function RightPanel({
           </span>
           <span>{runtimeAdapter?.readiness ?? 0}% readiness</span>
           <span>{runtimeSummary.ready}/{runtimeSummary.total} ready</span>
+        </div>
+        <div
+          aria-label={runtimeCoreEntryValidation.ariaLabel}
+          className={classNames(
+            "runtime-core-entry-validation",
+            `runtime-core-entry-${runtimeCoreEntryValidation.tone}`
+          )}
+          title={runtimeCoreEntryValidation.detail}
+        >
+          <div className="runtime-core-entry-header">
+            <strong>{runtimeCoreEntryValidation.label}</strong>
+            <b>{runtimeCoreEntryValidation.checkLabel}</b>
+          </div>
+          <p>{runtimeCoreEntryValidation.detail}</p>
+          <div className="runtime-core-entry-checks" aria-label="Runtime core entry validation checks">
+            {runtimeCoreEntryValidation.checks.map((check) => (
+              <span
+                className={classNames(
+                  "runtime-core-entry-check",
+                  `runtime-core-entry-check-${check.tone}`
+                )}
+                key={check.label}
+                title={`${check.label}: ${check.value}`}
+              >
+                <strong>{check.value}</strong>
+                <small>{check.label}</small>
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 

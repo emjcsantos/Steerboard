@@ -3339,6 +3339,116 @@ textarea {
   font-size: 11px;
 }
 
+.runtime-core-entry-validation {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  margin-top: 8px;
+  border: 1px solid #303844;
+  border-radius: 8px;
+  background: #111820;
+  padding: 8px;
+}
+
+.runtime-core-entry-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.runtime-core-entry-header strong,
+.runtime-core-entry-header b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-core-entry-header strong {
+  color: #edf3f8;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.runtime-core-entry-header b {
+  border-radius: 999px;
+  background: #10161d;
+  color: #cfd8e3;
+  padding: 3px 6px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.runtime-core-entry-validation p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #9fa9b4;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.runtime-core-entry-checks {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.runtime-core-entry-check {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #26303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 6px 5px;
+  text-align: center;
+}
+
+.runtime-core-entry-check strong,
+.runtime-core-entry-check small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-core-entry-check strong {
+  color: #f4f7fa;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.runtime-core-entry-check small {
+  color: #8f99a4;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.runtime-core-entry-ready,
+.runtime-core-entry-check-ok {
+  border-color: #254634;
+}
+
+.runtime-core-entry-review,
+.runtime-core-entry-check-review {
+  border-color: #5c4b1b;
+}
+
+.runtime-core-entry-blocked,
+.runtime-core-entry-check-blocked {
+  border-color: #69343a;
+}
+
+.runtime-core-entry-missing,
+.runtime-core-entry-check-neutral {
+  border-color: #303844;
+}
+
 .registry-detail strong {
   overflow: hidden;
   text-overflow: ellipsis;

@@ -144,6 +144,22 @@ describe("milestone status model", () => {
     );
   });
 
+  it("requires a compact public-safe summary for runtime adapters", () => {
+    const runtimeAdapters = steerboardMilestoneStatuses.find(
+      (milestone) => milestone.target === "Runtime adapters"
+    );
+
+    expect(runtimeAdapters?.completion).toBe("In progress");
+    expect(runtimeAdapters?.tone).toBe("active");
+    expect(runtimeAdapters?.completionPercent).toBe(60);
+    expect(runtimeAdapters?.latestNote).toBe(
+      "Core runtime entry validation now checks adapter readiness, contract coverage, session state, and entry-point permissions for runtime validation."
+    );
+    expect(runtimeAdapters?.nextStep).toBe(
+      "Add runtime event-source and launch handoff acceptance coverage."
+    );
+  });
+
   it("maps completion values to tone in required way for exported data", () => {
     const toneByCompletion: Record<MilestoneCompletion, MilestoneTone> = {
       Complete: "complete",
@@ -164,11 +180,11 @@ describe("milestone status model", () => {
       active: 1,
       planned: 2,
       paused: 1,
-      averageCompletionPercent: 54,
+      averageCompletionPercent: 56,
       nextTarget: "Runtime adapters",
       nextStep:
-        "Validate adapter behavior against core runtime entry points and close remaining gaps.",
-      nextCompletionPercent: 45
+        "Add runtime event-source and launch handoff acceptance coverage.",
+      nextCompletionPercent: 60
     });
   });
 
