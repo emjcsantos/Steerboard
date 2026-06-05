@@ -4,6 +4,7 @@ import {
   codexSessionStateToPanelMessages,
   createPanelLiveErrorMessage,
   createPanelLiveStatusMessage,
+  createPanelSlashCommandStatusMessage,
   createPanelReplyMessage,
   getPanelSlashCommandDecision,
   getPanelSlashCommandSuggestions,
@@ -49,39 +50,88 @@ describe("panel chat helpers", () => {
   it("routes slash commands according to catalog capability and live transport", () => {
     expect(getPanelSlashCommandDecision("regular message", false)).toMatchObject({
       route: "none",
-      executable: true
+      executable: true,
+      feedback: {
+        statusLabel: "Local message",
+        severity: "info"
+      }
     });
     expect(getPanelSlashCommandDecision("/validate now", false)).toMatchObject({
       route: "local-preview",
       executable: true,
-      state: "preview"
+      state: "preview",
+      feedback: {
+        statusLabel: "Preview",
+        severity: "info",
+        nextAction: "Run locally and review staged result before provider execution."
+      }
     });
     expect(getPanelSlashCommandDecision("/plan next", false)).toMatchObject({
       route: "blocked",
       executable: false,
-      state: "unavailable"
+      state: "unavailable",
+      feedback: {
+        statusLabel: "Blocked",
+        severity: "warning",
+        nextAction: "Enable live transport or retry once provider connectivity is active."
+      }
     });
     expect(getPanelSlashCommandDecision("/plan next", true)).toMatchObject({
       route: "provider",
       executable: true,
-      state: "live"
+      state: "live",
+      feedback: {
+        statusLabel: "Ready",
+        severity: "success",
+        nextAction: "Route this command through the connected provider."
+      }
     });
     expect(getPanelSlashCommandDecision("/mcp list", true)).toMatchObject({
       route: "blocked",
       executable: false,
-      state: "unsupported"
+      state: "unsupported",
+      feedback: {
+        statusLabel: "Unsupported",
+        severity: "error",
+        nextAction: "Use a supported command that is enabled for this panel."
+      }
     });
     expect(getPanelSlashCommandDecision("/unknown", true)).toMatchObject({
       route: "blocked",
       executable: false,
-      state: "unknown"
+      state: "unknown",
+      feedback: {
+        statusLabel: "Unknown",
+        severity: "error",
+        nextAction: "Use a supported slash command from the catalog."
+      }
     });
   });
 
   it("creates a command-aware local reply", () => {
     expect(createPanelReplyMessage(session, 4, "/validate this").meta).toBe("slash command preview");
+    expect(createPanelReplyMessage(session, 4, "/plan this").body).toMatch(/Blocked|Unable|Route/);
+    expect(createPanelReplyMessage(session, 4, "/validate this").body).toMatch(/preview/);
     expect(createPanelReplyMessage(session, 4, "/plan this").meta).toBe("slash command blocked");
     expect(createPanelReplyMessage(session, 4, "regular message").meta).toBe("local adapter pending");
+  });
+
+  it("renders a structured status message for blocked slash decisions", () => {
+    const blockedDecision = getPanelSlashCommandDecision("/mcp list", true);
+    const statusMessage = createPanelSlashCommandStatusMessage(session, 9, blockedDecision);
+
+    expect(statusMessage.meta).toBe("slash command blocked");
+    expect(statusMessage.body).toContain("Unsupported");
+    expect(statusMessage.body).toContain("/mcp");
+    expect(statusMessage.body).toContain("Use a supported command");
+  });
+
+  it("renders an explicit local-provider message for non-executable unknown commands", () => {
+    const unknownDecision = getPanelSlashCommandDecision("/unknown", true);
+    const statusMessage = createPanelSlashCommandStatusMessage(session, 10, unknownDecision);
+
+    expect(statusMessage.body).toContain("Unknown");
+    expect(statusMessage.body).toContain("Use a supported slash command");
   });
 
   it("creates live status and error messages for Codex panel activity", () => {

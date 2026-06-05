@@ -2413,6 +2413,35 @@ textarea {
   color: #ff9e85;
 }
 
+.chat-composer-meta .slash-feedback-pill {
+  max-width: 150px;
+  border: 1px solid #303743;
+  border-radius: 999px;
+  background: #171d24;
+  padding: 2px 7px;
+  line-height: 1.2;
+}
+
+.chat-composer-meta .slash-feedback-success {
+  border-color: #245133;
+  color: #89dda9;
+}
+
+.chat-composer-meta .slash-feedback-info {
+  border-color: #315977;
+  color: #8bd7f4;
+}
+
+.chat-composer-meta .slash-feedback-warning {
+  border-color: #5d4a27;
+  color: #f0d984;
+}
+
+.chat-composer-meta .slash-feedback-error {
+  border-color: #563027;
+  color: #ff9e85;
+}
+
 .chat-composer button.session-control-button {
   width: 25px;
   height: 25px;

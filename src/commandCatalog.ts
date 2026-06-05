@@ -10,6 +10,14 @@ export type CommandCatalogEntry = {
   scopes: CommandCatalogScope[];
 };
 
+export type CommandExecutionDecisionSeverity = "error" | "warning" | "info" | "success";
+
+export interface CommandExecutionFeedback {
+  statusLabel: string;
+  severity: CommandExecutionDecisionSeverity;
+  nextAction: string;
+}
+
 type CommandExecutionDecisionState = CommandCatalogState;
 
 type UnknownCommand = {
@@ -17,6 +25,7 @@ type UnknownCommand = {
   executable: false;
   reason: string;
   entry?: undefined;
+  feedback: CommandExecutionFeedback;
 };
 
 type ExecutableDecision = {
@@ -24,6 +33,7 @@ type ExecutableDecision = {
   executable: true;
   reason: string;
   entry: CommandCatalogEntry;
+  feedback: CommandExecutionFeedback;
 };
 
 type NonExecutableDecision = {
@@ -31,6 +41,7 @@ type NonExecutableDecision = {
   executable: false;
   reason: string;
   entry?: CommandCatalogEntry;
+  feedback: CommandExecutionFeedback;
 };
 
 export type CommandExecutionDecision = UnknownCommand | ExecutableDecision | NonExecutableDecision;
@@ -184,6 +195,14 @@ function normalizeCommandCatalogInternal(value: unknown): CommandCatalogEntry[] 
   return entries;
 }
 
+function commandFeedback(
+  statusLabel: string,
+  severity: CommandExecutionDecisionSeverity,
+  nextAction: string
+): CommandExecutionFeedback {
+  return { statusLabel, severity, nextAction };
+}
+
 export function normalizeCommandCatalog(
   value: unknown,
   fallback: readonly CommandCatalogEntry[] = defaultCommandCatalog
@@ -256,7 +275,14 @@ export function buildCommandExecutionDecision(
       executable: false,
       reason: normalizedSubmitted.length > 1
         ? `Unknown slash command ${normalizedSubmitted}.`
-        : "A valid slash command is required."
+        : "A valid slash command is required.",
+      feedback: commandFeedback(
+        "Unknown",
+        "error",
+        normalizedSubmitted.length > 1
+          ? "Use a supported slash command from the catalog."
+          : "Start with a valid slash command."
+      )
     };
   }
 
@@ -265,7 +291,12 @@ export function buildCommandExecutionDecision(
       state: "unavailable",
       executable: false,
       reason: `Live transport is not available for ${entry.command}.`,
-      entry
+      entry,
+      feedback: commandFeedback(
+        "Blocked",
+        "warning",
+        "Enable live transport or retry once provider connectivity is active."
+      )
     };
   }
 
@@ -274,7 +305,12 @@ export function buildCommandExecutionDecision(
       state: "live",
       executable: true,
       reason: `${entry.command} is available in live mode.`,
-      entry
+      entry,
+      feedback: commandFeedback(
+        "Ready",
+        "success",
+        "Route this command through the connected provider."
+      )
     };
   }
 
@@ -283,7 +319,12 @@ export function buildCommandExecutionDecision(
       state: "preview",
       executable: true,
       reason: `${entry.command} runs in preview mode.`,
-      entry
+      entry,
+      feedback: commandFeedback(
+        "Preview",
+        "info",
+        "Run locally and review staged result before provider execution."
+      )
     };
   }
 
@@ -293,6 +334,13 @@ export function buildCommandExecutionDecision(
     reason: entry.state === "unsupported"
       ? `${entry.command} is unsupported in this catalog context.`
       : `${entry.command} is unavailable in this environment.`,
-    entry
+    entry,
+    feedback: commandFeedback(
+      entry.state === "unsupported" ? "Unsupported" : "Unavailable",
+      entry.state === "unsupported" ? "error" : "warning",
+      entry.state === "unsupported"
+        ? "Use a supported command that is enabled for this panel."
+        : "Retry when this command is enabled in this environment."
+    )
   };
 }

@@ -3132,11 +3132,17 @@ function SessionCell({
         ? "Codex live session ready"
         : "Codex local preview"
   );
+  const canUseLiveCodex = liveCodexEnabled && hasDesktopRuntime();
   const slashSuggestions = useMemo(
     () => getPanelSlashCommandSuggestions(draftMessage),
     [draftMessage]
   );
-  const canUseLiveCodex = liveCodexEnabled && hasDesktopRuntime();
+  const activeSlashCommandDecision = useMemo(() => {
+    const trimmedDraft = draftMessage.trimStart();
+    return trimmedDraft.startsWith("/")
+      ? getPanelSlashCommandDecision(trimmedDraft, canUseLiveCodex)
+      : undefined;
+  }, [canUseLiveCodex, draftMessage]);
   const liveChatStarting = liveChatStatus === "starting";
   const liveChatRunning = liveChatStatus === "running";
   const liveChatBusy = liveChatStarting || liveChatRunning;
@@ -3544,6 +3550,17 @@ function SessionCell({
             <span className={classNames("composer-status", `composer-status-${liveChatStatus}`)} title={liveChatDetail}>
               {composerStatusLabel}
             </span>
+            {activeSlashCommandDecision ? (
+              <span
+                className={classNames(
+                  "slash-feedback-pill",
+                  `slash-feedback-${activeSlashCommandDecision.feedback.severity}`
+                )}
+                title={`${activeSlashCommandDecision.reason} ${activeSlashCommandDecision.feedback.nextAction}`}
+              >
+                {activeSlashCommandDecision.command?.command ?? "/"} {activeSlashCommandDecision.feedback.statusLabel}
+              </span>
+            ) : null}
             <button
               aria-label={`Interrupt ${identity.title}`}
               className="session-control-button"

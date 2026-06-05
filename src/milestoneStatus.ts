@@ -96,9 +96,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
     completionPercent: 34,
     latestNote:
-      "Phase 10B adds a fixed, approval-gated desktop runner for read-only terminal probes while all mutation-class actions remain non-executable.",
+      "Panel slash commands now expose structured ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable.",
     nextStep:
-      "Attach only the approved read-only terminal probe path, verify redaction and audit capture, and keep arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
+      "Connect refreshable provider catalogs to the command surface while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
     tone: "active",
     note:
       "Slash commands, platform catalogs, migration preview, and risk-gated approval/audit foundations exist; provider refresh and full execution remain live-disabled."

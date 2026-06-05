@@ -4,6 +4,7 @@ import {
   buildCommandExecutionDecision,
   defaultCommandCatalog,
   getCommandCatalogSuggestions,
+  type CommandExecutionFeedback,
   type CommandCatalogEntry,
   type CommandCatalogState
 } from "./commandCatalog";
@@ -26,6 +27,7 @@ export interface PanelSlashCommandDecision {
   command?: PanelSlashCommand;
   executable: boolean;
   reason: string;
+  feedback: CommandExecutionFeedback;
   route: PanelSlashCommandRoute;
   state: CommandCatalogState | "unknown";
 }
@@ -109,6 +111,11 @@ export function getPanelSlashCommandDecision(
     return {
       executable: true,
       reason: "Message is not a slash command.",
+      feedback: {
+        statusLabel: "Local message",
+        severity: "info",
+        nextAction: "Send without slash-command routing."
+      },
       route: "none",
       state: "unknown"
     };
@@ -120,6 +127,7 @@ export function getPanelSlashCommandDecision(
       command: decision.entry,
       executable: false,
       reason: decision.reason,
+      feedback: decision.feedback,
       route: "blocked",
       state: decision.entry ? decision.state : "unknown"
     };
@@ -129,6 +137,7 @@ export function getPanelSlashCommandDecision(
     command: decision.entry,
     executable: true,
     reason: decision.reason,
+    feedback: decision.feedback,
     route: decision.state === "preview" ? "local-preview" : "provider",
     state: decision.state
   };
@@ -142,11 +151,12 @@ export function createPanelReplyMessage(
   const decision = getPanelSlashCommandDecision(submittedMessage, false);
 
   if (decision.command && decision.route === "local-preview") {
+    const statusLabel = decision.feedback.statusLabel.toLowerCase();
     return {
       id: `${session.id}:codex-reply:${sequence}`,
       role: "codex",
       label: roleLabel(session.role),
-      body: `${decision.command.label} command staged locally. It will route to the connected provider when live transport supports it.`,
+      body: `${decision.command.command} is in ${statusLabel}. ${decision.reason} ${decision.feedback.nextAction}`,
       meta: "slash command preview"
     };
   }
@@ -175,8 +185,8 @@ export function createPanelSlashCommandStatusMessage(
     role: "system",
     label: "Slash command",
     body: decision.command
-      ? `${decision.command.command} is ${decision.state}: ${decision.reason}`
-      : decision.reason,
+      ? `${decision.feedback.statusLabel}: ${decision.command.command} ${decision.reason} ${decision.feedback.nextAction}`
+      : `${decision.feedback.statusLabel}: ${decision.reason} ${decision.feedback.nextAction}`,
     meta: decision.route === "blocked" ? "slash command blocked" : "slash command"
   };
 }

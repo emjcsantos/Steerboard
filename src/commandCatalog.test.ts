@@ -42,11 +42,15 @@ describe("command lookup and decisions", () => {
 
   it("returns unsupported for unknown command submission", () => {
     const decision = buildCommandExecutionDecision("/not-a-real-command", true);
-    expect(decision).toEqual({
+    expect(decision).toMatchObject({
       state: "unsupported",
       executable: false,
       reason: "Unknown slash command /not-a-real-command.",
-      entry: undefined
+      feedback: {
+        statusLabel: "Unknown",
+        severity: "error",
+        nextAction: "Use a supported slash command from the catalog."
+      }
     });
   });
 
@@ -82,19 +86,56 @@ describe("command lookup and decisions", () => {
     expect(unsupported).toMatchObject({
       state: "unsupported",
       executable: false,
-      reason: "/blocked is unsupported in this catalog context."
+      reason: "/blocked is unsupported in this catalog context.",
+      feedback: {
+        statusLabel: "Unsupported",
+        severity: "error",
+        nextAction: "Use a supported command that is enabled for this panel."
+      }
     });
 
     expect(unavailable).toMatchObject({
       state: "unavailable",
       executable: false,
-      reason: "/frozen is unavailable in this environment."
+      reason: "/frozen is unavailable in this environment.",
+      feedback: {
+        statusLabel: "Unavailable",
+        severity: "warning",
+        nextAction: "Retry when this command is enabled in this environment."
+      }
     });
 
     expect(transportUnavailable).toMatchObject({
       state: "unavailable",
       executable: false,
-      reason: "Live transport is not available for /offline."
+      reason: "Live transport is not available for /offline.",
+      feedback: {
+        statusLabel: "Blocked",
+        severity: "warning",
+        nextAction: "Enable live transport or retry once provider connectivity is active."
+      }
+    });
+  });
+
+  it("returns structured feedback for executable live and preview decisions", () => {
+    expect(buildCommandExecutionDecision("/plan now", true)).toMatchObject({
+      state: "live",
+      executable: true,
+      feedback: {
+        statusLabel: "Ready",
+        severity: "success",
+        nextAction: "Route this command through the connected provider."
+      }
+    });
+
+    expect(buildCommandExecutionDecision("/validate now", false)).toMatchObject({
+      state: "preview",
+      executable: true,
+      feedback: {
+        statusLabel: "Preview",
+        severity: "info",
+        nextAction: "Run locally and review staged result before provider execution."
+      }
     });
   });
 });

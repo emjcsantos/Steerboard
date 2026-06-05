@@ -248,10 +248,10 @@ describe("milestone status model", () => {
     expect(platform?.completionPercent).toBe(34);
     expect(platform?.current).toBeUndefined();
     expect(platform?.latestNote).toBe(
-      "Phase 10B adds a fixed, approval-gated desktop runner for read-only terminal probes while all mutation-class actions remain non-executable."
+      "Panel slash commands now expose structured ready, preview, blocked, unsupported, and unavailable feedback while mutation-class platform actions remain non-executable."
     );
     expect(platform?.nextStep).toBe(
-      "Attach only the approved read-only terminal probe path, verify redaction and audit capture, and keep arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
+      "Connect refreshable provider catalogs to the command surface while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
     );
   });
 
