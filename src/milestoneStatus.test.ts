@@ -151,11 +151,11 @@ describe("milestone status model", () => {
       active: 2,
       planned: 3,
       paused: 1,
-      averageCompletionPercent: 39,
+      averageCompletionPercent: 40,
       nextTarget: "Cockpit monitor and operating modes",
       nextStep:
-        "Confirm monitoring-depth behavior, then harden operating-mode handoffs while keeping toolbar focus/clear behavior stable.",
-      nextCompletionPercent: 65
+        "Run final operating-mode handoff polish and QA, while preserving toolbar focus/clear behavior stability.",
+      nextCompletionPercent: 70
     });
   });
 

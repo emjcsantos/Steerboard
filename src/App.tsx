@@ -270,6 +270,10 @@ import {
   type CockpitMonitorDepth
 } from "./cockpitMonitorDepth";
 import {
+  createCockpitModeHandoff,
+  type CockpitModeHandoff
+} from "./cockpitModeHandoff";
+import {
   createCockpitPanelRoster,
   type CockpitPanelRoster
 } from "./cockpitPanelRoster";
@@ -613,6 +617,16 @@ export function App() {
     () => createCockpitFocusedPanelStatus(visibleSessions, focusedPanelId),
     [focusedPanelId, visibleSessions]
   );
+  const cockpitModeHandoff = useMemo(
+    () =>
+      createCockpitModeHandoff(
+        mode,
+        layout,
+        visibleSessions.length,
+        cockpitSessions.length
+      ),
+    [cockpitSessions.length, layout, mode, visibleSessions.length]
+  );
   const activeDraftIndex = Math.min(selectedDraftIndex, Math.max(drafts.length - 1, 0));
   const viewLabel = view === "cockpit" ? "Cockpit" : view === "pipeline" ? "Pipeline" : "Planning";
 
@@ -867,6 +881,7 @@ export function App() {
 
           <RightPanel
             mode={mode}
+            modeHandoff={cockpitModeHandoff}
             mockRuns={projectMockRuns}
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
@@ -2130,6 +2145,7 @@ function PlanningView({
 
 function RightPanel({
   mode,
+  modeHandoff,
   mockRuns,
   onSelectRun,
   onUpdateRunStatus,
@@ -2147,6 +2163,7 @@ function RightPanel({
 }: {
   focusedPanelId?: string;
   mode: CockpitMode;
+  modeHandoff: CockpitModeHandoff;
   mockRuns: MockOrchestratorRun[];
   onFocusPanel: (panelId: string | undefined) => void;
   onSelectRun: (runId: string) => void;
@@ -2672,9 +2689,34 @@ function RightPanel({
 
       <section className="panel-section">
         <h4>Mode</h4>
-        <div className="mode-summary">
-          <Workflow size={16} />
-          <span>{modeLabels[mode]}</span>
+        <div
+          aria-label={modeHandoff.ariaLabel}
+          className={classNames("mode-handoff", `mode-handoff-${modeHandoff.tone}`)}
+          title={modeHandoff.detail}
+        >
+          <div className="mode-handoff-route">
+            <span>
+              <Workflow size={14} />
+              {modeHandoff.currentModeLabel}
+            </span>
+            <b aria-hidden="true">to</b>
+            <span>{modeHandoff.nextModeLabel}</span>
+          </div>
+          <p>{modeHandoff.detail}</p>
+          <dl className="mode-handoff-metrics">
+            <div>
+              <dt>Current</dt>
+              <dd>{modeHandoff.currentLayoutLabel}</dd>
+            </div>
+            <div>
+              <dt>Next</dt>
+              <dd>{modeHandoff.nextLayoutLabel}</dd>
+            </div>
+            <div>
+              <dt>State</dt>
+              <dd title={modeHandoff.preservedLabel}>{modeHandoff.preservedLabel}</dd>
+            </div>
+          </dl>
         </div>
       </section>
 

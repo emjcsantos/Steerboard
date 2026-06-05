@@ -8,12 +8,12 @@ The cockpit also expands the current next milestone into readable plan, latest-n
 It is the complete public milestone report contract. Every milestone must appear as one row and include these columns:
 **Target**, **Plan**, **% Completion**, **Latest Note**, and **Next Step**.
 
-Overall completion: 39%. Next milestone: Cockpit monitor and operating modes. Next step: Confirm monitoring-depth behavior, then harden operating-mode handoffs while keeping toolbar focus/clear behavior stable.
+Overall completion: 40%. Next milestone: Cockpit monitor and operating modes. Next step: Run final operating-mode handoff polish and QA, while preserving toolbar focus/clear behavior stability.
 
 | Target | Plan | % Completion | Latest Note | Next Step |
 | --- | --- | --- | --- | --- |
 | Product scaffold | Establish a stable baseline structure, public docs contract, and navigation foundations. | 100% | Initial platform scaffolding, public milestone reporting format, and baseline docs are complete. | Monitor for documentation drift and align updates with routine roadmap reviews. |
-| Cockpit monitor and operating modes | Complete core cockpit panels, control affordances, and visible operating-mode cues. | 65% | Active attention flows now include a monitor-depth signal/readout, with toolbar focus/clear controls in place. | Confirm monitoring-depth behavior, then harden operating-mode handoffs while keeping toolbar focus/clear behavior stable. |
+| Cockpit monitor and operating modes | Complete core cockpit panels, control affordances, and visible operating-mode cues. | 70% | Monitor-depth readout and mode-handoff readiness-readout are now visible in cockpit monitoring, with toolbar focus/clear controls stable. | Run final operating-mode handoff polish and QA, while preserving toolbar focus/clear behavior stability. |
 | Orchestration model | Define a consistent model for sequencing cross-cutting tasks and status propagation. | 30% | Initial orchestration patterns are drafted, with shared lifecycle semantics under active design. | Expand execution rules and complete dependency ordering for broader subsystem coverage. |
 | Runtime adapters | Deliver and stabilize adapter surfaces for consistent runtime status intake. | 45% | Key adapter boundaries are in place, and interface contracts are being aligned. | Validate adapter behavior against core runtime entry points and close remaining gaps. |
 | Security and privacy model | Set baseline protections, data-handling boundaries, and reviewable controls. | 20% | Security and privacy requirements are being translated into an initial shared model. | Complete threat modeling and publish practical control guidance for implementation. |

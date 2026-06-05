@@ -41,11 +41,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Cockpit monitor and operating modes",
     completion: "In progress",
     plan: "Complete core cockpit panels, control affordances, and visible operating-mode cues.",
-    completionPercent: 65,
+    completionPercent: 70,
     latestNote:
-      "Active attention flows now include a monitor-depth signal/readout, with toolbar focus/clear controls in place.",
+      "Monitor-depth readout and mode-handoff readiness-readout are now visible in cockpit monitoring, with toolbar focus/clear controls stable.",
     nextStep:
-      "Confirm monitoring-depth behavior, then harden operating-mode handoffs while keeping toolbar focus/clear behavior stable.",
+      "Run final operating-mode handoff polish and QA, while preserving toolbar focus/clear behavior stability.",
     tone: "active",
     note:
       "The cockpit monitor includes visible milestone/status tracking, panel focus/highlight controls, and toolbar actions to focus or clear the current attention panel."
