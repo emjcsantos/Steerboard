@@ -5,9 +5,16 @@
 - Project workspace registry.
 - Project registry entries must expose display-safe workspace labels, status, runtime state, permission state, and readiness without storing private local paths in public fixtures.
 - Session registry for active and historical agent threads.
-- Adaptive cockpit layouts: `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, and `3x3`.
-- `3x3` hard maximum for visible cockpit cells.
+- Fixed cockpit layout presets: `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, and `3x3`.
+- Layout choices must be exposed through one dropdown or combobox, including an `Adaptive` option.
+- `3x3` hard maximum for visible fixed-grid preset cells.
+- Adaptive cockpit mode for user-created, draggable, resizable, repositionable panels.
+- Adaptive mode must support magnetic snapping to grid intervals, neighboring panel edges, and safe drop zones.
+- Adaptive mode must let users drag a chat, session, task, evidence pane, or whole project into the center cockpit.
+- Adaptive mode can hold more panels than the fixed-grid visible maximum through scroll, pan, hidden queue, or tabbed stacks, but visible panels must preserve readable minimum sizes and avoid overlap.
+- Adaptive panel geometry must persist locally and repair malformed saved state to safe defaults.
 - Cockpit operating modes: focused single-project lane, orchestrator with worker panels, and independent multi-project monitor.
+- Cockpit layout, focus, hidden-panel, activity, and monitor controls should fit into one compact row at desktop widths.
 - Cockpit chat is the primary planning, instruction, review, and steering surface.
 - Cockpit panels must support live chat sessions through configured provider adapters, starting with Codex.
 - Slash command discovery and execution must be available from every panel composer when the active provider supports commands.
@@ -37,6 +44,9 @@
 - Static project list and session mock data.
 - Static project registry and runtime adapter mock data.
 - Cockpit layout model and responsive grid.
+- Compact cockpit control row for layout, focus, panel activity, hidden queue, and local monitor controls.
+- Layout dropdown replacing the visible fixed-layout button cluster.
+- `Adaptive` layout option visible in the layout selector, initially safe even before full freeform behavior is implemented.
 - Mock cockpit mode presets for focus lane, orchestrator-with-workers, and independent project monitor.
 - Task and worker state model.
 - Handoff document generation.
@@ -157,6 +167,10 @@
 - No card-inside-card dashboard clutter.
 - Clear visual distinction between orchestrator, implementer, validator, and integration roles.
 - User can collapse from `3x3` down to simpler layouts as needed.
+- User can switch layout presets from one dropdown instead of scanning a long button row.
+- User can enter Adaptive mode when fixed presets are too rigid for the active project.
+- User can add, drag, resize, reposition, hide, reveal, and reset adaptive cockpit panels without losing the underlying session or project state.
+- User can drag a chat or whole project from navigation into the cockpit to create or replace panels.
 - User can switch cockpit modes without losing active session state.
 - Steerboard must have its own visual identity and interaction model rather than copying a reference product screen-for-screen.
 - Steerboard should use a familiar desktop menu pattern with stable `File`, `Edit`, `View`, `Window`, and `Help` labels.

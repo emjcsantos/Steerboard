@@ -6,13 +6,14 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 | Target | Completion | Note |
 |---|---|---|
-| Phase 1: Product Scaffold | In progress | Core local shell, public fixture data, project sidebar, cockpit layouts, and operating modes are scaffolded for local review. |
+| Phase 1: Product Scaffold | In progress | Core local shell, public fixture data, project sidebar, fixed cockpit presets, compact cockpit control row, layout dropdown, and operating modes are scaffolded for local review. |
 | Phase 2: Orchestration Model | In progress | Mock runs, task state, validation gates, handoff previews, selected-run evidence panels, and compact cockpit monitor summaries with local stream controls are available without external runtime execution. |
 | Phase 3: Optional Project Management Lane | In progress | Pipeline items can be inspected, request history is local, dispatch-ready items can create local cockpit run projections, and selected items can show linked local runs with status summaries. This lane supports visibility and change management, while cockpit chat remains primary. |
 | Phase 4: Runtime Adapters | In progress | Provider-neutral adapter previews, runtime profiles, local approvals, bridge status, permission previews, and evidence readiness are scaffolded as locked local previews. |
 | Phase 5: Live Codex Integration | Planned | Codex connection center, app-server bridge, live panel chat, session lifecycle, and normalized streaming events become the first real provider integration. |
-| Phase 6: Platform Capabilities | Planned | Slash commands, plugins, automations, MCP, personalization, permissions, and audit state become live provider-backed surfaces. |
-| Phase 7: Local Execution And Packaging | Planned | Real runtime execution, permissioned terminal/Git capture, audit exports, build signing, and installer checks remain behind future explicit approval gates. |
+| Phase 6: Adaptive Cockpit Canvas | Planned | Adaptive layout enables user-added panels, drag-in chats/projects, magnetic snapping, resizing, repositioning, keyboard control, and persisted safe geometry. |
+| Phase 7: Platform Capabilities | Planned | Slash commands, plugins, automations, MCP, personalization, permissions, and audit state become live provider-backed surfaces. |
+| Phase 8: Local Execution And Packaging | Planned | Real runtime execution, permissioned terminal/Git capture, audit exports, build signing, and installer checks remain behind future explicit approval gates. |
 
 ## Phase 1: Product Scaffold
 
@@ -20,7 +21,9 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Top-left desktop app menu: `File`, `Edit`, `View`, `Window`, and `Help`.
 - Public-safe fixture data.
 - Project sidebar.
-- Adaptive cockpit grid up to `3x3`.
+- Fixed cockpit grid presets up to `3x3`.
+- Layout dropdown with `Adaptive` as a selectable option.
+- Compact single-row cockpit control strip for layout, focus, panel activity, hidden queue, and monitor controls.
 - Focus lane, orchestrator-with-workers, and independent project monitor modes.
 
 ## Phase 2: Orchestration Model
@@ -81,7 +84,17 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Per-panel workspace, model, sandbox, approval, and runtime metadata where supported.
 - Connection failure, unsupported capability, and offline states.
 
-## Phase 6: Platform Capabilities
+## Phase 6: Adaptive Cockpit Canvas
+
+- Adaptive freeform cockpit mode.
+- User-created panels from chats, sessions, tasks, evidence panes, provider surfaces, and whole projects.
+- Drag-and-drop from the left rail into the cockpit center.
+- Resizable and repositionable panels with magnetic snapping.
+- Collision handling, safe drop zones, hidden queue integration, and reset to last safe layout.
+- Local persistence and saved-state repair for panel geometry.
+- Keyboard alternatives for add, move, resize, focus, hide, reveal, and reset.
+
+## Phase 7: Platform Capabilities
 
 - Slash command registry and composer command menu.
 - Refreshable seeded option catalog so default plugins, skills, MCP servers, and commands stay aligned with the connected provider.
@@ -96,7 +109,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 - Permission and approval surface shared by sessions, plugins, MCP tools, automations, terminal, Git, and external services.
 - Local audit records for approvals, denials, retries, and normalized live events.
 
-## Phase 7: Local Execution And Packaging
+## Phase 8: Local Execution And Packaging
 
 - Real session ownership through configured runtimes.
 - Approved launch handoff from local preview into configured runtimes.

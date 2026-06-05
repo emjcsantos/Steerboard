@@ -28,10 +28,17 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 
 ### Cockpit Layout
 
-- Layout model supports `1x1` through `3x3`.
-- Each cell binds to a session, task, or evidence pane.
+- Preset layout model supports `1x1` through `3x3`.
+- Adaptive layout model stores freeform panel geometry separately from fixed preset grids.
+- Each fixed cell or adaptive panel binds to a session, task, project, run, provider surface, or evidence pane.
 - Layout state is independent from the session registry.
-- Users can resize and reassign cells without mutating session data.
+- Users can resize and reassign cells or adaptive panels without mutating session data.
+- Adaptive panel records store source type, source id, x, y, width, height, z-order, minimum size, role metadata, focus state, hidden state, and last safe geometry.
+- Drag-and-drop from the project/thread rail can create or replace adaptive panels, including chat panels and whole-project panel templates.
+- Magnetic layout helpers snap panels to grid intervals, neighboring panel edges, canvas safe zones, and valid docking positions.
+- Collision handling should prevent accidental overlap and provide a reset path to the last safe layout.
+- The layout selector is one dropdown or combobox that chooses fixed presets or `Adaptive`.
+- The cockpit control strip should summarize layout, focus, panel activity, hidden queue, and monitor controls in one compact row.
 - Mode presets support focus lane, orchestrator-with-workers, and independent project monitor.
 - Cockpit chat remains the primary planning and steering surface; structured pipeline views are optional support surfaces.
 

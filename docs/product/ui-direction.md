@@ -23,10 +23,15 @@ The UI should not feel like a marketing page, a decorative dashboard, or a loose
 - The top menu should remain visible in browser preview and desktop preview; native menu integration can follow later if the desktop shell supports it.
 - `File > Migrate...` is the primary entry point for importing settings and working context from supported source platforms.
 - The cockpit is the first screen.
-- Supported layouts: `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, `3x3`.
-- `3x3` is the hard maximum.
+- Preset layouts: `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, and `3x3`.
+- `Adaptive` is a separate freeform layout mode for user-created, draggable, resizable cockpit panels.
+- Preset layout choices must be presented through one compact dropdown or combobox, not a long row of buttons.
+- The cockpit control strip must fit into a single dense row: layout selector, focus state, panel activity summary, hidden queue, and playback or monitor controls should collapse gracefully instead of leaving large empty gaps.
+- `3x3` is the hard maximum for fixed visible preset grids.
+- Adaptive mode may hold additional user-added panels through a scrollable or pannable canvas, but visible panels must obey minimum readable sizes and must not overlap.
 - Each cockpit cell must have stable dimensions and predictable scroll behavior.
 - Resizing, moving, and replacing sessions must preserve spatial continuity.
+- Adaptive panels should use magnetic snapping to grid lines, neighboring panel edges, and safe drop zones so freeform movement still feels controlled.
 - Long labels must truncate or wrap cleanly without overlap.
 - Sidebars and panels should be useful but never steal attention from active sessions.
 
@@ -37,6 +42,7 @@ The UI should not feel like a marketing page, a decorative dashboard, or a loose
 - Hover, focus, pressed, loading, disabled, success, warning, error, and blocked states must all be designed.
 - Keyboard navigation must cover session switching, cockpit focus, task review, approvals, and search.
 - Keyboard navigation must cover top-menu access and migration dialog controls.
+- Keyboard navigation must cover layout selection, adaptive panel creation, panel movement, panel resize, and layout reset.
 - Reduced-motion users must get non-animated state changes.
 
 ## Motion
@@ -44,7 +50,7 @@ The UI should not feel like a marketing page, a decorative dashboard, or a loose
 Motion should be subtle and functional:
 
 - 150-250ms for pane transitions.
-- Use easing to show where a session moved or resized.
+- Use easing to show where a session moved, resized, snapped, or docked.
 - Avoid decorative motion loops.
 - Never animate layout in a way that makes transcript reading harder.
 
@@ -53,6 +59,8 @@ Motion should be subtle and functional:
 Before calling the scaffold acceptable:
 
 - `1x1`, `2x1`, `1x2`, and `3x3` render without overlap.
+- Layout presets are selectable from one dropdown, including `Adaptive`.
+- Cockpit status and layout controls fit in one row at desktop widths used by the app preview.
 - Streaming transcript placeholders do not resize the grid.
 - Status chips remain readable at minimum cell width.
 - Right panel does not cover cockpit content.

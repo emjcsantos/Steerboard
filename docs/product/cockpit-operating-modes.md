@@ -30,12 +30,24 @@ Use Steerboard to watch several unrelated projects or runs at the same time.
 - This mode is optimized for portfolio visibility and quick triage.
 - Each panel should expose the live capability state of its connected provider, including chat, commands, plugins, automations, MCP, personalization, approvals, and audit readiness.
 
+## Mode 4: Adaptive Cockpit Canvas
+
+Use Steerboard as a freeform cockpit when fixed presets are too rigid.
+
+- Users can add panels from chats, projects, runs, tasks, evidence views, and provider tool surfaces.
+- Users can drag a chat or whole project from the left rail into the cockpit center.
+- Panels can be moved, resized, hidden, revealed, focused, or reset without mutating the source session or project.
+- Magnetic snapping keeps panels aligned to grid intervals, neighboring panel edges, and safe drop zones.
+- Adaptive mode can hold more panels than a fixed preset through scroll, pan, hidden queue, or tabbed stacks, while preserving readable visible panel sizes.
+
 ## Shared Interaction Requirements
 
 - Users can switch between modes without losing session state.
 - Users can focus, pin, swap, resize, collapse, or detach panels.
-- The cockpit must support `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, and `3x3`.
-- `3x3` remains the visible panel maximum.
+- The cockpit layout selector must be a dropdown or combobox, not a long row of preset buttons.
+- The layout selector must support `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, `3x3`, and `Adaptive`.
+- `3x3` remains the fixed-grid visible panel maximum.
+- The cockpit toolbar should compress layout, focus, panel activity, hidden queue, and monitor controls into one row.
 - Long-running panels must show idle, active, waiting, blocked, failed, and complete states without layout shift.
 - Panel headers must make project/run identity clear without exposing private data in public examples.
 - Slash commands and integration controls are scoped to the focused panel unless the user explicitly applies them to a run, project, or cockpit group.
