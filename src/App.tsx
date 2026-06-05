@@ -115,6 +115,10 @@ import {
   type CockpitInteractionReadiness
 } from "./cockpitInteractionReadiness";
 import {
+  createCockpitAcceptancePass,
+  type CockpitAcceptancePass
+} from "./cockpitAcceptancePass";
+import {
   canDeployPlanningDraft,
   evaluatePlanningReadiness,
   normalizePlanningDraft,
@@ -2475,6 +2479,15 @@ function RightPanel({
       ),
     [cockpitMonitorLoop, cockpitMonitorQuality, cockpitMonitorSummary, recentEventFeed]
   );
+  const cockpitAcceptancePass: CockpitAcceptancePass = useMemo(
+    () =>
+      createCockpitAcceptancePass({
+        interactionReadiness,
+        modeHandoffQa,
+        monitorDepth: cockpitMonitorDepth
+      }),
+    [cockpitMonitorDepth, interactionReadiness, modeHandoffQa]
+  );
 
   useEffect(() => {
     if (!selectedRun || runtimeStreamSnapshot.state !== "streaming") {
@@ -2804,6 +2817,29 @@ function RightPanel({
             {interactionReadiness.checks.map((check) => (
               <span
                 className={classNames("interaction-readiness-check", `interaction-readiness-check-${check.tone}`)}
+                key={check.label}
+                title={`${check.label}: ${check.value}`}
+              >
+                <strong>{check.value}</strong>
+                <small>{check.label}</small>
+              </span>
+            ))}
+          </div>
+        </div>
+        <div
+          aria-label={cockpitAcceptancePass.ariaLabel}
+          className={classNames("cockpit-acceptance", `cockpit-acceptance-${cockpitAcceptancePass.tone}`)}
+          title={cockpitAcceptancePass.detail}
+        >
+          <div className="cockpit-acceptance-header">
+            <strong>{cockpitAcceptancePass.label}</strong>
+            <b>{cockpitAcceptancePass.checkLabel}</b>
+          </div>
+          <p>{cockpitAcceptancePass.detail}</p>
+          <div className="cockpit-acceptance-checks" aria-label="Cockpit final acceptance gates">
+            {cockpitAcceptancePass.checks.map((check) => (
+              <span
+                className={classNames("cockpit-acceptance-check", `cockpit-acceptance-check-${check.tone}`)}
                 key={check.label}
                 title={`${check.label}: ${check.value}`}
               >

@@ -122,10 +122,10 @@ describe("milestone status model", () => {
     const cockpit = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Cockpit monitor and operating modes"
     );
-    expect(cockpit?.completion).toBe("In progress");
-    expect(cockpit?.tone).toBe("active");
-    expect(cockpit?.latestNote.toLowerCase()).toContain("interaction-readiness");
-    expect(cockpit?.nextStep.toLowerCase()).toContain("acceptance pass");
+    expect(cockpit?.completion).toBe("Complete");
+    expect(cockpit?.tone).toBe("complete");
+    expect(cockpit?.latestNote.toLowerCase()).toContain("acceptance coverage is complete");
+    expect(cockpit?.nextStep.toLowerCase()).toContain("regressions");
   });
 
   it("maps completion values to tone in required way for exported data", () => {
@@ -144,15 +144,15 @@ describe("milestone status model", () => {
   it("summarizes exported milestone list counts correctly", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
       total: 7,
-      complete: 1,
-      active: 2,
+      complete: 2,
+      active: 1,
       planned: 3,
       paused: 1,
-      averageCompletionPercent: 43,
-      nextTarget: "Cockpit monitor and operating modes",
+      averageCompletionPercent: 44,
+      nextTarget: "Orchestration model",
       nextStep:
-        "Complete final desktop and narrow-pane acceptance pass, then close the cockpit operating modes milestone.",
-      nextCompletionPercent: 90
+        "Expand execution rules and complete dependency ordering for broader subsystem coverage.",
+      nextCompletionPercent: 30
     });
   });
 

@@ -39,14 +39,14 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
   },
   {
     target: "Cockpit monitor and operating modes",
-    completion: "In progress",
+    completion: "Complete",
     plan: "Complete core cockpit panels, control affordances, and visible operating-mode cues.",
-    completionPercent: 90,
+    completionPercent: 100,
     latestNote:
-      "Monitor-depth and mode-handoff QA are now visible in the cockpit, with final interaction-readiness coverage for mode, layout, focus, and clear controls.",
+      "Final desktop and narrow-pane acceptance coverage is complete for cockpit monitor depth, mode handoff QA, and mode/layout/focus/clear interaction readiness.",
     nextStep:
-      "Complete final desktop and narrow-pane acceptance pass, then close the cockpit operating modes milestone.",
-    tone: "active",
+      "Monitor for regressions while orchestration and runtime adapter milestones advance.",
+    tone: "complete",
     note:
       "The cockpit monitor includes visible milestone/status tracking, panel focus/highlight controls, and toolbar actions to focus or clear the current attention panel."
   },

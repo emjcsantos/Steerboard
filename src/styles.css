@@ -3002,6 +3002,127 @@ textarea {
   border-color: #303844;
 }
 
+.cockpit-acceptance {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  border: 1px solid #303844;
+  border-radius: 8px;
+  background: #111820;
+  padding: 8px;
+}
+
+.cockpit-acceptance-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.cockpit-acceptance-header strong,
+.cockpit-acceptance-header b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-acceptance-header strong {
+  color: #edf3f8;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.cockpit-acceptance-header b {
+  border-radius: 999px;
+  background: #10161d;
+  color: #cfd8e3;
+  padding: 3px 6px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.cockpit-acceptance p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #9fa9b4;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.cockpit-acceptance-checks {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.cockpit-acceptance-check {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #26303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 6px 5px;
+  text-align: center;
+}
+
+.cockpit-acceptance-check strong,
+.cockpit-acceptance-check small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-acceptance-check strong {
+  color: #f4f7fa;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.cockpit-acceptance-check small {
+  color: #8f99a4;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cockpit-acceptance-accepted {
+  border-color: #254634;
+}
+
+.cockpit-acceptance-review {
+  border-color: #5c4b1b;
+}
+
+.cockpit-acceptance-blocked {
+  border-color: #69343a;
+}
+
+.cockpit-acceptance-waiting {
+  border-color: #303844;
+}
+
+.cockpit-acceptance-check-ok {
+  border-color: #254634;
+}
+
+.cockpit-acceptance-check-review {
+  border-color: #5c4b1b;
+}
+
+.cockpit-acceptance-check-blocked {
+  border-color: #69343a;
+}
+
+.cockpit-acceptance-check-neutral {
+  border-color: #303844;
+}
+
 .orchestration-summary {
   justify-content: space-between;
 }
