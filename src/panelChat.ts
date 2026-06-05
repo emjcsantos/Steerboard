@@ -1,5 +1,12 @@
 import type { SessionSummary } from "./fixtures";
 import type { CodexSessionMessage, CodexSessionState } from "./codexSession";
+import {
+  buildCommandExecutionDecision,
+  defaultCommandCatalog,
+  getCommandCatalogSuggestions,
+  type CommandCatalogEntry,
+  type CommandCatalogState
+} from "./commandCatalog";
 
 export type PanelChatRole = "codex" | "user" | "tool" | "system";
 
@@ -11,36 +18,21 @@ export interface PanelChatMessage {
   meta: string;
 }
 
-export interface PanelSlashCommand {
-  command: string;
-  label: string;
-  detail: string;
+export type PanelSlashCommand = CommandCatalogEntry;
+
+export type PanelSlashCommandRoute = "none" | "provider" | "local-preview" | "blocked";
+
+export interface PanelSlashCommandDecision {
+  command?: PanelSlashCommand;
+  executable: boolean;
+  reason: string;
+  route: PanelSlashCommandRoute;
+  state: CommandCatalogState | "unknown";
 }
 
 export const PANEL_CHAT_STORAGE_KEY = "steerboard.panel.chat.v1";
 
-export const panelSlashCommands: PanelSlashCommand[] = [
-  {
-    command: "/plan",
-    label: "Plan",
-    detail: "Ask the focused panel to turn the current context into next steps."
-  },
-  {
-    command: "/handoff",
-    label: "Handoff",
-    detail: "Draft a scoped worker handoff from this panel."
-  },
-  {
-    command: "/validate",
-    label: "Validate",
-    detail: "Ask for validation checks and evidence for this panel."
-  },
-  {
-    command: "/summarize",
-    label: "Summarize",
-    detail: "Condense this panel into a transition-ready summary."
-  }
-];
+export const panelSlashCommands: readonly PanelSlashCommand[] = defaultCommandCatalog;
 
 function roleLabel(role: SessionSummary["role"]): string {
   switch (role) {
@@ -104,14 +96,42 @@ export function buildInitialPanelChat(session: SessionSummary): PanelChatMessage
 }
 
 export function getPanelSlashCommandSuggestions(value: string): PanelSlashCommand[] {
-  const trimmed = value.trimStart();
+  return getCommandCatalogSuggestions(value, panelSlashCommands);
+}
+
+export function getPanelSlashCommandDecision(
+  submittedMessage: string,
+  liveTransportAvailable: boolean
+): PanelSlashCommandDecision {
+  const trimmed = submittedMessage.trim();
 
   if (!trimmed.startsWith("/")) {
-    return [];
+    return {
+      executable: true,
+      reason: "Message is not a slash command.",
+      route: "none",
+      state: "unknown"
+    };
   }
 
-  const query = trimmed.split(/\s+/)[0].toLowerCase();
-  return panelSlashCommands.filter((item) => item.command.startsWith(query));
+  const decision = buildCommandExecutionDecision(trimmed, liveTransportAvailable, panelSlashCommands);
+  if (!decision.executable) {
+    return {
+      command: decision.entry,
+      executable: false,
+      reason: decision.reason,
+      route: "blocked",
+      state: decision.entry ? decision.state : "unknown"
+    };
+  }
+
+  return {
+    command: decision.entry,
+    executable: true,
+    reason: decision.reason,
+    route: decision.state === "preview" ? "local-preview" : "provider",
+    state: decision.state
+  };
 }
 
 export function createPanelReplyMessage(
@@ -119,16 +139,20 @@ export function createPanelReplyMessage(
   sequence: number,
   submittedMessage = ""
 ): PanelChatMessage {
-  const command = panelSlashCommands.find((item) => submittedMessage.trim().startsWith(item.command));
+  const decision = getPanelSlashCommandDecision(submittedMessage, false);
 
-  if (command) {
+  if (decision.command && decision.route === "local-preview") {
     return {
       id: `${session.id}:codex-reply:${sequence}`,
       role: "codex",
       label: roleLabel(session.role),
-      body: `${command.label} command staged locally. It will route to the connected provider when live transport is enabled.`,
+      body: `${decision.command.label} command staged locally. It will route to the connected provider when live transport supports it.`,
       meta: "slash command preview"
     };
+  }
+
+  if (decision.route === "blocked") {
+    return createPanelSlashCommandStatusMessage(session, sequence, decision);
   }
 
   return {
@@ -138,6 +162,22 @@ export function createPanelReplyMessage(
     body:
       "Captured locally. This panel is ready to route the message through the connected provider when live session transport is enabled.",
     meta: "local adapter pending"
+  };
+}
+
+export function createPanelSlashCommandStatusMessage(
+  session: SessionSummary,
+  sequence: number,
+  decision: PanelSlashCommandDecision
+): PanelChatMessage {
+  return {
+    id: `${session.id}:slash-command:${sequence}`,
+    role: "system",
+    label: "Slash command",
+    body: decision.command
+      ? `${decision.command.command} is ${decision.state}: ${decision.reason}`
+      : decision.reason,
+    meta: decision.route === "blocked" ? "slash command blocked" : "slash command"
   };
 }
 

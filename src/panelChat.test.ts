@@ -5,6 +5,7 @@ import {
   createPanelLiveErrorMessage,
   createPanelLiveStatusMessage,
   createPanelReplyMessage,
+  getPanelSlashCommandDecision,
   getPanelSlashCommandSuggestions,
   normalizePanelChatMessages,
   parseStoredPanelChatThreads,
@@ -42,11 +43,44 @@ describe("panel chat helpers", () => {
   it("suggests slash commands only when the draft starts with slash input", () => {
     expect(getPanelSlashCommandSuggestions("hello")).toEqual([]);
     expect(getPanelSlashCommandSuggestions("/val").map((item) => item.command)).toEqual(["/validate"]);
-    expect(getPanelSlashCommandSuggestions("/")).toHaveLength(4);
+    expect(getPanelSlashCommandSuggestions("/")).toHaveLength(7);
+  });
+
+  it("routes slash commands according to catalog capability and live transport", () => {
+    expect(getPanelSlashCommandDecision("regular message", false)).toMatchObject({
+      route: "none",
+      executable: true
+    });
+    expect(getPanelSlashCommandDecision("/validate now", false)).toMatchObject({
+      route: "local-preview",
+      executable: true,
+      state: "preview"
+    });
+    expect(getPanelSlashCommandDecision("/plan next", false)).toMatchObject({
+      route: "blocked",
+      executable: false,
+      state: "unavailable"
+    });
+    expect(getPanelSlashCommandDecision("/plan next", true)).toMatchObject({
+      route: "provider",
+      executable: true,
+      state: "live"
+    });
+    expect(getPanelSlashCommandDecision("/mcp list", true)).toMatchObject({
+      route: "blocked",
+      executable: false,
+      state: "unsupported"
+    });
+    expect(getPanelSlashCommandDecision("/unknown", true)).toMatchObject({
+      route: "blocked",
+      executable: false,
+      state: "unknown"
+    });
   });
 
   it("creates a command-aware local reply", () => {
     expect(createPanelReplyMessage(session, 4, "/validate this").meta).toBe("slash command preview");
+    expect(createPanelReplyMessage(session, 4, "/plan this").meta).toBe("slash command blocked");
     expect(createPanelReplyMessage(session, 4, "regular message").meta).toBe("local adapter pending");
   });
 

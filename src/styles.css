@@ -657,6 +657,7 @@ textarea {
 
 .slash-command-list span {
   display: grid;
+  grid-template-columns: minmax(82px, auto) auto;
   gap: 2px;
 }
 
@@ -664,7 +665,19 @@ textarea {
   color: #8be1b2;
 }
 
+.slash-command-list b {
+  justify-self: end;
+  border: 1px solid #303743;
+  border-radius: 999px;
+  color: #aeb8c4;
+  padding: 2px 6px;
+  font-size: 10px;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
 .slash-command-list small {
+  grid-column: 1 / -1;
   color: #9fa9b4;
 }
 
@@ -1858,7 +1871,7 @@ textarea {
   display: grid;
   width: 100%;
   height: auto;
-  grid-template-columns: minmax(74px, auto) minmax(0, 1fr);
+  grid-template-columns: minmax(74px, auto) minmax(0, 1fr) auto;
   justify-content: stretch;
   gap: 8px;
   border-radius: 7px;
@@ -1873,7 +1886,8 @@ textarea {
 }
 
 .slash-command-menu strong,
-.slash-command-menu small {
+.slash-command-menu small,
+.slash-command-menu span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1888,6 +1902,38 @@ textarea {
 .slash-command-menu small {
   color: #aeb8c4;
   font-size: 11px;
+}
+
+.slash-command-menu span {
+  align-self: center;
+  border: 1px solid #303743;
+  border-radius: 999px;
+  color: #aeb8c4;
+  padding: 2px 6px;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.slash-command-menu .command-state-live span,
+.slash-command-list .command-state-live b {
+  border-color: #245133;
+  color: #89dda9;
+}
+
+.slash-command-menu .command-state-preview span,
+.slash-command-list .command-state-preview b {
+  border-color: #4d4527;
+  color: #f0d984;
+}
+
+.slash-command-menu .command-state-unsupported span,
+.slash-command-list .command-state-unsupported b,
+.slash-command-menu .command-state-unavailable span,
+.slash-command-list .command-state-unavailable b {
+  border-color: #563027;
+  color: #ff9e85;
 }
 
 .panel-validation-signal {

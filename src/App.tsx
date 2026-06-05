@@ -109,6 +109,8 @@ import {
   createPanelReplyMessage,
   createPanelLiveErrorMessage,
   createPanelLiveStatusMessage,
+  createPanelSlashCommandStatusMessage,
+  getPanelSlashCommandDecision,
   getPanelSlashCommandSuggestions,
   loadPanelChatMessages,
   panelSlashCommands,
@@ -1529,12 +1531,13 @@ function AppDialogSurface({
 
         {dialog === "slash-help" ? (
           <div className="app-dialog-body">
-            <p>Slash commands are local previews in this slice. They are scoped to the panel composer where they are typed.</p>
+            <p>Slash commands are scoped to the active panel and show whether they can run live, stage locally, or remain unavailable.</p>
             <div className="slash-command-list" aria-label="Available slash commands">
               {panelSlashCommands.map((item) => (
-                <span key={item.command}>
+                <span className={`command-state-${item.state}`} key={item.command}>
                   <strong>{item.command}</strong>
-                  <small>{item.detail}</small>
+                  <b>{item.state}</b>
+                  <small>{item.detail} Scope: {item.scopes.join(", ")}</small>
                 </span>
               ))}
             </div>
@@ -1875,6 +1878,30 @@ function SessionCell({
       return;
     }
 
+    const slashCommandDecision = getPanelSlashCommandDecision(trimmedMessage, canUseLiveCodex);
+
+    if (slashCommandDecision.route === "blocked" || slashCommandDecision.route === "local-preview") {
+      setChatMessages((currentMessages) => [
+        ...currentMessages,
+        {
+          id: `${session.id}:user:${currentMessages.length}`,
+          role: "user",
+          label: "You",
+          body: trimmedMessage,
+          meta: slashCommandDecision.command?.command ?? "slash command"
+        },
+        slashCommandDecision.route === "blocked"
+          ? createPanelSlashCommandStatusMessage(
+              session,
+              currentMessages.length + 1,
+              slashCommandDecision
+            )
+          : createPanelReplyMessage(session, currentMessages.length + 1, trimmedMessage)
+      ]);
+      setDraftMessage("");
+      return;
+    }
+
     if (canUseLiveCodex) {
       if (liveChatRunning) {
         await handleSteerLiveTurn(trimmedMessage);
@@ -1981,13 +2008,15 @@ function SessionCell({
             <div className="slash-command-menu" aria-label="Panel slash commands">
               {slashSuggestions.map((item) => (
                 <button
+                  className={`command-state-${item.state}`}
                   key={item.command}
                   onClick={() => setDraftMessage(`${item.command} `)}
-                  title={item.detail}
+                  title={`${item.detail} Scope: ${item.scopes.join(", ")}`}
                   type="button"
                 >
                   <strong>{item.command}</strong>
-                  <small>{item.label}</small>
+                  <small>{item.label} · {item.scopes.join(", ")}</small>
+                  <span>{item.state}</span>
                 </button>
               ))}
             </div>

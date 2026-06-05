@@ -27,7 +27,7 @@ The next live milestone is to connect panel chat to the provider adapter layer:
 
 - connection center confirms Codex install, auth posture, and app-server availability,
 - each panel can bind to a real provider thread,
-- slash commands are discoverable from the composer,
+- slash commands are discoverable from the composer with live, preview, unsupported, or unavailable states,
 - plugin, automation, MCP, and personalization state is visible before prompt submission,
 - live actions remain gated by explicit permission and audit surfaces.
 

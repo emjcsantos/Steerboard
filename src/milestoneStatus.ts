@@ -85,22 +85,22 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     latestNote:
       "Codex app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations.",
     nextStep:
-      "Run native two-panel smoke and live-control smoke, then start slash command capability work.",
-    current: true,
+      "Run native two-panel smoke and live-control smoke as recurring regression checks.",
     tone: "active",
     note:
       "Codex connection center, app-server bridge, live panel chat, and normalized stream ingestion are the next core milestone."
   },
   {
     target: "Platform capabilities",
-    completion: "Planned",
+    completion: "In progress",
     plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
-    completionPercent: 0,
+    completionPercent: 8,
     latestNote:
-      "The plan now treats these as required provider-backed surfaces, not decorative sidebar entries.",
+      "Slash command catalog and panel composer routing are now provider-neutral and state-aware.",
     nextStep:
-      "Define adapter capability schemas and UI states for each surface.",
-    tone: "planned",
+      "Expand provider-backed catalogs for plugins, skills, MCP, automations, and personalization.",
+    current: true,
+    tone: "active",
     note:
       "Slash commands, plugins, automations, MCP, personalization, permissions, and audit state must become live provider-backed surfaces."
   },

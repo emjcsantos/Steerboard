@@ -220,7 +220,7 @@ describe("milestone status model", () => {
     );
   });
 
-  it("marks Live Codex integration as the current selected milestone", () => {
+  it("keeps Live Codex integration active while platform capabilities take focus", () => {
     const liveCodex = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Live Codex integration"
     );
@@ -228,9 +228,26 @@ describe("milestone status model", () => {
     expect(liveCodex?.completion).toBe("In progress");
     expect(liveCodex?.tone).toBe("active");
     expect(liveCodex?.completionPercent).toBe(42);
-    expect(liveCodex?.current).toBe(true);
+    expect(liveCodex?.current).toBeUndefined();
     expect(liveCodex?.nextStep).toBe(
-      "Run native two-panel smoke and live-control smoke, then start slash command capability work."
+      "Run native two-panel smoke and live-control smoke as recurring regression checks."
+    );
+  });
+
+  it("marks Platform capabilities as the current selected milestone", () => {
+    const platform = steerboardMilestoneStatuses.find(
+      (milestone) => milestone.target === "Platform capabilities"
+    );
+
+    expect(platform?.completion).toBe("In progress");
+    expect(platform?.tone).toBe("active");
+    expect(platform?.completionPercent).toBe(8);
+    expect(platform?.current).toBe(true);
+    expect(platform?.latestNote).toBe(
+      "Slash command catalog and panel composer routing are now provider-neutral and state-aware."
+    );
+    expect(platform?.nextStep).toBe(
+      "Expand provider-backed catalogs for plugins, skills, MCP, automations, and personalization."
     );
   });
 
@@ -251,13 +268,13 @@ describe("milestone status model", () => {
     expect(summarizeMilestoneStatuses(steerboardMilestoneStatuses)).toEqual({
       total: 9,
       complete: 0,
-      active: 7,
-      planned: 1,
+      active: 8,
+      planned: 0,
       paused: 1,
-      averageCompletionPercent: 34,
-      nextTarget: "Live Codex integration",
-      nextStep: "Run native two-panel smoke and live-control smoke, then start slash command capability work.",
-      nextCompletionPercent: 42
+      averageCompletionPercent: 35,
+      nextTarget: "Platform capabilities",
+      nextStep: "Expand provider-backed catalogs for plugins, skills, MCP, automations, and personalization.",
+      nextCompletionPercent: 8
     });
   });
 
