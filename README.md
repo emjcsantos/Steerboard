@@ -39,6 +39,7 @@ The desktop shell uses Tauri and loads the same local Vite UI during development
 - [UI Direction](docs/product/ui-direction.md)
 - [Cockpit Operating Modes](docs/product/cockpit-operating-modes.md)
 - [Live Platform Capabilities](docs/product/live-platform-capabilities.md)
+- [Migration Center](docs/product/migration-center.md)
 - [Project Management Lane](docs/product/project-management-lane.md)
 - [Architecture Overview](docs/architecture/architecture-plan.md)
 - [Platform Strategy](docs/architecture/platform-strategy.md)

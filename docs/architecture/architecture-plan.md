@@ -84,6 +84,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Codex adapter should be the first live adapter and should delegate authentication to Codex rather than storing Codex secrets in Steerboard.
 - Live provider adapters should expose session, command, plugin, automation, MCP, personalization, approval, and audit capabilities through one normalized contract.
 - The Codex adapter should expose a read-only default option seed that mirrors Codex plugins, skills, slash commands, MCP servers, and personalization sources from the connected runtime.
+- Source-platform migration adapters should convert supported external settings and integration metadata into Steerboard profiles without copying secrets or mutating the source platform.
 - Adapter APIs should normalize events into the session core instead of leaking provider-specific event shapes into the UI.
 - Adapter contracts must be easy to add, test, and disable.
 - Runtime profiles describe configured transports, commands, permissions, workspace posture, and capabilities without executing them during readiness evaluation.
@@ -128,6 +129,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 
 - Connection center detects provider install/version, auth posture, credential storage posture, and service availability.
 - Default option seeding creates a read-only provider catalog before live execution: plugins, skills, commands, MCP servers, personalization sources, capability flags, and unsupported states.
+- Migration center scans supported source platforms, builds an import preview, redacts excluded data, creates Steerboard profiles, and records a local audit summary.
 - Command registry powers `/` menus in every cockpit composer and maps command invocations to the active provider adapter.
 - Plugin manager reads provider plugin state, distinguishes skills, app connectors, and bundled MCP servers, and surfaces setup-required or disabled states.
 - Automation manager reads thread, project, and standalone automation state, including schedule, worktree/local mode, latest findings, and unattended-execution risk.
@@ -142,6 +144,7 @@ Steerboard is a local-first desktop cockpit. The UI presents project lanes, agen
 - Runtime adapter configuration and readiness state.
 - Provider connection metadata and capability availability.
 - Read-only provider default option seed metadata.
+- Migration import previews, profile mappings, rollback metadata, and local audit summaries.
 - Session metadata.
 - Handoff records.
 - Validation reports.

@@ -34,6 +34,17 @@ Steerboard should copy Codex's default options as a read-only seed catalog durin
 - If a user customizes a seeded option in Steerboard, save it as a Steerboard profile override instead of mutating Codex config silently.
 - Provide a refresh action so users can re-sync Steerboard with Codex after installing plugins, adding skills, or changing MCP servers.
 
+## Migration Center
+
+Steerboard should let users ask to migrate settings and integrations from supported source platforms, then convert them into Steerboard profiles through a reviewed import flow.
+
+- Planned source adapters include Codex, Claude Code, Antigravity, generic MCP config, generic skill/prompt folders, and manual JSON or TOML imports.
+- Importable categories include settings, model/provider preferences, commands, skills, prompts, agents, plugins, MCP servers, tool policy, project instructions, automations, and safe UI preferences.
+- The migration center must show a preview before import, with counts for accepted, review-required, unsupported, and excluded items.
+- Secrets, auth caches, cookies, browser state, raw transcripts, and access tokens are always excluded.
+- Imported live execution is disabled by default until the user approves provider, workspace, permission, and audit gates.
+- Refresh from source is allowed, but write-back to the source platform requires a separate explicit approval.
+
 ## Required Live Surfaces
 
 ### Chat And Session Control

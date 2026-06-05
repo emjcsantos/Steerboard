@@ -13,6 +13,8 @@
 - Slash command discovery and execution must be available from every panel composer when the active provider supports commands.
 - Plugin, automation, MCP, and personalization surfaces must represent real provider state instead of static decorative navigation.
 - When Codex is connected, plugin, skill, slash command, and MCP defaults should be copied from the local Codex runtime into a read-only seed catalog that can be refreshed.
+- Migration center must let users request imports from supported agent platforms such as Codex, Claude Code, Antigravity, generic MCP config, generic skill/prompt folders, and manual JSON or TOML files.
+- Migration imports must create Steerboard profiles or provider mappings without silently mutating the source platform.
 - Per-cell session state: idle, planning, implementing, validating, blocked, failed, complete.
 - Orchestrator task board showing task ownership, attempt count, validation state, files touched, and handoff result.
 - Optional project management lane for pipeline visibility, monitoring, tracking, readiness, and change management before dispatching selected work to a configured agent runtime.
@@ -95,6 +97,7 @@
 - The environment panel should expose desktop packaging readiness so users can see shell, bridge, permission, and packaging-lock state before any installer or signed build command exists.
 - Live platform capability plans must track connection center, app-server/session bridge, slash command registry, plugin manager, automation manager, MCP manager, personalization center, and permission/audit layers.
 - A Codex default option seed preview should show discovered plugins, skills, MCP servers, commands, and personalization sources without enabling live execution.
+- Migration previews should show importable, review-required, unsupported, and excluded items before writing any Steerboard profile data.
 
 ## Later Functional Scope
 
@@ -104,6 +107,7 @@
 - Codex connection center backed by local Codex auth state, version detection, and safe credential posture.
 - Codex app-server adapter for thread, turn, item, approval, and streamed event lifecycle.
 - Codex default option import for plugins, skills, slash commands, MCP servers, and personalization sources.
+- Migration center for supported source platforms, with parser validation, conflict handling, rollback, refresh, and local audit summaries.
 - Live panel chat that can start, resume, fork, interrupt, retry, and steer sessions.
 - Slash command registry backed by provider-reported commands and unsupported-state handling.
 - Plugin manager backed by provider plugin state, setup requirements, and explicit invocation.
@@ -161,6 +165,7 @@
 - No secrets in tracked docs.
 - No raw private transcripts in public examples.
 - Analytics default off.
+- Migration must exclude credentials, tokens, auth caches, cookies, private browser state, and raw transcripts by default.
 - Worker tasks must be file-scoped.
 - Parallel agent execution must use explicit workspace and file ownership boundaries.
 - Destructive actions require explicit user confirmation.
