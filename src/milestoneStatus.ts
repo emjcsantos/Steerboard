@@ -44,12 +44,12 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Complete core cockpit panels, control affordances, and visible operating-mode cues.",
     completionPercent: 58,
     latestNote:
-      "Multi-panel cockpit and local chat-lane scaffold exist; visible panels can use panel-keyed live session chat and per-panel session controls, with native two-panel smoke still pending.",
+      "Multi-panel cockpit, adaptive magnetic panel layout, and local chat-lane scaffold exist; visible panels can use panel-keyed live session chat and per-panel session controls, with native two-panel smoke still pending.",
     nextStep:
       "Run native two-panel smoke and live-control smoke, then continue command capability work.",
     tone: "active",
     note:
-      "Cockpit layouts, local monitor previews, and chat-lane scaffolding exist, but live provider-backed behavior is not complete."
+      "Fixed layouts, adaptive panel geometry, local monitor previews, and chat-lane scaffolding exist, but live provider-backed behavior is not complete."
   },
   {
     target: "Orchestration model",

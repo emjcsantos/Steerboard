@@ -4,14 +4,18 @@ import {
   CheckCircle2,
   CircleDot,
   ClipboardList,
+  EyeOff,
   Folder,
   GitBranch,
   Grid2X2,
   Link2,
   LayoutDashboard,
   Link2Off,
+  Maximize2,
   MessageSquare,
+  Minimize2,
   MoreHorizontal,
+  Move,
   PanelRight,
   Paperclip,
   Pause,
@@ -26,8 +30,25 @@ import {
   UserRound,
   Workflow
 } from "lucide-react";
-import type { FormEvent, ReactNode } from "react";
+import type { DragEvent, FormEvent, PointerEvent, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import {
+  ADAPTIVE_LAYOUT_MAX_PANELS,
+  createAdaptiveCockpitLayoutForPanelIds,
+  hiddenAdaptiveCockpitPanels,
+  hideAdaptiveCockpitPanel,
+  moveAdaptiveCockpitPanel,
+  revealAdaptiveCockpitPanel,
+  resizeAdaptiveCockpitPanel,
+  syncAdaptiveCockpitLayoutToPanelIds,
+  visibleAdaptiveCockpitPanels,
+  type AdaptiveCockpitLayout,
+  type AdaptiveCockpitPanel
+} from "./adaptiveCockpitLayout";
+import {
+  loadAdaptiveCockpitLayout,
+  saveAdaptiveCockpitLayout
+} from "./adaptiveCockpitLayoutStorage";
 import {
   defaultAutomationCatalog,
   summarizeAutomationCatalog,
@@ -1161,11 +1182,15 @@ export function App() {
   const [preferences, setPreferences] = useState<WorkspacePreferences>(() =>
     loadWorkspacePreferences(validProjectIds)
   );
+  const [adaptiveCockpitLayout, setAdaptiveCockpitLayout] = useState<AdaptiveCockpitLayout>(() =>
+    loadAdaptiveCockpitLayout()
+  );
   const [drafts, setDrafts] = useState<PlanningDraft[]>(() => loadPlanningDrafts(defaultPlanningDrafts));
   const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
   const [mockRuns, setMockRuns] = useState<MockOrchestratorRun[]>(() => loadRunHistory());
   const [selectedRunId, setSelectedRunId] = useState<string>();
   const [focusedPanelId, setFocusedPanelId] = useState<string>();
+  const [adaptiveDraggingPanelId, setAdaptiveDraggingPanelId] = useState<string>();
   const [activeAppMenu, setActiveAppMenu] = useState<AppMenuId>();
   const [appDialog, setAppDialog] = useState<AppDialog>();
   const [codexConnectionRequested, setCodexConnectionRequested] = useState(false);
@@ -1199,6 +1224,10 @@ export function App() {
   useEffect(() => {
     saveWorkspacePreferences(preferences);
   }, [preferences]);
+
+  useEffect(() => {
+    saveAdaptiveCockpitLayout(adaptiveCockpitLayout);
+  }, [adaptiveCockpitLayout]);
 
   useEffect(() => {
     refreshCodexTransportProbe();
@@ -1283,15 +1312,62 @@ export function App() {
     () => [...projectMockSessions, ...basePresetSessions],
     [basePresetSessions, projectMockSessions]
   );
-  const maxVisibleSessions = maxVisibleCells(layoutId);
+  const sessionById = useMemo(
+    () => new Map(cockpitSessions.map((session) => [session.id, session])),
+    [cockpitSessions]
+  );
+  const adaptivePanelIds = useMemo(
+    () => cockpitSessions.slice(0, ADAPTIVE_LAYOUT_MAX_PANELS).map((session) => session.id),
+    [cockpitSessions]
+  );
+  const syncedAdaptiveLayout = useMemo(
+    () => syncAdaptiveCockpitLayoutToPanelIds(adaptiveCockpitLayout, adaptivePanelIds),
+    [adaptiveCockpitLayout, adaptivePanelIds]
+  );
+  const visibleAdaptivePanels = useMemo(
+    () =>
+      visibleAdaptiveCockpitPanels(syncedAdaptiveLayout).filter((panel) =>
+        sessionById.has(panel.id)
+      ),
+    [sessionById, syncedAdaptiveLayout]
+  );
+  const hiddenAdaptivePanels = useMemo(
+    () =>
+      hiddenAdaptiveCockpitPanels(syncedAdaptiveLayout).filter((panel) =>
+        sessionById.has(panel.id)
+      ),
+    [sessionById, syncedAdaptiveLayout]
+  );
+  const adaptiveVisibleSessions = useMemo(
+    () =>
+      visibleAdaptivePanels
+        .map((panel) => sessionById.get(panel.id))
+        .filter((session): session is SessionSummary => Boolean(session)),
+    [sessionById, visibleAdaptivePanels]
+  );
+  const maxVisibleSessions = layout.kind === "adaptive"
+    ? ADAPTIVE_LAYOUT_MAX_PANELS
+    : maxVisibleCells(layoutId);
   const visibleSessions = useMemo(
-    () => cockpitSessions.slice(0, maxVisibleSessions),
-    [cockpitSessions, maxVisibleSessions]
+    () =>
+      layout.kind === "adaptive"
+        ? adaptiveVisibleSessions
+        : cockpitSessions.slice(0, maxVisibleSessions),
+    [adaptiveVisibleSessions, cockpitSessions, layout.kind, maxVisibleSessions]
   );
   const displayGrid = useMemo(
-    () => getDisplayGrid(layout, visibleSessions.length),
-    [layout, visibleSessions.length]
+    () =>
+      layout.kind === "adaptive"
+        ? { columns: syncedAdaptiveLayout.columns, rows: syncedAdaptiveLayout.rows }
+        : getDisplayGrid(layout, visibleSessions.length),
+    [layout, syncedAdaptiveLayout.columns, syncedAdaptiveLayout.rows, visibleSessions.length]
   );
+  useEffect(() => {
+    setAdaptiveCockpitLayout((currentLayout) => {
+      const nextLayout = syncAdaptiveCockpitLayoutToPanelIds(currentLayout, adaptivePanelIds);
+      return JSON.stringify(nextLayout) === JSON.stringify(currentLayout) ? currentLayout : nextLayout;
+    });
+  }, [adaptivePanelIds]);
   useEffect(() => {
     setFocusedPanelId((currentPanelId) =>
       currentPanelId && visibleSessions.some((session) => session.id === currentPanelId)
@@ -1435,6 +1511,90 @@ export function App() {
   function handleAdaptiveViewAction() {
     updatePreferences({ layoutId: "adaptive", view: "cockpit" });
     setActiveAppMenu(undefined);
+  }
+
+  function handleAddAdaptivePanel() {
+    const nextHiddenPanel = hiddenAdaptivePanels[0];
+    if (!nextHiddenPanel) {
+      return;
+    }
+
+    setAdaptiveCockpitLayout((currentLayout) =>
+      revealAdaptiveCockpitPanel(currentLayout, nextHiddenPanel.id)
+    );
+    setFocusedPanelId(nextHiddenPanel.id);
+  }
+
+  function handleResetAdaptiveLayout() {
+    setAdaptiveCockpitLayout(createAdaptiveCockpitLayoutForPanelIds(adaptivePanelIds));
+    setFocusedPanelId(adaptivePanelIds[0]);
+  }
+
+  function handleHideAdaptivePanel(panelId: string) {
+    setAdaptiveCockpitLayout((currentLayout) => hideAdaptiveCockpitPanel(currentLayout, panelId));
+    setFocusedPanelId((currentPanelId) => (currentPanelId === panelId ? undefined : currentPanelId));
+  }
+
+  function handleResizeAdaptivePanel(
+    panelId: string,
+    nextSize: { w?: number; h?: number }
+  ) {
+    setAdaptiveCockpitLayout((currentLayout) =>
+      resizeAdaptiveCockpitPanel(currentLayout, panelId, nextSize)
+    );
+    setFocusedPanelId(panelId);
+  }
+
+  function handleAdaptivePanelDragStart(
+    event: DragEvent<HTMLDivElement>,
+    panelId: string
+  ) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("application/x-steerboard-panel", panelId);
+  }
+
+  function handleAdaptivePanelPointerStart(
+    event: PointerEvent<HTMLDivElement>,
+    panelId: string
+  ) {
+    event.preventDefault();
+    setAdaptiveDraggingPanelId(panelId);
+  }
+
+  function moveAdaptivePanelToPointer(panelId: string, event: Pick<DragEvent<HTMLDivElement>, "clientX" | "clientY" | "currentTarget">) {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = Math.floor(
+      ((event.clientX - bounds.left) / Math.max(bounds.width, 1)) * syncedAdaptiveLayout.columns
+    );
+    const y = Math.floor(
+      ((event.clientY - bounds.top) / Math.max(bounds.height, 1)) * syncedAdaptiveLayout.rows
+    );
+
+    setAdaptiveCockpitLayout((currentLayout) =>
+      moveAdaptiveCockpitPanel(currentLayout, panelId, { x, y })
+    );
+    setFocusedPanelId(panelId);
+  }
+
+  function handleAdaptivePanelPointerDrop(event: PointerEvent<HTMLDivElement>) {
+    if (!adaptiveDraggingPanelId) {
+      return;
+    }
+
+    event.preventDefault();
+    moveAdaptivePanelToPointer(adaptiveDraggingPanelId, event);
+    setAdaptiveDraggingPanelId(undefined);
+  }
+
+  function handleAdaptivePanelDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const panelId = event.dataTransfer.getData("application/x-steerboard-panel");
+    if (!panelId) {
+      return;
+    }
+
+    moveAdaptivePanelToPointer(panelId, event);
+    setAdaptiveDraggingPanelId(undefined);
   }
 
   function handleStageCodexConnection() {
@@ -1747,6 +1907,33 @@ export function App() {
                       ))}
                     </select>
                   </label>
+                  {layout.kind === "adaptive" ? (
+                    <div className="adaptive-toolbar" aria-label="Adaptive cockpit controls">
+                      <button
+                        disabled={hiddenAdaptivePanels.length === 0}
+                        onClick={handleAddAdaptivePanel}
+                        title={
+                          hiddenAdaptivePanels.length > 0
+                            ? `Reveal ${sessionById.get(hiddenAdaptivePanels[0].id)?.title ?? "next panel"}`
+                            : "All available panels are visible."
+                        }
+                        type="button"
+                      >
+                        <Plus size={14} />
+                        <span>Add</span>
+                      </button>
+                      <button
+                        onClick={handleResetAdaptiveLayout}
+                        title="Reset adaptive panel positions"
+                        type="button"
+                      >
+                        <RotateCcw size={14} />
+                      </button>
+                      <span title="Hidden adaptive panels">
+                        {hiddenAdaptivePanels.length} hidden
+                      </span>
+                    </div>
+                  ) : null}
                   <div className="toolbar-status">
                     <LayoutCapacitySignal capacity={cockpitLayoutCapacity} />
                     <FocusedPanelStatusChip
@@ -1770,27 +1957,72 @@ export function App() {
 
                 <div
                   className={classNames("cockpit-grid", layout.kind === "adaptive" && "cockpit-grid-adaptive")}
+                  onDragOver={
+                    layout.kind === "adaptive"
+                      ? (event) => {
+                          event.preventDefault();
+                          event.dataTransfer.dropEffect = "move";
+                        }
+                      : undefined
+                  }
+                  onDrop={layout.kind === "adaptive" ? handleAdaptivePanelDrop : undefined}
+                  onPointerCancel={
+                    layout.kind === "adaptive"
+                      ? () => setAdaptiveDraggingPanelId(undefined)
+                      : undefined
+                  }
+                  onPointerUp={layout.kind === "adaptive" ? handleAdaptivePanelPointerDrop : undefined}
                   style={{
                     gridTemplateColumns: `repeat(${displayGrid.columns}, minmax(0, 1fr))`,
                     gridTemplateRows: `repeat(${displayGrid.rows}, minmax(190px, 1fr))`
                   }}
                 >
-                  {visibleSessions.map((session) => (
-                    <SessionCell
-                      isFocused={session.id === focusedPanelId}
-                      key={session.id}
-                      liveCodexEnabled={codexTransportDecision.canStartSession}
-                      onPanelSessionStart={recordLivePanelSessionStart}
-                      onPanelSessionStatus={recordLivePanelSessionStatus}
-                      panelSessionRecord={panelSessionState[session.id]}
-                      projectLabel={
-                        projectLabelById.get(session.projectId) ??
-                        registryByProject.get(session.projectId)?.workspaceLabel ??
-                        session.projectId
-                      }
-                      session={session}
-                    />
-                  ))}
+                  {layout.kind === "adaptive"
+                    ? visibleAdaptivePanels.map((panel) => {
+                        const session = sessionById.get(panel.id);
+                        return session ? (
+                          <AdaptivePanelFrame
+                            columns={syncedAdaptiveLayout.columns}
+                            key={panel.id}
+                            onDragStart={handleAdaptivePanelDragStart}
+                            onHide={handleHideAdaptivePanel}
+                            onPointerStart={handleAdaptivePanelPointerStart}
+                            onResize={handleResizeAdaptivePanel}
+                            panel={panel}
+                            rows={syncedAdaptiveLayout.rows}
+                          >
+                            <SessionCell
+                              isFocused={session.id === focusedPanelId}
+                              liveCodexEnabled={codexTransportDecision.canStartSession}
+                              onPanelSessionStart={recordLivePanelSessionStart}
+                              onPanelSessionStatus={recordLivePanelSessionStatus}
+                              panelSessionRecord={panelSessionState[session.id]}
+                              projectLabel={
+                                projectLabelById.get(session.projectId) ??
+                                registryByProject.get(session.projectId)?.workspaceLabel ??
+                                session.projectId
+                              }
+                              session={session}
+                            />
+                          </AdaptivePanelFrame>
+                        ) : null;
+                      })
+                    : visibleSessions.map((session) => (
+                        <SessionCell
+                          isFocused={session.id === focusedPanelId}
+                          key={session.id}
+                          liveCodexEnabled={codexTransportDecision.canStartSession}
+                          onPanelSessionStart={recordLivePanelSessionStart}
+                          onPanelSessionStatus={recordLivePanelSessionStatus}
+                          panelSessionRecord={panelSessionState[session.id]}
+                          projectLabel={
+                            projectLabelById.get(session.projectId) ??
+                            registryByProject.get(session.projectId)?.workspaceLabel ??
+                            session.projectId
+                          }
+                          session={session}
+                        />
+                      ))}
                 </div>
               </>
             ) : view === "pipeline" ? (
@@ -2314,6 +2546,90 @@ function AppDialogSurface({
           </div>
         ) : null}
       </section>
+    </div>
+  );
+}
+
+function AdaptivePanelFrame({
+  children,
+  columns,
+  onDragStart,
+  onHide,
+  onPointerStart,
+  onResize,
+  panel,
+  rows
+}: {
+  children: ReactNode;
+  columns: number;
+  onDragStart: (event: DragEvent<HTMLDivElement>, panelId: string) => void;
+  onHide: (panelId: string) => void;
+  onPointerStart: (event: PointerEvent<HTMLDivElement>, panelId: string) => void;
+  onResize: (panelId: string, nextSize: { w?: number; h?: number }) => void;
+  panel: AdaptiveCockpitPanel;
+  rows: number;
+}) {
+  const canGrowWide = panel.x + panel.w < columns;
+  const canGrowTall = panel.y + panel.h < rows;
+  const canShrinkWide = panel.w > 1;
+  const canShrinkTall = panel.h > 1;
+
+  return (
+    <div
+      className="adaptive-panel-frame"
+      data-panel-id={panel.id}
+      style={{
+        gridColumn: `${panel.x + 1} / span ${panel.w}`,
+        gridRow: `${panel.y + 1} / span ${panel.h}`
+      }}
+    >
+      <div className="adaptive-panel-controls" aria-label={`Adaptive controls for ${panel.id}`}>
+        <div
+          className="adaptive-panel-drag-handle"
+          draggable
+          onDragStart={(event) => onDragStart(event, panel.id)}
+          onPointerDown={(event) => onPointerStart(event, panel.id)}
+          title="Drag panel"
+        >
+          <Move size={13} />
+        </div>
+        <button
+          disabled={!canShrinkWide}
+          onClick={() => onResize(panel.id, { w: panel.w - 1 })}
+          title="Narrow panel"
+          type="button"
+        >
+          <Minimize2 size={13} />
+        </button>
+        <button
+          disabled={!canGrowWide}
+          onClick={() => onResize(panel.id, { w: panel.w + 1 })}
+          title="Widen panel"
+          type="button"
+        >
+          <Maximize2 size={13} />
+        </button>
+        <button
+          disabled={!canShrinkTall}
+          onClick={() => onResize(panel.id, { h: panel.h - 1 })}
+          title="Shorten panel"
+          type="button"
+        >
+          <Minimize2 size={13} />
+        </button>
+        <button
+          disabled={!canGrowTall}
+          onClick={() => onResize(panel.id, { h: panel.h + 1 })}
+          title="Heighten panel"
+          type="button"
+        >
+          <Maximize2 size={13} />
+        </button>
+        <button onClick={() => onHide(panel.id)} title="Hide panel" type="button">
+          <EyeOff size={13} />
+        </button>
+      </div>
+      {children}
     </div>
   );
 }

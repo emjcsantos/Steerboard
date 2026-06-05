@@ -1204,6 +1204,63 @@ textarea {
   color: #72d6a0;
 }
 
+.adaptive-toolbar {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 5px;
+  border: 1px solid #2f4238;
+  border-radius: 8px;
+  background: #111d18;
+  color: #dce3eb;
+  padding: 5px 6px;
+}
+
+.adaptive-toolbar button,
+.adaptive-panel-controls button,
+.adaptive-panel-drag-handle {
+  display: inline-flex;
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid #35463d;
+  border-radius: 7px;
+  background: #17231d;
+  color: #dce3eb;
+  padding: 0 7px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.adaptive-toolbar button:hover:not(:disabled),
+.adaptive-toolbar button:focus-visible,
+.adaptive-panel-controls button:hover:not(:disabled),
+.adaptive-panel-controls button:focus-visible,
+.adaptive-panel-drag-handle:hover,
+.adaptive-panel-drag-handle:focus-visible {
+  border-color: #72d6a0;
+  color: #ffffff;
+  outline: none;
+}
+
+.adaptive-toolbar button:disabled,
+.adaptive-panel-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.adaptive-toolbar span {
+  max-width: 76px;
+  overflow: hidden;
+  color: #9ec7af;
+  font-size: 11px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .toolbar-status {
   display: flex;
   min-width: 0;
@@ -1621,8 +1678,59 @@ textarea {
 }
 
 .cockpit-grid-adaptive {
+  grid-auto-flow: dense;
   outline: 1px solid rgba(114, 214, 160, 0.28);
   outline-offset: -1px;
+}
+
+.adaptive-panel-frame {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+}
+
+.adaptive-panel-controls {
+  position: absolute;
+  z-index: 4;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  max-width: calc(100% - 12px);
+  gap: 4px;
+  border: 1px solid rgba(47, 66, 56, 0.86);
+  border-radius: 8px;
+  background: rgba(17, 29, 24, 0.92);
+  padding: 4px;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+
+.adaptive-panel-frame:hover .adaptive-panel-controls,
+.adaptive-panel-frame:focus-within .adaptive-panel-controls {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.adaptive-panel-controls button,
+.adaptive-panel-drag-handle {
+  width: 26px;
+  padding: 0;
+}
+
+.adaptive-panel-drag-handle {
+  cursor: grab;
+}
+
+.adaptive-panel-drag-handle:active {
+  cursor: grabbing;
+}
+
+.adaptive-panel-frame .session-cell {
+  height: 100%;
 }
 
 .session-cell {
