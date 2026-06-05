@@ -1701,6 +1701,118 @@ textarea {
   color: #89dda9;
 }
 
+.monitor-depth-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+  min-width: 0;
+  border: 1px solid #27303a;
+  border-radius: 8px;
+  background: #151b22;
+  padding: 8px;
+}
+
+.monitor-depth-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.monitor-depth-copy strong,
+.monitor-depth-copy small,
+.monitor-depth-score,
+.monitor-depth-metrics strong,
+.monitor-depth-metrics small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitor-depth-copy strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.monitor-depth-copy small {
+  color: #9fa9b4;
+  font-size: 10px;
+}
+
+.monitor-depth-score {
+  align-self: start;
+  justify-self: end;
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce3eb;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.monitor-depth-metrics {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.monitor-depth-metrics span {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 6px 5px;
+  text-align: center;
+}
+
+.monitor-depth-metrics strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.monitor-depth-metrics small {
+  color: #8f99a5;
+  font-size: 9px;
+}
+
+.monitor-depth-shallow {
+  border-color: #4b3d1f;
+}
+
+.monitor-depth-steady {
+  border-color: #244860;
+}
+
+.monitor-depth-deep {
+  border-color: #254634;
+}
+
+.monitor-depth-blocked {
+  border-color: #5c2c21;
+}
+
+.monitor-depth-shallow .monitor-depth-score,
+.monitor-depth-shallow .monitor-depth-metrics strong {
+  color: #f0d984;
+}
+
+.monitor-depth-steady .monitor-depth-score,
+.monitor-depth-steady .monitor-depth-metrics strong {
+  color: #8bd7f4;
+}
+
+.monitor-depth-deep .monitor-depth-score,
+.monitor-depth-deep .monitor-depth-metrics strong {
+  color: #89dda9;
+}
+
+.monitor-depth-blocked .monitor-depth-score,
+.monitor-depth-blocked .monitor-depth-metrics strong {
+  color: #ff9e85;
+}
+
 .monitor-strip-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

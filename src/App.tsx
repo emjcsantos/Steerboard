@@ -266,6 +266,10 @@ import {
   type CockpitMonitorLoop
 } from "./cockpitMonitorLoop";
 import {
+  createCockpitMonitorDepth,
+  type CockpitMonitorDepth
+} from "./cockpitMonitorDepth";
+import {
   createCockpitPanelRoster,
   type CockpitPanelRoster
 } from "./cockpitPanelRoster";
@@ -2395,6 +2399,16 @@ function RightPanel({
   const canPauseStream = cockpitMonitorControlState.canPause;
   const canResetStream = cockpitMonitorControlState.canReset;
   const recentEventFeed = buildCockpitMonitorEventFeed(runtimeStreamSnapshot);
+  const cockpitMonitorDepth = useMemo(
+    () =>
+      createCockpitMonitorDepth(
+        cockpitMonitorSummary,
+        cockpitMonitorQuality,
+        cockpitMonitorLoop,
+        recentEventFeed
+      ),
+    [cockpitMonitorLoop, cockpitMonitorQuality, cockpitMonitorSummary, recentEventFeed]
+  );
 
   useEffect(() => {
     if (!selectedRun || runtimeStreamSnapshot.state !== "streaming") {
@@ -2613,6 +2627,7 @@ function RightPanel({
       <CockpitMonitorStrip
         attention={cockpitMonitorAttention}
         controls={cockpitMonitorControlState}
+        depth={cockpitMonitorDepth}
         health={cockpitMonitorHealth}
         loop={cockpitMonitorLoop}
         nextEventPreview={cockpitMonitorNextEventPreview}
@@ -3025,6 +3040,7 @@ function RightPanel({
 function CockpitMonitorStrip({
   attention,
   controls,
+  depth,
   health,
   loop,
   nextEventPreview,
@@ -3038,6 +3054,7 @@ function CockpitMonitorStrip({
 }: {
   attention: CockpitMonitorAttention;
   controls: CockpitMonitorControlState;
+  depth: CockpitMonitorDepth;
   health: CockpitMonitorHealth;
   loop: CockpitMonitorLoop;
   nextEventPreview: CockpitMonitorNextEventPreview;
@@ -3059,6 +3076,9 @@ function CockpitMonitorStrip({
   const nextEventDetailAriaLabel = nextEventPreview.hasNext
     ? `Next queued local event ${nextEventPreview.sequenceLabel}: ${nextEventPreview.label}`
     : "Next queued local event: none queued";
+  const depthSignalValue = depth.signalLabel.replace(/\s+signals$/i, "");
+  const depthEventValue = depth.eventLabel.replace(/\s+recent$/i, "");
+  const depthGateValue = depth.gateLabel.replace(/\s+gates$/i, "");
 
   return (
     <section className="monitor-strip" aria-label="Cockpit monitor summary">
@@ -3134,6 +3154,31 @@ function CockpitMonitorStrip({
           <span>
             <strong>{loop.workerLabel}</strong>
             <small>Panels</small>
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label={`Monitoring depth: ${depth.label}, ${depth.scoreValue}`}
+        className={classNames("monitor-depth-row", `monitor-depth-${depth.tone}`)}
+        title={depth.detail}
+      >
+        <div className="monitor-depth-copy">
+          <strong>{depth.label}</strong>
+          <small>{depth.detail}</small>
+        </div>
+        <b className="monitor-depth-score">{depth.scoreValue}</b>
+        <div className="monitor-depth-metrics" aria-label="Monitoring depth metrics">
+          <span title={depth.signalLabel}>
+            <strong>{depthSignalValue}</strong>
+            <small>Signals</small>
+          </span>
+          <span title={depth.eventLabel}>
+            <strong>{depthEventValue}</strong>
+            <small>Events</small>
+          </span>
+          <span title={depth.gateLabel}>
+            <strong>{depthGateValue}</strong>
+            <small>Gates</small>
           </span>
         </div>
       </div>
