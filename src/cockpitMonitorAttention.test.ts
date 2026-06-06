@@ -102,7 +102,7 @@ describe("createCockpitMonitorAttention", () => {
 
     expect(createCockpitMonitorAttention(summary, health)).toEqual({
       label: "Watching live",
-      detail: "Local events are streaming into the cockpit.",
+      detail: "Local events are streaming into the arena.",
       tone: "live",
       actionLabel: "Watch"
     });

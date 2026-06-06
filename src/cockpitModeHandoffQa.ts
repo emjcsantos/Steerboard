@@ -34,7 +34,7 @@ const QADETAIL = {
     "Mode handoff is available with queued or attention-state panels to review.",
   blocked:
     "Resolve layout, hidden-panel, or focused-panel blockers before mode handoff.",
-  idle: "No active cockpit panels need handoff QA yet."
+  idle: "No active Arena panels need handoff QA yet."
 };
 
 function getQaTone(

@@ -9,7 +9,7 @@ This note records the first Steerboard transport target for Codex integration.
 - A no-prompt `initialize` handshake over `app-server --listen stdio://` is enough to prove local transport reachability without sending a model prompt.
 - An explicit live smoke can start an ephemeral read-only thread, send one tiny text turn, observe `item/agentMessage/delta`, and complete the turn without storing the transcript.
 - Managed app-server daemon lifecycle is not the safest first Windows path because daemon lifecycle support can be platform-limited.
-- `codex exec --json` is useful as a one-shot fallback, but it is not a full cockpit session transport because it does not provide the same multi-panel thread lifecycle.
+- `codex exec --json` is useful as a one-shot fallback, but it is not a full Arena session transport because it does not provide the same multi-panel thread lifecycle.
 
 ## Selected Transport Direction
 
@@ -49,7 +49,7 @@ When all three proof rows come from explicit desktop-executed smoke actions, Ste
 
 If app-server stdio is unavailable or the handshake fails:
 
-- keep cockpit panels in local preview mode,
+- keep Arena panels in local preview mode,
 - show detected Codex CLI readiness if available,
 - allow `codex exec --json` only as an explicit one-shot task option later,
 - do not silently switch panel chat to a non-session transport,

@@ -23,7 +23,7 @@ Natural-language requests such as "migrate my Codex setup" should open the same 
 - Reduce setup friction for users already working in another agent desktop, CLI, or IDE.
 - Preserve useful settings, commands, skills, plugins, MCP servers, project instructions, and provider preferences.
 - Keep imported data reviewable, reversible, and separated from the original source platform.
-- Make Steerboard useful as a central cockpit without forcing users to manually rebuild every integration.
+- Make Steerboard useful as a central Arena without forcing users to manually rebuild every integration.
 
 ## Supported Source Types
 

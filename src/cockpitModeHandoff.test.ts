@@ -28,7 +28,7 @@ describe("createCockpitModeHandoff", () => {
         "Handoff expands from focused review into orchestrated worker visibility.",
       tone: "focused",
       ariaLabel:
-        "Cockpit handoff from Focus (2x1) to Orchestrator (2x2); 3/5 panels preserved"
+        "Arena handoff from Focus (2x1) to Orchestrator (2x2); 3/5 panels preserved"
     });
   });
 
@@ -45,7 +45,7 @@ describe("createCockpitModeHandoff", () => {
         "Handoff expands worker coordination into multi-project monitoring.",
       tone: "expanding",
       ariaLabel:
-        "Cockpit handoff from Orchestrator (3x2) to Monitor (3x2); 2/2 panels preserved"
+        "Arena handoff from Orchestrator (3x2) to Monitor (3x2); 2/2 panels preserved"
     });
   });
 
@@ -61,7 +61,7 @@ describe("createCockpitModeHandoff", () => {
       detail: "Handoff returns monitoring context to focused review.",
       tone: "watching",
       ariaLabel:
-        "Cockpit handoff from Monitor (1x3) to Focus (2x1); 1/4 panels preserved"
+        "Arena handoff from Monitor (1x3) to Focus (2x1); 1/4 panels preserved"
     });
   });
 
@@ -96,7 +96,7 @@ describe("createCockpitModeHandoff", () => {
       buildLayout({
         id: "adaptive",
         label: "Adaptive",
-        description: "Freeform cockpit entry point.",
+        description: "Freeform Arena entry point.",
         columns: 3,
         rows: 3,
         kind: "adaptive"

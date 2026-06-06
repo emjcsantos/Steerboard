@@ -29,19 +29,19 @@ export interface LayoutGrid {
 }
 
 export const layoutOptions: LayoutSpec[] = [
-  { id: "1x1", label: "1x1", description: "One cockpit panel.", columns: 1, rows: 1, kind: "fixed" },
+  { id: "1x1", label: "1x1", description: "One Arena panel.", columns: 1, rows: 1, kind: "fixed" },
   { id: "2x1", label: "2x1", description: "Two panels side by side.", columns: 2, rows: 1, kind: "fixed" },
   { id: "1x2", label: "1x2", description: "Two stacked panels.", columns: 1, rows: 2, kind: "fixed" },
   { id: "3x1", label: "3x1", description: "Three panels in one row.", columns: 3, rows: 1, kind: "fixed" },
   { id: "1x3", label: "1x3", description: "Three stacked panels.", columns: 1, rows: 3, kind: "fixed" },
-  { id: "2x2", label: "2x2", description: "Four balanced cockpit panels.", columns: 2, rows: 2, kind: "fixed" },
+  { id: "2x2", label: "2x2", description: "Four balanced Arena panels.", columns: 2, rows: 2, kind: "fixed" },
   { id: "2x3", label: "2x3", description: "Six panels in two columns.", columns: 2, rows: 3, kind: "fixed" },
   { id: "3x2", label: "3x2", description: "Six panels in three columns.", columns: 3, rows: 2, kind: "fixed" },
-  { id: "3x3", label: "3x3", description: "Maximum fixed-grid cockpit view.", columns: 3, rows: 3, kind: "fixed" },
+  { id: "3x3", label: "3x3", description: "Maximum fixed-grid Arena view.", columns: 3, rows: 3, kind: "fixed" },
   {
     id: "adaptive",
     label: "Adaptive",
-    description: "Freeform cockpit entry point; uses a safe 3x3 placeholder until magnetic panels ship.",
+    description: "Freeform Arena entry point; uses a safe 3x3 placeholder until magnetic panels ship.",
     columns: 3,
     rows: 3,
     kind: "adaptive"

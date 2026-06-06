@@ -5,18 +5,18 @@
 - Project workspace registry.
 - Project registry entries must expose display-safe workspace labels, status, runtime state, permission state, and readiness without storing private local paths in public fixtures.
 - Session registry for active and historical agent threads.
-- Fixed cockpit layout presets: `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, and `3x3`.
+- Fixed Arena layout presets: `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, and `3x3`.
 - Layout choices must be exposed through one dropdown or combobox, including an `Adaptive` option.
 - `3x3` hard maximum for visible fixed-grid preset cells.
-- Adaptive cockpit mode for user-created, draggable, resizable, repositionable panels.
+- Adaptive Arena mode for user-created, draggable, resizable, repositionable panels.
 - Adaptive mode must support magnetic snapping to grid intervals, neighboring panel edges, and safe drop zones.
-- Adaptive mode must let users drag a chat, session, task, evidence pane, or whole project into the center cockpit.
+- Adaptive mode must let users drag a chat, session, task, evidence pane, or whole project into the center arena.
 - Adaptive mode can hold more panels than the fixed-grid visible maximum through scroll, pan, hidden queue, or tabbed stacks, but visible panels must preserve readable minimum sizes and avoid overlap.
 - Adaptive panel geometry must persist locally and repair malformed saved state to safe defaults.
-- Cockpit operating modes: focused single-project lane, orchestrator with worker panels, and independent multi-project monitor.
-- Cockpit layout, focus, hidden-panel, activity, and monitor controls should fit into one compact row at desktop widths.
-- Cockpit chat is the primary planning, instruction, review, and steering surface.
-- Cockpit panels must support live chat sessions through configured provider adapters, starting with Codex.
+- Arena operating modes: focused single-project lane, orchestrator with worker panels, and independent multi-project monitor.
+- Arena layout, focus, hidden-panel, activity, and monitor controls should fit into one compact row at desktop widths.
+- Arena chat is the primary planning, instruction, review, and steering surface.
+- Arena panels must support live chat sessions through configured provider adapters, starting with Codex.
 - Slash command discovery and execution must be available from every panel composer when the active provider supports commands.
 - Plugin, automation, MCP, and personalization surfaces must represent real provider state instead of static decorative navigation.
 - When Codex is connected, plugin, skill, slash command, and MCP defaults should be copied from the local Codex runtime into a read-only seed catalog that can be refreshed.
@@ -34,9 +34,9 @@
 - Separate implementer and validator roles when task risk requires it.
 - Final integration lane owned by the main orchestrator.
 - Model-agnostic worker profiles so model/provider choice stays configurable.
-- Easy agent-runtime integration through pluggable adapters, documented worker profiles, mockable transports, and no cockpit-specific rewrites.
+- Easy agent-runtime integration through pluggable adapters, documented worker profiles, mockable transports, and no arena-specific rewrites.
 - Runtime profile setup must be provider-neutral and should separate profile readiness from actual process execution.
-- Connection setup must make it easy to add Codex or another model/service adapter without rewriting cockpit panels.
+- Connection setup must make it easy to add Codex or another model/service adapter without rewriting Arena panels.
 - Steerboard must not store Codex, plugin, MCP, or third-party service secrets directly; secrets stay in provider credential stores, OS keyrings, environment variables, or approved secret managers.
 - Steerboard profile overrides must be separate from Codex defaults so users can customize visibility and grouping without silently mutating Codex config.
 
@@ -44,11 +44,11 @@
 
 - Static project list and session mock data.
 - Static project registry and runtime adapter mock data.
-- Cockpit layout model and responsive grid.
-- Compact cockpit control row for layout, focus, panel activity, hidden queue, and local monitor controls.
+- Arena layout model and responsive grid.
+- Compact Arena control row for layout, focus, panel activity, hidden queue, and local monitor controls.
 - Layout dropdown replacing the visible fixed-layout button cluster.
 - `Adaptive` layout option visible in the layout selector, initially safe even before full freeform behavior is implemented.
-- Mock cockpit mode presets for focus lane, orchestrator-with-workers, and independent project monitor.
+- Mock Arena mode presets for focus lane, orchestrator-with-workers, and independent project monitor.
 - Task and worker state model.
 - Handoff document generation.
 - Audit and progress panels.
@@ -56,20 +56,20 @@
 - Placeholder optional project-management lane with generic sample pipelines and no private project names.
 - Selected pipeline items should expose a local dispatch detail preview with item, registry, and runtime gates before any runtime is launched.
 - Selected pipeline item dispatch requests should support local request and cancellation records that survive reloads without launching a runtime.
-- Dispatch-ready pipeline items should create a local cockpit run projection and switch users to the cockpit without launching an external runtime.
-- Selected pipeline items should list their linked local cockpit run projections and allow users to reopen a linked run from the pipeline detail view.
-- Pipeline items should summarize linked cockpit run state so users can see queued, running, complete, blocked, or failed work from the project management lane.
+- Dispatch-ready pipeline items should create a local Arena run projection and switch users to the Arena without launching an external runtime.
+- Selected pipeline items should list their linked local Arena run projections and allow users to reopen a linked run from the pipeline detail view.
+- Pipeline items should summarize linked Arena run state so users can see queued, running, complete, blocked, or failed work from the project management lane.
 - Dispatch gate preview with no real command execution.
 - Editable local planning drafts with readiness scoring before dispatch.
 - Local planning draft persistence with safe saved-state repair.
 - Local dispatch package preview generated from a complete staged planning draft.
-- Local mock orchestrator run projection from a staged dispatch package, visible in cockpit panels without executing a runtime.
+- Local mock orchestrator run projection from a staged dispatch package, visible in Arena panels without executing a runtime.
 - Local mock run history persisted across reloads with selected-run detail in the environment panel.
-- Mock run detail should expose the source package, spawned task count, cockpit panel count, and validation gate count.
+- Mock run detail should expose the source package, spawned task count, Arena panel count, and validation gate count.
 - Local mock run lifecycle controls for queue, running, complete, blocked, and failed states.
-- Lifecycle controls should update cockpit panels, task status summaries, validation gate status, and persisted run history together.
+- Lifecycle controls should update Arena panels, task status summaries, validation gate status, and persisted run history together.
 - Selected mock runs should expose a compact event timeline covering run, task, session, and validation events.
-- Timeline summaries should show active, issue, and complete counts for quick cockpit monitoring.
+- Timeline summaries should show active, issue, and complete counts for quick Arena monitoring.
 - Selected mock runs should expose local validation evidence readiness with gate counts, evidence counts, finalization state, and safety copy before any terminal command runs.
 - Selected mock runs should expose terminal and Git evidence readiness so users can see capture locks, permission state, and local evidence dependency before any command or Git operation runs.
 - Terminal and Git evidence readiness should support local request and cancellation records that survive reloads without running commands or Git operations.
@@ -77,12 +77,12 @@
 - Adapter contract summaries should show ready, review, and blocked counts before any real command execution is enabled.
 - Selected mock runs should expose a runtime ingestion preview that compares normalized timeline events against the selected adapter contract.
 - Runtime ingestion previews should show accepted, review, and blocked event counts without executing any runtime process.
-- Selected mock runs should expose a local stream preview that can play, pause, and reset emitted adapter events for realtime cockpit monitoring.
+- Selected mock runs should expose a local stream preview that can play, pause, and reset emitted adapter events for realtime Arena monitoring.
 - Stream previews should show latest event, emitted count, pending count, and blocked state without starting external processes.
 - Runtime stream previews should expose adapter session status, heartbeat text, transport, and permission readiness for the selected project.
 - Adapter session status should reflect offline, connecting, ready, live, paused, complete, and blocked states from local adapter and stream evidence.
 - Runtime stream previews should expose a local event source summary showing queued, emitted, accepted, review, and blocked event counts.
-- Event source summaries should make the next queued event visible before it is emitted into the cockpit.
+- Event source summaries should make the next queued event visible before it is emitted into the arena.
 - Event source summaries should show whether the queued events can attach to the selected runtime adapter or must remain local.
 - Adapter source readiness should explain missing capabilities or permissions before any external process can run.
 - Runtime stream previews should expose a local adapter bridge that can attach, detach, and gate stream playback without launching an external process.
@@ -91,9 +91,9 @@
 - Launch request previews should allow a local approval request to be queued and cancelled without executing a runtime process.
 - Runtime stream previews should expose a local execution audit preview showing launch readiness, approval state, execution lock state, queued event count, and transport.
 - Runtime stream previews should retain a local execution audit preview history for approval request and cancellation actions across reloads.
-- The environment panel should expose a compact cockpit monitor summary with selected-run state, timeline counts, stream state, and emitted/pending event counts.
-- The cockpit monitor summary should expose local start, pause, and reset controls for the stream preview when the selected run and local event source are ready.
-- The desktop shell should expose a safe runtime bridge status so the cockpit can show whether it is running in browser preview or a desktop shell without enabling process execution.
+- The environment panel should expose a compact Arena monitor summary with selected-run state, timeline counts, stream state, and emitted/pending event counts.
+- The Arena monitor summary should expose local start, pause, and reset controls for the stream preview when the selected run and local event source are ready.
+- The desktop shell should expose a safe runtime bridge status so the Arena can show whether it is running in browser preview or a desktop shell without enabling process execution.
 - Desktop bridge status should default to unavailable or locked unless an approved runtime path explicitly reports readiness.
 - Runtime profile drafts should start disabled with read-only workspace posture and deterministic readiness reasons.
 - The environment panel should show selected runtime profile readiness, transport, workspace posture, capability count, permission count, and safety copy before execution exists.
@@ -106,14 +106,14 @@
 - Active runtime profiles should expose a desktop permission handoff preview that explains bridge, process, and workspace gates without executing anything.
 - Desktop permission handoff previews should support local request and cancel records that survive reloads without opening desktop permissions.
 - Desktop permission request state should expose a local approval preview that keeps execution locked until a real desktop approval path exists.
-- The desktop shell should expose a safe permission approval status so the cockpit can show whether the approval command is unavailable, locked, ready, or errored.
+- The desktop shell should expose a safe permission approval status so the Arena can show whether the approval command is unavailable, locked, ready, or errored.
 - Desktop permission state should expose a local audit and export preview that combines approval state, shell approval status, request history, and execution lock status without writing files.
 - The environment panel should expose desktop packaging readiness so users can see shell, bridge, permission, and packaging-lock state before any installer or signed build command exists.
 - Live platform capability plans must track connection center, app-server/session bridge, slash command registry, plugin manager, automation manager, MCP manager, personalization center, and permission/audit layers.
 - A Codex default option seed preview should show discovered plugins, skills, MCP servers, commands, and personalization sources without enabling live execution.
 - Migration previews should show importable, review-required, unsupported, and excluded items before writing any Steerboard profile data.
 - Unsupported migration categories should remain visible but disabled with a clear reason.
-- Each cockpit panel should expose a local chat composer and transcript surface even before live provider execution is enabled.
+- Each Arena panel should expose a local chat composer and transcript surface even before live provider execution is enabled.
 - Local panel chat messages should persist per panel and repair malformed saved state to a safe initial transcript.
 - Slash command suggestions should appear from the panel composer as local previews before provider-backed slash execution exists.
 - A Codex connection dialog should allow users to stage a local connection request without authenticating, launching a runtime, or enabling execution.
@@ -167,20 +167,20 @@
 
 ## UX Requirements
 
-- The cockpit is the first screen, not a marketing landing page.
+- The Arena is the first screen, not a marketing landing page.
 - Dense, readable, desktop-first layout.
 - No card-inside-card dashboard clutter.
 - Clear visual distinction between orchestrator, implementer, validator, and integration roles.
 - User can collapse from `3x3` down to simpler layouts as needed.
 - User can switch layout presets from one dropdown instead of scanning a long button row.
 - User can enter Adaptive mode when fixed presets are too rigid for the active project.
-- User can add, drag, resize, reposition, hide, reveal, and reset adaptive cockpit panels without losing the underlying session or project state.
-- User can drag a chat or whole project from navigation into the cockpit to create or replace panels.
-- User can switch cockpit modes without losing active session state.
+- User can add, drag, resize, reposition, hide, reveal, and reset adaptive Arena panels without losing the underlying session or project state.
+- User can drag a chat or whole project from navigation into the Arena to create or replace panels.
+- User can switch Arena modes without losing active session state.
 - Steerboard must have its own visual identity and interaction model rather than copying a reference product screen-for-screen.
 - Steerboard should use a familiar desktop menu pattern, but only expose menus that are helpful and backed by working or clearly staged behavior.
 - Animations must be restrained, fast, and purposeful: use them to preserve spatial continuity when sessions move, resize, start, pause, or complete.
-- Every cockpit cell must keep transcript, status, tool activity, and validation evidence readable without overlap.
+- Every Arena cell must keep transcript, status, tool activity, and validation evidence readable without overlap.
 - Icon buttons must have accessible labels, visible focus states, and clear hover/pressed/disabled states.
 - Layout must remain stable under streaming text, long file names, long branch names, loading states, and failed-worker messages.
 

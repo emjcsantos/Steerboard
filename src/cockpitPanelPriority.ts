@@ -32,8 +32,8 @@ const IDLE_PRIORITY: CockpitPanelPriority = {
   title: "No visible panel",
   role: "integration",
   state: "idle",
-  priorityLabel: "Idle cockpit",
-  detail: "No visible cockpit panels are currently requiring attention.",
+  priorityLabel: "Idle arena",
+  detail: "No visible Arena panels are currently requiring attention.",
   tone: "idle",
   score: 0
 };

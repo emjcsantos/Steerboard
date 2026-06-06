@@ -76,7 +76,7 @@ describe("createCockpitFocusedPanelStatus", () => {
       panelId: "none",
       hasFocus: false,
       label: "No focus",
-      detail: "No cockpit panel is focused.",
+      detail: "No Arena panel is focused.",
       tone: "neutral"
     });
   });
@@ -88,7 +88,7 @@ describe("createCockpitFocusedPanelStatus", () => {
       panelId: "none",
       hasFocus: false,
       label: "No focus",
-      detail: "No cockpit panel is focused.",
+      detail: "No Arena panel is focused.",
       tone: "neutral"
     });
   });

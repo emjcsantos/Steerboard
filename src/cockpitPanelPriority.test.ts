@@ -31,8 +31,8 @@ describe("createCockpitPanelPriority", () => {
       title: "No visible panel",
       role: "integration",
       state: "idle",
-      priorityLabel: "Idle cockpit",
-      detail: "No visible cockpit panels are currently requiring attention.",
+      priorityLabel: "Idle arena",
+      detail: "No visible Arena panels are currently requiring attention.",
       tone: "idle",
       score: 0
     });
@@ -95,7 +95,7 @@ describe("createCockpitPanelPriority", () => {
     const sessions: SessionSummary[] = [
       buildSession({
         id: "long",
-        title: "A  very / long\\ path\\\\with\\\\slashes   and spacing that will force clipping for cockpit rendering.",
+        title: "A  very / long\\ path\\\\with\\\\slashes   and spacing that will force clipping for Arena rendering.",
         state: "validating",
         attempt: 2
       })

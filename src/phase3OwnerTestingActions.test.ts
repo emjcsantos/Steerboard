@@ -45,7 +45,7 @@ describe("phase 3 owner-testing actions", () => {
       kind: "guidance",
       disabled: true
     });
-    expect(actions[0].detail.toLowerCase()).toContain("cockpit composer");
+    expect(actions[0].detail.toLowerCase()).toContain("arena composer");
     expect(actions[1].detail.toLowerCase()).toContain("session controls");
   });
 

@@ -77,11 +77,11 @@ This section tracks visible runtime and project-data readiness checks only. Thes
   - Confirm dependency additions are reviewed for update safety and least privilege.
   - Confirm fixture/dependency reviews are captured as explicit readiness items.
 
-## Live Cockpit Security Acceptance
+## Live Arena Security Acceptance
 
-The cockpit presents a visible security acceptance coverage check before packaging work resumes. The check connects five read-only signals:
+The Arena presents a visible security acceptance coverage check before packaging work resumes. The check connects five read-only signals:
 
-- Live cockpit run selected
+- Live Arena run selected
 - Release privacy readiness
 - Real project data boundary
 - Runtime adapter edge evidence
@@ -91,7 +91,7 @@ Security acceptance coverage is a monitoring and decision-support surface only. 
 
 ## Repeated Live Run Evidence
 
-Before packaging resumes, the cockpit should make repeated live-run evidence visible across multiple local runs. The repeated evidence view tracks:
+Before packaging resumes, the Arena should make repeated live-run evidence visible across multiple local runs. The repeated evidence view tracks:
 
 - reviewed run sample coverage,
 - ready run count,

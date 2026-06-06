@@ -40,7 +40,7 @@ function buildNoRunSummary(): CockpitMonitorSummary {
     latestEventLabel: "Waiting for first local event.",
     latestEventStatus: "idle",
     latestEventDetail: "No emitted events yet.",
-    detail: "Select or stage a run to monitor local cockpit activity."
+    detail: "Select or stage a run to monitor local Arena activity."
   };
 }
 

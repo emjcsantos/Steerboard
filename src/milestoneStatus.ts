@@ -33,18 +33,18 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Establish a stable baseline structure, public docs contract, and navigation foundations.",
     completionPercent: 60,
     latestNote:
-      "Local shell, public docs, navigation, and cockpit scaffolding are in place.",
+      "Local shell, public docs, navigation, and Arena scaffolding are in place.",
     nextStep: "Keep scaffold stable while live provider integration starts.",
     tone: "active",
-    note: "Local desktop shell, public fixture data, project sidebar, cockpit layouts, and docs are available for review."
+    note: "Local desktop shell, public fixture data, project sidebar, Arena layouts, and docs are available for review."
   },
   {
-    target: "Cockpit monitor and operating modes",
+    target: "Arena monitor and operating modes",
     completion: "In progress",
-    plan: "Complete core cockpit panels, control affordances, and visible operating-mode cues.",
+    plan: "Complete core Arena panels, control affordances, and visible operating-mode cues.",
     completionPercent: 66,
     latestNote:
-      "Multi-panel cockpit, adaptive magnetic layout with project stack drag-in, session drag-in, drop previews, keyboard adjustment, and adaptive project-drop template selection exist; local chat-lane scaffolding includes panel-keyed live session chat, per-panel session controls, visible unsupported-control evidence, owner-testing control readiness evidence, duplicate session identity guards, and native two-panel plus active-turn interrupt and steer smoke proof paths.",
+      "Multi-panel Arena, adaptive magnetic layout with project stack drag-in, session drag-in, drop previews, keyboard adjustment, and adaptive project-drop template selection exist; local chat-lane scaffolding includes panel-keyed live session chat, per-panel session controls, visible unsupported-control evidence, owner-testing control readiness evidence, duplicate session identity guards, and native two-panel plus active-turn interrupt and steer smoke proof paths.",
     nextStep:
       "Run native two-panel smoke, control-readiness smoke, active-turn interrupt smoke, and active-turn steer smoke from desktop mode, then verify the Owner Testing controls evidence moves from review to ready after interrupt, retry, and steer proof.",
     tone: "active",
@@ -57,7 +57,7 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Define a consistent model for sequencing cross-cutting tasks and status propagation.",
     completionPercent: 53,
     latestNote:
-      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for cockpit review, with handoff and retry state visible before external dispatch.",
+      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for Arena review, with handoff and retry state visible before external dispatch.",
     nextStep:
       "Connect the role-panel plan preview loop to staged dispatch records while preserving local-first review before live worker session spawning.",
     tone: "active",
@@ -80,7 +80,7 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
   {
     target: "Live adapter integration",
     completion: "In progress",
-    plan: "Connect runtime auth/session transport to cockpit panels.",
+    plan: "Connect runtime auth/session transport to Arena panels.",
     completionPercent: 48,
     latestNote:
       "Runtime app-server bridge now supports no-prompt readiness, explicit live smoke, two-panel isolation smoke, control-readiness smoke, explicit active-turn interrupt and steer smokes, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations.",
@@ -154,15 +154,15 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
   {
     target: "Optional project management lane",
     completion: "In progress",
-    plan: "Define the optional lane scope while keeping cockpit chat primary.",
+    plan: "Define the optional lane scope while keeping Arena chat primary.",
     completionPercent: 30,
     latestNote:
-      "Pipeline visibility, explicit orchestrator/implementer/validator/integration role-panel plan previews, dispatch previews, and linked local runs for cockpit review are added.",
+      "Pipeline visibility, explicit orchestrator/implementer/validator/integration role-panel plan previews, dispatch previews, and linked local runs for Arena review are added.",
     nextStep:
       "Keep secondary and connect staged role-panel plan previews to dispatch history, then continue provider readiness work after live chat hardening.",
     tone: "active",
     note:
-      "Optional pipeline visibility, role-panel plan previews, dispatch previews, and linked local run state are scaffolded; it remains secondary to cockpit chat."
+      "Optional pipeline visibility, role-panel plan previews, dispatch previews, and linked local run state are scaffolded; it remains secondary to Arena chat."
   }
 ];
 

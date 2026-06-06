@@ -36,12 +36,12 @@ const QALABEL: Record<CockpitInteractionReadinessTone, string> = {
 
 const QADETAIL: Record<CockpitInteractionReadinessTone, string> = {
   ready:
-    "Mode, layout, focus, and clear controls are ready for final cockpit QA.",
+    "Mode, layout, focus, and clear controls are ready for final Arena QA.",
   review:
-    "Cockpit controls are usable with at least one interaction state to review.",
+    "Arena controls are usable with at least one interaction state to review.",
   blocked:
     "Resolve blocked mode, layout, focus, or clear control state before final QA.",
-  idle: "No active cockpit interaction state needs QA yet."
+  idle: "No active Arena interaction state needs QA yet."
 };
 
 function mapModeTone(

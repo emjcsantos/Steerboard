@@ -4,7 +4,7 @@ import type { MilestoneStatus, MilestoneStatusSummary } from "./milestoneStatus"
 
 const milestones: MilestoneStatus[] = [
   {
-    target: "Cockpit monitor and operating modes",
+    target: "Arena monitor and operating modes",
     completion: "In progress",
     plan: "  Build the next operating controls and monitor states. ",
     completionPercent: 60,
@@ -41,7 +41,7 @@ describe("milestone report next detail", () => {
     const activeSummary: MilestoneStatusSummary = {
       ...noActiveSummary,
       active: 1,
-      nextTarget: "Cockpit monitor and operating modes",
+      nextTarget: "Arena monitor and operating modes",
       nextStep: "Summary next step should be ignored for this helper.",
       nextCompletionPercent: 60
     };
@@ -50,16 +50,16 @@ describe("milestone report next detail", () => {
 
     expect(detail).toEqual({
       hasNext: true,
-      target: "Cockpit monitor and operating modes",
+      target: "Arena monitor and operating modes",
       plan: "Build the next operating controls and monitor states.",
       completionLabel: "60%",
       latestNote: "Control surfaces are actively being validated.",
       nextStep:
         "Finalize the focus behavior and keep toolbar actions consistent.",
       title:
-        "Cockpit monitor and operating modes 60% Control surfaces are actively being validated. Finalize the focus behavior and keep toolbar actions consistent.",
+        "Arena monitor and operating modes 60% Control surfaces are actively being validated. Finalize the focus behavior and keep toolbar actions consistent.",
       ariaLabel:
-        "Next milestone Cockpit monitor and operating modes (60%) | latest note: Control surfaces are actively being validated. | next step: Finalize the focus behavior and keep toolbar actions consistent."
+        "Next milestone Arena monitor and operating modes (60%) | latest note: Control surfaces are actively being validated. | next step: Finalize the focus behavior and keep toolbar actions consistent."
     });
   });
 

@@ -51,7 +51,7 @@ function detailForSmokeAction(
   state: Phase3OwnerTestingActionState
 ): string {
   if (state === "blocked") {
-    return `${label} is not available while phase start conditions are not met. Use cockpit session controls to unlock session-based checks.`;
+    return `${label} is not available while phase start conditions are not met. Use Arena session controls to unlock session-based checks.`;
   }
   if (state === "running") {
     return `${label} is running in desktop probe mode.`;
@@ -123,8 +123,8 @@ export function buildPhase3OwnerTestingActions(
       kind: "guidance",
       state: "blocked",
       detail:
-        "Use the cockpit composer to run slash-command readiness checks and gather phase-3 evidence; this action is guidance only.",
-      buttonLabel: "Use cockpit composer",
+        "Use the Arena composer to run slash-command readiness checks and gather phase-3 evidence; this action is guidance only.",
+      buttonLabel: "Use Arena composer",
       disabled: true
     },
     {
@@ -133,7 +133,7 @@ export function buildPhase3OwnerTestingActions(
       kind: "guidance",
       state: "blocked",
       detail:
-        "Use the cockpit session controls to trigger live, interrupt, and steer phase-3 checks; actions here are informational only.",
+        "Use the Arena session controls to trigger live, interrupt, and steer phase-3 checks; actions here are informational only.",
       buttonLabel: "Use session controls",
       disabled: true
     },

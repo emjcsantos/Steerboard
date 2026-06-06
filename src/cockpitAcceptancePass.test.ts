@@ -55,7 +55,7 @@ describe("createCockpitAcceptancePass", () => {
     });
 
     expect(result).toEqual({
-      label: "Cockpit acceptance passed",
+      label: "Arena acceptance passed",
       detail:
         "Desktop, narrow-pane, monitor, mode, and interaction gates are ready to close.",
       tone: "accepted",
@@ -67,7 +67,7 @@ describe("createCockpitAcceptancePass", () => {
         { label: "Acceptance", value: "Desktop + narrow", tone: "ok" }
       ],
       ariaLabel:
-        "Cockpit acceptance passed: 4/4 gates; Monitor 100%; Mode QA 3/3 panels; Interaction 4/4 controls; Acceptance Desktop + narrow"
+        "Arena acceptance passed: 4/4 gates; Monitor 100%; Mode QA 3/3 panels; Interaction 4/4 controls; Acceptance Desktop + narrow"
     });
   });
 

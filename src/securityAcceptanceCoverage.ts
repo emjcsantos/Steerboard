@@ -185,14 +185,14 @@ export function createSecurityAcceptanceCoverage(
   const items: SecurityAcceptanceCoverageItem[] = [
     {
       id: `${SNAPSHOT_ID}:live-cockpit-run-selected`,
-      label: "Live cockpit run selected",
+      label: "Live Arena run selected",
       status: evaluateLiveRun(
         workingEvidence.hasSelectedRun,
         workingEvidence.selectedRunStatus
       ),
       detail: workingEvidence.hasSelectedRun
         ? `Selected run status is ${(workingEvidence.selectedRunStatus ?? "unknown").toString()}.`
-        : "No live cockpit run is currently selected."
+        : "No live Arena run is currently selected."
     },
     {
       id: `${SNAPSHOT_ID}:release-privacy-readiness`,

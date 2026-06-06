@@ -151,7 +151,7 @@ function buildReadyState(label: string, _panelId: string): AdaptiveCockpitDropPr
     status: "ready",
     tone: "success",
     label: `Drop ${label}`,
-    detail: "Ready to place in Adaptive cockpit.",
+    detail: "Ready to place in Adaptive Arena.",
     action: "Release to place."
   };
 }

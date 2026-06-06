@@ -2,11 +2,11 @@
 
 Steerboard must make core agent-platform functions live, not decorative. The first live action surface is a fixed read-only terminal probe, while adjacent capability UIs (commands, plugins, automations, MCP, personalization, approvals, service status) remain visible but non-mutating until later phases.
 
-Project-management dispatch remains a local-review capability in this slice: staged plans should explicitly model orchestrator, implementer, validator, and integration role panel workflows for cockpit review, with external runtime execution intentionally deferred.
+Project-management dispatch remains a local-review capability in this slice: staged plans should explicitly model orchestrator, implementer, validator, and integration role panel workflows for Arena review, with external runtime execution intentionally deferred.
 
 ## Current Implementation Closeout
 
-The current live-functionality slice has completed the public scaffold, cockpit panels, adaptive layout foundations, provider-neutral catalogs, migration preview foundations, permission/audit foundations, and Phase 3 smoke-proof evidence persistence. The next active pipeline item is desktop proof clearance: run the explicit desktop gate actions, verify persisted proof rows after reload, and confirm slash-command and session-control readiness evidence before moving to broader provider integration or dispatch execution.
+The current live-functionality slice has completed the public scaffold, Arena panels, adaptive layout foundations, provider-neutral catalogs, migration preview foundations, permission/audit foundations, and Phase 3 smoke-proof evidence persistence. The next active pipeline item is desktop proof clearance: run the explicit desktop gate actions, verify persisted proof rows after reload, and confirm slash-command and session-control readiness evidence before moving to broader provider integration or dispatch execution.
 
 ## Product Principle
 
@@ -28,7 +28,7 @@ The first adapter should use a local provider runtime instead of storing runtime
 - The first transport spike targets supervised `stdio://` transport because it can prove local reachability with a no-prompt initialize handshake before any request is sent.
 - A separate explicit live smoke should prove one ephemeral read-only send/stream turn by observing `item/agentMessage/delta` and `turn/completed`.
 - Command-line fallback is treated as a one-shot fallback, not a replacement for live multi-panel session transport.
-- Session, tool, approval, and stream events are normalized into Steerboard cockpit events.
+- Session, tool, approval, and stream events are normalized into Steerboard Arena events.
 - Runtime config, plugins, MCP, automations, memories, rules, and slash commands are reflected through adapter APIs rather than hardcoded as static UI.
 
 ## Runtime Default Option Seeding
@@ -62,7 +62,7 @@ Steerboard should let users migrate settings and integrations from supported sou
 
 ### Chat And Session Control
 
-- Start a new session from any cockpit panel.
+- Start a new session from any Arena panel.
 - Resume or fork existing sessions.
 - Send messages through the panel composer.
 - Stream agent messages, tool events, command output summaries, approvals, and final status.
@@ -113,7 +113,7 @@ Steerboard should let users migrate settings and integrations from supported sou
 ### Approvals, Permissions, And Audit
 
 - Any live external action must pass through a visible permission path.
-- The cockpit should show what action is requested, which runtime requested it, what workspace or service is affected, and how to reject or approve.
+- The Arena should show what action is requested, which runtime requested it, what workspace or service is affected, and how to reject or approve.
 - Automation and plugin actions need stronger warning states because they are cataloged but explicitly non-executable in this phase.
 - Audit records should capture decisions and normalized event summaries without storing secrets.
 
@@ -132,7 +132,7 @@ Each provider adapter should declare:
 - permission and approval requirements,
 - safe mock fixtures for tests and demos.
 
-The cockpit consumes only normalized adapter events. Adapter-specific payloads stay inside the adapter.
+The Arena consumes only normalized adapter events. Adapter-specific payloads stay inside the adapter.
 
 ## Runner Contract and Dry-Run Attachment
 

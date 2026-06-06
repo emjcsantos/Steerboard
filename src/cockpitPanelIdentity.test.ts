@@ -6,7 +6,7 @@ function buildSession(
   overrides: Partial<CockpitPanelIdentityInput> = {}
 ): CockpitPanelIdentityInput {
   return {
-    title: "Cockpit panel",
+    title: "Arena panel",
     role: "implementer",
     state: "implementing",
     runtime: "Mock runtime",

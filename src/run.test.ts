@@ -16,13 +16,13 @@ const stagedProject = {
 
 const basePlanningDraft: PlanningDraft = {
   title: "Build local orchestrator mock model",
-  objective: "Create a deterministic mock run model for cockpit visibility.",
+  objective: "Create a deterministic mock run model for Arena visibility.",
   targetProjectId: stagedProject.id,
   scope: ["Mock run scaffolding", "Validation gate projection", "Session conversion surface"],
   fileAreas: ["src/run.ts"],
   acceptanceCriteria: [
     "Model output is deterministic given idSeed and createdAt.",
-    "Sessions and tasks are safely transformed for cockpit review."
+    "Sessions and tasks are safely transformed for Arena review."
   ],
   validationPlan: [
     "npm run test -- src/run.test.ts",

@@ -190,7 +190,7 @@ export const pipelineItems: PipelineItem[] = [
   {
     id: "pipe-2",
     projectId: "website-refresh",
-    title: "Render cockpit shell",
+    title: "Render Arena shell",
     stage: "running",
     owner: "UI",
     risk: "medium",
@@ -376,7 +376,7 @@ export const orchestrationTasks: OrchestrationTask[] = [
     attempt: 0,
     attemptLimit: 3,
     owner: "Worker A",
-    objective: "Create the typed workspace registry contract used by the cockpit and pipeline lanes.",
+    objective: "Create the typed workspace registry contract used by the Arena and pipeline lanes.",
     scope: [
       "Define the registry data shape for project identity, status, path, and runtime adapter state.",
       "Keep the registry deterministic and independent from local user paths.",
@@ -390,12 +390,12 @@ export const orchestrationTasks: OrchestrationTask[] = [
     ],
     validationCommands: ["npm run test -- src/registry.test.ts", "npm run build"],
     dependencies: ["Pipeline item pipe-1 is ready for dispatch."],
-    rollback: "Revert only the registry files and leave cockpit layout files untouched."
+    rollback: "Revert only the registry files and leave Arena layout files untouched."
   },
   {
     id: "task-cockpit",
     projectId: "website-refresh",
-    title: "Cockpit Panel Header Pass",
+    title: "Arena Panel Header Pass",
     role: "implementation",
     status: "implementing",
     attempt: 1,
@@ -414,19 +414,19 @@ export const orchestrationTasks: OrchestrationTask[] = [
       "Existing layout tests still pass."
     ],
     validationCommands: ["npm run test -- src/layout.test.ts", "npm run build"],
-    dependencies: ["Current cockpit shell scaffold."],
+    dependencies: ["Current Arena shell scaffold."],
     rollback: "Revert the header and style changes without touching orchestration fixtures."
   },
   {
     id: "task-grid-validation",
     projectId: "website-refresh",
-    title: "Cockpit Grid Validation",
+    title: "Arena Grid Validation",
     role: "validation",
     status: "validating",
     attempt: 1,
     attemptLimit: 3,
     owner: "Worker C",
-    objective: "Validate that every supported cockpit layout caps visible panels at nine cells.",
+    objective: "Validate that every supported Arena layout caps visible panels at nine cells.",
     scope: [
       "Exercise 1x1, 2x1, 1x2, 3x1, 1x3, 2x2, 2x3, 3x2, and 3x3 layouts.",
       "Report any overflow or missing layout option.",

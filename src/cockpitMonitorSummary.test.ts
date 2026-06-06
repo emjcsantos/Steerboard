@@ -15,7 +15,7 @@ const testProject = {
 
 const baseDraft: PlanningDraft = {
   title: "Monitor fixture",
-  objective: "Build a compact cockpit monitor summary for local run visibility.",
+  objective: "Build a compact Arena monitor summary for local run visibility.",
   targetProjectId: testProject.id,
   scope: ["Summary model", "Stream model"],
   fileAreas: ["src/cockpitMonitorSummary.ts"],
@@ -59,7 +59,7 @@ function makeIngestionEvent(
   };
 }
 
-describe("cockpit monitor summary", () => {
+describe("Arena monitor summary", () => {
   it("returns deterministic no-run defaults", () => {
     const timeline = summarizeRunTimeline([]);
     const stream = buildRuntimeStreamSnapshot([], 0, "idle");
@@ -82,7 +82,7 @@ describe("cockpit monitor summary", () => {
       latestEventLabel: "Waiting for first local event.",
       latestEventStatus: "idle",
       latestEventDetail: "No emitted events yet.",
-      detail: "Select or stage a run to monitor local cockpit activity."
+      detail: "Select or stage a run to monitor local Arena activity."
     });
   });
 

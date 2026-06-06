@@ -15,8 +15,8 @@ export function createCockpitFocusedPanelControls(
     return {
       clearLabel: "Clear",
       clearDisabled: false,
-      clearTitle: "Clear focused cockpit panel.",
-      ariaLabel: "Clear focused cockpit panel",
+      clearTitle: "Clear focused Arena panel.",
+      ariaLabel: "Clear focused Arena panel",
       statusTitle: status.detail
     };
   }

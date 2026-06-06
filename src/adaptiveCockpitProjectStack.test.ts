@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createAdaptiveProjectPanelStack } from "./adaptiveCockpitProjectStack";
 
 describe("createAdaptiveProjectPanelStack", () => {
-  it("prefers project sessions by cockpit role priority", () => {
+  it("prefers project sessions by Arena role priority", () => {
     const result = createAdaptiveProjectPanelStack({
       projectId: "project-a",
       sessions: [
@@ -165,7 +165,7 @@ describe("createAdaptiveProjectPanelStack", () => {
     expect(result.panelIds).toEqual(["fallback-a"]);
     expect(result.templateId).toBe("fallback-stack");
     expect(result.label).toBe("Monitor panel stack");
-    expect(result.detail).toContain("1 monitor panel selected for Adaptive cockpit.");
+    expect(result.detail).toContain("1 monitor panel selected for Adaptive Arena.");
   });
 
   it("returns unavailable when no usable project or fallback panels exist", () => {

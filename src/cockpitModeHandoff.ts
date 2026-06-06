@@ -83,7 +83,7 @@ export function createCockpitModeHandoff(
     detail: MODE_DETAIL[safeMode],
     tone,
     ariaLabel:
-      `Cockpit handoff from ${MODE_LABEL[safeMode]} (${layout.label}) to ${MODE_LABEL[nextMode]} (${nextLayout.label}); ` +
+      `Arena handoff from ${MODE_LABEL[safeMode]} (${layout.label}) to ${MODE_LABEL[nextMode]} (${nextLayout.label}); ` +
       computePreservedLabel(visibleCount, totalCount)
   };
 }

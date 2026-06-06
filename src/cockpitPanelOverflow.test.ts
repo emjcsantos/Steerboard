@@ -6,7 +6,7 @@ function buildSession(overrides: Partial<SessionSummary>): SessionSummary {
   return {
     id: "session-id",
     projectId: "project-id",
-    title: "Cockpit panel",
+    title: "Arena panel",
     role: "implementer",
     state: "implementing",
     branch: "feature/cockpit",
@@ -29,7 +29,7 @@ describe("createCockpitPanelOverflow", () => {
 
     expect(createCockpitPanelOverflow(sessions, 2, 0)).toEqual({
       label: "All panels visible",
-      detail: "No cockpit panels are outside the current grid.",
+      detail: "No Arena panels are outside the current grid.",
       tone: "clear",
       hiddenLabel: "0 hidden",
       nextLabel: "None",
@@ -46,7 +46,7 @@ describe("createCockpitPanelOverflow", () => {
 
     expect(createCockpitPanelOverflow(sessions, 1, 0)).toEqual({
       label: "Hidden panels queued",
-      detail: "Additional cockpit panels are outside the current grid.",
+      detail: "Additional Arena panels are outside the current grid.",
       tone: "queued",
       hiddenLabel: "2 hidden",
       nextLabel: "Queued next",
@@ -81,7 +81,7 @@ describe("createCockpitPanelOverflow", () => {
 
     expect(createCockpitPanelOverflow(sessions, 3, 2)).toEqual({
       label: "Hidden panels queued",
-      detail: "Additional cockpit panels are outside the current grid.",
+      detail: "Additional Arena panels are outside the current grid.",
       tone: "queued",
       hiddenLabel: "2 hidden",
       nextLabel: "Hidden second",
@@ -98,7 +98,7 @@ describe("createCockpitPanelOverflow", () => {
 
     expect(createCockpitPanelOverflow(sessions, 2, 0)).toEqual({
       label: "Hidden panels queued",
-      detail: "Additional cockpit panels are outside the current grid.",
+      detail: "Additional Arena panels are outside the current grid.",
       tone: "queued",
       hiddenLabel: "1 hidden",
       nextLabel: "Second hidden",
@@ -135,7 +135,7 @@ describe("createCockpitPanelOverflow", () => {
 
     expect(createCockpitPanelOverflow(sessions, 1, 0)).toEqual({
       label: "Hidden panels queued",
-      detail: "Additional cockpit panels are outside the current grid.",
+      detail: "Additional Arena panels are outside the current grid.",
       tone: "queued",
       hiddenLabel: "2 hidden",
       nextLabel: "A path with nested slashes and spacing that shou",
@@ -152,7 +152,7 @@ describe("createCockpitPanelOverflow", () => {
 
     expect(createCockpitPanelOverflow(sessions, 1, 0)).toEqual({
       label: "Hidden panels queued",
-      detail: "Additional cockpit panels are outside the current grid.",
+      detail: "Additional Arena panels are outside the current grid.",
       tone: "queued",
       hiddenLabel: "2 hidden",
       nextLabel: "Untitled panel",

@@ -99,21 +99,21 @@ export function tryBuildPipelineItemDispatchPackage(
         name: projectName
       },
       sourceDraftTitle: itemTitle,
-      objective: `Create a local cockpit run projection for ${itemTitle} in ${projectName}.`,
+      objective: `Create a local Arena run projection for ${itemTitle} in ${projectName}.`,
       deployMode: "staged",
       risk: item.risk,
       scope: [
         `Selected pipeline item: ${itemTitle}`,
         `Owner lane: ${owner}`,
-        "Prepare a local cockpit projection before runtime launch."
+        "Prepare a local Arena projection before runtime launch."
       ],
       fileAreas: [`Pipeline item ${itemId}`, `Project lane ${projectId}`],
       acceptanceCriteria: [
         "Selected pipeline, registry, and runtime gates are ready.",
-        "The cockpit run projection is available for local review."
+        "The Arena run projection is available for local review."
       ],
       validationPlan: [
-        "Review the generated cockpit run projection.",
+        "Review the generated Arena run projection.",
         "Confirm dispatch gates remain ready before runtime launch approval."
       ],
       rollbackNote: "Remove the local projected run if dispatch is cancelled.",

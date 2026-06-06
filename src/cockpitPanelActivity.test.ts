@@ -102,7 +102,7 @@ describe("createCockpitPanelActivity", () => {
 
   it("truncates the latest detail to compact length", () => {
     const longLine =
-      "This is a very long transcript line that should be compacted because cockpit panel cards need a small preview area and " +
+      "This is a very long transcript line that should be compacted because Arena panel cards need a small preview area and " +
       "the line is intentionally verbose well beyond what should be rendered.";
     const activity = createCockpitPanelActivity({ transcript: [longLine] });
 

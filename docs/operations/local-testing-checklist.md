@@ -38,7 +38,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm the Owner Testing controls card lists interrupt, retry, steer, fork, resume, and archive with their current state.
    - Confirm the Owner Testing panel moves control evidence from review to ready only after interrupt, retry, and steer/follow-up transcript proof is present and fork/resume/archive are honestly unsupported or live.
 6. `Slash Commands`
-   - Type `/` in a cockpit panel composer and confirm suggestions are limited to commands scoped to the active panel.
+   - Type `/` in a Arena panel composer and confirm suggestions are limited to commands scoped to the active panel.
    - Submit one app/global-only command from a panel and confirm it is blocked with explicit unsupported guidance.
    - Submit one provider-routed panel command in live desktop mode and confirm the transcript shows provider-route evidence before the live turn runs.
    - Confirm the Owner Testing panel moves slash execution evidence from review to ready only after provider-route plus live/status transcript proof is present.

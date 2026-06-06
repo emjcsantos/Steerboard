@@ -178,7 +178,7 @@ function templateMetadata(
       ? "project monitor template"
       : templateId === "project-focus"
         ? "project focus template"
-        : "Adaptive cockpit";
+        : "Adaptive arena";
 
     return {
       label,
@@ -203,7 +203,7 @@ function templateMetadata(
   if (templateId === "fallback-stack") {
     return {
       label: "Monitor panel stack",
-      detail: `${totalCount} monitor ${totalCount === 1 ? "panel" : "panels"} selected for Adaptive cockpit.`
+      detail: `${totalCount} monitor ${totalCount === 1 ? "panel" : "panels"} selected for Adaptive Arena.`
     };
   }
 

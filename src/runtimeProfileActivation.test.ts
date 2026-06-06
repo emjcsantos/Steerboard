@@ -65,9 +65,9 @@ describe("runtime profile activation", () => {
       state: "active",
       statusLabel: "Active",
       detail:
-        "Profile activation is tracked as local cockpit state only and does not execute processes.",
+        "Profile activation is tracked as local Arena state only and does not execute processes.",
       safety:
-        "Local cockpit state only. No process execution is performed by this activation helper.",
+        "Local Arena state only. No process execution is performed by this activation helper.",
       activatedAt
     });
   });
@@ -90,7 +90,7 @@ describe("runtime profile activation", () => {
       detail:
         "Profile activation is blocked due to readiness status. This is local state only and does not execute processes.",
       safety:
-        "Local cockpit state only. No process execution is performed by this activation helper.",
+        "Local Arena state only. No process execution is performed by this activation helper.",
       activatedAt: undefined
     });
   });
@@ -131,7 +131,7 @@ describe("runtime profile activation", () => {
           state: "active",
           statusLabel: "Active",
           detail: "Profile activation is ready.",
-          safety: "Local cockpit state only. No process execution is performed by this activation helper.",
+          safety: "Local Arena state only. No process execution is performed by this activation helper.",
           activatedAt: "2026-06-04T09:00:00.000Z"
         })
       )
@@ -150,7 +150,7 @@ describe("runtime profile activation", () => {
           state: "active",
           statusLabel: "Active",
           detail: "Profile activation is active.",
-          safety: "Local cockpit state only. No process execution is performed by this activation helper.",
+          safety: "Local Arena state only. No process execution is performed by this activation helper.",
           activatedAt: "2026-06-04T09:00:00.000Z"
         })
       )
@@ -169,7 +169,7 @@ describe("runtime profile activation", () => {
           state: "inactive",
           statusLabel: "Inactive",
           detail: "Profile is ready locally and does not execute processes.",
-          safety: "Local cockpit state only. No process execution is performed by this activation helper."
+          safety: "Local Arena state only. No process execution is performed by this activation helper."
         })
       )
     ).toBeUndefined();
@@ -187,7 +187,7 @@ describe("runtime profile activation", () => {
           state: "active",
           statusLabel: "Active",
           detail: "Profile is ready locally and does not execute processes.",
-          safety: "Local cockpit state only. No process execution is performed by this activation helper.",
+          safety: "Local Arena state only. No process execution is performed by this activation helper.",
           activatedAt: "2026-06-04T09:00:00.000Z"
         })
       )
@@ -206,7 +206,7 @@ describe("runtime profile activation", () => {
           state: "inactive",
           statusLabel: "Inactive",
           detail: "Profile is ready locally and does not execute processes.",
-          safety: "Local cockpit state only. No process execution is performed by this activation helper.",
+          safety: "Local Arena state only. No process execution is performed by this activation helper.",
           activatedAt: "2026-06-04T09:00:00.000Z"
         })
       )

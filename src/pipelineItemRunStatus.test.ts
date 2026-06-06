@@ -92,7 +92,7 @@ describe("pipeline item run status summary", () => {
       completeCount: 0,
       queuedCount: 0,
       label: "No runs",
-      detail: "No linked cockpit runs yet."
+      detail: "No linked Arena runs yet."
     });
   });
 

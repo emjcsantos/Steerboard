@@ -42,7 +42,7 @@ export function createCockpitMonitorAttention(
   if (health.tone === "live") {
     return {
       label: "Watching live",
-      detail: "Local events are streaming into the cockpit.",
+      detail: "Local events are streaming into the arena.",
       tone: "live",
       actionLabel: "Watch"
     };

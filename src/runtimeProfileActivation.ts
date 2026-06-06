@@ -26,11 +26,11 @@ export const RUNTIME_PROFILE_ACTIVATION_STORAGE_KEY =
   "steerboard.runtimeProfileActivation.v1";
 
 const SAFETY_COPY =
-  "Local cockpit state only. No process execution is performed by this activation helper.";
+  "Local Arena state only. No process execution is performed by this activation helper.";
 const ACTIVE_DETAIL =
-  "Profile activation is tracked as local cockpit state only and does not execute processes.";
+  "Profile activation is tracked as local Arena state only and does not execute processes.";
 const INACTIVE_DETAIL =
-  "Profile is ready locally. Activate in the cockpit to persist this local state. This is local state only and does not execute processes.";
+  "Profile is ready locally. Activate in the Arena to persist this local state. This is local state only and does not execute processes.";
 const BLOCKED_DETAIL =
   "Profile activation is blocked due to readiness status. This is local state only and does not execute processes.";
 

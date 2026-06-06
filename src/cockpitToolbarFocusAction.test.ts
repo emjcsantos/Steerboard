@@ -20,7 +20,7 @@ const baseStatus = {
   hasFocus: false,
   tone: "neutral",
   label: "No focus",
-  detail: "No cockpit panel is focused."
+  detail: "No Arena panel is focused."
 } satisfies CockpitFocusedPanelStatus;
 
 describe("createCockpitToolbarFocusAction", () => {
@@ -34,13 +34,13 @@ describe("createCockpitToolbarFocusAction", () => {
     expect(createCockpitToolbarFocusAction(target, status)).toEqual({
       focusLabel: "Focus",
       focusDisabled: false,
-      focusTitle: "Focus the next attention cockpit panel.",
-      focusAriaLabel: "Focus the next attention cockpit panel",
+      focusTitle: "Focus the next attention Arena panel.",
+      focusAriaLabel: "Focus the next attention Arena panel",
       clearLabel: "Clear",
       clearDisabled: true,
       clearTitle: "No focused panel to clear.",
       clearAriaLabel: "No focused panel to clear",
-      statusTitle: "No cockpit panel is focused."
+      statusTitle: "No Arena panel is focused."
     });
   });
 
@@ -60,8 +60,8 @@ describe("createCockpitToolbarFocusAction", () => {
       focusAriaLabel: "Target panel is already focused",
       clearLabel: "Clear",
       clearDisabled: false,
-      clearTitle: "Clear focused cockpit panel.",
-      clearAriaLabel: "Clear focused cockpit panel",
+      clearTitle: "Clear focused Arena panel.",
+      clearAriaLabel: "Clear focused Arena panel",
       statusTitle: "Panel 1 is focused."
     });
   });
@@ -79,12 +79,12 @@ describe("createCockpitToolbarFocusAction", () => {
     expect(createCockpitToolbarFocusAction(target, status)).toEqual({
       focusLabel: "Focus",
       focusDisabled: true,
-      focusTitle: "Another cockpit panel is already focused.",
-      focusAriaLabel: "Another cockpit panel is already focused",
+      focusTitle: "Another Arena panel is already focused.",
+      focusAriaLabel: "Another Arena panel is already focused",
       clearLabel: "Clear",
       clearDisabled: false,
-      clearTitle: "Clear focused cockpit panel.",
-      clearAriaLabel: "Clear focused cockpit panel",
+      clearTitle: "Clear focused Arena panel.",
+      clearAriaLabel: "Clear focused Arena panel",
       statusTitle: "Panel 2 is focused."
     });
   });
@@ -102,7 +102,7 @@ describe("createCockpitToolbarFocusAction", () => {
       clearDisabled: true,
       clearTitle: "No focused panel to clear.",
       clearAriaLabel: "No focused panel to clear",
-      statusTitle: "No cockpit panel is focused."
+      statusTitle: "No Arena panel is focused."
     });
   });
 });

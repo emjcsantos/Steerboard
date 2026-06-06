@@ -6,7 +6,7 @@ function buildSession(overrides: Partial<SessionSummary>): SessionSummary {
   return {
     id: "session-id",
     projectId: "project-id",
-    title: "Cockpit panel",
+    title: "Arena panel",
     role: "implementer",
     state: "implementing",
     branch: "feature/cockpit",
@@ -26,7 +26,7 @@ describe("createCockpitPanelRoster", () => {
 
     expect(roster).toEqual({
       label: "No panels",
-      detail: "No cockpit panels are available.",
+      detail: "No Arena panels are available.",
       tone: "waiting",
       visibleLabel: "0/0 visible",
       hiddenLabel: "0 hidden",
@@ -52,7 +52,7 @@ describe("createCockpitPanelRoster", () => {
 
     expect(roster).toEqual({
       label: "Panels active",
-      detail: "Monitor active roles across the cockpit grid.",
+      detail: "Monitor active roles across the Arena grid.",
       tone: "active",
       visibleLabel: "4/5 visible",
       hiddenLabel: "1 hidden",

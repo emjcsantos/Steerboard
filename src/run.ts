@@ -334,7 +334,7 @@ function createMockTasks(
     objective: "Collect summaries, task state, and handoff gates for operator review.",
     scope: [
       "Collect validated command evidence.",
-      "Prepare operator-visible cockpit rows and handoff metadata."
+      "Prepare operator-visible Arena rows and handoff metadata."
     ],
     fileOwnership: ["run summary", "session rows"],
     acceptanceCriteria: fallbackAcceptance,

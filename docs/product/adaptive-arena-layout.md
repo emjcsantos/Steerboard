@@ -1,26 +1,26 @@
-# Adaptive Cockpit Layout
+# Adaptive Arena Layout
 
 ## Product Design Brief
 
-Steerboard needs a cockpit layout that feels familiar to common IDEs while giving project managers and technical operators more control than a fixed split view. The fixed grid presets remain useful for fast setup, but `Adaptive` should let users build a working board around the exact sessions, projects, and evidence they need to watch.
+Steerboard needs a Arena layout that feels familiar to common IDEs while giving project managers and technical operators more control than a fixed split view. The fixed grid presets remain useful for fast setup, but `Adaptive` should let users build a working board around the exact sessions, projects, and evidence they need to watch.
 
-The visual direction is dense, calm, and workbench-like: one compact control row, a left project/thread rail, a central cockpit canvas, and right-side environment or progress details. The feature should feel powerful without becoming a decorative dashboard.
+The visual direction is dense, calm, and workbench-like: one compact control row, a left project/thread rail, a central Arena canvas, and right-side environment or progress details. The feature should feel powerful without becoming a decorative dashboard.
 
 ## Target Table
 
 | Target | Completion | Note |
 |---|---|---|
-| Compact cockpit control row | In progress | Layout, focus, roster, hidden queue, and monitor indicators share one dense row; adaptive controls now join that row only when needed. |
+| Compact Arena control row | In progress | Layout, focus, roster, hidden queue, and monitor indicators share one dense row; adaptive controls now join that row only when needed. |
 | Layout dropdown | Complete | Fixed presets and `Adaptive` are presented from one dropdown. |
-| Adaptive canvas | In progress | Adaptive mode renders cockpit panels as user-added frames with add/reveal, hide, resize, reset, keyboard adjustment, drag-to-move, project stack drop-in, session drag-in, and drop-preview controls. |
+| Adaptive canvas | In progress | Adaptive mode renders Arena panels as user-added frames with add/reveal, hide, resize, reset, keyboard adjustment, drag-to-move, project stack drop-in, session drag-in, and drop-preview controls. |
 | Magnetic behavior | In progress | Panels snap to a bounded 3x3 grid with deterministic collision handling and safe saved-state repair. |
-| Drag-in sessions and projects | In progress | Projects and chats can be dragged from the left rail into Adaptive cockpit with visible ready, unsupported, and unavailable drop-preview states; whole-project drops support a template picker with safe defaults. |
-| Persistence and recovery | In progress | Adaptive geometry is saved locally and repaired when saved state is malformed or no longer matches active cockpit sessions. |
+| Drag-in sessions and projects | In progress | Projects and chats can be dragged from the left rail into Adaptive Arena with visible ready, unsupported, and unavailable drop-preview states; whole-project drops support a template picker with safe defaults. |
+| Persistence and recovery | In progress | Adaptive geometry is saved locally and repaired when saved state is malformed or no longer matches active Arena sessions. |
 | Accessibility | In progress | Layout selection, add/reveal, hide, resize, focus, reset, arrow-key move, and shift-arrow resize paths exist; broader shortcut polish remains planned. |
 
 ## Control Row Plan
 
-The cockpit toolbar should become a single row with compact groups:
+The Arena toolbar should become a single row with compact groups:
 
 - Layout selector: one dropdown with `1x1`, `2x1`, `1x2`, `3x1`, `1x3`, `2x2`, `2x3`, `3x2`, `3x3`, and `Adaptive`.
 - Focus summary: selected panel, no-focus state, focus action, and clear action.
@@ -32,7 +32,7 @@ At narrow widths, secondary labels can collapse into tooltips, but the row shoul
 
 ## Adaptive Canvas Plan
 
-Adaptive mode is a freeform layout mode, not a tenth fixed grid preset. It should keep the same cockpit panel component, session state model, and provider integration surface as the fixed layouts, but store geometry per panel.
+Adaptive mode is a freeform layout mode, not a tenth fixed grid preset. It should keep the same Arena panel component, session state model, and provider integration surface as the fixed layouts, but store geometry per panel.
 
 Each adaptive panel should track:
 
@@ -46,7 +46,7 @@ Each adaptive panel should track:
 
 ## Drag And Drop
 
-Users should be able to drag a chat, project, task, run, or evidence item into the cockpit center. Dropping should either create a new panel or replace a highlighted existing panel, depending on the drop target.
+Users should be able to drag a chat, project, task, run, or evidence item into the Arena center. Dropping should either create a new panel or replace a highlighted existing panel, depending on the drop target.
 
 Dragging a whole project should offer selectable templates, such as:
 
@@ -56,7 +56,7 @@ Dragging a whole project should offer selectable templates, such as:
 - project pipeline plus active run,
 - compact status board.
 
-Drag and drop must not launch a runtime, mutate the source project, or archive a session. It only changes what is visible in the cockpit unless the user takes a separate explicit action.
+Drag and drop must not launch a runtime, mutate the source project, or archive a session. It only changes what is visible in the Arena unless the user takes a separate explicit action.
 
 ## Magnetic Behavior
 
@@ -81,11 +81,11 @@ Adaptive panels should feel free, but not sloppy. The first implementation shoul
 ## Implementation Slice Order
 
 1. Convert layout buttons into a dropdown while preserving existing fixed presets.
-2. Compress the cockpit status and monitor widgets into one control row.
+2. Compress the Arena status and monitor widgets into one control row.
 3. Add `Adaptive` as a selectable mode that initially renders the current layout safely.
 4. Add adaptive panel geometry storage and safe saved-state repair.
-5. Add panel add/reveal, hide, drag, resize, reset, and magnetic snapping for existing cockpit panels.
-6. Add drag-in from sidebar projects and payload handling for provider-neutral cockpit sources.
+5. Add panel add/reveal, hide, drag, resize, reset, and magnetic snapping for existing Arena panels.
+6. Add drag-in from sidebar projects and payload handling for provider-neutral Arena sources.
 7. Add keyboard move/resize/reset paths and interaction tests.
 8. Add direct chat/session drag-in from navigation and richer drop-zone previews.
 9. Add richer panel templates for whole-project drops and cross-project session stacks.

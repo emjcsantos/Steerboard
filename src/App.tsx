@@ -1421,7 +1421,7 @@ const adaptiveProjectTemplateOptions: Array<{
   {
     id: "project-monitor",
     label: "Monitor",
-    description: "Fill the cockpit with project panels and monitor fallbacks."
+    description: "Fill the Arena with project panels and monitor fallbacks."
   },
   {
     id: "project-orchestrator",
@@ -1937,7 +1937,7 @@ export function App() {
     [cockpitFocusedPanelStatus, cockpitLayoutCapacity, cockpitModeHandoff, cockpitPanelOverflow]
   );
   const activeDraftIndex = Math.min(selectedDraftIndex, Math.max(drafts.length - 1, 0));
-  const viewLabel = view === "cockpit" ? "Cockpit" : view === "pipeline" ? "Pipeline" : "Planning";
+  const viewLabel = view === "cockpit" ? "Arena" : view === "pipeline" ? "Pipeline" : "Planning";
 
   function updatePreferences(nextPreferences: Partial<WorkspacePreferences>) {
     setPreferences((current) => ({
@@ -2091,7 +2091,7 @@ export function App() {
     event.dataTransfer.effectAllowed = "copyMove";
     event.dataTransfer.setData(ADAPTIVE_COCKPIT_DROP_JSON_MIME, JSON.stringify(payload));
     previewAdaptiveDrop(payload);
-    setAppNotice(`${item.name} ready for Adaptive cockpit drop`);
+    setAppNotice(`${item.name} ready for Adaptive Arena drop`);
   }
 
   function handleAdaptiveSessionDragStart(
@@ -2103,7 +2103,7 @@ export function App() {
     event.dataTransfer.setData(ADAPTIVE_COCKPIT_DROP_JSON_MIME, JSON.stringify(payload));
     event.dataTransfer.setData(ADAPTIVE_COCKPIT_DROP_PANEL_ID_MIME, session.id);
     previewAdaptiveDrop(payload);
-    setAppNotice(`${session.title} ready for Adaptive cockpit drop`);
+    setAppNotice(`${session.title} ready for Adaptive Arena drop`);
   }
 
   function handleAdaptiveProjectPointerStart(
@@ -2149,7 +2149,7 @@ export function App() {
       return;
     }
 
-    setAppNotice(`${item.name} has no available Adaptive cockpit panels`);
+    setAppNotice(`${item.name} has no available Adaptive Arena panels`);
   }
 
   function panelIdsForSessionDrop(session: SessionSummary) {
@@ -2194,7 +2194,7 @@ export function App() {
     }
 
     setFocusedPanelId(session.id);
-    setAppNotice(`${session.title} opened in Adaptive cockpit`);
+    setAppNotice(`${session.title} opened in Adaptive arena`);
   }
 
   function handleAdaptivePanelDragStart(
@@ -2345,11 +2345,11 @@ export function App() {
         openSessionInAdaptiveCockpit(draggedSession, event);
       } else {
         revealAndPlaceAdaptivePanel(panelId, event);
-        setAppNotice("Panel moved in Adaptive cockpit");
+        setAppNotice("Panel moved in Adaptive arena");
       }
     } else {
       revealAndPlaceAdaptivePanel(panelId, event);
-      setAppNotice("Panel moved in Adaptive cockpit");
+      setAppNotice("Panel moved in Adaptive arena");
     }
 
     clearAdaptiveDragState();
@@ -2819,7 +2819,7 @@ export function App() {
                 updatePreferences({ selectedProjectId: projects[0].id, view: "cockpit" });
               }}
               onPointerDown={(event) => handleAdaptiveProjectPointerStart(event, projects[0].id)}
-              title="Drag project into Adaptive cockpit"
+              title="Drag project into Adaptive arena"
               type="button"
             >
               <Folder size={16} />
@@ -2838,7 +2838,7 @@ export function App() {
                   updatePreferences({ selectedProjectId: item.id, view: "cockpit" });
                 }}
                 onPointerDown={(event) => handleAdaptiveProjectPointerStart(event, item.id)}
-                title="Drag project into Adaptive cockpit"
+                title="Drag project into Adaptive arena"
                 type="button"
               >
                 <span className={classNames("project-status", `is-${item.status}`)} />
@@ -2864,7 +2864,7 @@ export function App() {
               onClick={() => openSessionInAdaptiveCockpit(session)}
               onDragEnd={clearAdaptiveDragState}
               onDragStart={(event) => handleAdaptiveSessionDragStart(event, session)}
-              title="Drag chat into Adaptive cockpit"
+              title="Drag chat into Adaptive arena"
               type="button"
             >
               <MessageSquare size={14} />
@@ -2890,7 +2890,7 @@ export function App() {
                 updatePreferences({ selectedProjectId: item.id, view: "cockpit" });
               }}
               onPointerDown={(event) => handleAdaptiveProjectPointerStart(event, item.id)}
-              title="Drag project into Adaptive cockpit"
+              title="Drag project into Adaptive arena"
               type="button"
             >
               <span className={classNames("project-status", `is-${item.status}`)} />
@@ -2933,7 +2933,7 @@ export function App() {
               </span>
             ) : null}
 
-            <div className="segmented" aria-label="Cockpit mode">
+            <div className="segmented" aria-label="Arena mode">
               {cockpitPresets.map((entry) => (
                 <button
                   className={classNames(entry.mode === mode && "is-active")}
@@ -2953,7 +2953,7 @@ export function App() {
                 type="button"
               >
                 <LayoutDashboard size={15} />
-                Cockpit
+                Arena
               </button>
               <button
                 className={classNames(view === "pipeline" && "is-active")}
@@ -2983,7 +2983,7 @@ export function App() {
                   <label className={classNames("layout-select", layout.kind === "adaptive" && "is-adaptive")}>
                     <span>Layout</span>
                     <select
-                      aria-label="Select cockpit layout"
+                      aria-label="Select Arena layout"
                       onChange={(event) => updatePreferences({ layoutId: event.target.value as LayoutId })}
                       title={layoutAriaLabel(layout)}
                       value={layoutId}
@@ -2996,7 +2996,7 @@ export function App() {
                     </select>
                   </label>
                   {layout.kind === "adaptive" ? (
-                    <div className="adaptive-toolbar" aria-label="Adaptive cockpit controls">
+                    <div className="adaptive-toolbar" aria-label="Adaptive Arena controls">
                       <label className="adaptive-template-select">
                         <span>Project</span>
                         <select
@@ -3349,7 +3349,7 @@ function AppMenuBar({
                         role="menuitem"
                         type="button"
                       >
-                        Cockpit
+                        Arena
                       </button>
                       <button
                         className={classNames(currentView === "pipeline" && "is-selected")}
@@ -3368,7 +3368,7 @@ function AppMenuBar({
                         Planning
                       </button>
                       <button onClick={onAdaptiveView} role="menuitem" type="button">
-                        Use Adaptive cockpit
+                        Use Adaptive Arena
                       </button>
                     </>
                   ) : null}
@@ -5372,7 +5372,7 @@ function PipelineItemDispatchDetail({
               <h5>Role Panel Plan</h5>
               <small>
                 {rolePanelPlan
-                  ? `${rolePanelPlan.totalPanelCount} panels prepared for cockpit review`
+                  ? `${rolePanelPlan.totalPanelCount} panels prepared for Arena review`
                   : "Dispatch gates must be ready before panel planning."}
               </small>
             </div>
@@ -5446,11 +5446,11 @@ function PipelineItemDispatchDetail({
           </div>
           <div className="pipeline-cockpit-link">
             <div>
-              <strong>Local cockpit run</strong>
+              <strong>Local Arena run</strong>
               <small>Creates a local run projection from this pipeline item.</small>
             </div>
             <button
-              aria-label="Create local cockpit run from selected pipeline item"
+              aria-label="Create local Arena run from selected pipeline item"
               disabled={!canCreateCockpitRun}
               onClick={onCreateCockpitRun}
               type="button"
@@ -5495,9 +5495,9 @@ function PipelineItemRunLinks({
   onOpenRun: (runId: string) => void;
 }) {
   return (
-    <section className="pipeline-linked-runs" aria-label="Selected pipeline item linked cockpit runs">
+    <section className="pipeline-linked-runs" aria-label="Selected pipeline item linked Arena runs">
       <div className="pipeline-linked-runs-header">
-        <strong>Linked cockpit runs</strong>
+        <strong>Linked Arena runs</strong>
         <span>{links.length}</span>
       </div>
       {links.length > 0 ? (
@@ -5512,7 +5512,7 @@ function PipelineItemRunLinks({
               </div>
               <span className={classNames("pipeline-linked-status", `run-${link.status}`)}>{link.status}</span>
               <button
-                aria-label={`Open linked cockpit run ${link.runId}`}
+                aria-label={`Open linked Arena run ${link.runId}`}
                 onClick={() => onOpenRun(link.runId)}
                 type="button"
               >
@@ -5522,7 +5522,7 @@ function PipelineItemRunLinks({
           ))}
         </ol>
       ) : (
-        <p className="pipeline-linked-empty">Create a local cockpit run to attach a visible trace.</p>
+        <p className="pipeline-linked-empty">Create a local Arena run to attach a visible trace.</p>
       )}
     </section>
   );
@@ -5753,7 +5753,7 @@ function PanelPrioritySignal({
     );
 
   return (
-    <section className="panel-section panel-priority-panel" aria-label="Next cockpit panel attention">
+    <section className="panel-section panel-priority-panel" aria-label="Next Arena panel attention">
       <div className="panel-priority-header">
         <h4>Next Attention</h4>
         <div className="panel-priority-actions">
@@ -5779,7 +5779,7 @@ function PanelPrioritySignal({
             <span>{focusControls.focusLabel}</span>
           </button>
           <button
-            aria-label="Clear cockpit panel focus"
+            aria-label="Clear Arena panel focus"
             className="panel-priority-focus-button panel-priority-clear-button"
             disabled={focusControls.clearDisabled}
             onClick={onClearFocus}
@@ -5909,7 +5909,7 @@ function PlanningView({
       <header className="planning-header">
         <div>
           <h3>Project Planning</h3>
-          <p>Prepare scoped work before dispatching it into the cockpit.</p>
+          <p>Prepare scoped work before dispatching it into the arena.</p>
         </div>
         <button disabled={!canDeploy || !targetProject} onClick={handleStageDraft} type="button">
           <Play size={16} />
@@ -7275,7 +7275,7 @@ function RightPanel({
             <b>{interactionReadiness.checkLabel}</b>
           </div>
           <p>{interactionReadiness.detail}</p>
-          <div className="interaction-readiness-checks" aria-label="Cockpit interaction readiness checks">
+          <div className="interaction-readiness-checks" aria-label="Arena interaction readiness checks">
             {interactionReadiness.checks.map((check) => (
               <span
                 className={classNames("interaction-readiness-check", `interaction-readiness-check-${check.tone}`)}
@@ -7298,7 +7298,7 @@ function RightPanel({
             <b>{cockpitAcceptancePass.checkLabel}</b>
           </div>
           <p>{cockpitAcceptancePass.detail}</p>
-          <div className="cockpit-acceptance-checks" aria-label="Cockpit final acceptance gates">
+          <div className="cockpit-acceptance-checks" aria-label="Arena final acceptance gates">
             {cockpitAcceptancePass.checks.map((check) => (
               <span
                 className={classNames("cockpit-acceptance-check", `cockpit-acceptance-check-${check.tone}`)}
@@ -7647,7 +7647,7 @@ function RightPanel({
             ) : null}
           </>
         ) : (
-          <p className="empty-preview">Stage a complete planning draft to create a local cockpit run.</p>
+          <p className="empty-preview">Stage a complete planning draft to create a local Arena run.</p>
         )}
       </section>
 
@@ -8019,7 +8019,7 @@ function CockpitMonitorStrip({
   const depthGateValue = depth.gateLabel.replace(/\s+gates$/i, "");
 
   return (
-    <section className="monitor-strip" aria-label="Cockpit monitor summary">
+    <section className="monitor-strip" aria-label="Arena monitor summary">
       <div className="monitor-strip-header">
         <div>
           <span className="eyebrow">Monitor</span>
@@ -8145,9 +8145,9 @@ function CockpitMonitorStrip({
         </span>
         <small>{summary.streamProgressLabel}</small>
       </div>
-      <div className="monitor-stream-progress" aria-label="Cockpit stream progress">
+      <div className="monitor-stream-progress" aria-label="Arena stream progress">
         <progress
-          aria-label="Cockpit stream progress percentage"
+          aria-label="Arena stream progress percentage"
           className="monitor-stream-progress-bar"
           max={100}
           value={streamProgressPercent}
@@ -8192,9 +8192,9 @@ function CockpitMonitorStrip({
       ) : (
         <p className="monitor-recent-empty">{`Recent local events will appear here.`}</p>
       )}
-      <div className="monitor-control-row" aria-label="Cockpit monitor stream controls">
+      <div className="monitor-control-row" aria-label="Arena monitor stream controls">
         <button
-          aria-label="Attach cockpit monitor event source"
+          aria-label="Attach Arena monitor event source"
           disabled={!controls.canAttach}
           onClick={onAttach}
           title={controls.attachReason}
@@ -8203,7 +8203,7 @@ function CockpitMonitorStrip({
           <Link2 size={13} />
         </button>
         <button
-          aria-label="Start cockpit monitor stream"
+          aria-label="Start Arena monitor stream"
           disabled={!controls.canStart}
           onClick={onStart}
           title={controls.startReason}
@@ -8212,7 +8212,7 @@ function CockpitMonitorStrip({
           <Play size={13} />
         </button>
         <button
-          aria-label="Pause cockpit monitor stream"
+          aria-label="Pause Arena monitor stream"
           disabled={!controls.canPause}
           onClick={onPause}
           title={controls.pauseReason}
@@ -8221,7 +8221,7 @@ function CockpitMonitorStrip({
           <Pause size={13} />
         </button>
         <button
-          aria-label="Reset cockpit monitor stream"
+          aria-label="Reset Arena monitor stream"
           disabled={!controls.canReset}
           onClick={onReset}
           title={controls.resetReason}

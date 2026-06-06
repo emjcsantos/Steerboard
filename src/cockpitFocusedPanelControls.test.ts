@@ -20,8 +20,8 @@ describe("createCockpitFocusedPanelControls", () => {
     expect(createCockpitFocusedPanelControls(status)).toEqual({
       clearLabel: "Clear",
       clearDisabled: false,
-      clearTitle: "Clear focused cockpit panel.",
-      ariaLabel: "Clear focused cockpit panel",
+      clearTitle: "Clear focused Arena panel.",
+      ariaLabel: "Clear focused Arena panel",
       statusTitle: "Panel 1 is focused."
     });
   });
@@ -32,7 +32,7 @@ describe("createCockpitFocusedPanelControls", () => {
       panelId: "none",
       hasFocus: false,
       label: "No focus",
-      detail: "No cockpit panel is focused."
+      detail: "No Arena panel is focused."
     } satisfies CockpitFocusedPanelStatus;
 
     expect(createCockpitFocusedPanelControls(status)).toEqual({
@@ -40,7 +40,7 @@ describe("createCockpitFocusedPanelControls", () => {
       clearDisabled: true,
       clearTitle: "No focused panel to clear.",
       ariaLabel: "No focused panel to clear",
-      statusTitle: "No cockpit panel is focused."
+      statusTitle: "No Arena panel is focused."
     });
   });
 

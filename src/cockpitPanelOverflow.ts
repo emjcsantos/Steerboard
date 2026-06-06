@@ -57,7 +57,7 @@ export function createCockpitPanelOverflow(
   if (hiddenCount === 0) {
     return {
       label: "All panels visible",
-      detail: "No cockpit panels are outside the current grid.",
+      detail: "No Arena panels are outside the current grid.",
       tone: "clear",
       hiddenLabel: `${hiddenCount} hidden`,
       nextLabel: "None",
@@ -78,7 +78,7 @@ export function createCockpitPanelOverflow(
 
   return {
     label: "Hidden panels queued",
-    detail: "Additional cockpit panels are outside the current grid.",
+    detail: "Additional Arena panels are outside the current grid.",
     tone: "queued",
     hiddenLabel: `${hiddenCount} hidden`,
     nextLabel,

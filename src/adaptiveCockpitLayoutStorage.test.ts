@@ -4,7 +4,7 @@ import {
   parseStoredAdaptiveCockpitLayout
 } from "./adaptiveCockpitLayoutStorage";
 
-describe("adaptive cockpit layout storage", () => {
+describe("adaptive Arena layout storage", () => {
   it("repairs persisted layout payloads", () => {
     const parsed = parseStoredAdaptiveCockpitLayout(
       JSON.stringify({

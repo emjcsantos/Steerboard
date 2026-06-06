@@ -47,7 +47,7 @@ function buildStatus(overrides: Partial<CockpitFocusedPanelStatus> = {}): Cockpi
     panelId: "panel-1",
     hasFocus: false,
     label: "No focus",
-    detail: "No cockpit panel is focused.",
+    detail: "No Arena panel is focused.",
     tone: "neutral",
     ...overrides
   };
@@ -63,7 +63,7 @@ function buildAction(overrides: Partial<CockpitToolbarFocusAction> = {}): Cockpi
     clearDisabled: true,
     clearTitle: "No focused panel to clear.",
     clearAriaLabel: "No focused panel to clear",
-    statusTitle: "No cockpit panel is focused.",
+    statusTitle: "No Arena panel is focused.",
     ...overrides
   };
 }
@@ -80,7 +80,7 @@ describe("createCockpitInteractionReadiness", () => {
 
     expect(result).toEqual({
       label: "Interaction QA ready",
-      detail: "Mode, layout, focus, and clear controls are ready for final cockpit QA.",
+      detail: "Mode, layout, focus, and clear controls are ready for final Arena QA.",
       tone: "ready",
       checkLabel: "4/4 controls",
       checks: [

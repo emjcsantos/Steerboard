@@ -20,10 +20,10 @@ export type CockpitAcceptancePass = {
 };
 
 const PASSLABEL: Record<CockpitAcceptancePassTone, string> = {
-  accepted: "Cockpit acceptance passed",
-  review: "Cockpit acceptance review",
-  blocked: "Cockpit acceptance blocked",
-  waiting: "Cockpit acceptance waiting"
+  accepted: "Arena acceptance passed",
+  review: "Arena acceptance review",
+  blocked: "Arena acceptance blocked",
+  waiting: "Arena acceptance waiting"
 };
 
 const PASSDETAIL: Record<CockpitAcceptancePassTone, string> = {
@@ -32,9 +32,9 @@ const PASSDETAIL: Record<CockpitAcceptancePassTone, string> = {
   review:
     "Acceptance is mostly ready with at least one review gate to inspect.",
   blocked:
-    "Resolve blocked monitor, mode, or interaction gates before treating the current cockpit view as accepted.",
+    "Resolve blocked monitor, mode, or interaction gates before treating the current Arena view as accepted.",
   waiting:
-    "Acceptance needs more monitor, mode, or interaction evidence before accepting the current cockpit view."
+    "Acceptance needs more monitor, mode, or interaction evidence before accepting the current Arena view."
 };
 
 function mapMonitorTone(

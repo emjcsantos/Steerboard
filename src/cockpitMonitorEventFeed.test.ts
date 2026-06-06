@@ -21,7 +21,7 @@ function makeEvent(
   };
 }
 
-describe("cockpit monitor event feed", () => {
+describe("Arena monitor event feed", () => {
   it("returns the newest three emitted events first by default", () => {
     const events = [
       makeEvent("evt-1", "run", "accepted", 0),

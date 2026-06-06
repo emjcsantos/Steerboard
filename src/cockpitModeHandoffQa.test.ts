@@ -14,7 +14,7 @@ function buildHandoff(overrides: Partial<CockpitModeHandoff> = {}): CockpitModeH
     preservedLabel: "1/2 panels preserved",
     detail: "Mode handoff ready.",
     tone: "watching",
-    ariaLabel: "Cockpit handoff from Monitor (2x2) to Focus (2x2); 1/2 panels preserved",
+    ariaLabel: "Arena handoff from Monitor (2x2) to Focus (2x2); 1/2 panels preserved",
     ...overrides
   };
 }
@@ -40,7 +40,7 @@ function buildFocus(
     panelId: "panel-1",
     hasFocus: false,
     label: "Open",
-    detail: "No cockpit panel is focused.",
+    detail: "No Arena panel is focused.",
     tone: "neutral",
     ...overrides
   };
@@ -51,7 +51,7 @@ function buildOverflow(
 ): CockpitPanelOverflow {
   return {
     label: "All panels visible",
-    detail: "No cockpit panels are outside the current grid.",
+    detail: "No Arena panels are outside the current grid.",
     tone: "clear",
     hiddenLabel: "0 hidden",
     nextLabel: "None",
@@ -167,7 +167,7 @@ describe("createCockpitModeHandoffQa", () => {
     expect(qa.tone).toBe("idle");
     expect(qa.label).toBe("Handoff QA idle");
     expect(qa.checkLabel).toBe("0/3 checks");
-    expect(qa.detail).toBe("No active cockpit panels need handoff QA yet.");
+    expect(qa.detail).toBe("No active Arena panels need handoff QA yet.");
     expect(qa.checks[0].tone).toBe("neutral");
     expect(qa.checks[2].tone).toBe("review");
   });

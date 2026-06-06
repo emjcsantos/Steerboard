@@ -18,7 +18,7 @@ function controlsFor(args: {
   });
 }
 
-describe("cockpit monitor control state", () => {
+describe("Arena monitor control state", () => {
   it("allows start only when all start preconditions are met", () => {
     const enabled = controlsFor({
       hasRun: true,

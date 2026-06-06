@@ -19,7 +19,7 @@ import {
   visibleAdaptiveCockpitPanels
 } from "./adaptiveCockpitLayout";
 
-describe("adaptive cockpit layout model", () => {
+describe("adaptive Arena layout model", () => {
   it("creates a bounded default layout with one visible panel", () => {
     const layout = createDefaultAdaptiveCockpitLayout();
 
@@ -170,7 +170,7 @@ describe("adaptive cockpit layout model", () => {
     }
   });
 
-  it("creates adaptive layouts from real cockpit panel ids", () => {
+  it("creates adaptive layouts from real Arena panel ids", () => {
     const layout = createAdaptiveCockpitLayoutForPanelIds(
       ["orchestrator", "worker", "validator", "integration", "worker"],
       2
@@ -192,7 +192,7 @@ describe("adaptive cockpit layout model", () => {
     ]);
   });
 
-  it("syncs saved adaptive layout to the active cockpit sessions", () => {
+  it("syncs saved adaptive layout to the active Arena sessions", () => {
     const saved = repairAdaptiveCockpitLayout({
       panels: [
         { id: "removed", x: 0, y: 0, w: 1, h: 1, hidden: false },

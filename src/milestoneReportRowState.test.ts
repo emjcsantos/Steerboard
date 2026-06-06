@@ -9,7 +9,7 @@ const activeSummary: MilestoneStatusSummary = {
   planned: 0,
   paused: 0,
   averageCompletionPercent: 60,
-  nextTarget: "Cockpit monitor and operating modes",
+  nextTarget: "Arena monitor and operating modes",
   nextStep: "Next step from summary",
   nextCompletionPercent: 60
 };
@@ -27,12 +27,12 @@ const completedSummary: MilestoneStatusSummary = {
 };
 
 const cockpitMilestone: MilestoneStatus = {
-  target: "Cockpit monitor and operating modes",
+  target: "Arena monitor and operating modes",
   completion: "In progress",
   plan: "Finalize monitor visibility and focus modes.",
   completionPercent: 60,
   latestNote:
-    "Core cockpit visibility is in place with active attention flows and control surface wiring.",
+    "Core Arena visibility is in place with active attention flows and control surface wiring.",
   nextStep:
     "Finalize monitoring depth and keep toolbar focus/clear behavior consistent.",
   tone: "active",
@@ -58,9 +58,9 @@ describe("milestone report row state", () => {
       isNext: true,
       markerLabel: "Next",
       rowTitle:
-        "Cockpit monitor and operating modes 60% Core cockpit visibility is in place with active attention flows and control surface wiring. Finalize monitoring depth and keep toolbar focus/clear behavior consistent.",
+        "Arena monitor and operating modes 60% Core Arena visibility is in place with active attention flows and control surface wiring. Finalize monitoring depth and keep toolbar focus/clear behavior consistent.",
       ariaLabel:
-        "Next milestone Cockpit monitor and operating modes (60%) | latest note: Core cockpit visibility is in place with active attention flows and control surface wiring. | next step: Finalize monitoring depth and keep toolbar focus/clear behavior consistent."
+        "Next milestone Arena monitor and operating modes (60%) | latest note: Core Arena visibility is in place with active attention flows and control surface wiring. | next step: Finalize monitoring depth and keep toolbar focus/clear behavior consistent."
     });
   });
 
@@ -85,7 +85,7 @@ describe("milestone report row state", () => {
 
     expect(rowState.isNext).toBe(false);
     expect(rowState.markerLabel).toBe("In progress");
-    expect(rowState.ariaLabel).toContain("Milestone Cockpit monitor and operating modes");
+    expect(rowState.ariaLabel).toContain("Milestone Arena monitor and operating modes");
     expect(rowState.ariaLabel).not.toContain("Next milestone");
   });
 });

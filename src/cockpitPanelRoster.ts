@@ -64,7 +64,7 @@ export function createCockpitPanelRoster(
   if (total === 0) {
     return {
       label: "No panels",
-      detail: "No cockpit panels are available.",
+      detail: "No Arena panels are available.",
       tone: "waiting",
       visibleLabel: `${effectiveVisible}/${total} visible`,
       hiddenLabel: `${hidden} hidden`,
@@ -96,7 +96,7 @@ export function createCockpitPanelRoster(
 
   return {
     label: "Panels active",
-    detail: "Monitor active roles across the cockpit grid.",
+    detail: "Monitor active roles across the Arena grid.",
     tone: "active",
     visibleLabel: `${effectiveVisible}/${total} visible`,
     hiddenLabel: `${hidden} hidden`,

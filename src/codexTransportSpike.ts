@@ -836,7 +836,7 @@ function buildFallback(probe: CodexTransportProbe, preferredTransport: CodexTran
   }
 
   if (preferredTransport === "exec-json") {
-    return "Use codex exec --json only for deliberate one-shot tasks; it cannot resume panel chat state or provide full cockpit session control.";
+    return "Use codex exec --json only for deliberate one-shot tasks; it cannot resume panel chat state or provide full Arena session control.";
   }
 
   return "Keep panel chat in local preview mode and show setup guidance until Codex CLI and app-server protocol readiness are detected.";

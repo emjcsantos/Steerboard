@@ -21,12 +21,12 @@ export function createCockpitToolbarFocusAction(
     return {
       focusLabel: target.isFocused ? "Focused" : "Focus",
       focusDisabled: true,
-      focusTitle: target.isFocused ? "Target panel is already focused." : "Another cockpit panel is already focused.",
-      focusAriaLabel: target.isFocused ? "Target panel is already focused" : "Another cockpit panel is already focused",
+      focusTitle: target.isFocused ? "Target panel is already focused." : "Another Arena panel is already focused.",
+      focusAriaLabel: target.isFocused ? "Target panel is already focused" : "Another Arena panel is already focused",
       clearLabel: "Clear",
       clearDisabled: false,
-      clearTitle: "Clear focused cockpit panel.",
-      clearAriaLabel: "Clear focused cockpit panel",
+      clearTitle: "Clear focused Arena panel.",
+      clearAriaLabel: "Clear focused Arena panel",
       statusTitle: status.detail
     };
   }
@@ -35,12 +35,12 @@ export function createCockpitToolbarFocusAction(
     return {
       focusLabel: "Focus",
       focusDisabled: false,
-      focusTitle: "Focus the next attention cockpit panel.",
-      focusAriaLabel: "Focus the next attention cockpit panel",
+      focusTitle: "Focus the next attention Arena panel.",
+      focusAriaLabel: "Focus the next attention Arena panel",
       clearLabel: "Clear",
       clearDisabled: !status.hasFocus,
-      clearTitle: status.hasFocus ? "Clear focused cockpit panel." : "No focused panel to clear.",
-      clearAriaLabel: status.hasFocus ? "Clear focused cockpit panel" : "No focused panel to clear",
+      clearTitle: status.hasFocus ? "Clear focused Arena panel." : "No focused panel to clear.",
+      clearAriaLabel: status.hasFocus ? "Clear focused Arena panel" : "No focused panel to clear",
       statusTitle: status.detail
     };
   }

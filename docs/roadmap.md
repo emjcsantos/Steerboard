@@ -10,12 +10,12 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 
 | Target | Completion | Note |
 |---|---|---|
-| Phase 1: Product Scaffold | In progress | Core local shell, restrained app menu, public fixture data, project sidebar, fixed cockpit presets, compact cockpit control row, layout dropdown, local panel chat, and operating modes are scaffolded for local review. |
-| Phase 2: Orchestration Model | In progress | Mock runs, task state, validation gates, handoff previews, selected-run evidence panels, and compact cockpit monitor summaries with local stream controls are available without external runtime execution. |
-| Phase 3: Optional Project Management Lane | In progress | Pipeline items can be inspected, request history is local, dispatch-ready items can create local cockpit run projections, and selected items can show linked local runs with status summaries. This lane supports visibility and change management, while cockpit chat remains primary. |
+| Phase 1: Product Scaffold | In progress | Core local shell, restrained app menu, public fixture data, project sidebar, fixed Arena presets, compact Arena control row, layout dropdown, local panel chat, and operating modes are scaffolded for local review. |
+| Phase 2: Orchestration Model | In progress | Mock runs, task state, validation gates, handoff previews, selected-run evidence panels, and compact Arena monitor summaries with local stream controls are available without external runtime execution. |
+| Phase 3: Optional Project Management Lane | In progress | Pipeline items can be inspected, request history is local, dispatch-ready items can create local Arena run projections, and selected items can show linked local runs with status summaries. This lane supports visibility and change management, while Arena chat remains primary. |
 | Phase 4: Runtime Adapters | In progress | Provider-neutral adapter previews, runtime profiles, local approvals, bridge status, permission previews, and evidence readiness are scaffolded as locked local previews. |
 | Phase 5: Live Codex Integration | In progress | Codex transport spike identifies supervised app-server stdio as the safest first session bridge, with no-prompt readiness on startup and explicit live smoke for one read-only send/stream proof. |
-| Phase 6: Adaptive Cockpit Canvas | In progress | Adaptive mode now supports persisted panel geometry, add/reveal, hide, resize, reset, keyboard move/resize, magnetic panel dragging, project stack drag-in, chat drag-in, and visible drop-preview states from the left rail. |
+| Phase 6: Adaptive Arena Canvas | In progress | Adaptive mode now supports persisted panel geometry, add/reveal, hide, resize, reset, keyboard move/resize, magnetic panel dragging, project stack drag-in, chat drag-in, and visible drop-preview states from the left rail. |
 | Phase 7: Platform Capabilities | In progress | Slash commands, Skills catalog, Plugin manager, MCP manager, Automations manager, and Personalization center now expose structured feedback plus desktop-backed safe provider capability refresh; permissions and audit state continue toward live provider-backed surfaces. |
 | Phase 8: Local Execution And Packaging | Planned | Real runtime execution, permissioned terminal/Git capture, audit exports, build signing, and installer checks remain behind future explicit approval gates. |
 
@@ -23,14 +23,14 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 
 - Local desktop shell.
 - Top-left desktop app menu with only useful MVP sections: `File`, `View`, `Connect`, and `Help`.
-- Local panel chat transcript and composer in every cockpit panel.
+- Local panel chat transcript and composer in every Arena panel.
 - Local slash command discovery in panel composers.
 - Local Codex connection request preview with execution still locked.
 - Public-safe fixture data.
 - Project sidebar.
-- Fixed cockpit grid presets up to `3x3`.
+- Fixed Arena grid presets up to `3x3`.
 - Layout dropdown with `Adaptive` as a selectable option.
-- Compact single-row cockpit control strip for layout, focus, panel activity, hidden queue, and monitor controls.
+- Compact single-row Arena control strip for layout, focus, panel activity, hidden queue, and monitor controls.
 - Focus lane, orchestrator-with-workers, and independent project monitor modes.
 
 ## Phase 2: Orchestration Model
@@ -39,8 +39,8 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 - Orchestrator task board.
 - Worker detail and validation evidence views.
 - Deterministic handoff preview.
-- Compact cockpit monitor summary for selected-run and stream state.
-- Local stream controls on the compact cockpit monitor summary.
+- Compact Arena monitor summary for selected-run and stream state.
+- Local stream controls on the compact Arena monitor summary.
 
 ## Phase 3: Optional Project Management Lane
 
@@ -48,16 +48,16 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 - Milestones, tasks, blockers, readiness checks, and dispatch previews.
 - Selected pipeline item dispatch detail preview.
 - Local selected-item dispatch request history.
-- Link from pipeline item to cockpit run.
-- Local pipeline item to cockpit run projection.
-- Visible linked local cockpit runs for selected pipeline items.
-- Linked cockpit run status summaries in the pipeline lane.
+- Link from pipeline item to Arena run.
+- Local pipeline item to Arena run projection.
+- Visible linked local Arena runs for selected pipeline items.
+- Linked Arena run status summaries in the pipeline lane.
 
 ## Phase 4: Runtime Adapters
 
 - Provider-neutral adapter contract.
 - Provider-neutral runtime profile readiness model.
-- Runtime profile catalog and cockpit readiness panel.
+- Runtime profile catalog and Arena readiness panel.
 - Editable local runtime profile draft with saved-state repair.
 - Local runtime profile approval request preview.
 - Local runtime profile approval history.
@@ -95,11 +95,11 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 - Per-panel workspace, model, sandbox, approval, and runtime metadata where supported.
 - Connection failure, unsupported capability, and offline states.
 
-## Phase 6: Adaptive Cockpit Canvas
+## Phase 6: Adaptive Arena Canvas
 
-- Adaptive freeform cockpit mode.
-- User-created panels from existing cockpit sessions and tasks.
-- Drag-and-drop from the left rail into the cockpit center, starting with project stacks and chats, with selectable templates for whole-project drops.
+- Adaptive freeform Arena mode.
+- User-created panels from existing Arena sessions and tasks.
+- Drag-and-drop from the left rail into the Arena center, starting with project stacks and chats, with selectable templates for whole-project drops.
 - Resizable and repositionable panels with magnetic snapping.
 - Collision handling, safe drop zones, hidden queue integration, and reset to last safe layout.
 - Local persistence and saved-state repair for panel geometry.

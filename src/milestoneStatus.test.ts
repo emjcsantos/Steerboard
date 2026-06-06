@@ -168,7 +168,7 @@ describe("milestone status model", () => {
   it("includes all required public targets", () => {
     const targets = steerboardMilestoneStatuses.map((milestone) => milestone.target);
     expect(targets).toContain("Product scaffold");
-    expect(targets).toContain("Cockpit monitor and operating modes");
+    expect(targets).toContain("Arena monitor and operating modes");
     expect(targets).toContain("Orchestration model");
     expect(targets).toContain("Runtime adapter previews");
     expect(targets).toContain("Live adapter integration");
@@ -180,24 +180,24 @@ describe("milestone status model", () => {
     expect(targets).toContain("Optional project management lane");
   });
 
-  it("requires a compact public-safe summary for cockpit monitor and operating modes", () => {
-    const cockpit = steerboardMilestoneStatuses.find(
-      (milestone) => milestone.target === "Cockpit monitor and operating modes"
+  it("requires a compact public-safe summary for Arena monitor and operating modes", () => {
+    const arena = steerboardMilestoneStatuses.find(
+      (milestone) => milestone.target === "Arena monitor and operating modes"
     );
-    expect(cockpit?.completion).toBe("In progress");
-    expect(cockpit?.tone).toBe("active");
-    expect(cockpit?.completionPercent).toBe(66);
-    expect(cockpit?.latestNote.toLowerCase()).toContain("panel-keyed live session chat");
-    expect(cockpit?.latestNote.toLowerCase()).toContain("visible unsupported-control evidence");
-    expect(cockpit?.latestNote.toLowerCase()).toContain("owner-testing control readiness evidence");
-    expect(cockpit?.latestNote.toLowerCase()).toContain("duplicate session identity guards");
-    expect(cockpit?.latestNote.toLowerCase()).toContain("native two-panel plus active-turn interrupt and steer smoke proof paths");
-    expect(cockpit?.latestNote.toLowerCase()).toContain("project stack drag-in");
-    expect(cockpit?.latestNote.toLowerCase()).toContain("keyboard adjustment");
-    expect(cockpit?.nextStep.toLowerCase()).toContain("two-panel smoke");
-    expect(cockpit?.nextStep.toLowerCase()).toContain("active-turn interrupt");
-    expect(cockpit?.nextStep.toLowerCase()).toContain("active-turn steer");
-    expect(cockpit?.nextStep.toLowerCase()).toContain("owner testing controls evidence");
+    expect(arena?.completion).toBe("In progress");
+    expect(arena?.tone).toBe("active");
+    expect(arena?.completionPercent).toBe(66);
+    expect(arena?.latestNote.toLowerCase()).toContain("panel-keyed live session chat");
+    expect(arena?.latestNote.toLowerCase()).toContain("visible unsupported-control evidence");
+    expect(arena?.latestNote.toLowerCase()).toContain("owner-testing control readiness evidence");
+    expect(arena?.latestNote.toLowerCase()).toContain("duplicate session identity guards");
+    expect(arena?.latestNote.toLowerCase()).toContain("native two-panel plus active-turn interrupt and steer smoke proof paths");
+    expect(arena?.latestNote.toLowerCase()).toContain("project stack drag-in");
+    expect(arena?.latestNote.toLowerCase()).toContain("keyboard adjustment");
+    expect(arena?.nextStep.toLowerCase()).toContain("two-panel smoke");
+    expect(arena?.nextStep.toLowerCase()).toContain("active-turn interrupt");
+    expect(arena?.nextStep.toLowerCase()).toContain("active-turn steer");
+    expect(arena?.nextStep.toLowerCase()).toContain("owner testing controls evidence");
   });
 
   it("requires a compact public-safe summary for orchestration model", () => {
@@ -210,7 +210,7 @@ describe("milestone status model", () => {
     expect(orchestration?.completionPercent).toBe(53);
     expect(orchestration?.current).toBeUndefined();
     expect(orchestration?.latestNote).toBe(
-      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for cockpit review, with handoff and retry state visible before external dispatch."
+      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for Arena review, with handoff and retry state visible before external dispatch."
     );
     expect(orchestration?.nextStep).toBe(
       "Connect the role-panel plan preview loop to staged dispatch records while preserving local-first review before live worker session spawning."
@@ -472,8 +472,8 @@ describe("milestone status model", () => {
     expect(securityDocText).toContain("Permission and execution lock");
     expect(securityDocText).toContain("Dependency and fixture safety");
     expect(securityDocText).toContain("Audit and export trail");
-    expect(securityDocText).toContain("## Live Cockpit Security Acceptance");
-    expect(securityDocText).toContain("Live cockpit run selected");
+    expect(securityDocText).toContain("## Live Arena Security Acceptance");
+    expect(securityDocText).toContain("Live Arena run selected");
     expect(securityDocText).toContain("Release privacy readiness");
     expect(securityDocText).toContain("Runtime adapter edge evidence");
     expect(securityDocText).toContain("Audit review trail");

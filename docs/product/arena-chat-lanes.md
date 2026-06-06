@@ -1,6 +1,6 @@
-# Cockpit Chat Lanes
+# Arena Chat Lanes
 
-Steerboard cockpit panels are working lanes, not passive status cards.
+Steerboard Arena panels are working lanes, not passive status cards.
 
 Each visible panel should provide:
 
@@ -13,10 +13,10 @@ Each visible panel should provide:
 The current implementation supports a first live-panel milestone:
 
 - browser preview captures local messages and shows a local preview response,
-- visible cockpit panels can use the desktop Codex adapter when the Tauri runtime and Codex app-server transport are available,
+- visible Arena panels can use the desktop Codex adapter when the Tauri runtime and Codex app-server transport are available,
 - the live panel starts an explicit ephemeral read-only session only after the user submits a message,
 - the panel renders normalized assistant output, completion, interruption, and error states,
-- panel session metadata is keyed by cockpit panel ID so hidden/revealed panels can preserve identity,
+- panel session metadata is keyed by Arena panel ID so hidden/revealed panels can preserve identity,
 - each panel exposes compact live session controls for interrupt, retry, and steering when supported,
 - each panel shows compact unsupported-control evidence for unavailable lifecycle actions,
 - panel composers surface only panel-scoped slash-command suggestions and block app/global-only commands with honest unsupported feedback,

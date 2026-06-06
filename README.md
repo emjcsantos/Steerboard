@@ -1,8 +1,8 @@
 # Steerboard
 
-Steerboard is a local-first desktop cockpit for planning, coordinating, and monitoring agent-assisted project execution.
+Steerboard is a local-first desktop Arena for planning, coordinating, and monitoring agent-assisted project execution.
 
-The product goal is a focused workspace where a human operator can plan project work through the cockpit chat, connect live agent runtimes, use commands and integrations, dispatch small validated tasks, compare progress across sessions, and steer several project lanes at once. The project management lane is optional support for visibility, tracking, and change management; it does not replace the cockpit chat as the main planning surface.
+The product goal is a focused workspace where a human operator can plan project work through the Arena chat, connect live agent runtimes, use commands and integrations, dispatch small validated tasks, compare progress across sessions, and steer several project lanes at once. The project management lane is optional support for visibility, tracking, and change management; it does not replace the Arena chat as the main planning surface.
 
 The first-class workflow is:
 
@@ -13,7 +13,7 @@ The first-class workflow is:
 
 ## Current Status
 
-This repository currently contains the desktop app scaffold, cockpit UI, public product brief, requirements, architecture notes, local testing guidance, installation strategy, and contribution guidance. The active development lane is making the cockpit controls, slash commands, provider metadata refresh, and smoke-proof evidence fully testable in desktop mode.
+This repository currently contains the desktop app scaffold, Arena UI, public product brief, requirements, architecture notes, local testing guidance, installation strategy, and contribution guidance. The active development lane is making the Arena controls, slash commands, provider metadata refresh, and smoke-proof evidence fully testable in desktop mode.
 
 See [Current State And Pipeline](docs/project/current-state-and-pipeline.md) for the latest public summary of completed work, active pipeline items, and future tasks. Internal planning, progress logs, and agent execution rules should stay outside the public repository.
 
@@ -40,8 +40,8 @@ The desktop shell uses Tauri and loads the same local Vite UI during development
 - [Current State And Pipeline](docs/project/current-state-and-pipeline.md)
 - [Requirements](docs/product/requirements.md)
 - [UI Direction](docs/product/ui-direction.md)
-- [Cockpit Operating Modes](docs/product/cockpit-operating-modes.md)
-- [Adaptive Cockpit Layout](docs/product/adaptive-cockpit-layout.md)
+- [Arena Operating Modes](docs/product/arena-operating-modes.md)
+- [Adaptive Arena Layout](docs/product/adaptive-arena-layout.md)
 - [Live Platform Capabilities](docs/product/live-platform-capabilities.md)
 - [Migration Center](docs/product/migration-center.md)
 - [Project Management Lane](docs/product/project-management-lane.md)
@@ -58,4 +58,4 @@ The desktop shell uses Tauri and loads the same local Vite UI during development
 
 ## Product Principle
 
-Steerboard should remain a distinct product with its own cockpit experience, provider-neutral runtime adapter boundary, local-first security model, and public-safe fixture data.
+Steerboard should remain a distinct product with its own Arena experience, provider-neutral runtime adapter boundary, local-first security model, and public-safe fixture data.
