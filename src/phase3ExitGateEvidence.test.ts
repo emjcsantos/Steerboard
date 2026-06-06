@@ -45,6 +45,17 @@ describe("phase 3 exit gate evidence", () => {
       blocked: 0,
       waiting: 0
     });
+
+    expect(result.items).toHaveLength(5);
+    expect(result.items.map((item) => item.id)).toEqual([
+      "phase3-exit-gate:slash-execution",
+      "phase3-exit-gate:session-controls",
+      "phase3-exit-gate:live-control-smoke",
+      "phase3-exit-gate:active-turn-interrupt-smoke",
+      "phase3-exit-gate:active-turn-steer-smoke"
+    ]);
+    expect(result.items.every((item) => item.state === "ready")).toBe(true);
+    expect(result.items.every((item) => item.nextAction)).toBe(true);
   });
 
   it("returns review when desktop proof is incomplete despite good slash/session evidence", () => {
@@ -88,6 +99,25 @@ describe("phase 3 exit gate evidence", () => {
       blocked: 0,
       waiting: 0
     });
+
+    expect(result.items[2]).toMatchObject({
+      id: "phase3-exit-gate:live-control-smoke",
+      label: "Live control smoke",
+      state: "ready"
+    });
+    expect(result.items[3]).toMatchObject({
+      id: "phase3-exit-gate:active-turn-interrupt-smoke",
+      label: "Active-turn interrupt smoke",
+      state: "review",
+      detail: expect.stringContaining("needs additional evidence")
+    });
+    expect(result.items[4]).toMatchObject({
+      id: "phase3-exit-gate:active-turn-steer-smoke",
+      label: "Active-turn steer smoke",
+      state: "review",
+      detail: expect.stringContaining("needs additional evidence")
+    });
+    expect(result.items[3].nextAction).toBe("Run missing desktop smoke proofs until active-turn controls report completion/readiness.");
   });
 
   it("returns blocked when any smoke proof is unsupported after execution", () => {
@@ -114,7 +144,7 @@ describe("phase 3 exit gate evidence", () => {
           blocked: 0
         }
       },
-      liveControlSmoke: { ok: true },
+      liveControlSmoke: null,
       activeTurnInterruptSmoke: {
         executed: true,
         unsupported: true,
@@ -128,11 +158,18 @@ describe("phase 3 exit gate evidence", () => {
     expect(result.pass).toBe(false);
     expect(result.readiness).toBe(15);
     expect(result.counts).toEqual({
-      ready: 4,
+      ready: 3,
       review: 0,
       blocked: 1,
-      waiting: 0
+      waiting: 1
     });
+    expect(result.items[3]).toMatchObject({
+      id: "phase3-exit-gate:active-turn-interrupt-smoke",
+      label: "Active-turn interrupt smoke",
+      state: "blocked",
+      detail: "Active-turn interrupt smoke is blocked."
+    });
+    expect(result.nextAction).toBe("Address the blocked control or unsupported-after-execution desktop proof before retrying phase exit.");
   });
 
   it("keeps blocked slash or session evidence above missing smoke proof", () => {
@@ -172,6 +209,19 @@ describe("phase 3 exit gate evidence", () => {
       blocked: 1,
       waiting: 1
     });
+
+    expect(result.items[0]).toMatchObject({
+      id: "phase3-exit-gate:slash-execution",
+      label: "Slash execution",
+      state: "blocked",
+      detail: "Slash execution is blocked."
+    });
+    expect(result.items[2]).toMatchObject({
+      id: "phase3-exit-gate:live-control-smoke",
+      label: "Live control smoke",
+      state: "waiting",
+      detail: "Live control smoke is missing and cannot be verified yet."
+    });
   });
 
   it("returns waiting when key evidence is malformed or missing", () => {
@@ -200,6 +250,18 @@ describe("phase 3 exit gate evidence", () => {
     expect(result.pass).toBe(false);
     expect(result.readiness).toBe(35);
     expect(result.statusLabel).toBe("Waiting");
+    expect(result.items[0]).toMatchObject({
+      id: "phase3-exit-gate:slash-execution",
+      label: "Slash execution",
+      state: "waiting",
+      detail: "Slash execution is malformed or missing; provide complete evidence payload."
+    });
+    expect(result.items[2]).toMatchObject({
+      id: "phase3-exit-gate:live-control-smoke",
+      label: "Live control smoke",
+      state: "waiting",
+      detail: "Live control smoke is missing and cannot be verified yet."
+    });
   });
 
   it("reports stable counts and does not mutate evidence inputs", () => {
@@ -250,10 +312,54 @@ describe("phase 3 exit gate evidence", () => {
       blocked: 0,
       waiting: 0
     });
+    expect(result.items.map((item) => item.id)).toEqual([
+      "phase3-exit-gate:slash-execution",
+      "phase3-exit-gate:session-controls",
+      "phase3-exit-gate:live-control-smoke",
+      "phase3-exit-gate:active-turn-interrupt-smoke",
+      "phase3-exit-gate:active-turn-steer-smoke"
+    ]);
     expect(slashEvidence).toEqual(slashEvidenceCopy);
     expect(sessionControlEvidence).toEqual(sessionControlEvidenceCopy);
     expect(liveControlSmoke).toEqual(liveControlSmokeCopy);
     expect(activeTurnInterruptSmoke).toEqual(activeTurnInterruptSmokeCopy);
     expect(activeTurnSteerSmoke).toEqual(activeTurnSteerSmokeCopy);
+  });
+
+  it("returns review diagnostics and item details for mixed evidence states", () => {
+    const result = buildPhase3ExitGateEvidence({
+      slashEvidence: {
+        state: "ready",
+        pass: true,
+        readiness: 100,
+        status: "Ready",
+        detail: "slash command execution live",
+        safety: "none",
+        executable: true
+      },
+      sessionControlEvidence: {
+        state: "ready",
+        readiness: 100,
+        pass: true,
+        statusLabel: "Ready",
+        detail: "session controls observed",
+        safety: "none",
+        counts: {
+          live: 3,
+          review: 0,
+          unsupported: 3,
+          blocked: 0
+        }
+      },
+      liveControlSmoke: { ok: false },
+      activeTurnInterruptSmoke: {},
+      activeTurnSteerSmoke: { ok: true }
+    });
+
+    expect(result.state).toBe("waiting");
+    expect(result.items[2].state).toBe("review");
+    expect(result.items[2].detail).toContain("needs additional evidence");
+    expect(result.items[2].nextAction).toContain("Run missing desktop smoke proofs");
+    expect(result.items[3].state).toBe("waiting");
   });
 });

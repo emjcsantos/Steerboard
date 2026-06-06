@@ -133,11 +133,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Owner testing hardening",
     completion: "In progress",
     plan: "Make live-functionality checks repeatable through a local checklist, failure fixtures, and docs consistency checks.",
-    completionPercent: 40,
+    completionPercent: 41,
     latestNote:
-      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, session-control readiness evidence, and a Phase 3 exit gate without execution.",
+      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, session-control readiness evidence, and a diagnostic Phase 3 exit gate without execution.",
     nextStep:
-      "Run the full local testing checklist, verify approval-to-probe behavior, all-catalog provider refresh smoke, the Phase 3 exit gate, live panel slash execution evidence, live panel control evidence, active-turn interrupt/steer smoke proof, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
+      "Run the full local testing checklist, use the Phase 3 gate diagnostics to clear missing proofs, verify approval-to-probe behavior, all-catalog provider refresh smoke, live panel slash execution evidence, live panel control evidence, active-turn interrupt/steer smoke proof, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
     tone: "active",
     note: "Daily local testing and failure-state coverage are being hardened before broader live runner attachment."
   },

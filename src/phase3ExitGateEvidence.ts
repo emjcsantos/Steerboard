@@ -7,6 +7,14 @@ export interface Phase3ExitGateEvidenceCounts {
   readonly waiting: number;
 }
 
+export interface Phase3ExitGateDiagnostic {
+  readonly id: string;
+  readonly label: string;
+  readonly state: Phase3ExitGateState;
+  readonly detail: string;
+  readonly nextAction: string;
+}
+
 export interface Phase3ExitGateEvidence {
   readonly state: Phase3ExitGateState;
   readonly readiness: number;
@@ -15,6 +23,7 @@ export interface Phase3ExitGateEvidence {
   readonly detail: string;
   readonly safety: string;
   readonly nextAction: string;
+  readonly items: readonly Phase3ExitGateDiagnostic[];
   readonly counts: Phase3ExitGateEvidenceCounts;
 }
 
@@ -55,6 +64,22 @@ const READY_NEXT_ACTION = "Proceed with phase handoff and finalization activitie
 const REVIEW_NEXT_ACTION = "Run missing desktop smoke proofs until active-turn controls report completion/readiness.";
 const BLOCKED_NEXT_ACTION = "Address the blocked control or unsupported-after-execution desktop proof before retrying phase exit.";
 const WAITING_NEXT_ACTION_BLOCKED = "Repair malformed evidence payloads and collect complete evidence inputs.";
+
+const PHASE3_GATE_IDS = {
+  slash: "phase3-exit-gate:slash-execution",
+  session: "phase3-exit-gate:session-controls",
+  liveControl: "phase3-exit-gate:live-control-smoke",
+  interrupt: "phase3-exit-gate:active-turn-interrupt-smoke",
+  steer: "phase3-exit-gate:active-turn-steer-smoke"
+} as const;
+
+const PHASE3_GATE_LABELS = {
+  slash: "Slash execution",
+  session: "Session controls",
+  liveControl: "Live control smoke",
+  interrupt: "Active-turn interrupt smoke",
+  steer: "Active-turn steer smoke"
+} as const;
 
 function safeBoolean(value: unknown): boolean {
   return value === true;
@@ -257,6 +282,30 @@ function resolveNextAction(state: Phase3ExitGateState): string {
   return REVIEW_NEXT_ACTION;
 }
 
+function resolveItemDetail(
+  itemLabel: string,
+  state: Phase3ExitGateState,
+  malformed = false
+): string {
+  if (state === "ready") {
+    return `${itemLabel} is ready.`;
+  }
+
+  if (state === "blocked") {
+    return `${itemLabel} is blocked.`;
+  }
+
+  if (state === "review") {
+    return `${itemLabel} needs additional evidence before phase exit can pass.`;
+  }
+
+  if (malformed) {
+    return `${itemLabel} is malformed or missing; provide complete evidence payload.`;
+  }
+
+  return `${itemLabel} is missing and cannot be verified yet.`;
+}
+
 export function buildPhase3ExitGateEvidence(
   input: Phase3ExitGateEvidenceInput = {}
 ): Phase3ExitGateEvidence {
@@ -267,12 +316,50 @@ export function buildPhase3ExitGateEvidence(
   const activeTurnInterruptSmoke = evaluateActiveTurnInterruptSmoke(input.activeTurnInterruptSmoke);
   const activeTurnSteerSmoke = evaluateActiveTurnSteerSmoke(input.activeTurnSteerSmoke);
 
+  const items: Phase3ExitGateDiagnostic[] = [
+    {
+      id: PHASE3_GATE_IDS.slash,
+      label: PHASE3_GATE_LABELS.slash,
+      state: slashEvidence.state,
+      detail: resolveItemDetail(PHASE3_GATE_LABELS.slash, slashEvidence.state, slashEvidence.malformed),
+      nextAction: resolveNextAction(slashEvidence.state)
+    },
+    {
+      id: PHASE3_GATE_IDS.session,
+      label: PHASE3_GATE_LABELS.session,
+      state: sessionControlEvidence.state,
+      detail: resolveItemDetail(PHASE3_GATE_LABELS.session, sessionControlEvidence.state, sessionControlEvidence.malformed),
+      nextAction: resolveNextAction(sessionControlEvidence.state)
+    },
+    {
+      id: PHASE3_GATE_IDS.liveControl,
+      label: PHASE3_GATE_LABELS.liveControl,
+      state: liveControlSmoke,
+      detail: resolveItemDetail(PHASE3_GATE_LABELS.liveControl, liveControlSmoke),
+      nextAction: resolveNextAction(liveControlSmoke)
+    },
+    {
+      id: PHASE3_GATE_IDS.interrupt,
+      label: PHASE3_GATE_LABELS.interrupt,
+      state: activeTurnInterruptSmoke,
+      detail: resolveItemDetail(PHASE3_GATE_LABELS.interrupt, activeTurnInterruptSmoke),
+      nextAction: resolveNextAction(activeTurnInterruptSmoke)
+    },
+    {
+      id: PHASE3_GATE_IDS.steer,
+      label: PHASE3_GATE_LABELS.steer,
+      state: activeTurnSteerSmoke,
+      detail: resolveItemDetail(PHASE3_GATE_LABELS.steer, activeTurnSteerSmoke),
+      nextAction: resolveNextAction(activeTurnSteerSmoke)
+    }
+  ];
+
   const gateStates = [
-    slashEvidence.state,
-    sessionControlEvidence.state,
-    liveControlSmoke,
-    activeTurnInterruptSmoke,
-    activeTurnSteerSmoke
+    items[0].state,
+    items[1].state,
+    items[2].state,
+    items[3].state,
+    items[4].state
   ];
 
   let state: Phase3ExitGateState;
@@ -315,6 +402,7 @@ export function buildPhase3ExitGateEvidence(
     detail: state === "waiting" ? NO_EVIDENCE_REASON : resolveDetail(state),
     safety: SAFETY_STATEMENT,
     nextAction: resolveNextAction(state),
+    items,
     counts
   };
 }

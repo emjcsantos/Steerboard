@@ -9617,6 +9617,22 @@ function OwnerTestingReadinessPanel({
               <dd>{phase3ExitGateEvidence.counts.waiting}</dd>
             </div>
           </dl>
+          <ol
+            className="owner-testing-phase3-diagnostics"
+            aria-label="Phase 3 exit gate diagnostics"
+          >
+            {phase3ExitGateEvidence.items.map((item) => (
+              <li
+                className={`owner-testing-phase3-diagnostic-${item.state}`}
+                key={item.id}
+                title={`${item.detail} ${item.nextAction}`}
+              >
+                <strong>{item.label}</strong>
+                <span>{item.state}</span>
+                <small>{item.nextAction}</small>
+              </li>
+            ))}
+          </ol>
         </div>
         <div
           aria-label={`Catalog refresh owner testing ${checklist.summary.catalogRefresh.statusLabel}; ${checklist.summary.catalogRefresh.readiness}% ready`}
