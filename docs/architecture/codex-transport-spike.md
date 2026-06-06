@@ -41,6 +41,8 @@ The app exposes this as an explicit live smoke action from the Codex connection 
 
 For repeatable local validation, `npm run smoke:phase3` runs the ignored Tauri smoke tests for live-control, active-turn interrupt, and active-turn steer. This command is opt-in because it can send tiny read-only prompts through the local runtime; normal `npm test` and `cargo test` do not run these live smoke checks.
 
+The Owner Testing panel also summarizes those three smoke proofs in evidence-only readiness rows. Browser fallback and non-executed proofs remain `waiting`, successful desktop proofs are `ready`, incomplete desktop executions are `review`, and unsupported-after-execution proofs are `blocked`.
+
 ## Fallback Behavior
 
 If app-server stdio is unavailable or the handshake fails:

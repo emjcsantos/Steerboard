@@ -5591,6 +5591,53 @@ textarea {
   list-style: none;
 }
 
+.owner-testing-phase3-smoke-readiness {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.owner-testing-phase3-smoke-readiness li {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #26303a;
+  border-radius: 6px;
+  background: #111820;
+  padding: 5px;
+}
+
+.owner-testing-phase3-smoke-readiness strong,
+.owner-testing-phase3-smoke-readiness span,
+.owner-testing-phase3-smoke-readiness small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-phase3-smoke-readiness strong {
+  color: #dde7f0;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.owner-testing-phase3-smoke-readiness span {
+  color: #9aa6b2;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.owner-testing-phase3-smoke-readiness small {
+  color: #778492;
+  font-size: 9px;
+  font-weight: 800;
+}
+
 .owner-testing-phase3-diagnostics li {
   display: grid;
   min-width: 0;
@@ -5924,6 +5971,7 @@ textarea {
 .owner-testing-phase3-ready,
 .owner-testing-phase3-diagnostic-ready,
 .owner-testing-phase3-action-ready,
+.owner-testing-phase3-smoke-ready,
 .failure-fixture-ready,
 .failure-fixture-item-ready {
   border-color: #254634;
@@ -5943,6 +5991,8 @@ textarea {
 .owner-testing-phase3-diagnostic-waiting,
 .owner-testing-phase3-action-recommended,
 .owner-testing-phase3-action-running,
+.owner-testing-phase3-smoke-review,
+.owner-testing-phase3-smoke-waiting,
 .owner-testing-catalog-review,
 .owner-testing-catalog-waiting,
 .owner-testing-item-review,
@@ -5961,6 +6011,7 @@ textarea {
 .owner-testing-phase3-blocked,
 .owner-testing-phase3-diagnostic-blocked,
 .owner-testing-phase3-action-blocked,
+.owner-testing-phase3-smoke-blocked,
 .owner-testing-catalog-blocked,
 .owner-testing-item-blocked,
 .owner-testing-catalog-item-blocked,

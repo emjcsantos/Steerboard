@@ -29,9 +29,14 @@ describe("phase 3 exit gate evidence", () => {
           blocked: 0
         }
       },
-      liveControlSmoke: { ok: true },
-      activeTurnInterruptSmoke: { completed: true, interruptObserved: true },
-      activeTurnSteerSmoke: { ok: true }
+      liveControlSmoke: { source: "desktop", executed: true, ok: true },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        executed: true,
+        completed: true,
+        interruptObserved: true
+      },
+      activeTurnSteerSmoke: { source: "desktop", executed: true, ok: true }
     });
 
     expect(result.state).toBe("ready");
@@ -85,9 +90,19 @@ describe("phase 3 exit gate evidence", () => {
           blocked: 0
         }
       },
-      liveControlSmoke: { ok: true },
-      activeTurnInterruptSmoke: { completed: true, interruptObserved: false },
-      activeTurnSteerSmoke: { ok: false, completed: false }
+      liveControlSmoke: { source: "desktop", executed: true, ok: true },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        executed: true,
+        completed: true,
+        interruptObserved: false
+      },
+      activeTurnSteerSmoke: {
+        source: "desktop",
+        executed: true,
+        ok: false,
+        completed: false
+      }
     });
 
     expect(result.state).toBe("review");
@@ -109,13 +124,13 @@ describe("phase 3 exit gate evidence", () => {
       id: "phase3-exit-gate:active-turn-interrupt-smoke",
       label: "Active-turn interrupt smoke",
       state: "review",
-      detail: expect.stringContaining("needs additional evidence")
+      detail: expect.stringContaining("needs further desktop evidence")
     });
     expect(result.items[4]).toMatchObject({
       id: "phase3-exit-gate:active-turn-steer-smoke",
       label: "Active-turn steer smoke",
       state: "review",
-      detail: expect.stringContaining("needs additional evidence")
+      detail: expect.stringContaining("needs further desktop evidence")
     });
     expect(result.items[3].nextAction).toBe("Run missing desktop smoke proofs until active-turn controls report completion/readiness.");
   });
@@ -146,12 +161,13 @@ describe("phase 3 exit gate evidence", () => {
       },
       liveControlSmoke: null,
       activeTurnInterruptSmoke: {
+        source: "desktop",
         executed: true,
         unsupported: true,
         interruptObserved: false,
         completed: true
       },
-      activeTurnSteerSmoke: { ok: true }
+      activeTurnSteerSmoke: { source: "desktop", executed: true, ok: true }
     });
 
     expect(result.state).toBe("blocked");
@@ -167,7 +183,7 @@ describe("phase 3 exit gate evidence", () => {
       id: "phase3-exit-gate:active-turn-interrupt-smoke",
       label: "Active-turn interrupt smoke",
       state: "blocked",
-      detail: "Active-turn interrupt smoke is blocked."
+      detail: expect.stringContaining("blocked after execution")
     });
     expect(result.nextAction).toBe("Address the blocked control or unsupported-after-execution desktop proof before retrying phase exit.");
   });
@@ -198,16 +214,16 @@ describe("phase 3 exit gate evidence", () => {
       },
       liveControlSmoke: null,
       activeTurnInterruptSmoke: { completed: true },
-      activeTurnSteerSmoke: { ok: true }
+      activeTurnSteerSmoke: { source: "desktop", executed: true, ok: true }
     });
 
     expect(result.state).toBe("blocked");
     expect(result.pass).toBe(false);
     expect(result.counts).toEqual({
       ready: 2,
-      review: 1,
+      review: 0,
       blocked: 1,
-      waiting: 1
+      waiting: 2
     });
 
     expect(result.items[0]).toMatchObject({
@@ -220,7 +236,7 @@ describe("phase 3 exit gate evidence", () => {
       id: "phase3-exit-gate:live-control-smoke",
       label: "Live control smoke",
       state: "waiting",
-      detail: "Live control smoke is missing and cannot be verified yet."
+      detail: expect.stringContaining("has not been executed on desktop")
     });
   });
 
@@ -243,7 +259,7 @@ describe("phase 3 exit gate evidence", () => {
       },
       liveControlSmoke: null,
       activeTurnInterruptSmoke: { completed: true },
-      activeTurnSteerSmoke: { ok: true }
+      activeTurnSteerSmoke: { source: "desktop", executed: true, ok: true }
     });
 
     expect(result.state).toBe("waiting");
@@ -260,7 +276,7 @@ describe("phase 3 exit gate evidence", () => {
       id: "phase3-exit-gate:live-control-smoke",
       label: "Live control smoke",
       state: "waiting",
-      detail: "Live control smoke is missing and cannot be verified yet."
+      detail: expect.stringContaining("has not been executed on desktop")
     });
   });
 
@@ -287,9 +303,17 @@ describe("phase 3 exit gate evidence", () => {
         blocked: 0
       }
     };
-    const liveControlSmoke = { ok: true };
-    const activeTurnInterruptSmoke = { completed: true };
-    const activeTurnSteerSmoke = { ok: false };
+    const liveControlSmoke = { source: "desktop", executed: true, ok: true };
+    const activeTurnInterruptSmoke = {
+      source: "desktop",
+      executed: true,
+      completed: true
+    };
+    const activeTurnSteerSmoke = {
+      source: "desktop",
+      executed: true,
+      ok: false
+    };
 
     const slashEvidenceCopy = JSON.parse(JSON.stringify(slashEvidence));
     const sessionControlEvidenceCopy = JSON.parse(JSON.stringify(sessionControlEvidence));
@@ -351,14 +375,14 @@ describe("phase 3 exit gate evidence", () => {
           blocked: 0
         }
       },
-      liveControlSmoke: { ok: false },
+      liveControlSmoke: { source: "desktop", executed: true, ok: false },
       activeTurnInterruptSmoke: {},
-      activeTurnSteerSmoke: { ok: true }
+      activeTurnSteerSmoke: { source: "desktop", executed: true, ok: true }
     });
 
     expect(result.state).toBe("waiting");
     expect(result.items[2].state).toBe("review");
-    expect(result.items[2].detail).toContain("needs additional evidence");
+    expect(result.items[2].detail).toContain("needs further desktop evidence");
     expect(result.items[2].nextAction).toContain("Run missing desktop smoke proofs");
     expect(result.items[3].state).toBe("waiting");
   });

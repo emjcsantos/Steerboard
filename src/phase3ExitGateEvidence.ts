@@ -1,3 +1,8 @@
+import {
+  buildPhase3SmokeProofReadiness,
+  type Phase3SmokeProofReadinessItem
+} from "./phase3SmokeProofReadiness";
+
 export type Phase3ExitGateState = "ready" | "review" | "blocked" | "waiting";
 
 export interface Phase3ExitGateEvidenceCounts {
@@ -162,90 +167,6 @@ function evaluateSessionControlEvidence(input: unknown): {
   return { state, pass: false, malformed: false };
 }
 
-function evaluateLiveControlSmoke(input: unknown): Phase3ExitGateState {
-  const record = safeRecord(input);
-  if (!record) {
-    return "waiting";
-  }
-
-  const unsupported = safeBoolean(record.unsupported);
-  const executed = safeBoolean(record.executed);
-  const completed = safeBoolean(record.completed);
-  const ok = safeBoolean(record.ok);
-  const hasSignal = unsafeHasAnyObjectSignal(record);
-
-  if (unsupported && (executed || completed || ok)) {
-    return "blocked";
-  }
-
-  if (ok || executed) {
-    return "ready";
-  }
-
-  return hasSignal ? "review" : "waiting";
-}
-
-function evaluateActiveTurnInterruptSmoke(input: unknown): Phase3ExitGateState {
-  const record = safeRecord(input);
-  if (!record) {
-    return "waiting";
-  }
-
-  const unsupported = safeBoolean(record.unsupported);
-  const executed = safeBoolean(record.executed);
-  const completed = safeBoolean(record.completed);
-  const ok = safeBoolean(record.ok);
-  const interruptObserved = safeBoolean(record.interruptObserved);
-  const hasSignal = unsafeHasAnyObjectSignal(record);
-
-  if (unsupported && (executed || completed || ok)) {
-    return "blocked";
-  }
-
-  if (ok || (completed && interruptObserved)) {
-    return "ready";
-  }
-
-  return hasSignal ? "review" : "waiting";
-}
-
-function evaluateActiveTurnSteerSmoke(input: unknown): Phase3ExitGateState {
-  const record = safeRecord(input);
-  if (!record) {
-    return "waiting";
-  }
-
-  const unsupported = safeBoolean(record.unsupported);
-  const executed = safeBoolean(record.executed);
-  const completed = safeBoolean(record.completed);
-  const ok = safeBoolean(record.ok);
-  const steerObserved = safeBoolean(record.steerObserved);
-  const hasSignal = unsafeHasAnyObjectSignal(record);
-
-  if (unsupported && (executed || completed || ok)) {
-    return "blocked";
-  }
-
-  if (ok || (completed && steerObserved)) {
-    return "ready";
-  }
-
-  return hasSignal ? "review" : "waiting";
-}
-
-function unsafeHasAnyObjectSignal(record: Readonly<Record<string, unknown>>): boolean {
-  const keys = [
-    "ok",
-    "executed",
-    "unsupported",
-    "completed",
-    "interruptObserved",
-    "steerObserved"
-  ] as const;
-
-  return keys.some((key) => record[key] !== undefined);
-}
-
 function resolveReadiness(state: Phase3ExitGateState): number {
   return READINESS_BY_STATE[state];
 }
@@ -306,15 +227,26 @@ function resolveItemDetail(
   return `${itemLabel} is missing and cannot be verified yet.`;
 }
 
+function resolveSmokeItemDetail(item: Phase3SmokeProofReadinessItem): string {
+  return `${item.detail} Source: ${item.source}; checked: ${item.checkedAt}.`;
+}
+
 export function buildPhase3ExitGateEvidence(
   input: Phase3ExitGateEvidenceInput = {}
 ): Phase3ExitGateEvidence {
   const slashEvidence = evaluateSlashEvidence(input.slashEvidence);
   const sessionControlEvidence = evaluateSessionControlEvidence(input.sessionControlEvidence);
-
-  const liveControlSmoke = evaluateLiveControlSmoke(input.liveControlSmoke);
-  const activeTurnInterruptSmoke = evaluateActiveTurnInterruptSmoke(input.activeTurnInterruptSmoke);
-  const activeTurnSteerSmoke = evaluateActiveTurnSteerSmoke(input.activeTurnSteerSmoke);
+  const smokeReadiness = buildPhase3SmokeProofReadiness({
+    liveControlSmoke: input.liveControlSmoke,
+    activeTurnInterruptSmoke: input.activeTurnInterruptSmoke,
+    activeTurnSteerSmoke: input.activeTurnSteerSmoke
+  });
+  const liveControlSmokeItem = smokeReadiness.items[0];
+  const activeTurnInterruptSmokeItem = smokeReadiness.items[1];
+  const activeTurnSteerSmokeItem = smokeReadiness.items[2];
+  const liveControlSmoke = liveControlSmokeItem.state;
+  const activeTurnInterruptSmoke = activeTurnInterruptSmokeItem.state;
+  const activeTurnSteerSmoke = activeTurnSteerSmokeItem.state;
 
   const items: Phase3ExitGateDiagnostic[] = [
     {
@@ -335,21 +267,21 @@ export function buildPhase3ExitGateEvidence(
       id: PHASE3_GATE_IDS.liveControl,
       label: PHASE3_GATE_LABELS.liveControl,
       state: liveControlSmoke,
-      detail: resolveItemDetail(PHASE3_GATE_LABELS.liveControl, liveControlSmoke),
+      detail: resolveSmokeItemDetail(liveControlSmokeItem),
       nextAction: resolveNextAction(liveControlSmoke)
     },
     {
       id: PHASE3_GATE_IDS.interrupt,
       label: PHASE3_GATE_LABELS.interrupt,
       state: activeTurnInterruptSmoke,
-      detail: resolveItemDetail(PHASE3_GATE_LABELS.interrupt, activeTurnInterruptSmoke),
+      detail: resolveSmokeItemDetail(activeTurnInterruptSmokeItem),
       nextAction: resolveNextAction(activeTurnInterruptSmoke)
     },
     {
       id: PHASE3_GATE_IDS.steer,
       label: PHASE3_GATE_LABELS.steer,
       state: activeTurnSteerSmoke,
-      detail: resolveItemDetail(PHASE3_GATE_LABELS.steer, activeTurnSteerSmoke),
+      detail: resolveSmokeItemDetail(activeTurnSteerSmokeItem),
       nextAction: resolveNextAction(activeTurnSteerSmoke)
     }
   ];

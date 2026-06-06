@@ -270,6 +270,10 @@ import {
   type Phase3OwnerTestingAction
 } from "./phase3OwnerTestingActions";
 import {
+  buildPhase3SmokeProofReadiness,
+  type Phase3SmokeProofReadinessResult
+} from "./phase3SmokeProofReadiness";
+import {
   findCodexPanelSessionIdentityIssues,
   loadPanelSessionState,
   savePanelSessionState,
@@ -1605,6 +1609,19 @@ export function App() {
         : sessionControlReadinessEvidence.state === "waiting"
           ? "waiting"
           : "review";
+  const phase3SmokeProofReadiness = useMemo(
+    () =>
+      buildPhase3SmokeProofReadiness({
+        liveControlSmoke: codexLiveControlSmokeProof,
+        activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
+        activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof
+      }),
+    [
+      codexLiveControlSmokeProof,
+      codexActiveTurnControlSmokeProof,
+      codexActiveTurnSteerSmokeProof
+    ]
+  );
   const phase3ExitGateEvidence = useMemo(
     () =>
       buildPhase3ExitGateEvidence({
@@ -3170,6 +3187,7 @@ export function App() {
             selectedRun={selectedRun}
             phase3ExitGateEvidence={phase3ExitGateEvidence}
             phase3OwnerTestingActions={phase3OwnerTestingActions}
+            phase3SmokeProofReadiness={phase3SmokeProofReadiness}
             sessionControlOwnerTestingState={sessionControlOwnerTestingState}
             sessionControlReadinessEvidence={sessionControlReadinessEvidence}
             slashCommandExecutionEvidence={slashCommandExecutionEvidence}
@@ -6097,6 +6115,7 @@ function RightPanel({
   selectedRun,
   phase3ExitGateEvidence,
   phase3OwnerTestingActions,
+  phase3SmokeProofReadiness,
   sessionControlOwnerTestingState,
   sessionControlReadinessEvidence,
   slashCommandExecutionEvidence,
@@ -6133,6 +6152,7 @@ function RightPanel({
   selectedRun?: MockOrchestratorRun;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
+  phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   sessionControlOwnerTestingState: OwnerTestingReadinessState;
   sessionControlReadinessEvidence: SessionControlReadinessEvidence;
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
@@ -7164,6 +7184,7 @@ function RightPanel({
         failureSummary={failureStateFixtureSummary}
         phase3ExitGateEvidence={phase3ExitGateEvidence}
         phase3OwnerTestingActions={phase3OwnerTestingActions}
+        phase3SmokeProofReadiness={phase3SmokeProofReadiness}
         onRunCodexActiveTurnControlSmokeProof={onRunCodexActiveTurnControlSmokeProof}
         onRunCodexActiveTurnSteerSmokeProof={onRunCodexActiveTurnSteerSmokeProof}
         onRunCodexLiveControlSmokeProof={onRunCodexLiveControlSmokeProof}
@@ -9491,6 +9512,7 @@ function OwnerTestingReadinessPanel({
   failureSummary,
   phase3ExitGateEvidence,
   phase3OwnerTestingActions,
+  phase3SmokeProofReadiness,
   onRunCodexActiveTurnControlSmokeProof,
   onRunCodexActiveTurnSteerSmokeProof,
   onRunCodexLiveControlSmokeProof,
@@ -9503,6 +9525,7 @@ function OwnerTestingReadinessPanel({
   failureSummary: FailureStateFixtureSummary;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
+  phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   onRunCodexActiveTurnControlSmokeProof: () => void;
   onRunCodexActiveTurnSteerSmokeProof: () => void;
   onRunCodexLiveControlSmokeProof: () => void;
@@ -9702,6 +9725,24 @@ function OwnerTestingReadinessPanel({
               <dd>{phase3ExitGateEvidence.counts.waiting}</dd>
             </div>
           </dl>
+          <ol
+            className="owner-testing-phase3-smoke-readiness"
+            aria-label={`Phase 3 desktop smoke proof readiness ${phase3SmokeProofReadiness.readiness}% ready`}
+          >
+            {phase3SmokeProofReadiness.items.map((item) => (
+              <li
+                className={`owner-testing-phase3-smoke-${item.state}`}
+                key={item.proof}
+                title={item.detail}
+              >
+                <strong>{item.label}</strong>
+                <span>{item.state}</span>
+                <small>
+                  {item.source} | {item.checkedAt}
+                </small>
+              </li>
+            ))}
+          </ol>
           <ol
             className="owner-testing-phase3-diagnostics"
             aria-label="Phase 3 exit gate diagnostics"
