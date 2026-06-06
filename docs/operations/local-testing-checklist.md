@@ -34,8 +34,9 @@ Do not proceed to the next section until the current item is at least `review`.
    - Exercise stop, retry, pause, and route controls.
    - Confirm control actions are deterministic and do not drift between views.
 6. `Slash Commands`
-   - Run at least one documented command and one invalid command.
-   - Confirm valid output is clear and invalid input returns explicit guidance.
+   - Type `/` in a cockpit panel composer and confirm suggestions are limited to commands scoped to the active panel.
+   - Submit one app/global-only command from a panel and confirm it is blocked with explicit unsupported guidance.
+   - Submit one provider-routed panel command in live desktop mode and confirm the transcript shows provider-route evidence before the live turn runs.
    - Refresh the command catalog and confirm metadata/status is updated as a safe metadata/status refresh (no side-effectful actions).
 7. `Catalogs`
    - Open command, skill, plugin, MCP, automation, and personalization catalogs.

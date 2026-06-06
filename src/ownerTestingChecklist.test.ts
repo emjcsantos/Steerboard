@@ -15,6 +15,7 @@ describe("owner testing checklist model", () => {
   it("contains all required phase 9 checklist items in deterministic order", () => {
     const itemIds = checklistBase.items.map((item) => item.id);
     const itemNames = checklistBase.items.map((item) => item.name);
+    const slashItem = checklistBase.items.find((item) => item.id === "slash-commands");
 
     expect(itemIds).toEqual(Array.from(OWNER_TESTING_CHECKLIST_ORDER));
     expect(itemNames).toEqual([
@@ -38,6 +39,19 @@ describe("owner testing checklist model", () => {
       "Reload",
       "Recovery"
     ]);
+    expect(slashItem).toBeDefined();
+    expect(slashItem?.focus).toBe(
+      "Validate owner slash-command routing for panel-scoped suggestions, and confirm app/global-only commands are blocked when used outside permitted scope."
+    );
+    expect(slashItem?.checks).toBe(
+      "Capture transcript evidence showing provider-route mapping for suggestions and explicit app/global-only command blocking, while keeping this check provider/model-agnostic."
+    );
+    expect(slashItem?.focus).toContain("panel-scoped");
+    expect(slashItem?.checks).toContain("provider-route");
+    expect(slashItem?.checks).toContain("transcript");
+    expect(slashItem?.checks).toContain("app/global");
+    expect(slashItem?.checks).not.toContain("execution");
+    expect(slashItem?.checks).toMatch(/provider\/model-agnostic/i);
     expect(checklistBase.id).toBe(OWNER_TESTING_CHECKLIST_ID);
     expect(checklistBase.label).toBe(OWNER_TESTING_CHECKLIST_LABEL);
   });
