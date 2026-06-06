@@ -169,6 +169,27 @@ pub struct CodexActiveTurnControlSmokeProof {
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CodexActiveTurnSteerSmokeProof {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub executed: bool,
+    pub ok: bool,
+    pub unsupported: bool,
+    pub detail: String,
+    pub session_started: bool,
+    pub turn_id_seen: bool,
+    pub steer_sent: bool,
+    pub steer_observed: bool,
+    pub expected_token_seen: bool,
+    pub completed: bool,
+    pub failed: bool,
+    pub event_count: usize,
+    pub transcript_length: usize,
+    pub controls: Vec<CodexActiveTurnControlSmokeControlProof>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CodexTwoPanelSmokePanelProof {
     pub panel_id: String,
     pub session_id: Option<String>,
@@ -498,6 +519,7 @@ mod runtime_bridge {
         CodexAppServerProbe, CodexAppServerProtocolProbe, CodexCliProbe, CodexExecJsonProbe,
         CodexExecutionProbe, CodexHomeProbe, CodexLiveSmokeProof, CodexPanelCloseResult,
         CodexActiveTurnControlSmokeControlProof, CodexActiveTurnControlSmokeProof,
+        CodexActiveTurnSteerSmokeProof,
         CodexLiveControlSmokeMethodProof, CodexLiveControlSmokeProof,
         CodexPanelEvent, CodexPanelInterruptResult, CodexPanelSessionReadiness,
         CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelTurnResult, CodexTransportProbe,
@@ -1852,6 +1874,11 @@ mod runtime_bridge {
     }
 
     #[tauri::command]
+    pub fn codex_transport_active_turn_steer_smoke() -> CodexActiveTurnSteerSmokeProof {
+        run_active_turn_steer_smoke()
+    }
+
+    #[tauri::command]
     pub fn codex_transport_two_panel_smoke() -> CodexTwoPanelSmokeProof {
         run_two_panel_smoke()
     }
@@ -2621,6 +2648,11 @@ mod runtime_bridge {
     const ACTIVE_TURN_CONTROL_SMOKE_PANEL_ID: &str = "smoke-active-turn-control";
     const ACTIVE_TURN_CONTROL_SMOKE_PROMPT: &str =
         "Reply with exactly this token and nothing else: STEERBOARD_ACTIVE_TURN_CONTROL_OK";
+    const ACTIVE_TURN_STEER_SMOKE_PANEL_ID: &str = "smoke-active-turn-steer";
+    const ACTIVE_TURN_STEER_SMOKE_TOKEN: &str = "STEERBOARD_ACTIVE_TURN_STEER_OK";
+    const ACTIVE_TURN_STEER_SMOKE_PROMPT: &str = "This is a Steerboard active-turn steer smoke. Do not use tools. Start a numbered list from 1 to 200, one short neutral word per line. Do not include STEERBOARD_ACTIVE_TURN_STEER_OK unless a later steering instruction asks for it.";
+    const ACTIVE_TURN_STEER_SMOKE_MESSAGE: &str =
+        "Include exactly this token in your next sentence, then stop: STEERBOARD_ACTIVE_TURN_STEER_OK";
 
     fn run_active_turn_control_smoke() -> CodexActiveTurnControlSmokeProof {
         let checked_at = Some(current_timestamp());
@@ -2935,6 +2967,334 @@ mod runtime_bridge {
             turn_id_seen,
             interrupt_sent,
             interrupt_observed,
+            completed,
+            failed,
+            event_count: events.len(),
+            transcript_length,
+            controls,
+        }
+    }
+
+    fn run_active_turn_steer_smoke() -> CodexActiveTurnSteerSmokeProof {
+        let checked_at = Some(current_timestamp());
+        let session = match start_panel_session(ACTIVE_TURN_STEER_SMOKE_PANEL_ID) {
+            Ok(session) => session,
+            Err(error) => {
+                return codex_transport_active_turn_steer_smoke_from_values(
+                    checked_at,
+                    false,
+                    false,
+                    false,
+                    false,
+                    vec![CodexActiveTurnControlSmokeControlProof {
+                        control: "thread/start".to_string(),
+                        attempted: true,
+                        sent: false,
+                        observed: false,
+                        supported: false,
+                        detail: error,
+                    }],
+                    &[],
+                );
+            }
+        };
+
+        run_active_turn_steer_smoke_from_session(session, checked_at)
+    }
+
+    fn run_active_turn_steer_smoke_from_session(
+        session: Arc<CodexPanelSession>,
+        checked_at: Option<String>,
+    ) -> CodexActiveTurnSteerSmokeProof {
+        let mut controls = vec![
+            CodexActiveTurnControlSmokeControlProof {
+                control: "thread/start".to_string(),
+                attempted: true,
+                sent: true,
+                observed: true,
+                supported: true,
+                detail: "Started one ephemeral read-only Codex panel session.".to_string(),
+            },
+            CodexActiveTurnControlSmokeControlProof {
+                control: "turn/start".to_string(),
+                attempted: true,
+                sent: false,
+                observed: false,
+                supported: false,
+                detail: "Preparing to start steer smoke turn.".to_string(),
+            },
+            CodexActiveTurnControlSmokeControlProof {
+                control: "turn/steer".to_string(),
+                attempted: false,
+                sent: false,
+                observed: false,
+                supported: false,
+                detail: "Preparing to send turn/steer.".to_string(),
+            },
+        ];
+
+        let mut events = Vec::new();
+        let mut steer_sent = false;
+        let turn_start_id = session.next_request_id();
+        let turn_start = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": turn_start_id,
+            "method": "turn/start",
+            "params": {
+                "threadId": session.thread_id,
+                "input": [
+                    {
+                        "type": "text",
+                        "text": ACTIVE_TURN_STEER_SMOKE_PROMPT
+                    }
+                ],
+                "approvalPolicy": "never",
+                "sandboxPolicy": {
+                    "type": "readOnly",
+                    "networkAccess": false
+                },
+                "effort": "low"
+            }
+        });
+
+        match session.send(&turn_start) {
+            Ok(true) => controls[1].sent = true,
+            Ok(false) => {
+                controls[1].detail = "Unable to write turn/start request.".to_string();
+                return codex_transport_active_turn_steer_smoke_from_values(
+                    checked_at,
+                    true,
+                    true,
+                    false,
+                    false,
+                    controls,
+                    &[],
+                );
+            }
+            Err(error) => {
+                controls[1].detail = error;
+                return codex_transport_active_turn_steer_smoke_from_values(
+                    checked_at,
+                    true,
+                    true,
+                    false,
+                    false,
+                    controls,
+                    &[],
+                );
+            }
+        };
+
+        let turn_response = match wait_for_session_json_rpc_id(
+            &session,
+            turn_start_id,
+            Duration::from_secs(12),
+        ) {
+            Ok(Some(response)) => response,
+            Ok(None) => {
+                controls[1].detail = "No turn/start response was received.".to_string();
+                return codex_transport_active_turn_steer_smoke_from_values(
+                    checked_at,
+                    true,
+                    true,
+                    false,
+                    false,
+                    controls,
+                    &[],
+                );
+            }
+            Err(error) => {
+                controls[1].detail = error;
+                return codex_transport_active_turn_steer_smoke_from_values(
+                    checked_at,
+                    true,
+                    true,
+                    false,
+                    false,
+                    controls,
+                    &[],
+                );
+            }
+        };
+
+        let turn_id = extract_turn_id(&turn_response);
+        let turn_id_seen = turn_id.is_some();
+        controls[1].observed = turn_id_seen;
+        controls[1].supported = turn_id_seen;
+        controls[1].detail = if turn_id_seen {
+            "Received turn id from turn/start response.".to_string()
+        } else {
+            "turn/start response did not include a turn id.".to_string()
+        };
+        set_current_turn(&session, turn_id.clone());
+
+        if let Some(turn_id) = turn_id {
+            let steer_request_id = session.next_request_id();
+            let steer = steer_request(
+                steer_request_id,
+                &session.thread_id,
+                &turn_id,
+                ACTIVE_TURN_STEER_SMOKE_MESSAGE,
+            );
+
+            controls[2].attempted = true;
+            match session.send(&steer) {
+                Ok(sent) => {
+                    controls[2].sent = sent;
+                    controls[2].supported = sent;
+                    controls[2].detail = if sent {
+                        "Sent turn/steer request while turn was active.".to_string()
+                    } else {
+                        "Unable to write turn/steer request.".to_string()
+                    };
+                    steer_sent = sent;
+                }
+                Err(error) => {
+                    controls[2].detail = error;
+                    set_current_turn(&session, None);
+                    return codex_transport_active_turn_steer_smoke_from_values(
+                        checked_at,
+                        true,
+                        true,
+                        true,
+                        false,
+                        controls,
+                        &[],
+                    );
+                }
+            };
+        }
+
+        set_current_turn(&session, None);
+
+        let deadline = std::time::Instant::now() + Duration::from_secs(10);
+        while std::time::Instant::now() < deadline {
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            let value = match recv_session_value(&session, remaining.min(Duration::from_millis(250))) {
+                Ok(Some(value)) => value,
+                Ok(None) => continue,
+                Err(_) => break,
+            };
+            let event = normalize_panel_event(&value);
+            let terminal_status = event
+                .as_ref()
+                .and_then(|event| event.status.as_deref())
+                .is_some_and(|status| matches!(status, "completed" | "interrupted" | "failed"));
+            let token_seen = event
+                .as_ref()
+                .and_then(|event| event.delta.as_deref().or(event.message.as_deref()))
+                .is_some_and(|text| text.contains(ACTIVE_TURN_STEER_SMOKE_TOKEN));
+            events.push(value);
+            if terminal_status || token_seen {
+                break;
+            }
+        }
+
+        codex_transport_active_turn_steer_smoke_from_values(
+            checked_at,
+            true,
+            true,
+            turn_id_seen,
+            steer_sent,
+            controls,
+            &events,
+        )
+    }
+
+    pub(crate) fn codex_transport_active_turn_steer_smoke_from_values(
+        checked_at: Option<String>,
+        executed: bool,
+        session_started: bool,
+        turn_id_seen: bool,
+        steer_sent: bool,
+        mut controls: Vec<CodexActiveTurnControlSmokeControlProof>,
+        values: &[Value],
+    ) -> CodexActiveTurnSteerSmokeProof {
+        let events: Vec<CodexPanelEvent> = values
+            .iter()
+            .filter_map(normalize_panel_event)
+            .collect();
+
+        let mut completed = false;
+        let mut failed = false;
+        let mut expected_token_seen = false;
+        let mut transcript_length = 0usize;
+
+        for event in &events {
+            if let Some(delta) = event.delta.as_deref() {
+                transcript_length += delta.chars().count();
+                expected_token_seen =
+                    expected_token_seen || delta.contains(ACTIVE_TURN_STEER_SMOKE_TOKEN);
+            }
+            if let Some(message) = event.message.as_deref() {
+                expected_token_seen =
+                    expected_token_seen || message.contains(ACTIVE_TURN_STEER_SMOKE_TOKEN);
+            }
+            match event.status.as_deref() {
+                Some("completed") => completed = true,
+                Some("failed") => failed = true,
+                _ => {}
+            }
+            if event.event_type == "error" {
+                failed = true;
+            }
+        }
+
+        let steer_observed = expected_token_seen;
+        for control in &mut controls {
+            match control.control.as_str() {
+                "thread/start" => {
+                    control.observed = session_started;
+                    control.supported = session_started;
+                }
+                "turn/start" => {
+                    control.observed = turn_id_seen;
+                    control.supported = turn_id_seen;
+                }
+                "turn/steer" => {
+                    control.attempted = control.attempted || steer_sent;
+                    control.sent = control.sent || steer_sent;
+                    control.supported = steer_sent;
+                    control.observed = steer_observed;
+                }
+                _ => {}
+            }
+        }
+
+        let unsupported = !executed || controls.iter().any(|control| !control.supported);
+        let ok = executed && session_started && turn_id_seen && steer_sent && !failed;
+        let detail = if !executed {
+            "Active-turn steer smoke could not execute the command.".to_string()
+        } else if !session_started {
+            "No Codex panel session could be started.".to_string()
+        } else if !turn_id_seen {
+            "Started a Codex session but did not receive a turn id.".to_string()
+        } else if !steer_sent {
+            "Failed to send turn/steer while turn was active.".to_string()
+        } else if unsupported {
+            "Active-turn steer smoke was unable to complete required controls.".to_string()
+        } else if failed {
+            "Active-turn steer smoke observed a failed event during the turn.".to_string()
+        } else if steer_observed {
+            "Active-turn steer smoke sent steer request and observed the expected token.".to_string()
+        } else if completed {
+            "Active-turn steer smoke completed before the expected steer token was observed.".to_string()
+        } else {
+            "Active-turn steer smoke sent steer request while monitoring turn lifecycle.".to_string()
+        };
+
+        CodexActiveTurnSteerSmokeProof {
+            source: "desktop".to_string(),
+            checked_at,
+            executed,
+            ok,
+            unsupported,
+            detail,
+            session_started,
+            turn_id_seen,
+            steer_sent,
+            steer_observed,
+            expected_token_seen,
             completed,
             failed,
             event_count: events.len(),
@@ -3691,6 +4051,7 @@ pub fn run() {
             runtime_bridge::codex_mcp_catalog_preview,
             runtime_bridge::codex_personalization_catalog_preview,
             runtime_bridge::codex_transport_active_turn_control_smoke,
+            runtime_bridge::codex_transport_active_turn_steer_smoke,
             runtime_bridge::codex_transport_live_smoke,
             runtime_bridge::codex_transport_live_control_smoke,
             runtime_bridge::codex_transport_two_panel_smoke,
@@ -4087,6 +4448,110 @@ mod tests {
     #[test]
     fn codex_transport_active_turn_control_smoke_marks_unsupported_when_session_not_started() {
         let proof = runtime_bridge::codex_transport_active_turn_control_smoke_from_values(
+            Some("1700000000000".to_string()),
+            false,
+            false,
+            false,
+            false,
+            vec![active_turn_control_smoke_control(
+                "thread/start",
+                true,
+                false,
+                "session failed to start",
+            )],
+            &[],
+        );
+
+        assert!(!proof.executed);
+        assert!(!proof.ok);
+        assert!(proof.unsupported);
+        assert!(!proof.session_started);
+    }
+
+    #[test]
+    fn codex_transport_active_turn_steer_smoke_marks_ok_when_token_is_observed() {
+        let proof = runtime_bridge::codex_transport_active_turn_steer_smoke_from_values(
+            Some("1700000000000".to_string()),
+            true,
+            true,
+            true,
+            true,
+            vec![
+                active_turn_control_smoke_control("thread/start", true, true, ""),
+                active_turn_control_smoke_control("turn/start", true, true, ""),
+                active_turn_control_smoke_control("turn/steer", true, true, ""),
+            ],
+            &[
+                serde_json::json!({
+                    "jsonrpc": "2.0",
+                    "method": "item/agentMessage/delta",
+                    "params": {
+                        "turnId": "turn-1",
+                        "delta": "STEERBOARD_ACTIVE_TURN_STEER_OK"
+                    }
+                }),
+                serde_json::json!({
+                    "jsonrpc": "2.0",
+                    "method": "turn/completed",
+                    "params": {
+                        "turn": {
+                            "id": "turn-1",
+                            "status": "completed"
+                        }
+                    }
+                }),
+            ],
+        );
+
+        assert!(proof.executed);
+        assert!(proof.ok);
+        assert!(!proof.unsupported);
+        assert!(proof.steer_sent);
+        assert!(proof.steer_observed);
+        assert!(proof.expected_token_seen);
+        assert_eq!(proof.event_count, 2);
+        assert_eq!(proof.transcript_length, 31);
+    }
+
+    #[test]
+    fn codex_transport_active_turn_steer_smoke_distinguishes_completed_without_token() {
+        let proof = runtime_bridge::codex_transport_active_turn_steer_smoke_from_values(
+            Some("1700000000000".to_string()),
+            true,
+            true,
+            true,
+            true,
+            vec![
+                active_turn_control_smoke_control("thread/start", true, true, ""),
+                active_turn_control_smoke_control("turn/start", true, true, ""),
+                active_turn_control_smoke_control("turn/steer", true, true, ""),
+            ],
+            &[serde_json::json!({
+                "jsonrpc": "2.0",
+                "method": "turn/completed",
+                "params": {
+                    "turn": {
+                        "id": "turn-2",
+                        "status": "completed"
+                    }
+                }
+            })],
+        );
+
+        assert!(proof.executed);
+        assert!(proof.ok);
+        assert!(proof.completed);
+        assert!(!proof.steer_observed);
+        assert!(!proof.expected_token_seen);
+        assert_eq!(
+            proof.detail,
+            "Active-turn steer smoke completed before the expected steer token was observed."
+        );
+    }
+
+    #[test]
+    fn codex_transport_active_turn_steer_smoke_marks_unsupported_when_session_not_started() {
+        let proof = runtime_bridge::codex_transport_active_turn_steer_smoke_from_values(
             Some("1700000000000".to_string()),
             false,
             false,

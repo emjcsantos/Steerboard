@@ -254,16 +254,19 @@ import {
 import {
   decideCodexTransport,
   getFallbackCodexActiveTurnControlSmokeProof,
+  getFallbackCodexActiveTurnSteerSmokeProof,
   getFallbackCodexLiveSmokeProof,
   getFallbackCodexLiveControlSmokeProof,
   getFallbackCodexTwoPanelSmokeProof,
   getFallbackCodexTransportProbe,
   loadCodexActiveTurnControlSmokeProof,
+  loadCodexActiveTurnSteerSmokeProof,
   loadCodexLiveSmokeProof,
   loadCodexLiveControlSmokeProof,
   loadCodexTwoPanelSmokeProof,
   loadCodexTransportProbe,
   type CodexActiveTurnControlSmokeProof,
+  type CodexActiveTurnSteerSmokeProof,
   type CodexLiveSmokeProof,
   type CodexLiveControlSmokeProof,
   type CodexTwoPanelSmokeProof,
@@ -1374,6 +1377,8 @@ export function App() {
     useState<CodexActiveTurnControlSmokeProof>(() =>
       getFallbackCodexActiveTurnControlSmokeProof()
     );
+  const [codexActiveTurnSteerSmokeProof, setCodexActiveTurnSteerSmokeProof] =
+    useState<CodexActiveTurnSteerSmokeProof>(() => getFallbackCodexActiveTurnSteerSmokeProof());
   const [codexLiveControlSmokeProof, setCodexLiveControlSmokeProof] =
     useState<CodexLiveControlSmokeProof>(() => getFallbackCodexLiveControlSmokeProof());
   const [codexTwoPanelSmokeProof, setCodexTwoPanelSmokeProof] = useState<CodexTwoPanelSmokeProof>(() =>
@@ -1404,6 +1409,7 @@ export function App() {
   const [codexTransportLoading, setCodexTransportLoading] = useState(false);
   const [codexLiveSmokeLoading, setCodexLiveSmokeLoading] = useState(false);
   const [codexActiveTurnControlSmokeLoading, setCodexActiveTurnControlSmokeLoading] = useState(false);
+  const [codexActiveTurnSteerSmokeLoading, setCodexActiveTurnSteerSmokeLoading] = useState(false);
   const [codexLiveControlSmokeLoading, setCodexLiveControlSmokeLoading] = useState(false);
   const [codexTwoPanelSmokeLoading, setCodexTwoPanelSmokeLoading] = useState(false);
   const [automationCatalogLoading, setAutomationCatalogLoading] = useState(false);
@@ -2263,9 +2269,19 @@ export function App() {
     setCodexConnectionRequested(true);
     setAppNotice(
       nextProof.ok
-        ? "Codex active-turn control smoke passed"
-        : "Codex active-turn smoke did not pass"
+        ? "Codex active-turn interrupt smoke passed"
+        : "Codex active-turn interrupt smoke did not pass"
     );
+  }
+
+  async function runCodexActiveTurnSteerSmokeProof() {
+    setCodexActiveTurnSteerSmokeLoading(true);
+    const nextProof = await loadCodexActiveTurnSteerSmokeProof();
+
+    setCodexActiveTurnSteerSmokeProof(nextProof);
+    setCodexActiveTurnSteerSmokeLoading(false);
+    setCodexConnectionRequested(true);
+    setAppNotice(nextProof.ok ? "Codex active-turn steer smoke passed" : "Codex active-turn steer smoke did not pass");
   }
 
   async function runCodexLiveControlSmokeProof() {
@@ -2854,6 +2870,8 @@ export function App() {
           codexLiveSmokeProof={codexLiveSmokeProof}
           codexActiveTurnControlSmokeLoading={codexActiveTurnControlSmokeLoading}
           codexActiveTurnControlSmokeProof={codexActiveTurnControlSmokeProof}
+          codexActiveTurnSteerSmokeLoading={codexActiveTurnSteerSmokeLoading}
+          codexActiveTurnSteerSmokeProof={codexActiveTurnSteerSmokeProof}
           codexLiveControlSmokeLoading={codexLiveControlSmokeLoading}
           codexLiveControlSmokeProof={codexLiveControlSmokeProof}
           codexTwoPanelSmokeLoading={codexTwoPanelSmokeLoading}
@@ -2886,6 +2904,7 @@ export function App() {
           onRefreshSkillCatalog={refreshSkillCatalogSnapshot}
           onRunCodexLiveSmokeProof={runCodexLiveSmokeProof}
           onRunCodexActiveTurnControlSmokeProof={runCodexActiveTurnControlSmokeProof}
+          onRunCodexActiveTurnSteerSmokeProof={runCodexActiveTurnSteerSmokeProof}
           onRunCodexLiveControlSmokeProof={runCodexLiveControlSmokeProof}
           onRunCodexTwoPanelSmokeProof={runCodexTwoPanelSmokeProof}
           onSelectReviewableMigrationCategories={handleSelectReviewableMigrationCategories}
@@ -3044,6 +3063,8 @@ function AppDialogSurface({
   codexLiveSmokeProof,
   codexActiveTurnControlSmokeLoading,
   codexActiveTurnControlSmokeProof,
+  codexActiveTurnSteerSmokeLoading,
+  codexActiveTurnSteerSmokeProof,
   codexLiveControlSmokeLoading,
   codexLiveControlSmokeProof,
   codexTwoPanelSmokeLoading,
@@ -3076,6 +3097,7 @@ function AppDialogSurface({
   onRefreshSkillCatalog,
   onRunCodexLiveSmokeProof,
   onRunCodexActiveTurnControlSmokeProof,
+  onRunCodexActiveTurnSteerSmokeProof,
   onRunCodexLiveControlSmokeProof,
   onRunCodexTwoPanelSmokeProof,
   onSelectReviewableMigrationCategories,
@@ -3095,6 +3117,8 @@ function AppDialogSurface({
   codexLiveSmokeProof: CodexLiveSmokeProof;
   codexActiveTurnControlSmokeLoading: boolean;
   codexActiveTurnControlSmokeProof: CodexActiveTurnControlSmokeProof;
+  codexActiveTurnSteerSmokeLoading: boolean;
+  codexActiveTurnSteerSmokeProof: CodexActiveTurnSteerSmokeProof;
   codexLiveControlSmokeLoading: boolean;
   codexLiveControlSmokeProof: CodexLiveControlSmokeProof;
   codexTwoPanelSmokeLoading: boolean;
@@ -3127,6 +3151,7 @@ function AppDialogSurface({
   onRefreshSkillCatalog: () => void;
   onRunCodexLiveSmokeProof: () => void;
   onRunCodexActiveTurnControlSmokeProof: () => void;
+  onRunCodexActiveTurnSteerSmokeProof: () => void;
   onRunCodexLiveControlSmokeProof: () => void;
   onRunCodexTwoPanelSmokeProof: () => void;
   onSelectReviewableMigrationCategories: () => void;
@@ -3230,7 +3255,7 @@ function AppDialogSurface({
               </small>
             </div>
             <div className="transport-live-proof" aria-label="Codex active-turn control smoke proof">
-              <span>Active-turn smoke</span>
+              <span>Active-turn interrupt</span>
               <strong>
                 {codexActiveTurnControlSmokeProof.ok
                   ? "Passed"
@@ -3244,6 +3269,23 @@ function AppDialogSurface({
                 {codexActiveTurnControlSmokeProof.executed
                   ? `${codexActiveTurnControlSmokeProof.completed ? "Completed" : "Incomplete"}; ${codexActiveTurnControlSmokeProof.interruptObserved ? "interrupt observed" : codexActiveTurnControlSmokeProof.interruptSent ? "interrupt sent" : "interrupt not observed"}; ${codexActiveTurnControlSmokeProof.controls.length} controls`
                   : "Checks active-turn interrupt and completion flow for an explicit read-only run."}
+              </small>
+            </div>
+            <div className="transport-live-proof" aria-label="Codex active-turn steer smoke proof">
+              <span>Active-turn steer</span>
+              <strong>
+                {codexActiveTurnSteerSmokeProof.ok
+                  ? "Passed"
+                  : codexActiveTurnSteerSmokeProof.unsupported
+                    ? "Unsupported"
+                    : codexActiveTurnSteerSmokeProof.executed
+                    ? "Failed"
+                    : "Not run"}
+              </strong>
+              <small>
+                {codexActiveTurnSteerSmokeProof.executed
+                  ? `${codexActiveTurnSteerSmokeProof.completed ? "Completed" : "Incomplete"}; ${codexActiveTurnSteerSmokeProof.steerObserved ? "steer observed" : codexActiveTurnSteerSmokeProof.steerSent ? "steer sent" : "steer not observed"}; ${codexActiveTurnSteerSmokeProof.controls.length} controls`
+                  : "Checks active-turn steering for an explicit read-only run."}
               </small>
             </div>
             <div className="transport-live-proof" aria-label="Codex two-panel live smoke proof">
@@ -3288,7 +3330,15 @@ function AppDialogSurface({
                 onClick={onRunCodexActiveTurnControlSmokeProof}
                 type="button"
               >
-                {codexActiveTurnControlSmokeLoading ? "Running active-turn smoke..." : "Run active-turn smoke"}
+                {codexActiveTurnControlSmokeLoading ? "Running interrupt smoke..." : "Run interrupt smoke"}
+              </button>
+              <button
+                className="dialog-secondary-action"
+                disabled={!codexTransportDecision.canStartSession || codexActiveTurnSteerSmokeLoading}
+                onClick={onRunCodexActiveTurnSteerSmokeProof}
+                type="button"
+              >
+                {codexActiveTurnSteerSmokeLoading ? "Running steer smoke..." : "Run steer smoke"}
               </button>
               <button
                 className="dialog-secondary-action"

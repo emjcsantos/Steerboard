@@ -145,6 +145,25 @@ export interface CodexActiveTurnControlSmokeProof {
   controls: CodexActiveTurnControlSmokeMethodProof[];
 }
 
+export interface CodexActiveTurnSteerSmokeProof {
+  source: CodexProbeSource;
+  checkedAt: string | null;
+  executed: boolean;
+  ok: boolean;
+  unsupported: boolean;
+  detail: string;
+  sessionStarted: boolean;
+  turnIdSeen: boolean;
+  steerSent: boolean;
+  steerObserved: boolean;
+  expectedTokenSeen: boolean;
+  completed: boolean;
+  failed: boolean;
+  eventCount: number;
+  transcriptLength: number;
+  controls: CodexActiveTurnControlSmokeMethodProof[];
+}
+
 export interface CodexTwoPanelSmokePanelProof {
   panelId: string;
   sessionId: string | null;
@@ -264,6 +283,25 @@ const fallbackActiveTurnControlSmokeProof: CodexActiveTurnControlSmokeProof = {
   turnIdSeen: false,
   interruptSent: false,
   interruptObserved: false,
+  completed: false,
+  failed: false,
+  eventCount: 0,
+  transcriptLength: 0,
+  controls: []
+};
+
+const fallbackActiveTurnSteerSmokeProof: CodexActiveTurnSteerSmokeProof = {
+  source: "browser",
+  checkedAt: null,
+  executed: false,
+  ok: false,
+  unsupported: true,
+  detail: "Browser preview cannot launch a Codex active-turn steer smoke test.",
+  sessionStarted: false,
+  turnIdSeen: false,
+  steerSent: false,
+  steerObserved: false,
+  expectedTokenSeen: false,
   completed: false,
   failed: false,
   eventCount: 0,
@@ -562,6 +600,13 @@ export function getFallbackCodexActiveTurnControlSmokeProof(): CodexActiveTurnCo
   };
 }
 
+export function getFallbackCodexActiveTurnSteerSmokeProof(): CodexActiveTurnSteerSmokeProof {
+  return {
+    ...fallbackActiveTurnSteerSmokeProof,
+    controls: fallbackActiveTurnSteerSmokeProof.controls.map((control) => ({ ...control }))
+  };
+}
+
 export function normalizeCodexTwoPanelSmokeProof(value: unknown): CodexTwoPanelSmokeProof {
   if (!isRecord(value)) {
     return getFallbackCodexTwoPanelSmokeProof();
@@ -614,6 +659,40 @@ export function normalizeCodexActiveTurnControlSmokeProof(
     turnIdSeen: bool(value.turnIdSeen),
     interruptSent: bool(value.interruptSent),
     interruptObserved: bool(value.interruptObserved),
+    completed: bool(value.completed),
+    failed: bool(value.failed),
+    eventCount: nonNegativeInteger(value.eventCount),
+    transcriptLength: nonNegativeInteger(value.transcriptLength),
+    controls
+  };
+}
+
+export function normalizeCodexActiveTurnSteerSmokeProof(
+  value: unknown
+): CodexActiveTurnSteerSmokeProof {
+  if (!isRecord(value)) {
+    return getFallbackCodexActiveTurnSteerSmokeProof();
+  }
+
+  const fallback = getFallbackCodexActiveTurnSteerSmokeProof();
+  const controls = Array.isArray(value.controls)
+    ? value.controls
+        .map(normalizeCodexActiveTurnControlSmokeMethodProof)
+        .filter((control): control is CodexActiveTurnControlSmokeMethodProof => Boolean(control))
+    : [];
+
+  return {
+    source: value.source === "desktop" ? "desktop" : "browser",
+    checkedAt: optionalDate(value.checkedAt),
+    executed: bool(value.executed),
+    ok: bool(value.ok),
+    unsupported: bool(value.unsupported),
+    detail: optionalString(value.detail) ?? fallback.detail,
+    sessionStarted: bool(value.sessionStarted),
+    turnIdSeen: bool(value.turnIdSeen),
+    steerSent: bool(value.steerSent),
+    steerObserved: bool(value.steerObserved),
+    expectedTokenSeen: bool(value.expectedTokenSeen),
     completed: bool(value.completed),
     failed: bool(value.failed),
     eventCount: nonNegativeInteger(value.eventCount),
@@ -803,6 +882,15 @@ async function invokeCodexTwoPanelSmokeProof(): Promise<unknown> {
   return invoke("codex_transport_two_panel_smoke");
 }
 
+async function invokeCodexActiveTurnSteerSmokeProof(): Promise<unknown> {
+  if (!hasTauriRuntime()) {
+    return getFallbackCodexActiveTurnSteerSmokeProof();
+  }
+
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke("codex_transport_active_turn_steer_smoke");
+}
+
 async function invokeCodexActiveTurnControlSmokeProof(): Promise<unknown> {
   if (!hasTauriRuntime()) {
     return getFallbackCodexActiveTurnControlSmokeProof();
@@ -902,6 +990,24 @@ export async function loadCodexActiveTurnControlSmokeProof(
       ...getFallbackCodexActiveTurnControlSmokeProof(),
       source: "desktop",
       detail: "Codex active-turn control smoke failed before a transport result was returned."
+    };
+  }
+}
+
+export async function loadCodexActiveTurnSteerSmokeProof(
+  invokeProof: () => Promise<unknown> = invokeCodexActiveTurnSteerSmokeProof
+): Promise<CodexActiveTurnSteerSmokeProof> {
+  try {
+    if (!hasTauriRuntime() && invokeProof === invokeCodexActiveTurnSteerSmokeProof) {
+      return getFallbackCodexActiveTurnSteerSmokeProof();
+    }
+
+    return normalizeCodexActiveTurnSteerSmokeProof(await invokeProof());
+  } catch {
+    return {
+      ...getFallbackCodexActiveTurnSteerSmokeProof(),
+      source: "desktop",
+      detail: "Codex active-turn steer smoke failed before a transport result was returned."
     };
   }
 }

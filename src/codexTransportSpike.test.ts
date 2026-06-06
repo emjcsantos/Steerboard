@@ -2,21 +2,25 @@ import { describe, expect, it } from "vitest";
 import {
   decideCodexTransport,
   getFallbackCodexActiveTurnControlSmokeProof,
+  getFallbackCodexActiveTurnSteerSmokeProof,
   getFallbackCodexLiveSmokeProof,
   getFallbackCodexLiveControlSmokeProof,
   getFallbackCodexTwoPanelSmokeProof,
   getFallbackCodexTransportProbe,
   loadCodexActiveTurnControlSmokeProof,
+  loadCodexActiveTurnSteerSmokeProof,
   loadCodexLiveSmokeProof,
   loadCodexLiveControlSmokeProof,
   loadCodexTwoPanelSmokeProof,
   loadCodexTransportProbe,
   normalizeCodexActiveTurnControlSmokeProof,
+  normalizeCodexActiveTurnSteerSmokeProof,
   normalizeCodexLiveSmokeProof,
   normalizeCodexLiveControlSmokeProof,
   normalizeCodexTwoPanelSmokeProof,
   normalizeCodexTransportProbe,
   type CodexActiveTurnControlSmokeProof,
+  type CodexActiveTurnSteerSmokeProof,
   type CodexLiveSmokeProof,
   type CodexLiveControlSmokeProof,
   type CodexTwoPanelSmokeProof,
@@ -156,6 +160,42 @@ const activeTurnControlProof: CodexActiveTurnControlSmokeProof = {
       observed: false,
       supported: false,
       detail: "Turn steer control schema is unsupported."
+    }
+  ]
+};
+
+const activeTurnSteerProof: CodexActiveTurnSteerSmokeProof = {
+  source: "desktop",
+  checkedAt: "2026-06-05T14:12:00.000Z",
+  executed: true,
+  ok: true,
+  unsupported: false,
+  detail: "Active-turn steer smoke succeeded.",
+  sessionStarted: true,
+  turnIdSeen: true,
+  steerSent: true,
+  steerObserved: true,
+  expectedTokenSeen: true,
+  completed: true,
+  failed: false,
+  eventCount: 9,
+  transcriptLength: 42,
+  controls: [
+    {
+      control: "turn/start",
+      attempted: true,
+      sent: true,
+      observed: true,
+      supported: true,
+      detail: "Turn-start control is supported."
+    },
+    {
+      control: "turn/steer",
+      attempted: true,
+      sent: true,
+      observed: true,
+      supported: true,
+      detail: "Turn-steer control is supported."
     }
   ]
 };
@@ -473,6 +513,81 @@ describe("codex transport spike", () => {
     });
   });
 
+  it("normalizes active-turn steer smoke proofs into safe typed defaults", () => {
+    const proof = normalizeCodexActiveTurnSteerSmokeProof({
+      source: "desktop",
+      checkedAt: "1780668720000",
+      executed: true,
+      ok: true,
+      unsupported: false,
+      detail: "",
+      sessionStarted: true,
+      turnIdSeen: true,
+      steerSent: true,
+      steerObserved: false,
+      expectedTokenSeen: true,
+      completed: false,
+      failed: false,
+      eventCount: 7,
+      transcriptLength: -5,
+      controls: [
+        {
+          control: "turn/start",
+          attempted: true,
+          sent: true,
+          observed: "yes",
+          supported: true,
+          detail: "Turn start control is supported."
+        },
+        {
+          control: "turn/steer",
+          attempted: true,
+          sent: true,
+          observed: true,
+          supported: true,
+          detail: ""
+        },
+        { control: "", attempted: true, sent: true }
+      ]
+    });
+
+    expect(proof).toMatchObject({
+      source: "desktop",
+      checkedAt: "2026-06-05T14:12:00.000Z",
+      executed: true,
+      ok: true,
+      unsupported: false,
+      detail: "Browser preview cannot launch a Codex active-turn steer smoke test.",
+      sessionStarted: true,
+      turnIdSeen: true,
+      steerSent: true,
+      steerObserved: false,
+      expectedTokenSeen: true,
+      completed: false,
+      failed: false,
+      eventCount: 7,
+      transcriptLength: 0,
+      controls: [
+        {
+          control: "turn/start",
+          attempted: true,
+          sent: true,
+          observed: false,
+          supported: true,
+          detail: "Turn start control is supported."
+        },
+        {
+          control: "turn/steer",
+          attempted: true,
+          sent: true,
+          observed: true,
+          supported: true,
+          detail: "No control smoke detail was returned."
+        }
+      ]
+    });
+  });
+
   it("falls back to exec-json for one-shot work when app-server handshake is absent", () => {
     const decision = decideCodexTransport({
       ...readyProbe,
@@ -597,6 +712,35 @@ describe("codex transport spike", () => {
     });
 
     expect(getFallbackCodexActiveTurnControlSmokeProof()).toMatchObject({
+      source: "browser",
+      ok: false,
+      executed: false,
+      unsupported: true
+    });
+  });
+
+  it("normalizes injected active-turn steer smoke loads and falls back safely", async () => {
+    await expect(loadCodexActiveTurnSteerSmokeProof(async () => activeTurnSteerProof)).resolves.toMatchObject({
+      source: "desktop",
+      ok: true,
+      steerSent: true,
+      steerObserved: true,
+      expectedTokenSeen: true,
+      controls: [{ control: "turn/start" }, { control: "turn/steer" }]
+    });
+
+    await expect(
+      loadCodexActiveTurnSteerSmokeProof(async () => {
+        throw new Error("active-turn steer smoke failed");
+      })
+    ).resolves.toMatchObject({
+      source: "desktop",
+      ok: false,
+      executed: false,
+      detail: "Codex active-turn steer smoke failed before a transport result was returned."
+    });
+
+    expect(getFallbackCodexActiveTurnSteerSmokeProof()).toMatchObject({
       source: "browser",
       ok: false,
       executed: false,
