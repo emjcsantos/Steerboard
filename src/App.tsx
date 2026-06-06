@@ -933,7 +933,13 @@ function sessionControlReadinessEvidenceEqual(
     current.counts.live === next.counts.live &&
     current.counts.review === next.counts.review &&
     current.counts.unsupported === next.counts.unsupported &&
-    current.counts.blocked === next.counts.blocked
+    current.counts.blocked === next.counts.blocked &&
+    current.controlStates.interrupt === next.controlStates.interrupt &&
+    current.controlStates.retry === next.controlStates.retry &&
+    current.controlStates.steer === next.controlStates.steer &&
+    current.controlStates.fork === next.controlStates.fork &&
+    current.controlStates.resume === next.controlStates.resume &&
+    current.controlStates.archive === next.controlStates.archive
   );
 }
 
@@ -9598,6 +9604,19 @@ function OwnerTestingReadinessPanel({
               <dd>{sessionControlReadinessEvidence.counts.blocked}</dd>
             </div>
           </dl>
+          <ol
+            className="owner-testing-control-states"
+            aria-label="Session control state details"
+          >
+            {Object.entries(sessionControlReadinessEvidence.controlStates).map(
+              ([control, state]) => (
+                <li className={`owner-testing-control-state-${state}`} key={control}>
+                  <strong>{control}</strong>
+                  <span>{state}</span>
+                </li>
+              )
+            )}
+          </ol>
         </div>
         <div
           aria-label={`Slash command execution evidence ${slashCommandExecutionEvidence.status}; ${slashCommandExecutionEvidence.readiness}% ready`}

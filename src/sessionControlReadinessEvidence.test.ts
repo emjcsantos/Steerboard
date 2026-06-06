@@ -23,6 +23,12 @@ describe("session control readiness evidence", () => {
       blocked: 0
     });
     expect(result.detail).toContain("lifecycle controls are honestly unsupported");
+    expect(result.detail).toContain("fork");
+    expect(result.detail).toContain("resume");
+    expect(result.detail).toContain("archive");
+    expect(result.controlStates.fork).toBe("unsupported");
+    expect(result.controlStates.resume).toBe("unsupported");
+    expect(result.controlStates.archive).toBe("unsupported");
   });
 
   it("returns ready when required controls are transcript-evidenced across prior states", () => {
@@ -103,12 +109,45 @@ describe("session control readiness evidence", () => {
     expect(result.state).toBe("review");
     expect(result.pass).toBe(false);
     expect(result.readiness).toBe(65);
+    expect(result.controlStates.fork).toBe("waiting");
+    expect(result.controlStates.resume).toBe("waiting");
+    expect(result.controlStates.archive).toBe("waiting");
     expect(result.counts).toEqual({
       live: 3,
       review: 0,
       unsupported: 0,
       blocked: 0
     });
+  });
+
+  it("returns explicit per-control state naming for missing lifecycle controls", () => {
+    const result = buildSessionControlReadinessEvidence(
+      {
+        interrupt: { state: "live" },
+        retry: { state: "live" },
+        steer: "live"
+      },
+      {
+        controlEvidence: {
+          retry: true
+        }
+      }
+    );
+
+    expect(result.state).toBe("review");
+    expect(result.controlStates).toEqual({
+      interrupt: "live",
+      retry: "live",
+      steer: "live",
+      fork: "waiting",
+      resume: "waiting",
+      archive: "waiting"
+    });
+    expect(result.detail).toContain("Snapshot detail:");
+    expect(result.detail).toContain("fork");
+    expect(result.detail).toContain("resume");
+    expect(result.detail).toContain("archive");
+    expect(result.detail).toContain("waiting");
   });
 
   it("returns blocked when any control is blocked", () => {

@@ -15,6 +15,7 @@ export interface SessionControlReadinessEvidence {
   detail: string;
   safety: string;
   counts: SessionControlReadinessEvidenceCounts;
+  controlStates: Record<CanonicalControl, CanonicalControlState>;
 }
 
 export interface SessionControlEvidenceInput {
@@ -26,6 +27,7 @@ type CanonicalControl = "interrupt" | "retry" | "steer" | "fork" | "resume" | "a
 type CanonicalControlState = "live" | "review" | "unsupported" | "blocked" | "waiting";
 
 const REQUIRED_CONTROLS: readonly CanonicalControl[] = ["interrupt", "retry", "steer"];
+const LIFECYCLE_CONTROLS: readonly CanonicalControl[] = ["fork", "resume", "archive"];
 const ALL_CONTROLS: readonly CanonicalControl[] = [
   "interrupt",
   "retry",
@@ -315,6 +317,21 @@ function buildCounts(states: Record<CanonicalControl, CanonicalControlState>): S
   return counts;
 }
 
+function buildControlStateList(
+  states: Record<CanonicalControl, CanonicalControlState>,
+  targetState: CanonicalControlState
+): CanonicalControl[] {
+  const controls: CanonicalControl[] = [];
+
+  for (const control of ALL_CONTROLS) {
+    if (states[control] === targetState) {
+      controls.push(control);
+    }
+  }
+
+  return controls;
+}
+
 function resolveOverallState(
   states: Record<CanonicalControl, CanonicalControlState>,
   malformed: boolean,
@@ -377,13 +394,56 @@ function buildReadiness(state: SessionControlReadinessState): number {
   return WAITING_READINESS;
 }
 
-function buildDetail(state: SessionControlReadinessState): string {
+function buildControlDetailsByState(
+  controlState: CanonicalControlState,
+  states: Record<CanonicalControl, CanonicalControlState>
+): string {
+  const controls = buildControlStateList(states, controlState);
+
+  if (controls.length === 0) {
+    return "";
+  }
+
+  return `${controlState}: ${controls.join(", ")}`;
+}
+
+function buildDetail(
+  state: SessionControlReadinessState,
+  states: Record<CanonicalControl, CanonicalControlState>
+): string {
+  const lifecycleUnsupported = buildControlStateList(states, "unsupported").filter((control) =>
+    LIFECYCLE_CONTROLS.includes(control)
+  );
+  const lifecycleReviewOrWait = buildControlStateList(states, "review").filter((control) =>
+    LIFECYCLE_CONTROLS.includes(control)
+  );
+
   if (state === "ready") {
-    return READY_DETAIL;
+    const lifecycleMessage =
+      lifecycleUnsupported.length > 0
+        ? `Lifecycle controls are honestly unsupported: ${lifecycleUnsupported.join(", ")}.`
+        : "Lifecycle controls are not explicitly unsupported yet.";
+
+    return `${READY_DETAIL} ${lifecycleMessage}`.trim();
   }
 
   if (state === "review") {
-    return REVIEW_DETAIL;
+    const requiredMessage =
+      lifecycleReviewOrWait.length > 0
+        ? `Lifecycle controls awaiting evidence include: ${lifecycleReviewOrWait.join(", ")}.`
+        : "";
+
+    const snapshotSummary = [
+      buildControlDetailsByState("unsupported", states),
+      buildControlDetailsByState("blocked", states),
+      buildControlDetailsByState("waiting", states),
+      buildControlDetailsByState("review", states)
+    ].filter(Boolean);
+
+    const detailsLine = snapshotSummary.length
+      ? `Snapshot detail: ${snapshotSummary.join(" | ")}`
+      : "";
+    return `${REVIEW_DETAIL} ${requiredMessage} ${detailsLine}`.trim();
   }
 
   if (state === "blocked") {
@@ -408,7 +468,8 @@ export function buildSessionControlReadinessEvidence(
     readiness: buildReadiness(state),
     pass: state === "ready",
     statusLabel: SNAPSHOT_STATE_LABELS[state],
-    detail: buildDetail(state),
+    detail: buildDetail(state, states),
+    controlStates: { ...states },
     safety: NO_MUTATION_SAFETY,
     counts
   };

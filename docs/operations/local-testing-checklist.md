@@ -34,6 +34,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Exercise stop, retry, pause, and route controls.
    - Confirm control actions are deterministic and do not drift between views.
    - Confirm unsupported lifecycle controls show visible unsupported evidence, not only disabled icons.
+   - Confirm the Owner Testing controls card lists interrupt, retry, steer, fork, resume, and archive with their current state.
    - Confirm the Owner Testing panel moves control evidence from review to ready only after interrupt, retry, and steer/follow-up transcript proof is present and fork/resume/archive are honestly unsupported or live.
 6. `Slash Commands`
    - Type `/` in a cockpit panel composer and confirm suggestions are limited to commands scoped to the active panel.

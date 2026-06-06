@@ -5542,6 +5542,47 @@ textarea {
   font-weight: 900;
 }
 
+.owner-testing-control-states {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.owner-testing-control-states li {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #26303a;
+  border-radius: 6px;
+  background: #111820;
+  padding: 5px;
+}
+
+.owner-testing-control-states strong,
+.owner-testing-control-states span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-control-states strong {
+  color: #dde7f0;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.owner-testing-control-states span {
+  color: #9aa6b2;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .owner-testing-phase3-diagnostics {
   display: grid;
   gap: 5px;
@@ -5878,6 +5919,7 @@ textarea {
 .owner-testing-ready,
 .owner-testing-item-ready,
 .owner-testing-control-ready,
+.owner-testing-control-state-live,
 .owner-testing-slash-ready,
 .owner-testing-phase3-ready,
 .owner-testing-phase3-diagnostic-ready,
@@ -5891,6 +5933,8 @@ textarea {
 .owner-testing-waiting,
 .owner-testing-control-review,
 .owner-testing-control-waiting,
+.owner-testing-control-state-review,
+.owner-testing-control-state-waiting,
 .owner-testing-slash-review,
 .owner-testing-slash-waiting,
 .owner-testing-phase3-review,
@@ -5912,6 +5956,7 @@ textarea {
 
 .owner-testing-blocked,
 .owner-testing-control-blocked,
+.owner-testing-control-state-blocked,
 .owner-testing-slash-blocked,
 .owner-testing-phase3-blocked,
 .owner-testing-phase3-diagnostic-blocked,
@@ -5922,6 +5967,11 @@ textarea {
 .failure-fixture-blocked,
 .failure-fixture-item-blocked {
   border-color: #69343a;
+}
+
+.owner-testing-control-state-unsupported {
+  border-color: #5d4a27;
+  background: #211d16;
 }
 
 .owner-testing-catalog-ready,
