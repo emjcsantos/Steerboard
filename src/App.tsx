@@ -254,10 +254,13 @@ import {
 import {
   decideCodexTransport,
   getFallbackCodexLiveSmokeProof,
+  getFallbackCodexTwoPanelSmokeProof,
   getFallbackCodexTransportProbe,
   loadCodexLiveSmokeProof,
+  loadCodexTwoPanelSmokeProof,
   loadCodexTransportProbe,
   type CodexLiveSmokeProof,
+  type CodexTwoPanelSmokeProof,
   type CodexTransportDecision,
   type CodexTransportProbe,
   type CodexTransportState
@@ -1361,6 +1364,9 @@ export function App() {
   const [codexLiveSmokeProof, setCodexLiveSmokeProof] = useState<CodexLiveSmokeProof>(() =>
     getFallbackCodexLiveSmokeProof()
   );
+  const [codexTwoPanelSmokeProof, setCodexTwoPanelSmokeProof] = useState<CodexTwoPanelSmokeProof>(() =>
+    getFallbackCodexTwoPanelSmokeProof()
+  );
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
@@ -1385,6 +1391,7 @@ export function App() {
   );
   const [codexTransportLoading, setCodexTransportLoading] = useState(false);
   const [codexLiveSmokeLoading, setCodexLiveSmokeLoading] = useState(false);
+  const [codexTwoPanelSmokeLoading, setCodexTwoPanelSmokeLoading] = useState(false);
   const [automationCatalogLoading, setAutomationCatalogLoading] = useState(false);
   const [personalizationCatalogLoading, setPersonalizationCatalogLoading] = useState(false);
   const [mcpCatalogLoading, setMcpCatalogLoading] = useState(false);
@@ -2233,6 +2240,20 @@ export function App() {
     }
   }
 
+  async function runCodexTwoPanelSmokeProof() {
+    setCodexTwoPanelSmokeLoading(true);
+    const nextProof = await loadCodexTwoPanelSmokeProof();
+
+    setCodexTwoPanelSmokeProof(nextProof);
+    setCodexTwoPanelSmokeLoading(false);
+    setCodexConnectionRequested(true);
+    setAppNotice(
+      nextProof.ok
+        ? "Codex two-panel smoke passed"
+        : "Codex two-panel smoke did not pass"
+    );
+  }
+
   async function refreshCommandCatalogSnapshot() {
     setAppNotice("Refreshing provider command catalog");
     const nextSnapshot = await loadProviderCommandCatalogSnapshot(undefined, panelSlashCommands);
@@ -2789,6 +2810,8 @@ export function App() {
           codexConnectionRequested={codexConnectionRequested}
           codexLiveSmokeLoading={codexLiveSmokeLoading}
           codexLiveSmokeProof={codexLiveSmokeProof}
+          codexTwoPanelSmokeLoading={codexTwoPanelSmokeLoading}
+          codexTwoPanelSmokeProof={codexTwoPanelSmokeProof}
           codexTransportDecision={codexTransportDecision}
           codexTransportLoading={codexTransportLoading}
           dialog={appDialog}
@@ -2816,6 +2839,7 @@ export function App() {
           onRefreshPersonalizationCatalog={refreshPersonalizationCatalogSnapshot}
           onRefreshSkillCatalog={refreshSkillCatalogSnapshot}
           onRunCodexLiveSmokeProof={runCodexLiveSmokeProof}
+          onRunCodexTwoPanelSmokeProof={runCodexTwoPanelSmokeProof}
           onSelectReviewableMigrationCategories={handleSelectReviewableMigrationCategories}
           onStageCodexConnection={handleStageCodexConnection}
           pluginCatalogLoading={pluginCatalogLoading}
@@ -2970,6 +2994,8 @@ function AppDialogSurface({
   codexConnectionRequested,
   codexLiveSmokeLoading,
   codexLiveSmokeProof,
+  codexTwoPanelSmokeLoading,
+  codexTwoPanelSmokeProof,
   codexTransportDecision,
   codexTransportLoading,
   dialog,
@@ -2997,6 +3023,7 @@ function AppDialogSurface({
   onRefreshPersonalizationCatalog,
   onRefreshSkillCatalog,
   onRunCodexLiveSmokeProof,
+  onRunCodexTwoPanelSmokeProof,
   onSelectReviewableMigrationCategories,
   onStageCodexConnection,
   pluginCatalogLoading,
@@ -3012,6 +3039,8 @@ function AppDialogSurface({
   codexConnectionRequested: boolean;
   codexLiveSmokeLoading: boolean;
   codexLiveSmokeProof: CodexLiveSmokeProof;
+  codexTwoPanelSmokeLoading: boolean;
+  codexTwoPanelSmokeProof: CodexTwoPanelSmokeProof;
   codexTransportDecision: CodexTransportDecision;
   codexTransportLoading: boolean;
   dialog: AppDialog;
@@ -3039,6 +3068,7 @@ function AppDialogSurface({
   onRefreshPersonalizationCatalog: () => void;
   onRefreshSkillCatalog: () => void;
   onRunCodexLiveSmokeProof: () => void;
+  onRunCodexTwoPanelSmokeProof: () => void;
   onSelectReviewableMigrationCategories: () => void;
   onStageCodexConnection: () => void;
   pluginCatalogLoading: boolean;
@@ -3122,6 +3152,21 @@ function AppDialogSurface({
                   : "Runs one tiny explicit Codex turn with read-only sandbox."}
               </small>
             </div>
+            <div className="transport-live-proof" aria-label="Codex two-panel live smoke proof">
+              <span>Two-panel smoke</span>
+              <strong>
+                {codexTwoPanelSmokeProof.ok
+                  ? "Passed"
+                  : codexTwoPanelSmokeProof.executed
+                    ? "Failed"
+                    : "Not run"}
+              </strong>
+              <small>
+                {codexTwoPanelSmokeProof.executed
+                  ? `${codexTwoPanelSmokeProof.distinctThreadIds ? "Distinct threads" : "Thread issue"}; ${codexTwoPanelSmokeProof.crossTalkDetected ? "crosstalk detected" : "no crosstalk"}`
+                  : "Runs two explicit read-only Codex panel turns and checks identity isolation."}
+              </small>
+            </div>
             <p className="transport-fallback">{codexTransportDecision.fallback}</p>
             <div className="dialog-action-row">
               <button className="dialog-secondary-action" onClick={onRefreshCodexTransport} type="button">
@@ -3134,6 +3179,14 @@ function AppDialogSurface({
                 type="button"
               >
                 {codexLiveSmokeLoading ? "Running smoke..." : "Run live smoke"}
+              </button>
+              <button
+                className="dialog-secondary-action"
+                disabled={!codexTransportDecision.canStartSession || codexTwoPanelSmokeLoading}
+                onClick={onRunCodexTwoPanelSmokeProof}
+                type="button"
+              >
+                {codexTwoPanelSmokeLoading ? "Running panels..." : "Run two-panel smoke"}
               </button>
               <button className="dialog-primary-action" onClick={onStageCodexConnection} type="button">
                 {codexConnectionRequested ? "Connection request staged" : "Stage Codex connection request"}

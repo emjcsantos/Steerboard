@@ -81,11 +81,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Live adapter integration",
     completion: "In progress",
     plan: "Connect runtime auth/session transport to cockpit panels.",
-    completionPercent: 42,
+    completionPercent: 43,
     latestNote:
-      "Runtime app-server bridge now supports no-prompt readiness, explicit live smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations.",
+      "Runtime app-server bridge now supports no-prompt readiness, explicit live smoke, two-panel isolation smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations.",
     nextStep:
-      "Run native two-panel smoke and live-control smoke as recurring regression checks.",
+      "Run the new native two-panel smoke in desktop mode and continue live-control smoke as recurring regression checks.",
     tone: "active",
     note:
       "Runtime connection center, adapter bridge, live panel chat, and normalized stream ingestion are the next core milestone."

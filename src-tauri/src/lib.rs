@@ -111,6 +111,39 @@ pub struct CodexLiveSmokeProof {
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CodexTwoPanelSmokePanelProof {
+    pub panel_id: String,
+    pub session_id: Option<String>,
+    pub thread_id: Option<String>,
+    pub session_id_seen: bool,
+    pub thread_id_seen: bool,
+    pub completed: bool,
+    pub failed: bool,
+    pub expected_token_seen: bool,
+    pub foreign_token_seen: bool,
+    pub event_count: usize,
+    pub transcript_length: usize,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexTwoPanelSmokeProof {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub executed: bool,
+    pub ok: bool,
+    pub detail: String,
+    pub panel_count: usize,
+    pub distinct_session_ids: bool,
+    pub distinct_thread_ids: bool,
+    pub both_completed: bool,
+    pub cross_talk_detected: bool,
+    pub panels: Vec<CodexTwoPanelSmokePanelProof>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CodexPanelSessionReadiness {
     pub source: String,
     pub checked_at: Option<String>,
@@ -408,6 +441,7 @@ mod runtime_bridge {
         CodexExecutionProbe, CodexHomeProbe, CodexLiveSmokeProof, CodexPanelCloseResult,
         CodexPanelEvent, CodexPanelInterruptResult, CodexPanelSessionReadiness,
         CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelTurnResult, CodexTransportProbe,
+        CodexTwoPanelSmokePanelProof, CodexTwoPanelSmokeProof,
         LiveActionRunnerRequest, LiveActionRunnerResult, MigrationSourceCategoryPreview,
         MigrationSourcePreview, MigrationSourcePreviewCounts, PermissionApprovalStatus,
         ProviderCommandCatalogEntry, ProviderCommandCatalogPreview, ProviderPluginCatalogEntry,
@@ -1748,6 +1782,11 @@ mod runtime_bridge {
     }
 
     #[tauri::command]
+    pub fn codex_transport_two_panel_smoke() -> CodexTwoPanelSmokeProof {
+        run_two_panel_smoke()
+    }
+
+    #[tauri::command]
     pub fn codex_panel_session_readiness() -> CodexPanelSessionReadiness {
         let checked_at = Some(current_timestamp());
         let Ok(mut child) = spawn_codex(&["app-server", "--listen", "stdio://"]) else {
@@ -2395,6 +2434,151 @@ mod runtime_bridge {
         live_smoke_result(checked_at, true, state)
     }
 
+    fn run_two_panel_smoke() -> CodexTwoPanelSmokeProof {
+        const PANEL_A_ID: &str = "smoke-panel-a";
+        const PANEL_A_TOKEN: &str = "STEERBOARD_PANEL_A_OK";
+        const PANEL_B_ID: &str = "smoke-panel-b";
+        const PANEL_B_TOKEN: &str = "STEERBOARD_PANEL_B_OK";
+
+        let checked_at = Some(current_timestamp());
+        let mut panels = Vec::new();
+
+        panels.push(run_two_panel_smoke_panel(
+            PANEL_A_ID,
+            PANEL_A_TOKEN,
+            PANEL_B_TOKEN,
+        ));
+        panels.push(run_two_panel_smoke_panel(
+            PANEL_B_ID,
+            PANEL_B_TOKEN,
+            PANEL_A_TOKEN,
+        ));
+
+        two_panel_smoke_result(checked_at, panels)
+    }
+
+    fn run_two_panel_smoke_panel(
+        panel_id: &str,
+        expected_token: &str,
+        foreign_token: &str,
+    ) -> CodexTwoPanelSmokePanelProof {
+        let session = match start_panel_session(panel_id) {
+            Ok(session) => session,
+            Err(error) => {
+                return CodexTwoPanelSmokePanelProof {
+                    panel_id: panel_id.to_string(),
+                    session_id: None,
+                    thread_id: None,
+                    session_id_seen: false,
+                    thread_id_seen: false,
+                    completed: false,
+                    failed: true,
+                    expected_token_seen: false,
+                    foreign_token_seen: false,
+                    event_count: 0,
+                    transcript_length: 0,
+                    detail: error,
+                };
+            }
+        };
+
+        let prompt = format!("Reply with exactly this token and nothing else: {expected_token}");
+        match send_panel_turn(session, prompt) {
+            Ok(result) => two_panel_panel_proof_from_turn(&result, expected_token, foreign_token),
+            Err(error) => CodexTwoPanelSmokePanelProof {
+                panel_id: panel_id.to_string(),
+                session_id: None,
+                thread_id: None,
+                session_id_seen: false,
+                thread_id_seen: false,
+                completed: false,
+                failed: true,
+                expected_token_seen: false,
+                foreign_token_seen: false,
+                event_count: 0,
+                transcript_length: 0,
+                detail: error,
+            },
+        }
+    }
+
+    fn two_panel_panel_proof_from_turn(
+        result: &CodexPanelTurnResult,
+        expected_token: &str,
+        foreign_token: &str,
+    ) -> CodexTwoPanelSmokePanelProof {
+        CodexTwoPanelSmokePanelProof {
+            panel_id: result.panel_id.clone(),
+            session_id: Some(result.session_id.clone()),
+            thread_id: Some(result.thread_id.clone()),
+            session_id_seen: !result.session_id.trim().is_empty(),
+            thread_id_seen: !result.thread_id.trim().is_empty(),
+            completed: result.completed,
+            failed: result.failed,
+            expected_token_seen: result.transcript.contains(expected_token),
+            foreign_token_seen: result.transcript.contains(foreign_token),
+            event_count: result.events.len(),
+            transcript_length: result.transcript.chars().count(),
+            detail: result.detail.clone(),
+        }
+    }
+
+    pub(crate) fn two_panel_smoke_result(
+        checked_at: Option<String>,
+        panels: Vec<CodexTwoPanelSmokePanelProof>,
+    ) -> CodexTwoPanelSmokeProof {
+        let panel_count = panels.len();
+        let session_ids: BTreeSet<String> = panels
+            .iter()
+            .filter_map(|panel| panel.session_id.as_ref())
+            .filter(|value| !value.trim().is_empty())
+            .cloned()
+            .collect();
+        let thread_ids: BTreeSet<String> = panels
+            .iter()
+            .filter_map(|panel| panel.thread_id.as_ref())
+            .filter(|value| !value.trim().is_empty())
+            .cloned()
+            .collect();
+        let distinct_session_ids = panel_count == 2 && session_ids.len() == panel_count;
+        let distinct_thread_ids = panel_count == 2 && thread_ids.len() == panel_count;
+        let both_completed = panel_count == 2 && panels.iter().all(|panel| panel.completed);
+        let cross_talk_detected = panels.iter().any(|panel| panel.foreign_token_seen);
+        let expected_tokens_seen = panel_count == 2
+            && panels.iter().all(|panel| panel.expected_token_seen);
+        let failed = panels.iter().any(|panel| panel.failed);
+        let ok = panel_count == 2
+            && distinct_session_ids
+            && distinct_thread_ids
+            && both_completed
+            && expected_tokens_seen
+            && !cross_talk_detected
+            && !failed;
+        let detail = if ok {
+            "Two-panel live smoke passed: both panels completed, saw their own token, and no cross-panel token leak was detected.".to_string()
+        } else if cross_talk_detected {
+            "Two-panel live smoke failed: cross-panel token leakage was detected.".to_string()
+        } else if failed {
+            "Two-panel live smoke failed: at least one panel reported a failed turn.".to_string()
+        } else {
+            "Two-panel live smoke did not prove independent completed panel turns.".to_string()
+        };
+
+        CodexTwoPanelSmokeProof {
+            source: "desktop".to_string(),
+            checked_at,
+            executed: panel_count > 0,
+            ok,
+            detail,
+            panel_count,
+            distinct_session_ids,
+            distinct_thread_ids,
+            both_completed,
+            cross_talk_detected,
+            panels,
+        }
+    }
+
     fn start_panel_session(panel_id: &str) -> Result<Arc<CodexPanelSession>, String> {
         let mut child = spawn_codex(&["app-server", "--listen", "stdio://"])
             .map_err(|_| "Unable to launch Codex app-server stdio.".to_string())?;
@@ -2998,6 +3182,7 @@ pub fn run() {
             runtime_bridge::codex_mcp_catalog_preview,
             runtime_bridge::codex_personalization_catalog_preview,
             runtime_bridge::codex_transport_live_smoke,
+            runtime_bridge::codex_transport_two_panel_smoke,
             runtime_bridge::codex_panel_session_readiness,
             runtime_bridge::codex_panel_session_start,
             runtime_bridge::codex_panel_session_send_turn,
@@ -3308,6 +3493,71 @@ mod tests {
         );
         assert!(params.get("turnId").is_none());
         assert!(request.to_string().contains("Narrow the answer."));
+    }
+
+    fn two_panel_smoke_panel(
+        panel_id: &str,
+        session_id: &str,
+        thread_id: &str,
+        expected_token_seen: bool,
+        foreign_token_seen: bool,
+    ) -> CodexTwoPanelSmokePanelProof {
+        CodexTwoPanelSmokePanelProof {
+            panel_id: panel_id.to_string(),
+            session_id: Some(session_id.to_string()),
+            thread_id: Some(thread_id.to_string()),
+            session_id_seen: true,
+            thread_id_seen: true,
+            completed: true,
+            failed: false,
+            expected_token_seen,
+            foreign_token_seen,
+            event_count: 4,
+            transcript_length: 24,
+            detail: "Codex panel turn completed.".to_string(),
+        }
+    }
+
+    #[test]
+    fn two_panel_smoke_result_passes_only_with_distinct_clean_panels() {
+        let result = runtime_bridge::two_panel_smoke_result(
+            Some("2026-06-06T00:00:00.000Z".to_string()),
+            vec![
+                two_panel_smoke_panel("panel-a", "session-a", "thread-a", true, false),
+                two_panel_smoke_panel("panel-b", "session-b", "thread-b", true, false),
+            ],
+        );
+
+        assert!(result.ok);
+        assert!(result.executed);
+        assert!(result.distinct_session_ids);
+        assert!(result.distinct_thread_ids);
+        assert!(result.both_completed);
+        assert!(!result.cross_talk_detected);
+    }
+
+    #[test]
+    fn two_panel_smoke_result_blocks_shared_thread_or_crosstalk() {
+        let shared_thread = runtime_bridge::two_panel_smoke_result(
+            None,
+            vec![
+                two_panel_smoke_panel("panel-a", "session-a", "thread-shared", true, false),
+                two_panel_smoke_panel("panel-b", "session-b", "thread-shared", true, false),
+            ],
+        );
+        assert!(!shared_thread.ok);
+        assert!(!shared_thread.distinct_thread_ids);
+
+        let crosstalk = runtime_bridge::two_panel_smoke_result(
+            None,
+            vec![
+                two_panel_smoke_panel("panel-a", "session-a", "thread-a", true, true),
+                two_panel_smoke_panel("panel-b", "session-b", "thread-b", true, false),
+            ],
+        );
+        assert!(!crosstalk.ok);
+        assert!(crosstalk.cross_talk_detected);
+        assert!(crosstalk.detail.contains("cross-panel token leakage"));
     }
 
     #[test]

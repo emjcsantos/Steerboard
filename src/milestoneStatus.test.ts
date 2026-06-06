@@ -234,10 +234,11 @@ describe("milestone status model", () => {
 
     expect(liveCodex?.completion).toBe("In progress");
     expect(liveCodex?.tone).toBe("active");
-    expect(liveCodex?.completionPercent).toBe(42);
+    expect(liveCodex?.completionPercent).toBe(43);
     expect(liveCodex?.current).toBeUndefined();
+    expect(liveCodex?.latestNote.toLowerCase()).toContain("two-panel isolation smoke");
     expect(liveCodex?.nextStep).toBe(
-      "Run native two-panel smoke and live-control smoke as recurring regression checks."
+      "Run the new native two-panel smoke in desktop mode and continue live-control smoke as recurring regression checks."
     );
   });
 

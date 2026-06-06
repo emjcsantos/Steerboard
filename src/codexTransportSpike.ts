@@ -95,6 +95,35 @@ export interface CodexLiveSmokeProof {
   uniqueMethods: string[];
 }
 
+export interface CodexTwoPanelSmokePanelProof {
+  panelId: string;
+  sessionId: string | null;
+  threadId: string | null;
+  sessionIdSeen: boolean;
+  threadIdSeen: boolean;
+  completed: boolean;
+  failed: boolean;
+  expectedTokenSeen: boolean;
+  foreignTokenSeen: boolean;
+  eventCount: number;
+  transcriptLength: number;
+  detail: string;
+}
+
+export interface CodexTwoPanelSmokeProof {
+  source: CodexProbeSource;
+  checkedAt: string | null;
+  executed: boolean;
+  ok: boolean;
+  detail: string;
+  panelCount: number;
+  distinctSessionIds: boolean;
+  distinctThreadIds: boolean;
+  bothCompleted: boolean;
+  crossTalkDetected: boolean;
+  panels: CodexTwoPanelSmokePanelProof[];
+}
+
 type UnknownRecord = Record<string, unknown>;
 
 const emptyProtocol: CodexAppServerProtocolProbe = {
@@ -156,6 +185,20 @@ const fallbackLiveSmokeProof: CodexLiveSmokeProof = {
   expectedTokenSeen: false,
   methodCount: 0,
   uniqueMethods: []
+};
+
+const fallbackTwoPanelSmokeProof: CodexTwoPanelSmokeProof = {
+  source: "browser",
+  checkedAt: null,
+  executed: false,
+  ok: false,
+  detail: "Browser preview cannot launch a Codex two-panel live smoke test.",
+  panelCount: 0,
+  distinctSessionIds: false,
+  distinctThreadIds: false,
+  bothCompleted: false,
+  crossTalkDetected: false,
+  panels: []
 };
 
 function isRecord(value: unknown): value is UnknownRecord {
@@ -302,6 +345,66 @@ export function normalizeCodexLiveSmokeProof(value: unknown): CodexLiveSmokeProo
     expectedTokenSeen: bool(value.expectedTokenSeen),
     methodCount: nonNegativeInteger(value.methodCount),
     uniqueMethods: stringArray(value.uniqueMethods)
+  };
+}
+
+function normalizeTwoPanelSmokePanelProof(value: unknown): CodexTwoPanelSmokePanelProof | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const panelId = optionalString(value.panelId);
+  if (!panelId) {
+    return undefined;
+  }
+
+  return {
+    panelId,
+    sessionId: optionalString(value.sessionId),
+    threadId: optionalString(value.threadId),
+    sessionIdSeen: bool(value.sessionIdSeen),
+    threadIdSeen: bool(value.threadIdSeen),
+    completed: bool(value.completed),
+    failed: bool(value.failed),
+    expectedTokenSeen: bool(value.expectedTokenSeen),
+    foreignTokenSeen: bool(value.foreignTokenSeen),
+    eventCount: nonNegativeInteger(value.eventCount),
+    transcriptLength: nonNegativeInteger(value.transcriptLength),
+    detail: optionalString(value.detail) ?? "No panel smoke detail was returned."
+  };
+}
+
+export function getFallbackCodexTwoPanelSmokeProof(): CodexTwoPanelSmokeProof {
+  return {
+    ...fallbackTwoPanelSmokeProof,
+    panels: fallbackTwoPanelSmokeProof.panels.map((panel) => ({ ...panel }))
+  };
+}
+
+export function normalizeCodexTwoPanelSmokeProof(value: unknown): CodexTwoPanelSmokeProof {
+  if (!isRecord(value)) {
+    return getFallbackCodexTwoPanelSmokeProof();
+  }
+
+  const fallback = getFallbackCodexTwoPanelSmokeProof();
+  const panels = Array.isArray(value.panels)
+    ? value.panels
+        .map(normalizeTwoPanelSmokePanelProof)
+        .filter((panel): panel is CodexTwoPanelSmokePanelProof => Boolean(panel))
+    : [];
+
+  return {
+    source: value.source === "desktop" ? "desktop" : "browser",
+    checkedAt: optionalDate(value.checkedAt),
+    executed: bool(value.executed),
+    ok: bool(value.ok),
+    detail: optionalString(value.detail) ?? fallback.detail,
+    panelCount: nonNegativeInteger(value.panelCount),
+    distinctSessionIds: bool(value.distinctSessionIds),
+    distinctThreadIds: bool(value.distinctThreadIds),
+    bothCompleted: bool(value.bothCompleted),
+    crossTalkDetected: bool(value.crossTalkDetected),
+    panels
   };
 }
 
@@ -468,6 +571,15 @@ async function invokeCodexLiveSmokeProof(): Promise<unknown> {
   return invoke("codex_transport_live_smoke");
 }
 
+async function invokeCodexTwoPanelSmokeProof(): Promise<unknown> {
+  if (!hasTauriRuntime()) {
+    return getFallbackCodexTwoPanelSmokeProof();
+  }
+
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke("codex_transport_two_panel_smoke");
+}
+
 export async function loadCodexTransportProbe(
   invokeProbe: () => Promise<unknown> = invokeCodexTransportProbe
 ): Promise<CodexTransportProbe> {
@@ -504,6 +616,24 @@ export async function loadCodexLiveSmokeProof(
       ...getFallbackCodexLiveSmokeProof(),
       source: "desktop",
       detail: "Codex live smoke failed before a transport result was returned."
+    };
+  }
+}
+
+export async function loadCodexTwoPanelSmokeProof(
+  invokeProof: () => Promise<unknown> = invokeCodexTwoPanelSmokeProof
+): Promise<CodexTwoPanelSmokeProof> {
+  try {
+    if (!hasTauriRuntime() && invokeProof === invokeCodexTwoPanelSmokeProof) {
+      return getFallbackCodexTwoPanelSmokeProof();
+    }
+
+    return normalizeCodexTwoPanelSmokeProof(await invokeProof());
+  } catch {
+    return {
+      ...getFallbackCodexTwoPanelSmokeProof(),
+      source: "desktop",
+      detail: "Codex two-panel live smoke failed before a transport result was returned."
     };
   }
 }

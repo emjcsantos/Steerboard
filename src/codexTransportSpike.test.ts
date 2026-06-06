@@ -2,12 +2,16 @@ import { describe, expect, it } from "vitest";
 import {
   decideCodexTransport,
   getFallbackCodexLiveSmokeProof,
+  getFallbackCodexTwoPanelSmokeProof,
   getFallbackCodexTransportProbe,
   loadCodexLiveSmokeProof,
+  loadCodexTwoPanelSmokeProof,
   loadCodexTransportProbe,
   normalizeCodexLiveSmokeProof,
+  normalizeCodexTwoPanelSmokeProof,
   normalizeCodexTransportProbe,
   type CodexLiveSmokeProof,
+  type CodexTwoPanelSmokeProof,
   type CodexTransportProbe
 } from "./codexTransportSpike";
 
@@ -68,6 +72,49 @@ const liveProof: CodexLiveSmokeProof = {
   expectedTokenSeen: true,
   methodCount: 19,
   uniqueMethods: ["item/agentMessage/delta", "turn/completed"]
+};
+
+const twoPanelProof: CodexTwoPanelSmokeProof = {
+  source: "desktop",
+  checkedAt: "2026-06-05T13:45:00.000Z",
+  executed: true,
+  ok: true,
+  detail: "Two-panel live smoke passed.",
+  panelCount: 2,
+  distinctSessionIds: true,
+  distinctThreadIds: true,
+  bothCompleted: true,
+  crossTalkDetected: false,
+  panels: [
+    {
+      panelId: "smoke-panel-a",
+      sessionId: "session-a",
+      threadId: "thread-a",
+      sessionIdSeen: true,
+      threadIdSeen: true,
+      completed: true,
+      failed: false,
+      expectedTokenSeen: true,
+      foreignTokenSeen: false,
+      eventCount: 4,
+      transcriptLength: 24,
+      detail: "Panel A completed."
+    },
+    {
+      panelId: "smoke-panel-b",
+      sessionId: "session-b",
+      threadId: "thread-b",
+      sessionIdSeen: true,
+      threadIdSeen: true,
+      completed: true,
+      failed: false,
+      expectedTokenSeen: true,
+      foreignTokenSeen: false,
+      eventCount: 4,
+      transcriptLength: 24,
+      detail: "Panel B completed."
+    }
+  ]
 };
 
 describe("codex transport spike", () => {
@@ -272,6 +319,72 @@ describe("codex transport spike", () => {
     expect(getFallbackCodexLiveSmokeProof()).toMatchObject({
       source: "browser",
       ok: false
+    });
+  });
+
+  it("normalizes two-panel smoke proof and keeps malformed panels safe", () => {
+    const proof = normalizeCodexTwoPanelSmokeProof({
+      ...twoPanelProof,
+      checkedAt: "1780667100000",
+      panels: [
+        twoPanelProof.panels[0],
+        { panelId: "", ok: true },
+        {
+          panelId: "smoke-panel-b",
+          sessionId: "session-b",
+          threadId: "thread-b",
+          sessionIdSeen: true,
+          threadIdSeen: true,
+          completed: true,
+          foreignTokenSeen: true,
+          eventCount: -10,
+          transcriptLength: 3
+        }
+      ]
+    });
+
+    expect(proof).toMatchObject({
+      source: "desktop",
+      checkedAt: "2026-06-05T13:45:00.000Z",
+      ok: true,
+      panelCount: 2,
+      distinctSessionIds: true,
+      distinctThreadIds: true,
+      panels: [
+        { panelId: "smoke-panel-a", expectedTokenSeen: true },
+        {
+          panelId: "smoke-panel-b",
+          expectedTokenSeen: false,
+          foreignTokenSeen: true,
+          eventCount: 0
+        }
+      ]
+    });
+  });
+
+  it("loads two-panel smoke proof and falls back safely", async () => {
+    await expect(loadCodexTwoPanelSmokeProof(async () => twoPanelProof)).resolves.toMatchObject({
+      source: "desktop",
+      ok: true,
+      distinctThreadIds: true,
+      panels: [{ panelId: "smoke-panel-a" }, { panelId: "smoke-panel-b" }]
+    });
+
+    await expect(
+      loadCodexTwoPanelSmokeProof(async () => {
+        throw new Error("two panel smoke failed");
+      })
+    ).resolves.toMatchObject({
+      source: "desktop",
+      ok: false,
+      detail: "Codex two-panel live smoke failed before a transport result was returned."
+    });
+
+    expect(getFallbackCodexTwoPanelSmokeProof()).toMatchObject({
+      source: "browser",
+      executed: false,
+      ok: false,
+      panelCount: 0
     });
   });
 });
