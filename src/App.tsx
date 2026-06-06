@@ -274,6 +274,10 @@ import {
   type Phase3SmokeProofReadinessResult
 } from "./phase3SmokeProofReadiness";
 import {
+  loadPhase3SmokeProofBundle,
+  savePhase3SmokeProofBundle
+} from "./phase3SmokeProofStorage";
+import {
   findCodexPanelSessionIdentityIssues,
   loadPanelSessionState,
   savePanelSessionState,
@@ -285,10 +289,7 @@ import {
 } from "./codexPanelSessionState";
 import {
   decideCodexTransport,
-  getFallbackCodexActiveTurnControlSmokeProof,
-  getFallbackCodexActiveTurnSteerSmokeProof,
   getFallbackCodexLiveSmokeProof,
-  getFallbackCodexLiveControlSmokeProof,
   getFallbackCodexTwoPanelSmokeProof,
   getFallbackCodexTransportProbe,
   loadCodexActiveTurnControlSmokeProof,
@@ -1463,14 +1464,17 @@ export function App() {
   const [codexLiveSmokeProof, setCodexLiveSmokeProof] = useState<CodexLiveSmokeProof>(() =>
     getFallbackCodexLiveSmokeProof()
   );
+  const [phase3SmokeProofInitialBundle] = useState(() => loadPhase3SmokeProofBundle());
   const [codexActiveTurnControlSmokeProof, setCodexActiveTurnControlSmokeProof] =
     useState<CodexActiveTurnControlSmokeProof>(() =>
-      getFallbackCodexActiveTurnControlSmokeProof()
+      phase3SmokeProofInitialBundle.activeTurnInterruptSmoke
     );
   const [codexActiveTurnSteerSmokeProof, setCodexActiveTurnSteerSmokeProof] =
-    useState<CodexActiveTurnSteerSmokeProof>(() => getFallbackCodexActiveTurnSteerSmokeProof());
+    useState<CodexActiveTurnSteerSmokeProof>(() =>
+      phase3SmokeProofInitialBundle.activeTurnSteerSmoke
+    );
   const [codexLiveControlSmokeProof, setCodexLiveControlSmokeProof] =
-    useState<CodexLiveControlSmokeProof>(() => getFallbackCodexLiveControlSmokeProof());
+    useState<CodexLiveControlSmokeProof>(() => phase3SmokeProofInitialBundle.liveControlSmoke);
   const [codexTwoPanelSmokeProof, setCodexTwoPanelSmokeProof] = useState<CodexTwoPanelSmokeProof>(() =>
     getFallbackCodexTwoPanelSmokeProof()
   );
@@ -2488,6 +2492,11 @@ export function App() {
   async function runCodexActiveTurnControlSmokeProof() {
     setCodexActiveTurnControlSmokeLoading(true);
     const nextProof = await loadCodexActiveTurnControlSmokeProof();
+    savePhase3SmokeProofBundle({
+      liveControlSmoke: codexLiveControlSmokeProof,
+      activeTurnInterruptSmoke: nextProof,
+      activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof
+    });
 
     setCodexActiveTurnControlSmokeProof(nextProof);
     setCodexActiveTurnControlSmokeLoading(false);
@@ -2502,6 +2511,11 @@ export function App() {
   async function runCodexActiveTurnSteerSmokeProof() {
     setCodexActiveTurnSteerSmokeLoading(true);
     const nextProof = await loadCodexActiveTurnSteerSmokeProof();
+    savePhase3SmokeProofBundle({
+      liveControlSmoke: codexLiveControlSmokeProof,
+      activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
+      activeTurnSteerSmoke: nextProof
+    });
 
     setCodexActiveTurnSteerSmokeProof(nextProof);
     setCodexActiveTurnSteerSmokeLoading(false);
@@ -2512,6 +2526,11 @@ export function App() {
   async function runCodexLiveControlSmokeProof() {
     setCodexLiveControlSmokeLoading(true);
     const nextProof = await loadCodexLiveControlSmokeProof();
+    savePhase3SmokeProofBundle({
+      liveControlSmoke: nextProof,
+      activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
+      activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof
+    });
 
     setCodexLiveControlSmokeProof(nextProof);
     setCodexLiveControlSmokeLoading(false);

@@ -43,6 +43,8 @@ For repeatable local validation, `npm run smoke:phase3` runs the ignored Tauri s
 
 The Owner Testing panel also summarizes those three smoke proofs in evidence-only readiness rows. Browser fallback and non-executed proofs remain `waiting`, successful desktop proofs are `ready`, incomplete desktop executions are `review`, and unsupported-after-execution proofs are `blocked`.
 
+When all three proof rows come from explicit desktop-executed smoke actions, Steerboard stores the normalized proof bundle locally so reload can preserve the latest evidence without rerunning prompts on startup. Browser fallback and non-executed proofs do not overwrite that stored desktop evidence.
+
 ## Fallback Behavior
 
 If app-server stdio is unavailable or the handshake fails:
