@@ -27,6 +27,8 @@ import {
   Settings2,
   ShieldCheck,
   Terminal,
+  ChevronDown,
+  ChevronRight,
   UserRound,
   Workflow
 } from "lucide-react";
@@ -176,6 +178,24 @@ import {
   saveWorkspacePreferences,
   type WorkspacePreferences
 } from "./preferences";
+import {
+  buildProjectManagementArenaDispatch,
+  createProjectManagementChatReply,
+  flattenProjectManagementRows,
+  projectManagementComplexityLabels,
+  projectManagementStatusLabels,
+  projectManagementTypeLabels,
+  toggleProjectManagementTaskCollapsed,
+  type ProjectManagementArenaDispatchResult,
+  type ProjectManagementChatMessage,
+  type ProjectManagementTask
+} from "./projectManagementHierarchy";
+import {
+  loadProjectManagementChat,
+  loadProjectManagementTasks,
+  saveProjectManagementChat,
+  saveProjectManagementTasks
+} from "./projectManagementHierarchyStorage";
 import {
   codexSessionStateToPanelMessages,
   createPanelReplyMessage,
@@ -1443,6 +1463,12 @@ export function App() {
     loadAdaptiveCockpitLayout()
   );
   const [drafts, setDrafts] = useState<PlanningDraft[]>(() => loadPlanningDrafts(defaultPlanningDrafts));
+  const [projectManagementTasks, setProjectManagementTasks] = useState<ProjectManagementTask[]>(() =>
+    loadProjectManagementTasks()
+  );
+  const [projectManagementChat, setProjectManagementChat] = useState<ProjectManagementChatMessage[]>(() =>
+    loadProjectManagementChat()
+  );
   const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
   const [mockRuns, setMockRuns] = useState<MockOrchestratorRun[]>(() => loadRunHistory());
   const [selectedRunId, setSelectedRunId] = useState<string>();
@@ -1682,6 +1708,14 @@ export function App() {
   useEffect(() => {
     savePlanningDrafts(drafts);
   }, [drafts]);
+
+  useEffect(() => {
+    saveProjectManagementTasks(projectManagementTasks);
+  }, [projectManagementTasks]);
+
+  useEffect(() => {
+    saveProjectManagementChat(projectManagementChat);
+  }, [projectManagementChat]);
 
   useEffect(() => {
     saveRunHistory(mockRuns);
@@ -3176,13 +3210,13 @@ export function App() {
               />
             ) : (
               <PlanningView
-                activeIndex={activeDraftIndex}
-                drafts={drafts}
-                onAddDraft={handleAddDraft}
-                onSelectDraft={setSelectedDraftIndex}
+                chatMessages={projectManagementChat}
+                onChatMessagesChange={setProjectManagementChat}
                 onStagePackage={handleStagePackage}
-                onUpdateDraft={handleDraftUpdate}
+                onTasksChange={setProjectManagementTasks}
+                project={project}
                 projects={projects}
+                tasks={projectManagementTasks}
               />
             )}
           </section>
@@ -5861,255 +5895,240 @@ function formatShortDate(value: string): string {
 }
 
 function PlanningView({
-  activeIndex,
-  drafts,
-  onAddDraft,
-  onSelectDraft,
+  chatMessages,
+  onChatMessagesChange,
   onStagePackage,
-  onUpdateDraft,
-  projects
+  onTasksChange,
+  project,
+  projects,
+  tasks
 }: {
-  activeIndex: number;
-  drafts: PlanningDraft[];
-  onAddDraft: () => void;
-  onSelectDraft: (index: number) => void;
+  chatMessages: ProjectManagementChatMessage[];
+  onChatMessagesChange: (messages: ProjectManagementChatMessage[]) => void;
   onStagePackage: (dispatchPackage: DispatchPackage) => void;
-  onUpdateDraft: (draft: PlanningDraft) => void;
+  onTasksChange: (tasks: ProjectManagementTask[]) => void;
+  project: ProjectSummary;
   projects: ProjectSummary[];
+  tasks: ProjectManagementTask[];
 }) {
-  const draft = drafts[activeIndex] ?? drafts[0] ?? normalizePlanningDraft({});
-  const readiness = evaluatePlanningReadiness(draft);
-  const canDeploy = canDeployPlanningDraft(draft);
-  const targetProject = projects.find((project) => project.id === draft.targetProjectId);
-  const [stagedPackage, setStagedPackage] = useState<DispatchPackage | undefined>();
-  const stagedMarkdown = stagedPackage ? renderDispatchPackageMarkdown(stagedPackage) : "";
+  const rows = useMemo(() => flattenProjectManagementRows(tasks), [tasks]);
+  const visibleRows = rows.filter((row) => !row.hiddenByAncestor);
+  const [stagedResult, setStagedResult] = useState<ProjectManagementArenaDispatchResult>();
+  const [chatInput, setChatInput] = useState("");
+  const stagedMarkdown = stagedResult ? renderDispatchPackageMarkdown(stagedResult.dispatchPackage) : "";
 
-  function handleStageDraft() {
-    if (!targetProject) {
+  function handleToggleTask(taskId: string) {
+    onTasksChange(toggleProjectManagementTaskCollapsed(tasks, taskId));
+  }
+
+  function handleRunTask(taskId: string) {
+    const result = buildProjectManagementArenaDispatch(tasks, taskId, project);
+
+    if (!result) {
       return;
     }
 
-    const result = tryBuildDispatchPackage(
-      draft,
-      { id: targetProject.id, name: targetProject.name },
-      {
-        createdAt: new Date().toISOString(),
-        idSeed: "steerboard"
-      }
-    );
+    setStagedResult(result);
+    onTasksChange(tasks.map((task) => (task.id === taskId ? { ...task, runState: "staged" } : task)));
+    onStagePackage(result.dispatchPackage);
+  }
 
-    if (result.ok) {
-      setStagedPackage(result.package);
-      onStagePackage(result.package);
+  function handleChatSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const text = chatInput.trim();
+
+    if (text.length === 0) {
+      return;
     }
+
+    const createdAt = new Date().toISOString();
+    const userMessage: ProjectManagementChatMessage = {
+      id: `pm-user-${createdAt}`,
+      role: "user",
+      text,
+      createdAt
+    };
+    const shouldMarkValidationTodo =
+      text.toLowerCase().includes("mark") &&
+      text.toLowerCase().includes("validation") &&
+      text.toLowerCase().includes("todo");
+    const updatedTasks = shouldMarkValidationTodo
+      ? tasks.map((task) =>
+          `${task.title} ${task.description} ${task.sourceDocument}`.toLowerCase().includes("validation")
+            ? { ...task, status: "todo" as const }
+            : task
+        )
+      : tasks;
+    const changedTaskCount = updatedTasks.filter((task, index) => task.status !== tasks[index]?.status).length;
+    const reply: ProjectManagementChatMessage = {
+      id: `pm-assistant-${createdAt}`,
+      role: "assistant",
+      text: changedTaskCount > 0
+        ? `Updated ${changedTaskCount} validation ${changedTaskCount === 1 ? "task" : "tasks"} to TO DO in the Project Management table.`
+        : createProjectManagementChatReply(text),
+      createdAt
+    };
+
+    if (changedTaskCount > 0) {
+      onTasksChange(updatedTasks);
+    }
+
+    onChatMessagesChange([...chatMessages, userMessage, reply].slice(-40));
+    setChatInput("");
   }
 
   return (
     <section className="planning-view">
       <header className="planning-header">
         <div>
-          <h3>Project Planning</h3>
-          <p>Prepare scoped work before dispatching it into the arena.</p>
+          <h3>Project Management</h3>
+          <p>Organize Epics, Parents, and Children before staging selected work for Arena review.</p>
         </div>
-        <button disabled={!canDeploy || !targetProject} onClick={handleStageDraft} type="button">
-          <Play size={16} />
-          Stage Draft
-        </button>
+        <span className="pm-execution-lock">Review-only dispatch</span>
       </header>
 
       <div className="planning-body">
-        <aside className="draft-list" aria-label="Planning drafts">
-          <div className="draft-list-header">
-            <h4>Drafts</h4>
-            <button onClick={onAddDraft} type="button">
-              New Draft
-            </button>
-          </div>
-
-          {drafts.map((item, index) => {
-            const itemReadiness = evaluatePlanningReadiness(item);
-            const targetProject = projects.find((project) => project.id === item.targetProjectId);
-
-            return (
-              <button
-                className={classNames("draft-button", index === activeIndex && "is-selected")}
-                key={`${item.title}-${index}`}
-                onClick={() => onSelectDraft(index)}
-                type="button"
-              >
-                <span>{item.title || "Untitled draft"}</span>
-                <small>{targetProject?.name ?? "No project selected"}</small>
-                <strong>{itemReadiness.readiness}%</strong>
-              </button>
-            );
-          })}
-        </aside>
-
-        <form className="draft-editor" aria-label="Draft editor">
-          <label>
-            <span>Title</span>
-            <input
-              value={draft.title}
-              onChange={(event) => onUpdateDraft({ ...draft, title: event.currentTarget.value })}
-            />
-          </label>
-
-          <label>
-            <span>Target Project</span>
-            <select
-              value={draft.targetProjectId}
-              onChange={(event) => onUpdateDraft({ ...draft, targetProjectId: event.currentTarget.value })}
-            >
-              <option value="">Select project</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
+        <div className="pm-table-wrap" aria-label="Project Management hierarchy table">
+          <table className="pm-hierarchy-table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Completion</th>
+                <th>Complexity</th>
+                <th>Source</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleRows.map(({ depth, hasChildren, task }) => (
+                <tr className={classNames("pm-row", `pm-row-${task.type}`)} key={task.id}>
+                  <td>
+                    <div className="pm-task-cell" style={{ paddingLeft: `${depth * 18}px` }}>
+                      {hasChildren ? (
+                        <button
+                          aria-label={`${task.collapsed ? "Expand" : "Collapse"} ${task.title}`}
+                          className="pm-chevron"
+                          onClick={() => handleToggleTask(task.id)}
+                          type="button"
+                        >
+                          {task.collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                        </button>
+                      ) : (
+                        <span className="pm-chevron-spacer" />
+                      )}
+                      <span className={classNames("pm-task-type", `pm-task-type-${task.type}`)}>
+                        {projectManagementTypeLabels[task.type]}
+                      </span>
+                      <strong title={task.title}>{task.title}</strong>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="pm-description" title={task.description}>
+                      {task.description}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={classNames("pm-status-pill", `pm-status-${task.status}`)}>
+                      {projectManagementStatusLabels[task.status]}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="pm-completion">
+                      <span>{task.completionPercent}%</span>
+                      <b style={{ width: `${task.completionPercent}%` }} />
+                    </div>
+                  </td>
+                  <td>
+                    <span className={classNames("pm-complexity-pill", `pm-complexity-${task.complexity}`)}>
+                      {projectManagementComplexityLabels[task.complexity]}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="pm-source" title={task.sourceDocument}>
+                      {task.sourceDocument}
+                    </span>
+                  </td>
+                  <td>
+                    <button className="pm-run-button" onClick={() => handleRunTask(task.id)} type="button">
+                      <Play size={13} />
+                      Run
+                    </button>
+                  </td>
+                </tr>
               ))}
-            </select>
-          </label>
+            </tbody>
+          </table>
+        </div>
 
-          <label className="wide-field">
-            <span>Objective</span>
-            <textarea
-              rows={3}
-              value={draft.objective}
-              onChange={(event) => onUpdateDraft({ ...draft, objective: event.currentTarget.value })}
-            />
-          </label>
-
-          <label>
-            <span>Scope</span>
-            <textarea
-              rows={5}
-              value={listToLines(draft.scope)}
-              onChange={(event) => onUpdateDraft({ ...draft, scope: linesToList(event.currentTarget.value) })}
-            />
-          </label>
-
-          <label>
-            <span>File Areas</span>
-            <textarea
-              rows={5}
-              value={listToLines(draft.fileAreas)}
-              onChange={(event) => onUpdateDraft({ ...draft, fileAreas: linesToList(event.currentTarget.value) })}
-            />
-          </label>
-
-          <label>
-            <span>Acceptance Criteria</span>
-            <textarea
-              rows={5}
-              value={listToLines(draft.acceptanceCriteria)}
-              onChange={(event) =>
-                onUpdateDraft({ ...draft, acceptanceCriteria: linesToList(event.currentTarget.value) })
-              }
-            />
-          </label>
-
-          <label>
-            <span>Validation Plan</span>
-            <textarea
-              rows={5}
-              value={listToLines(draft.validationPlan)}
-              onChange={(event) =>
-                onUpdateDraft({ ...draft, validationPlan: linesToList(event.currentTarget.value) })
-              }
-            />
-          </label>
-
-          <label>
-            <span>Risk</span>
-            <select
-              value={draft.risk}
-              onChange={(event) =>
-                onUpdateDraft({ ...draft, risk: event.currentTarget.value as PlanningDraft["risk"] })
-              }
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Deploy Mode</span>
-            <select
-              value={draft.deployMode}
-              onChange={(event) =>
-                onUpdateDraft({ ...draft, deployMode: event.currentTarget.value as PlanningDraft["deployMode"] })
-              }
-            >
-              <option value="dry-run">Dry run</option>
-              <option value="staged">Staged</option>
-              <option value="full">Full</option>
-            </select>
-          </label>
-
-          <label className="wide-field">
-            <span>Rollback Note</span>
-            <textarea
-              rows={3}
-              value={draft.rollbackNote}
-              onChange={(event) => onUpdateDraft({ ...draft, rollbackNote: event.currentTarget.value })}
-            />
-          </label>
-        </form>
-
-        <aside className="readiness-panel" aria-label="Planning readiness">
-          <div className="readiness-score">
-            <strong>{readiness.readiness}%</strong>
-            <span>Ready</span>
-          </div>
-
-          <section>
-            <h4>Missing Fields</h4>
-            <div className="missing-list">
-              {readiness.missingFieldIds.length === 0 ? (
-                <span className="gate-chip gate-ready">Complete</span>
+        <section className="pm-bottom-panel" aria-label="Project Management alignment chat">
+          <div className="pm-chat-panel">
+            <div className="pm-chat-header">
+              <strong>PM Alignment</strong>
+              <span>Scoped to dashboard updates</span>
+            </div>
+            <div className="pm-chat-transcript" aria-label="Project Management dashboard transcript">
+              {chatMessages.length === 0 ? (
+                <p className="pm-chat-empty">Ask for hierarchy, completion, status, or Arena-run preparation updates.</p>
               ) : (
-                readiness.missingFieldIds.map((fieldId) => (
-                  <span className="gate-chip gate-review" key={fieldId}>
-                    {missingFieldLabels[fieldId]}
-                  </span>
+                chatMessages.map((message) => (
+                  <article className={classNames("pm-chat-message", `pm-chat-${message.role}`)} key={message.id}>
+                    <strong>{message.role === "user" ? "You" : "Steerboard"}</strong>
+                    <p>{message.text}</p>
+                  </article>
                 ))
               )}
             </div>
-          </section>
+            <form className="pm-chat-composer" onSubmit={handleChatSubmit}>
+              <Terminal size={15} />
+              <input
+                aria-label="Project Management dashboard instruction"
+                onChange={(event) => setChatInput(event.currentTarget.value)}
+                placeholder="Update the PM dashboard..."
+                value={chatInput}
+              />
+              <button type="submit">
+                <Send size={14} />
+              </button>
+            </form>
+          </div>
 
-          <section>
-            <h4>Dispatch Package</h4>
-            <dl className="draft-summary">
-              <div>
-                <dt>Mode</dt>
-                <dd>{draft.deployMode}</dd>
-              </div>
-              <div>
-                <dt>Risk</dt>
-                <dd>{draft.risk}</dd>
-              </div>
-              <div>
-                <dt>Scope</dt>
-                <dd>{draft.scope.length}</dd>
-              </div>
-              <div>
-                <dt>Validation</dt>
-                <dd>{draft.validationPlan.length}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <section>
-            <h4>Staged Preview</h4>
-            {stagedPackage ? (
-              <pre className="dispatch-preview">{stagedMarkdown}</pre>
+          <aside className="pm-staged-panel" aria-label="Staged Arena dispatch preview">
+            <div className="pm-staged-header">
+              <strong>Staged Arena Review</strong>
+              <span>{projects.length} sources available</span>
+            </div>
+            {stagedResult ? (
+              <>
+                <dl className="pm-staged-summary">
+                  <div>
+                    <dt>Task</dt>
+                    <dd>{stagedResult.payload.title}</dd>
+                  </div>
+                  <div>
+                    <dt>Type</dt>
+                    <dd>{stagedResult.payload.taskType}</dd>
+                  </div>
+                  <div>
+                    <dt>Children</dt>
+                    <dd>{stagedResult.payload.children.length}</dd>
+                  </div>
+                  <div>
+                    <dt>Mode</dt>
+                    <dd>Review-only</dd>
+                  </div>
+                </dl>
+                <pre className="dispatch-preview">{stagedMarkdown}</pre>
+              </>
             ) : (
               <p className="empty-preview">
-                Complete the draft, then stage it to generate the local dispatch package.
+                Click Run on any Epic, Parent, or Child to create a staged Arena review package. Runtime execution stays locked until approval gates allow it.
               </p>
             )}
-          </section>
-        </aside>
+          </aside>
+        </section>
       </div>
     </section>
   );

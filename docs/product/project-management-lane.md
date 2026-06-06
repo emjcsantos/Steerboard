@@ -2,18 +2,18 @@
 
 ## Purpose
 
-The project management lane is an optional Steerboard tab where users manage development pipelines before launching staged work to configured runtime environments.
+The project management lane is an optional Steerboard tab where users manage a Jira-like work hierarchy before launching staged work to configured runtime environments.
 
 The primary planning medium remains the Arena chat, where the user gives goals, refines scope, reviews plans, and steers the orchestrator. The project management lane adds better visibility, monitoring, tracking, readiness review, and change management around that Arena workflow.
-Staged dispatch in this lane is local preview only: it can generate explicit orchestrator, implementer, validator, and integration role-panel plans for Arena review without launching external runtime workers.
+Staged dispatch in this lane is local preview only: it can generate explicit Arena review packages for selected Epics, Parents, or Children without launching external runtime workers.
 
 ## Core Jobs
 
 - Create and manage projects.
-- Organize backlog, milestones, epics, tasks, blockers, and release gates.
+- Organize backlog work into Epics, Parents, and Children with dense table visibility.
 - Attach task briefs, acceptance criteria, validation commands, and risk notes.
 - Track pipeline state: idea, planned, ready, dispatched, running, validating, blocked, accepted, shipped.
-- Select one or more ready items and stage dispatch plans for a configured runtime.
+- Select an Epic, Parent, or Child and stage a structured Arena review package.
 - Show which pipeline item created each staged role-panel plan and which worker tasks would be spawned.
 - Preserve the Arena chat as the source of planning intent when the user does not need structured pipeline management.
 
@@ -22,23 +22,32 @@ Staged dispatch in this lane is local preview only: it can generate explicit orc
 1. User plans and steers work through the Arena chat.
 2. User optionally opens the project management tab when they need structured tracking or change-management visibility.
 3. User creates or selects a generic project workspace.
-4. User adds pipeline items with scope, priority, acceptance criteria, and validation.
-5. Steerboard checks readiness and highlights missing fields.
-6. User opens staged role-panel plan preview.
-7. The user queues a local dispatch record to generate the role-panel plan for Arena review.
-8. The Arena renders the role-panel preview plan while the project management lane keeps local pipeline status synchronized and execution remains disabled.
+4. User reviews the hierarchical table with Task, Description, Status, Completion, Complexity, Source, and Run columns.
+5. User expands or collapses Epic and Parent rows to focus on the right level of work.
+6. User uses the bottom PM alignment chat to request dashboard revisions, hierarchy changes, status changes, or Arena-run preparation.
+7. User clicks `Run` on an Epic, Parent, or Child.
+8. Steerboard creates a structured staged Arena review package with hierarchy context and descendant tasks while execution remains disabled unless approval/runtime gates allow it.
 
 ## MVP Shape
 
 - Generic sample projects only.
-- Pipeline board or table.
+- Dense hierarchy table with Epics, Parents, and Children.
+- Collapsible Epic and Parent rows.
+- Exact table columns: Task, Description, Status, Completion, Complexity, Source, and Action.
+- Compact `Run` button on every row.
+- Task type color: Epic uses accent/purple, Parent uses blue, and Child uses neutral/green.
+- Compact status badges for Completed, On-going, Canceled, and TO DO.
+- Compact complexity badges for Low, Medium, High, and Extra High.
+- Display-safe source document labels only.
+- Bottom PM chat/terminal panel scoped to dashboard alignment, updates, and revision requests.
+- Staged Arena review preview for the latest row run.
 - Item detail panel.
 - Selected-item role-panel dispatch preview with pipeline, registry, and runtime gates.
 - Local selected-item dispatch request and cancellation history.
 - Local Arena run projection from a dispatch-ready selected item.
 - Editable local draft list and draft detail editor.
 - Readiness checklist.
-- Deploy-to-runtime button disabled until required fields are present.
+- Runtime deployment remains review-only unless required runtime and approval gates are present.
 - Registry and runtime gate chips showing why dispatch is enabled or blocked.
 - Generated role handoff preview (orchestrator, implementer, validator, integration).
 - Generated dispatch package preview before real runtime execution.
@@ -61,6 +70,16 @@ Staged dispatch in this lane is local preview only: it can generate explicit orc
 - Adapter bridge preview showing whether a local event source has been attached to the selected runtime stream.
 - Provider capability readiness showing whether the selected runtime supports live chat, slash commands, plugins, automations, MCP, personalization, approvals, and audit state before deployment.
 - Deploy-mode selector for focused run, orchestrator-with-workers, or independent project monitor.
+
+## Hierarchy Run Contract
+
+Clicking `Run` on a Project Management row creates a structured staged Arena package.
+
+- Epic runs include every descendant Parent and Child, even when descendants are hidden by collapsed rows.
+- Parent runs include every descendant Child.
+- Child runs include only the Child plus enough Epic and Parent context for safe review.
+- The package includes task id, task type, title, description, status, completion, complexity, source document, relationship context, and descendant tasks.
+- If runtime execution is locked, the package is labeled as staged for Arena review, not live execution.
 
 ## Required Fields For Dispatch
 
