@@ -2481,6 +2481,16 @@ textarea {
   color: #ff9e85;
 }
 
+.chat-composer-meta .session-identity-conflict {
+  max-width: 150px;
+  border: 1px solid #563027;
+  border-radius: 999px;
+  background: #271a18;
+  color: #ff9e85;
+  padding: 2px 7px;
+  line-height: 1.2;
+}
+
 .chat-composer button.session-control-button {
   width: 25px;
   height: 25px;

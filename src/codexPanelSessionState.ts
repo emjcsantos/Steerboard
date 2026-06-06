@@ -23,6 +23,17 @@ export interface CodexPanelSessionStateRecord {
 
 export type CodexPanelSessionState = Record<string, CodexPanelSessionStateRecord>;
 
+export type CodexPanelSessionIdentityIssueType = "duplicateSessionId" | "duplicateThreadId";
+export type CodexPanelSessionIdentityIssueSeverity = "error";
+
+export interface CodexPanelSessionIdentityIssue {
+  type: CodexPanelSessionIdentityIssueType;
+  identity: string;
+  panelIds: string[];
+  severity: CodexPanelSessionIdentityIssueSeverity;
+  detail: string;
+}
+
 export interface RepairPanelSessionsOptions {
   now?: number;
   staleAfterMs?: number;
@@ -51,6 +62,89 @@ const validStatuses: ReadonlyArray<CodexPanelSessionStatus> = [
 
 function hasValidStatus(value: unknown): value is CodexPanelSessionStatus {
   return validStatuses.includes(value as CodexPanelSessionStatus);
+}
+
+function isLiveIdentityRecord(record: CodexPanelSessionStateRecord): boolean {
+  return !record.stale && ["starting", "active", "idle"].includes(record.status);
+}
+
+function normalizeIdentity(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+function collectIdentityGroups(
+  state: CodexPanelSessionState,
+  field: "sessionId" | "threadId"
+): Map<string, Set<string>> {
+  const groups = new Map<string, Set<string>>();
+
+  for (const [statePanelId, record] of Object.entries(state)) {
+    if (!isRecord(record) || !isLiveIdentityRecord(record as CodexPanelSessionStateRecord)) {
+      continue;
+    }
+
+    const identity = normalizeIdentity((record as Record<string, unknown>)[field]);
+    const panelId = normalizeIdentity((record as Record<string, unknown>).panelId) ?? statePanelId.trim();
+    if (!identity || !panelId) {
+      continue;
+    }
+
+    const panelIds = groups.get(identity) ?? new Set<string>();
+    panelIds.add(panelId);
+    groups.set(identity, panelIds);
+  }
+
+  return groups;
+}
+
+function identityIssueDetail(
+  type: CodexPanelSessionIdentityIssueType,
+  identity: string,
+  panelIds: string[]
+): string {
+  const identityLabel = type === "duplicateSessionId" ? "session" : "thread";
+  return `Live ${identityLabel} identity ${identity} is attached to multiple panels: ${panelIds.join(", ")}. Start a fresh panel session before sending live chat.`;
+}
+
+function buildIdentityIssues(
+  type: CodexPanelSessionIdentityIssueType,
+  groups: Map<string, Set<string>>
+): CodexPanelSessionIdentityIssue[] {
+  const issues: CodexPanelSessionIdentityIssue[] = [];
+
+  for (const [identity, panelIdSet] of groups.entries()) {
+    const panelIds = [...panelIdSet].sort((left, right) => left.localeCompare(right));
+    if (panelIds.length < 2) {
+      continue;
+    }
+
+    issues.push({
+      type,
+      identity,
+      panelIds,
+      severity: "error",
+      detail: identityIssueDetail(type, identity, panelIds)
+    });
+  }
+
+  return issues.sort((left, right) =>
+    left.identity.localeCompare(right.identity) ||
+    left.panelIds.join("|").localeCompare(right.panelIds.join("|"))
+  );
+}
+
+export function findCodexPanelSessionIdentityIssues(
+  state: CodexPanelSessionState
+): CodexPanelSessionIdentityIssue[] {
+  return [
+    ...buildIdentityIssues("duplicateSessionId", collectIdentityGroups(state, "sessionId")),
+    ...buildIdentityIssues("duplicateThreadId", collectIdentityGroups(state, "threadId"))
+  ];
 }
 
 function normalizeTimestamp(value: unknown): string | null {

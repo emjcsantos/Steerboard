@@ -186,7 +186,9 @@ describe("milestone status model", () => {
     );
     expect(cockpit?.completion).toBe("In progress");
     expect(cockpit?.tone).toBe("active");
+    expect(cockpit?.completionPercent).toBe(63);
     expect(cockpit?.latestNote.toLowerCase()).toContain("panel-keyed live session chat");
+    expect(cockpit?.latestNote.toLowerCase()).toContain("duplicate session identity guards");
     expect(cockpit?.latestNote.toLowerCase()).toContain("project stack drag-in");
     expect(cockpit?.latestNote.toLowerCase()).toContain("keyboard adjustment");
     expect(cockpit?.nextStep.toLowerCase()).toContain("two-panel smoke");

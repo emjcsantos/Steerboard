@@ -242,9 +242,11 @@ import {
   buildCodexSessionControls
 } from "./codexSessionControls";
 import {
+  findCodexPanelSessionIdentityIssues,
   loadPanelSessionState,
   savePanelSessionState,
   upsertPanelSession,
+  type CodexPanelSessionIdentityIssue,
   type CodexPanelSessionState,
   type CodexPanelSessionStateRecord,
   type CodexPanelSessionStatus
@@ -1432,6 +1434,23 @@ export function App() {
   useEffect(() => {
     savePanelSessionState(panelSessionState);
   }, [panelSessionState]);
+
+  const panelSessionIdentityIssues = useMemo(
+    () => findCodexPanelSessionIdentityIssues(panelSessionState),
+    [panelSessionState]
+  );
+  const panelSessionIdentityIssueByPanel = useMemo(() => {
+    const next = new Map<string, CodexPanelSessionIdentityIssue>();
+    for (const issue of panelSessionIdentityIssues) {
+      for (const panelId of issue.panelIds) {
+        if (!next.has(panelId)) {
+          next.set(panelId, issue);
+        }
+      }
+    }
+
+    return next;
+  }, [panelSessionIdentityIssues]);
 
   useEffect(() => {
     saveMigrationProfileDraftHistory(migrationProfileDraftHistory);
@@ -2678,6 +2697,7 @@ export function App() {
                               liveCodexEnabled={codexTransportDecision.canStartSession}
                               onPanelSessionStart={recordLivePanelSessionStart}
                               onPanelSessionStatus={recordLivePanelSessionStatus}
+                              panelSessionIssue={panelSessionIdentityIssueByPanel.get(session.id)}
                               panelSessionRecord={panelSessionState[session.id]}
                               projectLabel={
                                 projectLabelById.get(session.projectId) ??
@@ -2697,6 +2717,7 @@ export function App() {
                           liveCodexEnabled={codexTransportDecision.canStartSession}
                           onPanelSessionStart={recordLivePanelSessionStart}
                           onPanelSessionStatus={recordLivePanelSessionStatus}
+                          panelSessionIssue={panelSessionIdentityIssueByPanel.get(session.id)}
                           panelSessionRecord={panelSessionState[session.id]}
                           projectLabel={
                             projectLabelById.get(session.projectId) ??
@@ -3515,6 +3536,7 @@ function SessionCell({
   liveCodexEnabled = false,
   onPanelSessionStart,
   onPanelSessionStatus,
+  panelSessionIssue,
   panelSessionRecord,
   projectLabel,
   session
@@ -3528,6 +3550,7 @@ function SessionCell({
     status: CodexPanelSessionStatus,
     detail: string
   ) => void;
+  panelSessionIssue?: CodexPanelSessionIdentityIssue;
   panelSessionRecord?: CodexPanelSessionStateRecord;
   projectLabel?: string;
   session: SessionSummary;
@@ -3559,24 +3582,28 @@ function SessionCell({
   );
   const [draftMessage, setDraftMessage] = useState("");
   const [lastLivePrompt, setLastLivePrompt] = useState("");
+  const sessionIdentityBlocked = Boolean(panelSessionIssue);
   const restoredSessionAvailable = Boolean(
     liveCodexEnabled &&
       panelSessionRecord &&
+      !sessionIdentityBlocked &&
       !panelSessionRecord.stale &&
       !["closed", "error"].includes(panelSessionRecord.status)
   );
   const [liveChatStatus, setLiveChatStatus] = useState<LivePanelChatStatus>(
-    restoredSessionAvailable || liveCodexEnabled ? "idle" : "preview"
+    sessionIdentityBlocked ? "failed" : restoredSessionAvailable || liveCodexEnabled ? "idle" : "preview"
   );
   const [liveSessionStarted, setLiveSessionStarted] = useState(restoredSessionAvailable);
   const [liveChatDetail, setLiveChatDetail] = useState(
-    restoredSessionAvailable
+    sessionIdentityBlocked
+      ? panelSessionIssue?.detail ?? "Duplicate live session identity detected."
+      : restoredSessionAvailable
       ? panelSessionRecord?.detail ?? "Restored Codex panel session metadata."
       : liveCodexEnabled
         ? "Codex live session ready"
         : "Codex local preview"
   );
-  const canUseLiveCodex = liveCodexEnabled && hasDesktopRuntime();
+  const canUseLiveCodex = liveCodexEnabled && hasDesktopRuntime() && !sessionIdentityBlocked;
   const slashSuggestions = useMemo(
     () => getPanelSlashCommandSuggestions(draftMessage, commandCatalog),
     [commandCatalog, draftMessage]
@@ -3617,8 +3644,10 @@ function SessionCell({
             ? "Codex complete"
             : liveChatStatus === "interrupted"
               ? "Codex interrupted"
-              : "Codex failed"
-    : "Codex local preview";
+            : "Codex failed"
+    : sessionIdentityBlocked
+      ? "Session conflict"
+      : "Codex local preview";
 
   useEffect(() => {
     setChatMessages(loadPanelChatMessages(session));
@@ -3627,13 +3656,16 @@ function SessionCell({
     const restored = Boolean(
       liveCodexEnabled &&
         panelSessionRecord &&
+        !panelSessionIssue &&
         !panelSessionRecord.stale &&
         !["closed", "error"].includes(panelSessionRecord.status)
     );
     setLiveSessionStarted(restored);
-    setLiveChatStatus(liveCodexEnabled ? "idle" : "preview");
+    setLiveChatStatus(panelSessionIssue ? "failed" : liveCodexEnabled ? "idle" : "preview");
     setLiveChatDetail(
-      restored
+      panelSessionIssue
+        ? panelSessionIssue.detail
+        : restored
         ? panelSessionRecord?.detail ?? "Restored Codex panel session metadata."
         : panelSessionRecord?.stale
           ? "Saved Codex session is stale; a new session will start on next message."
@@ -3647,6 +3679,9 @@ function SessionCell({
     panelSessionRecord?.sessionId,
     panelSessionRecord?.stale,
     panelSessionRecord?.status,
+    panelSessionIssue?.detail,
+    panelSessionIssue?.identity,
+    panelSessionIssue?.type,
     session
   ]);
 
@@ -3998,6 +4033,14 @@ function SessionCell({
             <span className={classNames("composer-status", `composer-status-${liveChatStatus}`)} title={liveChatDetail}>
               {composerStatusLabel}
             </span>
+            {panelSessionIssue ? (
+              <span
+                className="session-identity-conflict"
+                title={panelSessionIssue.detail}
+              >
+                Identity conflict
+              </span>
+            ) : null}
             {activeSlashCommandDecision ? (
               <span
                 className={classNames(

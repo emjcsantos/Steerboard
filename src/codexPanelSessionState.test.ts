@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   closePanelSession,
+  findCodexPanelSessionIdentityIssues,
   markPanelSessionStale,
   parseStoredPanelSessionState,
   removePanelSession,
@@ -147,5 +148,140 @@ describe("codex panel session state", () => {
         staleAfterMs: 5 * 60 * 1000
       })["panel-1"].stale
     ).toBe(true);
+  });
+
+  it("reports no live identity issues when panel sessions are unique", () => {
+    const state = parseStoredPanelSessionState(
+      JSON.stringify([
+        baseRecord,
+        { ...baseRecord, panelId: "panel-2", sessionId: "session-beta", threadId: "thread-beta" }
+      ]),
+      { now: Date.parse("2026-06-05T10:01:00.000Z"), staleAfterMs: 10 * 60 * 1000 }
+    );
+
+    expect(findCodexPanelSessionIdentityIssues(state)).toEqual([]);
+  });
+
+  it("reports duplicate live session ids across different panels", () => {
+    const state = parseStoredPanelSessionState(
+      JSON.stringify([
+        baseRecord,
+        { ...baseRecord, panelId: "panel-2", threadId: "thread-beta" }
+      ]),
+      { now: Date.parse("2026-06-05T10:01:00.000Z"), staleAfterMs: 10 * 60 * 1000 }
+    );
+
+    expect(findCodexPanelSessionIdentityIssues(state)).toEqual([
+      {
+        type: "duplicateSessionId",
+        identity: "session-alpha",
+        panelIds: ["panel-1", "panel-2"],
+        severity: "error",
+        detail:
+          "Live session identity session-alpha is attached to multiple panels: panel-1, panel-2. Start a fresh panel session before sending live chat."
+      }
+    ]);
+  });
+
+  it("reports duplicate live thread ids separately from session ids", () => {
+    const state = parseStoredPanelSessionState(
+      JSON.stringify([
+        baseRecord,
+        {
+          ...baseRecord,
+          panelId: "panel-2",
+          sessionId: "session-beta"
+        }
+      ]),
+      { now: Date.parse("2026-06-05T10:01:00.000Z"), staleAfterMs: 10 * 60 * 1000 }
+    );
+
+    expect(findCodexPanelSessionIdentityIssues(state)).toEqual([
+      {
+        type: "duplicateThreadId",
+        identity: "thread-alpha",
+        panelIds: ["panel-1", "panel-2"],
+        severity: "error",
+        detail:
+          "Live thread identity thread-alpha is attached to multiple panels: panel-1, panel-2. Start a fresh panel session before sending live chat."
+      }
+    ]);
+  });
+
+  it("ignores blank, stale, closed, and malformed identity values", () => {
+    const state = {
+      "panel-1": baseRecord,
+      "panel-2": {
+        ...baseRecord,
+        panelId: "panel-2",
+        sessionId: " session-alpha ",
+        threadId: "thread-alpha",
+        stale: true
+      },
+      "panel-3": {
+        ...baseRecord,
+        panelId: "panel-3",
+        sessionId: "session-alpha",
+        threadId: "thread-alpha",
+        status: "closed" as const
+      },
+      "panel-4": {
+        ...baseRecord,
+        panelId: "panel-4",
+        sessionId: "   ",
+        threadId: "   "
+      },
+      "panel-5": {
+        ...baseRecord,
+        panelId: "panel-5",
+        sessionId: 42,
+        threadId: null
+      }
+    } as unknown as Record<string, typeof baseRecord>;
+
+    expect(findCodexPanelSessionIdentityIssues(state)).toEqual([]);
+  });
+
+  it("orders duplicate identity issues deterministically", () => {
+    const state = parseStoredPanelSessionState(
+      JSON.stringify([
+        {
+          ...baseRecord,
+          panelId: "panel-c",
+          sessionId: "session-z",
+          threadId: "thread-z"
+        },
+        {
+          ...baseRecord,
+          panelId: "panel-a",
+          sessionId: "session-a",
+          threadId: "thread-a"
+        },
+        {
+          ...baseRecord,
+          panelId: "panel-b",
+          sessionId: "session-z",
+          threadId: "thread-z"
+        },
+        {
+          ...baseRecord,
+          panelId: "panel-d",
+          sessionId: "session-a",
+          threadId: "thread-a"
+        }
+      ]),
+      { now: Date.parse("2026-06-05T10:01:00.000Z"), staleAfterMs: 10 * 60 * 1000 }
+    );
+
+    expect(findCodexPanelSessionIdentityIssues(state).map((issue) => ({
+      type: issue.type,
+      identity: issue.identity,
+      panelIds: issue.panelIds
+    }))).toEqual([
+      { type: "duplicateSessionId", identity: "session-a", panelIds: ["panel-a", "panel-d"] },
+      { type: "duplicateSessionId", identity: "session-z", panelIds: ["panel-b", "panel-c"] },
+      { type: "duplicateThreadId", identity: "thread-a", panelIds: ["panel-a", "panel-d"] },
+      { type: "duplicateThreadId", identity: "thread-z", panelIds: ["panel-b", "panel-c"] }
+    ]);
   });
 });

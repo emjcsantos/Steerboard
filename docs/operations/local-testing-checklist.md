@@ -28,6 +28,7 @@ Do not proceed to the next section until the current item is at least `review`.
 4. `Multi-Panel`
    - Open two or more panels and switch focus repeatedly.
    - Verify each panel preserves its own session context and activity state.
+   - Confirm corrupted saved panel metadata with duplicate live identities shows a conflict warning and does not send live chat through the duplicated identity.
 5. `Controls`
    - Exercise stop, retry, pause, and route controls.
    - Confirm control actions are deterministic and do not drift between views.
