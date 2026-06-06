@@ -15,6 +15,7 @@ describe("owner testing checklist model", () => {
   it("contains all required phase 9 checklist items in deterministic order", () => {
     const itemIds = checklistBase.items.map((item) => item.id);
     const itemNames = checklistBase.items.map((item) => item.name);
+    const controlsItem = checklistBase.items.find((item) => item.id === "controls");
     const slashItem = checklistBase.items.find((item) => item.id === "slash-commands");
 
     expect(itemIds).toEqual(Array.from(OWNER_TESTING_CHECKLIST_ORDER));
@@ -40,6 +41,15 @@ describe("owner testing checklist model", () => {
       "Recovery"
     ]);
     expect(slashItem).toBeDefined();
+    expect(controlsItem).toBeDefined();
+    expect(controlsItem?.focus).toBe(
+      "Use control affordances repeatedly and confirm deterministic readiness evidence for interrupt, retry, steer, and lifecycle controls."
+    );
+    expect(controlsItem?.checks).toBe(
+      "Critical controls are disabled, enabled, actionable, or honestly unsupported at the right times, with transcript-backed owner-testing evidence."
+    );
+    expect(controlsItem?.checks).toContain("honestly unsupported");
+    expect(controlsItem?.checks).toContain("transcript-backed");
     expect(slashItem?.focus).toBe(
       "Validate owner slash-command routing and execution evidence for panel-scoped suggestions, and confirm app/global-only commands are blocked when used outside permitted scope."
     );

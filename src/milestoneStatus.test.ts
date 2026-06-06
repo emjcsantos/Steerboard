@@ -186,9 +186,10 @@ describe("milestone status model", () => {
     );
     expect(cockpit?.completion).toBe("In progress");
     expect(cockpit?.tone).toBe("active");
-    expect(cockpit?.completionPercent).toBe(65);
+    expect(cockpit?.completionPercent).toBe(66);
     expect(cockpit?.latestNote.toLowerCase()).toContain("panel-keyed live session chat");
     expect(cockpit?.latestNote.toLowerCase()).toContain("visible unsupported-control evidence");
+    expect(cockpit?.latestNote.toLowerCase()).toContain("owner-testing control readiness evidence");
     expect(cockpit?.latestNote.toLowerCase()).toContain("duplicate session identity guards");
     expect(cockpit?.latestNote.toLowerCase()).toContain("native two-panel plus active-turn interrupt and steer smoke proof paths");
     expect(cockpit?.latestNote.toLowerCase()).toContain("project stack drag-in");
@@ -196,6 +197,7 @@ describe("milestone status model", () => {
     expect(cockpit?.nextStep.toLowerCase()).toContain("two-panel smoke");
     expect(cockpit?.nextStep.toLowerCase()).toContain("active-turn interrupt");
     expect(cockpit?.nextStep.toLowerCase()).toContain("active-turn steer");
+    expect(cockpit?.nextStep.toLowerCase()).toContain("owner testing controls evidence");
   });
 
   it("requires a compact public-safe summary for orchestration model", () => {
@@ -258,10 +260,10 @@ describe("milestone status model", () => {
     expect(platform?.completionPercent).toBe(56);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution readiness from provider-route plus live/status transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution."
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution."
     );
     expect(platform?.nextStep).toBe(
-      "Run a live provider-routed slash command in desktop mode and verify the Owner Testing slash execution evidence moves from review to ready, then keep the connection dialog catalog smoke as the recurring provider-refresh regression check while arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions remain disabled."
+      "Run live provider-routed slash and session-control checks in desktop mode and verify Owner Testing evidence moves from review to ready, then keep the connection dialog catalog smoke as the recurring provider-refresh regression check while arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions remain disabled."
     );
   });
 
@@ -305,7 +307,7 @@ describe("milestone status model", () => {
       averageCompletionPercent: 43,
       nextTarget: "Platform capabilities",
       nextStep:
-        "Run a live provider-routed slash command in desktop mode and verify the Owner Testing slash execution evidence moves from review to ready, then keep the connection dialog catalog smoke as the recurring provider-refresh regression check while arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions remain disabled.",
+        "Run live provider-routed slash and session-control checks in desktop mode and verify Owner Testing evidence moves from review to ready, then keep the connection dialog catalog smoke as the recurring provider-refresh regression check while arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions remain disabled.",
       nextCompletionPercent: 56
     });
   });
@@ -334,13 +336,13 @@ describe("milestone status model", () => {
 
     expect(ownerTesting?.completion).toBe("In progress");
     expect(ownerTesting?.tone).toBe("active");
-    expect(ownerTesting?.completionPercent).toBe(38);
+    expect(ownerTesting?.completionPercent).toBe(39);
     expect(ownerTesting?.current).toBeUndefined();
     expect(ownerTesting?.latestNote).toBe(
-      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, and slash execution readiness evidence without execution."
+      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, and session-control readiness evidence without execution."
     );
     expect(ownerTesting?.nextStep).toBe(
-      "Run the full local testing checklist, verify approval-to-probe behavior, all-catalog provider refresh smoke, live panel slash execution evidence, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
+      "Run the full local testing checklist, verify approval-to-probe behavior, all-catalog provider refresh smoke, live panel slash execution evidence, live panel control evidence, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
     );
   });
 

@@ -149,9 +149,9 @@ const OWNER_TESTING_CHECKLIST_TEMPLATE: readonly ChecklistTemplateItem[] = [
     id: "controls",
     name: "Controls",
     focus:
-      "Use control affordances repeatedly and confirm deterministic behavior in pause, stop, resume, and re-route paths.",
+      "Use control affordances repeatedly and confirm deterministic readiness evidence for interrupt, retry, steer, and lifecycle controls.",
     checks:
-      "Critical controls are disabled, enabled, and actionable at the right times."
+      "Critical controls are disabled, enabled, actionable, or honestly unsupported at the right times, with transcript-backed owner-testing evidence."
   },
   {
     id: "slash-commands",

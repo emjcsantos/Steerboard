@@ -258,6 +258,10 @@ import {
   summarizeUnsupportedSessionControls
 } from "./codexSessionControls";
 import {
+  buildSessionControlReadinessEvidence,
+  type SessionControlReadinessEvidence
+} from "./sessionControlReadinessEvidence";
+import {
   findCodexPanelSessionIdentityIssues,
   loadPanelSessionState,
   savePanelSessionState,
@@ -903,6 +907,28 @@ function slashCommandExecutionEvidenceEqual(
   );
 }
 
+function sessionControlReadinessEvidenceEqual(
+  current: SessionControlReadinessEvidence | undefined,
+  next: SessionControlReadinessEvidence
+): boolean {
+  if (!current) {
+    return false;
+  }
+
+  return (
+    current.state === next.state &&
+    current.readiness === next.readiness &&
+    current.pass === next.pass &&
+    current.statusLabel === next.statusLabel &&
+    current.detail === next.detail &&
+    current.safety === next.safety &&
+    current.counts.live === next.counts.live &&
+    current.counts.review === next.counts.review &&
+    current.counts.unsupported === next.counts.unsupported &&
+    current.counts.blocked === next.counts.blocked
+  );
+}
+
 function parseRuntimeProfileList(value: string): string[] {
   return value
     .split(",")
@@ -1404,6 +1430,8 @@ export function App() {
   const [focusedPanelId, setFocusedPanelId] = useState<string>();
   const [slashCommandExecutionEvidenceByPanel, setSlashCommandExecutionEvidenceByPanel] =
     useState<Record<string, SlashCommandExecutionEvidence>>({});
+  const [sessionControlReadinessEvidenceByPanel, setSessionControlReadinessEvidenceByPanel] =
+    useState<Record<string, SessionControlReadinessEvidence>>({});
   const [adaptiveDraggingPanelId, setAdaptiveDraggingPanelId] = useState<string>();
   const [adaptiveDraggingProjectId, setAdaptiveDraggingProjectId] = useState<string>();
   const [adaptiveDropPreview, setAdaptiveDropPreview] = useState<AdaptiveCockpitDropPreview | null>(null);
@@ -1543,6 +1571,26 @@ export function App() {
       : slashCommandExecutionEvidence.state === "blocked"
         ? "blocked"
         : "review";
+  const sessionControlReadinessEvidence = useMemo(() => {
+    const evidenceItems = Object.values(sessionControlReadinessEvidenceByPanel);
+
+    return (
+      evidenceItems.find((item) => item.pass) ??
+      evidenceItems.find((item) => item.state === "blocked") ??
+      evidenceItems.find((item) => item.state === "review") ??
+      evidenceItems.find((item) => item.state === "waiting") ??
+      evidenceItems[0] ??
+      buildSessionControlReadinessEvidence(undefined)
+    );
+  }, [sessionControlReadinessEvidenceByPanel]);
+  const sessionControlOwnerTestingState: OwnerTestingReadinessState =
+    sessionControlReadinessEvidence.state === "ready"
+      ? "ready"
+      : sessionControlReadinessEvidence.state === "blocked"
+        ? "blocked"
+        : sessionControlReadinessEvidence.state === "waiting"
+          ? "waiting"
+          : "review";
 
   useEffect(() => {
     saveWorkspacePreferences(preferences);
@@ -2614,6 +2662,22 @@ export function App() {
     []
   );
 
+  const recordSessionControlReadinessEvidence = useCallback(
+    (panelId: string, evidence: SessionControlReadinessEvidence) => {
+      setSessionControlReadinessEvidenceByPanel((currentEvidenceByPanel) => {
+        if (sessionControlReadinessEvidenceEqual(currentEvidenceByPanel[panelId], evidence)) {
+          return currentEvidenceByPanel;
+        }
+
+        return {
+          ...currentEvidenceByPanel,
+          [panelId]: evidence
+        };
+      });
+    },
+    []
+  );
+
   return (
     <main className="app-shell">
       <AppMenuBar
@@ -2970,6 +3034,7 @@ export function App() {
                               liveCodexEnabled={codexTransportDecision.canStartSession}
                               onPanelSessionStart={recordLivePanelSessionStart}
                               onPanelSessionStatus={recordLivePanelSessionStatus}
+                              onSessionControlReadinessEvidence={recordSessionControlReadinessEvidence}
                               onSlashCommandExecutionEvidence={recordSlashCommandExecutionEvidence}
                               panelSessionIssue={panelSessionIdentityIssueByPanel.get(session.id)}
                               panelSessionRecord={panelSessionState[session.id]}
@@ -2991,6 +3056,7 @@ export function App() {
                           liveCodexEnabled={codexTransportDecision.canStartSession}
                           onPanelSessionStart={recordLivePanelSessionStart}
                           onPanelSessionStatus={recordLivePanelSessionStatus}
+                          onSessionControlReadinessEvidence={recordSessionControlReadinessEvidence}
                           onSlashCommandExecutionEvidence={recordSlashCommandExecutionEvidence}
                           panelSessionIssue={panelSessionIdentityIssueByPanel.get(session.id)}
                           panelSessionRecord={panelSessionState[session.id]}
@@ -3048,6 +3114,8 @@ export function App() {
             runtimeProfileSummary={runtimeProfileSummary}
             runtimeSummary={runtimeSummary}
             selectedRun={selectedRun}
+            sessionControlOwnerTestingState={sessionControlOwnerTestingState}
+            sessionControlReadinessEvidence={sessionControlReadinessEvidence}
             slashCommandExecutionEvidence={slashCommandExecutionEvidence}
             slashCommandOwnerTestingState={slashCommandOwnerTestingState}
             focusedPanelId={focusedPanelId}
@@ -3992,6 +4060,7 @@ function SessionCell({
   liveCodexEnabled = false,
   onPanelSessionStart,
   onPanelSessionStatus,
+  onSessionControlReadinessEvidence,
   onSlashCommandExecutionEvidence,
   panelSessionIssue,
   panelSessionRecord,
@@ -4006,6 +4075,10 @@ function SessionCell({
     panelId: string,
     status: CodexPanelSessionStatus,
     detail: string
+  ) => void;
+  onSessionControlReadinessEvidence?: (
+    panelId: string,
+    evidence: SessionControlReadinessEvidence
   ) => void;
   onSlashCommandExecutionEvidence?: (
     panelId: string,
@@ -4116,6 +4189,13 @@ function SessionCell({
     () => summarizeUnsupportedSessionControls(liveControlSnapshot),
     [liveControlSnapshot]
   );
+  const sessionControlReadinessEvidence = useMemo(
+    () =>
+      buildSessionControlReadinessEvidence(liveControlSnapshot, {
+        transcriptMessages: chatMessages
+      }),
+    [chatMessages, liveControlSnapshot]
+  );
   const canInterruptLiveTurn = liveControlSnapshot.interrupt.state === "live";
   const canRetryLiveTurn =
     liveControlSnapshot.retry.state === "live" && !liveChatBusy;
@@ -4178,6 +4258,10 @@ function SessionCell({
   useEffect(() => {
     onSlashCommandExecutionEvidence?.(session.id, slashCommandExecutionEvidence);
   }, [onSlashCommandExecutionEvidence, session.id, slashCommandExecutionEvidence]);
+
+  useEffect(() => {
+    onSessionControlReadinessEvidence?.(session.id, sessionControlReadinessEvidence);
+  }, [onSessionControlReadinessEvidence, session.id, sessionControlReadinessEvidence]);
 
   async function ensureLivePanelSession() {
     if (liveSessionStarted) {
@@ -5952,6 +6036,8 @@ function RightPanel({
   runtimeProfileSummary,
   runtimeSummary,
   selectedRun,
+  sessionControlOwnerTestingState,
+  sessionControlReadinessEvidence,
   slashCommandExecutionEvidence,
   slashCommandOwnerTestingState,
   focusedPanelId,
@@ -5981,6 +6067,8 @@ function RightPanel({
   runtimeProfileSummary: ReturnType<typeof summarizeRuntimeProfiles>;
   runtimeSummary: ReturnType<typeof summarizeRuntimeAdapters>;
   selectedRun?: MockOrchestratorRun;
+  sessionControlOwnerTestingState: OwnerTestingReadinessState;
+  sessionControlReadinessEvidence: SessionControlReadinessEvidence;
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
   slashCommandOwnerTestingState: OwnerTestingReadinessState;
   sessions: SessionSummary[];
@@ -6345,7 +6433,7 @@ function RightPanel({
         connect: runtimeAdapter?.state === "blocked" ? "blocked" : "review",
         chat: "review",
         "multi-panel": "review",
-        controls: "review",
+        controls: sessionControlOwnerTestingState,
         "slash-commands": slashCommandOwnerTestingState,
         catalogs: "review",
         "catalog-command-refresh": catalogRefreshOwnerStateBySurface.get("command") ?? "review",
@@ -6366,6 +6454,7 @@ function RightPanel({
       liveActionExecutableCount,
       runtimeAdapter?.state,
       runtimeRecoveryFailureCoverage.tone,
+      sessionControlOwnerTestingState,
       slashCommandOwnerTestingState
     ]
   );
@@ -7004,6 +7093,7 @@ function RightPanel({
         checklist={ownerTestingChecklist}
         failureFixtures={failureStateFixtures}
         failureSummary={failureStateFixtureSummary}
+        sessionControlReadinessEvidence={sessionControlReadinessEvidence}
         slashCommandExecutionEvidence={slashCommandExecutionEvidence}
       />
 
@@ -9325,12 +9415,14 @@ function OwnerTestingReadinessPanel({
   checklist,
   failureFixtures,
   failureSummary,
+  sessionControlReadinessEvidence,
   slashCommandExecutionEvidence
 }: {
   catalogRefreshOwnerValidation: CatalogRefreshOwnerValidationResult;
   checklist: OwnerTestingChecklist;
   failureFixtures: readonly FailureStateFixture[];
   failureSummary: FailureStateFixtureSummary;
+  sessionControlReadinessEvidence: SessionControlReadinessEvidence;
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
 }) {
   const visibleChecklistItems = checklist.items.slice(0, 6);
@@ -9373,6 +9465,47 @@ function OwnerTestingReadinessPanel({
             <dd>{checklist.summary.waiting}</dd>
           </div>
         </dl>
+        <div
+          aria-label={`Session control readiness evidence ${sessionControlReadinessEvidence.statusLabel}; ${sessionControlReadinessEvidence.readiness}% ready`}
+          className={classNames(
+            "owner-testing-control-evidence",
+            `owner-testing-control-${sessionControlReadinessEvidence.state}`
+          )}
+          title={sessionControlReadinessEvidence.safety}
+        >
+          <div className="owner-testing-control-header">
+            <span className="owner-testing-state">
+              <span aria-hidden="true" />
+              {sessionControlReadinessEvidence.statusLabel}
+            </span>
+            <strong>Controls</strong>
+            <b>{sessionControlReadinessEvidence.readiness}%</b>
+          </div>
+          <p title={sessionControlReadinessEvidence.detail}>
+            {sessionControlReadinessEvidence.detail}
+          </p>
+          <dl
+            className="owner-testing-control-grid"
+            aria-label="Session control readiness evidence counts"
+          >
+            <div>
+              <dt>Live</dt>
+              <dd>{sessionControlReadinessEvidence.counts.live}</dd>
+            </div>
+            <div>
+              <dt>Review</dt>
+              <dd>{sessionControlReadinessEvidence.counts.review}</dd>
+            </div>
+            <div>
+              <dt>Unsupported</dt>
+              <dd>{sessionControlReadinessEvidence.counts.unsupported}</dd>
+            </div>
+            <div>
+              <dt>Blocked</dt>
+              <dd>{sessionControlReadinessEvidence.counts.blocked}</dd>
+            </div>
+          </dl>
+        </div>
         <div
           aria-label={`Slash command execution evidence ${slashCommandExecutionEvidence.status}; ${slashCommandExecutionEvidence.readiness}% ready`}
           className={classNames(
