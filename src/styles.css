@@ -5428,7 +5428,8 @@ textarea {
 }
 
 .owner-testing-control-evidence,
-.owner-testing-slash-execution {
+.owner-testing-slash-execution,
+.owner-testing-phase3-gate {
   display: grid;
   gap: 6px;
   border: 1px solid #303844;
@@ -5438,7 +5439,8 @@ textarea {
 }
 
 .owner-testing-control-header,
-.owner-testing-slash-header {
+.owner-testing-slash-header,
+.owner-testing-phase3-header {
   display: grid;
   min-width: 0;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -5449,7 +5451,9 @@ textarea {
 .owner-testing-control-header strong,
 .owner-testing-control-header b,
 .owner-testing-slash-header strong,
-.owner-testing-slash-header b {
+.owner-testing-slash-header b,
+.owner-testing-phase3-header strong,
+.owner-testing-phase3-header b {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5457,13 +5461,15 @@ textarea {
 }
 
 .owner-testing-control-header strong,
-.owner-testing-slash-header strong {
+.owner-testing-slash-header strong,
+.owner-testing-phase3-header strong {
   color: #edf3f8;
   font-size: 12px;
 }
 
 .owner-testing-control-header b,
-.owner-testing-slash-header b {
+.owner-testing-slash-header b,
+.owner-testing-phase3-header b {
   border-radius: 999px;
   background: #151b22;
   color: #cfd8e3;
@@ -5473,7 +5479,8 @@ textarea {
 }
 
 .owner-testing-control-evidence p,
-.owner-testing-slash-execution p {
+.owner-testing-slash-execution p,
+.owner-testing-phase3-gate p {
   overflow: hidden;
   margin: 0;
   color: #9fa9b4;
@@ -5484,7 +5491,8 @@ textarea {
 }
 
 .owner-testing-control-grid,
-.owner-testing-slash-grid {
+.owner-testing-slash-grid,
+.owner-testing-phase3-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 5px;
@@ -5492,7 +5500,8 @@ textarea {
 }
 
 .owner-testing-control-grid div,
-.owner-testing-slash-grid div {
+.owner-testing-slash-grid div,
+.owner-testing-phase3-grid div {
   display: grid;
   min-width: 0;
   gap: 2px;
@@ -5506,7 +5515,9 @@ textarea {
 .owner-testing-control-grid dt,
 .owner-testing-control-grid dd,
 .owner-testing-slash-grid dt,
-.owner-testing-slash-grid dd {
+.owner-testing-slash-grid dd,
+.owner-testing-phase3-grid dt,
+.owner-testing-phase3-grid dd {
   min-width: 0;
   margin: 0;
   overflow: hidden;
@@ -5515,7 +5526,8 @@ textarea {
 }
 
 .owner-testing-control-grid dt,
-.owner-testing-slash-grid dt {
+.owner-testing-slash-grid dt,
+.owner-testing-phase3-grid dt {
   color: #8f99a4;
   font-size: 9px;
   font-weight: 800;
@@ -5523,7 +5535,8 @@ textarea {
 }
 
 .owner-testing-control-grid dd,
-.owner-testing-slash-grid dd {
+.owner-testing-slash-grid dd,
+.owner-testing-phase3-grid dd {
   color: #f4f7fa;
   font-size: 12px;
   font-weight: 900;
@@ -5764,6 +5777,7 @@ textarea {
 .owner-testing-item-ready,
 .owner-testing-control-ready,
 .owner-testing-slash-ready,
+.owner-testing-phase3-ready,
 .failure-fixture-ready,
 .failure-fixture-item-ready {
   border-color: #254634;
@@ -5775,6 +5789,8 @@ textarea {
 .owner-testing-control-waiting,
 .owner-testing-slash-review,
 .owner-testing-slash-waiting,
+.owner-testing-phase3-review,
+.owner-testing-phase3-waiting,
 .owner-testing-catalog-review,
 .owner-testing-catalog-waiting,
 .owner-testing-item-review,
@@ -5789,6 +5805,7 @@ textarea {
 .owner-testing-blocked,
 .owner-testing-control-blocked,
 .owner-testing-slash-blocked,
+.owner-testing-phase3-blocked,
 .owner-testing-catalog-blocked,
 .owner-testing-item-blocked,
 .owner-testing-catalog-item-blocked,

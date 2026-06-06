@@ -262,6 +262,10 @@ import {
   type SessionControlReadinessEvidence
 } from "./sessionControlReadinessEvidence";
 import {
+  buildPhase3ExitGateEvidence,
+  type Phase3ExitGateEvidence
+} from "./phase3ExitGateEvidence";
+import {
   findCodexPanelSessionIdentityIssues,
   loadPanelSessionState,
   savePanelSessionState,
@@ -1591,6 +1595,23 @@ export function App() {
         : sessionControlReadinessEvidence.state === "waiting"
           ? "waiting"
           : "review";
+  const phase3ExitGateEvidence = useMemo(
+    () =>
+      buildPhase3ExitGateEvidence({
+        slashEvidence: slashCommandExecutionEvidence,
+        sessionControlEvidence: sessionControlReadinessEvidence,
+        liveControlSmoke: codexLiveControlSmokeProof,
+        activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
+        activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof
+      }),
+    [
+      slashCommandExecutionEvidence,
+      sessionControlReadinessEvidence,
+      codexLiveControlSmokeProof,
+      codexActiveTurnControlSmokeProof,
+      codexActiveTurnSteerSmokeProof
+    ]
+  );
 
   useEffect(() => {
     saveWorkspacePreferences(preferences);
@@ -3114,6 +3135,7 @@ export function App() {
             runtimeProfileSummary={runtimeProfileSummary}
             runtimeSummary={runtimeSummary}
             selectedRun={selectedRun}
+            phase3ExitGateEvidence={phase3ExitGateEvidence}
             sessionControlOwnerTestingState={sessionControlOwnerTestingState}
             sessionControlReadinessEvidence={sessionControlReadinessEvidence}
             slashCommandExecutionEvidence={slashCommandExecutionEvidence}
@@ -6036,6 +6058,7 @@ function RightPanel({
   runtimeProfileSummary,
   runtimeSummary,
   selectedRun,
+  phase3ExitGateEvidence,
   sessionControlOwnerTestingState,
   sessionControlReadinessEvidence,
   slashCommandExecutionEvidence,
@@ -6067,6 +6090,7 @@ function RightPanel({
   runtimeProfileSummary: ReturnType<typeof summarizeRuntimeProfiles>;
   runtimeSummary: ReturnType<typeof summarizeRuntimeAdapters>;
   selectedRun?: MockOrchestratorRun;
+  phase3ExitGateEvidence: Phase3ExitGateEvidence;
   sessionControlOwnerTestingState: OwnerTestingReadinessState;
   sessionControlReadinessEvidence: SessionControlReadinessEvidence;
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
@@ -7093,6 +7117,7 @@ function RightPanel({
         checklist={ownerTestingChecklist}
         failureFixtures={failureStateFixtures}
         failureSummary={failureStateFixtureSummary}
+        phase3ExitGateEvidence={phase3ExitGateEvidence}
         sessionControlReadinessEvidence={sessionControlReadinessEvidence}
         slashCommandExecutionEvidence={slashCommandExecutionEvidence}
       />
@@ -9415,6 +9440,7 @@ function OwnerTestingReadinessPanel({
   checklist,
   failureFixtures,
   failureSummary,
+  phase3ExitGateEvidence,
   sessionControlReadinessEvidence,
   slashCommandExecutionEvidence
 }: {
@@ -9422,6 +9448,7 @@ function OwnerTestingReadinessPanel({
   checklist: OwnerTestingChecklist;
   failureFixtures: readonly FailureStateFixture[];
   failureSummary: FailureStateFixtureSummary;
+  phase3ExitGateEvidence: Phase3ExitGateEvidence;
   sessionControlReadinessEvidence: SessionControlReadinessEvidence;
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
 }) {
@@ -9547,6 +9574,47 @@ function OwnerTestingReadinessPanel({
                 {slashCommandExecutionEvidence.evidence.live +
                   slashCommandExecutionEvidence.evidence.status}
               </dd>
+            </div>
+          </dl>
+        </div>
+        <div
+          aria-label={`Phase 3 exit gate ${phase3ExitGateEvidence.statusLabel}; ${phase3ExitGateEvidence.readiness}% ready`}
+          className={classNames(
+            "owner-testing-phase3-gate",
+            `owner-testing-phase3-${phase3ExitGateEvidence.state}`
+          )}
+          title={phase3ExitGateEvidence.safety}
+        >
+          <div className="owner-testing-phase3-header">
+            <span className="owner-testing-state">
+              <span aria-hidden="true" />
+              {phase3ExitGateEvidence.statusLabel}
+            </span>
+            <strong>Phase 3 gate</strong>
+            <b>{phase3ExitGateEvidence.readiness}%</b>
+          </div>
+          <p title={phase3ExitGateEvidence.detail}>
+            {phase3ExitGateEvidence.nextAction}
+          </p>
+          <dl
+            className="owner-testing-phase3-grid"
+            aria-label="Phase 3 exit gate counts"
+          >
+            <div>
+              <dt>Ready</dt>
+              <dd>{phase3ExitGateEvidence.counts.ready}</dd>
+            </div>
+            <div>
+              <dt>Review</dt>
+              <dd>{phase3ExitGateEvidence.counts.review}</dd>
+            </div>
+            <div>
+              <dt>Blocked</dt>
+              <dd>{phase3ExitGateEvidence.counts.blocked}</dd>
+            </div>
+            <div>
+              <dt>Waiting</dt>
+              <dd>{phase3ExitGateEvidence.counts.waiting}</dd>
             </div>
           </dl>
         </div>

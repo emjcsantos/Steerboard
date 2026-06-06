@@ -40,6 +40,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Submit one app/global-only command from a panel and confirm it is blocked with explicit unsupported guidance.
    - Submit one provider-routed panel command in live desktop mode and confirm the transcript shows provider-route evidence before the live turn runs.
    - Confirm the Owner Testing panel moves slash execution evidence from review to ready only after provider-route plus live/status transcript proof is present.
+   - Confirm the Owner Testing Phase 3 gate remains review or waiting until slash execution, session-control evidence, live-control smoke, active-turn interrupt smoke, and active-turn steer smoke are all proven ready.
    - Refresh the command catalog and confirm metadata/status is updated as a safe metadata/status refresh (no side-effectful actions).
 7. `Catalogs`
    - Open command, skill, plugin, MCP, automation, and personalization catalogs.
