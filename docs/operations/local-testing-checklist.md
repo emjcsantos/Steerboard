@@ -23,6 +23,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Open a fresh connection.
    - Confirm reconnect/restart behavior does not lose panel scope or pending action context.
    - Run live smoke, control smoke, active-turn interrupt smoke, active-turn steer smoke, and two-panel smoke from the connection dialog when desktop runtime access is available.
+   - Optionally run `npm run smoke:phase3` to execute the opt-in live-control, active-turn interrupt, and active-turn steer desktop smoke tests. This can send tiny read-only prompts through the local runtime and is intentionally excluded from normal tests.
 3. `Chat`
    - Send a test message and verify response capture and interruption controls.
    - Confirm the same session can continue after transient stalls.

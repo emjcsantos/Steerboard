@@ -5389,4 +5389,86 @@ mod tests {
             .safe_location_label
             .contains("No local source location"));
     }
+
+    fn assert_phase3_smoke_supported_or_unsupported(
+        source: &str,
+        executed: bool,
+        unsupported: bool,
+        detail: &str,
+    ) {
+        assert_eq!(
+            source, "desktop",
+            "phase3 desktop smoke tests should remain provider-scoped to desktop"
+        );
+        assert!(!detail.trim().is_empty(), "phase3 smoke result must include detail");
+        assert!(
+            executed || unsupported,
+            "phase3 smoke result must either execute or be explicitly unsupported"
+        );
+        if unsupported {
+            let detail = detail.to_lowercase();
+            assert!(
+                detail.contains("unsupported")
+                    || detail.contains("could not")
+                    || detail.contains("unable"),
+                "unsupported phase3 smoke should include an explicit reason: {detail}"
+            );
+        }
+    }
+
+    #[test]
+    #[ignore = "phase3-live-desktop-smoke"]
+    fn phase3_live_desktop_smoke_live_control_command() {
+        let proof = runtime_bridge::codex_transport_live_control_smoke();
+        assert_phase3_smoke_supported_or_unsupported(
+            &proof.source,
+            proof.executed,
+            proof.unsupported,
+            &proof.detail,
+        );
+    }
+
+    #[test]
+    #[ignore = "phase3-live-desktop-smoke"]
+    fn phase3_live_desktop_smoke_active_turn_control_command() {
+        let proof = runtime_bridge::codex_transport_active_turn_control_smoke();
+        assert_phase3_smoke_supported_or_unsupported(
+            &proof.source,
+            proof.executed,
+            proof.unsupported,
+            &proof.detail,
+        );
+        if proof.executed {
+            assert!(
+                !proof.controls.is_empty(),
+                "active-turn control smoke should report control probes when attempted"
+            );
+            assert!(
+                proof.controls.iter().any(|control| control.control == "turn/interrupt"),
+                "active-turn control smoke should include turn/interrupt control proof"
+            );
+        }
+    }
+
+    #[test]
+    #[ignore = "phase3-live-desktop-smoke"]
+    fn phase3_live_desktop_smoke_active_turn_steer_command() {
+        let proof = runtime_bridge::codex_transport_active_turn_steer_smoke();
+        assert_phase3_smoke_supported_or_unsupported(
+            &proof.source,
+            proof.executed,
+            proof.unsupported,
+            &proof.detail,
+        );
+        if proof.executed {
+            assert!(
+                !proof.controls.is_empty(),
+                "active-turn steer smoke should report control probes when attempted"
+            );
+            assert!(
+                proof.controls.iter().any(|control| control.control == "turn/steer"),
+                "active-turn steer smoke should include turn/steer control proof"
+            );
+        }
+    }
 }

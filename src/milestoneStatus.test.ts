@@ -336,13 +336,13 @@ describe("milestone status model", () => {
 
     expect(ownerTesting?.completion).toBe("In progress");
     expect(ownerTesting?.tone).toBe("active");
-    expect(ownerTesting?.completionPercent).toBe(43);
+    expect(ownerTesting?.completionPercent).toBe(44);
     expect(ownerTesting?.current).toBeUndefined();
     expect(ownerTesting?.latestNote).toBe(
-      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, per-control session-control state evidence, and an actionable diagnostic Phase 3 exit gate without automatic execution."
+      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, per-control session-control state evidence, opt-in Phase 3 desktop smoke harnessing, and an actionable diagnostic Phase 3 exit gate without automatic execution."
     );
     expect(ownerTesting?.nextStep).toBe(
-      "Run the full local testing checklist, use the Phase 3 gate actions to clear missing proofs, verify the per-control Owner Testing state chips, approval-to-probe behavior, all-catalog provider refresh smoke, live panel slash execution evidence, live panel control evidence, active-turn interrupt/steer smoke proof, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
+      "Run the full local testing checklist, keep `npm run smoke:phase3` as the recurring opt-in desktop smoke command, use the Phase 3 gate actions to clear missing proofs, verify the per-control Owner Testing state chips, approval-to-probe behavior, all-catalog provider refresh smoke, live panel slash execution evidence, live panel control evidence, active-turn interrupt/steer smoke proof, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
     );
   });
 

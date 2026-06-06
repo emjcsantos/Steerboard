@@ -39,6 +39,8 @@ The working spike proves this path:
 
 The app exposes this as an explicit live smoke action from the Codex connection dialog. It should not run on app startup or during passive readiness refresh.
 
+For repeatable local validation, `npm run smoke:phase3` runs the ignored Tauri smoke tests for live-control, active-turn interrupt, and active-turn steer. This command is opt-in because it can send tiny read-only prompts through the local runtime; normal `npm test` and `cargo test` do not run these live smoke checks.
+
 ## Fallback Behavior
 
 If app-server stdio is unavailable or the handshake fails:
