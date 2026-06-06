@@ -42,6 +42,7 @@ Do not proceed to the next section until the current item is at least `review`.
 7. `Catalogs`
    - Open command, skill, plugin, MCP, automation, and personalization catalogs.
    - Verify stable ordering and filtering output across repeated reloads.
+   - Confirm the Owner Testing panel shows six catalog refresh validation rows and a metadata-only safety note.
    - Refresh the command catalog as a safe metadata/status refresh and confirm source/state changes are visible without side effects.
    - Refresh the skill catalog as a safe metadata/status refresh and confirm source/state changes are visible without executing skills.
    - Refresh the plugin catalog as a safe metadata/status refresh and confirm source/state changes are visible without invoking plugin actions.

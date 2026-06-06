@@ -5415,6 +5415,106 @@ textarea {
   font-weight: 800;
 }
 
+.owner-testing-catalog-validation {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 8px;
+  border: 1px solid #254634;
+  border-radius: 8px;
+  background: #101a17;
+  padding: 6px 7px;
+}
+
+.owner-testing-catalog-validation strong,
+.owner-testing-catalog-validation span,
+.owner-testing-catalog-validation small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-catalog-validation strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.owner-testing-catalog-validation span {
+  color: #8fe0a8;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.owner-testing-catalog-validation small {
+  grid-column: 1 / -1;
+  color: #9fb0a7;
+  font-size: 10px;
+}
+
+.owner-testing-catalog-validation-blocked {
+  border-color: #69343a;
+  background: #211619;
+}
+
+.owner-testing-catalog-validation-list {
+  display: grid;
+  gap: 5px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.owner-testing-catalog-validation-list li {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 5px;
+  border: 1px solid #26303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 5px;
+}
+
+.owner-testing-catalog-validation-list strong,
+.owner-testing-catalog-validation-list span,
+.owner-testing-catalog-validation-list small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-catalog-validation-list strong {
+  color: #edf3f8;
+  font-size: 10px;
+  text-transform: capitalize;
+}
+
+.owner-testing-catalog-validation-list span,
+.owner-testing-catalog-validation-list small {
+  color: #a8b2bd;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.owner-testing-catalog-validation-list small {
+  grid-column: 1 / -1;
+  color: #8fe0a8;
+}
+
+.owner-testing-catalog-validation-item-blocked {
+  border-color: #69343a;
+}
+
+.owner-testing-catalog-validation-item-blocked small {
+  color: #ff9aaa;
+}
+
 .owner-testing-catalog-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

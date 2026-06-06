@@ -77,6 +77,10 @@ import {
 } from "./automationCatalog";
 import { loadProviderAutomationCatalogSnapshot } from "./providerAutomationCatalog";
 import {
+  buildCatalogRefreshOwnerValidation,
+  type CatalogRefreshOwnerValidationResult
+} from "./catalogRefreshOwnerValidation";
+import {
   buildCommandCatalogSnapshot,
   type CommandCatalogRefreshSource,
   type CommandCatalogSnapshot
@@ -1439,6 +1443,43 @@ export function App() {
   const codexTransportDecision = useMemo(
     () => decideCodexTransport(codexTransportProbe, codexLiveSmokeProof),
     [codexLiveSmokeProof, codexTransportProbe]
+  );
+  const catalogRefreshOwnerValidation = useMemo(
+    () =>
+      buildCatalogRefreshOwnerValidation({
+        commandPayload: {
+          source: commandCatalogSnapshot.source,
+          entries: commandCatalogSnapshot.catalog
+        },
+        skillPayload: {
+          source: skillCatalogSnapshot.source,
+          entries: skillCatalogSnapshot.catalog
+        },
+        pluginPayload: {
+          source: pluginCatalogSnapshot.source,
+          entries: pluginCatalogSnapshot.catalog
+        },
+        mcpPayload: {
+          source: mcpCatalogSnapshot.source,
+          entries: mcpCatalogSnapshot.catalog
+        },
+        automationPayload: {
+          source: automationCatalogSnapshot.source,
+          entries: automationCatalogSnapshot.catalog
+        },
+        personalizationPayload: {
+          source: personalizationCatalogSnapshot.source,
+          entries: personalizationCatalogSnapshot.catalog
+        }
+      }),
+    [
+      automationCatalogSnapshot,
+      commandCatalogSnapshot,
+      mcpCatalogSnapshot,
+      personalizationCatalogSnapshot,
+      pluginCatalogSnapshot,
+      skillCatalogSnapshot
+    ]
   );
 
   useEffect(() => {
@@ -2839,6 +2880,7 @@ export function App() {
           </section>
 
           <RightPanel
+            catalogRefreshOwnerValidation={catalogRefreshOwnerValidation}
             layoutCapacity={cockpitLayoutCapacity}
             mode={mode}
             modeHandoff={cockpitModeHandoff}
@@ -5666,6 +5708,7 @@ function PlanningView({
 }
 
 function RightPanel({
+  catalogRefreshOwnerValidation,
   layoutCapacity,
   mode,
   modeHandoff,
@@ -5686,6 +5729,7 @@ function RightPanel({
   sessions,
   tasks
 }: {
+  catalogRefreshOwnerValidation: CatalogRefreshOwnerValidationResult;
   focusedPanelId?: string;
   layoutCapacity: CockpitLayoutCapacity;
   mode: CockpitMode;
@@ -6052,6 +6096,16 @@ function RightPanel({
     () => summarizeLiveActionRunnerExecutions(liveActionRunnerEvaluations),
     [liveActionRunnerEvaluations]
   );
+  const catalogRefreshOwnerStateBySurface = useMemo(
+    () =>
+      new Map(
+        catalogRefreshOwnerValidation.surfaces.map((surface) => [
+          surface.surface,
+          surface.pass ? "ready" : "blocked"
+        ] as const)
+      ),
+    [catalogRefreshOwnerValidation]
+  );
   const ownerTestingChecklist: OwnerTestingChecklist = useMemo(
     () =>
       buildOwnerTestingChecklist({
@@ -6062,12 +6116,12 @@ function RightPanel({
         controls: "review",
         "slash-commands": "ready",
         catalogs: "review",
-        "catalog-command-refresh": "review",
-        "catalog-skill-refresh": "review",
-        "catalog-plugin-refresh": "review",
-        "catalog-mcp-refresh": "review",
-        "catalog-automation-refresh": "review",
-        "catalog-personalization-refresh": "review",
+        "catalog-command-refresh": catalogRefreshOwnerStateBySurface.get("command") ?? "review",
+        "catalog-skill-refresh": catalogRefreshOwnerStateBySurface.get("skill") ?? "review",
+        "catalog-plugin-refresh": catalogRefreshOwnerStateBySurface.get("plugin") ?? "review",
+        "catalog-mcp-refresh": catalogRefreshOwnerStateBySurface.get("mcp") ?? "review",
+        "catalog-automation-refresh": catalogRefreshOwnerStateBySurface.get("automation") ?? "review",
+        "catalog-personalization-refresh": catalogRefreshOwnerStateBySurface.get("personalization") ?? "review",
         migration: "ready",
         planning: "ready",
         dispatch: "ready",
@@ -6076,6 +6130,7 @@ function RightPanel({
         recovery: runtimeRecoveryFailureCoverage.tone === "blocked" ? "blocked" : "review"
       }),
     [
+      catalogRefreshOwnerStateBySurface,
       liveActionExecutableCount,
       runtimeAdapter?.state,
       runtimeRecoveryFailureCoverage.tone
@@ -6712,6 +6767,7 @@ function RightPanel({
       />
 
       <OwnerTestingReadinessPanel
+        catalogRefreshOwnerValidation={catalogRefreshOwnerValidation}
         checklist={ownerTestingChecklist}
         failureFixtures={failureStateFixtures}
         failureSummary={failureStateFixtureSummary}
@@ -9031,10 +9087,12 @@ function ToolEvidenceReadinessPanel({
 }
 
 function OwnerTestingReadinessPanel({
+  catalogRefreshOwnerValidation,
   checklist,
   failureFixtures,
   failureSummary
 }: {
+  catalogRefreshOwnerValidation: CatalogRefreshOwnerValidationResult;
   checklist: OwnerTestingChecklist;
   failureFixtures: readonly FailureStateFixture[];
   failureSummary: FailureStateFixtureSummary;
@@ -9100,6 +9158,34 @@ function OwnerTestingReadinessPanel({
           >
             {checklist.summary.catalogRefresh.evidenceSafetyLabel}
           </p>
+          <div
+            aria-label={`Catalog refresh owner validation ${catalogRefreshOwnerValidation.state}; ${catalogRefreshOwnerValidation.readiness}% ready`}
+            className={classNames(
+              "owner-testing-catalog-validation",
+              `owner-testing-catalog-validation-${catalogRefreshOwnerValidation.state}`
+            )}
+            title={catalogRefreshOwnerValidation.safety}
+          >
+            <strong>Owner validation</strong>
+            <span>{catalogRefreshOwnerValidation.readiness}%</span>
+            <small>{catalogRefreshOwnerValidation.pass ? "All metadata checks passed" : "Review blocked checks"}</small>
+          </div>
+          <ol
+            className="owner-testing-catalog-validation-list"
+            aria-label="Catalog refresh metadata validation results"
+          >
+            {catalogRefreshOwnerValidation.surfaces.map((surface) => (
+              <li
+                className={`owner-testing-catalog-validation-item-${surface.state}`}
+                key={surface.surface}
+                title={`${surface.safety} Source: ${surface.source}. Items: ${surface.total}.`}
+              >
+                <strong>{surface.surface}</strong>
+                <span>{surface.source}</span>
+                <small>{surface.pass ? "pass" : "blocked"}</small>
+              </li>
+            ))}
+          </ol>
           <div className="owner-testing-catalog-grid" aria-label="Catalog refresh checklist counts">
             <span>
               <strong>{checklist.summary.catalogRefresh.ready}</strong>
