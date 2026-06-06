@@ -607,6 +607,62 @@ textarea {
   white-space: nowrap;
 }
 
+.transport-catalog-proof {
+  grid-template-columns: minmax(96px, auto) minmax(72px, auto) minmax(0, 1fr);
+}
+
+.transport-catalog-sources {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.transport-catalog-sources li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  border: 1px solid #273241;
+  border-radius: 6px;
+  background: #0e141b;
+  padding: 5px 7px;
+}
+
+.transport-catalog-sources li span,
+.transport-catalog-sources li b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transport-catalog-sources li span {
+  color: #9fa9b4;
+}
+
+.transport-catalog-sources li b {
+  color: #dce6ef;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.transport-catalog-sources .catalog-smoke-ready {
+  border-color: rgba(73, 209, 141, 0.35);
+}
+
+.transport-catalog-sources .catalog-smoke-blocked {
+  border-color: rgba(255, 107, 107, 0.38);
+}
+
+.transport-catalog-sources .catalog-smoke-preview {
+  border-color: rgba(88, 166, 255, 0.32);
+}
+
 .connection-checks,
 .migration-grid,
 .slash-command-list {

@@ -81,6 +81,11 @@ import {
   type CatalogRefreshOwnerValidationResult
 } from "./catalogRefreshOwnerValidation";
 import {
+  buildCatalogRefreshProviderSmoke,
+  CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
+  type CatalogRefreshProviderSmokeResult
+} from "./catalogRefreshProviderSmoke";
+import {
   buildCommandCatalogSnapshot,
   type CommandCatalogRefreshSource,
   type CommandCatalogSnapshot
@@ -1391,6 +1396,8 @@ export function App() {
   const [codexTwoPanelSmokeProof, setCodexTwoPanelSmokeProof] = useState<CodexTwoPanelSmokeProof>(() =>
     getFallbackCodexTwoPanelSmokeProof()
   );
+  const [catalogRefreshProviderSmokeProof, setCatalogRefreshProviderSmokeProof] =
+    useState<CatalogRefreshProviderSmokeResult>(() => CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW);
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
@@ -1419,6 +1426,7 @@ export function App() {
   const [codexActiveTurnSteerSmokeLoading, setCodexActiveTurnSteerSmokeLoading] = useState(false);
   const [codexLiveControlSmokeLoading, setCodexLiveControlSmokeLoading] = useState(false);
   const [codexTwoPanelSmokeLoading, setCodexTwoPanelSmokeLoading] = useState(false);
+  const [catalogRefreshProviderSmokeLoading, setCatalogRefreshProviderSmokeLoading] = useState(false);
   const [automationCatalogLoading, setAutomationCatalogLoading] = useState(false);
   const [personalizationCatalogLoading, setPersonalizationCatalogLoading] = useState(false);
   const [mcpCatalogLoading, setMcpCatalogLoading] = useState(false);
@@ -2429,6 +2437,78 @@ export function App() {
     }
   }
 
+  async function runCatalogRefreshProviderSmokeProof() {
+    setCatalogRefreshProviderSmokeLoading(true);
+    setAppNotice("Refreshing provider catalogs for smoke proof");
+
+    try {
+      const [
+        nextCommandSnapshot,
+        nextSkillSnapshot,
+        nextPluginSnapshot,
+        nextMcpSnapshot,
+        nextAutomationSnapshot,
+        nextPersonalizationSnapshot
+      ] = await Promise.all([
+        loadProviderCommandCatalogSnapshot(undefined, panelSlashCommands),
+        loadProviderSkillCatalogSnapshot(undefined, defaultSkillCatalog),
+        loadProviderPluginCatalogSnapshot(undefined, defaultPluginCatalog),
+        loadProviderMcpCatalogSnapshot(undefined, defaultMcpCatalog),
+        loadProviderAutomationCatalogSnapshot(undefined, defaultAutomationCatalog),
+        loadProviderPersonalizationCatalogSnapshot(undefined, defaultPersonalizationCatalog)
+      ]);
+
+      setCommandCatalogSnapshot(nextCommandSnapshot);
+      setSkillCatalogSnapshot(nextSkillSnapshot);
+      setPluginCatalogSnapshot(nextPluginSnapshot);
+      setMcpCatalogSnapshot(nextMcpSnapshot);
+      setAutomationCatalogSnapshot(nextAutomationSnapshot);
+      setPersonalizationCatalogSnapshot(nextPersonalizationSnapshot);
+
+      const nextProof = buildCatalogRefreshProviderSmoke({
+        commandCatalogSnapshot: {
+          source: nextCommandSnapshot.source,
+          entries: nextCommandSnapshot.catalog
+        },
+        skillCatalogSnapshot: {
+          source: nextSkillSnapshot.source,
+          entries: nextSkillSnapshot.catalog
+        },
+        pluginCatalogSnapshot: {
+          source: nextPluginSnapshot.source,
+          entries: nextPluginSnapshot.catalog
+        },
+        mcpCatalogSnapshot: {
+          source: nextMcpSnapshot.source,
+          entries: nextMcpSnapshot.catalog
+        },
+        automationCatalogSnapshot: {
+          source: nextAutomationSnapshot.source,
+          entries: nextAutomationSnapshot.catalog
+        },
+        personalizationCatalogSnapshot: {
+          source: nextPersonalizationSnapshot.source,
+          entries: nextPersonalizationSnapshot.catalog
+        }
+      });
+
+      setCatalogRefreshProviderSmokeProof(nextProof);
+      setCodexConnectionRequested(true);
+      setAppNotice(
+        nextProof.ok
+          ? "Provider catalog refresh smoke passed"
+          : "Provider catalog refresh smoke needs review"
+      );
+    } catch {
+      setCatalogRefreshProviderSmokeProof(
+        buildCatalogRefreshProviderSmoke({}, { notRunPreview: true })
+      );
+      setAppNotice("Provider catalog refresh smoke is unavailable");
+    } finally {
+      setCatalogRefreshProviderSmokeLoading(false);
+    }
+  }
+
   function recordLivePanelSessionStart(result: CodexPanelSessionStartPayload) {
     setPanelSessionState((currentState) =>
       upsertPanelSession(
@@ -2921,6 +3001,8 @@ export function App() {
           codexLiveControlSmokeProof={codexLiveControlSmokeProof}
           codexTwoPanelSmokeLoading={codexTwoPanelSmokeLoading}
           codexTwoPanelSmokeProof={codexTwoPanelSmokeProof}
+          catalogRefreshProviderSmokeLoading={catalogRefreshProviderSmokeLoading}
+          catalogRefreshProviderSmokeProof={catalogRefreshProviderSmokeProof}
           codexTransportDecision={codexTransportDecision}
           codexTransportLoading={codexTransportLoading}
           dialog={appDialog}
@@ -2952,6 +3034,7 @@ export function App() {
           onRunCodexActiveTurnSteerSmokeProof={runCodexActiveTurnSteerSmokeProof}
           onRunCodexLiveControlSmokeProof={runCodexLiveControlSmokeProof}
           onRunCodexTwoPanelSmokeProof={runCodexTwoPanelSmokeProof}
+          onRunCatalogRefreshProviderSmokeProof={runCatalogRefreshProviderSmokeProof}
           onSelectReviewableMigrationCategories={handleSelectReviewableMigrationCategories}
           onStageCodexConnection={handleStageCodexConnection}
           pluginCatalogLoading={pluginCatalogLoading}
@@ -3114,6 +3197,8 @@ function AppDialogSurface({
   codexLiveControlSmokeProof,
   codexTwoPanelSmokeLoading,
   codexTwoPanelSmokeProof,
+  catalogRefreshProviderSmokeLoading,
+  catalogRefreshProviderSmokeProof,
   codexTransportDecision,
   codexTransportLoading,
   dialog,
@@ -3145,6 +3230,7 @@ function AppDialogSurface({
   onRunCodexActiveTurnSteerSmokeProof,
   onRunCodexLiveControlSmokeProof,
   onRunCodexTwoPanelSmokeProof,
+  onRunCatalogRefreshProviderSmokeProof,
   onSelectReviewableMigrationCategories,
   onStageCodexConnection,
   pluginCatalogLoading,
@@ -3168,6 +3254,8 @@ function AppDialogSurface({
   codexLiveControlSmokeProof: CodexLiveControlSmokeProof;
   codexTwoPanelSmokeLoading: boolean;
   codexTwoPanelSmokeProof: CodexTwoPanelSmokeProof;
+  catalogRefreshProviderSmokeLoading: boolean;
+  catalogRefreshProviderSmokeProof: CatalogRefreshProviderSmokeResult;
   codexTransportDecision: CodexTransportDecision;
   codexTransportLoading: boolean;
   dialog: AppDialog;
@@ -3199,6 +3287,7 @@ function AppDialogSurface({
   onRunCodexActiveTurnSteerSmokeProof: () => void;
   onRunCodexLiveControlSmokeProof: () => void;
   onRunCodexTwoPanelSmokeProof: () => void;
+  onRunCatalogRefreshProviderSmokeProof: () => void;
   onSelectReviewableMigrationCategories: () => void;
   onStageCodexConnection: () => void;
   pluginCatalogLoading: boolean;
@@ -3348,6 +3437,33 @@ function AppDialogSurface({
                   : "Runs two explicit read-only Codex panel turns and checks identity isolation."}
               </small>
             </div>
+            <div
+              className="transport-live-proof transport-catalog-proof"
+              aria-label="Provider catalog refresh smoke proof"
+              title={catalogRefreshProviderSmokeProof.safety}
+            >
+              <span>Catalog smoke</span>
+              <strong>
+                {catalogRefreshProviderSmokeProof.ok
+                  ? "Passed"
+                  : catalogRefreshProviderSmokeProof.executed
+                    ? "Failed"
+                    : "Not run"}
+              </strong>
+              <small>
+                {catalogRefreshProviderSmokeProof.executed
+                  ? `${catalogRefreshProviderSmokeProof.surfaces.filter((surface) => surface.pass).length}/${catalogRefreshProviderSmokeProof.surfaces.length} surfaces; ${catalogRefreshProviderSmokeProof.detail}`
+                  : "Refreshes all catalog metadata/status surfaces without running commands, tools, automations, or mutations."}
+              </small>
+              <ul className="transport-catalog-sources" aria-label="Catalog smoke surface sources">
+                {catalogRefreshProviderSmokeProof.surfaces.map((surface) => (
+                  <li className={classNames(`catalog-smoke-${surface.state}`)} key={surface.surface}>
+                    <span>{surface.surface}</span>
+                    <b>{surface.source}</b>
+                  </li>
+                ))}
+              </ul>
+            </div>
             <p className="transport-fallback">{codexTransportDecision.fallback}</p>
             <div className="dialog-action-row">
               <button className="dialog-secondary-action" onClick={onRefreshCodexTransport} type="button">
@@ -3392,6 +3508,14 @@ function AppDialogSurface({
                 type="button"
               >
                 {codexTwoPanelSmokeLoading ? "Running panels..." : "Run two-panel smoke"}
+              </button>
+              <button
+                className="dialog-secondary-action"
+                disabled={catalogRefreshProviderSmokeLoading}
+                onClick={onRunCatalogRefreshProviderSmokeProof}
+                type="button"
+              >
+                {catalogRefreshProviderSmokeLoading ? "Refreshing catalogs..." : "Run catalog smoke"}
               </button>
               <button className="dialog-primary-action" onClick={onStageCodexConnection} type="button">
                 {codexConnectionRequested ? "Connection request staged" : "Stage Codex connection request"}

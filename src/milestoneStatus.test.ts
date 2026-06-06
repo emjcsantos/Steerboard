@@ -255,13 +255,13 @@ describe("milestone status model", () => {
 
     expect(platform?.completion).toBe("In progress");
     expect(platform?.tone).toBe("active");
-    expect(platform?.completionPercent).toBe(54);
+    expect(platform?.completionPercent).toBe(55);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and catalog refresh owner testing now validates all six current metadata/status snapshots without execution."
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and the connection dialog now runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution."
     );
     expect(platform?.nextStep).toBe(
-      "Run desktop provider refresh smoke for connected catalog sources, then continue slash execution, migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
+      "Use the connection dialog catalog smoke as the recurring provider-refresh regression check, then continue slash execution, migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
     );
   });
 
@@ -305,8 +305,8 @@ describe("milestone status model", () => {
       averageCompletionPercent: 43,
       nextTarget: "Platform capabilities",
       nextStep:
-        "Run desktop provider refresh smoke for connected catalog sources, then continue slash execution, migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
-      nextCompletionPercent: 54
+        "Use the connection dialog catalog smoke as the recurring provider-refresh regression check, then continue slash execution, migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
+      nextCompletionPercent: 55
     });
   });
 
@@ -334,13 +334,13 @@ describe("milestone status model", () => {
 
     expect(ownerTesting?.completion).toBe("In progress");
     expect(ownerTesting?.tone).toBe("active");
-    expect(ownerTesting?.completionPercent).toBe(36);
+    expect(ownerTesting?.completionPercent).toBe(37);
     expect(ownerTesting?.current).toBeUndefined();
     expect(ownerTesting?.latestNote).toBe(
-      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, and six-surface catalog refresh owner validation driven by current metadata/status snapshots."
+      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, and all-catalog provider refresh smoke proofing without execution."
     );
     expect(ownerTesting?.nextStep).toBe(
-      "Run the full local testing checklist, verify approval-to-probe behavior, desktop provider catalog refresh smoke, live panel slash-routing evidence, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
+      "Run the full local testing checklist, verify approval-to-probe behavior, all-catalog provider refresh smoke, live panel slash-routing evidence, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
     );
   });
 
