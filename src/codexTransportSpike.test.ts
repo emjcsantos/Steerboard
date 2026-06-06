@@ -2,15 +2,19 @@ import { describe, expect, it } from "vitest";
 import {
   decideCodexTransport,
   getFallbackCodexLiveSmokeProof,
+  getFallbackCodexLiveControlSmokeProof,
   getFallbackCodexTwoPanelSmokeProof,
   getFallbackCodexTransportProbe,
   loadCodexLiveSmokeProof,
+  loadCodexLiveControlSmokeProof,
   loadCodexTwoPanelSmokeProof,
   loadCodexTransportProbe,
   normalizeCodexLiveSmokeProof,
+  normalizeCodexLiveControlSmokeProof,
   normalizeCodexTwoPanelSmokeProof,
   normalizeCodexTransportProbe,
   type CodexLiveSmokeProof,
+  type CodexLiveControlSmokeProof,
   type CodexTwoPanelSmokeProof,
   type CodexTransportProbe
 } from "./codexTransportSpike";
@@ -72,6 +76,41 @@ const liveProof: CodexLiveSmokeProof = {
   expectedTokenSeen: true,
   methodCount: 19,
   uniqueMethods: ["item/agentMessage/delta", "turn/completed"]
+};
+
+const liveControlProof: CodexLiveControlSmokeProof = {
+  source: "desktop",
+  checkedAt: "1780667800000",
+  executed: true,
+  ok: true,
+  unsupported: false,
+  detail: "Control smoke succeeded.",
+  sourceDetected: true,
+  appServerReady: true,
+  protocolReady: true,
+  requiredMethods: [
+    {
+      method: "thread/start",
+      supported: true,
+      state: "supported",
+      detail: "Thread creation protocol schema is present."
+    },
+    {
+      method: "turn/interrupt",
+      supported: true,
+      state: "supported",
+      detail: "Turn interrupt protocol schema is present."
+    },
+    {
+      method: "turn/steer",
+      supported: true,
+      state: "supported",
+      detail: "Turn steer protocol schema is present."
+    }
+  ],
+  supportedMethodCount: 3,
+  unsupportedMethodCount: 0,
+  totalMethodCount: 3
 };
 
 const twoPanelProof: CodexTwoPanelSmokeProof = {
@@ -247,6 +286,67 @@ describe("codex transport spike", () => {
     });
   });
 
+  it("normalizes live-control smoke proofs into safe typed defaults", () => {
+    const proof = normalizeCodexLiveControlSmokeProof({
+      source: "desktop",
+      checkedAt: "not a date",
+      executed: true,
+      ok: true,
+      detail: "",
+      unsupported: true,
+      sourceDetected: true,
+      appServerReady: false,
+      protocolReady: "yes",
+      supportedMethodCount: 99,
+      unsupportedMethodCount: -4,
+      totalMethodCount: 99,
+      requiredMethods: [
+        {
+          method: "turn/start",
+          supported: true,
+          state: "maybe",
+          detail: ""
+        },
+        {
+          method: "turn/interrupt",
+          supported: false,
+          state: "supported",
+          detail: "No interrupt schema."
+        },
+        { method: "", supported: true }
+      ]
+    });
+
+    expect(proof).toMatchObject({
+      source: "desktop",
+      checkedAt: null,
+      executed: true,
+      ok: true,
+      unsupported: true,
+      detail: "Browser preview cannot launch a Codex live-control smoke test.",
+      sourceDetected: true,
+      appServerReady: false,
+      protocolReady: false,
+      supportedMethodCount: 1,
+      unsupportedMethodCount: 1,
+      totalMethodCount: 2,
+      requiredMethods: [
+        {
+          method: "turn/start",
+          supported: true,
+          state: "supported",
+          detail: "No control smoke method detail was returned."
+        },
+        {
+          method: "turn/interrupt",
+          supported: false,
+          state: "unsupported",
+          detail: "No interrupt schema."
+        }
+      ]
+    });
+  });
+
   it("falls back to exec-json for one-shot work when app-server handshake is absent", () => {
     const decision = decideCodexTransport({
       ...readyProbe,
@@ -319,6 +419,32 @@ describe("codex transport spike", () => {
     expect(getFallbackCodexLiveSmokeProof()).toMatchObject({
       source: "browser",
       ok: false
+    });
+  });
+
+  it("normalizes injected live-control smoke loads and falls back safely", async () => {
+    await expect(loadCodexLiveControlSmokeProof(async () => liveControlProof)).resolves.toMatchObject({
+      source: "desktop",
+      ok: true,
+      protocolReady: true,
+      supportedMethodCount: 3
+    });
+
+    await expect(
+      loadCodexLiveControlSmokeProof(async () => {
+        throw new Error("control smoke failed");
+      })
+    ).resolves.toMatchObject({
+      source: "desktop",
+      ok: false,
+      executed: false
+    });
+
+    expect(getFallbackCodexLiveControlSmokeProof()).toMatchObject({
+      source: "browser",
+      ok: false,
+      executed: false,
+      unsupported: true
     });
   });
 

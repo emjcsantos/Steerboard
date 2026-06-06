@@ -95,6 +95,29 @@ export interface CodexLiveSmokeProof {
   uniqueMethods: string[];
 }
 
+export interface CodexLiveControlSmokeProof {
+  source: CodexProbeSource;
+  checkedAt: string | null;
+  executed: boolean;
+  ok: boolean;
+  unsupported: boolean;
+  detail: string;
+  sourceDetected: boolean;
+  appServerReady: boolean;
+  protocolReady: boolean;
+  requiredMethods: CodexLiveControlSmokeMethodProof[];
+  supportedMethodCount: number;
+  unsupportedMethodCount: number;
+  totalMethodCount: number;
+}
+
+export interface CodexLiveControlSmokeMethodProof {
+  method: string;
+  supported: boolean;
+  state: string;
+  detail: string;
+}
+
 export interface CodexTwoPanelSmokePanelProof {
   panelId: string;
   sessionId: string | null;
@@ -185,6 +208,22 @@ const fallbackLiveSmokeProof: CodexLiveSmokeProof = {
   expectedTokenSeen: false,
   methodCount: 0,
   uniqueMethods: []
+};
+
+const fallbackLiveControlSmokeProof: CodexLiveControlSmokeProof = {
+  source: "browser",
+  checkedAt: null,
+  executed: false,
+  ok: false,
+  unsupported: true,
+  detail: "Browser preview cannot launch a Codex live-control smoke test.",
+  sourceDetected: false,
+  appServerReady: false,
+  protocolReady: false,
+  requiredMethods: [],
+  supportedMethodCount: 0,
+  unsupportedMethodCount: 0,
+  totalMethodCount: 0
 };
 
 const fallbackTwoPanelSmokeProof: CodexTwoPanelSmokeProof = {
@@ -324,6 +363,13 @@ export function getFallbackCodexLiveSmokeProof(): CodexLiveSmokeProof {
   };
 }
 
+export function getFallbackCodexLiveControlSmokeProof(): CodexLiveControlSmokeProof {
+  return {
+    ...fallbackLiveControlSmokeProof,
+    requiredMethods: fallbackLiveControlSmokeProof.requiredMethods.map((method) => ({ ...method }))
+  };
+}
+
 export function normalizeCodexLiveSmokeProof(value: unknown): CodexLiveSmokeProof {
   if (!isRecord(value)) {
     return getFallbackCodexLiveSmokeProof();
@@ -345,6 +391,67 @@ export function normalizeCodexLiveSmokeProof(value: unknown): CodexLiveSmokeProo
     expectedTokenSeen: bool(value.expectedTokenSeen),
     methodCount: nonNegativeInteger(value.methodCount),
     uniqueMethods: stringArray(value.uniqueMethods)
+  };
+}
+
+export function normalizeCodexLiveControlSmokeProof(
+  value: unknown
+): CodexLiveControlSmokeProof {
+  if (!isRecord(value)) {
+    return getFallbackCodexLiveControlSmokeProof();
+  }
+
+  const fallback = getFallbackCodexLiveControlSmokeProof();
+  const requiredMethods = Array.isArray(value.requiredMethods)
+    ? value.requiredMethods
+        .map(normalizeCodexLiveControlSmokeMethodProof)
+        .filter((method): method is CodexLiveControlSmokeMethodProof => Boolean(method))
+    : [];
+  const supportedMethodCount = requiredMethods.length > 0
+    ? requiredMethods.filter((method) => method.supported).length
+    : nonNegativeInteger(value.supportedMethodCount);
+  const totalMethodCount = requiredMethods.length > 0
+    ? requiredMethods.length
+    : nonNegativeInteger(value.totalMethodCount);
+  const unsupportedMethodCount = requiredMethods.length > 0
+    ? totalMethodCount - supportedMethodCount
+    : nonNegativeInteger(value.unsupportedMethodCount);
+
+  return {
+    source: value.source === "desktop" ? "desktop" : "browser",
+    checkedAt: optionalDate(value.checkedAt),
+    executed: bool(value.executed),
+    ok: bool(value.ok),
+    unsupported: bool(value.unsupported),
+    detail: optionalString(value.detail) ?? fallback.detail,
+    sourceDetected: bool(value.sourceDetected),
+    appServerReady: bool(value.appServerReady),
+    protocolReady: bool(value.protocolReady),
+    requiredMethods,
+    supportedMethodCount,
+    unsupportedMethodCount,
+    totalMethodCount
+  };
+}
+
+function normalizeCodexLiveControlSmokeMethodProof(
+  value: unknown
+): CodexLiveControlSmokeMethodProof | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const method = optionalString(value.method);
+  if (!method) {
+    return undefined;
+  }
+
+  const supported = bool(value.supported);
+  return {
+    method,
+    supported,
+    state: supported ? "supported" : "unsupported",
+    detail: optionalString(value.detail) ?? "No control smoke method detail was returned."
   };
 }
 
@@ -571,6 +678,15 @@ async function invokeCodexLiveSmokeProof(): Promise<unknown> {
   return invoke("codex_transport_live_smoke");
 }
 
+async function invokeCodexLiveControlSmokeProof(): Promise<unknown> {
+  if (!hasTauriRuntime()) {
+    return getFallbackCodexLiveControlSmokeProof();
+  }
+
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke("codex_transport_live_control_smoke");
+}
+
 async function invokeCodexTwoPanelSmokeProof(): Promise<unknown> {
   if (!hasTauriRuntime()) {
     return getFallbackCodexTwoPanelSmokeProof();
@@ -616,6 +732,24 @@ export async function loadCodexLiveSmokeProof(
       ...getFallbackCodexLiveSmokeProof(),
       source: "desktop",
       detail: "Codex live smoke failed before a transport result was returned."
+    };
+  }
+}
+
+export async function loadCodexLiveControlSmokeProof(
+  invokeProof: () => Promise<unknown> = invokeCodexLiveControlSmokeProof
+): Promise<CodexLiveControlSmokeProof> {
+  try {
+    if (!hasTauriRuntime() && invokeProof === invokeCodexLiveControlSmokeProof) {
+      return getFallbackCodexLiveControlSmokeProof();
+    }
+
+    return normalizeCodexLiveControlSmokeProof(await invokeProof());
+  } catch {
+    return {
+      ...getFallbackCodexLiveControlSmokeProof(),
+      source: "desktop",
+      detail: "Codex live-control smoke failed before a transport result was returned."
     };
   }
 }

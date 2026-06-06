@@ -111,6 +111,33 @@ pub struct CodexLiveSmokeProof {
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CodexLiveControlSmokeMethodProof {
+    pub method: String,
+    pub supported: bool,
+    pub state: String,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexLiveControlSmokeProof {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub executed: bool,
+    pub ok: bool,
+    pub unsupported: bool,
+    pub detail: String,
+    pub source_detected: bool,
+    pub app_server_ready: bool,
+    pub protocol_ready: bool,
+    pub required_methods: Vec<CodexLiveControlSmokeMethodProof>,
+    pub supported_method_count: usize,
+    pub unsupported_method_count: usize,
+    pub total_method_count: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CodexTwoPanelSmokePanelProof {
     pub panel_id: String,
     pub session_id: Option<String>,
@@ -439,6 +466,7 @@ mod runtime_bridge {
     use super::{
         CodexAppServerProbe, CodexAppServerProtocolProbe, CodexCliProbe, CodexExecJsonProbe,
         CodexExecutionProbe, CodexHomeProbe, CodexLiveSmokeProof, CodexPanelCloseResult,
+        CodexLiveControlSmokeMethodProof, CodexLiveControlSmokeProof,
         CodexPanelEvent, CodexPanelInterruptResult, CodexPanelSessionReadiness,
         CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelTurnResult, CodexTransportProbe,
         CodexTwoPanelSmokePanelProof, CodexTwoPanelSmokeProof,
@@ -1782,6 +1810,11 @@ mod runtime_bridge {
     }
 
     #[tauri::command]
+    pub fn codex_transport_live_control_smoke() -> CodexLiveControlSmokeProof {
+        codex_transport_live_control_smoke_from_probe(codex_transport_probe())
+    }
+
+    #[tauri::command]
     pub fn codex_transport_two_panel_smoke() -> CodexTwoPanelSmokeProof {
         run_two_panel_smoke()
     }
@@ -2432,6 +2465,120 @@ mod runtime_bridge {
 
         cleanup_child(&mut child);
         live_smoke_result(checked_at, true, state)
+    }
+
+    fn codex_control_smoke_method(
+        method: &str,
+        supported: bool,
+        detail: &str,
+    ) -> CodexLiveControlSmokeMethodProof {
+        CodexLiveControlSmokeMethodProof {
+            method: method.to_string(),
+            supported,
+            state: if supported {
+                "supported".to_string()
+            } else {
+                "unsupported".to_string()
+            },
+            detail: detail.to_string(),
+        }
+    }
+
+    fn build_codex_transport_live_control_smoke_from_probe(
+        probe: CodexTransportProbe,
+    ) -> CodexLiveControlSmokeProof {
+        let checked_at = probe.checked_at.clone();
+        let source_detected = probe.cli.available
+            || probe.codex_home.present
+            || probe.codex_home.config_present
+            || probe.app_server.available
+            || probe.app_server.stdio_handshake
+            || probe.exec_json.available;
+
+        let mut required_methods = vec![
+            codex_control_smoke_method(
+                "thread/start",
+                probe.app_server.protocol.thread_start,
+                "Thread creation protocol schema is present for control smoke readiness.",
+            ),
+            codex_control_smoke_method(
+                "turn/start",
+                probe.app_server.protocol.turn_start,
+                "Turn start protocol schema is present for control smoke readiness.",
+            ),
+            codex_control_smoke_method(
+                "turn/interrupt",
+                probe.app_server.protocol.turn_interrupt,
+                "Turn interrupt protocol schema is present for control smoke readiness.",
+            ),
+            codex_control_smoke_method(
+                "turn/steer",
+                probe.app_server.protocol.turn_steer,
+                "Turn steer protocol schema is present for control smoke readiness.",
+            ),
+            codex_control_smoke_method(
+                "item/agentMessage/delta",
+                probe.app_server.protocol.agent_message_delta,
+                "Agent-message delta protocol schema is present for control smoke readiness.",
+            ),
+        ];
+
+        let total_method_count = required_methods.len();
+        let supported_method_count = required_methods
+            .iter()
+            .filter(|item| item.supported)
+            .count();
+        let unsupported_method_count = total_method_count - supported_method_count;
+        let protocol_ready = unsupported_method_count == 0;
+        let app_server_ready = probe.app_server.available && probe.app_server.stdio_handshake;
+        let unsupported = !source_detected || !protocol_ready || !app_server_ready;
+        let ok = source_detected && app_server_ready && protocol_ready;
+        let detail = if !source_detected {
+            "No Codex provider control capability was detected.".to_string()
+        } else if unsupported {
+            if unsupported_method_count == 0 {
+                "Codex app-server is not ready for safe control smoke proof in this environment."
+                    .to_string()
+            } else {
+                let unsupported_methods: Vec<&str> = required_methods
+                    .iter()
+                    .filter(|method| !method.supported)
+                    .map(|method| method.method.as_str())
+                    .collect();
+                format!(
+                    "Control smoke proof is unsupported for methods: {}",
+                    unsupported_methods.join(", ")
+                )
+            }
+        } else {
+            "Codex control protocol metadata is present and consistent with safe control handling."
+                .to_string()
+        };
+
+        CodexLiveControlSmokeProof {
+            source: "desktop".to_string(),
+            checked_at,
+            executed: true,
+            ok,
+            unsupported,
+            detail,
+            source_detected,
+            app_server_ready,
+            protocol_ready,
+            required_methods: {
+                required_methods.sort_by_key(|method| method.method.clone());
+                required_methods
+            },
+            supported_method_count,
+            unsupported_method_count,
+            total_method_count,
+        }
+    }
+
+    pub(crate) fn codex_transport_live_control_smoke_from_probe(
+        probe: CodexTransportProbe,
+    ) -> CodexLiveControlSmokeProof {
+        build_codex_transport_live_control_smoke_from_probe(probe)
     }
 
     fn run_two_panel_smoke() -> CodexTwoPanelSmokeProof {
@@ -3182,6 +3329,7 @@ pub fn run() {
             runtime_bridge::codex_mcp_catalog_preview,
             runtime_bridge::codex_personalization_catalog_preview,
             runtime_bridge::codex_transport_live_smoke,
+            runtime_bridge::codex_transport_live_control_smoke,
             runtime_bridge::codex_transport_two_panel_smoke,
             runtime_bridge::codex_panel_session_readiness,
             runtime_bridge::codex_panel_session_start,
@@ -3424,6 +3572,76 @@ mod tests {
         assert!(!result
             .result_summary
             .contains("unsafe-request-id-$(whoami)"));
+    }
+
+    #[test]
+    fn codex_transport_live_control_smoke_passes_with_full_protocol_support() {
+        let proof = runtime_bridge::codex_transport_live_control_smoke_from_probe(
+            fake_codex_transport_probe(),
+        );
+
+        assert!(proof.executed);
+        assert!(proof.ok);
+        assert!(!proof.unsupported);
+        assert!(proof.app_server_ready);
+        assert!(proof.protocol_ready);
+        assert!(proof.source_detected);
+        assert_eq!(proof.supported_method_count, proof.total_method_count);
+        assert_eq!(proof.unsupported_method_count, 0);
+        assert!(
+            proof
+                .required_methods
+                .iter()
+                .all(|method| method.state == "supported")
+        );
+    }
+
+    #[test]
+    fn codex_transport_live_control_smoke_marks_partial_protocol_as_unsupported() {
+        let mut probe = fake_codex_transport_probe();
+        probe.app_server.protocol.turn_interrupt = false;
+        probe.app_server.protocol.turn_steer = false;
+
+        let proof = runtime_bridge::codex_transport_live_control_smoke_from_probe(probe);
+
+        assert!(proof.executed);
+        assert!(!proof.ok);
+        assert!(proof.unsupported);
+        assert_eq!(proof.supported_method_count, 3);
+        assert_eq!(proof.unsupported_method_count, 2);
+        assert!(proof
+            .required_methods
+            .iter()
+            .any(|method| method.method == "turn/interrupt" && method.state == "unsupported"));
+        assert!(proof
+            .required_methods
+            .iter()
+            .any(|method| method.method == "turn/steer" && method.state == "unsupported"));
+        assert!(proof
+            .detail
+            .to_lowercase()
+            .contains("control smoke proof is unsupported"));
+    }
+
+    #[test]
+    fn codex_transport_live_control_smoke_marks_unsupported_when_provider_not_detected() {
+        let mut probe = fake_codex_transport_probe();
+        probe.cli.available = false;
+        probe.codex_home.present = false;
+        probe.codex_home.config_present = false;
+        probe.app_server.available = false;
+        probe.app_server.stdio_handshake = false;
+        probe.exec_json.available = false;
+
+        let proof = runtime_bridge::codex_transport_live_control_smoke_from_probe(probe);
+
+        assert!(proof.executed);
+        assert!(!proof.ok);
+        assert!(proof.unsupported);
+        assert!(!proof.source_detected);
+        assert!(!proof.app_server_ready);
+        assert!(proof.supported_method_count > 0);
+        assert_eq!(proof.unsupported_method_count, 0);
     }
 
     #[test]

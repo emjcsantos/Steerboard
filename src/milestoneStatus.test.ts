@@ -189,6 +189,7 @@ describe("milestone status model", () => {
     expect(cockpit?.completionPercent).toBe(63);
     expect(cockpit?.latestNote.toLowerCase()).toContain("panel-keyed live session chat");
     expect(cockpit?.latestNote.toLowerCase()).toContain("duplicate session identity guards");
+    expect(cockpit?.latestNote.toLowerCase()).toContain("native two-panel smoke proof path");
     expect(cockpit?.latestNote.toLowerCase()).toContain("project stack drag-in");
     expect(cockpit?.latestNote.toLowerCase()).toContain("keyboard adjustment");
     expect(cockpit?.nextStep.toLowerCase()).toContain("two-panel smoke");
@@ -234,11 +235,12 @@ describe("milestone status model", () => {
 
     expect(liveCodex?.completion).toBe("In progress");
     expect(liveCodex?.tone).toBe("active");
-    expect(liveCodex?.completionPercent).toBe(43);
+    expect(liveCodex?.completionPercent).toBe(44);
     expect(liveCodex?.current).toBeUndefined();
     expect(liveCodex?.latestNote.toLowerCase()).toContain("two-panel isolation smoke");
+    expect(liveCodex?.latestNote.toLowerCase()).toContain("control-readiness smoke");
     expect(liveCodex?.nextStep).toBe(
-      "Run the new native two-panel smoke in desktop mode and continue live-control smoke as recurring regression checks."
+      "Run native two-panel smoke and active-turn control smoke in desktop mode as recurring regression checks."
     );
   });
 
@@ -296,7 +298,7 @@ describe("milestone status model", () => {
       active: 10,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 41,
+      averageCompletionPercent: 42,
       nextTarget: "Platform capabilities",
       nextStep:
         "Run safe metadata/status catalog refresh owner tests for command, skill, plugin, MCP, automation, and personalization, then continue migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
