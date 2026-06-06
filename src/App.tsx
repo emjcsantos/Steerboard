@@ -266,6 +266,10 @@ import {
   type Phase3ExitGateEvidence
 } from "./phase3ExitGateEvidence";
 import {
+  buildPhase3OwnerTestingActions,
+  type Phase3OwnerTestingAction
+} from "./phase3OwnerTestingActions";
+import {
   findCodexPanelSessionIdentityIssues,
   loadPanelSessionState,
   savePanelSessionState,
@@ -1612,6 +1616,29 @@ export function App() {
       codexActiveTurnSteerSmokeProof
     ]
   );
+  const phase3OwnerTestingActions = useMemo(() => {
+    const itemById = new Map(
+      phase3ExitGateEvidence.items.map((item) => [item.id, item])
+    );
+
+    return buildPhase3OwnerTestingActions({
+      canStartSession: codexTransportDecision.canStartSession,
+      liveControlSmokeGate: itemById.get("phase3-exit-gate:live-control-smoke"),
+      activeTurnInterruptSmokeGate: itemById.get("phase3-exit-gate:active-turn-interrupt-smoke"),
+      activeTurnSteerSmokeGate: itemById.get("phase3-exit-gate:active-turn-steer-smoke"),
+      loading: {
+        liveControlSmoke: codexLiveControlSmokeLoading,
+        activeTurnInterruptSmoke: codexActiveTurnControlSmokeLoading,
+        activeTurnSteerSmoke: codexActiveTurnSteerSmokeLoading
+      }
+    });
+  }, [
+    phase3ExitGateEvidence,
+    codexTransportDecision.canStartSession,
+    codexLiveControlSmokeLoading,
+    codexActiveTurnControlSmokeLoading,
+    codexActiveTurnSteerSmokeLoading
+  ]);
 
   useEffect(() => {
     saveWorkspacePreferences(preferences);
@@ -3136,12 +3163,16 @@ export function App() {
             runtimeSummary={runtimeSummary}
             selectedRun={selectedRun}
             phase3ExitGateEvidence={phase3ExitGateEvidence}
+            phase3OwnerTestingActions={phase3OwnerTestingActions}
             sessionControlOwnerTestingState={sessionControlOwnerTestingState}
             sessionControlReadinessEvidence={sessionControlReadinessEvidence}
             slashCommandExecutionEvidence={slashCommandExecutionEvidence}
             slashCommandOwnerTestingState={slashCommandOwnerTestingState}
             focusedPanelId={focusedPanelId}
             onFocusPanel={setFocusedPanelId}
+            onRunCodexActiveTurnControlSmokeProof={runCodexActiveTurnControlSmokeProof}
+            onRunCodexActiveTurnSteerSmokeProof={runCodexActiveTurnSteerSmokeProof}
+            onRunCodexLiveControlSmokeProof={runCodexLiveControlSmokeProof}
             sessions={visibleSessions}
             tasks={projectTasks}
           />
@@ -6059,12 +6090,16 @@ function RightPanel({
   runtimeSummary,
   selectedRun,
   phase3ExitGateEvidence,
+  phase3OwnerTestingActions,
   sessionControlOwnerTestingState,
   sessionControlReadinessEvidence,
   slashCommandExecutionEvidence,
   slashCommandOwnerTestingState,
   focusedPanelId,
   onFocusPanel,
+  onRunCodexActiveTurnControlSmokeProof,
+  onRunCodexActiveTurnSteerSmokeProof,
+  onRunCodexLiveControlSmokeProof,
   sessions,
   tasks
 }: {
@@ -6091,12 +6126,16 @@ function RightPanel({
   runtimeSummary: ReturnType<typeof summarizeRuntimeAdapters>;
   selectedRun?: MockOrchestratorRun;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
+  phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   sessionControlOwnerTestingState: OwnerTestingReadinessState;
   sessionControlReadinessEvidence: SessionControlReadinessEvidence;
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
   slashCommandOwnerTestingState: OwnerTestingReadinessState;
   sessions: SessionSummary[];
   tasks: OrchestrationTask[];
+  onRunCodexActiveTurnControlSmokeProof: () => void;
+  onRunCodexActiveTurnSteerSmokeProof: () => void;
+  onRunCodexLiveControlSmokeProof: () => void;
 }) {
   const [streamPlaybackByRunId, setStreamPlaybackByRunId] = useState<
     Record<string, { cursor: number; state: RuntimeStreamPlaybackState }>
@@ -7118,6 +7157,10 @@ function RightPanel({
         failureFixtures={failureStateFixtures}
         failureSummary={failureStateFixtureSummary}
         phase3ExitGateEvidence={phase3ExitGateEvidence}
+        phase3OwnerTestingActions={phase3OwnerTestingActions}
+        onRunCodexActiveTurnControlSmokeProof={onRunCodexActiveTurnControlSmokeProof}
+        onRunCodexActiveTurnSteerSmokeProof={onRunCodexActiveTurnSteerSmokeProof}
+        onRunCodexLiveControlSmokeProof={onRunCodexLiveControlSmokeProof}
         sessionControlReadinessEvidence={sessionControlReadinessEvidence}
         slashCommandExecutionEvidence={slashCommandExecutionEvidence}
       />
@@ -9441,6 +9484,10 @@ function OwnerTestingReadinessPanel({
   failureFixtures,
   failureSummary,
   phase3ExitGateEvidence,
+  phase3OwnerTestingActions,
+  onRunCodexActiveTurnControlSmokeProof,
+  onRunCodexActiveTurnSteerSmokeProof,
+  onRunCodexLiveControlSmokeProof,
   sessionControlReadinessEvidence,
   slashCommandExecutionEvidence
 }: {
@@ -9449,12 +9496,31 @@ function OwnerTestingReadinessPanel({
   failureFixtures: readonly FailureStateFixture[];
   failureSummary: FailureStateFixtureSummary;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
+  phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
+  onRunCodexActiveTurnControlSmokeProof: () => void;
+  onRunCodexActiveTurnSteerSmokeProof: () => void;
+  onRunCodexLiveControlSmokeProof: () => void;
   sessionControlReadinessEvidence: SessionControlReadinessEvidence;
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
 }) {
   const visibleChecklistItems = checklist.items.slice(0, 6);
   const catalogRefreshItems = checklist.items.filter((item) => item.id.startsWith("catalog-"));
   const visibleFailureFixtures = failureFixtures.slice(0, 4);
+  const runPhase3Action = (actionId: string) => {
+    if (actionId === "phase3-owner-testing:live-control-smoke") {
+      onRunCodexLiveControlSmokeProof();
+      return;
+    }
+
+    if (actionId === "phase3-owner-testing:active-turn-interrupt-smoke") {
+      onRunCodexActiveTurnControlSmokeProof();
+      return;
+    }
+
+    if (actionId === "phase3-owner-testing:active-turn-steer-smoke") {
+      onRunCodexActiveTurnSteerSmokeProof();
+    }
+  };
 
   return (
     <section className="panel-section">
@@ -9633,6 +9699,27 @@ function OwnerTestingReadinessPanel({
               </li>
             ))}
           </ol>
+          <div
+            className="owner-testing-phase3-actions"
+            aria-label="Phase 3 owner testing actions"
+          >
+            {phase3OwnerTestingActions.map((action) => (
+              <button
+                className={classNames(
+                  "owner-testing-phase3-action",
+                  `owner-testing-phase3-action-${action.state}`
+                )}
+                disabled={action.disabled}
+                key={action.id}
+                onClick={() => runPhase3Action(action.id)}
+                title={action.detail}
+                type="button"
+              >
+                <span>{action.label}</span>
+                <strong>{action.buttonLabel}</strong>
+              </button>
+            ))}
+          </div>
         </div>
         <div
           aria-label={`Catalog refresh owner testing ${checklist.summary.catalogRefresh.statusLabel}; ${checklist.summary.catalogRefresh.readiness}% ready`}

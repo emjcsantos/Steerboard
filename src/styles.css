@@ -5588,6 +5588,62 @@ textarea {
   font-size: 10px;
 }
 
+.owner-testing-phase3-actions {
+  display: grid;
+  gap: 5px;
+}
+
+.owner-testing-phase3-action {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #26303a;
+  border-radius: 8px;
+  background: #151b22;
+  color: #edf3f8;
+  padding: 6px;
+  text-align: left;
+}
+
+.owner-testing-phase3-action:not(:disabled) {
+  cursor: pointer;
+}
+
+.owner-testing-phase3-action:focus-visible {
+  outline: 2px solid #68c4ff;
+  outline-offset: 2px;
+}
+
+.owner-testing-phase3-action span,
+.owner-testing-phase3-action strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-phase3-action span {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.owner-testing-phase3-action strong {
+  border-radius: 999px;
+  background: #10161d;
+  color: #cfd8e3;
+  padding: 3px 7px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.owner-testing-phase3-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 .owner-testing-catalog-header {
   display: grid;
   min-width: 0;
@@ -5825,6 +5881,7 @@ textarea {
 .owner-testing-slash-ready,
 .owner-testing-phase3-ready,
 .owner-testing-phase3-diagnostic-ready,
+.owner-testing-phase3-action-ready,
 .failure-fixture-ready,
 .failure-fixture-item-ready {
   border-color: #254634;
@@ -5840,6 +5897,8 @@ textarea {
 .owner-testing-phase3-waiting,
 .owner-testing-phase3-diagnostic-review,
 .owner-testing-phase3-diagnostic-waiting,
+.owner-testing-phase3-action-recommended,
+.owner-testing-phase3-action-running,
 .owner-testing-catalog-review,
 .owner-testing-catalog-waiting,
 .owner-testing-item-review,
@@ -5856,6 +5915,7 @@ textarea {
 .owner-testing-slash-blocked,
 .owner-testing-phase3-blocked,
 .owner-testing-phase3-diagnostic-blocked,
+.owner-testing-phase3-action-blocked,
 .owner-testing-catalog-blocked,
 .owner-testing-item-blocked,
 .owner-testing-catalog-item-blocked,
