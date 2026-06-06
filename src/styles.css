@@ -10383,12 +10383,13 @@ textarea {
 .pipeline-detail-body {
   display: grid;
   min-height: 0;
-  grid-template-rows: auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
   overflow: hidden;
 }
 
 .pipeline-detail-summary,
 .pipeline-gate-section,
+.pipeline-role-plan-section,
 .pipeline-request-section,
 .pipeline-handoff-section {
   border-bottom: 1px solid #272d36;
@@ -10437,9 +10438,141 @@ textarea {
 }
 
 .pipeline-gate-section h5,
+.pipeline-role-plan-section h5,
 .pipeline-request-section h5,
 .pipeline-handoff-section h5 {
   margin: 0;
+}
+
+.pipeline-role-plan-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pipeline-role-plan-header small {
+  display: block;
+  margin-top: 3px;
+  color: #9fa9b4;
+}
+
+.pipeline-role-counts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.pipeline-role-counts span {
+  border: 1px solid #2b3541;
+  border-radius: 8px;
+  background: #181d23;
+  color: #dce5ee;
+  padding: 6px 7px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.pipeline-role-panel-list {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pipeline-role-panel-card {
+  display: grid;
+  gap: 7px;
+  border: 1px solid #2b3541;
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: #171c22;
+  padding: 9px;
+}
+
+.pipeline-role-panel-card.role-orchestrator {
+  border-left-color: #72d6a0;
+}
+
+.pipeline-role-panel-card.role-implementer {
+  border-left-color: #8bd7f4;
+}
+
+.pipeline-role-panel-card.role-validator {
+  border-left-color: #f0d984;
+}
+
+.pipeline-role-panel-card.role-integration {
+  border-left-color: #b7a7ff;
+}
+
+.pipeline-role-panel-card-header,
+.pipeline-role-panel-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.pipeline-role-panel-card strong,
+.pipeline-role-panel-card small,
+.pipeline-role-panel-card p,
+.pipeline-role-panel-card em,
+.pipeline-role-panel-meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pipeline-role-panel-card strong {
+  display: block;
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.pipeline-role-panel-card small {
+  display: block;
+  color: #9fa9b4;
+  font-size: 11px;
+}
+
+.pipeline-role-panel-card-header > span,
+.pipeline-role-panel-meta span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce3eb;
+  padding: 4px 7px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.pipeline-role-panel-meta span:last-child {
+  max-width: 132px;
+  text-transform: none;
+}
+
+.pipeline-role-panel-card p {
+  margin: 0;
+  color: #c7d0da;
+  font-size: 12px;
+}
+
+.pipeline-role-panel-card em {
+  color: #9fa9b4;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.pipeline-role-plan-empty {
+  margin: 10px 0 0;
+  border: 1px dashed #303844;
+  border-radius: 8px;
+  color: #9fa9b4;
+  padding: 9px;
 }
 
 .dispatch-gate-list {

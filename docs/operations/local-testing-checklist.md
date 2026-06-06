@@ -53,8 +53,9 @@ Do not proceed to the next section until the current item is at least `review`.
    - Create or update a plan item and confirm expected persistence updates.
    - Confirm planning metadata remains readable after a refresh.
 10. `Dispatch`
-    - Dispatch a non-destructive action through the standard lane.
-    - Confirm route, result status, and log details are consistent.
+    - Dispatch a staged pipeline item through the standard lane.
+    - Confirm role-panel plan generation, route details, and log records are consistent.
+    - Verify the result is a local review artifact only (no runtime worker launch or external session execution).
 11. `Permissions`
     - Trigger at least one sensitive action.
     - Verify approval and block branches are explicit and safe.

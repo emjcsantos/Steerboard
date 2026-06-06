@@ -199,13 +199,13 @@ describe("milestone status model", () => {
 
     expect(orchestration?.completion).toBe("In progress");
     expect(orchestration?.tone).toBe("active");
-    expect(orchestration?.completionPercent).toBe(52);
+    expect(orchestration?.completionPercent).toBe(53);
     expect(orchestration?.current).toBeUndefined();
     expect(orchestration?.latestNote).toBe(
-      "Local orchestration now creates orchestrator, implementer, validator, and integration panels with visible handoff and retry state."
+      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for cockpit review, with handoff and retry state visible before external dispatch."
     );
     expect(orchestration?.nextStep).toBe(
-      "Connect the local handoff loop to configured runtime profiles and live worker session spawning."
+      "Connect the role-panel plan preview loop to staged dispatch records while preserving local-first review before live worker session spawning."
     );
   });
 
@@ -440,8 +440,8 @@ describe("milestone status model", () => {
 
     expect(pmLane?.completion).toBe("In progress");
     expect(pmLane?.tone).toBe("active");
-    expect(pmLane?.completionPercent).toBe(25);
-    expect(pmLane?.nextStep.toLowerCase()).toContain("after live chat works");
+    expect(pmLane?.completionPercent).toBe(30);
+    expect(pmLane?.nextStep.toLowerCase()).toContain("staged role-panel plan previews");
   });
 
   it("keeps the public security and privacy architecture doc current and public-safe", () => {

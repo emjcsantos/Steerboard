@@ -2,6 +2,8 @@
 
 Steerboard must make core agent-platform functions live, not decorative. The first live action surface is a fixed read-only terminal probe, while adjacent capability UIs (commands, plugins, automations, MCP, personalization, approvals, service status) remain visible but non-mutating until later phases.
 
+Project-management dispatch remains a local-review capability in this slice: staged plans should explicitly model orchestrator, implementer, validator, and integration role panel workflows for cockpit review, with external runtime execution intentionally deferred.
+
 ## Product Principle
 
 Every visible capability must have an honest state:

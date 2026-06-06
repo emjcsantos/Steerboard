@@ -139,6 +139,10 @@ import {
   tryBuildPipelineItemDispatchPackage
 } from "./pipelineItemDispatchPackage";
 import {
+  createDispatchRolePanelPlan,
+  type DispatchRolePanelPlan
+} from "./dispatchRolePanelPlan";
+import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
 } from "./pipelineItemRunLink";
@@ -4332,6 +4336,36 @@ function PipelineView({
     [items, mockRuns]
   );
   const selectedRunStatus = selectedItem ? itemRunStatusById.get(selectedItem.id) : undefined;
+  const selectedRolePanelPlan = useMemo(() => {
+    if (!selectedItem || !selectedPreview) {
+      return undefined;
+    }
+
+    const packageResult = tryBuildPipelineItemDispatchPackage(
+      selectedItem,
+      project,
+      selectedPreview,
+      {
+        createdAt: "1970-01-01T00:00:00.000Z",
+        idSeed: "pipeline-role-panel-preview",
+        status: "ready"
+      }
+    );
+
+    if (!packageResult.ok) {
+      return undefined;
+    }
+
+    const linkedRunId = selectedRunStatus?.latestRunId;
+    const linkedRun = linkedRunId ? mockRuns.find((run) => run.id === linkedRunId) : undefined;
+    const previewRun = linkedRun ?? createMockRunFromDispatchPackage(packageResult.package, {
+      createdAt: packageResult.package.createdAt,
+      idSeed: "pipeline-role-panel-preview",
+      status: "queued"
+    });
+
+    return createDispatchRolePanelPlan(packageResult.package, previewRun);
+  }, [mockRuns, project, selectedItem, selectedPreview, selectedRunStatus?.latestRunId]);
   const canRequestDispatch = Boolean(selectedPreview?.canDispatch) && dispatchRequestIntent !== "requested";
   const canCancelDispatch = dispatchRequestIntent === "requested";
   const dispatchableItemCount = items.filter((item) =>
@@ -4489,6 +4523,7 @@ function PipelineView({
               onOpenRun={onOpenRun}
               onRequestDispatch={() => recordPipelineDispatchAction("requested")}
               preview={selectedPreview}
+              rolePanelPlan={selectedRolePanelPlan}
               runLinks={selectedRunLinks}
               runStatus={selectedRunStatus}
             />
@@ -4514,6 +4549,7 @@ function PipelineItemDispatchDetail({
   onOpenRun,
   onRequestDispatch,
   preview,
+  rolePanelPlan,
   runLinks,
   runStatus
 }: {
@@ -4529,6 +4565,7 @@ function PipelineItemDispatchDetail({
   onOpenRun: (runId: string) => void;
   onRequestDispatch: () => void;
   preview: PipelineItemDispatchPreview;
+  rolePanelPlan?: DispatchRolePanelPlan;
   runLinks: PipelineItemRunLink[];
   runStatus?: PipelineItemRunStatusSummary;
 }) {
@@ -4584,6 +4621,56 @@ function PipelineItemDispatchDetail({
               </li>
             ))}
           </ol>
+        </section>
+
+        <section className="pipeline-role-plan-section" aria-label="Dispatch role panel plan">
+          <div className="pipeline-role-plan-header">
+            <div>
+              <h5>Role Panel Plan</h5>
+              <small>
+                {rolePanelPlan
+                  ? `${rolePanelPlan.totalPanelCount} panels prepared for cockpit review`
+                  : "Dispatch gates must be ready before panel planning."}
+              </small>
+            </div>
+            <span className={classNames("preview-state", rolePanelPlan ? "preview-ready" : "preview-review")}>
+              {rolePanelPlan?.readinessState ?? "waiting"}
+            </span>
+          </div>
+          {rolePanelPlan ? (
+            <>
+              <div className="pipeline-role-counts" aria-label="Role panel counts">
+                <span>Orch {rolePanelPlan.roleCounts.orchestrator}</span>
+                <span>Impl {rolePanelPlan.roleCounts.implementer}</span>
+                <span>Val {rolePanelPlan.roleCounts.validator}</span>
+                <span>Int {rolePanelPlan.roleCounts.integration}</span>
+              </div>
+              <ol className="pipeline-role-panel-list">
+                {rolePanelPlan.panels.map((panel) => (
+                  <li className={`pipeline-role-panel-card role-${panel.role}`} key={panel.panelId}>
+                    <div className="pipeline-role-panel-card-header">
+                      <div>
+                        <strong title={panel.title}>{panel.title}</strong>
+                        <small>{panel.role}</small>
+                      </div>
+                      <span>{panel.state}</span>
+                    </div>
+                    <div className="pipeline-role-panel-meta">
+                      <span title={panel.attemptLabel}>{panel.attemptLabel}</span>
+                      <span title={panel.validationLabel}>{panel.validationLabel}</span>
+                    </div>
+                    <p title={panel.acceptanceSummary}>{panel.acceptanceSummary}</p>
+                    <small title={panel.files.join(" | ")}>{panel.files.slice(0, 2).join(" | ")}</small>
+                    <em>{panel.noRuntimeExecutionNote}</em>
+                  </li>
+                ))}
+              </ol>
+            </>
+          ) : (
+            <p className="pipeline-role-plan-empty">
+              Resolve dispatch gates to generate orchestrator, implementer, validator, and integration panel plans.
+            </p>
+          )}
         </section>
 
         <section className="pipeline-request-section">

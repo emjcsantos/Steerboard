@@ -55,14 +55,14 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Orchestration model",
     completion: "In progress",
     plan: "Define a consistent model for sequencing cross-cutting tasks and status propagation.",
-    completionPercent: 52,
+    completionPercent: 53,
     latestNote:
-      "Local orchestration now creates orchestrator, implementer, validator, and integration panels with visible handoff and retry state.",
+      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for cockpit review, with handoff and retry state visible before external dispatch.",
     nextStep:
-      "Connect the local handoff loop to configured runtime profiles and live worker session spawning.",
+      "Connect the role-panel plan preview loop to staged dispatch records while preserving local-first review before live worker session spawning.",
     tone: "active",
     note:
-      "Local runs, task state, validation gates, handoff previews, and retry state are modeled before live runtime dispatch."
+      "Local runs, task state, role-plan visibility, validation gates, handoff previews, and retry state are modeled before live runtime execution."
   },
   {
     target: "Runtime adapter previews",
@@ -155,13 +155,14 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Optional project management lane",
     completion: "In progress",
     plan: "Define the optional lane scope while keeping cockpit chat primary.",
-    completionPercent: 25,
-    latestNote: "Pipeline visibility, dispatch previews, linked local runs, and readiness language are scaffolded.",
+    completionPercent: 30,
+    latestNote:
+      "Pipeline visibility, explicit orchestrator/implementer/validator/integration role-panel plan previews, dispatch previews, and linked local runs for cockpit review are added.",
     nextStep:
-      "Keep secondary and connect it to provider capability readiness after live chat works.",
+      "Keep secondary and connect staged role-panel plan previews to dispatch history, then continue provider readiness work after live chat hardening.",
     tone: "active",
     note:
-      "Optional pipeline visibility, dispatch previews, and linked local run state are scaffolded; it remains secondary to cockpit chat."
+      "Optional pipeline visibility, role-panel plan previews, dispatch previews, and linked local run state are scaffolded; it remains secondary to cockpit chat."
   }
 ];
 
