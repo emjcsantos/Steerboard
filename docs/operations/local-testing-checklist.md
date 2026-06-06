@@ -33,6 +33,7 @@ Do not proceed to the next section until the current item is at least `review`.
 5. `Controls`
    - Exercise stop, retry, pause, and route controls.
    - Confirm control actions are deterministic and do not drift between views.
+   - Confirm unsupported lifecycle controls show visible unsupported evidence, not only disabled icons.
 6. `Slash Commands`
    - Type `/` in a cockpit panel composer and confirm suggestions are limited to commands scoped to the active panel.
    - Submit one app/global-only command from a panel and confirm it is blocked with explicit unsupported guidance.

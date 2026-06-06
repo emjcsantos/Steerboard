@@ -241,7 +241,8 @@ import {
   type CodexPanelTurnResultPayload
 } from "./codexSession";
 import {
-  buildCodexSessionControls
+  buildCodexSessionControls,
+  summarizeUnsupportedSessionControls
 } from "./codexSessionControls";
 import {
   findCodexPanelSessionIdentityIssues,
@@ -3845,6 +3846,10 @@ function SessionCell({
       }),
     [canUseLiveCodex, draftMessage, lastLivePrompt, liveChatRunning, liveChatStarting, liveChatStatus]
   );
+  const unsupportedControlSummary = useMemo(
+    () => summarizeUnsupportedSessionControls(liveControlSnapshot),
+    [liveControlSnapshot]
+  );
   const canInterruptLiveTurn = liveControlSnapshot.interrupt.state === "live";
   const canRetryLiveTurn =
     liveControlSnapshot.retry.state === "live" && !liveChatBusy;
@@ -4287,6 +4292,14 @@ function SessionCell({
                 title={`${activeSlashCommandDecision.reason} ${activeSlashCommandDecision.feedback.nextAction}`}
               >
                 {activeSlashCommandDecision.command?.command ?? "/"} {activeSlashCommandDecision.feedback.statusLabel}
+              </span>
+            ) : null}
+            {unsupportedControlSummary.count > 0 ? (
+              <span
+                className="session-unsupported-summary"
+                title={unsupportedControlSummary.detail}
+              >
+                {unsupportedControlSummary.label}
               </span>
             ) : null}
             <button

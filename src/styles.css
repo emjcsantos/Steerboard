@@ -2491,6 +2491,16 @@ textarea {
   line-height: 1.2;
 }
 
+.chat-composer-meta .session-unsupported-summary {
+  max-width: 132px;
+  border: 1px dashed #5d4a27;
+  border-radius: 999px;
+  background: #211d16;
+  color: #f0d984;
+  padding: 2px 7px;
+  line-height: 1.2;
+}
+
 .chat-composer button.session-control-button {
   width: 25px;
   height: 25px;

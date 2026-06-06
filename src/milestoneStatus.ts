@@ -42,14 +42,14 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Cockpit monitor and operating modes",
     completion: "In progress",
     plan: "Complete core cockpit panels, control affordances, and visible operating-mode cues.",
-    completionPercent: 64,
+    completionPercent: 65,
     latestNote:
-      "Multi-panel cockpit, adaptive magnetic layout with project stack drag-in, session drag-in, drop previews, keyboard adjustment, and adaptive project-drop template selection exist; local chat-lane scaffolding includes panel-keyed live session chat, per-panel session controls, duplicate session identity guards, and native two-panel plus active-turn interrupt and steer smoke proof paths.",
+      "Multi-panel cockpit, adaptive magnetic layout with project stack drag-in, session drag-in, drop previews, keyboard adjustment, and adaptive project-drop template selection exist; local chat-lane scaffolding includes panel-keyed live session chat, per-panel session controls, visible unsupported-control evidence, duplicate session identity guards, and native two-panel plus active-turn interrupt and steer smoke proof paths.",
     nextStep:
       "Run native two-panel smoke, control-readiness smoke, active-turn interrupt smoke, and active-turn steer smoke from desktop mode, then continue command capability and live-session hardening work.",
     tone: "active",
     note:
-      "Fixed layouts, adaptive panel geometry, project stack drag-in, session drag-in, drop previews, local monitor previews, and guarded chat-lane scaffolding exist, but live provider-backed behavior is not complete."
+      "Fixed layouts, adaptive panel geometry, project stack drag-in, session drag-in, drop previews, local monitor previews, and guarded chat-lane scaffolding with unsupported-control evidence exist, but live provider-backed behavior is not complete."
   },
   {
     target: "Orchestration model",

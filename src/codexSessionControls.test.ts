@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildCodexSessionControls } from "./codexSessionControls";
+import {
+  buildCodexSessionControls,
+  summarizeUnsupportedSessionControls
+} from "./codexSessionControls";
 
 describe("codex session controls", () => {
   it("returns live interrupt on starting and live steer on running with steer draft", () => {
@@ -108,6 +111,48 @@ describe("codex session controls", () => {
     expect(controls.archive).toEqual({
       state: "unsupported",
       reason: "Archive is unsupported in the first Codex app-server adapter."
+    });
+  });
+
+  it("summarizes unsupported controls with fork, resume, and archive evidence", () => {
+    const controls = buildCodexSessionControls({
+      sessionStatus: "running",
+      liveTransportAvailable: true,
+      activeTurn: { status: "streaming" },
+      lastUserPrompt: "Previous",
+      draftText: "steer"
+    });
+    const summary = summarizeUnsupportedSessionControls(controls);
+
+    expect(summary).toEqual({
+      count: 3,
+      label: "3 unsupported controls",
+      detail:
+        "3 unsupported controls: Fork: Fork is unsupported in the first Codex app-server adapter. | Resume: Resume is unsupported in the first Codex app-server adapter. | Archive: Archive is unsupported in the first Codex app-server adapter."
+    });
+  });
+
+  it("returns a safe zero state when no unsupported controls exist", () => {
+    const baselineControls = buildCodexSessionControls({
+      sessionStatus: "running",
+      liveTransportAvailable: true,
+      activeTurn: { status: "streaming" },
+      lastUserPrompt: "Previous",
+      draftText: "steer"
+    });
+
+    const controls = {
+      ...baselineControls,
+      fork: { ...baselineControls.fork, state: "disabled" as const, reason: "Fork is currently enabled." },
+      resume: { ...baselineControls.resume, state: "disabled" as const, reason: "Resume is currently enabled." },
+      archive: { ...baselineControls.archive, state: "disabled" as const, reason: "Archive is currently enabled." }
+    };
+    const summary = summarizeUnsupportedSessionControls(controls);
+
+    expect(summary).toEqual({
+      count: 0,
+      label: "No unsupported controls",
+      detail: "No unsupported controls are currently available."
     });
   });
 });

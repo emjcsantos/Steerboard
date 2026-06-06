@@ -186,8 +186,9 @@ describe("milestone status model", () => {
     );
     expect(cockpit?.completion).toBe("In progress");
     expect(cockpit?.tone).toBe("active");
-    expect(cockpit?.completionPercent).toBe(64);
+    expect(cockpit?.completionPercent).toBe(65);
     expect(cockpit?.latestNote.toLowerCase()).toContain("panel-keyed live session chat");
+    expect(cockpit?.latestNote.toLowerCase()).toContain("visible unsupported-control evidence");
     expect(cockpit?.latestNote.toLowerCase()).toContain("duplicate session identity guards");
     expect(cockpit?.latestNote.toLowerCase()).toContain("native two-panel plus active-turn interrupt and steer smoke proof paths");
     expect(cockpit?.latestNote.toLowerCase()).toContain("project stack drag-in");

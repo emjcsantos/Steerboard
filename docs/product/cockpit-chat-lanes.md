@@ -18,6 +18,7 @@ The current implementation supports a first live-panel milestone:
 - the panel renders normalized assistant output, completion, interruption, and error states,
 - panel session metadata is keyed by cockpit panel ID so hidden/revealed panels can preserve identity,
 - each panel exposes compact live session controls for interrupt, retry, and steering when supported,
+- each panel shows compact unsupported-control evidence for unavailable lifecycle actions,
 - panel composers surface only panel-scoped slash-command suggestions and block app/global-only commands with honest unsupported feedback,
 - provider-routed slash-command submissions leave visible transcript evidence before the live turn runs,
 - fork, resume, and archive controls remain visible as honest unsupported states until the adapter exposes those capabilities,

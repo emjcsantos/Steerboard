@@ -44,6 +44,57 @@ export interface CodexSessionControlInputs {
   draftText?: string;
 }
 
+export interface CodexUnsupportedSessionControlsSummary {
+  count: number;
+  label: string;
+  detail: string;
+}
+
+const unsupportedControlLabelById: Record<CodexSessionControlId, string> = {
+  interrupt: "Interrupt",
+  retry: "Retry",
+  steer: "Steer",
+  fork: "Fork",
+  resume: "Resume",
+  archive: "Archive"
+};
+
+const unsupportedControlOrder: readonly CodexSessionControlId[] = [
+  "interrupt",
+  "retry",
+  "steer",
+  "fork",
+  "resume",
+  "archive"
+];
+
+export function summarizeUnsupportedSessionControls(
+  controls: CodexSessionControls
+): CodexUnsupportedSessionControlsSummary {
+  const entries = unsupportedControlOrder.flatMap((controlId) => {
+    const control = controls[controlId];
+    return control.state === "unsupported"
+      ? [`${unsupportedControlLabelById[controlId]}: ${control.reason}`]
+      : [];
+  });
+
+  if (entries.length === 0) {
+    return {
+      count: 0,
+      label: "No unsupported controls",
+      detail: "No unsupported controls are currently available."
+    };
+  }
+
+  const countLabel = entries.length === 1 ? "1 unsupported control" : `${entries.length} unsupported controls`;
+
+  return {
+    count: entries.length,
+    label: countLabel,
+    detail: `${countLabel}: ${entries.join(" | ")}`
+  };
+}
+
 function normalizeSessionStatus(value: string): CodexSessionStatus {
   return value === "preview" ||
     value === "idle" ||
