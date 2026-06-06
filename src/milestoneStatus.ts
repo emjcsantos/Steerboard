@@ -94,15 +94,15 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Platform capabilities",
     completion: "In progress",
     plan: "Make commands, plugins, automations, MCP, personalization, permissions, and audit state live.",
-    completionPercent: 48,
+    completionPercent: 50,
     latestNote:
-      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Metadata/status refresh owner validation is still in progress and therefore not yet complete.",
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers now restrict slash suggestions and execution decisions to panel-scoped commands. Metadata/status refresh owner validation is still in progress and therefore not yet complete.",
     nextStep:
-      "Run safe metadata/status catalog refresh owner tests for command, skill, plugin, MCP, automation, and personalization, then continue migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
+      "Run safe metadata/status catalog refresh owner tests for command, skill, plugin, MCP, automation, and personalization, then continue slash execution, migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
     current: true,
     tone: "active",
     note:
-      "Slash commands, Skills catalog, platform catalogs, migration preview, and risk-gated approval/audit foundations exist; broader provider refresh and full execution remain live-disabled."
+      "Panel-scoped slash commands, Skills catalog, platform catalogs, migration preview, and risk-gated approval/audit foundations exist; broader provider refresh and full execution remain live-disabled."
   },
   {
     target: "Migration Center",

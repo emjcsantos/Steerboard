@@ -4,6 +4,7 @@ import {
   buildCommandExecutionDecision,
   defaultCommandCatalog,
   getCommandCatalogSuggestions,
+  findCommandCatalogEntry,
   type CommandExecutionFeedback,
   type CommandCatalogEntry,
   type CommandCatalogState
@@ -101,7 +102,8 @@ export function getPanelSlashCommandSuggestions(
   value: string,
   catalog: readonly PanelSlashCommand[] = panelSlashCommands
 ): PanelSlashCommand[] {
-  return getCommandCatalogSuggestions(value, catalog);
+  const panelScopedCatalog = catalog.filter((entry) => entry.scopes.includes("panel"));
+  return getCommandCatalogSuggestions(value, panelScopedCatalog);
 }
 
 export function getPanelSlashCommandDecision(
@@ -122,6 +124,22 @@ export function getPanelSlashCommandDecision(
       },
       route: "none",
       state: "unknown"
+    };
+  }
+
+  const entry = findCommandCatalogEntry(trimmed, catalog);
+  if (entry && !entry.scopes.includes("panel")) {
+    return {
+      command: entry,
+      executable: false,
+      reason: `${entry.command} is not available in this panel context.`,
+      feedback: {
+        statusLabel: "Unsupported",
+        severity: "error",
+        nextAction: "Use a supported command that is enabled for this panel."
+      },
+      route: "blocked",
+      state: "unsupported"
     };
   }
 

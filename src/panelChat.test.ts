@@ -45,7 +45,7 @@ describe("panel chat helpers", () => {
   it("suggests slash commands only when the draft starts with slash input", () => {
     expect(getPanelSlashCommandSuggestions("hello")).toEqual([]);
     expect(getPanelSlashCommandSuggestions("/val").map((item) => item.command)).toEqual(["/validate"]);
-    expect(getPanelSlashCommandSuggestions("/")).toHaveLength(7);
+    expect(getPanelSlashCommandSuggestions("/")).toHaveLength(5);
 
     const refreshedCatalog: PanelSlashCommand[] = [
       {
@@ -104,6 +104,20 @@ describe("panel chat helpers", () => {
       route: "blocked",
       executable: false,
       state: "unsupported",
+      command: { command: "/mcp" },
+      reason: "/mcp is not available in this panel context.",
+      feedback: {
+        statusLabel: "Unsupported",
+        severity: "error",
+        nextAction: "Use a supported command that is enabled for this panel."
+      }
+    });
+    expect(getPanelSlashCommandDecision("/status report", true)).toMatchObject({
+      route: "blocked",
+      executable: false,
+      state: "unsupported",
+      command: { command: "/status" },
+      reason: "/status is not available in this panel context.",
       feedback: {
         statusLabel: "Unsupported",
         severity: "error",
@@ -118,6 +132,33 @@ describe("panel chat helpers", () => {
         statusLabel: "Unknown",
         severity: "error",
         nextAction: "Use a supported slash command from the catalog."
+      }
+    });
+
+    expect(
+      getPanelSlashCommandDecision(
+        "/global-preview candidate",
+        false,
+        [
+          {
+            command: "/global-preview",
+            label: "Global Preview",
+            detail: "Global-only preview command.",
+            state: "preview",
+            scopes: ["global"]
+          }
+        ]
+      )
+    ).toMatchObject({
+      route: "blocked",
+      executable: false,
+      state: "unsupported",
+      command: { command: "/global-preview" },
+      reason: "/global-preview is not available in this panel context.",
+      feedback: {
+        statusLabel: "Unsupported",
+        severity: "error",
+        nextAction: "Use a supported command that is enabled for this panel."
       }
     });
 
@@ -159,6 +200,9 @@ describe("panel chat helpers", () => {
     expect(createPanelReplyMessage(session, 4, "/plan this").body).toMatch(/Blocked|Unable|Route/);
     expect(createPanelReplyMessage(session, 4, "/validate this").body).toMatch(/preview/);
     expect(createPanelReplyMessage(session, 4, "/plan this").meta).toBe("slash command blocked");
+    expect(createPanelReplyMessage(session, 4, "/status now").body).toContain(
+      "not available in this panel context"
+    );
     expect(createPanelReplyMessage(session, 4, "regular message").meta).toBe("local adapter pending");
     expect(
       createPanelReplyMessage(session, 4, "/review-preview now", [

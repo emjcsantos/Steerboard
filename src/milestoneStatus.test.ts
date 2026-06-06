@@ -254,13 +254,13 @@ describe("milestone status model", () => {
 
     expect(platform?.completion).toBe("In progress");
     expect(platform?.tone).toBe("active");
-    expect(platform?.completionPercent).toBe(48);
+    expect(platform?.completionPercent).toBe(50);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Metadata/status refresh owner validation is still in progress and therefore not yet complete."
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers now restrict slash suggestions and execution decisions to panel-scoped commands. Metadata/status refresh owner validation is still in progress and therefore not yet complete."
     );
     expect(platform?.nextStep).toBe(
-      "Run safe metadata/status catalog refresh owner tests for command, skill, plugin, MCP, automation, and personalization, then continue migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
+      "Run safe metadata/status catalog refresh owner tests for command, skill, plugin, MCP, automation, and personalization, then continue slash execution, migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
     );
   });
 
@@ -304,8 +304,8 @@ describe("milestone status model", () => {
       averageCompletionPercent: 42,
       nextTarget: "Platform capabilities",
       nextStep:
-        "Run safe metadata/status catalog refresh owner tests for command, skill, plugin, MCP, automation, and personalization, then continue migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
-      nextCompletionPercent: 48
+        "Run safe metadata/status catalog refresh owner tests for command, skill, plugin, MCP, automation, and personalization, then continue slash execution, migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
+      nextCompletionPercent: 50
     });
   });
 

@@ -18,6 +18,7 @@ The current implementation supports a first live-panel milestone:
 - the panel renders normalized assistant output, completion, interruption, and error states,
 - panel session metadata is keyed by cockpit panel ID so hidden/revealed panels can preserve identity,
 - each panel exposes compact live session controls for interrupt, retry, and steering when supported,
+- panel composers surface only panel-scoped slash-command suggestions and block app/global-only commands with honest unsupported feedback,
 - fork, resume, and archive controls remain visible as honest unsupported states until the adapter exposes those capabilities,
 - passive readiness checks must not send prompts or spend model tokens.
 
@@ -27,7 +28,7 @@ The next live milestone is to connect panel chat to the provider adapter layer:
 
 - connection center confirms Codex install, auth posture, and app-server availability,
 - each panel can bind to a real provider thread,
-- slash commands are discoverable from the composer with live, preview, unsupported, or unavailable states,
+- panel-scoped slash commands are discoverable from the composer with live, preview, unsupported, or unavailable states,
 - plugin, automation, MCP, and personalization state is visible before prompt submission,
 - live actions remain gated by explicit permission and audit surfaces.
 
