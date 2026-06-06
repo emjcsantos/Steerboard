@@ -2,6 +2,10 @@
 
 This roadmap is intentionally high level. Detailed planning, task splitting, progress logs, and internal execution notes are kept outside the public repository.
 
+## Current Pipeline
+
+The current development lane is Phase 3 desktop proof clearance: run the explicit desktop smoke actions, persist their proof rows across reload, and verify slash-command plus session-control evidence before advancing broader provider and dispatch work. The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md).
+
 ## Milestone Tracking
 
 | Target | Completion | Note |

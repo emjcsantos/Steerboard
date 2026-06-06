@@ -75,7 +75,7 @@ The migration dialog should present these categories as checkboxes. Unsupported 
 
 ## Desktop Menu Requirement
 
-Steerboard should expose a Codex-like desktop menu bar at the top-left of the application:
+Steerboard should expose a familiar desktop menu bar at the top-left of the application:
 
 ```text
 File  Edit  View  Window  Help

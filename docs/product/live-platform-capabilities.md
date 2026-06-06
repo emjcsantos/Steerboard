@@ -4,6 +4,10 @@ Steerboard must make core agent-platform functions live, not decorative. The fir
 
 Project-management dispatch remains a local-review capability in this slice: staged plans should explicitly model orchestrator, implementer, validator, and integration role panel workflows for cockpit review, with external runtime execution intentionally deferred.
 
+## Current Implementation Closeout
+
+The current live-functionality slice has completed the public scaffold, cockpit panels, adaptive layout foundations, provider-neutral catalogs, migration preview foundations, permission/audit foundations, and Phase 3 smoke-proof evidence persistence. The next active pipeline item is desktop proof clearance: run the explicit desktop gate actions, verify persisted proof rows after reload, and confirm slash-command and session-control readiness evidence before moving to broader provider integration or dispatch execution.
+
 ## Product Principle
 
 Every visible capability must have an honest state:

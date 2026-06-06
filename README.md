@@ -13,7 +13,9 @@ The first-class workflow is:
 
 ## Current Status
 
-This repository currently contains the public product brief, requirements, architecture notes, installation strategy, and contribution guidance. Internal planning, progress logs, and agent execution rules should stay outside the public repository.
+This repository currently contains the desktop app scaffold, cockpit UI, public product brief, requirements, architecture notes, local testing guidance, installation strategy, and contribution guidance. The active development lane is making the cockpit controls, slash commands, provider metadata refresh, and smoke-proof evidence fully testable in desktop mode.
+
+See [Current State And Pipeline](docs/project/current-state-and-pipeline.md) for the latest public summary of completed work, active pipeline items, and future tasks. Internal planning, progress logs, and agent execution rules should stay outside the public repository.
 
 ## Local Preview
 
@@ -35,6 +37,7 @@ The desktop shell uses Tauri and loads the same local Vite UI during development
 ## Document Map
 
 - [Project Brief](docs/project/brief.md)
+- [Current State And Pipeline](docs/project/current-state-and-pipeline.md)
 - [Requirements](docs/product/requirements.md)
 - [UI Direction](docs/product/ui-direction.md)
 - [Cockpit Operating Modes](docs/product/cockpit-operating-modes.md)
