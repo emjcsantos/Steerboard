@@ -74,7 +74,26 @@ describe("owner testing checklist model", () => {
         waiting: 6,
         readiness: 25,
         state: "waiting",
-        statusLabel: "Waiting"
+        statusLabel: "Waiting",
+        evidenceSafetyLabel: "Metadata-Only Safety Check",
+        evidenceSafetyDetail:
+          "Catalog refresh validation is metadata/status-only and only checks deterministic ordering, coverage, and fallback states. It must not execute commands, skills, plugins, MCP tools, automations, personalization/profile mutations, terminal actions, Git operations, or external actions.",
+        itemCoverage: [
+          { id: "catalog-command-refresh", name: "Command Refresh", state: "waiting" },
+          { id: "catalog-skill-refresh", name: "Skill Refresh", state: "waiting" },
+          { id: "catalog-plugin-refresh", name: "Plugin Refresh", state: "waiting" },
+          { id: "catalog-mcp-refresh", name: "MCP Refresh", state: "waiting" },
+          {
+            id: "catalog-automation-refresh",
+            name: "Automation Refresh",
+            state: "waiting"
+          },
+          {
+            id: "catalog-personalization-refresh",
+            name: "Personalization Refresh",
+            state: "waiting"
+          }
+        ]
       }
     });
   });
@@ -120,7 +139,22 @@ describe("owner testing checklist model", () => {
       waiting: 0,
       readiness: 100,
       state: "ready",
-      statusLabel: "Ready"
+      statusLabel: "Ready",
+      evidenceSafetyLabel: "Metadata-Only Safety Check",
+      evidenceSafetyDetail:
+        "Catalog refresh validation is metadata/status-only and only checks deterministic ordering, coverage, and fallback states. It must not execute commands, skills, plugins, MCP tools, automations, personalization/profile mutations, terminal actions, Git operations, or external actions.",
+      itemCoverage: [
+        { id: "catalog-command-refresh", name: "Command Refresh", state: "ready" },
+        { id: "catalog-skill-refresh", name: "Skill Refresh", state: "ready" },
+        { id: "catalog-plugin-refresh", name: "Plugin Refresh", state: "ready" },
+        { id: "catalog-mcp-refresh", name: "MCP Refresh", state: "ready" },
+        { id: "catalog-automation-refresh", name: "Automation Refresh", state: "ready" },
+        {
+          id: "catalog-personalization-refresh",
+          name: "Personalization Refresh",
+          state: "ready"
+        }
+      ]
     });
   });
 
@@ -182,7 +216,11 @@ describe("owner testing checklist model", () => {
         waiting: 0,
         readiness: 0,
         state: "ready",
-        statusLabel: "Ready"
+        statusLabel: "Ready",
+        evidenceSafetyLabel: "Metadata-Only Safety Check",
+        evidenceSafetyDetail:
+          "Catalog refresh validation is metadata/status-only and only checks deterministic ordering, coverage, and fallback states. It must not execute commands, skills, plugins, MCP tools, automations, personalization/profile mutations, terminal actions, Git operations, or external actions.",
+        itemCoverage: []
       }
     });
     expect(resolveOwnerTestingChecklistState({ blocked: 0, review: 0, waiting: 2 })).toBe(
@@ -223,8 +261,60 @@ describe("owner testing checklist model", () => {
       waiting: 1,
       readiness: 58,
       state: "blocked",
-      statusLabel: "Blocked"
+      statusLabel: "Blocked",
+      evidenceSafetyLabel: "Metadata-Only Safety Check",
+      evidenceSafetyDetail:
+        "Catalog refresh validation is metadata/status-only and only checks deterministic ordering, coverage, and fallback states. It must not execute commands, skills, plugins, MCP tools, automations, personalization/profile mutations, terminal actions, Git operations, or external actions.",
+      itemCoverage: [
+        { id: "catalog-command-refresh", name: "Command Refresh", state: "ready" },
+        { id: "catalog-skill-refresh", name: "Skill Refresh", state: "review" },
+        { id: "catalog-plugin-refresh", name: "Plugin Refresh", state: "review" },
+        { id: "catalog-mcp-refresh", name: "MCP Refresh", state: "blocked" },
+        { id: "catalog-automation-refresh", name: "Automation Refresh", state: "ready" },
+        {
+          id: "catalog-personalization-refresh",
+          name: "Personalization Refresh",
+          state: "waiting"
+        }
+      ]
     });
+  });
+
+  it("adds metadata/status-only safety evidence with explicit no-execution boundaries", () => {
+    const summary = checklistBase.summary.catalogRefresh;
+
+    expect(summary.evidenceSafetyLabel).toBe("Metadata-Only Safety Check");
+    expect(summary.evidenceSafetyDetail).toBe(
+      "Catalog refresh validation is metadata/status-only and only checks deterministic ordering, coverage, and fallback states. It must not execute commands, skills, plugins, MCP tools, automations, personalization/profile mutations, terminal actions, Git operations, or external actions."
+    );
+    expect(summary.evidenceSafetyDetail).toContain("metadata/status-only");
+    expect(summary.evidenceSafetyDetail).toContain("commands");
+    expect(summary.evidenceSafetyDetail).toContain("skills");
+    expect(summary.evidenceSafetyDetail).toContain("plugins");
+    expect(summary.evidenceSafetyDetail).toContain("MCP tools");
+    expect(summary.evidenceSafetyDetail).toContain("automations");
+    expect(summary.evidenceSafetyDetail).toContain("personalization/profile mutations");
+    expect(summary.evidenceSafetyDetail).toContain("terminal actions");
+    expect(summary.evidenceSafetyDetail).toContain("Git operations");
+    expect(summary.evidenceSafetyDetail).toContain("external actions");
+  });
+
+  it("reports deterministic catalog-refresh item coverage and order", () => {
+    const summary = checklistBase.summary.catalogRefresh;
+
+    expect(summary.itemCoverage).toEqual([
+      { id: "catalog-command-refresh", name: "Command Refresh", state: "waiting" },
+      { id: "catalog-skill-refresh", name: "Skill Refresh", state: "waiting" },
+      { id: "catalog-plugin-refresh", name: "Plugin Refresh", state: "waiting" },
+      { id: "catalog-mcp-refresh", name: "MCP Refresh", state: "waiting" },
+      { id: "catalog-automation-refresh", name: "Automation Refresh", state: "waiting" },
+      {
+        id: "catalog-personalization-refresh",
+        name: "Personalization Refresh",
+        state: "waiting"
+      }
+    ]);
+    expect(summary.itemCoverage.map((entry) => entry.id)).toEqual(OWNER_TESTING_CATALOG_REFRESH_ORDER);
   });
 
   it("keeps helper inputs immutable", () => {

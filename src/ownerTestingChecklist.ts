@@ -29,6 +29,15 @@ export interface OwnerTestingCatalogRefreshSummary {
   readonly readiness: number;
   readonly state: OwnerTestingReadinessState;
   readonly statusLabel: string;
+  readonly evidenceSafetyLabel: string;
+  readonly evidenceSafetyDetail: string;
+  readonly itemCoverage: readonly OwnerTestingCatalogRefreshSummaryItem[];
+}
+
+export interface OwnerTestingCatalogRefreshSummaryItem {
+  readonly id: OwnerTestingCatalogRefreshChecklistItemId;
+  readonly name: string;
+  readonly state: OwnerTestingReadinessState;
 }
 
 export interface OwnerTestingChecklist {
@@ -279,7 +288,12 @@ export function resolveOwnerTestingChecklistState(
 interface OwnerTestingChecklistStateCountItem {
   readonly state: OwnerTestingChecklistItem["state"];
   readonly id?: OwnerTestingChecklistItemId;
+  readonly name?: OwnerTestingChecklistItem["name"];
 }
+
+const CATALOG_REFRESH_EVIDENCE_SAFETY_LABEL = "Metadata-Only Safety Check";
+const CATALOG_REFRESH_EVIDENCE_SAFETY_DETAIL =
+  "Catalog refresh validation is metadata/status-only and only checks deterministic ordering, coverage, and fallback states. It must not execute commands, skills, plugins, MCP tools, automations, personalization/profile mutations, terminal actions, Git operations, or external actions.";
 
 export function summarizeOwnerTestingChecklistItems(
   items: readonly OwnerTestingChecklistStateCountItem[]
@@ -344,14 +358,24 @@ export function summarizeOwnerTestingChecklistItems(
 }
 
 function summarizeCatalogRefreshOwnerTestingItems(
-  items: readonly Pick<OwnerTestingChecklistItem, "state">[]
+  items: readonly OwnerTestingChecklistStateCountItem[]
 ): OwnerTestingCatalogRefreshSummary {
   let ready = 0;
   let review = 0;
   let blocked = 0;
   let waiting = 0;
+  const catalogStateById = new Map<OwnerTestingCatalogRefreshChecklistItemId, OwnerTestingChecklistStateCountItem>();
+  const nameById = new Map<OwnerTestingChecklistItemId, OwnerTestingChecklistItem["name"]>();
+
+  for (const item of OWNER_TESTING_CHECKLIST_TEMPLATE) {
+    nameById.set(item.id as OwnerTestingChecklistItemId, item.name);
+  }
 
   for (const item of items) {
+    if (item.id && isCatalogRefreshChecklistItemId(item.id)) {
+      catalogStateById.set(item.id, item);
+    }
+
     switch (item.state) {
       case "ready":
         ready += 1;
@@ -372,6 +396,20 @@ function summarizeCatalogRefreshOwnerTestingItems(
   }
 
   const total = items.length;
+  const itemCoverage = OWNER_TESTING_CATALOG_REFRESH_ORDER.map((id) => {
+    if (!catalogStateById.has(id)) {
+      return undefined;
+    }
+
+    const item = catalogStateById.get(id);
+    return {
+      id,
+      name: (item?.name ?? nameById.get(id) ?? id) as string,
+      state: item?.state ?? "waiting"
+    };
+  }).filter(
+    (item): item is OwnerTestingCatalogRefreshSummaryItem => item !== undefined
+  );
   const weightedTotal =
     items.length === 0 ? 0 : items.reduce((acc, item) => acc + STATE_WEIGHT[item.state], 0);
   const readiness = total === 0 ? 0 : Math.round(weightedTotal / total);
@@ -385,7 +423,10 @@ function summarizeCatalogRefreshOwnerTestingItems(
     waiting,
     readiness,
     state,
-    statusLabel: STATE_LABEL[state]
+    statusLabel: STATE_LABEL[state],
+    evidenceSafetyLabel: CATALOG_REFRESH_EVIDENCE_SAFETY_LABEL,
+    evidenceSafetyDetail: CATALOG_REFRESH_EVIDENCE_SAFETY_DETAIL,
+    itemCoverage
   };
 }
 

@@ -9094,6 +9094,12 @@ function OwnerTestingReadinessPanel({
             <strong>Catalog refreshes</strong>
             <b>{checklist.summary.catalogRefresh.readiness}%</b>
           </div>
+          <p
+            className="owner-testing-catalog-safety"
+            title={checklist.summary.catalogRefresh.evidenceSafetyDetail}
+          >
+            {checklist.summary.catalogRefresh.evidenceSafetyLabel}
+          </p>
           <div className="owner-testing-catalog-grid" aria-label="Catalog refresh checklist counts">
             <span>
               <strong>{checklist.summary.catalogRefresh.ready}</strong>

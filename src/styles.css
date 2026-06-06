@@ -5401,6 +5401,20 @@ textarea {
   font-weight: 900;
 }
 
+.owner-testing-catalog-safety {
+  overflow: hidden;
+  border: 1px solid #315977;
+  border-radius: 8px;
+  margin: 0;
+  background: #101b24;
+  color: #8bd7f4;
+  padding: 6px 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+}
+
 .owner-testing-catalog-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
