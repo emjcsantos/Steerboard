@@ -157,9 +157,9 @@ const OWNER_TESTING_CHECKLIST_TEMPLATE: readonly ChecklistTemplateItem[] = [
     id: "slash-commands",
     name: "Slash Commands",
     focus:
-      "Validate owner slash-command routing for panel-scoped suggestions, and confirm app/global-only commands are blocked when used outside permitted scope.",
+      "Validate owner slash-command routing and execution evidence for panel-scoped suggestions, and confirm app/global-only commands are blocked when used outside permitted scope.",
     checks:
-      "Capture transcript evidence showing provider-route mapping for suggestions and explicit app/global-only command blocking, while keeping this check provider/model-agnostic."
+      "Capture transcript evidence showing provider-route mapping, execution-readiness proof, and explicit app/global-only command blocking, while keeping this check provider/model-agnostic."
   },
   {
     id: "catalogs",

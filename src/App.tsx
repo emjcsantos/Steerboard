@@ -31,7 +31,7 @@ import {
   Workflow
 } from "lucide-react";
 import type { DragEvent, FormEvent, KeyboardEvent, PointerEvent, ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ADAPTIVE_COCKPIT_DROP_JSON_MIME,
   ADAPTIVE_COCKPIT_DROP_PANEL_ID_MIME,
@@ -85,6 +85,10 @@ import {
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
   type CatalogRefreshProviderSmokeResult
 } from "./catalogRefreshProviderSmoke";
+import {
+  buildSlashCommandExecutionEvidence,
+  type SlashCommandExecutionEvidence
+} from "./slashCommandExecutionEvidence";
 import {
   buildCommandCatalogSnapshot,
   type CommandCatalogRefreshSource,
@@ -607,7 +611,8 @@ import {
 } from "./failureStateFixtures";
 import {
   buildOwnerTestingChecklist,
-  type OwnerTestingChecklist
+  type OwnerTestingChecklist,
+  type OwnerTestingReadinessState
 } from "./ownerTestingChecklist";
 import {
   appendLiveActionAuditRecord,
@@ -871,6 +876,31 @@ type PlatformCatalogView = {
 
 function classNames(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
+}
+
+function slashCommandExecutionEvidenceEqual(
+  current: SlashCommandExecutionEvidence | undefined,
+  next: SlashCommandExecutionEvidence
+): boolean {
+  if (!current) {
+    return false;
+  }
+
+  return (
+    current.route === next.route &&
+    current.state === next.state &&
+    current.executable === next.executable &&
+    current.command === next.command &&
+    current.status === next.status &&
+    current.readiness === next.readiness &&
+    current.pass === next.pass &&
+    current.detail === next.detail &&
+    current.safety === next.safety &&
+    current.evidence.providerRoute === next.evidence.providerRoute &&
+    current.evidence.status === next.evidence.status &&
+    current.evidence.live === next.evidence.live &&
+    current.evidence.error === next.evidence.error
+  );
 }
 
 function parseRuntimeProfileList(value: string): string[] {
@@ -1372,6 +1402,8 @@ export function App() {
   const [mockRuns, setMockRuns] = useState<MockOrchestratorRun[]>(() => loadRunHistory());
   const [selectedRunId, setSelectedRunId] = useState<string>();
   const [focusedPanelId, setFocusedPanelId] = useState<string>();
+  const [slashCommandExecutionEvidenceByPanel, setSlashCommandExecutionEvidenceByPanel] =
+    useState<Record<string, SlashCommandExecutionEvidence>>({});
   const [adaptiveDraggingPanelId, setAdaptiveDraggingPanelId] = useState<string>();
   const [adaptiveDraggingProjectId, setAdaptiveDraggingProjectId] = useState<string>();
   const [adaptiveDropPreview, setAdaptiveDropPreview] = useState<AdaptiveCockpitDropPreview | null>(null);
@@ -1489,6 +1521,28 @@ export function App() {
       skillCatalogSnapshot
     ]
   );
+  const slashCommandExecutionEvidence = useMemo(() => {
+    const evidenceItems = Object.values(slashCommandExecutionEvidenceByPanel);
+
+    return (
+      evidenceItems.find((item) => item.pass) ??
+      evidenceItems.find((item) => item.route === "provider") ??
+      evidenceItems.find((item) => item.state === "blocked") ??
+      evidenceItems.find((item) => item.state === "review") ??
+      evidenceItems[0] ??
+      buildSlashCommandExecutionEvidence({
+        submittedMessage: "",
+        liveTransportAvailable: false,
+        commandCatalog: commandCatalogSnapshot.catalog
+      })
+    );
+  }, [commandCatalogSnapshot.catalog, slashCommandExecutionEvidenceByPanel]);
+  const slashCommandOwnerTestingState =
+    slashCommandExecutionEvidence.state === "ready"
+      ? "ready"
+      : slashCommandExecutionEvidence.state === "blocked"
+        ? "blocked"
+        : "review";
 
   useEffect(() => {
     saveWorkspacePreferences(preferences);
@@ -2544,6 +2598,22 @@ export function App() {
     );
   }
 
+  const recordSlashCommandExecutionEvidence = useCallback(
+    (panelId: string, evidence: SlashCommandExecutionEvidence) => {
+      setSlashCommandExecutionEvidenceByPanel((currentEvidenceByPanel) => {
+        if (slashCommandExecutionEvidenceEqual(currentEvidenceByPanel[panelId], evidence)) {
+          return currentEvidenceByPanel;
+        }
+
+        return {
+          ...currentEvidenceByPanel,
+          [panelId]: evidence
+        };
+      });
+    },
+    []
+  );
+
   return (
     <main className="app-shell">
       <AppMenuBar
@@ -2900,6 +2970,7 @@ export function App() {
                               liveCodexEnabled={codexTransportDecision.canStartSession}
                               onPanelSessionStart={recordLivePanelSessionStart}
                               onPanelSessionStatus={recordLivePanelSessionStatus}
+                              onSlashCommandExecutionEvidence={recordSlashCommandExecutionEvidence}
                               panelSessionIssue={panelSessionIdentityIssueByPanel.get(session.id)}
                               panelSessionRecord={panelSessionState[session.id]}
                               projectLabel={
@@ -2920,6 +2991,7 @@ export function App() {
                           liveCodexEnabled={codexTransportDecision.canStartSession}
                           onPanelSessionStart={recordLivePanelSessionStart}
                           onPanelSessionStatus={recordLivePanelSessionStatus}
+                          onSlashCommandExecutionEvidence={recordSlashCommandExecutionEvidence}
                           panelSessionIssue={panelSessionIdentityIssueByPanel.get(session.id)}
                           panelSessionRecord={panelSessionState[session.id]}
                           projectLabel={
@@ -2976,6 +3048,8 @@ export function App() {
             runtimeProfileSummary={runtimeProfileSummary}
             runtimeSummary={runtimeSummary}
             selectedRun={selectedRun}
+            slashCommandExecutionEvidence={slashCommandExecutionEvidence}
+            slashCommandOwnerTestingState={slashCommandOwnerTestingState}
             focusedPanelId={focusedPanelId}
             onFocusPanel={setFocusedPanelId}
             sessions={visibleSessions}
@@ -3918,6 +3992,7 @@ function SessionCell({
   liveCodexEnabled = false,
   onPanelSessionStart,
   onPanelSessionStatus,
+  onSlashCommandExecutionEvidence,
   panelSessionIssue,
   panelSessionRecord,
   projectLabel,
@@ -3931,6 +4006,10 @@ function SessionCell({
     panelId: string,
     status: CodexPanelSessionStatus,
     detail: string
+  ) => void;
+  onSlashCommandExecutionEvidence?: (
+    panelId: string,
+    evidence: SlashCommandExecutionEvidence
   ) => void;
   panelSessionIssue?: CodexPanelSessionIdentityIssue;
   panelSessionRecord?: CodexPanelSessionStateRecord;
@@ -3996,6 +4075,27 @@ function SessionCell({
       ? getPanelSlashCommandDecision(trimmedDraft, canUseLiveCodex, commandCatalog)
       : undefined;
   }, [canUseLiveCodex, commandCatalog, draftMessage]);
+  const latestSlashCommandMessage = useMemo(() => {
+    for (let index = chatMessages.length - 1; index >= 0; index -= 1) {
+      const message = chatMessages[index];
+
+      if (message.role === "user" && message.body.trimStart().startsWith("/")) {
+        return message;
+      }
+    }
+
+    return undefined;
+  }, [chatMessages]);
+  const slashCommandExecutionEvidence = useMemo(
+    () =>
+      buildSlashCommandExecutionEvidence({
+        submittedMessage: latestSlashCommandMessage?.body ?? "",
+        liveTransportAvailable: canUseLiveCodex,
+        commandCatalog,
+        transcriptMessages: chatMessages
+      }),
+    [canUseLiveCodex, chatMessages, commandCatalog, latestSlashCommandMessage?.body]
+  );
   const liveChatStarting = liveChatStatus === "starting";
   const liveChatRunning = liveChatStatus === "running";
   const liveChatBusy = liveChatStarting || liveChatRunning;
@@ -4074,6 +4174,10 @@ function SessionCell({
   useEffect(() => {
     savePanelChatMessages(session.id, chatMessages);
   }, [chatMessages, session.id]);
+
+  useEffect(() => {
+    onSlashCommandExecutionEvidence?.(session.id, slashCommandExecutionEvidence);
+  }, [onSlashCommandExecutionEvidence, session.id, slashCommandExecutionEvidence]);
 
   async function ensureLivePanelSession() {
     if (liveSessionStarted) {
@@ -5848,6 +5952,8 @@ function RightPanel({
   runtimeProfileSummary,
   runtimeSummary,
   selectedRun,
+  slashCommandExecutionEvidence,
+  slashCommandOwnerTestingState,
   focusedPanelId,
   onFocusPanel,
   sessions,
@@ -5875,6 +5981,8 @@ function RightPanel({
   runtimeProfileSummary: ReturnType<typeof summarizeRuntimeProfiles>;
   runtimeSummary: ReturnType<typeof summarizeRuntimeAdapters>;
   selectedRun?: MockOrchestratorRun;
+  slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
+  slashCommandOwnerTestingState: OwnerTestingReadinessState;
   sessions: SessionSummary[];
   tasks: OrchestrationTask[];
 }) {
@@ -6238,7 +6346,7 @@ function RightPanel({
         chat: "review",
         "multi-panel": "review",
         controls: "review",
-        "slash-commands": "ready",
+        "slash-commands": slashCommandOwnerTestingState,
         catalogs: "review",
         "catalog-command-refresh": catalogRefreshOwnerStateBySurface.get("command") ?? "review",
         "catalog-skill-refresh": catalogRefreshOwnerStateBySurface.get("skill") ?? "review",
@@ -6257,7 +6365,8 @@ function RightPanel({
       catalogRefreshOwnerStateBySurface,
       liveActionExecutableCount,
       runtimeAdapter?.state,
-      runtimeRecoveryFailureCoverage.tone
+      runtimeRecoveryFailureCoverage.tone,
+      slashCommandOwnerTestingState
     ]
   );
   const failureStateFixtures: readonly FailureStateFixture[] = useMemo(
@@ -6895,6 +7004,7 @@ function RightPanel({
         checklist={ownerTestingChecklist}
         failureFixtures={failureStateFixtures}
         failureSummary={failureStateFixtureSummary}
+        slashCommandExecutionEvidence={slashCommandExecutionEvidence}
       />
 
       <section className="panel-section">
@@ -9214,12 +9324,14 @@ function OwnerTestingReadinessPanel({
   catalogRefreshOwnerValidation,
   checklist,
   failureFixtures,
-  failureSummary
+  failureSummary,
+  slashCommandExecutionEvidence
 }: {
   catalogRefreshOwnerValidation: CatalogRefreshOwnerValidationResult;
   checklist: OwnerTestingChecklist;
   failureFixtures: readonly FailureStateFixture[];
   failureSummary: FailureStateFixtureSummary;
+  slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
 }) {
   const visibleChecklistItems = checklist.items.slice(0, 6);
   const catalogRefreshItems = checklist.items.filter((item) => item.id.startsWith("catalog-"));
@@ -9261,6 +9373,50 @@ function OwnerTestingReadinessPanel({
             <dd>{checklist.summary.waiting}</dd>
           </div>
         </dl>
+        <div
+          aria-label={`Slash command execution evidence ${slashCommandExecutionEvidence.status}; ${slashCommandExecutionEvidence.readiness}% ready`}
+          className={classNames(
+            "owner-testing-slash-execution",
+            `owner-testing-slash-${slashCommandExecutionEvidence.state}`
+          )}
+          title={slashCommandExecutionEvidence.safety}
+        >
+          <div className="owner-testing-slash-header">
+            <span className="owner-testing-state">
+              <span aria-hidden="true" />
+              {slashCommandExecutionEvidence.status}
+            </span>
+            <strong>Slash execution</strong>
+            <b>{slashCommandExecutionEvidence.readiness}%</b>
+          </div>
+          <p title={slashCommandExecutionEvidence.detail}>
+            {slashCommandExecutionEvidence.detail}
+          </p>
+          <dl
+            className="owner-testing-slash-grid"
+            aria-label="Slash command execution evidence counts"
+          >
+            <div>
+              <dt>Route</dt>
+              <dd>{slashCommandExecutionEvidence.route}</dd>
+            </div>
+            <div>
+              <dt>Command</dt>
+              <dd>{slashCommandExecutionEvidence.command ?? "None"}</dd>
+            </div>
+            <div>
+              <dt>Provider</dt>
+              <dd>{slashCommandExecutionEvidence.evidence.providerRoute}</dd>
+            </div>
+            <div>
+              <dt>Live</dt>
+              <dd>
+                {slashCommandExecutionEvidence.evidence.live +
+                  slashCommandExecutionEvidence.evidence.status}
+              </dd>
+            </div>
+          </dl>
+        </div>
         <div
           aria-label={`Catalog refresh owner testing ${checklist.summary.catalogRefresh.statusLabel}; ${checklist.summary.catalogRefresh.readiness}% ready`}
           className={classNames(

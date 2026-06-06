@@ -41,16 +41,17 @@ describe("owner testing checklist model", () => {
     ]);
     expect(slashItem).toBeDefined();
     expect(slashItem?.focus).toBe(
-      "Validate owner slash-command routing for panel-scoped suggestions, and confirm app/global-only commands are blocked when used outside permitted scope."
+      "Validate owner slash-command routing and execution evidence for panel-scoped suggestions, and confirm app/global-only commands are blocked when used outside permitted scope."
     );
     expect(slashItem?.checks).toBe(
-      "Capture transcript evidence showing provider-route mapping for suggestions and explicit app/global-only command blocking, while keeping this check provider/model-agnostic."
+      "Capture transcript evidence showing provider-route mapping, execution-readiness proof, and explicit app/global-only command blocking, while keeping this check provider/model-agnostic."
     );
     expect(slashItem?.focus).toContain("panel-scoped");
     expect(slashItem?.checks).toContain("provider-route");
     expect(slashItem?.checks).toContain("transcript");
     expect(slashItem?.checks).toContain("app/global");
-    expect(slashItem?.checks).not.toContain("execution");
+    expect(slashItem?.focus).toContain("execution evidence");
+    expect(slashItem?.checks).toContain("execution-readiness");
     expect(slashItem?.checks).toMatch(/provider\/model-agnostic/i);
     expect(checklistBase.id).toBe(OWNER_TESTING_CHECKLIST_ID);
     expect(checklistBase.label).toBe(OWNER_TESTING_CHECKLIST_LABEL);

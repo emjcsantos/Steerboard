@@ -5427,6 +5427,95 @@ textarea {
   padding-top: 8px;
 }
 
+.owner-testing-slash-execution {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #303844;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 7px;
+}
+
+.owner-testing-slash-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.owner-testing-slash-header strong,
+.owner-testing-slash-header b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-slash-header strong {
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.owner-testing-slash-header b {
+  border-radius: 999px;
+  background: #151b22;
+  color: #cfd8e3;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.owner-testing-slash-execution p {
+  overflow: hidden;
+  margin: 0;
+  color: #9fa9b4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.owner-testing-slash-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  margin: 0;
+}
+
+.owner-testing-slash-grid div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #26303a;
+  border-radius: 8px;
+  background: #151b22;
+  padding: 5px;
+  text-align: center;
+}
+
+.owner-testing-slash-grid dt,
+.owner-testing-slash-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-slash-grid dt {
+  color: #8f99a4;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.owner-testing-slash-grid dd {
+  color: #f4f7fa;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .owner-testing-catalog-header {
   display: grid;
   min-width: 0;
@@ -5660,6 +5749,7 @@ textarea {
 
 .owner-testing-ready,
 .owner-testing-item-ready,
+.owner-testing-slash-ready,
 .failure-fixture-ready,
 .failure-fixture-item-ready {
   border-color: #254634;
@@ -5667,6 +5757,8 @@ textarea {
 
 .owner-testing-review,
 .owner-testing-waiting,
+.owner-testing-slash-review,
+.owner-testing-slash-waiting,
 .owner-testing-catalog-review,
 .owner-testing-catalog-waiting,
 .owner-testing-item-review,
@@ -5679,6 +5771,7 @@ textarea {
 }
 
 .owner-testing-blocked,
+.owner-testing-slash-blocked,
 .owner-testing-catalog-blocked,
 .owner-testing-item-blocked,
 .owner-testing-catalog-item-blocked,
