@@ -168,6 +168,7 @@ import {
   createPanelReplyMessage,
   createPanelLiveErrorMessage,
   createPanelLiveStatusMessage,
+  createPanelProviderSlashCommandStatusMessage,
   createPanelSlashCommandStatusMessage,
   getPanelSlashCommandDecision,
   getPanelSlashCommandSuggestions,
@@ -175,6 +176,7 @@ import {
   panelSlashCommands,
   savePanelChatMessages,
   type PanelChatMessage,
+  type PanelSlashCommandDecision,
   type PanelSlashCommand
 } from "./panelChat";
 import {
@@ -3920,14 +3922,31 @@ function SessionCell({
     }
   }
 
-  async function sendLivePanelPrompt(trimmedMessage: string, mode: "send" | "retry" = "send") {
+  async function sendLivePanelPrompt(
+    trimmedMessage: string,
+    mode: "send" | "retry" = "send",
+    providerSlashCommandDecision?: PanelSlashCommandDecision
+  ) {
     const sequence = chatMessages.length;
+    const providerSlashStatusMessage =
+      providerSlashCommandDecision?.route === "provider"
+        ? createPanelProviderSlashCommandStatusMessage(
+            session,
+            sequence + 1,
+            providerSlashCommandDecision
+          )
+        : undefined;
     const pendingMessage = createPanelLiveStatusMessage(
       session,
-      sequence + 1,
-      mode === "retry" ? "Retrying with live Codex..." : "Sending to live Codex...",
+      sequence + (providerSlashStatusMessage ? 2 : 1),
+      providerSlashCommandDecision?.route === "provider"
+        ? `Running ${providerSlashCommandDecision.command?.command ?? "slash command"} through live Codex...`
+        : mode === "retry"
+          ? "Retrying with live Codex..."
+          : "Sending to live Codex...",
       "running"
     );
+    const liveMessageSequenceStart = sequence + (providerSlashStatusMessage ? 3 : 2);
 
     setLastLivePrompt(trimmedMessage);
     setChatMessages((currentMessages) => [
@@ -3937,8 +3956,9 @@ function SessionCell({
         role: "user",
         label: "You",
         body: trimmedMessage,
-        meta: mode === "retry" ? "retry" : "live"
+        meta: providerSlashCommandDecision?.command?.command ?? (mode === "retry" ? "retry" : "live")
       },
+      ...(providerSlashStatusMessage ? [providerSlashStatusMessage] : []),
       pendingMessage
     ]);
     setDraftMessage("");
@@ -3954,18 +3974,18 @@ function SessionCell({
       const state = reduceCodexSessionEvents(
         normalizeCodexPanelTurnResultEvents(result, trimmedMessage)
       );
-      const nextMessages = codexSessionStateToPanelMessages(session, state, sequence + 2);
+      const nextMessages = codexSessionStateToPanelMessages(session, state, liveMessageSequenceStart);
       const statusMessages = result.failed || result.interrupted || nextMessages.length === 0
         ? [
             result.failed
               ? createPanelLiveErrorMessage(
                   session,
-                  sequence + 2,
+                  liveMessageSequenceStart,
                   result.detail || "Codex did not return a live response."
                 )
               : createPanelLiveStatusMessage(
                   session,
-                  sequence + 2,
+                  liveMessageSequenceStart,
                   result.detail || "Codex turn ended without a live response.",
                   result.interrupted ? "interrupted" : "live codex"
                 )
@@ -3999,7 +4019,7 @@ function SessionCell({
       onPanelSessionStatus?.(session.id, "error", message);
       setChatMessages((currentMessages) => [
         ...currentMessages.filter((item) => item.id !== pendingMessage.id),
-        createPanelLiveErrorMessage(session, sequence + 2, message)
+        createPanelLiveErrorMessage(session, liveMessageSequenceStart, message)
       ]);
     }
   }
@@ -4127,7 +4147,11 @@ function SessionCell({
       if (liveChatRunning) {
         await handleSteerLiveTurn(trimmedMessage);
       } else {
-        await sendLivePanelPrompt(trimmedMessage);
+        await sendLivePanelPrompt(
+          trimmedMessage,
+          "send",
+          slashCommandDecision.route === "provider" ? slashCommandDecision : undefined
+        );
       }
       return;
     }

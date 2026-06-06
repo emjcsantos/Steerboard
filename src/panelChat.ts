@@ -169,9 +169,10 @@ export function createPanelReplyMessage(
   session: SessionSummary,
   sequence: number,
   submittedMessage = "",
-  catalog: readonly PanelSlashCommand[] = panelSlashCommands
+  catalog: readonly PanelSlashCommand[] = panelSlashCommands,
+  liveTransportAvailable = false
 ): PanelChatMessage {
-  const decision = getPanelSlashCommandDecision(submittedMessage, false, catalog);
+  const decision = getPanelSlashCommandDecision(submittedMessage, liveTransportAvailable, catalog);
 
   if (decision.command && decision.route === "local-preview") {
     const statusLabel = decision.feedback.statusLabel.toLowerCase();
@@ -182,6 +183,10 @@ export function createPanelReplyMessage(
       body: `${decision.command.command} is in ${statusLabel}. ${decision.reason} ${decision.feedback.nextAction}`,
       meta: "slash command preview"
     };
+  }
+
+  if (decision.route === "provider") {
+    return createPanelProviderSlashCommandStatusMessage(session, sequence, decision);
   }
 
   if (decision.route === "blocked") {
@@ -211,6 +216,22 @@ export function createPanelSlashCommandStatusMessage(
       ? `${decision.feedback.statusLabel}: ${decision.command.command} ${decision.reason} ${decision.feedback.nextAction}`
       : `${decision.feedback.statusLabel}: ${decision.reason} ${decision.feedback.nextAction}`,
     meta: decision.route === "blocked" ? "slash command blocked" : "slash command"
+  };
+}
+
+export function createPanelProviderSlashCommandStatusMessage(
+  session: SessionSummary,
+  sequence: number,
+  decision: PanelSlashCommandDecision
+): PanelChatMessage {
+  return {
+    id: `${session.id}:slash-command:${sequence}`,
+    role: "system",
+    label: "Slash command",
+    body: `${decision.command?.command ?? "slash command"} routed through provider. ${
+      decision.reason
+    } ${decision.feedback.nextAction}`,
+    meta: "slash command provider route"
   };
 }
 

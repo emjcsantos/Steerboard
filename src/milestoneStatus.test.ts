@@ -254,10 +254,10 @@ describe("milestone status model", () => {
 
     expect(platform?.completion).toBe("In progress");
     expect(platform?.tone).toBe("active");
-    expect(platform?.completionPercent).toBe(50);
+    expect(platform?.completionPercent).toBe(52);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers now restrict slash suggestions and execution decisions to panel-scoped commands. Metadata/status refresh owner validation is still in progress and therefore not yet complete."
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, and provider-routed slash submissions now leave explicit transcript evidence before the live turn runs. Metadata/status refresh owner validation is still in progress and therefore not yet complete."
     );
     expect(platform?.nextStep).toBe(
       "Run safe metadata/status catalog refresh owner tests for command, skill, plugin, MCP, automation, and personalization, then continue slash execution, migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
@@ -305,7 +305,7 @@ describe("milestone status model", () => {
       nextTarget: "Platform capabilities",
       nextStep:
         "Run safe metadata/status catalog refresh owner tests for command, skill, plugin, MCP, automation, and personalization, then continue slash execution, migration, permission, and audit hardening while keeping arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
-      nextCompletionPercent: 50
+      nextCompletionPercent: 52
     });
   });
 
@@ -339,7 +339,7 @@ describe("milestone status model", () => {
       "A provider-neutral checklist and fixture layer now verify Phase 10B runner contract behavior for approved requests, read-only terminal probe constraints, disabled mutation paths, and redacted audit output. This includes owner tests for safe metadata/status refresh of command, skill, plugin, MCP, automation, and personalization catalogs, with no full completion claimed yet."
     );
     expect(ownerTesting?.nextStep).toBe(
-      "Run the full local testing checklist, verify approval-to-probe behavior, command/skill/plugin/MCP/automation/personalization metadata-status catalog refresh checks, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
+      "Run the full local testing checklist, verify approval-to-probe behavior, command/skill/plugin/MCP/automation/personalization metadata-status catalog refresh checks, live panel slash-routing evidence, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
     );
   });
 

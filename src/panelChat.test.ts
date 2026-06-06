@@ -5,7 +5,9 @@ import {
   createPanelLiveErrorMessage,
   createPanelLiveStatusMessage,
   createPanelSlashCommandStatusMessage,
+  panelSlashCommands,
   createPanelReplyMessage,
+  createPanelProviderSlashCommandStatusMessage,
   getPanelSlashCommandDecision,
   getPanelSlashCommandSuggestions,
   normalizePanelChatMessages,
@@ -233,6 +235,31 @@ describe("panel chat helpers", () => {
 
     expect(statusMessage.body).toContain("Unknown");
     expect(statusMessage.body).toContain("Use a supported slash command");
+  });
+
+  it("creates a visible provider-routed slash command status message", () => {
+    const providerDecision = getPanelSlashCommandDecision("/plan now", true);
+    const statusMessage = createPanelProviderSlashCommandStatusMessage(session, 11, providerDecision);
+
+    expect(statusMessage.meta).toBe("slash command provider route");
+    expect(statusMessage.body).toContain("/plan");
+    expect(statusMessage.body).toContain(providerDecision.reason);
+    expect(statusMessage.body).toContain(providerDecision.feedback.nextAction);
+    expect(statusMessage.role).toBe("system");
+  });
+
+  it("creates a provider-routed slash command reply when caller opts into live transport", () => {
+    const providerReply = createPanelReplyMessage(
+      session,
+      12,
+      "/plan now",
+      panelSlashCommands,
+      true
+    );
+
+    expect(providerReply.meta).toBe("slash command provider route");
+    expect(providerReply.body).toContain("/plan");
+    expect(providerReply.body).toContain("provider");
   });
 
   it("creates live status and error messages for Codex panel activity", () => {

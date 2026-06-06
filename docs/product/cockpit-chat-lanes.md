@@ -19,6 +19,7 @@ The current implementation supports a first live-panel milestone:
 - panel session metadata is keyed by cockpit panel ID so hidden/revealed panels can preserve identity,
 - each panel exposes compact live session controls for interrupt, retry, and steering when supported,
 - panel composers surface only panel-scoped slash-command suggestions and block app/global-only commands with honest unsupported feedback,
+- provider-routed slash-command submissions leave visible transcript evidence before the live turn runs,
 - fork, resume, and archive controls remain visible as honest unsupported states until the adapter exposes those capabilities,
 - passive readiness checks must not send prompts or spend model tokens.
 
