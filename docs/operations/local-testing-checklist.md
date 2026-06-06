@@ -22,7 +22,7 @@ Do not proceed to the next section until the current item is at least `review`.
 2. `Connect`
    - Open a fresh connection.
    - Confirm reconnect/restart behavior does not lose panel scope or pending action context.
-   - Run live smoke, control smoke, and two-panel smoke from the connection dialog when desktop runtime access is available.
+   - Run live smoke, control smoke, active-turn smoke, and two-panel smoke from the connection dialog when desktop runtime access is available.
 3. `Chat`
    - Send a test message and verify response capture and interruption controls.
    - Confirm the same session can continue after transient stalls.

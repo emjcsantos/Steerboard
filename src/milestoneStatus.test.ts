@@ -189,10 +189,11 @@ describe("milestone status model", () => {
     expect(cockpit?.completionPercent).toBe(63);
     expect(cockpit?.latestNote.toLowerCase()).toContain("panel-keyed live session chat");
     expect(cockpit?.latestNote.toLowerCase()).toContain("duplicate session identity guards");
-    expect(cockpit?.latestNote.toLowerCase()).toContain("native two-panel smoke proof path");
+    expect(cockpit?.latestNote.toLowerCase()).toContain("native two-panel plus active-turn interrupt smoke proof paths");
     expect(cockpit?.latestNote.toLowerCase()).toContain("project stack drag-in");
     expect(cockpit?.latestNote.toLowerCase()).toContain("keyboard adjustment");
     expect(cockpit?.nextStep.toLowerCase()).toContain("two-panel smoke");
+    expect(cockpit?.nextStep.toLowerCase()).toContain("active-turn interrupt");
   });
 
   it("requires a compact public-safe summary for orchestration model", () => {
@@ -235,12 +236,13 @@ describe("milestone status model", () => {
 
     expect(liveCodex?.completion).toBe("In progress");
     expect(liveCodex?.tone).toBe("active");
-    expect(liveCodex?.completionPercent).toBe(44);
+    expect(liveCodex?.completionPercent).toBe(46);
     expect(liveCodex?.current).toBeUndefined();
     expect(liveCodex?.latestNote.toLowerCase()).toContain("two-panel isolation smoke");
     expect(liveCodex?.latestNote.toLowerCase()).toContain("control-readiness smoke");
+    expect(liveCodex?.latestNote.toLowerCase()).toContain("active-turn interrupt smoke");
     expect(liveCodex?.nextStep).toBe(
-      "Run native two-panel smoke and active-turn control smoke in desktop mode as recurring regression checks."
+      "Run native two-panel smoke, control-readiness smoke, and active-turn interrupt smoke in desktop mode as recurring regression checks, then continue active-turn steer/fork/resume/archive hardening."
     );
   });
 

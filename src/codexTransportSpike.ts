@@ -118,6 +118,33 @@ export interface CodexLiveControlSmokeMethodProof {
   detail: string;
 }
 
+export interface CodexActiveTurnControlSmokeMethodProof {
+  control: string;
+  attempted: boolean;
+  sent: boolean;
+  observed: boolean;
+  supported: boolean;
+  detail: string;
+}
+
+export interface CodexActiveTurnControlSmokeProof {
+  source: CodexProbeSource;
+  checkedAt: string | null;
+  executed: boolean;
+  ok: boolean;
+  unsupported: boolean;
+  detail: string;
+  sessionStarted: boolean;
+  turnIdSeen: boolean;
+  interruptSent: boolean;
+  interruptObserved: boolean;
+  completed: boolean;
+  failed: boolean;
+  eventCount: number;
+  transcriptLength: number;
+  controls: CodexActiveTurnControlSmokeMethodProof[];
+}
+
 export interface CodexTwoPanelSmokePanelProof {
   panelId: string;
   sessionId: string | null;
@@ -224,6 +251,24 @@ const fallbackLiveControlSmokeProof: CodexLiveControlSmokeProof = {
   supportedMethodCount: 0,
   unsupportedMethodCount: 0,
   totalMethodCount: 0
+};
+
+const fallbackActiveTurnControlSmokeProof: CodexActiveTurnControlSmokeProof = {
+  source: "browser",
+  checkedAt: null,
+  executed: false,
+  ok: false,
+  unsupported: true,
+  detail: "Browser preview cannot launch a Codex active-turn control smoke test.",
+  sessionStarted: false,
+  turnIdSeen: false,
+  interruptSent: false,
+  interruptObserved: false,
+  completed: false,
+  failed: false,
+  eventCount: 0,
+  transcriptLength: 0,
+  controls: []
 };
 
 const fallbackTwoPanelSmokeProof: CodexTwoPanelSmokeProof = {
@@ -455,6 +500,28 @@ function normalizeCodexLiveControlSmokeMethodProof(
   };
 }
 
+function normalizeCodexActiveTurnControlSmokeMethodProof(
+  value: unknown
+): CodexActiveTurnControlSmokeMethodProof | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const control = optionalString(value.control);
+  if (!control) {
+    return undefined;
+  }
+
+  return {
+    control,
+    attempted: bool(value.attempted),
+    sent: bool(value.sent),
+    observed: bool(value.observed),
+    supported: bool(value.supported),
+    detail: optionalString(value.detail) ?? "No control smoke detail was returned."
+  };
+}
+
 function normalizeTwoPanelSmokePanelProof(value: unknown): CodexTwoPanelSmokePanelProof | undefined {
   if (!isRecord(value)) {
     return undefined;
@@ -488,6 +555,13 @@ export function getFallbackCodexTwoPanelSmokeProof(): CodexTwoPanelSmokeProof {
   };
 }
 
+export function getFallbackCodexActiveTurnControlSmokeProof(): CodexActiveTurnControlSmokeProof {
+  return {
+    ...fallbackActiveTurnControlSmokeProof,
+    controls: fallbackActiveTurnControlSmokeProof.controls.map((control) => ({ ...control }))
+  };
+}
+
 export function normalizeCodexTwoPanelSmokeProof(value: unknown): CodexTwoPanelSmokeProof {
   if (!isRecord(value)) {
     return getFallbackCodexTwoPanelSmokeProof();
@@ -512,6 +586,39 @@ export function normalizeCodexTwoPanelSmokeProof(value: unknown): CodexTwoPanelS
     bothCompleted: bool(value.bothCompleted),
     crossTalkDetected: bool(value.crossTalkDetected),
     panels
+  };
+}
+
+export function normalizeCodexActiveTurnControlSmokeProof(
+  value: unknown
+): CodexActiveTurnControlSmokeProof {
+  if (!isRecord(value)) {
+    return getFallbackCodexActiveTurnControlSmokeProof();
+  }
+
+  const fallback = getFallbackCodexActiveTurnControlSmokeProof();
+  const controls = Array.isArray(value.controls)
+    ? value.controls
+        .map(normalizeCodexActiveTurnControlSmokeMethodProof)
+        .filter((control): control is CodexActiveTurnControlSmokeMethodProof => Boolean(control))
+    : [];
+
+  return {
+    source: value.source === "desktop" ? "desktop" : "browser",
+    checkedAt: optionalDate(value.checkedAt),
+    executed: bool(value.executed),
+    ok: bool(value.ok),
+    unsupported: bool(value.unsupported),
+    detail: optionalString(value.detail) ?? fallback.detail,
+    sessionStarted: bool(value.sessionStarted),
+    turnIdSeen: bool(value.turnIdSeen),
+    interruptSent: bool(value.interruptSent),
+    interruptObserved: bool(value.interruptObserved),
+    completed: bool(value.completed),
+    failed: bool(value.failed),
+    eventCount: nonNegativeInteger(value.eventCount),
+    transcriptLength: nonNegativeInteger(value.transcriptLength),
+    controls
   };
 }
 
@@ -696,6 +803,15 @@ async function invokeCodexTwoPanelSmokeProof(): Promise<unknown> {
   return invoke("codex_transport_two_panel_smoke");
 }
 
+async function invokeCodexActiveTurnControlSmokeProof(): Promise<unknown> {
+  if (!hasTauriRuntime()) {
+    return getFallbackCodexActiveTurnControlSmokeProof();
+  }
+
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke("codex_transport_active_turn_control_smoke");
+}
+
 export async function loadCodexTransportProbe(
   invokeProbe: () => Promise<unknown> = invokeCodexTransportProbe
 ): Promise<CodexTransportProbe> {
@@ -768,6 +884,24 @@ export async function loadCodexTwoPanelSmokeProof(
       ...getFallbackCodexTwoPanelSmokeProof(),
       source: "desktop",
       detail: "Codex two-panel live smoke failed before a transport result was returned."
+    };
+  }
+}
+
+export async function loadCodexActiveTurnControlSmokeProof(
+  invokeProof: () => Promise<unknown> = invokeCodexActiveTurnControlSmokeProof
+): Promise<CodexActiveTurnControlSmokeProof> {
+  try {
+    if (!hasTauriRuntime() && invokeProof === invokeCodexActiveTurnControlSmokeProof) {
+      return getFallbackCodexActiveTurnControlSmokeProof();
+    }
+
+    return normalizeCodexActiveTurnControlSmokeProof(await invokeProof());
+  } catch {
+    return {
+      ...getFallbackCodexActiveTurnControlSmokeProof(),
+      source: "desktop",
+      detail: "Codex active-turn control smoke failed before a transport result was returned."
     };
   }
 }

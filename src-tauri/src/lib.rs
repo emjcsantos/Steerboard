@@ -138,6 +138,37 @@ pub struct CodexLiveControlSmokeProof {
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CodexActiveTurnControlSmokeControlProof {
+    pub control: String,
+    pub attempted: bool,
+    pub sent: bool,
+    pub observed: bool,
+    pub supported: bool,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexActiveTurnControlSmokeProof {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub executed: bool,
+    pub ok: bool,
+    pub unsupported: bool,
+    pub detail: String,
+    pub session_started: bool,
+    pub turn_id_seen: bool,
+    pub interrupt_sent: bool,
+    pub interrupt_observed: bool,
+    pub completed: bool,
+    pub failed: bool,
+    pub event_count: usize,
+    pub transcript_length: usize,
+    pub controls: Vec<CodexActiveTurnControlSmokeControlProof>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CodexTwoPanelSmokePanelProof {
     pub panel_id: String,
     pub session_id: Option<String>,
@@ -466,6 +497,7 @@ mod runtime_bridge {
     use super::{
         CodexAppServerProbe, CodexAppServerProtocolProbe, CodexCliProbe, CodexExecJsonProbe,
         CodexExecutionProbe, CodexHomeProbe, CodexLiveSmokeProof, CodexPanelCloseResult,
+        CodexActiveTurnControlSmokeControlProof, CodexActiveTurnControlSmokeProof,
         CodexLiveControlSmokeMethodProof, CodexLiveControlSmokeProof,
         CodexPanelEvent, CodexPanelInterruptResult, CodexPanelSessionReadiness,
         CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelTurnResult, CodexTransportProbe,
@@ -1815,6 +1847,11 @@ mod runtime_bridge {
     }
 
     #[tauri::command]
+    pub fn codex_transport_active_turn_control_smoke() -> CodexActiveTurnControlSmokeProof {
+        run_active_turn_control_smoke()
+    }
+
+    #[tauri::command]
     pub fn codex_transport_two_panel_smoke() -> CodexTwoPanelSmokeProof {
         run_two_panel_smoke()
     }
@@ -2581,6 +2618,331 @@ mod runtime_bridge {
         build_codex_transport_live_control_smoke_from_probe(probe)
     }
 
+    const ACTIVE_TURN_CONTROL_SMOKE_PANEL_ID: &str = "smoke-active-turn-control";
+    const ACTIVE_TURN_CONTROL_SMOKE_PROMPT: &str =
+        "Reply with exactly this token and nothing else: STEERBOARD_ACTIVE_TURN_CONTROL_OK";
+
+    fn run_active_turn_control_smoke() -> CodexActiveTurnControlSmokeProof {
+        let checked_at = Some(current_timestamp());
+        let session = match start_panel_session(ACTIVE_TURN_CONTROL_SMOKE_PANEL_ID) {
+            Ok(session) => session,
+            Err(error) => {
+                return codex_transport_active_turn_control_smoke_from_values(
+                    checked_at,
+                    false,
+                    false,
+                    false,
+                    false,
+                    vec![CodexActiveTurnControlSmokeControlProof {
+                        control: "thread/start".to_string(),
+                        attempted: true,
+                        sent: false,
+                        observed: false,
+                        supported: false,
+                        detail: error,
+                    }],
+                    &[],
+                );
+            }
+        };
+
+        let proof = run_active_turn_control_smoke_from_session(session, checked_at);
+        proof
+    }
+
+    fn run_active_turn_control_smoke_from_session(
+        session: Arc<CodexPanelSession>,
+        checked_at: Option<String>,
+    ) -> CodexActiveTurnControlSmokeProof {
+        let mut controls = vec![
+            CodexActiveTurnControlSmokeControlProof {
+                control: "thread/start".to_string(),
+                attempted: true,
+                sent: true,
+                observed: true,
+                supported: true,
+                detail: "Started one ephemeral read-only Codex panel session.".to_string(),
+            },
+            CodexActiveTurnControlSmokeControlProof {
+                control: "turn/start".to_string(),
+                attempted: true,
+                sent: false,
+                observed: false,
+                supported: false,
+                detail: "Preparing to start turn.".to_string(),
+            },
+            CodexActiveTurnControlSmokeControlProof {
+                control: "turn/interrupt".to_string(),
+                attempted: false,
+                sent: false,
+                observed: false,
+                supported: false,
+                detail: "Preparing to send turn/interrupt.".to_string(),
+            },
+        ];
+
+        let mut events = Vec::new();
+        let mut interrupt_sent = false;
+        let turn_start_id = session.next_request_id();
+        let turn_start = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": turn_start_id,
+            "method": "turn/start",
+            "params": {
+                "threadId": session.thread_id,
+                "input": [
+                    {
+                        "type": "text",
+                        "text": ACTIVE_TURN_CONTROL_SMOKE_PROMPT
+                    }
+                ],
+                "approvalPolicy": "never",
+                "sandboxPolicy": {
+                    "type": "readOnly",
+                    "networkAccess": false
+                },
+                "effort": "low"
+            }
+        });
+
+        match session.send(&turn_start) {
+            Ok(true) => controls[1].sent = true,
+            Ok(false) => {
+                controls[1].detail = "Unable to write turn/start request.".to_string();
+                return codex_transport_active_turn_control_smoke_from_values(
+                    checked_at,
+                    true,
+                    true,
+                    false,
+                    false,
+                    controls,
+                    &[],
+                );
+            }
+            Err(error) => {
+                controls[1].detail = error;
+                return codex_transport_active_turn_control_smoke_from_values(
+                    checked_at,
+                    true,
+                    true,
+                    false,
+                    false,
+                    controls,
+                    &[],
+                );
+            }
+        };
+
+        let turn_response = match wait_for_session_json_rpc_id(
+            &session,
+            turn_start_id,
+            Duration::from_secs(12),
+        ) {
+            Ok(Some(response)) => response,
+            Ok(None) => {
+                controls[1].detail = "No turn/start response was received.".to_string();
+                return codex_transport_active_turn_control_smoke_from_values(
+                    checked_at,
+                    true,
+                    true,
+                    false,
+                    false,
+                    controls,
+                    &[],
+                );
+            }
+            Err(error) => {
+                controls[1].detail = error;
+                return codex_transport_active_turn_control_smoke_from_values(
+                    checked_at,
+                    true,
+                    true,
+                    false,
+                    false,
+                    controls,
+                    &[],
+                );
+            }
+        };
+
+        let turn_id = extract_turn_id(&turn_response);
+        let turn_id_seen = turn_id.is_some();
+        controls[1].observed = turn_id_seen;
+        controls[1].supported = turn_id_seen;
+        controls[1].detail = if turn_id_seen {
+            "Received turn id from turn/start response.".to_string()
+        } else {
+            "turn/start response did not include a turn id.".to_string()
+        };
+        set_current_turn(&session, turn_id.clone());
+
+        if let Some(turn_id) = turn_id {
+            let interrupt_request_id = session.next_request_id();
+            let interrupt = serde_json::json!({
+                "jsonrpc": "2.0",
+                "id": interrupt_request_id,
+                "method": "turn/interrupt",
+                "params": {
+                    "threadId": session.thread_id,
+                    "turnId": turn_id
+                }
+            });
+
+            controls[2].attempted = true;
+            match session.send(&interrupt) {
+                Ok(sent) => {
+                    controls[2].sent = sent;
+                    controls[2].observed = false;
+                    controls[2].supported = sent;
+                    controls[2].detail = if sent {
+                        "Sent turn/interrupt request while turn was active.".to_string()
+                    } else {
+                        "Unable to write turn/interrupt request.".to_string()
+                    };
+                    interrupt_sent = sent;
+                }
+                Err(error) => {
+                    controls[2].detail = error;
+                    set_current_turn(&session, None);
+                    return codex_transport_active_turn_control_smoke_from_values(
+                        checked_at,
+                        true,
+                        true,
+                        true,
+                        false,
+                        controls,
+                        &[],
+                    );
+                }
+            };
+        }
+
+        set_current_turn(&session, None);
+
+        let deadline = std::time::Instant::now() + Duration::from_secs(8);
+        while std::time::Instant::now() < deadline {
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            let value = match recv_session_value(&session, remaining.min(Duration::from_millis(250))) {
+                Ok(Some(value)) => value,
+                Ok(None) => continue,
+                Err(_) => {
+                    break;
+                }
+            };
+            let terminal_status = normalize_panel_event(&value)
+                .and_then(|event| event.status)
+                .is_some_and(|status| {
+                    matches!(status.as_str(), "completed" | "interrupted" | "failed")
+                });
+            events.push(value.clone());
+            if terminal_status {
+                break;
+            }
+        }
+
+        codex_transport_active_turn_control_smoke_from_values(
+            checked_at,
+            true,
+            true,
+            turn_id_seen,
+            interrupt_sent,
+            controls,
+            &events,
+        )
+    }
+
+    pub(crate) fn codex_transport_active_turn_control_smoke_from_values(
+        checked_at: Option<String>,
+        executed: bool,
+        session_started: bool,
+        turn_id_seen: bool,
+        interrupt_sent: bool,
+        mut controls: Vec<CodexActiveTurnControlSmokeControlProof>,
+        values: &[Value],
+    ) -> CodexActiveTurnControlSmokeProof {
+        let events: Vec<CodexPanelEvent> = values
+            .iter()
+            .filter_map(normalize_panel_event)
+            .collect();
+
+        let mut completed = false;
+        let mut failed = false;
+        let mut interrupt_observed = false;
+        let mut transcript_length = 0usize;
+
+        for event in &events {
+            transcript_length += event.delta.as_ref().map_or(0, |delta| delta.chars().count());
+            match event.status.as_deref() {
+                Some("completed") => completed = true,
+                Some("failed") => failed = true,
+                Some("interrupted") => interrupt_observed = true,
+                _ => {}
+            }
+            if event.event_type == "error" {
+                failed = true;
+            }
+        }
+
+        for control in &mut controls {
+            match control.control.as_str() {
+                "thread/start" => {
+                    control.observed = session_started;
+                    control.supported = session_started;
+                }
+                "turn/start" => {
+                    control.observed = turn_id_seen;
+                    control.supported = turn_id_seen;
+                }
+                "turn/interrupt" => {
+                    control.attempted = control.attempted || interrupt_sent;
+                    control.sent = control.sent || interrupt_sent;
+                    control.supported = interrupt_sent;
+                    control.observed = interrupt_observed;
+                }
+                _ => {}
+            }
+        }
+
+        let unsupported = !executed || controls.iter().any(|control| !control.supported);
+        let ok = executed && session_started && turn_id_seen && interrupt_sent && !failed;
+        let detail = if !executed {
+            "Active-turn control smoke could not execute the command."
+                .to_string()
+        } else if !session_started {
+            "No Codex panel session could be started.".to_string()
+        } else if !turn_id_seen {
+            "Started a Codex session but did not receive a turn id.".to_string()
+        } else if !interrupt_sent {
+            "Failed to send turn/interrupt while turn was active.".to_string()
+        } else if unsupported {
+            "Active-turn control smoke was unable to complete required controls.".to_string()
+        } else if failed {
+            "Active-turn control smoke observed a failed event during the turn.".to_string()
+        } else if completed {
+            "Active-turn control smoke completed; turn/interrupt did not return an interrupted event.".to_string()
+        } else {
+            "Active-turn control smoke sent interrupt while monitoring turn lifecycle.".to_string()
+        };
+
+        CodexActiveTurnControlSmokeProof {
+            source: "desktop".to_string(),
+            checked_at,
+            executed,
+            ok,
+            unsupported,
+            detail,
+            session_started,
+            turn_id_seen,
+            interrupt_sent,
+            interrupt_observed,
+            completed,
+            failed,
+            event_count: events.len(),
+            transcript_length,
+            controls,
+        }
+    }
+
     fn run_two_panel_smoke() -> CodexTwoPanelSmokeProof {
         const PANEL_A_ID: &str = "smoke-panel-a";
         const PANEL_A_TOKEN: &str = "STEERBOARD_PANEL_A_OK";
@@ -3328,6 +3690,7 @@ pub fn run() {
             runtime_bridge::codex_plugin_catalog_preview,
             runtime_bridge::codex_mcp_catalog_preview,
             runtime_bridge::codex_personalization_catalog_preview,
+            runtime_bridge::codex_transport_active_turn_control_smoke,
             runtime_bridge::codex_transport_live_smoke,
             runtime_bridge::codex_transport_live_control_smoke,
             runtime_bridge::codex_transport_two_panel_smoke,
@@ -3645,6 +4008,106 @@ mod tests {
     }
 
     #[test]
+    fn codex_transport_active_turn_control_smoke_marks_ok_with_interrupt_status() {
+        let proof = runtime_bridge::codex_transport_active_turn_control_smoke_from_values(
+            Some("1700000000000".to_string()),
+            true,
+            true,
+            true,
+            true,
+            vec![
+                active_turn_control_smoke_control("thread/start", true, true, ""),
+                active_turn_control_smoke_control("turn/start", true, true, ""),
+                active_turn_control_smoke_control("turn/interrupt", true, true, ""),
+            ],
+            &[
+                serde_json::json!({
+                    "jsonrpc": "2.0",
+                    "method": "item/agentMessage/delta",
+                    "params": {
+                        "turnId": "turn-1",
+                        "delta": "safe"
+                    }
+                }),
+                serde_json::json!({
+                    "jsonrpc": "2.0",
+                    "method": "turn/interrupted",
+                    "params": {
+                        "turn": {
+                            "id": "turn-1",
+                            "status": "interrupted"
+                        }
+                    }
+                }),
+            ],
+        );
+
+        assert!(proof.executed);
+        assert!(proof.ok);
+        assert!(!proof.unsupported);
+        assert!(proof.interrupt_observed);
+        assert_eq!(proof.event_count, 2);
+        assert_eq!(proof.transcript_length, 4);
+    }
+
+    #[test]
+    fn codex_transport_active_turn_control_smoke_distinguishes_completed_without_interrupt_status() {
+        let proof = runtime_bridge::codex_transport_active_turn_control_smoke_from_values(
+            Some("1700000000000".to_string()),
+            true,
+            true,
+            true,
+            true,
+            vec![
+                active_turn_control_smoke_control("thread/start", true, true, ""),
+                active_turn_control_smoke_control("turn/start", true, true, ""),
+                active_turn_control_smoke_control("turn/interrupt", true, true, ""),
+            ],
+            &[
+                serde_json::json!({
+                    "jsonrpc": "2.0",
+                    "method": "turn/completed",
+                    "params": {
+                        "turn": {
+                            "id": "turn-2",
+                            "status": "completed"
+                        }
+                    }
+                })
+            ],
+        );
+
+        assert!(proof.executed);
+        assert!(proof.ok);
+        assert!(proof.completed);
+        assert!(!proof.interrupt_observed);
+        assert_eq!(proof.detail, "Active-turn control smoke completed; turn/interrupt did not return an interrupted event.");
+    }
+
+    #[test]
+    fn codex_transport_active_turn_control_smoke_marks_unsupported_when_session_not_started() {
+        let proof = runtime_bridge::codex_transport_active_turn_control_smoke_from_values(
+            Some("1700000000000".to_string()),
+            false,
+            false,
+            false,
+            false,
+            vec![active_turn_control_smoke_control(
+                "thread/start",
+                true,
+                false,
+                "session failed to start",
+            )],
+            &[],
+        );
+
+        assert!(!proof.executed);
+        assert!(!proof.ok);
+        assert!(proof.unsupported);
+        assert!(!proof.session_started);
+    }
+
+    #[test]
     fn codex_transport_probe_keeps_prompt_execution_locked() {
         let probe = runtime_bridge::codex_transport_probe();
         assert_eq!(probe.source, "desktop");
@@ -3711,6 +4174,22 @@ mod tests {
         );
         assert!(params.get("turnId").is_none());
         assert!(request.to_string().contains("Narrow the answer."));
+    }
+
+    fn active_turn_control_smoke_control(
+        control: &str,
+        attempted: bool,
+        sent: bool,
+        detail: &str,
+    ) -> CodexActiveTurnControlSmokeControlProof {
+        CodexActiveTurnControlSmokeControlProof {
+            control: control.to_string(),
+            attempted,
+            sent,
+            observed: false,
+            supported: false,
+            detail: detail.to_string(),
+        }
     }
 
     fn two_panel_smoke_panel(

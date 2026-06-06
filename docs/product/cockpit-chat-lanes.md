@@ -21,7 +21,7 @@ The current implementation supports a first live-panel milestone:
 - fork, resume, and archive controls remain visible as honest unsupported states until the adapter exposes those capabilities,
 - passive readiness checks must not send prompts or spend model tokens.
 
-This is still an early live milestone. Multi-panel state, event isolation, session-control foundations, the native two-panel smoke proof path, and the control-readiness smoke proof path now exist, while active-turn interrupt/steer smoke, true incremental UI streaming, fork/resume/archive support, and provider catalogs remain future milestones.
+This is still an early live milestone. Multi-panel state, event isolation, session-control foundations, the native two-panel smoke proof path, the control-readiness smoke proof path, and an explicit active-turn interrupt smoke proof path now exist, while active-turn steer smoke, true incremental UI streaming, fork/resume/archive support, and provider catalogs remain future milestones.
 
 The next live milestone is to connect panel chat to the provider adapter layer:
 

@@ -44,9 +44,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Complete core cockpit panels, control affordances, and visible operating-mode cues.",
     completionPercent: 63,
     latestNote:
-      "Multi-panel cockpit, adaptive magnetic layout with project stack drag-in, session drag-in, drop previews, keyboard adjustment, and adaptive project-drop template selection exist; local chat-lane scaffolding includes panel-keyed live session chat, per-panel session controls, duplicate session identity guards, and a native two-panel smoke proof path.",
+      "Multi-panel cockpit, adaptive magnetic layout with project stack drag-in, session drag-in, drop previews, keyboard adjustment, and adaptive project-drop template selection exist; local chat-lane scaffolding includes panel-keyed live session chat, per-panel session controls, duplicate session identity guards, and native two-panel plus active-turn interrupt smoke proof paths.",
     nextStep:
-      "Run native two-panel smoke and live-control smoke from desktop mode, then continue command capability and live-session hardening work.",
+      "Run native two-panel smoke, control-readiness smoke, and active-turn interrupt smoke from desktop mode, then continue command capability and live-session hardening work.",
     tone: "active",
     note:
       "Fixed layouts, adaptive panel geometry, project stack drag-in, session drag-in, drop previews, local monitor previews, and guarded chat-lane scaffolding exist, but live provider-backed behavior is not complete."
@@ -81,11 +81,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Live adapter integration",
     completion: "In progress",
     plan: "Connect runtime auth/session transport to cockpit panels.",
-    completionPercent: 44,
+    completionPercent: 46,
     latestNote:
-      "Runtime app-server bridge now supports no-prompt readiness, explicit live smoke, two-panel isolation smoke, control-readiness smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations.",
+      "Runtime app-server bridge now supports no-prompt readiness, explicit live smoke, two-panel isolation smoke, control-readiness smoke, explicit active-turn interrupt smoke, panel-keyed sessions, visible-panel live chat paths, and interrupt/retry/steer foundations.",
     nextStep:
-      "Run native two-panel smoke and active-turn control smoke in desktop mode as recurring regression checks.",
+      "Run native two-panel smoke, control-readiness smoke, and active-turn interrupt smoke in desktop mode as recurring regression checks, then continue active-turn steer/fork/resume/archive hardening.",
     tone: "active",
     note:
       "Runtime connection center, adapter bridge, live panel chat, and normalized stream ingestion are the next core milestone."
