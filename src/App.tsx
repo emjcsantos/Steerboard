@@ -83,6 +83,10 @@ import {
   type CatalogRefreshOwnerValidationResult
 } from "./catalogRefreshOwnerValidation";
 import {
+  buildProviderIntegrationReadiness,
+  type ProviderIntegrationReadiness
+} from "./providerIntegrationReadiness";
+import {
   buildCatalogRefreshProviderSmoke,
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
   type CatalogRefreshProviderSmokeResult
@@ -1615,6 +1619,10 @@ export function App() {
       pluginCatalogSnapshot,
       skillCatalogSnapshot
     ]
+  );
+  const providerIntegrationReadiness = useMemo(
+    () => buildProviderIntegrationReadiness(catalogRefreshOwnerValidation),
+    [catalogRefreshOwnerValidation]
   );
   const slashCommandExecutionEvidence = useMemo(() => {
     const evidenceItems = Object.values(slashCommandExecutionEvidenceByPanel);
@@ -3288,6 +3296,7 @@ export function App() {
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
             project={project}
+            providerIntegrationReadiness={providerIntegrationReadiness}
             registryEntry={registryEntry}
             registrySummary={registrySummary}
             runtimeAdapter={runtimeAdapter}
@@ -5900,6 +5909,67 @@ function RemainingGoalsPanel({
   );
 }
 
+function ProviderIntegrationReadinessPanel({
+  readiness
+}: {
+  readiness: ProviderIntegrationReadiness;
+}) {
+  return (
+    <section
+      aria-label={`Phase 4 provider integration readiness ${readiness.statusLabel}; ${readiness.readiness}% ready. ${readiness.nextAction}`}
+      className={classNames(
+        "panel-section",
+        "provider-readiness-panel",
+        `provider-readiness-${readiness.state}`
+      )}
+    >
+      <div className="provider-readiness-header">
+        <h4>Phase 4 Provider Readiness</h4>
+        <span title={readiness.nextAction}>{readiness.statusLabel}</span>
+      </div>
+      <div className="provider-readiness-summary" title={readiness.safety}>
+        <div>
+          <strong>{readiness.readiness}%</strong>
+          <span>Ready</span>
+        </div>
+        <div>
+          <strong>{readiness.counts.ready + readiness.counts.preview}</strong>
+          <span>Usable</span>
+        </div>
+        <div>
+          <strong>{readiness.counts.setupRequired}</strong>
+          <span>Setup</span>
+        </div>
+        <div>
+          <strong>{readiness.counts.unsupported + readiness.counts.unavailable + readiness.counts.blocked}</strong>
+          <span>Held</span>
+        </div>
+      </div>
+      <p className="provider-readiness-next">{readiness.nextAction}</p>
+      <ol className="provider-readiness-list" aria-label="Provider readiness by catalog surface">
+        {readiness.surfaces.map((surface) => (
+          <li
+            aria-label={`${surface.label}: ${surface.statusLabel}; ${surface.readiness}% ready; ${surface.detail}`}
+            className={classNames(
+              "provider-readiness-surface",
+              `provider-readiness-surface-${surface.state}`
+            )}
+            key={surface.surface}
+            title={surface.nextAction}
+          >
+            <div>
+              <strong>{surface.label}</strong>
+              <small>{surface.sourceLabel}</small>
+            </div>
+            <span>{surface.statusLabel}</span>
+            <p>{surface.detail}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 function PanelPrioritySignal({
   focusTarget,
   onClearFocus,
@@ -6284,6 +6354,7 @@ function RightPanel({
   onSelectRun,
   onUpdateRunStatus,
   project,
+  providerIntegrationReadiness,
   registryEntry,
   registrySummary,
   runtimeAdapter,
@@ -6328,6 +6399,7 @@ function RightPanel({
   onSelectRun: (runId: string) => void;
   onUpdateRunStatus: (runId: string, nextStatus: MockRunStatus) => void;
   project: ProjectSummary;
+  providerIntegrationReadiness: ProviderIntegrationReadiness;
   registryEntry?: RegistryEntry;
   registrySummary: ReturnType<typeof summarizeRegistry>;
   runtimeAdapter?: RuntimeAdapter;
@@ -7376,6 +7448,8 @@ function RightPanel({
         goals={remainingGoalPlan}
         summary={remainingGoalSummary}
       />
+
+      <ProviderIntegrationReadinessPanel readiness={providerIntegrationReadiness} />
 
       <OwnerTestingReadinessPanel
         catalogRefreshOwnerValidation={catalogRefreshOwnerValidation}

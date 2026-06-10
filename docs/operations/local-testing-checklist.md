@@ -27,6 +27,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Use the Owner Testing Phase 1 and Phase 2 smoke buttons to rerun live-panel and two-panel proof only after explicitly choosing the action.
    - Reload after successful Phase 1/2 desktop smoke proof and confirm the priority card keeps the desktop-executed proof states without rerunning prompts on startup.
    - Confirm the Environment panel Remaining Goals summary shows all remaining targets, covers Phase 1 through Phase 11, and keeps `Unblock Phase 1/2/6 publishing` blocked until the owner approves pushing.
+   - Confirm the Environment panel Phase 4 Provider Readiness card classifies all six provider surfaces without executing commands, skills, plugins, MCP tools, automations, or personalization mutations.
    - Optionally run `npm run smoke:phase1-2` to execute the opt-in one-panel live smoke and two-panel isolation desktop smoke tests. This can send tiny read-only prompts through the local runtime and is intentionally excluded from normal tests.
    - Optionally run `npm run smoke:phase3` to execute the opt-in live-control, active-turn interrupt, and active-turn steer desktop smoke tests. This can send tiny read-only prompts through the local runtime and is intentionally excluded from normal tests.
 3. `Chat`
@@ -58,6 +59,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Open command, skill, plugin, MCP, automation, and personalization catalogs.
    - Verify stable ordering and filtering output across repeated reloads.
    - Confirm the Owner Testing panel shows six catalog refresh validation rows and a metadata-only safety note.
+   - Confirm the Phase 4 Provider Readiness card updates from the same catalog snapshots and shows ready, preview, setup-required, unsupported, unavailable, or blocked labels with an exact next action.
    - Open the connection dialog and run the catalog smoke to refresh all six catalog metadata/status surfaces together without execution.
    - Refresh the command catalog as a safe metadata/status refresh and confirm source/state changes are visible without side effects.
    - Refresh the skill catalog as a safe metadata/status refresh and confirm source/state changes are visible without executing skills.

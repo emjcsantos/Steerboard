@@ -34,6 +34,8 @@ Owner Testing also includes a Phase 1/2/6 priority evidence card. It reads the l
 
 Owner Testing also includes a Phase 3 clearance package. It reads slash execution evidence, session-control evidence, desktop smoke proof readiness, and available smoke actions, then shows whether Phase 3 is exit-ready, held for review, waiting, or blocked. The package is evidence-only and promotes the next runnable proof without launching provider work automatically.
 
+The Environment panel also includes a Phase 4 Provider Readiness panel. It reads the same safe catalog validation snapshots used by Owner Testing, classifies each provider surface as ready, preview, setup-required, unsupported, unavailable, or blocked, and keeps the next action metadata-only until explicit execution, approval, audit, and rollback gates exist.
+
 ## Core Jobs
 
 - Create and manage projects.
@@ -69,6 +71,7 @@ Owner Testing also includes a Phase 3 clearance package. It reads slash executio
 - Bottom PM chat/terminal panel scoped to dashboard alignment, updates, and revision requests.
 - Staged Arena review preview for the latest row run.
 - Remaining Goals summary for all open targets across Phase 1 through Phase 11.
+- Phase 4 Provider Readiness panel for catalog-surface labels and next actions before execution is enabled.
 - Owner Testing evidence and explicit smoke buttons for Phase 1 live panel proof, Phase 2 multi-panel isolation, and Phase 6 PM board staging readiness.
 - Phase 3 clearance package with exact open blockers and next smoke action.
 - Item detail panel.

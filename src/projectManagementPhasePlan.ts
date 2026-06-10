@@ -257,30 +257,30 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces after Phase 3 clears.",
-    completionPercent: 10,
+    completionPercent: 20,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
-        description: "Render provider catalogs as metadata-first surfaces with clear readiness and safety labels.",
-        completionPercent: 15,
+        description: "Render provider catalogs and readiness labels as metadata-first surfaces before execution is enabled.",
+        completionPercent: 25,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
           {
             id: "phase-04-child-command-skill",
             title: "Command and Skill Catalogs",
-            description: "Show command and skill entries with scope, fallback guidance, and owner-safe invocation status.",
-            completionPercent: 20,
+            description: "Show command and skill entries with scope, fallback guidance, and owner-safe readiness status.",
+            completionPercent: 30,
             sourceDocument: "Command and skill catalogs"
           },
           {
             id: "phase-04-child-plugin-mcp",
             title: "Plugin and MCP Catalogs",
-            description: "Show plugin and MCP entries with connection state, allowed surfaces, and non-mutating refresh evidence.",
-            completionPercent: 10,
+            description: "Show plugin and MCP entries with connection state, allowed surfaces, and non-mutating readiness evidence.",
+            completionPercent: 20,
             complexity: "high",
             sourceDocument: "Plugin and MCP catalogs"
           }
@@ -289,16 +289,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-04-parent-refresh-safety",
         title: "Metadata-Only Refresh Safety",
-        description: "Keep refresh paths read-only until provider permissions and approval gates are explicit.",
-        completionPercent: 10,
+        description: "Keep refresh and readiness paths read-only until provider permissions and approval gates are explicit.",
+        completionPercent: 20,
         complexity: "high",
         sourceDocument: "Provider catalog safety",
         children: [
           {
             id: "phase-04-child-refresh-smoke",
             title: "All-Catalog Refresh Smoke",
-            description: "Refresh catalog status without running commands, tools, automations, or mutations.",
-            completionPercent: 15,
+            description: "Refresh and classify catalog status without running commands, tools, automations, or mutations.",
+            completionPercent: 25,
             sourceDocument: "Catalog refresh owner validation"
           }
         ]
