@@ -294,6 +294,10 @@ import {
   type Phase3SmokeProofReadinessResult
 } from "./phase3SmokeProofReadiness";
 import {
+  buildPhasePriorityEvidence,
+  type PhasePriorityEvidenceResult
+} from "./phasePriorityEvidence";
+import {
   loadPhase3SmokeProofBundle,
   savePhase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
@@ -1779,6 +1783,27 @@ export function App() {
   const registrySummary = summarizeRegistry(registryEntries);
   const runtimeSummary = summarizeRuntimeAdapters(runtimeAdapters);
   const runtimeProfileSummary = summarizeRuntimeProfiles(runtimeProfiles);
+  const phasePriorityEvidence = useMemo(
+    () =>
+      buildPhasePriorityEvidence({
+        liveSmokeProof: codexLiveSmokeProof,
+        twoPanelSmokeProof: codexTwoPanelSmokeProof,
+        panelSessionState,
+        projectManagementTasks,
+        project: {
+          id: project.id,
+          name: project.name
+        }
+      }),
+    [
+      codexLiveSmokeProof,
+      codexTwoPanelSmokeProof,
+      panelSessionState,
+      projectManagementTasks,
+      project.id,
+      project.name
+    ]
+  );
   const migrationProfileDraftHistorySummary: MigrationProfileDraftHistorySummary = useMemo(
     () => summarizeMigrationProfileDrafts(migrationProfileDraftHistory),
     [migrationProfileDraftHistory]
@@ -3238,6 +3263,7 @@ export function App() {
             runtimeProfileSummary={runtimeProfileSummary}
             runtimeSummary={runtimeSummary}
             selectedRun={selectedRun}
+            phasePriorityEvidence={phasePriorityEvidence}
             phase3ExitGateEvidence={phase3ExitGateEvidence}
             phase3OwnerTestingActions={phase3OwnerTestingActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
@@ -6052,7 +6078,13 @@ function PlanningView({
                     </span>
                   </td>
                   <td>
-                    <button className="pm-run-button" onClick={() => handleRunTask(task.id)} type="button">
+                    <button
+                      aria-label={`Stage ${projectManagementTypeLabels[task.type]} ${task.title} for Arena review`}
+                      className="pm-run-button"
+                      data-testid={`pm-run-${task.type}-${task.id}`}
+                      onClick={() => handleRunTask(task.id)}
+                      type="button"
+                    >
                       <Play size={13} />
                       Run
                     </button>
@@ -6151,6 +6183,7 @@ function RightPanel({
   runtimeProfileSummary,
   runtimeSummary,
   selectedRun,
+  phasePriorityEvidence,
   phase3ExitGateEvidence,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
@@ -6188,6 +6221,7 @@ function RightPanel({
   runtimeProfileSummary: ReturnType<typeof summarizeRuntimeProfiles>;
   runtimeSummary: ReturnType<typeof summarizeRuntimeAdapters>;
   selectedRun?: MockOrchestratorRun;
+  phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
@@ -7220,6 +7254,7 @@ function RightPanel({
         checklist={ownerTestingChecklist}
         failureFixtures={failureStateFixtures}
         failureSummary={failureStateFixtureSummary}
+        phasePriorityEvidence={phasePriorityEvidence}
         phase3ExitGateEvidence={phase3ExitGateEvidence}
         phase3OwnerTestingActions={phase3OwnerTestingActions}
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
@@ -9548,6 +9583,7 @@ function OwnerTestingReadinessPanel({
   checklist,
   failureFixtures,
   failureSummary,
+  phasePriorityEvidence,
   phase3ExitGateEvidence,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
@@ -9561,6 +9597,7 @@ function OwnerTestingReadinessPanel({
   checklist: OwnerTestingChecklist;
   failureFixtures: readonly FailureStateFixture[];
   failureSummary: FailureStateFixtureSummary;
+  phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
@@ -9625,6 +9662,60 @@ function OwnerTestingReadinessPanel({
             <dd>{checklist.summary.waiting}</dd>
           </div>
         </dl>
+        <div
+          aria-label={`Phase 1 2 6 priority evidence ${phasePriorityEvidence.statusLabel}; ${phasePriorityEvidence.readiness}% ready`}
+          className={classNames(
+            "owner-testing-priority-evidence",
+            `owner-testing-priority-${phasePriorityEvidence.state}`
+          )}
+          title={phasePriorityEvidence.detail}
+        >
+          <div className="owner-testing-priority-header">
+            <span className="owner-testing-state">
+              <span aria-hidden="true" />
+              {phasePriorityEvidence.statusLabel}
+            </span>
+            <strong>Phase 1/2/6 priorities</strong>
+            <b>{phasePriorityEvidence.readiness}%</b>
+          </div>
+          <dl
+            className="owner-testing-priority-grid"
+            aria-label="Phase 1 2 6 priority evidence counts"
+          >
+            <div>
+              <dt>Ready</dt>
+              <dd>{phasePriorityEvidence.counts.ready}</dd>
+            </div>
+            <div>
+              <dt>Review</dt>
+              <dd>{phasePriorityEvidence.counts.review}</dd>
+            </div>
+            <div>
+              <dt>Blocked</dt>
+              <dd>{phasePriorityEvidence.counts.blocked}</dd>
+            </div>
+            <div>
+              <dt>Waiting</dt>
+              <dd>{phasePriorityEvidence.counts.waiting}</dd>
+            </div>
+          </dl>
+          <ol
+            className="owner-testing-priority-items"
+            aria-label="Phase 1 2 6 priority evidence details"
+          >
+            {phasePriorityEvidence.items.map((item) => (
+              <li
+                className={`owner-testing-priority-item-${item.state}`}
+                key={item.id}
+                title={`${item.detail} ${item.nextAction}`}
+              >
+                <strong>{item.label}</strong>
+                <span>{item.state}</span>
+                <small>{item.nextAction}</small>
+              </li>
+            ))}
+          </ol>
+        </div>
         <div
           aria-label={`Session control readiness evidence ${sessionControlReadinessEvidence.statusLabel}; ${sessionControlReadinessEvidence.readiness}% ready`}
           className={classNames(

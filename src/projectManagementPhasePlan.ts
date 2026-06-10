@@ -720,6 +720,10 @@ export const currentProjectManagementPhasePlanTaskIds = new Set(
   defaultProjectManagementPhasePlan.map((task) => task.id)
 );
 
+export const currentProjectManagementPhaseEpicIds = new Set(
+  phaseSpecs.map((phase) => phase.id)
+);
+
 export const legacyProjectManagementSeedTaskIds = new Set([
   "epic-live-arena",
   "parent-phase3-proof",

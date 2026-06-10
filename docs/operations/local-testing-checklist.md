@@ -23,6 +23,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Open a fresh connection.
    - Confirm reconnect/restart behavior does not lose panel scope or pending action context.
    - Run live smoke, control smoke, active-turn interrupt smoke, active-turn steer smoke, and two-panel smoke from the connection dialog when desktop runtime access is available.
+   - Confirm the Owner Testing Phase 1/2/6 priority card shows one-panel proof, two-panel isolation, and PM phase-board staging as separate evidence rows.
    - Optionally run `npm run smoke:phase3` to execute the opt-in live-control, active-turn interrupt, and active-turn steer desktop smoke tests. This can send tiny read-only prompts through the local runtime and is intentionally excluded from normal tests.
 3. `Chat`
    - Send a test message and verify response capture and interruption controls.
@@ -67,6 +68,7 @@ Do not proceed to the next section until the current item is at least `review`.
 9. `Planning`
    - Create or update a plan item and confirm expected persistence updates.
    - Confirm planning metadata remains readable after a refresh.
+   - Confirm the Project Management board contains Phase 0 through Phase 11 as Epics and that representative Epic, Parent, and Child rows each stage an Arena review package through `Run`.
 10. `Dispatch`
     - Dispatch a staged pipeline item through the standard lane.
     - Confirm role-panel plan generation, route details, and log records are consistent.

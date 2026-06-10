@@ -28,6 +28,8 @@ Each phase appears as an Epic. The board includes the Parent and Child rows need
 
 Existing local boards are repaired on load: older seed rows are replaced with the current phase plan while custom user-created rows are preserved.
 
+Owner Testing also includes a Phase 1/2/6 priority evidence card. It reads the live Arena panel smoke proof, two-panel isolation proof, panel session identity state, and Project Management phase-board state. The card does not run live actions automatically; it reports whether one-panel proof, multi-panel isolation, and Epic/Parent/Child PM staging are ready, waiting, blocked, or in review.
+
 ## Core Jobs
 
 - Create and manage projects.
@@ -62,6 +64,7 @@ Existing local boards are repaired on load: older seed rows are replaced with th
 - Display-safe source document labels only.
 - Bottom PM chat/terminal panel scoped to dashboard alignment, updates, and revision requests.
 - Staged Arena review preview for the latest row run.
+- Owner Testing evidence for Phase 1 live panel proof, Phase 2 multi-panel isolation, and Phase 6 PM board staging readiness.
 - Item detail panel.
 - Selected-item role-panel dispatch preview with pipeline, registry, and runtime gates.
 - Local selected-item dispatch request and cancellation history.
