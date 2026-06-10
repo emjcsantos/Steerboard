@@ -7,6 +7,27 @@ The project management lane is an optional Steerboard tab where users manage a J
 The primary planning medium remains the Arena chat, where the user gives goals, refines scope, reviews plans, and steers the orchestrator. The project management lane adds better visibility, monitoring, tracking, readiness review, and change management around that Arena workflow.
 Staged dispatch in this lane is local preview only: it can generate explicit Arena review packages for selected Epics, Parents, or Children without launching external runtime workers.
 
+## Current Default Board
+
+The default Project Management board is seeded from the current Steerboard phase plan:
+
+- Phase 0: Baseline, Safety, and Docs Hygiene.
+- Phase 1: One Live Chat Panel.
+- Phase 2: Multi-Panel Session Isolation.
+- Phase 3: Controls, Slash Commands, and Desktop Proof.
+- Phase 4: Provider Integration Surfaces.
+- Phase 5: Migration Center.
+- Phase 6: Project and Program Planning Lane.
+- Phase 7: Orchestrator-Worker Dispatch.
+- Phase 8: Permissions and Audit.
+- Phase 9: Desktop-Backed Runner.
+- Phase 10: Adaptive Magnetic Arena.
+- Phase 11: Owner Testing and Packaging.
+
+Each phase appears as an Epic. The board includes the Parent and Child rows needed to complete that phase, including proof clearance, owner-visible evidence, provider catalog safety, migration/audit review, PM phase-board upkeep, dispatch handoff, risk gates, runner approval, Arena layout polish, and packaging validation.
+
+Existing local boards are repaired on load: older seed rows are replaced with the current phase plan while custom user-created rows are preserved.
+
 ## Core Jobs
 
 - Create and manage projects.

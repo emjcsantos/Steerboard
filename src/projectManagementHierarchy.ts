@@ -1,5 +1,10 @@
 import type { DispatchPackage } from "./dispatch";
 import type { ProjectSummary } from "./fixtures";
+import {
+  createDefaultProjectManagementPhasePlan,
+  currentProjectManagementPhasePlanTaskIds,
+  legacyProjectManagementSeedTaskIds
+} from "./projectManagementPhasePlan";
 
 export type ProjectManagementTaskType = "epic" | "parent" | "child";
 export type ProjectManagementTaskStatus = "completed" | "ongoing" | "canceled" | "todo";
@@ -133,110 +138,25 @@ function normalizePercent(value: unknown): number {
 }
 
 export function createDefaultProjectManagementTasks(): ProjectManagementTask[] {
-  return [
-    {
-      id: "epic-live-arena",
-      type: "epic",
-      title: "Live Arena Readiness",
-      description: "Clear the remaining proof gates needed before broader provider execution is expanded.",
-      status: "ongoing",
-      completionPercent: 45,
-      complexity: "extra_high",
-      sourceDocument: "Current state and pipeline",
-      collapsed: false
-    },
-    {
-      id: "parent-phase3-proof",
-      type: "parent",
-      title: "Phase 3 Desktop Proof Clearance",
-      description: "Run explicit desktop gate actions and persist proof rows for review.",
-      status: "ongoing",
-      completionPercent: 55,
-      complexity: "high",
-      sourceDocument: "Local testing checklist",
-      parentId: "epic-live-arena",
-      collapsed: false
-    },
-    {
-      id: "child-smoke-rows",
-      type: "child",
-      title: "Verify Smoke Proof Rows",
-      description: "Confirm desktop-executed proof rows survive reload and browser fallbacks remain waiting.",
-      status: "todo",
-      completionPercent: 20,
-      complexity: "medium",
-      sourceDocument: "Local testing checklist",
-      parentId: "parent-phase3-proof"
-    },
-    {
-      id: "child-session-controls",
-      type: "child",
-      title: "Confirm Session Control Evidence",
-      description: "Validate interrupt, retry, and steer readiness evidence before the exit gate.",
-      status: "todo",
-      completionPercent: 15,
-      complexity: "high",
-      sourceDocument: "Owner testing panel",
-      parentId: "parent-phase3-proof"
-    },
-    {
-      id: "parent-catalog-safety",
-      type: "parent",
-      title: "Provider Catalog Safety",
-      description: "Keep command, skill, plugin, MCP, automation, and personalization refresh metadata-only.",
-      status: "ongoing",
-      completionPercent: 35,
-      complexity: "high",
-      sourceDocument: "Live platform capabilities",
-      parentId: "epic-live-arena",
-      collapsed: true
-    },
-    {
-      id: "child-catalog-refresh",
-      type: "child",
-      title: "All-Catalog Refresh Smoke",
-      description: "Refresh provider catalog status without running commands, tools, automations, or mutations.",
-      status: "todo",
-      completionPercent: 25,
-      complexity: "medium",
-      sourceDocument: "Live platform capabilities",
-      parentId: "parent-catalog-safety"
-    },
-    {
-      id: "epic-project-management",
-      type: "epic",
-      title: "Project Management Workbench",
-      description: "Make the optional planning lane useful for PM visibility, staging, and change review.",
-      status: "ongoing",
-      completionPercent: 30,
-      complexity: "high",
-      sourceDocument: "Project management lane",
-      collapsed: false
-    },
-    {
-      id: "parent-hierarchy-table",
-      type: "parent",
-      title: "Hierarchical Work Table",
-      description: "Represent Epics, Parents, and Children with compact status, completion, source, and run controls.",
-      status: "ongoing",
-      completionPercent: 40,
-      complexity: "medium",
-      sourceDocument: "Project management lane",
-      parentId: "epic-project-management",
-      collapsed: false
-    },
-    {
-      id: "child-pm-chat",
-      type: "child",
-      title: "Dashboard Alignment Chat",
-      description: "Provide a scoped transcript for revising PM rows without replacing Arena chat.",
-      status: "todo",
-      completionPercent: 10,
-      complexity: "medium",
-      sourceDocument: "Project management lane",
-      parentId: "parent-hierarchy-table"
+  return createDefaultProjectManagementPhasePlan();
+}
+
+function mergeCurrentPhasePlan(tasks: ProjectManagementTask[]): ProjectManagementTask[] {
+  const containsCurrentPhasePlan = tasks.some((task) => currentProjectManagementPhasePlanTaskIds.has(task.id));
+  const baseTasks = containsCurrentPhasePlan
+    ? tasks
+    : tasks.filter((task) => !legacyProjectManagementSeedTaskIds.has(task.id));
+  const knownIds = new Set(baseTasks.map((task) => task.id));
+  const merged = [...baseTasks];
+
+  for (const defaultTask of createDefaultProjectManagementTasks()) {
+    if (!knownIds.has(defaultTask.id)) {
+      merged.push(defaultTask);
+      knownIds.add(defaultTask.id);
     }
-  ];
+  }
+
+  return merged;
 }
 
 export function normalizeProjectManagementTask(rawTask: unknown, index = 0): ProjectManagementTask {
@@ -287,7 +207,7 @@ export function repairProjectManagementTasks(rawTasks: unknown): ProjectManageme
   });
 
   return hierarchySafe.some((task) => task.type === "epic")
-    ? hierarchySafe
+    ? mergeCurrentPhasePlan(hierarchySafe)
     : createDefaultProjectManagementTasks();
 }
 

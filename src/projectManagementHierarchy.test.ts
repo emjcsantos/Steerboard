@@ -42,9 +42,9 @@ describe("project management hierarchy", () => {
   });
 
   it("flattens visible rows and hides descendants under collapsed parents", () => {
-    const collapsed = toggleProjectManagementTaskCollapsed(createDefaultProjectManagementTasks(), "epic-live-arena");
+    const collapsed = toggleProjectManagementTaskCollapsed(createDefaultProjectManagementTasks(), "phase-03-controls-slash");
     const rows = flattenProjectManagementRows(collapsed);
-    const childRows = rows.filter((row) => row.task.parentId === "parent-phase3-proof");
+    const childRows = rows.filter((row) => row.task.parentId === "phase-03-parent-proof-clearance");
 
     expect(rows[0]).toMatchObject({ depth: 0, hasChildren: true, hiddenByAncestor: false });
     expect(childRows.every((row) => row.hiddenByAncestor)).toBe(true);
@@ -53,32 +53,34 @@ describe("project management hierarchy", () => {
   it("collects all descendants for epic and parent dispatch", () => {
     const tasks = createDefaultProjectManagementTasks();
 
-    expect(collectProjectManagementDescendants(tasks, "epic-live-arena").map((task) => task.id)).toEqual([
-      "parent-phase3-proof",
-      "child-smoke-rows",
-      "child-session-controls",
-      "parent-catalog-safety",
-      "child-catalog-refresh"
+    expect(tasks.filter((task) => task.type === "epic")).toHaveLength(12);
+    expect(collectProjectManagementDescendants(tasks, "phase-03-controls-slash").map((task) => task.id)).toEqual([
+      "phase-03-parent-proof-clearance",
+      "phase-03-child-smoke-rows",
+      "phase-03-child-exit-gate",
+      "phase-03-parent-slash-controls",
+      "phase-03-child-slash-ready",
+      "phase-03-child-control-ready"
     ]);
-    expect(collectProjectManagementDescendants(tasks, "parent-phase3-proof").map((task) => task.id)).toEqual([
-      "child-smoke-rows",
-      "child-session-controls"
+    expect(collectProjectManagementDescendants(tasks, "phase-03-parent-proof-clearance").map((task) => task.id)).toEqual([
+      "phase-03-child-smoke-rows",
+      "phase-03-child-exit-gate"
     ]);
   });
 
   it("builds a staged Arena dispatch package with hierarchy context", () => {
     const result = buildProjectManagementArenaDispatch(
       createDefaultProjectManagementTasks(),
-      "parent-phase3-proof",
+      "phase-03-parent-proof-clearance",
       { id: "website-refresh", name: "Website Refresh" },
       "2026-06-06T08:00:00.000Z"
     );
 
     expect(result?.payload).toMatchObject({
-      taskId: "parent-phase3-proof",
+      taskId: "phase-03-parent-proof-clearance",
       taskType: "Parent",
       status: "On-going",
-      complexity: "High",
+      complexity: "Extra High",
       executionMode: "staged_review"
     });
     expect(result?.payload.children).toHaveLength(2);
