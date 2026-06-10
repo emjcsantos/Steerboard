@@ -5417,6 +5417,73 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "phase1-phase2-live-desktop-smoke"]
+    fn phase1_phase2_live_desktop_smoke_live_panel_command() {
+        let proof = runtime_bridge::codex_transport_live_smoke();
+        assert_eq!(
+            proof.source, "desktop",
+            "phase1 live smoke should remain provider-scoped to desktop"
+        );
+        assert!(
+            proof.executed,
+            "phase1 live smoke must execute against the desktop app-server path: {}",
+            proof.detail
+        );
+        assert!(
+            proof.ok,
+            "phase1 live smoke must pass one send/stream turn: {:?}",
+            proof
+        );
+        assert!(
+            proof.thread_id_seen
+                && proof.turn_id_seen
+                && proof.agent_delta_method_seen
+                && proof.turn_completed_seen
+                && proof.expected_token_seen
+                && !proof.failed_seen,
+            "phase1 live smoke proof is incomplete: {:?}",
+            proof
+        );
+    }
+
+    #[test]
+    #[ignore = "phase1-phase2-live-desktop-smoke"]
+    fn phase1_phase2_live_desktop_smoke_two_panel_command() {
+        let proof = runtime_bridge::codex_transport_two_panel_smoke();
+        assert_eq!(
+            proof.source, "desktop",
+            "phase2 two-panel smoke should remain provider-scoped to desktop"
+        );
+        assert!(
+            proof.executed,
+            "phase2 two-panel smoke must execute against the desktop app-server path: {}",
+            proof.detail
+        );
+        assert!(
+            proof.ok,
+            "phase2 two-panel smoke must prove independent completed panel turns: {:?}",
+            proof
+        );
+        assert_eq!(proof.panel_count, 2, "phase2 smoke should cover exactly two panels");
+        assert!(
+            proof.distinct_session_ids
+                && proof.distinct_thread_ids
+                && proof.both_completed
+                && !proof.cross_talk_detected
+                && proof.panels.iter().all(|panel| {
+                    panel.session_id_seen
+                        && panel.thread_id_seen
+                        && panel.completed
+                        && panel.expected_token_seen
+                        && !panel.foreign_token_seen
+                        && !panel.failed
+                }),
+            "phase2 two-panel smoke proof is incomplete: {:?}",
+            proof
+        );
+    }
+
+    #[test]
     #[ignore = "phase3-live-desktop-smoke"]
     fn phase3_live_desktop_smoke_live_control_command() {
         let proof = runtime_bridge::codex_transport_live_control_smoke();

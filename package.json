@@ -9,6 +9,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "check": "npm run test && npm run build",
+    "smoke:phase1-2": "cargo test phase1_phase2_live_desktop_smoke --manifest-path src-tauri/Cargo.toml -- --ignored --test-threads=1",
     "smoke:phase3": "cargo test phase3_live_desktop_smoke --manifest-path src-tauri/Cargo.toml -- --ignored --test-threads=1",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
