@@ -28,6 +28,8 @@ Each phase appears as an Epic. The board includes the Parent and Child rows need
 
 Existing local boards are repaired on load: older seed rows are replaced with the current phase plan while custom user-created rows are preserved.
 
+The Environment panel also shows a Remaining Goals summary. Each remaining target lists the related phase or phases, current status, completion, next action, and the Project Management row IDs used to stage Arena review packages. The current hold is `Unblock Phase 1/2/6 publishing`, which stays blocked until the public remote is restored and the owner approves pushing.
+
 Owner Testing also includes a Phase 1/2/6 priority evidence card. It reads the live Arena panel smoke proof, two-panel isolation proof, panel session identity state, and Project Management phase-board state. The card does not run live actions automatically; it reports whether one-panel proof, multi-panel isolation, and Epic/Parent/Child PM staging are ready, waiting, blocked, or in review. Desktop-executed Phase 1/2 smoke proofs are persisted after an explicit run so the card can keep owner-visible proof state across reloads without sending prompts on startup.
 
 ## Core Jobs
@@ -64,6 +66,7 @@ Owner Testing also includes a Phase 1/2/6 priority evidence card. It reads the l
 - Display-safe source document labels only.
 - Bottom PM chat/terminal panel scoped to dashboard alignment, updates, and revision requests.
 - Staged Arena review preview for the latest row run.
+- Remaining Goals summary for all open targets across Phase 1 through Phase 11.
 - Owner Testing evidence and explicit smoke buttons for Phase 1 live panel proof, Phase 2 multi-panel isolation, and Phase 6 PM board staging readiness.
 - Item detail panel.
 - Selected-item role-panel dispatch preview with pipeline, registry, and runtime gates.

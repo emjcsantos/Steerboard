@@ -340,6 +340,12 @@ import {
   type MilestoneStatusSummary
 } from "./milestoneStatus";
 import {
+  remainingGoalPlan,
+  summarizeRemainingGoalPlan,
+  type RemainingGoalPlanItem,
+  type RemainingGoalPlanSummary
+} from "./remainingGoalPlan";
+import {
   createMilestoneReportRowState
 } from "./milestoneReportRowState";
 import {
@@ -5811,6 +5817,76 @@ function MilestoneStatusPanel({
   );
 }
 
+function RemainingGoalsPanel({
+  goals,
+  summary
+}: {
+  goals: readonly RemainingGoalPlanItem[];
+  summary: RemainingGoalPlanSummary;
+}) {
+  return (
+    <section className="panel-section remaining-goals-panel">
+      <div className="remaining-goals-header">
+        <h4>Remaining Goals</h4>
+        <span title={`${summary.coveredPhaseCount} of ${summary.remainingPhaseCount} remaining phases covered`}>
+          {summary.averageCompletionPercent}% overall
+        </span>
+      </div>
+      <div
+        aria-label={`Remaining goals summary: ${summary.total} goals across ${summary.coveredPhaseCount} remaining phases. Current target: ${summary.currentTarget}. Next action: ${summary.currentNextAction}`}
+        className="remaining-goals-summary"
+      >
+        <div>
+          <strong>{summary.total}</strong>
+          <span>Goals</span>
+        </div>
+        <div>
+          <strong>{summary.blocked}</strong>
+          <span>Blocked</span>
+        </div>
+        <div>
+          <strong>{summary.active + summary.next}</strong>
+          <span>Active/Next</span>
+        </div>
+        <div>
+          <strong>{summary.coveredPhaseCount}/{summary.remainingPhaseCount}</strong>
+          <span>Phases</span>
+        </div>
+      </div>
+      <div className="remaining-goals-current" title={summary.currentNextAction}>
+        <small>Current target</small>
+        <strong>{summary.currentTarget}</strong>
+        <span>{summary.currentNextAction}</span>
+      </div>
+      <ol className="remaining-goals-list" aria-label="Remaining targets, phases, and goals">
+        {goals.map((goal) => (
+          <li
+            aria-label={`${goal.target}: ${goal.status}, ${goal.completionPercent}% complete. ${goal.nextAction}`}
+            className={classNames(
+              "remaining-goal-card",
+              `remaining-goal-${goal.status}`,
+              goal.current && "is-current"
+            )}
+            key={goal.id}
+            title={`${goal.target} - ${goal.phases.join(", ")}`}
+          >
+            <div className="remaining-goal-topline">
+              <span className={classNames("remaining-goal-priority", `remaining-goal-priority-${goal.priority}`)}>
+                {goal.priority}
+              </span>
+              <b>{goal.completionPercent}%</b>
+            </div>
+            <strong>{goal.target}</strong>
+            <small>{goal.phases.join(", ")}</small>
+            <p>{goal.goal}</p>
+            <span className="remaining-goal-next-action">{goal.nextAction}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 function PanelPrioritySignal({
   focusTarget,
   onClearFocus,
@@ -6370,6 +6446,10 @@ function RightPanel({
   const runSummary = summarizeRunHistory(mockRuns);
   const milestoneStatusSummary = useMemo(
     () => summarizeMilestoneStatuses(steerboardMilestoneStatuses),
+    []
+  );
+  const remainingGoalSummary = useMemo(
+    () => summarizeRemainingGoalPlan(remainingGoalPlan),
     []
   );
   const panelPriority = useMemo(
@@ -7275,6 +7355,11 @@ function RightPanel({
       <MilestoneStatusPanel
         milestones={steerboardMilestoneStatuses}
         summary={milestoneStatusSummary}
+      />
+
+      <RemainingGoalsPanel
+        goals={remainingGoalPlan}
+        summary={remainingGoalSummary}
       />
 
       <OwnerTestingReadinessPanel
