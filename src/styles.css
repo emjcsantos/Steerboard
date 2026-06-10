@@ -987,6 +987,143 @@ textarea {
   line-height: 1.25;
 }
 
+.migration-review-gate {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #11161c;
+  padding: 9px 10px;
+}
+
+.migration-review-gate-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.migration-review-gate-header strong,
+.migration-review-gate-header span,
+.migration-review-gate p,
+.migration-review-gate-summary span,
+.migration-review-gate-summary strong,
+.migration-review-gate-list strong,
+.migration-review-gate-list span,
+.migration-review-gate-list small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.migration-review-gate-header strong {
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.migration-review-gate-header span {
+  border: 1px solid #303743;
+  border-radius: 999px;
+  color: #aeb8c4;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.migration-review-gate-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.migration-review-gate-summary span {
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #141a22;
+  color: #9fa9b4;
+  padding: 7px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.migration-review-gate-summary strong {
+  display: block;
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.migration-review-gate p {
+  margin: 0;
+  color: #b7c1ce;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.migration-review-gate-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.migration-review-gate-list li {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 7px;
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #0f141a;
+  padding: 7px;
+}
+
+.migration-review-gate-list strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.migration-review-gate-list span {
+  border: 1px solid #303743;
+  border-radius: 999px;
+  color: #aeb8c4;
+  padding: 2px 6px;
+  font-size: 9px;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.migration-review-gate-list small {
+  grid-column: 1 / -1;
+  color: #9fa9b4;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.migration-review-gate-ready,
+.migration-review-item-ready {
+  border-color: #2f6a49;
+}
+
+.migration-review-gate-review,
+.migration-review-item-review {
+  border-color: #7a6530;
+}
+
+.migration-review-gate-waiting,
+.migration-review-item-waiting {
+  border-color: #315977;
+}
+
+.migration-review-gate-blocked,
+.migration-review-item-blocked {
+  border-color: #633337;
+}
+
 .migration-draft {
   display: grid;
   gap: 4px;

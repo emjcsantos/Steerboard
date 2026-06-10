@@ -248,6 +248,11 @@ import {
   type MigrationSourceId
 } from "./migrationModel";
 import {
+  buildMigrationHardeningReadiness,
+  createMigrationApplyIntentNotice,
+  type MigrationHardeningReadiness
+} from "./migrationHardeningReadiness";
+import {
   buildPersonalizationCatalogSnapshot,
   defaultPersonalizationCatalog,
   type PersonalizationCatalogRefreshSource,
@@ -1839,6 +1844,15 @@ export function App() {
     () => summarizeMigrationProfileDrafts(migrationProfileDraftHistory),
     [migrationProfileDraftHistory]
   );
+  const migrationHardeningReadiness = useMemo(
+    () =>
+      buildMigrationHardeningReadiness({
+        preview: migrationPreview,
+        draftHistory: migrationProfileDraftHistory,
+        excludedSecretsSummary: migrationSourcePreview.excludedSecretsSummary
+      }),
+    [migrationPreview, migrationProfileDraftHistory, migrationSourcePreview.excludedSecretsSummary]
+  );
   const latestMigrationProfileDraftRecord = migrationProfileDraftHistory[0];
   const migrationProfileDraft = latestMigrationProfileDraftRecord?.draft;
   const projectMockRuns = useMemo(
@@ -2563,6 +2577,12 @@ export function App() {
       );
       return rollbackResult.history;
     });
+  }
+
+  function handleStageMigrationApplyIntent() {
+    setMigrationProfileDraftActionNotice(
+      createMigrationApplyIntentNotice(migrationHardeningReadiness)
+    );
   }
 
   async function runCodexLiveSmokeProof() {
@@ -3350,6 +3370,7 @@ export function App() {
           codexTransportDecision={codexTransportDecision}
           codexTransportLoading={codexTransportLoading}
           dialog={appDialog}
+          migrationHardeningReadiness={migrationHardeningReadiness}
           migrationPreview={migrationPreview}
           migrationPreviewLoading={migrationPreviewLoading}
           migrationProfileDraft={migrationProfileDraft}
@@ -3362,6 +3383,7 @@ export function App() {
           mcpCatalogSnapshot={mcpCatalogSnapshot}
           onCreateMigrationProfileDraft={handleCreateMigrationProfileDraft}
           onRollbackLatestMigrationProfileDraft={handleRollbackLatestMigrationProfileDraft}
+          onStageMigrationApplyIntent={handleStageMigrationApplyIntent}
           onMigrationCategoryChange={handleMigrationCategoryChange}
           onMigrationSourceChange={handleMigrationSourceChange}
           onClose={() => setAppDialog(undefined)}
@@ -3548,6 +3570,7 @@ function AppDialogSurface({
   dialog,
   migrationPreview,
   migrationPreviewLoading,
+  migrationHardeningReadiness,
   migrationProfileDraft,
   migrationProfileDraftHistory,
   migrationProfileDraftHistorySummary,
@@ -3558,6 +3581,7 @@ function AppDialogSurface({
   mcpCatalogSnapshot,
   onCreateMigrationProfileDraft,
   onRollbackLatestMigrationProfileDraft,
+  onStageMigrationApplyIntent,
   onMigrationCategoryChange,
   onMigrationSourceChange,
   onClose,
@@ -3605,6 +3629,7 @@ function AppDialogSurface({
   dialog: AppDialog;
   migrationPreview: MigrationPreview;
   migrationPreviewLoading: boolean;
+  migrationHardeningReadiness: MigrationHardeningReadiness;
   migrationProfileDraft?: MigrationProfileDraft;
   migrationProfileDraftHistory: MigrationProfileDraftHistoryRecord[];
   migrationProfileDraftHistorySummary: MigrationProfileDraftHistorySummary;
@@ -3615,6 +3640,7 @@ function AppDialogSurface({
   mcpCatalogSnapshot: McpCatalogSnapshot;
   onCreateMigrationProfileDraft: () => void;
   onRollbackLatestMigrationProfileDraft: () => void;
+  onStageMigrationApplyIntent: () => void;
   onMigrationCategoryChange: (categoryId: MigrationCategoryId, selected: boolean) => void;
   onMigrationSourceChange: (sourceId: MigrationSourceId) => void;
   onClose: () => void;
@@ -3961,10 +3987,47 @@ function AppDialogSurface({
                 <span key={item}>{item}</span>
               ))}
             </div>
+            <div
+              aria-label={`Migration hardening gate ${migrationHardeningReadiness.statusLabel}; ${migrationHardeningReadiness.readiness}% ready. ${migrationHardeningReadiness.nextAction}`}
+              className={classNames(
+                "migration-review-gate",
+                `migration-review-gate-${migrationHardeningReadiness.state}`
+              )}
+              title={migrationHardeningReadiness.safety}
+            >
+              <div className="migration-review-gate-header">
+                <strong>Migration review gate</strong>
+                <span>{migrationHardeningReadiness.statusLabel}</span>
+              </div>
+              <div className="migration-review-gate-summary">
+                <span>
+                  <strong>{migrationHardeningReadiness.readiness}%</strong>
+                  Ready
+                </span>
+                <span>
+                  <strong>{migrationHardeningReadiness.applyIntentLabel}</strong>
+                  Apply intent
+                </span>
+                <span>
+                  <strong>{migrationHardeningReadiness.canRollback ? "Ready" : "Waiting"}</strong>
+                  Rollback
+                </span>
+              </div>
+              <p>{migrationHardeningReadiness.nextAction}</p>
+              <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
+                {migrationHardeningReadiness.items.map((item) => (
+                  <li className={`migration-review-item-${item.status}`} key={item.id} title={item.detail}>
+                    <strong>{item.label}</strong>
+                    <span>{item.status}</span>
+                    <small>{item.detail}</small>
+                  </li>
+                ))}
+              </ol>
+            </div>
             <div className="dialog-action-row">
               <button
                 className="dialog-primary-action"
-                disabled={selectedCategoryCount === 0}
+                disabled={!migrationHardeningReadiness.canCreateDraft}
                 onClick={onCreateMigrationProfileDraft}
                 type="button"
               >
@@ -3972,7 +4035,16 @@ function AppDialogSurface({
               </button>
               <button
                 className="dialog-secondary-action"
-                disabled={migrationProfileDraftHistory.length === 0}
+                disabled={!migrationHardeningReadiness.canStageApplyIntent}
+                onClick={onStageMigrationApplyIntent}
+                title={migrationHardeningReadiness.nextAction}
+                type="button"
+              >
+                Stage apply review
+              </button>
+              <button
+                className="dialog-secondary-action"
+                disabled={!migrationHardeningReadiness.canRollback}
                 onClick={onRollbackLatestMigrationProfileDraft}
                 type="button"
               >

@@ -69,6 +69,8 @@ Do not proceed to the next section until the current item is at least `review`.
    - Refresh the personalization catalog as a safe metadata/status refresh and confirm source/state changes are visible without mutating profile or instruction sources.
 8. `Migration`
    - Validate migration plan preview and reviewed-draft staging flow.
+   - Confirm the Migration review gate reports preview selection, apply intent, rollback evidence, audit consistency, and sensitive exclusions before any apply path.
+   - Confirm `Stage apply review` only creates an owner-visible intent notice and does not change the active profile, source platform, files, commands, plugins, MCP tools, automations, or personalization state.
    - Confirm migration audit summary exists locally and includes accepted, review-required, unsupported, and excluded counts.
    - Confirm rollback metadata exists for applied drafts and that rollback restores the prior profile pointer without source mutation.
    - Confirm secrets, raw transcripts, and source auth state remain excluded from persisted migration metadata.

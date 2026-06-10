@@ -71,7 +71,8 @@ The migration dialog should present these categories as checkboxes. Unsupported 
 10. User confirms the import.
 11. Steerboard writes imported data into a named, reviewable Steerboard profile draft.
 12. Steerboard records a local migration audit summary for the draft, including import mode, selected categories, acceptance decisions, excluded fields, and safe metadata diffs.
-13. User can review the draft, apply it as an active profile, refresh from source, or roll it back safely.
+13. Steerboard shows a migration review gate for preview selection, apply intent, rollback evidence, audit consistency, and sensitive exclusions.
+14. User can review the draft, stage apply review, refresh from source, or roll it back safely. Profile activation remains locked until explicit approval and future apply support exist.
 
 ## Desktop Menu Requirement
 
@@ -108,6 +109,7 @@ The `File > Migrate...` dialog should include:
 - preview table grouped by category,
 - confirmation step,
 - rollback summary after import.
+- review gate showing apply-intent lock, rollback evidence, audit consistency, and sensitive-exclusion status.
 
 The goal is that a user can end with the same practical working condition as the source application: projects visible, usable chat/session context where safely exportable, matching plugins and skills, matching MCP server definitions, matching personalization posture, and matching relevant settings.
 
@@ -116,6 +118,20 @@ Reviewed profile draft persistence is contractually read-only until explicitly a
 - Draft state includes normalized migration metadata only and excludes secrets, tokens, auth files, browser state, raw transcripts, and source artifacts.
 - Each draft stores a rollback/undo summary so the migration can be reverted without touching source data.
 - A local audit summary is kept with a compact event log and a source-fingerprint note for operator review and traceability.
+
+## Migration Review Gate
+
+The migration dialog includes a review gate before any profile activation path. The gate is metadata-only and must show:
+
+- whether safe metadata categories are selected,
+- whether unsupported categories remain excluded,
+- whether a reviewed draft exists,
+- whether apply intent is ready, held for review, waiting, or blocked,
+- whether rollback evidence exists for the local draft history,
+- whether the latest audit matches the latest draft,
+- whether sensitive exclusions are present.
+
+`Stage apply review` records an owner-visible intent notice only. It does not change the active profile, mutate the source platform, copy secrets, import raw transcripts, run commands, or enable provider execution.
 
 ## Safety Rules
 

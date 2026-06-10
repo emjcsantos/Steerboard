@@ -309,30 +309,30 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-05-migration-center",
     title: "Phase 5: Migration Center",
     description: "Turn the metadata-only migration foundations into a guarded, review-first migration workflow.",
-    completionPercent: 35,
+    completionPercent: 45,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-05-parent-draft-workflow",
         title: "Migration Draft Workflow",
-        description: "Create, persist, preview, and revise migration profile drafts before any mutation-capable action.",
-        completionPercent: 40,
+        description: "Create, persist, preview, review, and stage apply intent for migration profile drafts before any mutation-capable action.",
+        completionPercent: 50,
         complexity: "high",
         sourceDocument: "Migration Center",
         children: [
           {
             id: "phase-05-child-profile-drafts",
             title: "Profile Draft Persistence",
-            description: "Persist migration profiles, history, rollback notes, and audit summaries locally.",
-            completionPercent: 45,
+            description: "Persist migration profiles, history, apply-intent notes, rollback notes, and audit summaries locally.",
+            completionPercent: 55,
             sourceDocument: "Migration model"
           },
           {
             id: "phase-05-child-preview-metadata",
             title: "Metadata Preview",
-            description: "Show migration impact previews without copying private content or executing external actions.",
-            completionPercent: 35,
+            description: "Show migration impact and review-gate previews without copying private content or executing external actions.",
+            completionPercent: 45,
             sourceDocument: "Migration Center"
           }
         ]
@@ -340,16 +340,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-05-parent-rollback-audit",
         title: "Rollback and Audit Review",
-        description: "Make rollback strategy and audit evidence mandatory before migration work can leave preview mode.",
-        completionPercent: 30,
+        description: "Make rollback strategy and audit evidence mandatory before migration work can leave review-only mode.",
+        completionPercent: 45,
         complexity: "high",
         sourceDocument: "Permissions and audit",
         children: [
           {
             id: "phase-05-child-audit-summary",
             title: "Audit Summary Review",
-            description: "Surface who, what, when, risk level, and rollback path for every migration draft.",
-            completionPercent: 30,
+            description: "Surface who, what, when, risk level, apply-intent lock, and rollback path for every migration draft.",
+            completionPercent: 45,
             sourceDocument: "Migration audit summary"
           }
         ]
