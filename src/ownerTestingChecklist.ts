@@ -76,10 +76,10 @@ const STATE_LABEL: Record<OwnerTestingReadinessState, string> = {
   waiting: "Waiting"
 };
 
-export const OWNER_TESTING_CHECKLIST_ID = "owner-testing-checklist-phase-9";
+export const OWNER_TESTING_CHECKLIST_ID = "owner-testing-checklist-phase-11";
 export const OWNER_TESTING_CHECKLIST_LABEL =
-  "Phase 9 owner testing hardening checklist";
-export const OWNER_TESTING_CHECKLIST_VERSION = "9.0.0";
+  "Phase 11 owner testing command checklist";
+export const OWNER_TESTING_CHECKLIST_VERSION = "11.0.0";
 
 export const OWNER_TESTING_CHECKLIST_ORDER = [
   "launch",

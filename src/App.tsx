@@ -494,6 +494,10 @@ import {
   type Phase10ArenaPolishSnapshot
 } from "./phase10ArenaPolish";
 import {
+  buildPhase11OwnerCommandCenterSnapshot,
+  type Phase11OwnerCommandCenterSnapshot
+} from "./phase11OwnerCommandCenter";
+import {
   createReleasePrivacyReadiness,
   type ReleasePrivacyReadinessItemStatus,
   type ReleasePrivacyReadinessSnapshot
@@ -7037,6 +7041,26 @@ function RightPanel({
     () => summarizeFailureStateFixtures(failureStateFixtures),
     [failureStateFixtures]
   );
+  const phase11OwnerCommandCenter = useMemo(
+    () =>
+      buildPhase11OwnerCommandCenterSnapshot({
+        checklist: ownerTestingChecklist,
+        phasePriorityEvidence,
+        phase3ClearancePackage,
+        phase3SmokeProofReadiness,
+        failureSummary: failureStateFixtureSummary,
+        remainingGoalSummary,
+        freshCheckoutState: "waiting"
+      }),
+    [
+      failureStateFixtureSummary,
+      ownerTestingChecklist,
+      phase3ClearancePackage,
+      phase3SmokeProofReadiness,
+      phasePriorityEvidence,
+      remainingGoalSummary
+    ]
+  );
   const liveActionAuditMarkdown = useMemo(
     () => buildLiveActionAuditExportMarkdown(liveActionAuditHistory),
     [liveActionAuditHistory]
@@ -7762,6 +7786,8 @@ function RightPanel({
         sessionControlReadinessEvidence={sessionControlReadinessEvidence}
         slashCommandExecutionEvidence={slashCommandExecutionEvidence}
       />
+
+      <Phase11OwnerCommandCenterPanel snapshot={phase11OwnerCommandCenter} />
 
       <Phase10ArenaPolishPanel snapshot={phase10ArenaPolish} />
 
@@ -11042,6 +11068,71 @@ function Phase10ArenaPolishPanel({
           {snapshot.items.map((item) => (
             <li
               className={classNames("phase10-arena-item", `phase10-arena-item-${item.status}`)}
+              key={item.id}
+              title={`${item.detail} ${item.nextAction}`}
+            >
+              <span>{item.kind}</span>
+              <div>
+                <strong>{item.label}</strong>
+                <small>{item.nextAction}</small>
+              </div>
+              <b>{item.status}</b>
+            </li>
+          ))}
+        </ol>
+        <small title={snapshot.safety}>{snapshot.safety}</small>
+      </div>
+    </section>
+  );
+}
+
+function Phase11OwnerCommandCenterPanel({
+  snapshot
+}: {
+  snapshot: Phase11OwnerCommandCenterSnapshot;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Phase 11 Owner Command</h4>
+      <div
+        aria-label={snapshot.ariaLabel}
+        className={classNames(
+          "phase11-owner-command",
+          `phase11-owner-${snapshot.state}`
+        )}
+        title={snapshot.nextAction}
+      >
+        <div className="phase11-owner-header">
+          <span className={classNames("phase11-owner-state", `phase11-owner-state-${snapshot.state}`)}>
+            <span aria-hidden="true" />
+            {snapshot.statusLabel}
+          </span>
+          <strong>{snapshot.label}</strong>
+          <b>{snapshot.readiness}%</b>
+        </div>
+        <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
+        <dl className="phase11-owner-grid" aria-label="Phase 11 Owner Testing command center counts">
+          <div>
+            <dt>Release</dt>
+            <dd>{snapshot.canRelease ? "Ready" : "Held"}</dd>
+          </div>
+          <div>
+            <dt>Checklist</dt>
+            <dd>{snapshot.checklistReadiness}%</dd>
+          </div>
+          <div>
+            <dt>Phases</dt>
+            <dd>{snapshot.phaseReadiness}%</dd>
+          </div>
+          <div>
+            <dt>Blockers</dt>
+            <dd>{snapshot.blockerCount}</dd>
+          </div>
+        </dl>
+        <ol className="phase11-owner-items" aria-label="Phase 11 Owner Testing command center gates">
+          {snapshot.items.map((item) => (
+            <li
+              className={classNames("phase11-owner-item", `phase11-owner-item-${item.status}`)}
               key={item.id}
               title={`${item.detail} ${item.nextAction}`}
             >

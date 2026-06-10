@@ -12,7 +12,7 @@ import {
 const checklistBase = buildOwnerTestingChecklist();
 
 describe("owner testing checklist model", () => {
-  it("contains all required phase 9 checklist items in deterministic order", () => {
+  it("contains all required phase 11 checklist items in deterministic order", () => {
     const itemIds = checklistBase.items.map((item) => item.id);
     const itemNames = checklistBase.items.map((item) => item.name);
     const controlsItem = checklistBase.items.find((item) => item.id === "controls");

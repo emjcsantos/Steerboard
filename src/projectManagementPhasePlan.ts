@@ -622,30 +622,30 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-11-owner-packaging",
     title: "Phase 11: Owner Testing and Packaging",
-    description: "Prepare owner-facing test flows, fresh checkout instructions, desktop packaging, and release proof.",
-    completionPercent: 30,
+    description: "Prepare owner-facing pass/fail command gates, fresh checkout instructions, desktop packaging, and release proof.",
+    completionPercent: 40,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-11-parent-owner-testing",
         title: "Owner Testing Flow",
-        description: "Turn owner testing actions into a clear pass/fail path for desktop proof, controls, and PM staging.",
-        completionPercent: 35,
+        description: "Turn owner testing actions into one command-center pass/fail path for proof freshness, blockers, phase readiness, and next action.",
+        completionPercent: 50,
         sourceDocument: "Owner testing panel",
         children: [
           {
             id: "phase-11-child-owner-checklist",
             title: "Owner Checklist",
-            description: "Document the exact owner steps to run, verify, reload, and interpret every critical proof row.",
-            completionPercent: 35,
+            description: "Show checklist coverage, proof freshness, blockers, phase readiness, next action, and safety boundaries in the Phase 11 command center.",
+            completionPercent: 50,
             sourceDocument: "Owner testing docs"
           },
           {
             id: "phase-11-child-fresh-checkout",
             title: "Fresh Checkout Install Run",
-            description: "Verify a clean checkout can install, test, build, run desktop mode, and surface expected proof panels.",
-            completionPercent: 25,
+            description: "Track fresh-checkout install, test, build, desktop run, and expected proof-panel evidence as a held release gate.",
+            completionPercent: 35,
             complexity: "high",
             sourceDocument: "Packaging checklist"
           }

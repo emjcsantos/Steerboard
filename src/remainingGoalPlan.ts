@@ -225,9 +225,9 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-11-owner-packaging"],
     goal:
       "Make Owner Testing the single pass-fail release gate for proof freshness, blockers, phase readiness, and next actions.",
-    status: "planned",
+    status: "next",
     priority: "high",
-    completionPercent: 30,
+    completionPercent: 45,
     pmTaskIds: [
       "phase-11-owner-packaging",
       "phase-11-parent-owner-testing",
@@ -235,7 +235,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-fresh-checkout"
     ],
     nextAction:
-      "Group proof actions, freshness, reload checks, and unresolved blockers into one owner-readable readiness path."
+      "Use the Phase 11 Owner Command panel to review checklist coverage, proof freshness, blockers, phase readiness, next action, and fresh-checkout evidence."
   },
   {
     id: "goal-phase-11-release-readiness",
