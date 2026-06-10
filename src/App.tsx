@@ -162,6 +162,13 @@ import {
   type DispatchRolePanelPlan
 } from "./dispatchRolePanelPlan";
 import {
+  appendDispatchReviewRecord,
+  createDispatchReviewRecord,
+  loadDispatchReviewRecords,
+  saveDispatchReviewRecords,
+  type DispatchReviewRecord
+} from "./dispatchReviewRecord";
+import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
 } from "./pipelineItemRunLink";
@@ -1496,6 +1503,9 @@ export function App() {
   );
   const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
   const [mockRuns, setMockRuns] = useState<MockOrchestratorRun[]>(() => loadRunHistory());
+  const [dispatchReviewRecords, setDispatchReviewRecords] = useState<DispatchReviewRecord[]>(() =>
+    loadDispatchReviewRecords()
+  );
   const [selectedRunId, setSelectedRunId] = useState<string>();
   const [focusedPanelId, setFocusedPanelId] = useState<string>();
   const [slashCommandExecutionEvidenceByPanel, setSlashCommandExecutionEvidenceByPanel] =
@@ -1762,6 +1772,10 @@ export function App() {
   }, [mockRuns]);
 
   useEffect(() => {
+    saveDispatchReviewRecords(dispatchReviewRecords);
+  }, [dispatchReviewRecords]);
+
+  useEffect(() => {
     savePanelSessionState(panelSessionState);
   }, [panelSessionState]);
 
@@ -1859,6 +1873,10 @@ export function App() {
     () => filterRunsByProject(mockRuns, project.id),
     [mockRuns, project.id]
   );
+  const projectDispatchReviewRecords = useMemo(
+    () => dispatchReviewRecords.filter((record) => record.projectId === project.id),
+    [dispatchReviewRecords, project.id]
+  );
   const selectedRun = useMemo(() => {
     if (selectedRunId) {
       return selectRunById(projectMockRuns, selectedRunId) ?? projectMockRuns[0];
@@ -1866,6 +1884,13 @@ export function App() {
 
     return projectMockRuns[0];
   }, [projectMockRuns, selectedRunId]);
+  const selectedDispatchReviewRecord = useMemo(
+    () =>
+      selectedRun
+        ? dispatchReviewRecords.find((record) => record.runId === selectedRun.id)
+        : undefined,
+    [dispatchReviewRecords, selectedRun]
+  );
   const allMockSessions = useMemo(
     () => mockRuns.flatMap((run) => runToSessionSummaries(run) as SessionSummary[]),
     [mockRuns]
@@ -2077,13 +2102,21 @@ export function App() {
   }
 
   function handleStagePackage(dispatchPackage: DispatchPackage) {
+    const createdAt = new Date().toISOString();
     const nextRun = createMockRunFromDispatchPackage(dispatchPackage, {
-      createdAt: new Date().toISOString(),
+      createdAt,
       idSeed: "steerboard-run"
+    });
+    const rolePanelPlan = createDispatchRolePanelPlan(dispatchPackage, nextRun);
+    const reviewRecord = createDispatchReviewRecord(dispatchPackage, rolePanelPlan, nextRun, {
+      createdAt
     });
 
     setSelectedRunId(nextRun.id);
     setMockRuns((currentRuns) => upsertRunHistory(currentRuns, nextRun));
+    setDispatchReviewRecords((currentRecords) =>
+      appendDispatchReviewRecord(currentRecords, reviewRecord)
+    );
     updatePreferences({ view: "cockpit" });
   }
 
@@ -3295,6 +3328,7 @@ export function App() {
             ) : (
               <PlanningView
                 chatMessages={projectManagementChat}
+                dispatchReviewRecords={projectDispatchReviewRecords}
                 onChatMessagesChange={setProjectManagementChat}
                 onStagePackage={handleStagePackage}
                 onTasksChange={setProjectManagementTasks}
@@ -3322,6 +3356,7 @@ export function App() {
             runtimeAdapter={runtimeAdapter}
             runtimeProfileSummary={runtimeProfileSummary}
             runtimeSummary={runtimeSummary}
+            selectedDispatchReviewRecord={selectedDispatchReviewRecord}
             selectedRun={selectedRun}
             phasePriorityEvidence={phasePriorityEvidence}
             phase3ClearancePackage={phase3ClearancePackage}
@@ -5217,6 +5252,54 @@ function FocusedPanelStatusChip({
   );
 }
 
+function DispatchReviewRecordCard({
+  record
+}: {
+  record: DispatchReviewRecord;
+}) {
+  return (
+    <article
+      aria-label={`Dispatch review record for ${record.title}`}
+      className={classNames("dispatch-review-record", `dispatch-review-${record.readinessState}`)}
+      title={record.detail}
+    >
+      <div className="dispatch-review-record-header">
+        <div>
+          <strong>{record.title}</strong>
+          <small>{formatTimestamp(record.createdAt)}</small>
+        </div>
+        <span>{record.readinessState}</span>
+      </div>
+      <dl className="dispatch-review-record-metrics">
+        <div>
+          <dt>Panels</dt>
+          <dd>{record.panelCount}</dd>
+        </div>
+        <div>
+          <dt>Tasks</dt>
+          <dd>{record.handoffTaskCount}</dd>
+        </div>
+        <div>
+          <dt>Gates</dt>
+          <dd>{record.validationGateCount}</dd>
+        </div>
+        <div>
+          <dt>Max Try</dt>
+          <dd>{record.maxAttemptLimit}</dd>
+        </div>
+      </dl>
+      <div className="dispatch-review-role-counts" aria-label="Dispatch review role counts">
+        <span>Orch {record.roleCounts.orchestrator}</span>
+        <span>Impl {record.roleCounts.implementer}</span>
+        <span>Val {record.roleCounts.validator}</span>
+        <span>Int {record.roleCounts.integration}</span>
+      </div>
+      <p>{record.nextAction}</p>
+      <small>{record.noRuntimeExecutionNote}</small>
+    </article>
+  );
+}
+
 function PipelineView({
   items,
   mockRuns,
@@ -6171,6 +6254,7 @@ function formatShortDate(value: string): string {
 
 function PlanningView({
   chatMessages,
+  dispatchReviewRecords,
   onChatMessagesChange,
   onStagePackage,
   onTasksChange,
@@ -6179,6 +6263,7 @@ function PlanningView({
   tasks
 }: {
   chatMessages: ProjectManagementChatMessage[];
+  dispatchReviewRecords: DispatchReviewRecord[];
   onChatMessagesChange: (messages: ProjectManagementChatMessage[]) => void;
   onStagePackage: (dispatchPackage: DispatchPackage) => void;
   onTasksChange: (tasks: ProjectManagementTask[]) => void;
@@ -6191,6 +6276,12 @@ function PlanningView({
   const [stagedResult, setStagedResult] = useState<ProjectManagementArenaDispatchResult>();
   const [chatInput, setChatInput] = useState("");
   const stagedMarkdown = stagedResult ? renderDispatchPackageMarkdown(stagedResult.dispatchPackage) : "";
+  const stagedReviewRecord = stagedResult
+    ? dispatchReviewRecords.find(
+        (record) => record.sourcePackageId === stagedResult.dispatchPackage.id
+      )
+    : undefined;
+  const recentReviewRecords = dispatchReviewRecords.slice(0, 3);
 
   function handleToggleTask(taskId: string) {
     onTasksChange(toggleProjectManagementTaskCollapsed(tasks, taskId));
@@ -6401,12 +6492,38 @@ function PlanningView({
                     <dd>Review-only</dd>
                   </div>
                 </dl>
+                <section className="pm-dispatch-records" aria-label="Project Management dispatch review records">
+                  <div className="pm-dispatch-records-header">
+                    <strong>Dispatch Review Record</strong>
+                    <span>{stagedReviewRecord ? "Recorded" : "Pending"}</span>
+                  </div>
+                  {stagedReviewRecord ? (
+                    <DispatchReviewRecordCard record={stagedReviewRecord} />
+                  ) : recentReviewRecords.length > 0 ? (
+                    <DispatchReviewRecordCard record={recentReviewRecords[0]} />
+                  ) : (
+                    <p className="empty-preview">
+                      Staging a PM row creates a local record that ties role panels, attempts, validation gates, and handoff tasks together before live worker launch.
+                    </p>
+                  )}
+                </section>
                 <pre className="dispatch-preview">{stagedMarkdown}</pre>
               </>
             ) : (
-              <p className="empty-preview">
-                Click Run on any Epic, Parent, or Child to create a staged Arena review package. Runtime execution stays locked until approval gates allow it.
-              </p>
+              <>
+                {recentReviewRecords.length > 0 ? (
+                  <section className="pm-dispatch-records" aria-label="Recent Project Management dispatch review records">
+                    <div className="pm-dispatch-records-header">
+                      <strong>Latest Dispatch Review</strong>
+                      <span>{recentReviewRecords.length} saved</span>
+                    </div>
+                    <DispatchReviewRecordCard record={recentReviewRecords[0]} />
+                  </section>
+                ) : null}
+                <p className="empty-preview">
+                  Click Run on any Epic, Parent, or Child to create a staged Arena review package. Runtime execution stays locked until approval gates allow it.
+                </p>
+              </>
             )}
           </aside>
         </section>
@@ -6432,6 +6549,7 @@ function RightPanel({
   runtimeAdapter,
   runtimeProfileSummary,
   runtimeSummary,
+  selectedDispatchReviewRecord,
   selectedRun,
   phasePriorityEvidence,
   phase3ClearancePackage,
@@ -6477,6 +6595,7 @@ function RightPanel({
   runtimeAdapter?: RuntimeAdapter;
   runtimeProfileSummary: ReturnType<typeof summarizeRuntimeProfiles>;
   runtimeSummary: ReturnType<typeof summarizeRuntimeAdapters>;
+  selectedDispatchReviewRecord?: DispatchReviewRecord;
   selectedRun?: MockOrchestratorRun;
   phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ClearancePackage: Phase3ClearancePackage;
@@ -7865,6 +7984,18 @@ function RightPanel({
                     <dd>{selectedRun.validationGates.length}</dd>
                   </div>
                 </dl>
+
+                {selectedDispatchReviewRecord ? (
+                  <section className="selected-dispatch-review" aria-label="Selected run dispatch review record">
+                    <DispatchReviewRecordCard record={selectedDispatchReviewRecord} />
+                  </section>
+                ) : (
+                  <section className="selected-dispatch-review" aria-label="Selected run dispatch review record">
+                    <p className="empty-preview">
+                      No dispatch review record is linked to this run yet. Stage a PM row or pipeline item to create a local review trace before live worker spawning.
+                    </p>
+                  </section>
+                )}
 
                 <section className="worker-handoff-monitor" aria-label="Selected run worker handoff loop">
                   <div className="worker-handoff-header">

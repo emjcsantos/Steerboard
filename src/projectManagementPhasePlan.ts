@@ -413,31 +413,31 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-07-dispatch-loop",
     title: "Phase 7: Orchestrator-Worker Dispatch",
-    description: "Move from local dispatch previews to an observed, reviewable orchestrator-worker handoff loop.",
-    completionPercent: 25,
+    description: "Move from local dispatch previews to saved, reviewable orchestrator-worker handoff records.",
+    completionPercent: 40,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-07-parent-role-panels",
         title: "Role-Panel Dispatch Plan",
-        description: "Define orchestrator, implementer, validator, and integration roles with clear attempt limits and ownership.",
-        completionPercent: 30,
+        description: "Define and record orchestrator, implementer, validator, and integration roles with clear attempt limits and ownership.",
+        completionPercent: 45,
         complexity: "high",
         sourceDocument: "Dispatch role-panel plan",
         children: [
           {
             id: "phase-07-child-worker-preview",
             title: "Worker Preview Cards",
-            description: "Show worker objective, files owned, validation plan, retry limit, and handoff expectation before launch.",
-            completionPercent: 30,
+            description: "Show worker objective, files owned, validation plan, retry limit, role counts, and handoff expectation before launch.",
+            completionPercent: 45,
             sourceDocument: "Dispatch controls"
           },
           {
             id: "phase-07-child-integration-owner",
             title: "Main Integration Ownership",
-            description: "Keep final integration, validation, commit, push, and reporting owned by the main Arena path.",
-            completionPercent: 25,
+            description: "Keep final integration, validation, commit, push, reporting, and dispatch-review traceability owned by the main Arena path.",
+            completionPercent: 35,
             sourceDocument: "Dispatch safety rules"
           }
         ]
@@ -445,16 +445,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-07-parent-observed-loop",
         title: "Observed Dispatch-to-Handoff Loop",
-        description: "Record worker launch, attempts, validation, handoff, closure, and final merge review in one trace.",
-        completionPercent: 20,
+        description: "Record role-panel plan, attempts, validation gates, handoff tasks, closure, and final merge review in one trace.",
+        completionPercent: 35,
         complexity: "extra_high",
         sourceDocument: "Orchestrator-worker dispatch",
         children: [
           {
             id: "phase-07-child-handoff-trace",
             title: "Handoff Trace",
-            description: "Show what each worker changed, validated, retried, and handed back without polluting the main context.",
-            completionPercent: 20,
+            description: "Show what each worker is expected to own, validate, retry, and hand back without polluting the main context.",
+            completionPercent: 35,
             complexity: "high",
             sourceDocument: "Worker handoff"
           }

@@ -8700,6 +8700,180 @@ textarea {
   margin: 0;
 }
 
+.selected-dispatch-review {
+  margin-top: 10px;
+}
+
+.pm-dispatch-records {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid #272d36;
+  padding: 10px 12px;
+}
+
+.pm-dispatch-records-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.pm-dispatch-records-header strong,
+.pm-dispatch-records-header span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pm-dispatch-records-header strong {
+  color: #eef3f8;
+  font-size: 12px;
+}
+
+.pm-dispatch-records-header span {
+  border: 1px solid #303844;
+  border-radius: 999px;
+  background: #151b22;
+  color: #cbd5df;
+  padding: 3px 7px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dispatch-review-record {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  border: 1px solid #303844;
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: #151a20;
+  padding: 9px;
+}
+
+.dispatch-review-active {
+  border-left-color: #8bd7f4;
+}
+
+.dispatch-review-blocked {
+  border-left-color: #ff9e85;
+}
+
+.dispatch-review-complete {
+  border-left-color: #72d6a0;
+}
+
+.dispatch-review-idle,
+.dispatch-review-waiting {
+  border-left-color: #f0d984;
+}
+
+.dispatch-review-record-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+}
+
+.dispatch-review-record-header div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.dispatch-review-record-header strong,
+.dispatch-review-record-header small,
+.dispatch-review-record-header span,
+.dispatch-review-record p,
+.dispatch-review-record > small,
+.dispatch-review-role-counts span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dispatch-review-record-header strong {
+  color: #f2f7fb;
+  font-size: 12px;
+}
+
+.dispatch-review-record-header small,
+.dispatch-review-record > small {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.dispatch-review-record-header span {
+  border-radius: 999px;
+  background: #10161d;
+  color: #d6dee7;
+  padding: 3px 7px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dispatch-review-record-metrics,
+.dispatch-review-role-counts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.dispatch-review-record-metrics {
+  margin: 0;
+}
+
+.dispatch-review-record-metrics div,
+.dispatch-review-role-counts span {
+  min-width: 0;
+  border: 1px solid #27303a;
+  border-radius: 7px;
+  background: #10161d;
+  padding: 6px;
+  text-align: center;
+}
+
+.dispatch-review-record-metrics dt,
+.dispatch-review-record-metrics dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dispatch-review-record-metrics dt {
+  color: #88939f;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dispatch-review-record-metrics dd {
+  margin-top: 2px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.dispatch-review-role-counts span {
+  color: #dce5ee;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.dispatch-review-record p {
+  margin: 0;
+  color: #c3ccd6;
+  font-size: 11px;
+}
+
 .run-timeline {
   display: grid;
   gap: 9px;

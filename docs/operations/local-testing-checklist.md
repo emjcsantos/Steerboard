@@ -81,6 +81,8 @@ Do not proceed to the next section until the current item is at least `review`.
 10. `Dispatch`
     - Dispatch a staged pipeline item through the standard lane.
     - Confirm role-panel plan generation, route details, and log records are consistent.
+    - Confirm the selected local run shows a dispatch review record with role counts, max attempt limit, handoff task count, validation gate count, and a no-runtime-execution note.
+    - Confirm a PM row staged through `Run` creates the same local review trace before any live worker session spawning.
     - Verify the result is a local review artifact only (no runtime worker launch or external session execution).
 11. `Permissions`
     - Trigger at least one sensitive action.

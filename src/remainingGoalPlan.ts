@@ -141,9 +141,9 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-07-dispatch-loop"],
     goal:
       "Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits.",
-    status: "planned",
+    status: "next",
     priority: "high",
-    completionPercent: 25,
+    completionPercent: 40,
     pmTaskIds: [
       "phase-07-dispatch-loop",
       "phase-07-parent-role-panels",
@@ -153,7 +153,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-07-child-handoff-trace"
     ],
     nextAction:
-      "Connect role-panel plan previews to dispatch records before any live worker session spawning."
+      "Use dispatch review records to audit role counts, attempt limits, handoff tasks, and validation gates before any live worker session spawning."
   },
   {
     id: "goal-phase-8-permission-audit",
