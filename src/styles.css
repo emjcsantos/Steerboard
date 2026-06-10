@@ -5643,6 +5643,61 @@ textarea {
   font-weight: 800;
 }
 
+.owner-testing-priority-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.owner-testing-priority-action {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #303844;
+  border-radius: 8px;
+  background: #151b22;
+  color: #cfd8e3;
+  padding: 7px 8px;
+}
+
+.owner-testing-priority-action:not(:disabled) {
+  cursor: pointer;
+}
+
+.owner-testing-priority-action:focus-visible {
+  outline: 2px solid #68c4ff;
+  outline-offset: 2px;
+}
+
+.owner-testing-priority-action span,
+.owner-testing-priority-action strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-priority-action span {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.owner-testing-priority-action strong {
+  border-radius: 999px;
+  background: #10161d;
+  color: #cfd8e3;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 3px 6px;
+}
+
+.owner-testing-priority-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 .owner-testing-phase3-diagnostics {
   display: grid;
   gap: 5px;

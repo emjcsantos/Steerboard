@@ -18,14 +18,14 @@ The current implementation includes:
 - Optional project/program planning lane with local dispatch previews and role-panel plan scaffolds.
 - Approval, audit, privacy, and read-only runner foundations, with broad mutation paths intentionally disabled.
 - Owner testing surfaces for catalog refresh, slash execution evidence, session-control evidence, Phase 3 smoke proof rows, and diagnostic exit-gate rows.
-- Owner testing priority evidence for Phase 1 one-panel live proof, Phase 2 multi-panel isolation, and Phase 6 Project Management phase-board staging readiness.
-- Reload-safe Phase 3 smoke proof storage for desktop-executed smoke evidence, without running prompts automatically on startup.
+- Owner testing priority evidence and explicit smoke actions for Phase 1 one-panel live proof, Phase 2 multi-panel isolation, and Phase 6 Project Management phase-board staging readiness.
+- Reload-safe Phase 1/2 and Phase 3 smoke proof storage for desktop-executed smoke evidence, without running prompts automatically on startup.
 
 ## Active Pipeline
 
 | Target | Completion | Note |
 |---|---|---|
-| Phase 1/2/6 priority slice | In progress | Use the Owner Testing priority evidence card to track one-panel live proof, two-panel isolation, and PM phase-board Epic/Parent/Child staging readiness together. |
+| Phase 1/2/6 priority slice | In progress | Use the Owner Testing priority evidence card and explicit Phase 1/2 smoke actions to track one-panel live proof, two-panel isolation, and PM phase-board Epic/Parent/Child staging readiness together. |
 | Phase 3 desktop proof clearance | In progress | Use desktop-mode gate actions to populate persisted live-control, active-turn interrupt, and active-turn steer proof rows; verify slash and session-control evidence moves to ready. |
 | Provider integration surfaces | Next | Keep catalog refresh metadata-only while improving connection, setup-required, unsupported, blocked, and unavailable states across commands, skills, plugins, MCP, automations, and personalization. |
 | Migration Center hardening | Next | Keep migration safe and metadata-only; finish preview/apply/rollback checks before any source mutation or raw transcript handling is considered. |

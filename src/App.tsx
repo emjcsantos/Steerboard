@@ -302,6 +302,10 @@ import {
   savePhase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
 import {
+  loadPhasePrioritySmokeProofBundle,
+  savePhasePrioritySmokeProofBundle
+} from "./phasePrioritySmokeProofStorage";
+import {
   findCodexPanelSessionIdentityIssues,
   loadPanelSessionState,
   savePanelSessionState,
@@ -313,8 +317,6 @@ import {
 } from "./codexPanelSessionState";
 import {
   decideCodexTransport,
-  getFallbackCodexLiveSmokeProof,
-  getFallbackCodexTwoPanelSmokeProof,
   getFallbackCodexTransportProbe,
   loadCodexActiveTurnControlSmokeProof,
   loadCodexActiveTurnSteerSmokeProof,
@@ -1491,8 +1493,11 @@ export function App() {
   const [codexTransportProbe, setCodexTransportProbe] = useState<CodexTransportProbe>(() =>
     getFallbackCodexTransportProbe()
   );
+  const [phasePrioritySmokeProofInitialBundle] = useState(() =>
+    loadPhasePrioritySmokeProofBundle()
+  );
   const [codexLiveSmokeProof, setCodexLiveSmokeProof] = useState<CodexLiveSmokeProof>(() =>
-    getFallbackCodexLiveSmokeProof()
+    phasePrioritySmokeProofInitialBundle.liveSmoke
   );
   const [phase3SmokeProofInitialBundle] = useState(() => loadPhase3SmokeProofBundle());
   const [codexActiveTurnControlSmokeProof, setCodexActiveTurnControlSmokeProof] =
@@ -1506,7 +1511,7 @@ export function App() {
   const [codexLiveControlSmokeProof, setCodexLiveControlSmokeProof] =
     useState<CodexLiveControlSmokeProof>(() => phase3SmokeProofInitialBundle.liveControlSmoke);
   const [codexTwoPanelSmokeProof, setCodexTwoPanelSmokeProof] = useState<CodexTwoPanelSmokeProof>(() =>
-    getFallbackCodexTwoPanelSmokeProof()
+    phasePrioritySmokeProofInitialBundle.twoPanelSmoke
   );
   const [catalogRefreshProviderSmokeProof, setCatalogRefreshProviderSmokeProof] =
     useState<CatalogRefreshProviderSmokeResult>(() => CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW);
@@ -2538,6 +2543,10 @@ export function App() {
     setCodexLiveSmokeLoading(true);
     const nextProof = await loadCodexLiveSmokeProof();
     const nextDecision = decideCodexTransport(codexTransportProbe, nextProof);
+    savePhasePrioritySmokeProofBundle({
+      liveSmoke: nextProof,
+      twoPanelSmoke: codexTwoPanelSmokeProof
+    });
 
     setCodexLiveSmokeProof(nextProof);
     setCodexLiveSmokeLoading(false);
@@ -2604,6 +2613,10 @@ export function App() {
   async function runCodexTwoPanelSmokeProof() {
     setCodexTwoPanelSmokeLoading(true);
     const nextProof = await loadCodexTwoPanelSmokeProof();
+    savePhasePrioritySmokeProofBundle({
+      liveSmoke: codexLiveSmokeProof,
+      twoPanelSmoke: nextProof
+    });
 
     setCodexTwoPanelSmokeProof(nextProof);
     setCodexTwoPanelSmokeLoading(false);
@@ -3275,7 +3288,12 @@ export function App() {
             onFocusPanel={setFocusedPanelId}
             onRunCodexActiveTurnControlSmokeProof={runCodexActiveTurnControlSmokeProof}
             onRunCodexActiveTurnSteerSmokeProof={runCodexActiveTurnSteerSmokeProof}
+            onRunCodexLiveSmokeProof={runCodexLiveSmokeProof}
             onRunCodexLiveControlSmokeProof={runCodexLiveControlSmokeProof}
+            onRunCodexTwoPanelSmokeProof={runCodexTwoPanelSmokeProof}
+            codexCanStartSession={codexTransportDecision.canStartSession}
+            codexLiveSmokeLoading={codexLiveSmokeLoading}
+            codexTwoPanelSmokeLoading={codexTwoPanelSmokeLoading}
             sessions={visibleSessions}
             tasks={projectTasks}
           />
@@ -6195,7 +6213,12 @@ function RightPanel({
   onFocusPanel,
   onRunCodexActiveTurnControlSmokeProof,
   onRunCodexActiveTurnSteerSmokeProof,
+  onRunCodexLiveSmokeProof,
   onRunCodexLiveControlSmokeProof,
+  onRunCodexTwoPanelSmokeProof,
+  codexCanStartSession,
+  codexLiveSmokeLoading,
+  codexTwoPanelSmokeLoading,
   sessions,
   tasks
 }: {
@@ -6233,7 +6256,12 @@ function RightPanel({
   tasks: OrchestrationTask[];
   onRunCodexActiveTurnControlSmokeProof: () => void;
   onRunCodexActiveTurnSteerSmokeProof: () => void;
+  onRunCodexLiveSmokeProof: () => void;
   onRunCodexLiveControlSmokeProof: () => void;
+  onRunCodexTwoPanelSmokeProof: () => void;
+  codexCanStartSession: boolean;
+  codexLiveSmokeLoading: boolean;
+  codexTwoPanelSmokeLoading: boolean;
 }) {
   const [streamPlaybackByRunId, setStreamPlaybackByRunId] = useState<
     Record<string, { cursor: number; state: RuntimeStreamPlaybackState }>
@@ -7260,7 +7288,12 @@ function RightPanel({
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
         onRunCodexActiveTurnControlSmokeProof={onRunCodexActiveTurnControlSmokeProof}
         onRunCodexActiveTurnSteerSmokeProof={onRunCodexActiveTurnSteerSmokeProof}
+        onRunCodexLiveSmokeProof={onRunCodexLiveSmokeProof}
         onRunCodexLiveControlSmokeProof={onRunCodexLiveControlSmokeProof}
+        onRunCodexTwoPanelSmokeProof={onRunCodexTwoPanelSmokeProof}
+        codexCanStartSession={codexCanStartSession}
+        codexLiveSmokeLoading={codexLiveSmokeLoading}
+        codexTwoPanelSmokeLoading={codexTwoPanelSmokeLoading}
         sessionControlReadinessEvidence={sessionControlReadinessEvidence}
         slashCommandExecutionEvidence={slashCommandExecutionEvidence}
       />
@@ -9589,7 +9622,12 @@ function OwnerTestingReadinessPanel({
   phase3SmokeProofReadiness,
   onRunCodexActiveTurnControlSmokeProof,
   onRunCodexActiveTurnSteerSmokeProof,
+  onRunCodexLiveSmokeProof,
   onRunCodexLiveControlSmokeProof,
+  onRunCodexTwoPanelSmokeProof,
+  codexCanStartSession,
+  codexLiveSmokeLoading,
+  codexTwoPanelSmokeLoading,
   sessionControlReadinessEvidence,
   slashCommandExecutionEvidence
 }: {
@@ -9603,7 +9641,12 @@ function OwnerTestingReadinessPanel({
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   onRunCodexActiveTurnControlSmokeProof: () => void;
   onRunCodexActiveTurnSteerSmokeProof: () => void;
+  onRunCodexLiveSmokeProof: () => void;
   onRunCodexLiveControlSmokeProof: () => void;
+  onRunCodexTwoPanelSmokeProof: () => void;
+  codexCanStartSession: boolean;
+  codexLiveSmokeLoading: boolean;
+  codexTwoPanelSmokeLoading: boolean;
   sessionControlReadinessEvidence: SessionControlReadinessEvidence;
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
 }) {
@@ -9715,6 +9758,28 @@ function OwnerTestingReadinessPanel({
               </li>
             ))}
           </ol>
+          <div className="owner-testing-priority-actions">
+            <button
+              className="owner-testing-priority-action"
+              disabled={!codexCanStartSession || codexLiveSmokeLoading}
+              onClick={onRunCodexLiveSmokeProof}
+              title="Run Phase 1 live panel smoke proof"
+              type="button"
+            >
+              <span>{codexLiveSmokeLoading ? "Running live..." : "Run live smoke"}</span>
+              <strong>Phase 1</strong>
+            </button>
+            <button
+              className="owner-testing-priority-action"
+              disabled={!codexCanStartSession || codexTwoPanelSmokeLoading}
+              onClick={onRunCodexTwoPanelSmokeProof}
+              title="Run Phase 2 two-panel isolation smoke proof"
+              type="button"
+            >
+              <span>{codexTwoPanelSmokeLoading ? "Running panels..." : "Run two-panel smoke"}</span>
+              <strong>Phase 2</strong>
+            </button>
+          </div>
         </div>
         <div
           aria-label={`Session control readiness evidence ${sessionControlReadinessEvidence.statusLabel}; ${sessionControlReadinessEvidence.readiness}% ready`}
