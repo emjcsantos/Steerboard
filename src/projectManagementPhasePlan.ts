@@ -195,7 +195,7 @@ const phaseSpecs: PhaseSpec[] = [
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
     description: "Clear the current blocker by proving slash execution, session controls, and desktop proof persistence.",
     status: "ongoing",
-    completionPercent: 70,
+    completionPercent: 75,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -204,7 +204,7 @@ const phaseSpecs: PhaseSpec[] = [
         title: "Desktop Proof Clearance",
         description: "Run the real desktop gate actions and prove the owner-visible rows persist after reload.",
         status: "ongoing",
-        completionPercent: 70,
+        completionPercent: 75,
         complexity: "extra_high",
         sourceDocument: "Current state and pipeline",
         children: [
@@ -212,15 +212,15 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-03-child-smoke-rows",
             title: "Persist Smoke Proof Rows",
             description: "Confirm desktop-executed smoke proof rows survive reload and browser fallback rows remain waiting.",
-            completionPercent: 65,
+            completionPercent: 70,
             complexity: "high",
             sourceDocument: "Phase 3 smoke proof readiness"
           },
           {
             id: "phase-03-child-exit-gate",
             title: "Expose Exact Exit Blocker",
-            description: "If Phase 3 cannot exit, show the exact remaining blocker instead of a vague incomplete state.",
-            completionPercent: 65,
+            description: "If Phase 3 cannot exit, show the exact remaining blocker and next owner action instead of a vague incomplete state.",
+            completionPercent: 75,
             sourceDocument: "Phase 3 exit gate evidence"
           }
         ]

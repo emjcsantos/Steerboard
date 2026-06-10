@@ -80,7 +80,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Clear live-control, active-turn interrupt, active-turn steer, slash, and session-control proof rows from desktop mode.",
     status: "active",
     priority: "critical",
-    completionPercent: 70,
+    completionPercent: 75,
     pmTaskIds: [
       "phase-03-controls-slash",
       "phase-03-parent-proof-clearance",
@@ -90,7 +90,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-03-child-control-ready"
     ],
     nextAction:
-      "Run the explicit desktop gate actions, reload, and verify Owner Testing evidence moves to ready or an exact blocker."
+      "Use the Phase 3 clearance package to run any recommended desktop proof, reload, and verify exit-ready handoff or an exact blocker."
   },
   {
     id: "goal-phase-4-provider-surfaces",

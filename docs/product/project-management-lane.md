@@ -32,6 +32,8 @@ The Environment panel also shows a Remaining Goals summary. Each remaining targe
 
 Owner Testing also includes a Phase 1/2/6 priority evidence card. It reads the live Arena panel smoke proof, two-panel isolation proof, panel session identity state, and Project Management phase-board state. The card does not run live actions automatically; it reports whether one-panel proof, multi-panel isolation, and Epic/Parent/Child PM staging are ready, waiting, blocked, or in review. Desktop-executed Phase 1/2 smoke proofs are persisted after an explicit run so the card can keep owner-visible proof state across reloads without sending prompts on startup.
 
+Owner Testing also includes a Phase 3 clearance package. It reads slash execution evidence, session-control evidence, desktop smoke proof readiness, and available smoke actions, then shows whether Phase 3 is exit-ready, held for review, waiting, or blocked. The package is evidence-only and promotes the next runnable proof without launching provider work automatically.
+
 ## Core Jobs
 
 - Create and manage projects.
@@ -68,6 +70,7 @@ Owner Testing also includes a Phase 1/2/6 priority evidence card. It reads the l
 - Staged Arena review preview for the latest row run.
 - Remaining Goals summary for all open targets across Phase 1 through Phase 11.
 - Owner Testing evidence and explicit smoke buttons for Phase 1 live panel proof, Phase 2 multi-panel isolation, and Phase 6 PM board staging readiness.
+- Phase 3 clearance package with exact open blockers and next smoke action.
 - Item detail panel.
 - Selected-item role-panel dispatch preview with pipeline, registry, and runtime gates.
 - Local selected-item dispatch request and cancellation history.

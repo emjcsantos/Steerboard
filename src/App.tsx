@@ -286,6 +286,10 @@ import {
   type Phase3ExitGateEvidence
 } from "./phase3ExitGateEvidence";
 import {
+  buildPhase3ClearancePackage,
+  type Phase3ClearancePackage
+} from "./phase3ClearancePackage";
+import {
   buildPhase3OwnerTestingActions,
   type Phase3OwnerTestingAction
 } from "./phase3OwnerTestingActions";
@@ -1707,6 +1711,14 @@ export function App() {
     codexActiveTurnControlSmokeLoading,
     codexActiveTurnSteerSmokeLoading
   ]);
+  const phase3ClearancePackage = useMemo(
+    () =>
+      buildPhase3ClearancePackage({
+        exitGate: phase3ExitGateEvidence,
+        actions: phase3OwnerTestingActions
+      }),
+    [phase3ExitGateEvidence, phase3OwnerTestingActions]
+  );
 
   useEffect(() => {
     saveWorkspacePreferences(preferences);
@@ -3283,6 +3295,7 @@ export function App() {
             runtimeSummary={runtimeSummary}
             selectedRun={selectedRun}
             phasePriorityEvidence={phasePriorityEvidence}
+            phase3ClearancePackage={phase3ClearancePackage}
             phase3ExitGateEvidence={phase3ExitGateEvidence}
             phase3OwnerTestingActions={phase3OwnerTestingActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
@@ -6278,6 +6291,7 @@ function RightPanel({
   runtimeSummary,
   selectedRun,
   phasePriorityEvidence,
+  phase3ClearancePackage,
   phase3ExitGateEvidence,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
@@ -6321,6 +6335,7 @@ function RightPanel({
   runtimeSummary: ReturnType<typeof summarizeRuntimeAdapters>;
   selectedRun?: MockOrchestratorRun;
   phasePriorityEvidence: PhasePriorityEvidenceResult;
+  phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
@@ -7368,6 +7383,7 @@ function RightPanel({
         failureFixtures={failureStateFixtures}
         failureSummary={failureStateFixtureSummary}
         phasePriorityEvidence={phasePriorityEvidence}
+        phase3ClearancePackage={phase3ClearancePackage}
         phase3ExitGateEvidence={phase3ExitGateEvidence}
         phase3OwnerTestingActions={phase3OwnerTestingActions}
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
@@ -9702,6 +9718,7 @@ function OwnerTestingReadinessPanel({
   failureFixtures,
   failureSummary,
   phasePriorityEvidence,
+  phase3ClearancePackage,
   phase3ExitGateEvidence,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
@@ -9721,6 +9738,7 @@ function OwnerTestingReadinessPanel({
   failureFixtures: readonly FailureStateFixture[];
   failureSummary: FailureStateFixtureSummary;
   phasePriorityEvidence: PhasePriorityEvidenceResult;
+  phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
@@ -9983,6 +10001,66 @@ function OwnerTestingReadinessPanel({
           <p title={phase3ExitGateEvidence.detail}>
             {phase3ExitGateEvidence.nextAction}
           </p>
+          <div
+            aria-label={`Phase 3 clearance package ${phase3ClearancePackage.statusLabel}; ${phase3ClearancePackage.readiness}% ready; ${phase3ClearancePackage.openCount} open blockers`}
+            className={classNames(
+              "owner-testing-phase3-clearance",
+              `owner-testing-phase3-clearance-${phase3ClearancePackage.state}`
+            )}
+            title={phase3ClearancePackage.safety}
+          >
+            <div className="owner-testing-phase3-clearance-header">
+              <strong>Clearance package</strong>
+              <span>{phase3ClearancePackage.canExit ? "Exit ready" : "Exit held"}</span>
+            </div>
+            <p title={phase3ClearancePackage.detail}>{phase3ClearancePackage.detail}</p>
+            <dl
+              className="owner-testing-phase3-clearance-grid"
+              aria-label="Phase 3 clearance package counts"
+            >
+              <div>
+                <dt>Ready</dt>
+                <dd>{phase3ClearancePackage.readyCount}</dd>
+              </div>
+              <div>
+                <dt>Open</dt>
+                <dd>{phase3ClearancePackage.openCount}</dd>
+              </div>
+              <div>
+                <dt>Blocked</dt>
+                <dd>{phase3ClearancePackage.blockerCount}</dd>
+              </div>
+              <div>
+                <dt>Action</dt>
+                <dd>{phase3ClearancePackage.primaryActionLabel ?? "Review"}</dd>
+              </div>
+            </dl>
+            <ol
+              className="owner-testing-phase3-clearance-list"
+              aria-label="Phase 3 clearance blockers"
+            >
+              {phase3ClearancePackage.blockers.length > 0 ? (
+                phase3ClearancePackage.blockers.map((blocker) => (
+                  <li
+                    className={`owner-testing-phase3-clearance-item-${blocker.state}`}
+                    key={blocker.id}
+                    title={blocker.nextAction}
+                  >
+                    <strong>{blocker.label}</strong>
+                    <span>{blocker.state}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="owner-testing-phase3-clearance-item-ready">
+                  <strong>Phase 3 handoff</strong>
+                  <span>ready</span>
+                </li>
+              )}
+            </ol>
+            <small title={phase3ClearancePackage.nextAction}>
+              {phase3ClearancePackage.nextAction}
+            </small>
+          </div>
           <dl
             className="owner-testing-phase3-grid"
             aria-label="Phase 3 exit gate counts"
