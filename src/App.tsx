@@ -482,6 +482,10 @@ import {
   type SecurityPrivacyThreatModel
 } from "./securityPrivacyThreatModel";
 import {
+  buildPhase8PermissionAuditDepth,
+  type Phase8PermissionAuditDepthSnapshot
+} from "./phase8PermissionAuditDepth";
+import {
   createReleasePrivacyReadiness,
   type ReleasePrivacyReadinessItemStatus,
   type ReleasePrivacyReadinessSnapshot
@@ -7074,6 +7078,27 @@ function RightPanel({
       runtimeProfilePermissionRequestHistory
     ]
   );
+  const phase8PermissionAuditDepth = useMemo(
+    () =>
+      buildPhase8PermissionAuditDepth({
+        liveActionSummaries: liveActionPermissionSummaries,
+        liveActionAuditRecords: liveActionAuditHistory,
+        runtimeExecutionAudit: runtimeExecutionAuditSnapshot,
+        runtimeExecutionAuditHistory: executionAuditHistory,
+        runtimeProfilePermissionApproval: runtimeProfilePermissionApprovalSnapshot,
+        runtimeProfilePermissionAudit: runtimeProfilePermissionAuditSnapshot,
+        runtimeProfilePermissionRequestHistory
+      }),
+    [
+      executionAuditHistory,
+      liveActionAuditHistory,
+      liveActionPermissionSummaries,
+      runtimeExecutionAuditSnapshot,
+      runtimeProfilePermissionApprovalSnapshot,
+      runtimeProfilePermissionAuditSnapshot,
+      runtimeProfilePermissionRequestHistory
+    ]
+  );
   const securityPrivacyThreatModel = useMemo(
     () =>
       createSecurityPrivacyThreatModel(
@@ -8131,6 +8156,7 @@ function RightPanel({
         releasePrivacy={releasePrivacyReadinessSnapshot}
         repeatedRuns={securityAcceptanceRepeatedRunsSnapshot}
       />
+      <Phase8PermissionAuditDepthPanel snapshot={phase8PermissionAuditDepth} />
 
       <section className="panel-section">
         <h4>Project Registry</h4>
@@ -10757,6 +10783,73 @@ function toSecurityAcceptanceEvidenceState(
   }
 
   return status;
+}
+
+function Phase8PermissionAuditDepthPanel({
+  snapshot
+}: {
+  snapshot: Phase8PermissionAuditDepthSnapshot;
+}) {
+  const visibleItems = snapshot.items.slice(0, 8);
+
+  return (
+    <section className="panel-section">
+      <h4>Phase 8 Audit Depth</h4>
+      <div
+        aria-label={snapshot.ariaLabel}
+        className={classNames(
+          "phase8-audit-depth",
+          `phase8-audit-${snapshot.state}`
+        )}
+        title={snapshot.nextAction}
+      >
+        <div className="phase8-audit-header">
+          <span className={classNames("phase8-audit-state", `phase8-audit-state-${snapshot.state}`)}>
+            <span aria-hidden="true" />
+            {snapshot.statusLabel}
+          </span>
+          <strong>{snapshot.label}</strong>
+          <b>{snapshot.readiness}%</b>
+        </div>
+        <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
+        <dl className="phase8-audit-grid" aria-label="Phase 8 permission and audit counts">
+          <div>
+            <dt>Risky</dt>
+            <dd>{snapshot.riskyActionCount}</dd>
+          </div>
+          <div>
+            <dt>Records</dt>
+            <dd>{snapshot.auditRecordCount}</dd>
+          </div>
+          <div>
+            <dt>Review</dt>
+            <dd>{snapshot.reviewCount}</dd>
+          </div>
+          <div>
+            <dt>Blocked</dt>
+            <dd>{snapshot.blockedCount}</dd>
+          </div>
+        </dl>
+        <ol className="phase8-audit-items" aria-label="Phase 8 missing requirement explanations">
+          {visibleItems.map((item) => (
+            <li
+              className={classNames("phase8-audit-item", `phase8-audit-item-${item.status}`)}
+              key={item.id}
+              title={`${item.detail} ${item.nextAction}`}
+            >
+              <span>{item.kind}</span>
+              <div>
+                <strong>{item.label}</strong>
+                <small>{item.nextAction}</small>
+              </div>
+              <b>{item.status}</b>
+            </li>
+          ))}
+        </ol>
+        <small title={snapshot.safety}>{snapshot.safety}</small>
+      </div>
+    </section>
+  );
 }
 
 function ToolEvidenceCaptureRecordRow({

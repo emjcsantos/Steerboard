@@ -87,6 +87,8 @@ Do not proceed to the next section until the current item is at least `review`.
 11. `Permissions`
     - Trigger at least one sensitive action.
     - Verify approval and block branches are explicit and safe.
+    - Confirm the Phase 8 Audit Depth panel lists missing permission, approval, evidence, audit persistence, and rollback requirements for risky or blocked actions.
+    - Confirm the panel keeps runtime/profile execution locked while audit and rollback requirements are reviewed.
 12. `Reload`
     - Reload during an in-progress run and resume from persisted context.
     - Confirm unsaved owner state is surfaced before continuing.

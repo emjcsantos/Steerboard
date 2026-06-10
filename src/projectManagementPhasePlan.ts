@@ -465,31 +465,31 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-08-permissions-audit",
     title: "Phase 8: Permissions and Audit",
-    description: "Harden risk gates, audit trails, and permission boundaries before mutation-capable paths expand.",
-    completionPercent: 30,
+    description: "Harden risk gates, audit trails, permission boundaries, and rollback explanations before mutation-capable paths expand.",
+    completionPercent: 45,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-08-parent-risk-gates",
         title: "Risk Gate Hardening",
-        description: "Require explicit permission state, action risk, approval scope, and fallback behavior for risky actions.",
-        completionPercent: 35,
+        description: "Require explicit permission state, action risk, approval scope, fallback behavior, and missing-requirement explanations for risky actions.",
+        completionPercent: 50,
         complexity: "high",
         sourceDocument: "Permission risk gates",
         children: [
           {
             id: "phase-08-child-permission-labels",
             title: "Permission State Labels",
-            description: "Display unavailable, preview-only, approval-required, and ready states consistently across surfaces.",
-            completionPercent: 35,
+            description: "Display unavailable, preview-only, approval-required, ready, waiting, review, and blocked states consistently across surfaces.",
+            completionPercent: 50,
             sourceDocument: "Runtime profile permissions"
           },
           {
             id: "phase-08-child-risk-blockers",
             title: "Risk Blocker Explanations",
-            description: "Explain why an action is blocked and what evidence or approval is needed to continue.",
-            completionPercent: 30,
+            description: "Explain why an action is blocked and what permission, approval, evidence, or rollback requirement is needed to continue.",
+            completionPercent: 45,
             sourceDocument: "Permission audit"
           }
         ]
@@ -497,16 +497,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-08-parent-audit-log",
         title: "Owner-Visible Audit Trail",
-        description: "Record attempted actions, approvals, blocked states, validation outcomes, and rollback notes.",
-        completionPercent: 25,
+        description: "Record attempted actions, approvals, blocked states, validation outcomes, rollback requirements, and audit persistence depth.",
+        completionPercent: 40,
         complexity: "high",
         sourceDocument: "Audit requirements",
         children: [
           {
             id: "phase-08-child-audit-persistence",
             title: "Audit Persistence",
-            description: "Persist audit entries locally and keep malformed audit state from hiding important risk evidence.",
-            completionPercent: 25,
+            description: "Persist audit entries locally and keep malformed audit state from hiding permission, evidence, or rollback blockers.",
+            completionPercent: 40,
             complexity: "high",
             sourceDocument: "Audit storage"
           }
