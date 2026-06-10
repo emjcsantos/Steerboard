@@ -204,9 +204,9 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-10-adaptive-arena"],
     goal:
       "Polish adaptive layout, density, keyboard controls, focus state, and Arena terminology after core live proof clears.",
-    status: "planned",
+    status: "next",
     priority: "medium",
-    completionPercent: 40,
+    completionPercent: 55,
     pmTaskIds: [
       "phase-10-adaptive-arena",
       "phase-10-parent-layout-foundation",
@@ -216,7 +216,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-10-child-term-scan"
     ],
     nextAction:
-      "Run layout regression checks across common viewport sizes and keep old public vocabulary from returning."
+      "Use the Phase 10 Arena Polish panel to verify adaptive layout regression, density, keyboard controls, focus state, terminology, and acceptance gates."
   },
   {
     id: "goal-phase-11-owner-command-center",

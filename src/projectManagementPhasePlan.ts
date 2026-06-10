@@ -570,30 +570,30 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-10-adaptive-arena",
     title: "Phase 10: Adaptive Magnetic Arena",
-    description: "Polish the adaptive Arena layout after the core live workflow and safety gates are proven.",
-    completionPercent: 40,
+    description: "Polish adaptive Arena layout regression, density, keyboard controls, focus state, terminology, and acceptance gates.",
+    completionPercent: 55,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-10-parent-layout-foundation",
         title: "Adaptive Layout Foundation",
-        description: "Keep drag, drop, keyboard adjustment, project stack drop, and panel capacity rules reliable.",
-        completionPercent: 45,
+        description: "Keep drag, drop, keyboard adjustment, saved-state repair, project stack drop, and panel capacity rules visible in Phase 10 readiness.",
+        completionPercent: 60,
         sourceDocument: "Adaptive Arena layout",
         children: [
           {
             id: "phase-10-child-layout-regression",
             title: "Layout Regression Pass",
-            description: "Verify panel resizing, drop previews, focus state, and keyboard controls across common viewport sizes.",
-            completionPercent: 40,
+            description: "Verify adaptive panel move, resize, hide, reveal, reset, drop preview, saved-state repair, and acceptance gates.",
+            completionPercent: 55,
             sourceDocument: "Adaptive layout tests"
           },
           {
             id: "phase-10-child-density-polish",
             title: "Density and Readability Polish",
-            description: "Tune dense operational views so controls, labels, and evidence panels remain scannable.",
-            completionPercent: 35,
+            description: "Tune dense operational views so controls, labels, Phase readiness panels, and evidence rows remain scannable.",
+            completionPercent: 55,
             sourceDocument: "Product UI polish"
           }
         ]
@@ -601,17 +601,17 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-10-parent-arena-identity",
         title: "Arena Product Identity",
-        description: "Keep the renamed Arena language consistent across user-facing docs, UI labels, and milestone text.",
+        description: "Keep Arena language consistent across user-facing docs, UI labels, milestone text, and Phase 10 readiness checks.",
         status: "ongoing",
-        completionPercent: 45,
+        completionPercent: 55,
         complexity: "low",
         sourceDocument: "Arena rename",
         children: [
           {
             id: "phase-10-child-term-scan",
             title: "Terminology Scan",
-            description: "Prevent old public vocabulary from returning while preserving backward-compatible internal keys.",
-            completionPercent: 45,
+            description: "Prevent old public vocabulary from returning while preserving backward-compatible internal keys and public-safe scan reporting.",
+            completionPercent: 55,
             complexity: "low",
             sourceDocument: "Arena rename validation"
           }

@@ -19,6 +19,7 @@ The current implementation includes:
 - Optional project/program planning lane with local dispatch previews, role-panel plan scaffolds, and saved dispatch review records.
 - Approval, audit, privacy, Phase 8 missing-requirement explanations, and read-only runner foundations, with broad mutation paths intentionally disabled.
 - Phase 9 Runner Approval panel for the fixed `terminal-readonly-probe`, including owner permission, approval window, request preview, validation output, audit record, and rollback evidence targets.
+- Phase 10 Arena Polish panel that tracks adaptive layout regression, density/readability, keyboard controls, focus state, terminology, and final Arena acceptance gates.
 - Owner testing surfaces for catalog refresh, slash execution evidence, session-control evidence, Phase 3 smoke proof rows, diagnostic exit-gate rows, and a Phase 3 clearance package.
 - Owner testing priority evidence and explicit smoke actions for Phase 1 one-panel live proof, Phase 2 multi-panel isolation, and Phase 6 Project Management phase-board staging readiness.
 - Reload-safe Phase 1/2 and Phase 3 smoke proof storage for desktop-executed smoke evidence, without running prompts automatically on startup.
@@ -35,6 +36,7 @@ The current implementation includes:
 | Planning and dispatch loop | Next | Convert staged project/program work into orchestrator, implementer, validator, and integration panels with scoped handoff packets, saved review records, and visible attempt limits. |
 | Permission and audit depth | Next | Use the Phase 8 Audit Depth panel to explain missing permission, approval, evidence, audit persistence, and rollback requirements before enabling broader desktop, terminal, Git, MCP, plugin, automation, runtime, profile, or external-service mutations. |
 | Desktop-backed runner approval | Next | Use the Phase 9 Runner Approval panel to keep the fixed terminal read-only probe selected, owner-approved, previewed, validated, audited, and rollback-safe before expanding runner actions. |
+| Adaptive Arena polish | Next | Use the Phase 10 Arena Polish panel to verify adaptive layout regression, density/readability, keyboard controls, focus state, terminology, and acceptance gates before packaging resumes. |
 | Packaging and installation | Deferred | Keep packaging paused until the core live Arena workflow is repeatable from a clean checkout. |
 
 ## Remaining Goals
@@ -48,7 +50,7 @@ The current implementation includes:
 | Planning and dispatch loop | Phase 7 | Next | Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits. | Use dispatch review records to audit role counts, attempt limits, handoff tasks, and validation gates before any live worker session spawning. |
 | Permission and audit depth | Phase 8 | Next | Expand approval gates, disabled-path explanations, audit persistence, and rollback notes before mutation paths grow. | Use the Phase 8 Audit Depth panel to resolve missing permission, approval, evidence, audit persistence, and rollback explanations before mutation paths grow. |
 | Desktop-backed runner approval | Phase 9 | Next | Allow the fixed terminal read-only desktop probe only after permission, audit, validation, and rollback gates pass. | Use the Phase 9 Runner Approval panel to keep the terminal-readonly-probe selected, owner-approved, previewed, validated, audited, and rollback-safe. |
-| Adaptive Arena polish | Phase 10 | Planned | Polish adaptive layout, density, keyboard controls, focus state, and Arena terminology after core live proof clears. | Run layout regression checks across common viewport sizes and keep old public vocabulary from returning. |
+| Adaptive Arena polish | Phase 10 | Next | Polish adaptive layout, density, keyboard controls, focus state, and Arena terminology after core live proof clears. | Use the Phase 10 Arena Polish panel to verify adaptive layout regression, density, keyboard controls, focus state, terminology, and acceptance gates. |
 | Owner Testing command center | Phase 11 | Planned | Make Owner Testing the single pass-fail release gate for proof freshness, blockers, phase readiness, and next actions. | Group proof actions, freshness, reload checks, and unresolved blockers into one owner-readable readiness path. |
 | Release readiness pass | Phase 11 | Paused | Run the final clean-checkout, build, smoke, packaging, docs, and known-limits pass before release. | Stay paused until the live Arena workflow, provider gates, migration safety, audit depth, and owner proof loop are stable. |
 

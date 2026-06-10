@@ -2,7 +2,7 @@
 
 ## Product Design Brief
 
-Steerboard needs a Arena layout that feels familiar to common IDEs while giving project managers and technical operators more control than a fixed split view. The fixed grid presets remain useful for fast setup, but `Adaptive` should let users build a working board around the exact sessions, projects, and evidence they need to watch.
+Steerboard needs an Arena layout that feels familiar to common IDEs while giving project managers and technical operators more control than a fixed split view. The fixed grid presets remain useful for fast setup, but `Adaptive` should let users build a working board around the exact sessions, projects, and evidence they need to watch.
 
 The visual direction is dense, calm, and workbench-like: one compact control row, a left project/thread rail, a central Arena canvas, and right-side environment or progress details. The feature should feel powerful without becoming a decorative dashboard.
 
@@ -17,6 +17,18 @@ The visual direction is dense, calm, and workbench-like: one compact control row
 | Drag-in sessions and projects | In progress | Projects and chats can be dragged from the left rail into Adaptive Arena with visible ready, unsupported, and unavailable drop-preview states; whole-project drops support a template picker with safe defaults. |
 | Persistence and recovery | In progress | Adaptive geometry is saved locally and repaired when saved state is malformed or no longer matches active Arena sessions. |
 | Accessibility | In progress | Layout selection, add/reveal, hide, resize, focus, reset, arrow-key move, and shift-arrow resize paths exist; broader shortcut polish remains planned. |
+| Phase 10 polish readiness | In progress | The Environment panel now exposes layout regression, density/readability, keyboard controls, focus state, terminology, and acceptance gates as separate owner-visible checks. |
+
+## Phase 10 Polish Readiness
+
+The Phase 10 readiness panel is the owner-facing bridge between implemented adaptive mechanics and release polish. It does not launch runtime work or mutate source sessions; it reports whether the current Arena state is ready for:
+
+- adaptive layout regression with drop preview and saved-state repair,
+- dense but readable panel/control/evidence layout,
+- keyboard movement and resize paths,
+- synchronized focused-panel and clear-focus state,
+- public Arena terminology,
+- final monitor, mode, interaction, desktop, and narrow-pane acceptance gates.
 
 ## Control Row Plan
 

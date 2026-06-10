@@ -490,6 +490,10 @@ import {
   type Phase9RunnerApprovalSnapshot
 } from "./phase9RunnerApproval";
 import {
+  buildPhase10ArenaPolishSnapshot,
+  type Phase10ArenaPolishSnapshot
+} from "./phase10ArenaPolish";
+import {
   createReleasePrivacyReadiness,
   type ReleasePrivacyReadinessItemStatus,
   type ReleasePrivacyReadinessSnapshot
@@ -3348,7 +3352,11 @@ export function App() {
           </section>
 
           <RightPanel
+            adaptiveHiddenPanelCount={hiddenAdaptivePanels.length}
+            adaptivePanelCount={syncedAdaptiveLayout.panels.length}
+            adaptiveVisiblePanelCount={visibleAdaptivePanels.length}
             catalogRefreshOwnerValidation={catalogRefreshOwnerValidation}
+            isAdaptiveLayout={layout.kind === "adaptive"}
             layoutCapacity={cockpitLayoutCapacity}
             mode={mode}
             modeHandoff={cockpitModeHandoff}
@@ -6541,7 +6549,11 @@ function PlanningView({
 }
 
 function RightPanel({
+  adaptiveHiddenPanelCount,
+  adaptivePanelCount,
+  adaptiveVisiblePanelCount,
   catalogRefreshOwnerValidation,
+  isAdaptiveLayout,
   layoutCapacity,
   mode,
   modeHandoff,
@@ -6581,8 +6593,12 @@ function RightPanel({
   sessions,
   tasks
 }: {
+  adaptiveHiddenPanelCount: number;
+  adaptivePanelCount: number;
+  adaptiveVisiblePanelCount: number;
   catalogRefreshOwnerValidation: CatalogRefreshOwnerValidationResult;
   focusedPanelId?: string;
+  isAdaptiveLayout: boolean;
   layoutCapacity: CockpitLayoutCapacity;
   mode: CockpitMode;
   modeHandoff: CockpitModeHandoff;
@@ -7275,6 +7291,31 @@ function RightPanel({
       }),
     [cockpitMonitorDepth, interactionReadiness, modeHandoffQa]
   );
+  const phase10ArenaPolish = useMemo(
+    () =>
+      buildPhase10ArenaPolishSnapshot({
+        isAdaptiveLayout,
+        adaptivePanelCount,
+        visiblePanelCount: adaptiveVisiblePanelCount,
+        hiddenPanelCount: adaptiveHiddenPanelCount,
+        layoutCapacity,
+        interactionReadiness,
+        acceptancePass: cockpitAcceptancePass,
+        hasKeyboardAdjustment: true,
+        hasDropPreview: true,
+        hasSavedLayoutRepair: true,
+        terminologyIssues: []
+      }),
+    [
+      adaptiveHiddenPanelCount,
+      adaptivePanelCount,
+      adaptiveVisiblePanelCount,
+      cockpitAcceptancePass,
+      interactionReadiness,
+      isAdaptiveLayout,
+      layoutCapacity
+    ]
+  );
 
   useEffect(() => {
     if (!selectedRun || runtimeStreamSnapshot.state !== "streaming") {
@@ -7721,6 +7762,8 @@ function RightPanel({
         sessionControlReadinessEvidence={sessionControlReadinessEvidence}
         slashCommandExecutionEvidence={slashCommandExecutionEvidence}
       />
+
+      <Phase10ArenaPolishPanel snapshot={phase10ArenaPolish} />
 
       <section className="panel-section">
         <h4>Mode</h4>
@@ -10934,6 +10977,71 @@ function Phase9RunnerApprovalPanel({
           {snapshot.items.map((item) => (
             <li
               className={classNames("phase9-runner-item", `phase9-runner-item-${item.status}`)}
+              key={item.id}
+              title={`${item.detail} ${item.nextAction}`}
+            >
+              <span>{item.kind}</span>
+              <div>
+                <strong>{item.label}</strong>
+                <small>{item.nextAction}</small>
+              </div>
+              <b>{item.status}</b>
+            </li>
+          ))}
+        </ol>
+        <small title={snapshot.safety}>{snapshot.safety}</small>
+      </div>
+    </section>
+  );
+}
+
+function Phase10ArenaPolishPanel({
+  snapshot
+}: {
+  snapshot: Phase10ArenaPolishSnapshot;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Phase 10 Arena Polish</h4>
+      <div
+        aria-label={snapshot.ariaLabel}
+        className={classNames(
+          "phase10-arena-polish",
+          `phase10-arena-${snapshot.state}`
+        )}
+        title={snapshot.nextAction}
+      >
+        <div className="phase10-arena-header">
+          <span className={classNames("phase10-arena-state", `phase10-arena-state-${snapshot.state}`)}>
+            <span aria-hidden="true" />
+            {snapshot.statusLabel}
+          </span>
+          <strong>{snapshot.label}</strong>
+          <b>{snapshot.readiness}%</b>
+        </div>
+        <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
+        <dl className="phase10-arena-grid" aria-label="Phase 10 adaptive Arena polish counts">
+          <div>
+            <dt>Visible</dt>
+            <dd>{snapshot.visiblePanelCount}/{snapshot.adaptivePanelCount}</dd>
+          </div>
+          <div>
+            <dt>Hidden</dt>
+            <dd>{snapshot.hiddenPanelCount}</dd>
+          </div>
+          <div>
+            <dt>Review</dt>
+            <dd>{snapshot.reviewCount}</dd>
+          </div>
+          <div>
+            <dt>Blocked</dt>
+            <dd>{snapshot.blockedCount}</dd>
+          </div>
+        </dl>
+        <ol className="phase10-arena-items" aria-label="Phase 10 Arena polish targets">
+          {snapshot.items.map((item) => (
+            <li
+              className={classNames("phase10-arena-item", `phase10-arena-item-${item.status}`)}
               key={item.id}
               title={`${item.detail} ${item.nextAction}`}
             >
