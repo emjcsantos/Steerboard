@@ -517,32 +517,32 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-09-desktop-runner",
     title: "Phase 9: Desktop-Backed Runner",
-    description: "Enable one reversible approved action from the desktop-backed runner after permissions and proof gates pass.",
-    completionPercent: 20,
+    description: "Enable the fixed terminal read-only desktop probe after permission, preview, audit, validation, and rollback gates pass.",
+    completionPercent: 35,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-09-parent-runner-probe",
         title: "Runner Probe Hardening",
-        description: "Keep the live action runner probe limited, reversible, observable, and blocked by approval gates.",
-        completionPercent: 25,
+        description: "Keep the desktop runner limited to the fixed terminal-readonly-probe with visible request preview and approval checks.",
+        completionPercent: 40,
         complexity: "high",
         sourceDocument: "Desktop runner probe",
         children: [
           {
             id: "phase-09-child-reversible-action",
             title: "Choose One Reversible Action",
-            description: "Select a low-risk action with a clear rollback path and no external irreversible side effect.",
-            completionPercent: 20,
+            description: "Use terminal-readonly-probe as the single selected read-only action with no workspace write, Git, external call, or profile mutation.",
+            completionPercent: 40,
             complexity: "high",
             sourceDocument: "Runner approval plan"
           },
           {
             id: "phase-09-child-runner-observability",
             title: "Runner Observability",
-            description: "Show command, permission, output, validation, rollback, and final state for the approved action.",
-            completionPercent: 20,
+            description: "Show request readiness, approval window, validation output, audit count, rollback evidence, and final state for the selected probe.",
+            completionPercent: 35,
             complexity: "high",
             sourceDocument: "Live action runner"
           }
@@ -551,16 +551,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-09-parent-approval-flow",
         title: "Approval and Rollback Flow",
-        description: "Require owner approval, action preview, validation plan, and rollback note before runner execution.",
-        completionPercent: 15,
+        description: "Require owner approval, request preview, validation result, audit record, and rollback evidence before runner expansion.",
+        completionPercent: 35,
         complexity: "extra_high",
         sourceDocument: "Permissions and audit",
         children: [
           {
             id: "phase-09-child-approval-record",
             title: "Approval Record",
-            description: "Record the approval decision, scope, validation result, and rollback outcome in the audit trail.",
-            completionPercent: 15,
+            description: "Record terminal request, approval, fallback, failure, execution, and rollback-safe evidence in the owner-visible audit path.",
+            completionPercent: 35,
             sourceDocument: "Audit trail"
           }
         ]

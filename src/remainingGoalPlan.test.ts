@@ -21,10 +21,10 @@ describe("remaining goal plan", () => {
       total: 10,
       blocked: 1,
       active: 1,
-      next: 4,
-      planned: 3,
+      next: 5,
+      planned: 2,
       paused: 1,
-      averageCompletionPercent: 41,
+      averageCompletionPercent: 43,
       currentTarget: "Unblock Phase 1/2/6 publishing",
       currentNextAction:
         "Keep the branch local, preserve the proof commit, and push only after the remote is recreated and the owner says to push.",

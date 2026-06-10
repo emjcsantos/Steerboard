@@ -486,6 +486,10 @@ import {
   type Phase8PermissionAuditDepthSnapshot
 } from "./phase8PermissionAuditDepth";
 import {
+  buildPhase9RunnerApprovalSnapshot,
+  type Phase9RunnerApprovalSnapshot
+} from "./phase9RunnerApproval";
+import {
   createReleasePrivacyReadiness,
   type ReleasePrivacyReadinessItemStatus,
   type ReleasePrivacyReadinessSnapshot
@@ -7025,6 +7029,35 @@ function RightPanel({
     () => summarizeDesktopActionRunnerResult(desktopActionRunnerResult),
     [desktopActionRunnerResult]
   );
+  const terminalLiveActionRequest = useMemo(
+    () =>
+      liveActionRequestsByProvider.terminal ??
+      createLiveActionPermissionRequest(
+        liveActionGateDefinitions[0],
+        "idle",
+        "1970-01-01T00:00:00.000Z"
+      ),
+    [liveActionRequestsByProvider]
+  );
+  const terminalLiveActionRunnerEvaluation = useMemo(
+    () => liveActionRunnerEvaluations.find((evaluation) => evaluation.provider === "terminal"),
+    [liveActionRunnerEvaluations]
+  );
+  const phase9RunnerApproval = useMemo(
+    () =>
+      buildPhase9RunnerApprovalSnapshot({
+        permissionRequest: terminalLiveActionRequest,
+        runnerEvaluation: terminalLiveActionRunnerEvaluation,
+        desktopRunnerResult: desktopActionRunnerResult,
+        auditRecords: liveActionAuditHistory
+      }),
+    [
+      desktopActionRunnerResult,
+      liveActionAuditHistory,
+      terminalLiveActionRequest,
+      terminalLiveActionRunnerEvaluation
+    ]
+  );
   const selectedRuntimeProfile = useMemo(
     () => selectRuntimeProfileForAdapter(runtimeProfiles, runtimeAdapter?.id ?? project.id),
     [project.id, runtimeAdapter?.id]
@@ -8248,6 +8281,8 @@ function RightPanel({
         readiness={selectedRuntimeProfileReadiness}
         summary={runtimeProfileSummary}
       />
+
+      <Phase9RunnerApprovalPanel snapshot={phase9RunnerApproval} />
 
       <LiveActionRiskGatePanel
         auditExportMarkdown={liveActionAuditMarkdown}
@@ -10834,6 +10869,71 @@ function Phase8PermissionAuditDepthPanel({
           {visibleItems.map((item) => (
             <li
               className={classNames("phase8-audit-item", `phase8-audit-item-${item.status}`)}
+              key={item.id}
+              title={`${item.detail} ${item.nextAction}`}
+            >
+              <span>{item.kind}</span>
+              <div>
+                <strong>{item.label}</strong>
+                <small>{item.nextAction}</small>
+              </div>
+              <b>{item.status}</b>
+            </li>
+          ))}
+        </ol>
+        <small title={snapshot.safety}>{snapshot.safety}</small>
+      </div>
+    </section>
+  );
+}
+
+function Phase9RunnerApprovalPanel({
+  snapshot
+}: {
+  snapshot: Phase9RunnerApprovalSnapshot;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Phase 9 Runner Approval</h4>
+      <div
+        aria-label={snapshot.ariaLabel}
+        className={classNames(
+          "phase9-runner-approval",
+          `phase9-runner-${snapshot.state}`
+        )}
+        title={snapshot.nextAction}
+      >
+        <div className="phase9-runner-header">
+          <span className={classNames("phase9-runner-state", `phase9-runner-state-${snapshot.state}`)}>
+            <span aria-hidden="true" />
+            {snapshot.statusLabel}
+          </span>
+          <strong>{snapshot.label}</strong>
+          <b>{snapshot.readiness}%</b>
+        </div>
+        <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
+        <dl className="phase9-runner-grid" aria-label="Phase 9 desktop runner approval counts">
+          <div>
+            <dt>Request</dt>
+            <dd>{snapshot.canRequestDesktopProbe ? "Ready" : "Held"}</dd>
+          </div>
+          <div>
+            <dt>Records</dt>
+            <dd>{snapshot.auditRecordCount}</dd>
+          </div>
+          <div>
+            <dt>Review</dt>
+            <dd>{snapshot.reviewCount}</dd>
+          </div>
+          <div>
+            <dt>Blocked</dt>
+            <dd>{snapshot.blockedCount}</dd>
+          </div>
+        </dl>
+        <ol className="phase9-runner-items" aria-label="Phase 9 runner approval targets">
+          {snapshot.items.map((item) => (
+            <li
+              className={classNames("phase9-runner-item", `phase9-runner-item-${item.status}`)}
               key={item.id}
               title={`${item.detail} ${item.nextAction}`}
             >

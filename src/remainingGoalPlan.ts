@@ -182,10 +182,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 9"],
     phaseIds: ["phase-09-desktop-runner"],
     goal:
-      "Allow one reversible approved desktop-backed action only after permission, audit, validation, and rollback gates pass.",
-    status: "planned",
+      "Allow the fixed terminal read-only desktop probe only after permission, audit, validation, and rollback gates pass.",
+    status: "next",
     priority: "high",
-    completionPercent: 20,
+    completionPercent: 35,
     pmTaskIds: [
       "phase-09-desktop-runner",
       "phase-09-parent-runner-probe",
@@ -195,7 +195,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-09-child-approval-record"
     ],
     nextAction:
-      "Pick a low-risk reversible action and require owner approval, preview, validation output, and rollback evidence."
+      "Use the Phase 9 Runner Approval panel to keep the terminal-readonly-probe selected, owner-approved, previewed, validated, audited, and rollback-safe."
   },
   {
     id: "goal-phase-10-arena-polish",
