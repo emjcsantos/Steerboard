@@ -57,6 +57,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm the Owner Testing panel moves slash execution evidence from review to ready only after provider-route plus live/status transcript proof is present.
    - Confirm the Owner Testing Phase 3 gate remains review or waiting until slash execution, session-control evidence, live-control smoke, active-turn interrupt smoke, and active-turn steer smoke are all proven ready.
    - Confirm the Owner Testing Phase 3 clearance package shows `Exit held` until every gate item is ready, lists exact open blockers, and promotes the next runnable smoke action when one is available.
+   - Confirm the Owner Testing Phase 3 handoff gate holds provider integration until desktop proof clearance is ready, exact blocker visibility is clear, and an owner handoff record is attached.
    - Confirm the Owner Testing Phase 3 smoke proof rows show browser fallback or non-executed proofs as `waiting`, successful desktop proofs as `ready`, incomplete desktop proofs as `review`, and unsupported-after-execution proofs as `blocked`.
    - Reload after a full desktop smoke bundle and confirm the Phase 3 smoke proof rows keep the last desktop-executed proof states without rerunning prompts on startup.
    - Use the Phase 3 gate diagnostic rows to identify which proof is still waiting, review, or blocked before rerunning desktop smokes.

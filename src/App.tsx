@@ -306,6 +306,10 @@ import {
   type Phase3ClearancePackage
 } from "./phase3ClearancePackage";
 import {
+  buildPhase3HandoffGate,
+  type Phase3HandoffGate
+} from "./phase3HandoffGate";
+import {
   buildPhase3OwnerTestingActions,
   type Phase3OwnerTestingAction
 } from "./phase3OwnerTestingActions";
@@ -1761,6 +1765,14 @@ export function App() {
         actions: phase3OwnerTestingActions
       }),
     [phase3ExitGateEvidence, phase3OwnerTestingActions]
+  );
+  const phase3HandoffGate = useMemo(
+    () =>
+      buildPhase3HandoffGate({
+        clearancePackage: phase3ClearancePackage,
+        handoffRecordState: "waiting"
+      }),
+    [phase3ClearancePackage]
   );
 
   useEffect(() => {
@@ -3385,6 +3397,7 @@ export function App() {
             phasePriorityEvidence={phasePriorityEvidence}
             phase3ClearancePackage={phase3ClearancePackage}
             phase3ExitGateEvidence={phase3ExitGateEvidence}
+            phase3HandoffGate={phase3HandoffGate}
             phase3OwnerTestingActions={phase3OwnerTestingActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
             sessionControlOwnerTestingState={sessionControlOwnerTestingState}
@@ -6582,6 +6595,7 @@ function RightPanel({
   phasePriorityEvidence,
   phase3ClearancePackage,
   phase3ExitGateEvidence,
+  phase3HandoffGate,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
   sessionControlOwnerTestingState,
@@ -6632,6 +6646,7 @@ function RightPanel({
   phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
+  phase3HandoffGate: Phase3HandoffGate;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   sessionControlOwnerTestingState: OwnerTestingReadinessState;
@@ -7795,6 +7810,7 @@ function RightPanel({
         phasePriorityEvidence={phasePriorityEvidence}
         phase3ClearancePackage={phase3ClearancePackage}
         phase3ExitGateEvidence={phase3ExitGateEvidence}
+        phase3HandoffGate={phase3HandoffGate}
         phase3OwnerTestingActions={phase3OwnerTestingActions}
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
         onRunCodexActiveTurnControlSmokeProof={onRunCodexActiveTurnControlSmokeProof}
@@ -10151,6 +10167,7 @@ function OwnerTestingReadinessPanel({
   phasePriorityEvidence,
   phase3ClearancePackage,
   phase3ExitGateEvidence,
+  phase3HandoffGate,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
   onRunCodexActiveTurnControlSmokeProof,
@@ -10171,6 +10188,7 @@ function OwnerTestingReadinessPanel({
   phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
+  phase3HandoffGate: Phase3HandoffGate;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   onRunCodexActiveTurnControlSmokeProof: () => void;
@@ -10490,6 +10508,59 @@ function OwnerTestingReadinessPanel({
             </ol>
             <small title={phase3ClearancePackage.nextAction}>
               {phase3ClearancePackage.nextAction}
+            </small>
+          </div>
+          <div
+            aria-label={phase3HandoffGate.ariaLabel}
+            className={classNames(
+              "owner-testing-phase3-handoff",
+              `owner-testing-phase3-handoff-${phase3HandoffGate.state}`
+            )}
+            title={phase3HandoffGate.safety}
+          >
+            <div className="owner-testing-phase3-handoff-header">
+              <strong>{phase3HandoffGate.label}</strong>
+              <span>{phase3HandoffGate.canAdvanceProviderIntegration ? "Advance ready" : "Advance held"}</span>
+            </div>
+            <p title={phase3HandoffGate.nextAction}>{phase3HandoffGate.nextAction}</p>
+            <dl
+              className="owner-testing-phase3-handoff-grid"
+              aria-label="Phase 3 handoff gate counts"
+            >
+              <div>
+                <dt>Ready</dt>
+                <dd>{phase3HandoffGate.readyCount}</dd>
+              </div>
+              <div>
+                <dt>Open</dt>
+                <dd>{phase3HandoffGate.exactBlockerCount}</dd>
+              </div>
+              <div>
+                <dt>Blocked</dt>
+                <dd>{phase3HandoffGate.blockedCount}</dd>
+              </div>
+              <div>
+                <dt>State</dt>
+                <dd>{phase3HandoffGate.statusLabel}</dd>
+              </div>
+            </dl>
+            <ol
+              className="owner-testing-phase3-handoff-list"
+              aria-label="Phase 3 handoff gate rows"
+            >
+              {phase3HandoffGate.items.map((item) => (
+                <li
+                  className={`owner-testing-phase3-handoff-item-${item.status}`}
+                  key={item.id}
+                  title={`${item.detail} ${item.nextAction}`}
+                >
+                  <strong>{item.label}</strong>
+                  <span>{item.status}</span>
+                </li>
+              ))}
+            </ol>
+            <small title={phase3HandoffGate.safety}>
+              {phase3HandoffGate.safety}
             </small>
           </div>
           <dl
