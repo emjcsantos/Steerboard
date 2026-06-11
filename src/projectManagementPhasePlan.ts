@@ -621,9 +621,9 @@ const phaseSpecs: PhaseSpec[] = [
   },
   {
     id: "phase-11-owner-packaging",
-    title: "Phase 11: Owner Testing and Packaging",
-    description: "Prepare owner-facing pass/fail command gates, fresh checkout instructions, desktop packaging, and release proof.",
-    completionPercent: 40,
+    title: "Phase 11: Owner Testing and Release Readiness",
+    description: "Prepare owner-facing pass/fail command gates, fresh checkout instructions, packaging locks, known-limit review, and release-decision proof.",
+    completionPercent: 45,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -653,17 +653,17 @@ const phaseSpecs: PhaseSpec[] = [
       },
       {
         id: "phase-11-parent-release-packaging",
-        title: "Desktop Packaging",
-        description: "Prepare packaged desktop build notes, validation evidence, known limits, and rollout checklist.",
-        completionPercent: 25,
+        title: "Release Readiness Gate",
+        description: "Keep clean checkout, build/test, smoke proof, packaging lock, docs, known limits, and release decision visible while packaging stays paused.",
+        completionPercent: 35,
         complexity: "high",
-        sourceDocument: "Desktop packaging",
+        sourceDocument: "Phase 11 release readiness",
         children: [
           {
             id: "phase-11-child-package-validation",
-            title: "Package Validation",
-            description: "Validate packaged app startup, proof persistence, local storage repair, and safety-disabled live actions.",
-            completionPercent: 25,
+            title: "Package Lock Validation",
+            description: "Validate packaged-app prerequisites, proof persistence, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
+            completionPercent: 35,
             complexity: "high",
             sourceDocument: "Release validation"
           }

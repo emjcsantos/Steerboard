@@ -21,6 +21,7 @@ The current implementation includes:
 - Phase 9 Runner Approval panel for the fixed `terminal-readonly-probe`, including owner permission, approval window, request preview, validation output, audit record, and rollback evidence targets.
 - Phase 10 Arena Polish panel that tracks adaptive layout regression, density/readability, keyboard controls, focus state, terminology, and final Arena acceptance gates.
 - Phase 11 Owner Command panel that gathers checklist coverage, proof freshness, blockers, phase readiness, next action, and fresh-checkout evidence into one pass/fail release gate.
+- Phase 11 Release Readiness panel that gathers clean checkout, build/test, owner smoke proof, packaging lock, docs/known limits, and final release-decision evidence while keeping packaging paused.
 - Owner testing surfaces for catalog refresh, slash execution evidence, session-control evidence, Phase 3 smoke proof rows, diagnostic exit-gate rows, and a Phase 3 clearance package.
 - Owner testing priority evidence and explicit smoke actions for Phase 1 one-panel live proof, Phase 2 multi-panel isolation, and Phase 6 Project Management phase-board staging readiness.
 - Reload-safe Phase 1/2 and Phase 3 smoke proof storage for desktop-executed smoke evidence, without running prompts automatically on startup.
@@ -39,7 +40,7 @@ The current implementation includes:
 | Desktop-backed runner approval | Next | Use the Phase 9 Runner Approval panel to keep the fixed terminal read-only probe selected, owner-approved, previewed, validated, audited, and rollback-safe before expanding runner actions. |
 | Adaptive Arena polish | Next | Use the Phase 10 Arena Polish panel to verify adaptive layout regression, density/readability, keyboard controls, focus state, terminology, and acceptance gates before packaging resumes. |
 | Owner Testing command center | Next | Use the Phase 11 Owner Command panel to keep checklist coverage, proof freshness, blockers, phase readiness, next action, and fresh-checkout evidence visible as a single pass/fail release gate. |
-| Packaging and installation | Deferred | Keep packaging paused until the core live Arena workflow is repeatable from a clean checkout. |
+| Release readiness pass | Paused | Use the Phase 11 Release Readiness panel to review clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and the final release decision while packaging stays paused. |
 
 ## Remaining Goals
 
@@ -54,7 +55,7 @@ The current implementation includes:
 | Desktop-backed runner approval | Phase 9 | Next | Allow the fixed terminal read-only desktop probe only after permission, audit, validation, and rollback gates pass. | Use the Phase 9 Runner Approval panel to keep the terminal-readonly-probe selected, owner-approved, previewed, validated, audited, and rollback-safe. |
 | Adaptive Arena polish | Phase 10 | Next | Polish adaptive layout, density, keyboard controls, focus state, and Arena terminology after core live proof clears. | Use the Phase 10 Arena Polish panel to verify adaptive layout regression, density, keyboard controls, focus state, terminology, and acceptance gates. |
 | Owner Testing command center | Phase 11 | Next | Make Owner Testing the single pass-fail release gate for proof freshness, blockers, phase readiness, and next actions. | Use the Phase 11 Owner Command panel to review checklist coverage, proof freshness, blockers, phase readiness, next action, and fresh-checkout evidence. |
-| Release readiness pass | Phase 11 | Paused | Run the final clean-checkout, build, smoke, packaging, docs, and known-limits pass before release. | Stay paused until the live Arena workflow, provider gates, migration safety, audit depth, and owner proof loop are stable. |
+| Release readiness pass | Phase 11 | Paused | Coordinate the final clean-checkout, build, smoke, packaging-lock, docs, known-limits, and release-decision pass before release. | Use the Phase 11 Release Readiness panel to review clean checkout, build/test, smoke proof, packaging lock, docs and known limits, and the final release decision while packaging stays paused. |
 
 ## Future Tasks
 
@@ -65,8 +66,8 @@ The current implementation includes:
 - Add plugin, skill, MCP, and automation execution paths behind explicit provider support and approval gates.
 - Add permissioned terminal and Git evidence capture after the read-only runner path is proven.
 - Add signed audit export, rollback references, and release privacy checks.
-- Prepare a clean Git-based install path and desktop packaging only after the live workflow passes repeatable local testing.
+- Prepare a clean Git-based install path and desktop packaging only after the Phase 11 Release Readiness gate records clean checkout, build/test, smoke proof, docs/known limits, and an explicit owner release decision.
 
 ## Closeout Note
 
-The documentation closeout records the current implementation state and carries the remaining work forward as pipeline items. The product is not feature-complete yet; the next implementation goal should keep local proof branches unpushed until owner approval, then continue clearing Phase 3 desktop proof and Phase 4 provider readiness blockers.
+The documentation closeout records the current implementation state and carries the remaining work forward as pipeline items. The product is not feature-complete yet; the next implementation goal should keep local proof branches unpushed until owner approval, then continue clearing Phase 3 desktop proof, Phase 4 provider readiness blockers, and Phase 11 release-readiness holds without resuming packaging.

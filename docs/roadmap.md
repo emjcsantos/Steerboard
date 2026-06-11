@@ -4,7 +4,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 ## Current Pipeline
 
-The current development lane is Phase 3 desktop proof clearance: run the explicit desktop smoke actions, persist their proof rows across reload, and verify slash-command plus session-control evidence before advancing broader provider and dispatch work. The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md).
+The current development lane is Phase 3 desktop proof clearance: run the explicit desktop smoke actions, persist their proof rows across reload, and verify slash-command plus session-control evidence before advancing broader provider, dispatch, or release work. Phase 11 now tracks release-readiness decision support for clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and owner release decision while packaging remains paused. The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md).
 
 ## Milestone Tracking
 
@@ -17,7 +17,7 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 | Phase 5: Live Codex Integration | In progress | Codex transport spike identifies supervised app-server stdio as the safest first session bridge, with no-prompt readiness on startup and explicit live smoke for one read-only send/stream proof. |
 | Phase 6: Adaptive Arena Canvas | In progress | Adaptive mode now supports persisted panel geometry, add/reveal, hide, resize, reset, keyboard move/resize, magnetic panel dragging, project stack drag-in, chat drag-in, and visible drop-preview states from the left rail. |
 | Phase 7: Platform Capabilities | In progress | Slash commands, Skills catalog, Plugin manager, MCP manager, Automations manager, and Personalization center now expose structured feedback plus desktop-backed safe provider capability refresh; permissions and audit state continue toward live provider-backed surfaces. |
-| Phase 8: Local Execution And Packaging | Planned | Real runtime execution, permissioned terminal/Git capture, audit exports, build signing, and installer checks remain behind future explicit approval gates. |
+| Phase 8: Local Execution And Packaging | Planned | Real runtime execution, permissioned terminal/Git capture, audit exports, build signing, and installer checks remain behind future explicit approval gates; Phase 11 release-readiness tracking keeps the package lock and release decision visible before this work resumes. |
 
 ## Phase 1: Product Scaffold
 
@@ -129,6 +129,7 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 
 ## Phase 8: Local Execution And Packaging
 
+- Phase 11 release-readiness tracking for clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and final owner release decision while packaging stays paused.
 - Real session ownership through configured runtimes.
 - Approved launch handoff from local preview into configured runtimes.
 - Desktop bridge permission flow for approved process and workspace access.

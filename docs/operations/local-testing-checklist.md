@@ -29,6 +29,9 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm the Environment panel Remaining Goals summary shows all remaining targets, covers Phase 1 through Phase 11, and keeps `Unblock Phase 1/2/6 publishing` blocked until the owner approves pushing.
    - Confirm the Phase 11 Owner Command panel shows checklist coverage, proof freshness, blockers, phase readiness, next action, and fresh-checkout evidence as separate pass/fail gates.
    - Confirm the Phase 11 command center holds release readiness while the owner-approved push blocker or fresh-checkout evidence is unresolved.
+   - Confirm the Phase 11 Release Readiness panel shows clean checkout, build/test, owner smoke proof, packaging lock, docs/known limits, and final release decision as separate gates.
+   - Confirm the release readiness decision remains held while clean checkout, build/test, smoke proof, docs/known limits, owner proof, or remaining-goal blockers are unresolved.
+   - Confirm the packaging lock row is ready only because packaging and resume controls stay locked; do not run packaging, signing, installer, Git push, or external release actions from this gate.
    - Confirm the Environment panel Phase 4 Provider Readiness card classifies all six provider surfaces without executing commands, skills, plugins, MCP tools, automations, or personalization mutations.
    - Optionally run `npm run smoke:phase1-2` to execute the opt-in one-panel live smoke and two-panel isolation desktop smoke tests. This can send tiny read-only prompts through the local runtime and is intentionally excluded from normal tests.
    - Optionally run `npm run smoke:phase3` to execute the opt-in live-control, active-turn interrupt, and active-turn steer desktop smoke tests. This can send tiny read-only prompts through the local runtime and is intentionally excluded from normal tests.

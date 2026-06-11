@@ -304,7 +304,7 @@ describe("milestone status model", () => {
       active: 10,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 44,
+      averageCompletionPercent: 46,
       nextTarget: "Platform capabilities",
       nextStep:
         "Run live provider-routed slash and session-control checks in desktop mode and verify Owner Testing evidence moves from review to ready, then keep the connection dialog catalog smoke as the recurring provider-refresh regression check while arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions remain disabled.",
@@ -336,13 +336,13 @@ describe("milestone status model", () => {
 
     expect(ownerTesting?.completion).toBe("In progress");
     expect(ownerTesting?.tone).toBe("active");
-    expect(ownerTesting?.completionPercent).toBe(44);
+    expect(ownerTesting?.completionPercent).toBe(48);
     expect(ownerTesting?.current).toBeUndefined();
     expect(ownerTesting?.latestNote).toBe(
-      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, per-control session-control state evidence, opt-in Phase 3 desktop smoke harnessing, reload-safe owner-visible Phase 3 smoke proof readiness rows, and an actionable diagnostic Phase 3 exit gate without automatic execution."
+      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, per-control session-control state evidence, opt-in Phase 3 desktop smoke harnessing, reload-safe owner-visible Phase 3 smoke proof readiness rows, an actionable diagnostic Phase 3 exit gate, and Phase 11 owner command gates without automatic execution."
     );
     expect(ownerTesting?.nextStep).toBe(
-      "Run the full local testing checklist, keep `npm run smoke:phase3` as the recurring opt-in desktop smoke command, use the Phase 3 gate actions to clear missing proofs, verify smoke proof rows move browser or non-executed proofs to waiting and desktop executions to ready, review, or blocked across reload, verify the per-control Owner Testing state chips, approval-to-probe behavior, all-catalog provider refresh smoke, live panel slash execution evidence, live panel control evidence, active-turn interrupt/steer smoke proof, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
+      "Run the full local testing checklist, keep `npm run smoke:phase3` as the recurring opt-in desktop smoke command, use the Phase 3 gate actions to clear missing proofs, verify smoke proof rows move browser or non-executed proofs to waiting and desktop executions to ready, review, or blocked across reload, verify the per-control Owner Testing state chips, approval-to-probe behavior, all-catalog provider refresh smoke, live panel slash execution evidence, live panel control evidence, active-turn interrupt/steer smoke proof, Phase 11 owner command evidence, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
     );
   });
 
@@ -511,19 +511,19 @@ describe("milestone status model", () => {
     expect(securityDocText).toMatch(/must not/i);
   });
 
-  it("pauses packaging and installation to 0%", () => {
+  it("keeps packaging and installation paused behind release readiness", () => {
     const packagingMilestone = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Packaging and installation"
     );
 
     expect(packagingMilestone?.completion).toBe("Paused");
     expect(packagingMilestone?.tone).toBe("paused");
-    expect(packagingMilestone?.completionPercent).toBe(0);
+    expect(packagingMilestone?.completionPercent).toBe(20);
     expect(packagingMilestone?.latestNote).toBe(
-      "Packaging is intentionally deferred until core development is complete."
+      "The Phase 11 Release Readiness gate now tracks clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and release decision while packaging remains paused."
     );
     expect(packagingMilestone?.nextStep).toBe(
-      "Remain paused until core development is complete."
+      "Use the Phase 11 Release Readiness panel to record the final release proof after live workflow, provider, migration, audit, and owner proof holds are clear; do not package, sign, create installers, or push from this gate."
     );
   });
 

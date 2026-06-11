@@ -111,6 +111,12 @@ This gate is decision support only. It must not resume packaging, build installe
 
 Browser-preview safety locks can satisfy the security closure posture when execution remains locked and no desktop action is available. Desktop runtime errors, unlocked execution, missing packaging locks, or blocked validation evidence still prevent closure.
 
+## Phase 11 Release Readiness Gate
+
+The Phase 11 release-readiness gate sits above the final security review. It combines clean checkout, build/test, owner smoke proof, packaging lock, docs/known limits, and final release decision into one reviewable status while reusing the final security review as an input.
+
+This gate is decision support only. It must not install dependencies, run tests, build packages, sign artifacts, create installers, mutate files, push branches, call a network endpoint, start a process, or perform release actions. A ready packaging-lock row means packaging remained locked during review; it does not resume packaging by itself.
+
 ## Implementation Controls
 
 - Root-scoped file access: keep reads/writes constrained to project roots with explicit path allowlists.

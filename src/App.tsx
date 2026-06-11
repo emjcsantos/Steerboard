@@ -498,6 +498,10 @@ import {
   type Phase11OwnerCommandCenterSnapshot
 } from "./phase11OwnerCommandCenter";
 import {
+  buildPhase11ReleaseReadinessSnapshot,
+  type Phase11ReleaseReadinessSnapshot
+} from "./phase11ReleaseReadiness";
+import {
   createReleasePrivacyReadiness,
   type ReleasePrivacyReadinessItemStatus,
   type ReleasePrivacyReadinessSnapshot
@@ -7280,6 +7284,24 @@ function RightPanel({
       securityAcceptanceRepeatedRunsSnapshot
     ]
   );
+  const phase11ReleaseReadiness = useMemo(
+    () =>
+      buildPhase11ReleaseReadinessSnapshot({
+        ownerCommandCenter: phase11OwnerCommandCenter,
+        desktopPackaging: desktopPackagingReadinessSnapshot,
+        securityFinalReview: securityFinalReviewSnapshot,
+        remainingGoalSummary,
+        cleanCheckoutState: "waiting",
+        buildTestState: "waiting",
+        docsKnownLimitsState: "review"
+      }),
+    [
+      desktopPackagingReadinessSnapshot,
+      phase11OwnerCommandCenter,
+      remainingGoalSummary,
+      securityFinalReviewSnapshot
+    ]
+  );
   const canActivateDraftProfile =
     runtimeProfileApprovalSnapshot.state === "requested" &&
     canActivateRuntimeProfile(runtimeProfileDraftReadiness);
@@ -7788,6 +7810,8 @@ function RightPanel({
       />
 
       <Phase11OwnerCommandCenterPanel snapshot={phase11OwnerCommandCenter} />
+
+      <Phase11ReleaseReadinessPanel snapshot={phase11ReleaseReadiness} />
 
       <Phase10ArenaPolishPanel snapshot={phase10ArenaPolish} />
 
@@ -11133,6 +11157,75 @@ function Phase11OwnerCommandCenterPanel({
           {snapshot.items.map((item) => (
             <li
               className={classNames("phase11-owner-item", `phase11-owner-item-${item.status}`)}
+              key={item.id}
+              title={`${item.detail} ${item.nextAction}`}
+            >
+              <span>{item.kind}</span>
+              <div>
+                <strong>{item.label}</strong>
+                <small>{item.nextAction}</small>
+              </div>
+              <b>{item.status}</b>
+            </li>
+          ))}
+        </ol>
+        <small title={snapshot.safety}>{snapshot.safety}</small>
+      </div>
+    </section>
+  );
+}
+
+function Phase11ReleaseReadinessPanel({
+  snapshot
+}: {
+  snapshot: Phase11ReleaseReadinessSnapshot;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Phase 11 Release Readiness</h4>
+      <div
+        aria-label={snapshot.ariaLabel}
+        className={classNames(
+          "phase11-release-readiness",
+          `phase11-release-${snapshot.state}`
+        )}
+        title={snapshot.nextAction}
+      >
+        <div className="phase11-release-header">
+          <span className={classNames("phase11-release-state", `phase11-release-state-${snapshot.state}`)}>
+            <span aria-hidden="true" />
+            {snapshot.statusLabel}
+          </span>
+          <strong>{snapshot.label}</strong>
+          <b>{snapshot.readiness}%</b>
+        </div>
+        <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
+        <dl className="phase11-release-grid" aria-label="Phase 11 release readiness counts">
+          <div>
+            <dt>Decision</dt>
+            <dd>{snapshot.canRecommendRelease ? "Ready" : "Held"}</dd>
+          </div>
+          <div>
+            <dt>Owner</dt>
+            <dd>{snapshot.ownerReadiness}%</dd>
+          </div>
+          <div>
+            <dt>Security</dt>
+            <dd>{snapshot.securityReadiness}%</dd>
+          </div>
+          <div>
+            <dt>Package</dt>
+            <dd>{snapshot.packagingReadiness}%</dd>
+          </div>
+          <div>
+            <dt>Holds</dt>
+            <dd>{snapshot.releaseHoldCount}</dd>
+          </div>
+        </dl>
+        <ol className="phase11-release-items" aria-label="Phase 11 release readiness gates">
+          {snapshot.items.map((item) => (
+            <li
+              className={classNames("phase11-release-item", `phase11-release-item-${item.status}`)}
               key={item.id}
               title={`${item.detail} ${item.nextAction}`}
             >

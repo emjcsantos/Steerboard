@@ -1,0 +1,228 @@
+import { describe, expect, it } from "vitest";
+import type { DesktopPackagingReadinessSnapshot } from "./desktopPackagingReadiness";
+import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
+import { buildPhase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
+import type { RemainingGoalPlanSummary } from "./remainingGoalPlan";
+import type { SecurityFinalReviewSnapshot } from "./securityFinalReview";
+
+function ownerSnapshot(
+  overrides: Partial<Phase11OwnerCommandCenterSnapshot> = {}
+): Phase11OwnerCommandCenterSnapshot {
+  return {
+    id: "phase-11-owner-command-center",
+    label: "Phase 11 Owner Testing command center",
+    state: "ready",
+    statusLabel: "Ready",
+    readiness: 100,
+    canRelease: true,
+    checklistReadiness: 100,
+    phaseReadiness: 100,
+    blockerCount: 0,
+    readyCount: 6,
+    reviewCount: 0,
+    blockedCount: 0,
+    waitingCount: 0,
+    nextAction: "Keep owner proof attached.",
+    safety: "Evidence only.",
+    ariaLabel: "Owner command ready.",
+    items: [],
+    ...overrides
+  };
+}
+
+function packagingSnapshot(
+  overrides: Partial<DesktopPackagingReadinessSnapshot> = {}
+): DesktopPackagingReadinessSnapshot {
+  return {
+    id: "desktop-packaging-readiness",
+    label: "Desktop packaging readiness",
+    state: "ready",
+    statusLabel: "Ready",
+    readiness: 80,
+    canPackage: false,
+    packagingLocked: true,
+    detail: "Packaging inputs are prepared but actions stay locked.",
+    safety: "Preview only.",
+    items: [],
+    ...overrides
+  };
+}
+
+function securitySnapshot(
+  overrides: Partial<SecurityFinalReviewSnapshot> = {}
+): SecurityFinalReviewSnapshot {
+  return {
+    id: "security-final-review",
+    label: "Security final review",
+    state: "ready",
+    statusLabel: "Ready",
+    readiness: 100,
+    canCloseSecurity: true,
+    canResumePackaging: false,
+    detail: "Security review can close.",
+    safety: "Evidence only.",
+    ariaLabel: "Security ready.",
+    items: [],
+    ...overrides
+  };
+}
+
+function remainingSummary(
+  overrides: Partial<RemainingGoalPlanSummary> = {}
+): RemainingGoalPlanSummary {
+  return {
+    total: 10,
+    blocked: 0,
+    active: 0,
+    next: 0,
+    planned: 0,
+    paused: 0,
+    averageCompletionPercent: 100,
+    currentTarget: "Release readiness pass",
+    currentNextAction: "Attach release readiness proof.",
+    coveredPhaseCount: 11,
+    remainingPhaseCount: 11,
+    ...overrides
+  };
+}
+
+function snapshot(
+  overrides: Partial<Parameters<typeof buildPhase11ReleaseReadinessSnapshot>[0]> = {}
+) {
+  return buildPhase11ReleaseReadinessSnapshot({
+    ownerCommandCenter: ownerSnapshot(),
+    desktopPackaging: packagingSnapshot(),
+    securityFinalReview: securitySnapshot(),
+    remainingGoalSummary: remainingSummary(),
+    cleanCheckoutState: "ready",
+    buildTestState: "ready",
+    docsKnownLimitsState: "ready",
+    ...overrides
+  });
+}
+
+describe("phase 11 release readiness", () => {
+  it("can recommend release only when every evidence row is ready and packaging remains locked", () => {
+    const result = snapshot();
+
+    expect(result.state).toBe("ready");
+    expect(result.readiness).toBe(100);
+    expect(result.canRecommendRelease).toBe(true);
+    expect(result.releaseHoldCount).toBe(0);
+    expect(result.items.every((item) => item.status === "ready")).toBe(true);
+    expect(result.ariaLabel).toContain("0 holds");
+  });
+
+  it("keeps the current release pass held when proof and clean-run evidence are missing", () => {
+    const result = snapshot({
+      ownerCommandCenter: ownerSnapshot({
+        state: "blocked",
+        statusLabel: "Blocked",
+        readiness: 45,
+        canRelease: false,
+        blockerCount: 1,
+        nextAction: "Keep the branch local and push only after the owner says to push."
+      }),
+      remainingGoalSummary: remainingSummary({
+        blocked: 1,
+        active: 1,
+        next: 7,
+        paused: 1,
+        averageCompletionPercent: 48,
+        currentNextAction:
+          "Keep the branch local, preserve the proof commit, and push only after the owner says to push."
+      }),
+      cleanCheckoutState: "waiting",
+      buildTestState: "waiting",
+      docsKnownLimitsState: "review"
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.releaseHoldCount).toBe(5);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Clean checkout", status: "waiting" }),
+        expect.objectContaining({ label: "Build and test", status: "waiting" }),
+        expect.objectContaining({ label: "Owner smoke proof", status: "blocked" }),
+        expect.objectContaining({ label: "Packaging lock", status: "ready" }),
+        expect.objectContaining({ label: "Docs and known limits", status: "review" }),
+        expect.objectContaining({ label: "Release decision", status: "blocked" })
+      ])
+    );
+    expect(result.nextAction).toContain("owner says to push");
+  });
+
+  it("blocks release readiness when packaging or resume controls are open", () => {
+    const unlocked = snapshot({
+      desktopPackaging: packagingSnapshot({
+        canPackage: true,
+        packagingLocked: false
+      })
+    });
+    const resumable = snapshot({
+      securityFinalReview: securitySnapshot({
+        canResumePackaging: true
+      })
+    });
+
+    expect(unlocked.state).toBe("blocked");
+    expect(unlocked.canRecommendRelease).toBe(false);
+    expect(unlocked.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Packaging lock", status: "blocked" })
+      ])
+    );
+    expect(resumable.state).toBe("blocked");
+    expect(resumable.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Packaging lock", status: "blocked" })
+      ])
+    );
+  });
+
+  it("keeps docs and known limits in review when every other release input is ready", () => {
+    const result = snapshot({
+      docsKnownLimitsState: "review"
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Docs and known limits", status: "review" }),
+        expect.objectContaining({ label: "Release decision", status: "review" })
+      ])
+    );
+  });
+
+  it("keeps release readiness text public-safe", () => {
+    const result = snapshot({
+      ownerCommandCenter: ownerSnapshot({
+        state: "blocked",
+        statusLabel: "Blocked",
+        canRelease: false,
+        nextAction:
+          "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
+      }),
+      remainingGoalSummary: remainingSummary({
+        currentTarget: "Review C:\\Users\\MJ\\Desktop\\secret-plan.md",
+        currentNextAction:
+          "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
+      })
+    });
+    const combinedText = [
+      result.label,
+      result.nextAction,
+      result.safety,
+      result.ariaLabel,
+      ...result.items.flatMap((item) => [item.label, item.detail, item.nextAction])
+    ].join(" ");
+
+    expect(combinedText).not.toMatch(/[A-Za-z]:[\\/]/);
+    expect(combinedText).not.toMatch(/[\\/](Users|Projects|Documents|Desktop)[\\/]/i);
+    expect(combinedText).not.toContain("sk-ABCDEF1234567890");
+    expect(combinedText).not.toContain("<");
+    expect(combinedText).not.toContain(">");
+  });
+});

@@ -243,17 +243,17 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 11"],
     phaseIds: ["phase-11-owner-packaging"],
     goal:
-      "Run the final clean-checkout, build, smoke, packaging, docs, and known-limits pass before release.",
+      "Coordinate the final clean-checkout, build, smoke, packaging-lock, docs, known-limits, and release-decision pass before release.",
     status: "paused",
     priority: "medium",
-    completionPercent: 0,
+    completionPercent: 20,
     pmTaskIds: [
       "phase-11-owner-packaging",
       "phase-11-parent-release-packaging",
       "phase-11-child-package-validation"
     ],
     nextAction:
-      "Stay paused until the live Arena workflow, provider gates, migration safety, audit depth, and owner proof loop are stable."
+      "Use the Phase 11 Release Readiness panel to review clean checkout, build/test, smoke proof, packaging lock, docs and known limits, and the final release decision while packaging stays paused."
   }
 ];
 

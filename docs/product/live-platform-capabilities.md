@@ -6,7 +6,9 @@ Project-management dispatch remains a local-review capability in this slice: sta
 
 ## Current Implementation Closeout
 
-The current live-functionality slice has completed the public scaffold, Arena panels, adaptive layout foundations, Phase 10 polish readiness targets, Phase 11 owner command-center readiness targets, provider-neutral catalogs, migration preview foundations, permission/audit foundations, Phase 9 fixed runner approval targets, and Phase 3 smoke-proof evidence persistence. The next active pipeline item is desktop proof clearance: run the explicit desktop gate actions, verify persisted proof rows after reload, and confirm slash-command and session-control readiness evidence before moving to broader provider integration or dispatch execution.
+The current live-functionality slice has completed the public scaffold, Arena panels, adaptive layout foundations, Phase 10 polish readiness targets, Phase 11 owner command targets, Phase 11 release-readiness targets, provider-neutral catalogs, migration preview foundations, permission/audit foundations, Phase 9 fixed runner approval targets, and Phase 3 smoke-proof evidence persistence. The next active pipeline item is desktop proof clearance: run the explicit desktop gate actions, verify persisted proof rows after reload, and confirm slash-command and session-control readiness evidence before moving to broader provider integration, dispatch execution, or release packaging.
+
+The Phase 11 release-readiness target is decision support only. It aggregates clean checkout, build/test, owner smoke proof, packaging lock, docs/known limits, and final release decision while packaging, signing, installer creation, Git push, and external release actions stay paused.
 
 ## Product Principle
 
@@ -158,3 +160,4 @@ Phase 10B defines the first desktop-backed runner attachment:
 | Personalization Center | 22% | Provider-neutral personalization model, settings entry, provider-only row support, desktop-backed safe provider metadata refresh, owner validation, and all-catalog provider refresh smoke proofing for current metadata/status snapshots are in place; profile mutation remains pending. |
 | Migration Center | 30% | `File > Migrate...` now exposes a safe source selector, desktop metadata scan, category checkboxes, excluded secrets summary, local reviewed draft persistence, and rollback/audit summary for safe metadata. Full source migration and source mutation remain pending by design. |
 | Permission And Audit Layer | 60% | Provider-neutral approval gates, approval-first read-only terminal probe runner, redacted local audit records, a Phase 8 Audit Depth panel, and a Phase 9 Runner Approval panel now explain missing permission, request preview, validation output, audit persistence, and rollback requirements; Git/MCP/plugin/automation/runtime/profile/external mutation remains deferred. |
+| Release Readiness | 20% | The Phase 11 Release Readiness gate now tracks clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and release decision while packaging remains paused. |

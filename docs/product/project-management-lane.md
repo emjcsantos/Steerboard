@@ -22,9 +22,9 @@ The default Project Management board is seeded from the current Steerboard phase
 - Phase 8: Permissions and Audit.
 - Phase 9: Desktop-Backed Runner.
 - Phase 10: Adaptive Magnetic Arena.
-- Phase 11: Owner Testing and Packaging.
+- Phase 11: Owner Testing and Release Readiness.
 
-Each phase appears as an Epic. The board includes the Parent and Child rows needed to complete that phase, including proof clearance, owner-visible evidence, provider catalog safety, migration/audit review, PM phase-board upkeep, dispatch handoff, risk gates, runner approval, Arena layout polish, Owner Testing command gates, and packaging validation.
+Each phase appears as an Epic. The board includes the Parent and Child rows needed to complete that phase, including proof clearance, owner-visible evidence, provider catalog safety, migration/audit review, PM phase-board upkeep, dispatch handoff, risk gates, runner approval, Arena layout polish, Owner Testing command gates, release-readiness review, and package-lock validation.
 
 Existing local boards are repaired on load: older seed rows are replaced with the current phase plan while custom user-created rows are preserved.
 
@@ -35,6 +35,8 @@ Owner Testing also includes a Phase 1/2/6 priority evidence card. It reads the l
 Owner Testing also includes a Phase 3 clearance package. It reads slash execution evidence, session-control evidence, desktop smoke proof readiness, and available smoke actions, then shows whether Phase 3 is exit-ready, held for review, waiting, or blocked. The package is evidence-only and promotes the next runnable proof without launching provider work automatically.
 
 Owner Testing also includes a Phase 11 command center. It gathers checklist coverage, proof freshness, unresolved blockers, phase readiness, current next action, and fresh-checkout evidence into one pass/fail gate. It is evidence-only and keeps release readiness held until the owner proof loop and fresh-checkout evidence are clear.
+
+The Environment panel also includes a Phase 11 Release Readiness gate. It aggregates clean checkout, build/test, owner smoke proof, packaging lock, docs/known limits, and final release-decision evidence. The gate is decision support only: packaging, signing, installer creation, Git push, and external release actions remain paused until the owner explicitly resumes them.
 
 The Environment panel also includes a Phase 4 Provider Readiness panel. It reads the same safe catalog validation snapshots used by Owner Testing, classifies each provider surface as ready, preview, setup-required, unsupported, unavailable, or blocked, and keeps the next action metadata-only until explicit execution, approval, audit, and rollback gates exist.
 
@@ -76,6 +78,7 @@ The Environment panel also includes a Phase 4 Provider Readiness panel. It reads
 - Phase 4 Provider Readiness panel for catalog-surface labels and next actions before execution is enabled.
 - Owner Testing evidence and explicit smoke buttons for Phase 1 live panel proof, Phase 2 multi-panel isolation, and Phase 6 PM board staging readiness.
 - Phase 3 clearance package with exact open blockers and next smoke action.
+- Phase 11 Release Readiness gate for clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and release decision while packaging stays paused.
 - Item detail panel.
 - Selected-item role-panel dispatch preview with pipeline, registry, and runtime gates.
 - Local selected-item dispatch request and cancellation history.

@@ -46,12 +46,16 @@ Requirements before promoting this path:
 - One-command development startup: `npm run dev`.
 - One-command desktop startup: `npm run desktop:dev`.
 - One-command local production build: `npm run build`.
+- Phase 11 Release Readiness gate reviewed for clean checkout, build/test, owner smoke proof, packaging lock, docs/known limits, and final release decision.
+- Packaging, signing, installer creation, Git push, and external release actions remain paused until the owner explicitly resumes release work.
 
 ## Signed Desktop Builds
 
 Signed desktop builds should become the main non-developer path once the app is stable enough for broader use.
 
 Signed builds matter because many users will not run source builds, and operating systems warn heavily against unknown binaries. The app should explain local-first behavior, required permissions, and what never leaves the machine by default.
+
+Before signed builds are promoted, the Phase 11 Release Readiness gate must show clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and release decision evidence. A ready packaging-lock row means packaging stayed locked during review; it does not authorize signing or installer creation by itself.
 
 ## Package Managers
 
@@ -64,6 +68,8 @@ Targets can include:
 - Scoop or Chocolatey if there is enough demand.
 
 Package managers make install and update flows feel less risky than downloading a random installer.
+
+Package-manager publication should reuse the same Phase 11 release-readiness evidence and should remain blocked until signed-build validation and owner release approval are complete.
 
 ## Hosted Demo
 
