@@ -24,7 +24,7 @@ describe("remaining goal plan", () => {
       next: 7,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 48,
+      averageCompletionPercent: 49,
       currentTarget: "Unblock Phase 1/2/6 publishing",
       currentNextAction:
         "Keep the branch local, preserve the proof commit, and push only after the remote is recreated and the owner says to push.",
@@ -45,6 +45,7 @@ describe("remaining goal plan", () => {
     expect(publishGoal?.nextAction.toLowerCase()).toContain("owner says to push");
     expect(phase3Goal?.target).toBe("Phase 3 desktop proof clearance");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-exit-gate");
+    expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-handoff-gate");
   });
 
   it("keeps remaining goal text public-safe", () => {

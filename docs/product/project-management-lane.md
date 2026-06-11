@@ -32,7 +32,7 @@ The Environment panel also shows a Remaining Goals summary. Each remaining targe
 
 Owner Testing also includes a Phase 1/2/6 priority evidence card. It reads the live Arena panel smoke proof, two-panel isolation proof, panel session identity state, and Project Management phase-board state. The card does not run live actions automatically; it reports whether one-panel proof, multi-panel isolation, and Epic/Parent/Child PM staging are ready, waiting, blocked, or in review. Desktop-executed Phase 1/2 smoke proofs are persisted after an explicit run so the card can keep owner-visible proof state across reloads without sending prompts on startup.
 
-Owner Testing also includes a Phase 3 clearance package and handoff gate. The clearance package reads slash execution evidence, session-control evidence, desktop smoke proof readiness, and available smoke actions, then shows whether Phase 3 is exit-ready, held for review, waiting, or blocked. The handoff gate keeps desktop proof clearance, exact blocker visibility, owner handoff record state, and the provider-integration boundary visible before Phase 4 advances. Both surfaces are evidence-only and do not launch provider work automatically.
+Owner Testing also includes a Phase 3 clearance package and handoff gate. The clearance package reads slash execution evidence, session-control evidence, desktop smoke proof readiness, and available smoke actions, then shows whether Phase 3 is exit-ready, held for review, waiting, or blocked. The handoff gate keeps desktop proof clearance, exact blocker visibility, local owner handoff record actions, and the provider-integration boundary visible before Phase 4 advances. Both surfaces are evidence-only and do not launch provider work automatically.
 
 Owner Testing also includes a Phase 11 command center. It gathers checklist coverage, proof freshness, unresolved blockers, phase readiness, current next action, and fresh-checkout evidence into one pass/fail gate. It is evidence-only and keeps release readiness held until the owner proof loop and fresh-checkout evidence are clear.
 
@@ -77,7 +77,7 @@ The Environment panel also includes a Phase 4 Provider Readiness panel. It reads
 - Remaining Goals summary for all open targets across Phase 1 through Phase 11.
 - Phase 4 Provider Readiness panel for catalog-surface labels and next actions before execution is enabled.
 - Owner Testing evidence and explicit smoke buttons for Phase 1 live panel proof, Phase 2 multi-panel isolation, and Phase 6 PM board staging readiness.
-- Phase 3 clearance package and handoff gate with exact open blockers, next smoke action, owner handoff state, and provider-integration boundary.
+- Phase 3 clearance package and handoff gate with exact open blockers, next smoke action, local owner handoff record/clear actions, and provider-integration boundary.
 - Phase 11 Release Readiness gate for clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and release decision while packaging stays paused.
 - Item detail panel.
 - Selected-item role-panel dispatch preview with pipeline, registry, and runtime gates.

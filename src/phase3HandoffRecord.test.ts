@@ -1,0 +1,195 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
+import {
+  clearPhase3OwnerHandoffRecord,
+  createPhase3OwnerHandoffRecord,
+  derivePhase3HandoffRecordState,
+  loadPhase3OwnerHandoffRecord,
+  parseStoredPhase3OwnerHandoffRecord,
+  PHASE3_HANDOFF_RECORD_STORAGE_KEY,
+  savePhase3OwnerHandoffRecord
+} from "./phase3HandoffRecord";
+
+function clearancePackage(
+  overrides: Partial<Phase3ClearancePackage> = {}
+): Phase3ClearancePackage {
+  return {
+    state: "ready",
+    statusLabel: "Ready",
+    readiness: 100,
+    canExit: true,
+    detail: "Phase 3 has complete evidence.",
+    nextAction: "Record Phase 3 handoff.",
+    readyCount: 5,
+    openCount: 0,
+    blockerCount: 0,
+    reviewCount: 0,
+    waitingCount: 0,
+    blockers: [],
+    safety: "Evidence only.",
+    ...overrides
+  };
+}
+
+describe("phase 3 handoff record", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("creates a ready owner handoff record from exit-ready clearance", () => {
+    const record = createPhase3OwnerHandoffRecord(
+      clearancePackage(),
+      "2026-06-11T00:00:00.000Z"
+    );
+
+    expect(record).toEqual({
+      id: "phase3-owner-handoff:2026-06-11T00:00:00.000Z",
+      createdAt: "2026-06-11T00:00:00.000Z",
+      state: "ready",
+      clearanceReadiness: 100,
+      exactBlockerCount: 0,
+      canExit: true,
+      detail: "Owner-reviewed Phase 3 handoff is recorded from exit-ready clearance evidence."
+    });
+    expect(derivePhase3HandoffRecordState(record, clearancePackage())).toBe("ready");
+  });
+
+  it("does not derive ready when clearance later regresses", () => {
+    const record = createPhase3OwnerHandoffRecord(
+      clearancePackage(),
+      "2026-06-11T00:00:00.000Z"
+    );
+
+    expect(
+      derivePhase3HandoffRecordState(
+        record,
+        clearancePackage({
+          state: "blocked",
+          canExit: false,
+          openCount: 1,
+          blockerCount: 1
+        })
+      )
+    ).toBe("blocked");
+  });
+
+  it("waits when clearance is exit-ready but no owner record exists", () => {
+    expect(derivePhase3HandoffRecordState(undefined, clearancePackage())).toBe("waiting");
+  });
+
+  it("parses a stored record with clamped counts and sanitized detail", () => {
+    const parsed = parseStoredPhase3OwnerHandoffRecord(
+      JSON.stringify({
+        id: " phase3-owner-handoff:1 ",
+        createdAt: " 2026-06-11T00:00:00.000Z ",
+        state: "READY",
+        clearanceReadiness: 104.6,
+        exactBlockerCount: 2.9,
+        canExit: true,
+        detail:
+          "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
+      })
+    );
+
+    expect(parsed).toMatchObject({
+      id: "phase3-owner-handoff:1",
+      createdAt: "2026-06-11T00:00:00.000Z",
+      state: "ready",
+      clearanceReadiness: 100,
+      exactBlockerCount: 2,
+      canExit: true
+    });
+    expect(parsed?.detail).not.toMatch(/[A-Za-z]:[\\/]/);
+    expect(parsed?.detail).not.toContain("sk-ABCDEF1234567890");
+    expect(parsed?.detail).not.toContain("<");
+    expect(parsed?.detail).not.toContain(">");
+  });
+
+  it("rejects malformed stored records", () => {
+    expect(parseStoredPhase3OwnerHandoffRecord(null)).toBeUndefined();
+    expect(parseStoredPhase3OwnerHandoffRecord("{")).toBeUndefined();
+    expect(parseStoredPhase3OwnerHandoffRecord("[]")).toBeUndefined();
+    expect(
+      parseStoredPhase3OwnerHandoffRecord(
+        JSON.stringify({
+          id: "record",
+          createdAt: "",
+          state: "ready",
+          clearanceReadiness: 100,
+          exactBlockerCount: 0,
+          canExit: true,
+          detail: "Ready"
+        })
+      )
+    ).toBeUndefined();
+  });
+
+  it("saves, loads, and clears through localStorage", () => {
+    const store = new Map<string, string>();
+    const setItem = vi.fn((key: string, value: string) => {
+      store.set(key, value);
+    });
+    const getItem = vi.fn((key: string) => store.get(key) ?? null);
+    const removeItem = vi.fn((key: string) => {
+      store.delete(key);
+    });
+
+    vi.stubGlobal("window", {
+      localStorage: {
+        getItem,
+        setItem,
+        removeItem
+      }
+    });
+
+    const record = createPhase3OwnerHandoffRecord(
+      clearancePackage(),
+      "2026-06-11T00:00:00.000Z"
+    );
+
+    savePhase3OwnerHandoffRecord(record);
+    expect(setItem).toHaveBeenCalledWith(
+      PHASE3_HANDOFF_RECORD_STORAGE_KEY,
+      JSON.stringify(record)
+    );
+    expect(loadPhase3OwnerHandoffRecord()).toEqual(record);
+    expect(getItem).toHaveBeenCalledWith(PHASE3_HANDOFF_RECORD_STORAGE_KEY);
+
+    clearPhase3OwnerHandoffRecord();
+    expect(removeItem).toHaveBeenCalledWith(PHASE3_HANDOFF_RECORD_STORAGE_KEY);
+    expect(loadPhase3OwnerHandoffRecord()).toBeUndefined();
+  });
+
+  it("handles missing or failing localStorage without throwing", () => {
+    vi.stubGlobal("window", undefined);
+    expect(loadPhase3OwnerHandoffRecord()).toBeUndefined();
+    expect(() =>
+      savePhase3OwnerHandoffRecord(
+        createPhase3OwnerHandoffRecord(clearancePackage(), "2026-06-11T00:00:00.000Z")
+      )
+    ).not.toThrow();
+    expect(() => clearPhase3OwnerHandoffRecord()).not.toThrow();
+
+    vi.stubGlobal("window", {
+      localStorage: {
+        getItem: vi.fn(() => {
+          throw new Error("read failed");
+        }),
+        setItem: vi.fn(() => {
+          throw new Error("write failed");
+        }),
+        removeItem: vi.fn(() => {
+          throw new Error("remove failed");
+        })
+      }
+    });
+
+    expect(loadPhase3OwnerHandoffRecord()).toBeUndefined();
+    expect(() =>
+      savePhase3OwnerHandoffRecord(
+        createPhase3OwnerHandoffRecord(clearancePackage(), "2026-06-11T00:00:00.000Z")
+      )
+    ).not.toThrow();
+    expect(() => clearPhase3OwnerHandoffRecord()).not.toThrow();
+  });
+});

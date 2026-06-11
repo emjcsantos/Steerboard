@@ -80,7 +80,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Clear live-control, active-turn interrupt, active-turn steer, slash, and session-control proof rows from desktop mode.",
     status: "active",
     priority: "critical",
-    completionPercent: 80,
+    completionPercent: 85,
     pmTaskIds: [
       "phase-03-controls-slash",
       "phase-03-parent-proof-clearance",
@@ -91,7 +91,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-03-child-control-ready"
     ],
     nextAction:
-      "Use the Phase 3 handoff gate to confirm desktop proof clearance, exact blocker visibility, owner handoff recording, and the provider-integration boundary."
+      "Use the Phase 3 handoff gate to record or clear the local owner handoff only after desktop proof clearance is exit-ready, then keep Phase 4 held behind the provider boundary."
   },
   {
     id: "goal-phase-4-provider-surfaces",

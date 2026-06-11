@@ -310,6 +310,14 @@ import {
   type Phase3HandoffGate
 } from "./phase3HandoffGate";
 import {
+  clearPhase3OwnerHandoffRecord,
+  createPhase3OwnerHandoffRecord,
+  derivePhase3HandoffRecordState,
+  loadPhase3OwnerHandoffRecord,
+  savePhase3OwnerHandoffRecord,
+  type Phase3OwnerHandoffRecord
+} from "./phase3HandoffRecord";
+import {
   buildPhase3OwnerTestingActions,
   type Phase3OwnerTestingAction
 } from "./phase3OwnerTestingActions";
@@ -1553,6 +1561,8 @@ export function App() {
     phasePrioritySmokeProofInitialBundle.liveSmoke
   );
   const [phase3SmokeProofInitialBundle] = useState(() => loadPhase3SmokeProofBundle());
+  const [phase3OwnerHandoffRecord, setPhase3OwnerHandoffRecord] =
+    useState<Phase3OwnerHandoffRecord | undefined>(() => loadPhase3OwnerHandoffRecord());
   const [codexActiveTurnControlSmokeProof, setCodexActiveTurnControlSmokeProof] =
     useState<CodexActiveTurnControlSmokeProof>(() =>
       phase3SmokeProofInitialBundle.activeTurnInterruptSmoke
@@ -1766,14 +1776,42 @@ export function App() {
       }),
     [phase3ExitGateEvidence, phase3OwnerTestingActions]
   );
+  const phase3HandoffRecordState = useMemo(
+    () =>
+      derivePhase3HandoffRecordState(
+        phase3OwnerHandoffRecord,
+        phase3ClearancePackage
+      ),
+    [phase3ClearancePackage, phase3OwnerHandoffRecord]
+  );
   const phase3HandoffGate = useMemo(
     () =>
       buildPhase3HandoffGate({
         clearancePackage: phase3ClearancePackage,
-        handoffRecordState: "waiting"
+        handoffRecordState: phase3HandoffRecordState
       }),
-    [phase3ClearancePackage]
+    [phase3ClearancePackage, phase3HandoffRecordState]
   );
+  const recordPhase3OwnerHandoff = useCallback(() => {
+    if (!phase3ClearancePackage.canExit) {
+      setAppNotice("Phase 3 handoff remains held until clearance is exit-ready");
+      return;
+    }
+
+    const record = createPhase3OwnerHandoffRecord(
+      phase3ClearancePackage,
+      new Date().toISOString()
+    );
+
+    savePhase3OwnerHandoffRecord(record);
+    setPhase3OwnerHandoffRecord(record);
+    setAppNotice("Phase 3 owner handoff recorded locally");
+  }, [phase3ClearancePackage]);
+  const clearPhase3OwnerHandoff = useCallback(() => {
+    clearPhase3OwnerHandoffRecord();
+    setPhase3OwnerHandoffRecord(undefined);
+    setAppNotice("Phase 3 owner handoff record cleared");
+  }, []);
 
   useEffect(() => {
     saveWorkspacePreferences(preferences);
@@ -3383,6 +3421,8 @@ export function App() {
             modeHandoffQa={cockpitModeHandoffQa}
             mockRuns={projectMockRuns}
             onRecordWorkerValidationAttempt={handleWorkerValidationAttempt}
+            onRecordPhase3OwnerHandoff={recordPhase3OwnerHandoff}
+            onClearPhase3OwnerHandoff={clearPhase3OwnerHandoff}
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
             project={project}
@@ -3398,6 +3438,7 @@ export function App() {
             phase3ClearancePackage={phase3ClearancePackage}
             phase3ExitGateEvidence={phase3ExitGateEvidence}
             phase3HandoffGate={phase3HandoffGate}
+            phase3OwnerHandoffRecord={phase3OwnerHandoffRecord}
             phase3OwnerTestingActions={phase3OwnerTestingActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
             sessionControlOwnerTestingState={sessionControlOwnerTestingState}
@@ -6580,6 +6621,8 @@ function RightPanel({
   modeHandoff,
   modeHandoffQa,
   mockRuns,
+  onClearPhase3OwnerHandoff,
+  onRecordPhase3OwnerHandoff,
   onRecordWorkerValidationAttempt,
   onSelectRun,
   onUpdateRunStatus,
@@ -6596,6 +6639,7 @@ function RightPanel({
   phase3ClearancePackage,
   phase3ExitGateEvidence,
   phase3HandoffGate,
+  phase3OwnerHandoffRecord,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
   sessionControlOwnerTestingState,
@@ -6627,6 +6671,8 @@ function RightPanel({
   modeHandoffQa: CockpitModeHandoffQa;
   mockRuns: MockOrchestratorRun[];
   onFocusPanel: (panelId: string | undefined) => void;
+  onClearPhase3OwnerHandoff: () => void;
+  onRecordPhase3OwnerHandoff: () => void;
   onRecordWorkerValidationAttempt: (
     runId: string,
     taskId: string,
@@ -6647,6 +6693,7 @@ function RightPanel({
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3HandoffGate: Phase3HandoffGate;
+  phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   sessionControlOwnerTestingState: OwnerTestingReadinessState;
@@ -7811,8 +7858,11 @@ function RightPanel({
         phase3ClearancePackage={phase3ClearancePackage}
         phase3ExitGateEvidence={phase3ExitGateEvidence}
         phase3HandoffGate={phase3HandoffGate}
+        phase3OwnerHandoffRecord={phase3OwnerHandoffRecord}
         phase3OwnerTestingActions={phase3OwnerTestingActions}
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
+        onRecordPhase3OwnerHandoff={onRecordPhase3OwnerHandoff}
+        onClearPhase3OwnerHandoff={onClearPhase3OwnerHandoff}
         onRunCodexActiveTurnControlSmokeProof={onRunCodexActiveTurnControlSmokeProof}
         onRunCodexActiveTurnSteerSmokeProof={onRunCodexActiveTurnSteerSmokeProof}
         onRunCodexLiveSmokeProof={onRunCodexLiveSmokeProof}
@@ -10168,8 +10218,11 @@ function OwnerTestingReadinessPanel({
   phase3ClearancePackage,
   phase3ExitGateEvidence,
   phase3HandoffGate,
+  phase3OwnerHandoffRecord,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
+  onRecordPhase3OwnerHandoff,
+  onClearPhase3OwnerHandoff,
   onRunCodexActiveTurnControlSmokeProof,
   onRunCodexActiveTurnSteerSmokeProof,
   onRunCodexLiveSmokeProof,
@@ -10189,8 +10242,11 @@ function OwnerTestingReadinessPanel({
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3HandoffGate: Phase3HandoffGate;
+  phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
+  onRecordPhase3OwnerHandoff: () => void;
+  onClearPhase3OwnerHandoff: () => void;
   onRunCodexActiveTurnControlSmokeProof: () => void;
   onRunCodexActiveTurnSteerSmokeProof: () => void;
   onRunCodexLiveSmokeProof: () => void;
@@ -10544,6 +10600,40 @@ function OwnerTestingReadinessPanel({
                 <dd>{phase3HandoffGate.statusLabel}</dd>
               </div>
             </dl>
+            <div
+              className="owner-testing-phase3-handoff-actions"
+              aria-label="Phase 3 owner handoff record actions"
+            >
+              <button
+                disabled={!phase3ClearancePackage.canExit}
+                onClick={onRecordPhase3OwnerHandoff}
+                title={
+                  phase3ClearancePackage.canExit
+                    ? "Record owner-reviewed Phase 3 handoff locally."
+                    : "Phase 3 clearance must be exit-ready before recording handoff."
+                }
+                type="button"
+              >
+                Record handoff
+              </button>
+              <button
+                disabled={!phase3OwnerHandoffRecord}
+                onClick={onClearPhase3OwnerHandoff}
+                title={
+                  phase3OwnerHandoffRecord
+                    ? "Clear the local Phase 3 owner handoff record."
+                    : "No local Phase 3 owner handoff record is attached."
+                }
+                type="button"
+              >
+                Clear record
+              </button>
+              <span title={phase3OwnerHandoffRecord?.detail ?? "No local owner handoff record is attached."}>
+                {phase3OwnerHandoffRecord
+                  ? `Recorded ${formatTimestamp(phase3OwnerHandoffRecord.createdAt)}`
+                  : "No handoff record"}
+              </span>
+            </div>
             <ol
               className="owner-testing-phase3-handoff-list"
               aria-label="Phase 3 handoff gate rows"

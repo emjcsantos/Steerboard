@@ -22,7 +22,7 @@ The current implementation includes:
 - Phase 10 Arena Polish panel that tracks adaptive layout regression, density/readability, keyboard controls, focus state, terminology, and final Arena acceptance gates.
 - Phase 11 Owner Command panel that gathers checklist coverage, proof freshness, blockers, phase readiness, next action, and fresh-checkout evidence into one pass/fail release gate.
 - Phase 11 Release Readiness panel that gathers clean checkout, build/test, owner smoke proof, packaging lock, docs/known limits, and final release-decision evidence while keeping packaging paused.
-- Owner testing surfaces for catalog refresh, slash execution evidence, session-control evidence, Phase 3 smoke proof rows, diagnostic exit-gate rows, a Phase 3 clearance package, and a Phase 3 handoff gate.
+- Owner testing surfaces for catalog refresh, slash execution evidence, session-control evidence, Phase 3 smoke proof rows, diagnostic exit-gate rows, a Phase 3 clearance package, and a Phase 3 handoff gate with local record/clear actions.
 - Owner testing priority evidence and explicit smoke actions for Phase 1 one-panel live proof, Phase 2 multi-panel isolation, and Phase 6 Project Management phase-board staging readiness.
 - Reload-safe Phase 1/2 and Phase 3 smoke proof storage for desktop-executed smoke evidence, without running prompts automatically on startup.
 - A right-panel remaining-goals summary that maps each remaining target to Phase 1 through Phase 11 and to the Project Management rows that can stage Arena review packages.
@@ -32,7 +32,7 @@ The current implementation includes:
 | Target | Completion | Note |
 |---|---|---|
 | Phase 1/2/6 priority slice | In progress | Use the Owner Testing priority evidence card and explicit Phase 1/2 smoke actions to track one-panel live proof, two-panel isolation, and PM phase-board Epic/Parent/Child staging readiness together. |
-| Phase 3 desktop proof clearance | In progress | Use the Phase 3 clearance package and handoff gate to identify the next runnable proof, populate persisted smoke rows, verify slash/session-control evidence, keep exact blockers visible, and hold Phase 4 behind owner-reviewed handoff. |
+| Phase 3 desktop proof clearance | In progress | Use the Phase 3 clearance package and handoff gate to identify the next runnable proof, populate persisted smoke rows, verify slash/session-control evidence, keep exact blockers visible, record owner handoff only when exit-ready, and hold Phase 4 behind that boundary. |
 | Provider integration surfaces | Next | Use the Phase 4 Provider Readiness panel to keep catalog refresh metadata-only while improving connection, setup-required, unsupported, blocked, preview, ready, and unavailable states across commands, skills, plugins, MCP, automations, and personalization. |
 | Migration Center hardening | Next | Use the Migration review gate to keep migration safe and metadata-only while checking preview selection, apply intent, rollback evidence, audit consistency, and sensitive exclusions before any profile activation is considered. |
 | Planning and dispatch loop | Next | Convert staged project/program work into orchestrator, implementer, validator, and integration panels with scoped handoff packets, saved review records, and visible attempt limits. |
@@ -47,7 +47,7 @@ The current implementation includes:
 | Target | Phases | Status | Goal | Next Action |
 |---|---|---|---|---|
 | Unblock Phase 1/2/6 publishing | Phase 1, Phase 2, Phase 6 | Blocked | Hold the completed priority slice locally until the Steerboard public remote is restored and the owner approves pushing. | Keep the branch local, preserve the proof commit, and push only after the remote is recreated and the owner says to push. |
-| Phase 3 desktop proof clearance | Phase 3 | Active | Clear live-control, active-turn interrupt, active-turn steer, slash, and session-control proof rows from desktop mode. | Use the Phase 3 handoff gate to confirm desktop proof clearance, exact blocker visibility, owner handoff recording, and the provider-integration boundary. |
+| Phase 3 desktop proof clearance | Phase 3 | Active | Clear live-control, active-turn interrupt, active-turn steer, slash, and session-control proof rows from desktop mode. | Use the Phase 3 handoff gate to record or clear the local owner handoff only after desktop proof clearance is exit-ready, then keep Phase 4 held behind the provider boundary. |
 | Provider integration surfaces | Phase 4 | Next | Harden command, skill, plugin, MCP, automation, and personalization readiness states while keeping refresh metadata-only. | Use the Phase 4 Provider Readiness panel to resolve setup-required, unsupported, unavailable, blocked, preview, and ready labels before enabling execution. |
 | Migration Center hardening | Phase 5 | Next | Finish preview, apply-intent, rollback, and audit review for metadata-only migration work. | Use the Migration review gate to keep apply intent locked, confirm rollback evidence, and repair audit blockers before any profile activation. |
 | Planning and dispatch loop | Phase 7 | Next | Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits. | Use dispatch review records to audit role counts, attempt limits, handoff tasks, and validation gates before any live worker session spawning. |
