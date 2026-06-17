@@ -224,12 +224,16 @@ describe("phase 3 smoke proof storage", () => {
     ).not.toThrow();
   });
 
-  it("does not persist browser fallback or non-executed proofs", () => {
+  it("persists only desktop-executed rows from a partial proof bundle", () => {
+    const store: { value: string | null } = { value: null };
     const setItem = vi.fn();
     vi.stubGlobal("window", {
       localStorage: {
-        setItem,
-        getItem: vi.fn(() => null)
+        setItem: vi.fn((_key: string, value: string) => {
+          store.value = value;
+          setItem(_key, value);
+        }),
+        getItem: vi.fn(() => store.value)
       }
     });
 
@@ -246,7 +250,70 @@ describe("phase 3 smoke proof storage", () => {
       activeTurnSteerSmoke: desktopActiveTurnSteerSmoke
     });
 
-    expect(setItem).not.toHaveBeenCalled();
+    expect(setItem).toHaveBeenCalledWith(
+      PHASE3_SMOKE_PROOF_STORAGE_KEY,
+      JSON.stringify({
+        activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
+        activeTurnSteerSmoke: {
+          ...desktopActiveTurnSteerSmoke,
+          checkedAt: "2026-06-05T13:56:40.000Z"
+        }
+      })
+    );
+    expect(loadPhase3SmokeProofBundle()).toEqual({
+      ...fallbackBundle,
+      activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
+      activeTurnSteerSmoke: {
+        ...desktopActiveTurnSteerSmoke,
+        checkedAt: "2026-06-05T13:56:40.000Z"
+      }
+    });
+  });
+
+  it("merges later desktop proof rows with already stored partial rows", () => {
+    const store: { value: string | null } = {
+      value: JSON.stringify({
+        activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke
+      })
+    };
+    const setItem = vi.fn((_key: string, value: string) => {
+      store.value = value;
+    });
+
+    vi.stubGlobal("window", {
+      localStorage: {
+        setItem,
+        getItem: vi.fn(() => store.value)
+      }
+    });
+
+    savePhase3SmokeProofBundle({
+      liveControlSmoke: desktopLiveControlSmoke,
+      activeTurnInterruptSmoke: {
+        source: "browser",
+        checkedAt: null,
+        executed: false,
+        ok: false,
+        unsupported: true,
+        detail: "browser"
+      },
+      activeTurnSteerSmoke: {
+        source: "browser",
+        checkedAt: null,
+        executed: false,
+        ok: false,
+        unsupported: true,
+        detail: "browser"
+      }
+    });
+
+    expect(setItem).toHaveBeenCalledWith(
+      PHASE3_SMOKE_PROOF_STORAGE_KEY,
+      JSON.stringify({
+        liveControlSmoke: desktopLiveControlSmoke,
+        activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke
+      })
+    );
   });
 
   it("persists and loads a desktop-executed proof bundle roundtrip", () => {

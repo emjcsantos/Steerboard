@@ -211,16 +211,16 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-smoke-rows",
             title: "Persist Smoke Proof Rows",
-            description: "Confirm desktop-executed smoke proof rows survive reload, stale checkedAt timestamps downgrade to review during long-open sessions, and browser fallback rows remain waiting.",
-            completionPercent: 85,
+            description: "Confirm each desktop-executed smoke proof row survives reload independently, stale checkedAt timestamps downgrade to review during long-open sessions, and browser fallback rows remain waiting.",
+            completionPercent: 90,
             complexity: "high",
             sourceDocument: "Phase 3 smoke proof readiness"
           },
           {
             id: "phase-03-child-exit-gate",
             title: "Expose Exact Exit Blocker",
-            description: "If Phase 3 cannot exit, show the exact remaining blocker, stale proof, or next owner action instead of a vague incomplete state.",
-            completionPercent: 91,
+            description: "If Phase 3 cannot exit, show the exact remaining blocker, stale proof, or row-specific slash, session, or smoke next owner action instead of a vague incomplete state.",
+            completionPercent: 94,
             sourceDocument: "Phase 3 exit gate evidence"
           },
           {

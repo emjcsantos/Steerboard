@@ -75,6 +75,18 @@ const READY_NEXT_ACTION = "Proceed with phase handoff and finalization activitie
 const REVIEW_NEXT_ACTION = "Run missing desktop smoke proofs until active-turn controls report completion/readiness.";
 const BLOCKED_NEXT_ACTION = "Address the blocked control or unsupported-after-execution desktop proof before retrying phase exit.";
 const WAITING_NEXT_ACTION_BLOCKED = "Repair malformed evidence payloads and collect complete evidence inputs.";
+const SLASH_REVIEW_NEXT_ACTION =
+  "Run a provider-routed slash command from an Arena panel and verify provider-route plus live/status transcript evidence.";
+const SLASH_BLOCKED_NEXT_ACTION =
+  "Repair slash command routing or catalog policy before retrying Phase 3 slash evidence.";
+const SLASH_WAITING_NEXT_ACTION =
+  "Submit a provider-routed slash command from an Arena panel before Phase 3 can exit.";
+const SESSION_REVIEW_NEXT_ACTION =
+  "Use Arena session controls until interrupt, retry, steer, and lifecycle support states are evidenced.";
+const SESSION_BLOCKED_NEXT_ACTION =
+  "Resolve the blocked session control before retrying Phase 3 session-control evidence.";
+const SESSION_WAITING_NEXT_ACTION =
+  "Collect Arena session-control evidence for interrupt, retry, steer, fork, resume, and archive states.";
 
 const PHASE3_GATE_IDS = {
   slash: "phase3-exit-gate:slash-execution",
@@ -231,6 +243,32 @@ function resolveNextAction(state: Phase3ExitGateState): string {
   return REVIEW_NEXT_ACTION;
 }
 
+function resolveSlashNextAction(state: Phase3ExitGateState): string {
+  if (state === "ready") {
+    return "Keep provider-routed slash execution evidence attached for Phase 3 handoff.";
+  }
+  if (state === "blocked") {
+    return SLASH_BLOCKED_NEXT_ACTION;
+  }
+  if (state === "waiting") {
+    return SLASH_WAITING_NEXT_ACTION;
+  }
+  return SLASH_REVIEW_NEXT_ACTION;
+}
+
+function resolveSessionNextAction(state: Phase3ExitGateState): string {
+  if (state === "ready") {
+    return "Keep session-control evidence attached for Phase 3 handoff.";
+  }
+  if (state === "blocked") {
+    return SESSION_BLOCKED_NEXT_ACTION;
+  }
+  if (state === "waiting") {
+    return SESSION_WAITING_NEXT_ACTION;
+  }
+  return SESSION_REVIEW_NEXT_ACTION;
+}
+
 function resolveItemDetail(
   itemLabel: string,
   state: Phase3ExitGateState,
@@ -284,7 +322,7 @@ export function buildPhase3ExitGateEvidence(
       label: PHASE3_GATE_LABELS.slash,
       state: slashEvidence.state,
       detail: resolveItemDetail(PHASE3_GATE_LABELS.slash, slashEvidence.state, slashEvidence.malformed),
-      nextAction: resolveNextAction(slashEvidence.state),
+      nextAction: resolveSlashNextAction(slashEvidence.state),
       ...PHASE3_GATE_TRACE.slash
     },
     {
@@ -292,7 +330,7 @@ export function buildPhase3ExitGateEvidence(
       label: PHASE3_GATE_LABELS.session,
       state: sessionControlEvidence.state,
       detail: resolveItemDetail(PHASE3_GATE_LABELS.session, sessionControlEvidence.state, sessionControlEvidence.malformed),
-      nextAction: resolveNextAction(sessionControlEvidence.state),
+      nextAction: resolveSessionNextAction(sessionControlEvidence.state),
       ...PHASE3_GATE_TRACE.session
     },
     {

@@ -24,6 +24,10 @@ export interface Phase3SmokeProofBundleInput {
   activeTurnSteerSmoke?: unknown;
 }
 
+type MutablePhase3SmokeProofBundle = {
+  -readonly [Key in keyof Phase3SmokeProofBundle]?: Phase3SmokeProofBundle[Key];
+};
+
 export function getFallbackPhase3SmokeProofBundle(): Phase3SmokeProofBundle {
   return {
     liveControlSmoke: getFallbackCodexLiveControlSmokeProof(),
@@ -95,23 +99,37 @@ export function loadPhase3SmokeProofBundle(): Phase3SmokeProofBundle {
 }
 
 export function savePhase3SmokeProofBundle(bundle: Phase3SmokeProofBundleInput): void {
+  const storedBundle = parseStoredPhase3SmokeProofBundle(
+    readFromLocalStorage(PHASE3_SMOKE_PROOF_STORAGE_KEY)
+  );
   const liveControlSmoke = normalizeCodexLiveControlSmokeProof(bundle?.liveControlSmoke);
   const activeTurnInterruptSmoke = normalizeCodexActiveTurnControlSmokeProof(bundle?.activeTurnInterruptSmoke);
   const activeTurnSteerSmoke = normalizeCodexActiveTurnSteerSmokeProof(bundle?.activeTurnSteerSmoke);
+  const nextBundle: MutablePhase3SmokeProofBundle = {};
 
-  if (
-    !isPersistableDesktopExecutedProof(liveControlSmoke) ||
-    !isPersistableDesktopExecutedProof(activeTurnInterruptSmoke) ||
-    !isPersistableDesktopExecutedProof(activeTurnSteerSmoke)
-  ) {
+  if (isPersistableDesktopExecutedProof(liveControlSmoke)) {
+    nextBundle.liveControlSmoke = liveControlSmoke;
+  } else if (isPersistableDesktopExecutedProof(storedBundle.liveControlSmoke)) {
+    nextBundle.liveControlSmoke = storedBundle.liveControlSmoke;
+  }
+
+  if (isPersistableDesktopExecutedProof(activeTurnInterruptSmoke)) {
+    nextBundle.activeTurnInterruptSmoke = activeTurnInterruptSmoke;
+  } else if (isPersistableDesktopExecutedProof(storedBundle.activeTurnInterruptSmoke)) {
+    nextBundle.activeTurnInterruptSmoke = storedBundle.activeTurnInterruptSmoke;
+  }
+
+  if (isPersistableDesktopExecutedProof(activeTurnSteerSmoke)) {
+    nextBundle.activeTurnSteerSmoke = activeTurnSteerSmoke;
+  } else if (isPersistableDesktopExecutedProof(storedBundle.activeTurnSteerSmoke)) {
+    nextBundle.activeTurnSteerSmoke = storedBundle.activeTurnSteerSmoke;
+  }
+
+  if (Object.keys(nextBundle).length === 0) {
     return;
   }
 
-  const serialized = JSON.stringify({
-    liveControlSmoke,
-    activeTurnInterruptSmoke,
-    activeTurnSteerSmoke
-  });
+  const serialized = JSON.stringify(nextBundle);
 
   writeToLocalStorage(PHASE3_SMOKE_PROOF_STORAGE_KEY, serialized);
 }

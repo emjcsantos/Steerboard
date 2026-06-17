@@ -144,6 +144,53 @@ describe("phase 3 exit gate evidence", () => {
     expect(result.items[3].nextAction).toBe("Run missing desktop smoke proofs until active-turn controls report completion/readiness.");
   });
 
+  it("routes slash and session-control review rows to their own proof actions", () => {
+    const result = buildPhase3ExitGateEvidence({
+      slashEvidence: {
+        state: "review",
+        pass: false,
+        readiness: 40,
+        status: "Review",
+        detail: "Provider route evidence is missing a result.",
+        safety: "none",
+        executable: true,
+        command: "/plan",
+        route: "provider"
+      },
+      sessionControlEvidence: {
+        state: "review",
+        readiness: 65,
+        pass: false,
+        statusLabel: "Needs review",
+        detail: "Core session controls are only partially evidenced.",
+        safety: "none"
+      },
+      liveControlSmoke: { source: "desktop", executed: true, ok: true },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        executed: true,
+        completed: true,
+        interruptObserved: true
+      },
+      activeTurnSteerSmoke: { source: "desktop", executed: true, ok: true }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.items[0]).toMatchObject({
+      id: "phase3-exit-gate:slash-execution",
+      state: "review",
+      nextAction:
+        "Run a provider-routed slash command from an Arena panel and verify provider-route plus live/status transcript evidence."
+    });
+    expect(result.items[1]).toMatchObject({
+      id: "phase3-exit-gate:session-controls",
+      state: "review",
+      nextAction:
+        "Use Arena session controls until interrupt, retry, steer, and lifecycle support states are evidenced."
+    });
+    expect(result.items[1].nextAction).not.toContain("desktop smoke");
+  });
+
   it("returns review when a ready desktop proof is stale", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-20T00:00:00.000Z",
