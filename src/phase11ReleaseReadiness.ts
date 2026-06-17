@@ -299,7 +299,7 @@ function releaseDecisionItem(
       status: "blocked",
       detail: `${input.remainingGoalSummary.blocked} remaining goal${input.remainingGoalSummary.blocked === 1 ? "" : "s"} are blocked.`,
       nextAction: publicText(
-        input.remainingGoalSummary.currentNextAction,
+        input.remainingGoalSummary.ownerHoldNextAction,
         "Clear blocked remaining goals before release readiness can proceed."
       )
     };

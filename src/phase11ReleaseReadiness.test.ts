@@ -86,6 +86,8 @@ function remainingSummary(
     averageCompletionPercent: 100,
     currentTarget: "Release readiness pass",
     currentNextAction: "Attach release readiness proof.",
+    ownerHoldTarget: "No owner hold",
+    ownerHoldNextAction: "No owner hold action.",
     coveredPhaseCount: 11,
     remainingPhaseCount: 11,
     priorityGoalTraceCount: 8,
@@ -137,7 +139,10 @@ describe("phase 11 release readiness", () => {
         next: 7,
         paused: 1,
         averageCompletionPercent: 48,
-        currentNextAction:
+        currentTarget: "Phase 3 desktop proof clearance",
+        currentNextAction: "Use Phase 3 command plan and handoff gate.",
+        ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
+        ownerHoldNextAction:
           "Keep the branch local, preserve the proof commit, and push only after the owner says to push."
       }),
       cleanCheckoutState: "waiting",
@@ -270,7 +275,10 @@ describe("phase 11 release readiness", () => {
       remainingGoalSummary: remainingSummary({
         currentTarget: "Review C:\\Users\\MJ\\Desktop\\secret-plan.md",
         currentNextAction:
-          "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
+          "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
+        ownerHoldTarget: "Hold C:\\Users\\MJ\\Desktop\\secret-release.md",
+        ownerHoldNextAction:
+          "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret-release.md with token sk-OWNER1234567890 <unsafe>"
       })
     });
     const combinedText = [
@@ -284,6 +292,7 @@ describe("phase 11 release readiness", () => {
     expect(combinedText).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(combinedText).not.toMatch(/[\\/](Users|Projects|Documents|Desktop)[\\/]/i);
     expect(combinedText).not.toContain("sk-ABCDEF1234567890");
+    expect(combinedText).not.toContain("sk-OWNER1234567890");
     expect(combinedText).not.toContain("<");
     expect(combinedText).not.toContain(">");
   });

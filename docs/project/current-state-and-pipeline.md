@@ -28,7 +28,7 @@ The current implementation includes:
 - Owner testing surfaces for catalog refresh, slash execution evidence, session-control evidence, Phase 3 smoke proof rows, diagnostic exit-gate rows, a Phase 3 clearance package, a Phase 3 blocker-priority queue, Phase 3 traceability rows, a Phase 3 desktop smoke command plan, and a Phase 3 handoff gate with local record/clear actions.
 - Owner testing priority evidence and explicit smoke actions for Phase 1 one-panel live proof, Phase 2 multi-panel isolation, and Phase 6 Project Management phase-board staging readiness.
 - Reload-safe Phase 1/2 and Phase 3 smoke proof storage for desktop-executed smoke evidence, without running prompts automatically on startup.
-- A right-panel remaining-goals summary that maps each remaining target to Phase 1 through Phase 11 and to the Project Management rows that can stage Arena review packages, with critical/current/high-priority traces surfaced in priority order for owner review.
+- A right-panel remaining-goals summary that maps each remaining target to Phase 1 through Phase 11 and to the Project Management rows that can stage Arena review packages, with the Phase 3 implementation target separated from the blocked Phase 1/2/6 owner hold and critical/current/high-priority traces surfaced in priority order for owner review.
 
 ## Active Pipeline
 

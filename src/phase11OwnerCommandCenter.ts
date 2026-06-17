@@ -271,7 +271,7 @@ function blockersItem(input: Phase11OwnerCommandCenterInput): Phase11OwnerComman
       status: "blocked",
       detail: `${blockerCount} owner-visible blocker${blockerCount === 1 ? "" : "s"} remain across goals, checklist, and failure fixtures.`,
       nextAction: publicText(
-        input.remainingGoalSummary.currentNextAction,
+        input.remainingGoalSummary.ownerHoldNextAction,
         "Resolve the top owner-visible blocker before treating Owner Testing as pass/fail ready."
       )
     };
@@ -308,9 +308,9 @@ function phaseReadinessItem(summary: RemainingGoalPlanSummary): Phase11OwnerComm
       label: "Phase readiness",
       kind: "phase-readiness",
       status: "blocked",
-      detail: `${summary.blocked} remaining goal${summary.blocked === 1 ? "" : "s"} are blocked; average completion is ${summary.averageCompletionPercent}%. ${goalTraceDetail(summary)}`,
+      detail: `${summary.blocked} remaining goal${summary.blocked === 1 ? "" : "s"} are blocked; owner hold: ${publicText(summary.ownerHoldTarget, "No owner hold")}; average completion is ${summary.averageCompletionPercent}%. ${goalTraceDetail(summary)}`,
       nextAction: publicText(
-        summary.currentNextAction,
+        summary.ownerHoldNextAction,
         "Clear blocked remaining goals before release readiness."
       )
     };

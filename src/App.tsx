@@ -6320,7 +6320,7 @@ function RemainingGoalsPanel({
         </span>
       </div>
       <div
-        aria-label={`Remaining goals summary: ${summary.total} goals across ${summary.coveredPhaseCount} remaining phases. Current target: ${summary.currentTarget}. Next action: ${summary.currentNextAction}`}
+        aria-label={`Remaining goals summary: ${summary.total} goals across ${summary.coveredPhaseCount} remaining phases. Current implementation target: ${summary.currentTarget}. Next action: ${summary.currentNextAction} Owner hold: ${summary.ownerHoldTarget}. Owner hold action: ${summary.ownerHoldNextAction}`}
         className="remaining-goals-summary"
       >
         <div>
@@ -6341,10 +6341,17 @@ function RemainingGoalsPanel({
         </div>
       </div>
       <div className="remaining-goals-current" title={summary.currentNextAction}>
-        <small>Current target</small>
+        <small>Current implementation</small>
         <strong>{summary.currentTarget}</strong>
         <span>{summary.currentNextAction}</span>
       </div>
+      {summary.ownerHoldTarget !== "No owner hold" ? (
+        <div className="remaining-goals-current remaining-goals-owner-hold" title={summary.ownerHoldNextAction}>
+          <small>Owner hold</small>
+          <strong>{summary.ownerHoldTarget}</strong>
+          <span>{summary.ownerHoldNextAction}</span>
+        </div>
+      ) : null}
       <ol className="remaining-goals-list" aria-label="Remaining targets, phases, and goals">
         {goals.map((goal) => (
           <li

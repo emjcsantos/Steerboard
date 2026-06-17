@@ -42,6 +42,8 @@ export interface RemainingGoalPlanSummary {
   averageCompletionPercent: number;
   currentTarget: string;
   currentNextAction: string;
+  ownerHoldTarget: string;
+  ownerHoldNextAction: string;
   coveredPhaseCount: number;
   remainingPhaseCount: number;
   priorityGoalTraceCount: number;
@@ -73,7 +75,6 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     status: "blocked",
     priority: "critical",
     completionPercent: 95,
-    current: true,
     pmTaskIds: [
       "phase-01-live-chat",
       "phase-01-parent-single-panel",
@@ -95,6 +96,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     status: "active",
     priority: "critical",
     completionPercent: 92,
+    current: true,
     pmTaskIds: [
       "phase-03-controls-slash",
       "phase-03-parent-proof-clearance",
@@ -359,6 +361,8 @@ export function summarizeRemainingGoalPlan(
     averageCompletionPercent: 0,
     currentTarget: "No remaining goal",
     currentNextAction: "No remaining action.",
+    ownerHoldTarget: "No owner hold",
+    ownerHoldNextAction: "No owner hold action.",
     coveredPhaseCount: 0,
     remainingPhaseCount: remainingProjectManagementPhaseIds.length,
     priorityGoalTraceCount: 0,
@@ -375,15 +379,23 @@ export function summarizeRemainingGoalPlan(
   }
 
   const currentGoal =
+    goals.find((goal) => goal.current && goal.status !== "blocked") ??
+    goals.find((goal) => goal.status === "active") ??
     goals.find((goal) => goal.current) ??
     goals.find((goal) => goal.status === "blocked") ??
-    goals.find((goal) => goal.status === "active") ??
     goals.find((goal) => goal.status === "next") ??
     goals[0];
+  const ownerHoldGoal =
+    goals.find((goal) => goal.status === "blocked" && goal.priority === "critical") ??
+    goals.find((goal) => goal.status === "blocked");
 
   if (currentGoal) {
     summary.currentTarget = currentGoal.target;
     summary.currentNextAction = currentGoal.nextAction;
+  }
+  if (ownerHoldGoal) {
+    summary.ownerHoldTarget = ownerHoldGoal.target;
+    summary.ownerHoldNextAction = ownerHoldGoal.nextAction;
   }
 
   if (summary.total > 0) {

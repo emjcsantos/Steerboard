@@ -26,8 +26,11 @@ describe("remaining goal plan", () => {
       planned: 0,
       paused: 1,
       averageCompletionPercent: 55,
-      currentTarget: "Unblock Phase 1/2/6 publishing",
+      currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
+        "Use the Phase 3 command plan, blocker-priority queue, traceability rows, and handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record owner handoff only after exit-ready, and keep Phase 4 held behind the provider boundary.",
+      ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
+      ownerHoldNextAction:
         "Keep the branch local, preserve the proof commit, and push only after the remote is recreated and the owner says to push.",
       coveredPhaseCount: 11,
       remainingPhaseCount: 11,
@@ -40,8 +43,8 @@ describe("remaining goal plan", () => {
     const traces = buildRemainingGoalPriorityTraces();
 
     expect(traces.map((trace) => trace.goalId).slice(0, 2)).toEqual([
-      "goal-phase-1-2-6-publish",
-      "goal-phase-3-proof-clearance"
+      "goal-phase-3-proof-clearance",
+      "goal-phase-1-2-6-publish"
     ]);
     expect(traces).toEqual(
       expect.arrayContaining([
@@ -82,16 +85,35 @@ describe("remaining goal plan", () => {
 
     expect(publishGoal).toMatchObject({
       status: "blocked",
-      priority: "critical",
-      current: true
+      priority: "critical"
     });
+    expect(publishGoal?.current).toBeUndefined();
     expect(publishGoal?.nextAction.toLowerCase()).toContain("owner says to push");
     expect(phase3Goal?.target).toBe("Phase 3 desktop proof clearance");
+    expect(phase3Goal?.current).toBe(true);
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-exit-gate");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-blocker-priority");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-traceability");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-handoff-gate");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-slash-ready");
+  });
+
+  it("separates the blocked owner hold from the active implementation target", () => {
+    const summary = summarizeRemainingGoalPlan();
+
+    expect(summary.currentTarget).toBe("Phase 3 desktop proof clearance");
+    expect(summary.currentNextAction).toContain("Phase 3 command plan");
+    expect(summary.ownerHoldTarget).toBe("Unblock Phase 1/2/6 publishing");
+    expect(summary.ownerHoldNextAction).toContain("owner says to push");
+    expect(summary.priorityGoalTraces[0]).toMatchObject({
+      goalId: "goal-phase-3-proof-clearance",
+      current: true
+    });
+    expect(summary.priorityGoalTraces[1]).toMatchObject({
+      goalId: "goal-phase-1-2-6-publish",
+      status: "blocked",
+      current: false
+    });
   });
 
   it("keeps the Phase 9 runner approval target linked to traceability and approval depth", () => {

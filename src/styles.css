@@ -4734,6 +4734,15 @@ textarea {
   font-size: 10px;
 }
 
+.remaining-goals-owner-hold {
+  border-color: #57472a;
+  background: #18150f;
+}
+
+.remaining-goals-owner-hold small {
+  color: #f0d984;
+}
+
 .remaining-goals-list {
   display: grid;
   gap: 5px;

@@ -95,6 +95,8 @@ function remainingSummary(
     averageCompletionPercent: 100,
     currentTarget: "Owner Testing command center",
     currentNextAction: "Keep Owner Testing as the release gate.",
+    ownerHoldTarget: "No owner hold",
+    ownerHoldNextAction: "No owner hold action.",
     coveredPhaseCount: 11,
     remainingPhaseCount: 11,
     priorityGoalTraceCount: 8,
@@ -154,8 +156,10 @@ describe("phase 11 owner command center", () => {
         blocked: 1,
         active: 1,
         averageCompletionPercent: 44,
-        currentTarget: "Unblock Phase 1/2/6 publishing",
-        currentNextAction:
+        currentTarget: "Phase 3 desktop proof clearance",
+        currentNextAction: "Use Phase 3 command plan and handoff gate.",
+        ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
+        ownerHoldNextAction:
           "Keep the branch local and push only after the owner says to push."
       })
     });
@@ -167,7 +171,11 @@ describe("phase 11 owner command center", () => {
       expect.arrayContaining([
         expect.objectContaining({ label: "Owner checklist", status: "blocked" }),
         expect.objectContaining({ label: "Blocker triage", status: "blocked" }),
-        expect.objectContaining({ label: "Phase readiness", status: "blocked" })
+        expect.objectContaining({
+          label: "Phase readiness",
+          status: "blocked",
+          detail: expect.stringContaining("owner hold")
+        })
       ])
     );
     expect(result.nextAction).toContain("waiting, review, or blocked owner checklist");
@@ -252,9 +260,10 @@ describe("phase 11 owner command center", () => {
 
     expect(result.priorityGoalTraceCount).toBeGreaterThan(0);
     expect(result.priorityGoalTraces.map((trace) => trace.goalId).slice(0, 2)).toEqual([
-      "goal-phase-1-2-6-publish",
-      "goal-phase-3-proof-clearance"
+      "goal-phase-3-proof-clearance",
+      "goal-phase-1-2-6-publish"
     ]);
+    expect(result.priorityGoalTraces[0].current).toBe(true);
     expect(result.priorityGoalTraces).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -282,6 +291,9 @@ describe("phase 11 owner command center", () => {
         currentTarget: "Review C:\\Users\\MJ\\Desktop\\secret-plan.md",
         currentNextAction:
           "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
+        ownerHoldTarget: "Hold C:\\Users\\MJ\\Desktop\\secret-release.md",
+        ownerHoldNextAction:
+          "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret-release.md with token sk-OWNER1234567890 <unsafe>",
         priorityGoalTraces: [
           {
             goalId: "goal-unsafe",
@@ -317,6 +329,7 @@ describe("phase 11 owner command center", () => {
     expect(combinedText).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(combinedText).not.toMatch(/[\\/](Users|Projects|Documents|Desktop)[\\/]/i);
     expect(combinedText).not.toContain("sk-ABCDEF1234567890");
+    expect(combinedText).not.toContain("sk-OWNER1234567890");
     expect(combinedText).not.toContain("<");
     expect(combinedText).not.toContain(">");
   });
