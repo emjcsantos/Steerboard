@@ -87,6 +87,10 @@ import {
   type ProviderIntegrationReadiness
 } from "./providerIntegrationReadiness";
 import {
+  buildPhase4ProviderSurfaceDepth,
+  type Phase4ProviderSurfaceDepthSnapshot
+} from "./phase4ProviderSurfaceDepth";
+import {
   buildCatalogRefreshProviderSmoke,
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
   type CatalogRefreshProviderSmokeResult
@@ -1672,6 +1676,10 @@ export function App() {
   const providerIntegrationReadiness = useMemo(
     () => buildProviderIntegrationReadiness(catalogRefreshOwnerValidation),
     [catalogRefreshOwnerValidation]
+  );
+  const phase4ProviderSurfaceDepth = useMemo(
+    () => buildPhase4ProviderSurfaceDepth(providerIntegrationReadiness),
+    [providerIntegrationReadiness]
   );
   const slashCommandExecutionEvidence = useMemo(() => {
     const evidenceItems = Object.values(slashCommandExecutionEvidenceByPanel);
@@ -3426,6 +3434,7 @@ export function App() {
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
             project={project}
+            phase4ProviderSurfaceDepth={phase4ProviderSurfaceDepth}
             providerIntegrationReadiness={providerIntegrationReadiness}
             registryEntry={registryEntry}
             registrySummary={registrySummary}
@@ -6203,6 +6212,71 @@ function ProviderIntegrationReadinessPanel({
   );
 }
 
+function Phase4ProviderSurfaceDepthPanel({
+  snapshot
+}: {
+  snapshot: Phase4ProviderSurfaceDepthSnapshot;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Phase 4 Surface Depth</h4>
+      <div
+        aria-label={snapshot.ariaLabel}
+        className={classNames(
+          "phase4-provider-depth",
+          `phase4-provider-depth-${snapshot.state}`
+        )}
+        title={snapshot.safety}
+      >
+        <div className="phase4-provider-depth-header">
+          <span className={classNames("phase4-provider-depth-state", `phase4-provider-depth-state-${snapshot.state}`)}>
+            <span aria-hidden="true" />
+            {snapshot.statusLabel}
+          </span>
+          <strong>{snapshot.label}</strong>
+          <b>{snapshot.readiness}%</b>
+        </div>
+        <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
+        <dl className="phase4-provider-depth-grid" aria-label="Phase 4 provider surface depth counts">
+          <div>
+            <dt>Execution</dt>
+            <dd>{snapshot.canEnableExecution ? "Enabled" : "Locked"}</dd>
+          </div>
+          <div>
+            <dt>Attention</dt>
+            <dd>{snapshot.attentionCount}</dd>
+          </div>
+          <div>
+            <dt>Preview</dt>
+            <dd>{snapshot.previewCount}</dd>
+          </div>
+          <div>
+            <dt>Held</dt>
+            <dd>{snapshot.heldCount}</dd>
+          </div>
+        </dl>
+        <ol className="phase4-provider-depth-list" aria-label="Phase 4 provider surface depth gates">
+          {snapshot.items.map((item) => (
+            <li
+              className={classNames("phase4-provider-depth-item", `phase4-provider-depth-item-${item.status}`)}
+              key={item.id}
+              title={`${item.detail} ${item.nextAction}`}
+            >
+              <span>{item.kind}</span>
+              <div>
+                <strong>{item.label}</strong>
+                <small>{item.nextAction}</small>
+              </div>
+              <b>{item.status}</b>
+            </li>
+          ))}
+        </ol>
+        <small title={snapshot.safety}>{snapshot.safety}</small>
+      </div>
+    </section>
+  );
+}
+
 function PanelPrioritySignal({
   focusTarget,
   onClearFocus,
@@ -6627,6 +6701,7 @@ function RightPanel({
   onSelectRun,
   onUpdateRunStatus,
   project,
+  phase4ProviderSurfaceDepth,
   providerIntegrationReadiness,
   registryEntry,
   registrySummary,
@@ -6681,6 +6756,7 @@ function RightPanel({
   onSelectRun: (runId: string) => void;
   onUpdateRunStatus: (runId: string, nextStatus: MockRunStatus) => void;
   project: ProjectSummary;
+  phase4ProviderSurfaceDepth: Phase4ProviderSurfaceDepthSnapshot;
   providerIntegrationReadiness: ProviderIntegrationReadiness;
   registryEntry?: RegistryEntry;
   registrySummary: ReturnType<typeof summarizeRegistry>;
@@ -7848,6 +7924,8 @@ function RightPanel({
       />
 
       <ProviderIntegrationReadinessPanel readiness={providerIntegrationReadiness} />
+
+      <Phase4ProviderSurfaceDepthPanel snapshot={phase4ProviderSurfaceDepth} />
 
       <OwnerTestingReadinessPanel
         catalogRefreshOwnerValidation={catalogRefreshOwnerValidation}

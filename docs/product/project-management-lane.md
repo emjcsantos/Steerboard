@@ -40,6 +40,8 @@ The Environment panel also includes a Phase 11 Release Readiness gate. It aggreg
 
 The Environment panel also includes a Phase 4 Provider Readiness panel. It reads the same safe catalog validation snapshots used by Owner Testing, classifies each provider surface as ready, preview, setup-required, unsupported, unavailable, or blocked, and keeps the next action metadata-only until explicit execution, approval, audit, and rollback gates exist.
 
+The Environment panel also includes a Phase 4 Surface Depth panel beside Provider Readiness. It turns the same metadata snapshots into surface coverage, setup blocker, capability gap, preview review, and execution lock rows, and it remains metadata-only with no command, skill, plugin, MCP, automation, personalization, network, terminal, Git, or profile execution.
+
 ## Core Jobs
 
 - Create and manage projects.
@@ -75,7 +77,7 @@ The Environment panel also includes a Phase 4 Provider Readiness panel. It reads
 - Bottom PM chat/terminal panel scoped to dashboard alignment, updates, and revision requests.
 - Staged Arena review preview for the latest row run.
 - Remaining Goals summary for all open targets across Phase 1 through Phase 11.
-- Phase 4 Provider Readiness panel for catalog-surface labels and next actions before execution is enabled.
+- Phase 4 Provider Readiness and Phase 4 Surface Depth panels for catalog-surface labels, surface coverage, setup blockers, capability gaps, preview review, and the execution lock before execution is considered.
 - Owner Testing evidence and explicit smoke buttons for Phase 1 live panel proof, Phase 2 multi-panel isolation, and Phase 6 PM board staging readiness.
 - Phase 3 clearance package and handoff gate with exact open blockers, next smoke action, local owner handoff record/clear actions, and provider-integration boundary.
 - Phase 11 Release Readiness gate for clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and release decision while packaging stays paused.
