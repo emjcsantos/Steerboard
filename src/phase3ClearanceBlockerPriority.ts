@@ -29,6 +29,8 @@ export interface Phase3ClearanceBlockerPriorityItem {
   readonly canUseSmokeCommand: boolean;
   readonly detail: string;
   readonly nextAction: string;
+  readonly pmTaskId: string;
+  readonly evidenceKey: string;
 }
 
 export interface Phase3ClearanceBlockerPrioritySnapshot {
@@ -210,7 +212,9 @@ export function buildPhase3ClearanceBlockerPriority(
         detail: buildDetail(blocker, kind, commandAddressable),
         nextAction: commandAddressable
           ? `Run ${SMOKE_COMMAND} locally when desktop session start is available.`
-          : publicText(blocker.nextAction, "Resolve this Phase 3 blocker before handoff.")
+          : publicText(blocker.nextAction, "Resolve this Phase 3 blocker before handoff."),
+        pmTaskId: blocker.pmTaskId,
+        evidenceKey: blocker.evidenceKey
       };
 
       return item;

@@ -9,7 +9,9 @@ export type Phase3ClearanceCommandPlanState = Phase3ClearancePackageState;
 export type Phase3ClearanceCommandPlanItemKind =
   | "slash-evidence"
   | "session-control"
-  | "desktop-smoke";
+  | "live-control-smoke"
+  | "active-turn-interrupt-smoke"
+  | "active-turn-steer-smoke";
 
 export interface Phase3ClearanceCommandPlanItem {
   readonly id: string;
@@ -59,6 +61,26 @@ const SMOKE_ACTION_IDS = new Set([
   "phase3-owner-testing:active-turn-interrupt-smoke",
   "phase3-owner-testing:active-turn-steer-smoke"
 ]);
+const SMOKE_PROOF_ROWS = [
+  {
+    actionId: "phase3-owner-testing:live-control-smoke",
+    blockerId: "phase3-exit-gate:live-control-smoke",
+    kind: "live-control-smoke",
+    label: "Live-control smoke proof"
+  },
+  {
+    actionId: "phase3-owner-testing:active-turn-interrupt-smoke",
+    blockerId: "phase3-exit-gate:active-turn-interrupt-smoke",
+    kind: "active-turn-interrupt-smoke",
+    label: "Active-turn interrupt smoke proof"
+  },
+  {
+    actionId: "phase3-owner-testing:active-turn-steer-smoke",
+    blockerId: "phase3-exit-gate:active-turn-steer-smoke",
+    kind: "active-turn-steer-smoke",
+    label: "Active-turn steer smoke proof"
+  }
+] as const;
 
 function stateWeight(state: Phase3ClearanceCommandPlanState): number {
   switch (state) {
@@ -111,73 +133,64 @@ function smokeActions(
   return actions.filter((action) => SMOKE_ACTION_IDS.has(action.id));
 }
 
-function smokeBundleState(
-  actions: readonly Phase3OwnerTestingAction[],
-  clearancePackage: Phase3ClearancePackage
-): Phase3ClearanceCommandPlanState {
-  const smokes = smokeActions(actions);
-
-  if (smokes.some((action) => action.state === "blocked")) {
-    return "blocked";
-  }
-  if (smokes.some((action) => action.state === "running")) {
-    return "review";
-  }
-  if (smokes.some((action) => action.state === "recommended")) {
-    return "waiting";
-  }
-  if (smokes.length === 3 && smokes.every((action) => action.state === "ready")) {
-    return "ready";
-  }
-  if (clearancePackage.canExit) {
-    return "ready";
-  }
-
-  return "waiting";
-}
-
 function buildItems(
   clearancePackage: Phase3ClearancePackage,
   actions: readonly Phase3OwnerTestingAction[]
 ): readonly Phase3ClearanceCommandPlanItem[] {
   const blockerById = new Map(clearancePackage.blockers.map((blocker) => [blocker.id, blocker]));
+  const actionById = new Map(actions.map((action) => [action.id, action]));
   const slashBlocker = blockerById.get("phase3-exit-gate:slash-execution");
   const sessionBlocker = blockerById.get("phase3-exit-gate:session-controls");
-  const smokeState = smokeBundleState(actions, clearancePackage);
 
-  return [
-    {
-      id: `${PLAN_ID}:slash-evidence`,
-      label: "Slash execution evidence",
-      kind: "slash-evidence",
-      state: slashBlocker?.state ?? "ready",
-      detail: slashBlocker
-        ? "Slash execution proof is still open before Phase 3 can clear."
-        : "Slash execution proof is ready or not the active blocker.",
-      nextAction: slashBlocker?.nextAction ?? "Keep provider-routed slash proof attached."
-    },
-    {
-      id: `${PLAN_ID}:session-control`,
-      label: "Session-control evidence",
-      kind: "session-control",
-      state: sessionBlocker?.state ?? "ready",
-      detail: sessionBlocker
-        ? "Session-control proof is still open before Phase 3 can clear."
-        : "Session-control proof is ready or not the active blocker.",
-      nextAction: sessionBlocker?.nextAction ?? "Keep session-control proof attached."
-    },
-    {
-      id: `${PLAN_ID}:desktop-smoke`,
-      label: "Desktop smoke bundle",
-      kind: "desktop-smoke",
-      state: smokeState,
-      detail: `${PHASE3_SMOKE_COMMAND} covers live-control, active-turn interrupt, and active-turn steer proof rows.`,
-      nextAction:
-        smokeState === "ready"
-          ? "Keep desktop smoke proofs attached and move to owner handoff review."
-          : `Run ${PHASE3_SMOKE_COMMAND} from the Steerboard workspace when desktop session start is available.`
-    }
-  ];
+  const slashItem: Phase3ClearanceCommandPlanItem = {
+    id: `${PLAN_ID}:slash-evidence`,
+    label: "Slash execution evidence",
+    kind: "slash-evidence",
+    state: slashBlocker?.state ?? "ready",
+    detail: slashBlocker
+      ? "Slash execution proof is still open before Phase 3 can clear."
+      : "Slash execution proof is ready or not the active blocker.",
+    nextAction: slashBlocker?.nextAction ?? "Keep provider-routed slash proof attached."
+  };
+  const sessionItem: Phase3ClearanceCommandPlanItem = {
+    id: `${PLAN_ID}:session-control`,
+    label: "Session-control evidence",
+    kind: "session-control",
+    state: sessionBlocker?.state ?? "ready",
+    detail: sessionBlocker
+      ? "Session-control proof is still open before Phase 3 can clear."
+      : "Session-control proof is ready or not the active blocker.",
+    nextAction: sessionBlocker?.nextAction ?? "Keep session-control proof attached."
+  };
+  const smokeItems = SMOKE_PROOF_ROWS.map((row): Phase3ClearanceCommandPlanItem => {
+      const blocker = blockerById.get(row.blockerId);
+      const action = actionById.get(row.actionId);
+      const state = blocker?.state ??
+        (action?.state === "blocked"
+          ? "blocked"
+          : action?.state === "running"
+            ? "review"
+            : action?.state === "recommended"
+              ? "waiting"
+              : action?.state === "ready" || clearancePackage.canExit
+                ? "ready"
+                : "waiting");
+
+      return {
+        id: `${PLAN_ID}:${row.kind}`,
+        label: row.label,
+        kind: row.kind,
+        state,
+        detail: `${PHASE3_SMOKE_COMMAND} covers this ${row.label.toLowerCase()} row.`,
+        nextAction:
+          state === "ready"
+            ? `Keep ${row.label.toLowerCase()} attached and move to owner handoff review.`
+            : blocker?.nextAction ??
+              `Run ${PHASE3_SMOKE_COMMAND} from the Steerboard workspace when desktop session start is available.`
+      };
+    });
+
+  return [slashItem, sessionItem, ...smokeItems];
 }
 
 function buildAriaLabel(

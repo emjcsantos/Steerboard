@@ -23,7 +23,9 @@ function clearancePackage(
         id: "phase3-exit-gate:live-control-smoke",
         label: "Live control smoke",
         state: "waiting",
-        nextAction: "Run live-control smoke."
+        nextAction: "Run live-control smoke.",
+        pmTaskId: "phase-03-child-smoke-rows",
+        evidenceKey: "phase3.live-control-smoke"
       }
     ],
     safety: "Evidence only.",
@@ -72,12 +74,29 @@ describe("phase 3 clearance command plan", () => {
     expect(plan.openSmokeCount).toBe(3);
     expect(plan.nextAction).toContain("npm.cmd run smoke:phase3");
     expect(plan.safety).toContain("does not run commands");
+    expect(plan.items.map((item) => item.kind)).toEqual([
+      "slash-evidence",
+      "session-control",
+      "live-control-smoke",
+      "active-turn-interrupt-smoke",
+      "active-turn-steer-smoke"
+    ]);
     expect(plan.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: "Desktop smoke bundle",
+          label: "Live-control smoke proof",
           state: "waiting",
           detail: expect.stringContaining("live-control")
+        }),
+        expect.objectContaining({
+          label: "Active-turn interrupt smoke proof",
+          state: "waiting",
+          detail: expect.stringContaining("active-turn interrupt")
+        }),
+        expect.objectContaining({
+          label: "Active-turn steer smoke proof",
+          state: "waiting",
+          detail: expect.stringContaining("active-turn steer")
         })
       ])
     );
@@ -92,7 +111,9 @@ describe("phase 3 clearance command plan", () => {
             id: "phase3-exit-gate:session-controls",
             label: "Session controls",
             state: "blocked",
-            nextAction: "Repair session controls."
+            nextAction: "Repair session controls.",
+            pmTaskId: "phase-03-child-control-ready",
+            evidenceKey: "phase3.session-controls"
           }
         ]
       }),

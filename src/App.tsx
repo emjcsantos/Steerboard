@@ -10870,7 +10870,7 @@ function OwnerTestingReadinessPanel({
           </dl>
         </div>
         <div
-          aria-label={`Phase 3 exit gate ${phase3ExitGateEvidence.statusLabel}; ${phase3ExitGateEvidence.readiness}% ready`}
+          aria-label={`Phase 3 exit gate ${phase3ExitGateEvidence.statusLabel}; ${phase3ExitGateEvidence.readiness}% ready; ${phase3ExitGateEvidence.pmTaskLinkCount} PM links; ${phase3ExitGateEvidence.evidenceKeyCount} evidence keys`}
           className={classNames(
             "owner-testing-phase3-gate",
             `owner-testing-phase3-${phase3ExitGateEvidence.state}`
@@ -10935,6 +10935,7 @@ function OwnerTestingReadinessPanel({
                   >
                     <strong>{blocker.label}</strong>
                     <span>{blocker.state}</span>
+                    <small>{blocker.pmTaskId} / {blocker.evidenceKey}</small>
                   </li>
                 ))
               ) : (
@@ -11003,6 +11004,7 @@ function OwnerTestingReadinessPanel({
                   >
                     <strong>{item.priority}. {item.label}</strong>
                     <span>{item.canUseSmokeCommand ? "command" : item.severity}</span>
+                    <small>{item.pmTaskId} / {item.evidenceKey}</small>
                   </li>
                 ))
               ) : (
@@ -11267,7 +11269,7 @@ function OwnerTestingReadinessPanel({
               >
                 <strong>{item.label}</strong>
                 <span>{item.state}</span>
-                <small>{item.nextAction}</small>
+                <small>{item.pmTaskId} / {item.evidenceKey}</small>
               </li>
             ))}
           </ol>

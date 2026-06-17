@@ -61,6 +61,15 @@ describe("phase 3 exit gate evidence", () => {
     ]);
     expect(result.items.every((item) => item.state === "ready")).toBe(true);
     expect(result.items.every((item) => item.nextAction)).toBe(true);
+    expect(result.pmTaskLinkCount).toBe(3);
+    expect(result.evidenceKeyCount).toBe(5);
+    expect(result.items.map((item) => [item.pmTaskId, item.evidenceKey])).toEqual([
+      ["phase-03-child-slash-ready", "phase3.slash-execution"],
+      ["phase-03-child-control-ready", "phase3.session-controls"],
+      ["phase-03-child-smoke-rows", "phase3.live-control-smoke"],
+      ["phase-03-child-smoke-rows", "phase3.active-turn-interrupt-smoke"],
+      ["phase-03-child-smoke-rows", "phase3.active-turn-steer-smoke"]
+    ]);
   });
 
   it("returns review when desktop proof is incomplete despite good slash/session evidence", () => {

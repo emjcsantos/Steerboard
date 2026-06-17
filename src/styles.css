@@ -7128,7 +7128,8 @@ textarea {
 }
 
 .owner-testing-phase3-clearance-list strong,
-.owner-testing-phase3-clearance-list span {
+.owner-testing-phase3-clearance-list span,
+.owner-testing-phase3-clearance-list small {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -7146,6 +7147,12 @@ textarea {
   font-size: 8px;
   font-weight: 900;
   text-transform: uppercase;
+}
+
+.owner-testing-phase3-clearance-list small {
+  grid-column: 1 / -1;
+  color: #8f99a4;
+  font-size: 9px;
 }
 
 .owner-testing-phase3-clearance-ready,
@@ -7282,7 +7289,8 @@ textarea {
 }
 
 .owner-testing-phase3-blocker-priority-list strong,
-.owner-testing-phase3-blocker-priority-list span {
+.owner-testing-phase3-blocker-priority-list span,
+.owner-testing-phase3-blocker-priority-list small {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -7300,6 +7308,12 @@ textarea {
   font-size: 8px;
   font-weight: 900;
   text-transform: uppercase;
+}
+
+.owner-testing-phase3-blocker-priority-list small {
+  grid-column: 1 / -1;
+  color: #8f99a4;
+  font-size: 9px;
 }
 
 .owner-testing-phase3-blocker-priority-ready,

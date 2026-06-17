@@ -60,11 +60,11 @@ Do not proceed to the next section until the current item is at least `review`.
    - Submit one app/global-only command from a panel and confirm it is blocked with explicit unsupported guidance.
    - Submit one provider-routed panel command in live desktop mode and confirm the transcript shows provider-route evidence before the live turn runs.
    - Confirm the Owner Testing panel moves slash execution evidence from review to ready only after provider-route plus live/status transcript proof is present.
-   - Confirm the Owner Testing Phase 3 gate remains review or waiting until slash execution, session-control evidence, live-control smoke, active-turn interrupt smoke, and active-turn steer smoke are all proven ready.
+   - Confirm the Owner Testing Phase 3 gate remains review or waiting until slash execution, session-control evidence, live-control smoke, active-turn interrupt smoke, and active-turn steer smoke are all proven ready, and that each diagnostic row shows its PM child link and unique evidence key.
    - Confirm the Owner Testing Phase 3 clearance package shows `Exit held` until every gate item is ready, lists exact open blockers, and promotes the next runnable smoke action when one is available.
    - Confirm the Owner Testing Phase 3 blocker-priority queue ranks the top exact blocker, shows whether `npm.cmd run smoke:phase3` can address it, and keeps slash or session-control blockers ahead of unrelated smoke actions.
    - Confirm the Owner Testing Phase 3 traceability rows link `goal-phase-3-proof-clearance`, every required Phase 3 PM child row, clearance evidence, blocker priority, command plan, and handoff boundary before Phase 3 is treated as exit-ready.
-   - Confirm the Owner Testing Phase 3 desktop smoke command plan shows `npm.cmd run smoke:phase3`, the three covered smoke proof rows, and a held/runnable state without executing the command automatically.
+   - Confirm the Owner Testing Phase 3 desktop smoke command plan shows `npm.cmd run smoke:phase3`, separate live-control, active-turn interrupt, and active-turn steer proof rows, and a held/runnable state without executing the command automatically.
    - Confirm slash or session-control blockers stay ahead of unrelated runnable smoke actions, while a matching smoke blocker promotes its smoke action and command-plan guidance.
    - Confirm the Owner Testing Phase 3 handoff gate holds provider integration until desktop proof clearance is ready, exact blocker visibility is clear, and an owner handoff record is attached.
    - Confirm `Record handoff` stays disabled until Phase 3 clearance is exit-ready, writes a local owner handoff record when enabled, and `Clear record` removes that local record without changing smoke proof evidence.

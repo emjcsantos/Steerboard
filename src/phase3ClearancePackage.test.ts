@@ -18,41 +18,53 @@ function buildExitGate(overrides: Partial<Phase3ExitGateEvidence> = {}): Phase3E
       blocked: 0,
       waiting: 0
     },
+    pmTaskLinkCount: 3,
+    evidenceKeyCount: 5,
     items: [
       {
         id: "phase3-exit-gate:slash-execution",
         label: "Slash execution",
         state: "ready",
         detail: "Slash ready.",
-        nextAction: "Proceed."
+        nextAction: "Proceed.",
+        pmTaskId: "phase-03-child-slash-ready",
+        evidenceKey: "phase3.slash-execution"
       },
       {
         id: "phase3-exit-gate:session-controls",
         label: "Session controls",
         state: "ready",
         detail: "Controls ready.",
-        nextAction: "Proceed."
+        nextAction: "Proceed.",
+        pmTaskId: "phase-03-child-control-ready",
+        evidenceKey: "phase3.session-controls"
       },
       {
         id: "phase3-exit-gate:live-control-smoke",
         label: "Live control smoke",
         state: "ready",
         detail: "Live control ready.",
-        nextAction: "Proceed."
+        nextAction: "Proceed.",
+        pmTaskId: "phase-03-child-smoke-rows",
+        evidenceKey: "phase3.live-control-smoke"
       },
       {
         id: "phase3-exit-gate:active-turn-interrupt-smoke",
         label: "Active-turn interrupt smoke",
         state: "ready",
         detail: "Interrupt ready.",
-        nextAction: "Proceed."
+        nextAction: "Proceed.",
+        pmTaskId: "phase-03-child-smoke-rows",
+        evidenceKey: "phase3.active-turn-interrupt-smoke"
       },
       {
         id: "phase3-exit-gate:active-turn-steer-smoke",
         label: "Active-turn steer smoke",
         state: "ready",
         detail: "Steer ready.",
-        nextAction: "Proceed."
+        nextAction: "Proceed.",
+        pmTaskId: "phase-03-child-smoke-rows",
+        evidenceKey: "phase3.active-turn-steer-smoke"
       }
     ],
     ...overrides
@@ -130,14 +142,18 @@ describe("phase 3 clearance package", () => {
             label: "Slash execution",
             state: "blocked",
             detail: "Provider route unavailable.",
-            nextAction: "Repair provider route."
+            nextAction: "Repair provider route.",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
           },
           {
             id: "phase3-exit-gate:live-control-smoke",
             label: "Live control smoke",
             state: "waiting",
             detail: "Smoke missing.",
-            nextAction: "Run live-control smoke."
+            nextAction: "Run live-control smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.live-control-smoke"
           }
         ]
       })
@@ -177,7 +193,9 @@ describe("phase 3 clearance package", () => {
             label: "Active-turn interrupt smoke",
             state: "waiting",
             detail: "Interrupt missing.",
-            nextAction: "Run interrupt smoke."
+            nextAction: "Run interrupt smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.active-turn-interrupt-smoke"
           }
         ]
       }),
@@ -216,7 +234,9 @@ describe("phase 3 clearance package", () => {
             label: "Active-turn steer smoke",
             state: "review",
             detail: "Steer incomplete.",
-            nextAction: "Rerun steer smoke."
+            nextAction: "Rerun steer smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.active-turn-steer-smoke"
           }
         ]
       }),
@@ -258,14 +278,18 @@ describe("phase 3 clearance package", () => {
             label: "Slash execution",
             state: "waiting",
             detail: "Slash missing.",
-            nextAction: "Run provider-routed slash proof."
+            nextAction: "Run provider-routed slash proof.",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
           },
           {
             id: "phase3-exit-gate:live-control-smoke",
             label: "Live control smoke",
             state: "waiting",
             detail: "Smoke missing.",
-            nextAction: "Run live-control smoke."
+            nextAction: "Run live-control smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.live-control-smoke"
           }
         ]
       }),
@@ -300,7 +324,9 @@ describe("phase 3 clearance package", () => {
             label: "Active-turn steer smoke",
             state: "waiting",
             detail: "Steer missing.",
-            nextAction: "Run steer smoke."
+            nextAction: "Run steer smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.active-turn-steer-smoke"
           }
         ]
       }),

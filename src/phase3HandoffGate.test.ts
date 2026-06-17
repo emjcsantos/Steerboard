@@ -78,13 +78,17 @@ describe("phase 3 handoff gate", () => {
             id: "phase3-exit-gate:slash-execution",
             label: "Slash execution",
             state: "blocked",
-            nextAction: "Repair provider route."
+            nextAction: "Repair provider route.",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
           },
           {
             id: "phase3-exit-gate:live-control-smoke",
             label: "Live control smoke",
             state: "waiting",
-            nextAction: "Run live-control smoke."
+            nextAction: "Run live-control smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.live-control-smoke"
           }
         ]
       })
@@ -117,7 +121,9 @@ describe("phase 3 handoff gate", () => {
             label: "Slash execution",
             state: "blocked",
             nextAction:
-              "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
+              "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
           }
         ]
       })

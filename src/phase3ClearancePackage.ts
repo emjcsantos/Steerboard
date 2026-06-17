@@ -14,6 +14,8 @@ export interface Phase3ClearanceBlocker {
   readonly label: string;
   readonly state: Phase3ClearancePackageState;
   readonly nextAction: string;
+  readonly pmTaskId: string;
+  readonly evidenceKey: string;
 }
 
 export interface Phase3ClearancePackage {
@@ -87,7 +89,9 @@ function toBlocker(item: Phase3ExitGateDiagnostic): Phase3ClearanceBlocker {
     id: item.id,
     label: item.label,
     state: item.state,
-    nextAction: item.nextAction
+    nextAction: item.nextAction,
+    pmTaskId: item.pmTaskId,
+    evidenceKey: item.evidenceKey
   };
 }
 
@@ -158,7 +162,9 @@ export function buildPhase3ClearancePackage(
           id: "phase3-clearance:exit-gate",
           label: "Exit gate evidence",
           state: "waiting",
-          nextAction: "Collect Phase 3 slash, session-control, and desktop smoke evidence."
+          nextAction: "Collect Phase 3 slash, session-control, and desktop smoke evidence.",
+          pmTaskId: "phase-03-child-exit-gate",
+          evidenceKey: "phase3.exit-gate.missing"
         }
       ],
       safety: CLEARANCE_SAFETY

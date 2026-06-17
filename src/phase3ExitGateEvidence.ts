@@ -18,6 +18,8 @@ export interface Phase3ExitGateDiagnostic {
   readonly state: Phase3ExitGateState;
   readonly detail: string;
   readonly nextAction: string;
+  readonly pmTaskId: string;
+  readonly evidenceKey: string;
 }
 
 export interface Phase3ExitGateEvidence {
@@ -30,6 +32,8 @@ export interface Phase3ExitGateEvidence {
   readonly nextAction: string;
   readonly items: readonly Phase3ExitGateDiagnostic[];
   readonly counts: Phase3ExitGateEvidenceCounts;
+  readonly pmTaskLinkCount: number;
+  readonly evidenceKeyCount: number;
 }
 
 export interface Phase3ExitGateEvidenceInput {
@@ -84,6 +88,28 @@ const PHASE3_GATE_LABELS = {
   liveControl: "Live control smoke",
   interrupt: "Active-turn interrupt smoke",
   steer: "Active-turn steer smoke"
+} as const;
+const PHASE3_GATE_TRACE = {
+  slash: {
+    pmTaskId: "phase-03-child-slash-ready",
+    evidenceKey: "phase3.slash-execution"
+  },
+  session: {
+    pmTaskId: "phase-03-child-control-ready",
+    evidenceKey: "phase3.session-controls"
+  },
+  liveControl: {
+    pmTaskId: "phase-03-child-smoke-rows",
+    evidenceKey: "phase3.live-control-smoke"
+  },
+  interrupt: {
+    pmTaskId: "phase-03-child-smoke-rows",
+    evidenceKey: "phase3.active-turn-interrupt-smoke"
+  },
+  steer: {
+    pmTaskId: "phase-03-child-smoke-rows",
+    evidenceKey: "phase3.active-turn-steer-smoke"
+  }
 } as const;
 
 function safeBoolean(value: unknown): boolean {
@@ -254,35 +280,40 @@ export function buildPhase3ExitGateEvidence(
       label: PHASE3_GATE_LABELS.slash,
       state: slashEvidence.state,
       detail: resolveItemDetail(PHASE3_GATE_LABELS.slash, slashEvidence.state, slashEvidence.malformed),
-      nextAction: resolveNextAction(slashEvidence.state)
+      nextAction: resolveNextAction(slashEvidence.state),
+      ...PHASE3_GATE_TRACE.slash
     },
     {
       id: PHASE3_GATE_IDS.session,
       label: PHASE3_GATE_LABELS.session,
       state: sessionControlEvidence.state,
       detail: resolveItemDetail(PHASE3_GATE_LABELS.session, sessionControlEvidence.state, sessionControlEvidence.malformed),
-      nextAction: resolveNextAction(sessionControlEvidence.state)
+      nextAction: resolveNextAction(sessionControlEvidence.state),
+      ...PHASE3_GATE_TRACE.session
     },
     {
       id: PHASE3_GATE_IDS.liveControl,
       label: PHASE3_GATE_LABELS.liveControl,
       state: liveControlSmoke,
       detail: resolveSmokeItemDetail(liveControlSmokeItem),
-      nextAction: resolveNextAction(liveControlSmoke)
+      nextAction: resolveNextAction(liveControlSmoke),
+      ...PHASE3_GATE_TRACE.liveControl
     },
     {
       id: PHASE3_GATE_IDS.interrupt,
       label: PHASE3_GATE_LABELS.interrupt,
       state: activeTurnInterruptSmoke,
       detail: resolveSmokeItemDetail(activeTurnInterruptSmokeItem),
-      nextAction: resolveNextAction(activeTurnInterruptSmoke)
+      nextAction: resolveNextAction(activeTurnInterruptSmoke),
+      ...PHASE3_GATE_TRACE.interrupt
     },
     {
       id: PHASE3_GATE_IDS.steer,
       label: PHASE3_GATE_LABELS.steer,
       state: activeTurnSteerSmoke,
       detail: resolveSmokeItemDetail(activeTurnSteerSmokeItem),
-      nextAction: resolveNextAction(activeTurnSteerSmoke)
+      nextAction: resolveNextAction(activeTurnSteerSmoke),
+      ...PHASE3_GATE_TRACE.steer
     }
   ];
 
@@ -325,6 +356,8 @@ export function buildPhase3ExitGateEvidence(
   }
 
   const counts = countStates(gateStates);
+  const pmTaskLinkCount = new Set(items.map((item) => item.pmTaskId)).size;
+  const evidenceKeyCount = new Set(items.map((item) => item.evidenceKey)).size;
 
   return {
     state,
@@ -335,6 +368,8 @@ export function buildPhase3ExitGateEvidence(
     safety: SAFETY_STATEMENT,
     nextAction: resolveNextAction(state),
     items,
-    counts
+    counts,
+    pmTaskLinkCount,
+    evidenceKeyCount
   };
 }

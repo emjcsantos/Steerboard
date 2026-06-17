@@ -23,19 +23,25 @@ function clearancePackage(
         id: "phase3-exit-gate:active-turn-steer-smoke",
         label: "Active-turn steer smoke",
         state: "waiting",
-        nextAction: "Run steer smoke."
+        nextAction: "Run steer smoke.",
+        pmTaskId: "phase-03-child-smoke-rows",
+        evidenceKey: "phase3.active-turn-steer-smoke"
       },
       {
         id: "phase3-exit-gate:slash-execution",
         label: "Slash execution",
         state: "waiting",
-        nextAction: "Run provider-routed slash proof."
+        nextAction: "Run provider-routed slash proof.",
+        pmTaskId: "phase-03-child-slash-ready",
+        evidenceKey: "phase3.slash-execution"
       },
       {
         id: "phase3-exit-gate:live-control-smoke",
         label: "Live control smoke",
         state: "waiting",
-        nextAction: "Run live-control smoke."
+        nextAction: "Run live-control smoke.",
+        pmTaskId: "phase-03-child-smoke-rows",
+        evidenceKey: "phase3.live-control-smoke"
       }
     ],
     safety: "Evidence only.",
@@ -75,19 +81,25 @@ describe("phase 3 clearance blocker priority", () => {
             id: "phase3-exit-gate:active-turn-steer-smoke",
             label: "Active-turn steer smoke",
             state: "waiting",
-            nextAction: "Run steer smoke."
+            nextAction: "Run steer smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.active-turn-steer-smoke"
           },
           {
             id: "phase3-exit-gate:session-controls",
             label: "Session controls",
             state: "blocked",
-            nextAction: "Repair session controls."
+            nextAction: "Repair session controls.",
+            pmTaskId: "phase-03-child-control-ready",
+            evidenceKey: "phase3.session-controls"
           },
           {
             id: "phase3-exit-gate:slash-execution",
             label: "Slash execution",
             state: "waiting",
-            nextAction: "Run provider-routed slash proof."
+            nextAction: "Run provider-routed slash proof.",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
           }
         ]
       }),
@@ -118,7 +130,9 @@ describe("phase 3 clearance blocker priority", () => {
             id: "phase3-exit-gate:live-control-smoke",
             label: "Live control smoke",
             state: "waiting",
-            nextAction: "Run live-control smoke."
+            nextAction: "Run live-control smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.live-control-smoke"
           }
         ]
       }),
@@ -131,7 +145,9 @@ describe("phase 3 clearance blocker priority", () => {
             id: "phase3-exit-gate:live-control-smoke",
             label: "Live control smoke",
             state: "waiting",
-            nextAction: "Run live-control smoke."
+            nextAction: "Run live-control smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.live-control-smoke"
           }
         ]
       }),
@@ -178,7 +194,9 @@ describe("phase 3 clearance blocker priority", () => {
             label: "Slash execution",
             state: "blocked",
             nextAction:
-              "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
+              "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
           }
         ]
       }),
