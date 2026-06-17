@@ -537,6 +537,7 @@ import {
   buildPhase8PermissionAuditDepth,
   type Phase8PermissionAuditDepthSnapshot
 } from "./phase8PermissionAuditDepth";
+import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import {
   buildPhase9RunnerApprovalSnapshot,
@@ -11933,6 +11934,10 @@ function Phase8PermissionAuditDepthPanel({
   const visibleItems = snapshot.items.slice(0, 8);
   const visibleExceptions = snapshot.exceptions.slice(0, 5);
   const traceability = buildPhase8RiskTraceabilitySummary({ snapshot });
+  const blockerPriority = buildPhase8RiskBlockerPriority({
+    snapshot,
+    traceability
+  });
 
   return (
     <section className="panel-section">
@@ -12001,6 +12006,74 @@ function Phase8PermissionAuditDepthPanel({
                 <b>{item.kind}</b>
               </li>
             ))}
+          </ol>
+        </div>
+        <div
+          aria-label={blockerPriority.ariaLabel}
+          className={classNames(
+            "phase8-blocker-priority",
+            `phase8-blocker-priority-${blockerPriority.state}`
+          )}
+          title={blockerPriority.safety}
+        >
+          <div className="phase8-blocker-priority-header">
+            <strong>{blockerPriority.label}</strong>
+            <span>
+              {blockerPriority.auditReviewCanAddressTopBlocker
+                ? "Audit review"
+                : blockerPriority.openBlockerCount > 0
+                  ? "Owner action"
+                  : "Ready"}
+            </span>
+          </div>
+          <p title={blockerPriority.topPriorityAction}>{blockerPriority.topPriorityLabel}</p>
+          <dl className="phase8-blocker-priority-grid" aria-label="Phase 8 blocker priority counts">
+            <div>
+              <dt>Open</dt>
+              <dd>{blockerPriority.openBlockerCount}</dd>
+            </div>
+            <div>
+              <dt>Reviewable</dt>
+              <dd>{blockerPriority.auditReviewAddressableCount}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>{blockerPriority.statusLabel}</dd>
+            </div>
+            <div>
+              <dt>Ready</dt>
+              <dd>{blockerPriority.readiness}%</dd>
+            </div>
+          </dl>
+          <ol className="phase8-blocker-priority-list" aria-label="Phase 8 blocker priority rows">
+            {blockerPriority.items.length > 0 ? (
+              blockerPriority.items.slice(0, 8).map((item) => (
+                <li
+                  className={classNames(
+                    "phase8-blocker-priority-item",
+                    `phase8-blocker-priority-item-${item.status}`
+                  )}
+                  key={item.id}
+                  title={`${item.detail} ${item.nextAction}`}
+                >
+                  <span>#{item.priority}</span>
+                  <div>
+                    <strong>{item.label}</strong>
+                    <small>{item.nextAction}</small>
+                  </div>
+                  <b>{item.kind}</b>
+                </li>
+              ))
+            ) : (
+              <li className="phase8-blocker-priority-item phase8-blocker-priority-item-ready">
+                <span>OK</span>
+                <div>
+                  <strong>No open Phase 8 blocker</strong>
+                  <small>{blockerPriority.nextAction}</small>
+                </div>
+                <b>ready</b>
+              </li>
+            )}
           </ol>
         </div>
         <ol className="phase8-audit-items" aria-label="Phase 8 missing requirement explanations">

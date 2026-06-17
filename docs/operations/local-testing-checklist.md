@@ -121,6 +121,7 @@ Do not proceed to the next section until the current item is at least `review`.
     - Confirm at least one Phase 8 risk exception explains why the path is exceptional, what evidence is required, and which audit source owns the proof.
     - Confirm Phase 8 audit-depth rows and disabled-path exceptions show linked PM child rows and unique evidence keys.
     - Confirm the Phase 8 risk traceability rows link the remaining goal, PM child coverage, audit-depth evidence, risk exception register, and disabled-path lock before permission audit can be trusted.
+    - Confirm the Phase 8 risk blocker-priority queue ranks the exact top permission, approval, evidence, audit, rollback, disabled-path, or traceability blocker and shows whether audit review can address it before mutation paths grow.
     - Confirm at least one disabled mutation path explains what remains locked before terminal, Git, MCP, plugin, automation, runtime, profile, or external-service actions can proceed.
     - Confirm rollback expectations are visible separately from audit evidence so approval alone never implies mutation readiness.
     - Confirm the panel keeps runtime/profile execution locked while audit and rollback requirements are reviewed.

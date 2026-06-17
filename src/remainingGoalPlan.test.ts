@@ -70,7 +70,11 @@ describe("remaining goal plan", () => {
         expect.objectContaining({
           goalId: "goal-phase-8-permission-audit",
           priority: "high",
-          pmTaskIds: expect.arrayContaining(["phase-08-child-audit-persistence", "phase-08-child-traceability"])
+          pmTaskIds: expect.arrayContaining([
+            "phase-08-child-audit-persistence",
+            "phase-08-child-traceability",
+            "phase-08-child-blocker-priority"
+          ])
         }),
         expect.objectContaining({
           goalId: "goal-phase-9-runner",
@@ -179,10 +183,11 @@ describe("remaining goal plan", () => {
         "phase-08-child-risk-blockers",
         "phase-08-child-risk-exceptions",
         "phase-08-child-traceability",
+        "phase-08-child-blocker-priority",
         "phase-08-child-audit-persistence"
       ])
     );
-    expect(phase8Goal?.nextAction).toContain("risk traceability rows");
+    expect(phase8Goal?.nextAction).toContain("blocker-priority queue");
   });
 
   it("keeps the Phase 4 provider surfaces target linked to traceability and surface depth", () => {

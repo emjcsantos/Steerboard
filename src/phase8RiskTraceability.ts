@@ -59,6 +59,7 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-08-child-risk-blockers",
   "phase-08-child-risk-exceptions",
   "phase-08-child-traceability",
+  "phase-08-child-blocker-priority",
   "phase-08-parent-audit-log",
   "phase-08-child-audit-persistence"
 ];

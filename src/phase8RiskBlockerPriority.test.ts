@@ -7,6 +7,7 @@ import type { RuntimeProfilePermissionApprovalSnapshot } from "./runtimeProfileP
 import type { RuntimeProfilePermissionAuditSnapshot } from "./runtimeProfilePermissionAudit";
 import type { RuntimeProfilePermissionRequestRecord } from "./runtimeProfilePermissionRequestHistory";
 import { buildPhase8PermissionAuditDepth } from "./phase8PermissionAuditDepth";
+import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import { remainingGoalPlan } from "./remainingGoalPlan";
 
@@ -41,7 +42,28 @@ const readyRuntimeExecutionAudit: RuntimeExecutionAuditSnapshot = {
   requiresDesktopApproval: true,
   detail: "Execution audit is ready after approval request.",
   safety: "Audit preview only. Runtime execution remains locked.",
-  items: []
+  items: [
+    {
+      id: "runtime-launch:execution-lock",
+      label: "Execution lock",
+      status: "locked",
+      detail: "Runtime execution is unavailable in this preview."
+    }
+  ]
+};
+
+const waitingRuntimeExecutionAudit: RuntimeExecutionAuditSnapshot = {
+  ...readyRuntimeExecutionAudit,
+  state: "waiting",
+  statusLabel: "Waiting",
+  detail: "Runtime handoff request is waiting on local bridge readiness."
+};
+
+const blockedRuntimeExecutionAudit: RuntimeExecutionAuditSnapshot = {
+  ...readyRuntimeExecutionAudit,
+  state: "blocked",
+  statusLabel: "Blocked",
+  detail: "Execution audit is blocked by launch readiness."
 };
 
 const readyProfilePermissionApproval: RuntimeProfilePermissionApprovalSnapshot = {
@@ -78,20 +100,7 @@ const readyProfilePermissionAudit: RuntimeProfilePermissionAuditSnapshot = {
   items: []
 };
 
-const liveAuditRecord: LiveActionAuditRecord = {
-  id: "terminal:local:requested:2026-06-11T00:00:00.000Z",
-  action: "requested",
-  what: "Terminal probe",
-  why: "Permission requested.",
-  provider: "terminal",
-  workspace: "local",
-  service: "terminal",
-  resultSummary: "Permission requested locally; execution remains locked.",
-  timestamp: "2026-06-11T00:00:00.000Z",
-  risk: "high"
-};
-
-const executionRecord: RuntimeExecutionAuditRecord = {
+const readyAuditRecord: RuntimeExecutionAuditRecord = {
   id: "execution:requested:2026-06-11T00:00:00.000Z",
   auditId: "runtime-launch:execution-audit",
   action: "requested",
@@ -103,7 +112,7 @@ const executionRecord: RuntimeExecutionAuditRecord = {
   detail: "Approval requested locally."
 };
 
-const profileRequest: RuntimeProfilePermissionRequestRecord = {
+const readyProfileRequest: RuntimeProfilePermissionRequestRecord = {
   id: "profile:requested:2026-06-11T00:00:00.000Z",
   handoffId: "profile:permission-handoff",
   action: "requested",
@@ -117,11 +126,25 @@ const profileRequest: RuntimeProfilePermissionRequestRecord = {
   profileLabel: "Profile"
 };
 
-function depth(options: {
+const liveAuditRecord: LiveActionAuditRecord = {
+  id: "terminal:local:requested:2026-06-11T00:00:00.000Z",
+  action: "requested",
+  what: "Terminal probe",
+  why: "Permission requested.",
+  provider: "terminal",
+  workspace: "local",
+  service: "terminal",
+  resultSummary: "Permission requested locally; execution remains locked.",
+  timestamp: "2026-06-11T00:00:00.000Z",
+  risk: "high"
+};
+
+function snapshot(options: {
   summaries?: LiveActionPermissionRequestSummary[];
   liveAuditRecords?: LiveActionAuditRecord[];
   runtimeExecutionAudit?: RuntimeExecutionAuditSnapshot;
   runtimeExecutionAuditHistory?: RuntimeExecutionAuditRecord[];
+  runtimeProfilePermissionApproval?: RuntimeProfilePermissionApprovalSnapshot;
   runtimeProfilePermissionAudit?: RuntimeProfilePermissionAuditSnapshot;
   runtimeProfilePermissionRequestHistory?: RuntimeProfilePermissionRequestRecord[];
 } = {}) {
@@ -132,14 +155,10 @@ function depth(options: {
       liveSummary("plugin")
     ],
     liveActionAuditRecords: options.liveAuditRecords ?? [],
-    runtimeExecutionAudit: options.runtimeExecutionAudit ?? {
-      ...readyRuntimeExecutionAudit,
-      state: "waiting",
-      statusLabel: "Waiting",
-      detail: "Runtime handoff request is waiting on local bridge readiness."
-    },
+    runtimeExecutionAudit: options.runtimeExecutionAudit ?? waitingRuntimeExecutionAudit,
     runtimeExecutionAuditHistory: options.runtimeExecutionAuditHistory ?? [],
-    runtimeProfilePermissionApproval: readyProfilePermissionApproval,
+    runtimeProfilePermissionApproval:
+      options.runtimeProfilePermissionApproval ?? readyProfilePermissionApproval,
     runtimeProfilePermissionAudit:
       options.runtimeProfilePermissionAudit ?? readyProfilePermissionAudit,
     runtimeProfilePermissionRequestHistory:
@@ -147,36 +166,62 @@ function depth(options: {
   });
 }
 
-function traceability(options: {
-  snapshot?: ReturnType<typeof depth>;
+function priority({
+  depth = snapshot(),
+  goals = remainingGoalPlan
+}: {
+  depth?: ReturnType<typeof snapshot>;
   goals?: typeof remainingGoalPlan;
 } = {}) {
-  return buildPhase8RiskTraceabilitySummary({
-    snapshot: options.snapshot ?? depth(),
-    goals: options.goals ?? remainingGoalPlan
+  const traceability = buildPhase8RiskTraceabilitySummary({
+    snapshot: depth,
+    goals
   });
+
+  return buildPhase8RiskBlockerPriority({ snapshot: depth, traceability });
 }
 
-describe("phase 8 risk traceability", () => {
-  it("links the Phase 8 goal, PM child rows, audit-depth evidence, exceptions, and disabled paths", () => {
-    const summary = traceability();
+describe("phase 8 risk blocker priority", () => {
+  it("ranks waiting permission blockers with audit-review actions", () => {
+    const summary = priority();
 
-    expect(summary.linkedGoalId).toBe("goal-phase-8-permission-audit");
-    expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(9);
-    expect(summary.missingPmTaskIds).toEqual([]);
-    expect(summary.items.map((item) => item.kind)).toEqual([
-      "active-goal",
-      "pm-coverage",
-      "audit-depth",
-      "exception-register",
-      "disabled-path-lock"
-    ]);
     expect(summary.state).toBe("waiting");
-    expect(summary.canTrustPermissionAudit).toBe(false);
-    expect(summary.safety).toContain("evidence-only");
+    expect(summary.openBlockerCount).toBeGreaterThan(0);
+    expect(summary.auditReviewCanAddressTopBlocker).toBe(true);
+    expect(summary.topPriorityLabel).toBe("terminal action");
+    expect(summary.items[0]).toMatchObject({
+      kind: "audit-depth",
+      status: "waiting",
+      severity: "medium",
+      priority: 1
+    });
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "risk-exception", status: "waiting" }),
+        expect.objectContaining({ kind: "traceability", status: "waiting" })
+      ])
+    );
   });
 
-  it("blocks when the Phase 8 goal misses a required PM child link", () => {
+  it("keeps blocked approval and execution audit rows ahead of waiting evidence", () => {
+    const summary = priority({
+      depth: snapshot({
+        summaries: [liveSummary("terminal", "denied")],
+        runtimeExecutionAudit: blockedRuntimeExecutionAudit
+      })
+    });
+
+    expect(summary.state).toBe("blocked");
+    expect(summary.topPriorityLabel).toBe("terminal action");
+    expect(summary.items[0]).toMatchObject({
+      kind: "audit-depth",
+      status: "blocked",
+      severity: "critical"
+    });
+    expect(summary.nextAction).toContain("phase8.approval-gate");
+  });
+
+  it("surfaces PM traceability gaps after audit depth is ready", () => {
     const goals = remainingGoalPlan.map((goal) =>
       goal.id === "goal-phase-8-permission-audit"
         ? {
@@ -185,23 +230,8 @@ describe("phase 8 risk traceability", () => {
           }
         : goal
     );
-    const summary = traceability({ goals });
-
-    expect(summary.state).toBe("blocked");
-    expect(summary.missingPmTaskIds).toEqual(["phase-08-child-traceability"]);
-    expect(summary.items).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          kind: "pm-coverage",
-          status: "blocked"
-        })
-      ])
-    );
-  });
-
-  it("trusts permission audit only after depth, exception, PM, key, and disabled-path evidence are ready", () => {
-    const summary = traceability({
-      snapshot: depth({
+    const summary = priority({
+      depth: snapshot({
         summaries: [
           liveSummary("terminal", "approved"),
           liveSummary("git", "approved"),
@@ -209,69 +239,62 @@ describe("phase 8 risk traceability", () => {
         ],
         liveAuditRecords: [liveAuditRecord],
         runtimeExecutionAudit: readyRuntimeExecutionAudit,
-        runtimeExecutionAuditHistory: [executionRecord],
-        runtimeProfilePermissionRequestHistory: [profileRequest]
+        runtimeExecutionAuditHistory: [readyAuditRecord],
+        runtimeProfilePermissionRequestHistory: [readyProfileRequest]
+      }),
+      goals
+    });
+
+    expect(summary.state).toBe("blocked");
+    expect(summary.topPriorityLabel).toBe("PM row coverage");
+    expect(summary.items[0]).toMatchObject({
+      kind: "traceability",
+      status: "blocked",
+      severity: "critical"
+    });
+  });
+
+  it("reports ready when permission audit depth and traceability are ready", () => {
+    const summary = priority({
+      depth: snapshot({
+        summaries: [
+          liveSummary("terminal", "approved"),
+          liveSummary("git", "approved"),
+          liveSummary("plugin", "approved")
+        ],
+        liveAuditRecords: [liveAuditRecord],
+        runtimeExecutionAudit: readyRuntimeExecutionAudit,
+        runtimeExecutionAuditHistory: [readyAuditRecord],
+        runtimeProfilePermissionRequestHistory: [readyProfileRequest]
       })
     });
 
     expect(summary.state).toBe("ready");
-    expect(summary.canTrustPermissionAudit).toBe(true);
-    expect(summary.readyCount).toBe(5);
-    expect(summary.evidenceKeyCount).toBe(summary.auditDepthItemCount + summary.exceptionCount);
-    expect(summary.openExceptionCount).toBe(0);
+    expect(summary.openBlockerCount).toBe(0);
+    expect(summary.readiness).toBe(100);
+    expect(summary.topPriorityLabel).toBe("No open Phase 8 risk blocker");
   });
 
-  it("blocks when disabled-path lock copy is missing", () => {
-    const snapshot = depth({
-      summaries: [liveSummary("terminal", "approved")],
-      liveAuditRecords: [liveAuditRecord],
-      runtimeExecutionAudit: readyRuntimeExecutionAudit,
-      runtimeExecutionAuditHistory: [executionRecord],
-      runtimeProfilePermissionRequestHistory: [profileRequest]
-    });
-    const summary = traceability({
-      snapshot: {
-        ...snapshot,
-        exceptions: snapshot.exceptions.map((exception, index) =>
-          index === 0
-            ? {
-                ...exception,
-                disabledPath: "Permission copy is incomplete."
-              }
-            : exception
-        )
-      }
-    });
-
-    expect(summary.state).toBe("blocked");
-    expect(summary.items).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          kind: "disabled-path-lock",
-          status: "blocked"
-        })
-      ])
-    );
-  });
-
-  it("keeps traceability text public-safe", () => {
-    const summary = traceability({
-      goals: remainingGoalPlan.map((goal) =>
-        goal.id === "goal-phase-8-permission-audit"
-          ? {
-              ...goal,
-              nextAction:
-                "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
-            }
-          : goal
-      )
-    });
+  it("keeps Phase 8 blocker-priority text public-safe", () => {
+    const unsafeDepth = {
+      ...snapshot(),
+      nextAction:
+        "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
+    };
+    const summary = priority({ depth: unsafeDepth });
     const combinedText = [
       summary.label,
+      summary.ariaLabel,
       summary.nextAction,
       summary.safety,
-      summary.ariaLabel,
-      ...summary.items.flatMap((item) => [item.label, item.detail, item.nextAction])
+      ...summary.items.flatMap((item) => [
+        item.label,
+        item.kind,
+        item.status,
+        item.severity,
+        item.detail,
+        item.nextAction
+      ])
     ].join(" ");
 
     expect(combinedText).not.toMatch(/[A-Za-z]:[\\/]/);

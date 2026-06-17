@@ -203,11 +203,12 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-08-child-risk-blockers",
       "phase-08-child-risk-exceptions",
       "phase-08-child-traceability",
+      "phase-08-child-blocker-priority",
       "phase-08-parent-audit-log",
       "phase-08-child-audit-persistence"
     ],
     nextAction:
-      "Use the Phase 8 Audit Depth and risk traceability rows to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, and rollback explanations before mutation paths grow."
+      "Use the Phase 8 Audit Depth, risk traceability rows, and blocker-priority queue to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, and the exact top blocker before mutation paths grow."
   },
   {
     id: "goal-phase-9-runner",

@@ -619,6 +619,14 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 40,
             complexity: "high",
             sourceDocument: "Phase 8 risk traceability"
+          },
+          {
+            id: "phase-08-child-blocker-priority",
+            title: "Risk Blocker Priority",
+            description: "Rank exact Phase 8 blockers across permission, approval, evidence, audit persistence, rollback, disabled paths, exceptions, and traceability before mutation-capable paths can advance.",
+            completionPercent: 35,
+            complexity: "medium",
+            sourceDocument: "Phase 8 risk blocker priority"
           }
         ]
       },
