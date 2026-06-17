@@ -239,9 +239,10 @@ function executionLockItem(): Phase4ProviderSurfaceDepthItem {
     id: `${SNAPSHOT_ID}:execution-lock`,
     label: "Execution lock",
     kind: "execution-lock",
-    status: "ready",
+    status: "preview",
     detail: "Provider execution remains locked behind future approval, audit, rollback, and permission gates.",
-    nextAction: "Keep commands, skills, plugins, MCP tools, automations, and personalization mutations disabled."
+    nextAction:
+      "Keep provider metadata review separate from execution readiness until approval, audit, rollback, and permission gates exist."
   };
 }
 

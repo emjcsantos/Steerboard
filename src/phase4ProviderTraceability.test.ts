@@ -118,8 +118,8 @@ describe("phase 4 provider traceability", () => {
   it("links the Phase 4 remaining goal, PM rows, depth records, refresh safety, and execution locks", () => {
     const summary = traceability();
 
-    expect(summary.state).toBe("ready");
-    expect(summary.canTrustProviderReview).toBe(true);
+    expect(summary.state).toBe("preview");
+    expect(summary.canTrustProviderReview).toBe(false);
     expect(summary.linkedGoalId).toBe("goal-phase-4-provider-surfaces");
     expect(summary.missingPmTaskIds).toEqual([]);
     expect(summary.linkedPmTaskCount).toBe(11);
@@ -135,6 +135,12 @@ describe("phase 4 provider traceability", () => {
       "surface-depth",
       "execution-lock"
     ]);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "surface-depth", status: "preview" }),
+        expect.objectContaining({ kind: "execution-lock", status: "ready" })
+      ])
+    );
   });
 
   it("holds provider traceability in preview while refresh smoke has not run", () => {

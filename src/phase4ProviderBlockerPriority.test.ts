@@ -170,16 +170,27 @@ describe("phase 4 provider blocker priority", () => {
     expect(snapshot.nextAction).toContain("catalog smoke");
   });
 
-  it("reports ready when provider review and traceability are fully ready", () => {
+  it("keeps provider review held while execution is still locked", () => {
     const snapshot = priority({
       validation: validationFixture(),
       smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads)
     });
 
-    expect(snapshot.state).toBe("ready");
-    expect(snapshot.openBlockerCount).toBe(0);
-    expect(snapshot.readiness).toBe(100);
-    expect(snapshot.topPriorityLabel).toBe("No open Phase 4 provider blocker");
+    expect(snapshot.state).toBe("preview");
+    expect(snapshot.openBlockerCount).toBeGreaterThan(0);
+    expect(snapshot.readiness).toBe(70);
+    expect(snapshot.topPriorityLabel).toBe("Execution lock");
+    expect(snapshot.topPriorityAction).toContain("metadata review separate from execution readiness");
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Execution lock",
+          kind: "surface-depth",
+          status: "preview",
+          severity: "medium"
+        })
+      ])
+    );
   });
 
   it("keeps blocker-priority text public-safe", () => {

@@ -91,6 +91,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm the Phase 4 Provider Readiness card updates from the same catalog snapshots and shows ready, preview, setup-required, unsupported, unavailable, or blocked labels with an exact next action.
    - Confirm the Phase 4 Provider Readiness catalog-depth rows keep all six provider surfaces visible with source labels, totals, evidence expectations, and locked execution posture.
    - Confirm the Phase 4 Surface Depth panel uses those metadata snapshots to expose surface coverage, setup blockers, capability gaps, preview review, and the execution lock without running provider actions.
+   - Confirm all-ready metadata still leaves the Phase 4 execution-lock row in review, keeps Provider Blocker Priority open, and does not report provider execution as ready until approval, audit, rollback, and permission gates exist.
    - Confirm the Phase 4 Provider Traceability rows link `goal-phase-4-provider-surfaces`, all required Phase 4 PM child rows, catalog-depth evidence, fresh fingerprint-matched refresh-safety evidence, surface-depth evidence, and provider execution locks.
    - Confirm the Phase 4 Provider Blocker Priority rows rank the exact top provider blocker, show whether catalog smoke can address it, and keep setup-required or unavailable provider blockers ahead of preview-only refresh proof.
    - Open the connection dialog and run the catalog smoke to refresh all six catalog metadata/status surfaces together without execution.

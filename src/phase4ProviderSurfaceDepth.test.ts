@@ -76,21 +76,26 @@ describe("phase 4 provider surface depth", () => {
     expect(depth.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: "Setup blockers", status: "setup-required" }),
-        expect.objectContaining({ label: "Execution lock", status: "ready" })
+        expect.objectContaining({ label: "Execution lock", status: "preview" })
       ])
     );
   });
 
-  it("reports ready depth while still keeping provider execution locked", () => {
+  it("reports metadata-ready depth as execution-held while provider execution is locked", () => {
     const depth = depthFromValidation(validationFixture());
 
-    expect(depth.state).toBe("ready");
-    expect(depth.readiness).toBe(100);
+    expect(depth.state).toBe("preview");
+    expect(depth.readiness).toBe(94);
     expect(depth.canEnableExecution).toBe(false);
-    expect(depth.attentionCount).toBe(0);
+    expect(depth.attentionCount).toBe(1);
+    expect(depth.previewCount).toBe(1);
     expect(depth.nextSurfaceLabel).toBe("Execution lock");
-    expect(depth.nextAction).toContain("execution locked");
-    expect(depth.items.every((item) => item.status === "ready")).toBe(true);
+    expect(depth.nextAction).toContain("metadata review separate from execution readiness");
+    expect(depth.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Execution lock", status: "preview" })
+      ])
+    );
   });
 
   it("surfaces preview rows as a separate owner-review hold", () => {
@@ -114,7 +119,7 @@ describe("phase 4 provider surface depth", () => {
     );
 
     expect(depth.state).toBe("preview");
-    expect(depth.previewCount).toBe(1);
+    expect(depth.previewCount).toBe(2);
     expect(depth.nextSurfaceLabel).toBe("MCP");
     expect(depth.items).toEqual(
       expect.arrayContaining([
