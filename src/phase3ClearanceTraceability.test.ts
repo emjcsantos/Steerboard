@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Phase3ClearanceBlockerPrioritySnapshot } from "./phase3ClearanceBlockerPriority";
 import type { Phase3ClearanceCommandPlan } from "./phase3ClearanceCommandPlan";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
+import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffGate } from "./phase3HandoffGate";
 import {
   buildPhase3ClearanceTraceability,
@@ -91,6 +92,21 @@ function blockerPriority(
   };
 }
 
+function commandValidation(
+  overrides: Partial<Phase3CommandValidationRecordValidation> = {}
+): Phase3CommandValidationRecordValidation {
+  return {
+    state: "ready",
+    statusLabel: "Ready",
+    detail:
+      "Phase 3 CLI smoke validation is fresh, but persisted desktop UI proof rows remain the exit-readiness source.",
+    nextAction:
+      "Keep the CLI smoke validation attached for owner review without using it to unlock handoff.",
+    isFresh: true,
+    ...overrides
+  };
+}
+
 function handoff(
   overrides: Partial<Phase3HandoffGate> = {}
 ): Phase3HandoffGate {
@@ -122,6 +138,7 @@ function snapshot(
     pmTasks: createDefaultProjectManagementPhasePlan(),
     clearancePackage: clearance(),
     commandPlan: commandPlan(),
+    commandValidation: commandValidation(),
     blockerPriority: blockerPriority(),
     handoffGate: handoff(),
     ...overrides
@@ -245,6 +262,36 @@ describe("phase 3 clearance traceability", () => {
         })
       ])
     );
+  });
+
+  it("keeps trace untrusted when CLI validation freshness needs review", () => {
+    const result = snapshot({
+      commandValidation: commandValidation({
+        state: "review",
+        statusLabel: "Review",
+        detail: "Phase 3 CLI smoke validation record is stale and must be recorded again.",
+        nextAction:
+          "Rerun npm.cmd run smoke:phase3 manually, then record a fresh local CLI pass.",
+        isFresh: false
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustTrace).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "command-validation",
+          status: "review",
+          detail: expect.stringContaining("stale")
+        }),
+        expect.objectContaining({
+          kind: "handoff-boundary",
+          status: "ready"
+        })
+      ])
+    );
+    expect(result.nextAction).toContain("Rerun npm.cmd run smoke:phase3");
   });
 
   it("keeps traceability text public-safe and independent from Phase 7 ownership", () => {

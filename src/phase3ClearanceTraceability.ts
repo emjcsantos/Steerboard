@@ -4,6 +4,7 @@ import type {
   Phase3ClearancePackage,
   Phase3ClearancePackageState
 } from "./phase3ClearancePackage";
+import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffGate } from "./phase3HandoffGate";
 import {
   createDefaultProjectManagementPhasePlan
@@ -20,6 +21,7 @@ export type Phase3ClearanceTraceabilityItemKind =
   | "active-goal"
   | "pm-coverage"
   | "clearance-evidence"
+  | "command-validation"
   | "handoff-boundary"
   | "goal-honesty";
 
@@ -57,6 +59,7 @@ export interface Phase3ClearanceTraceabilityInput {
   readonly pmTasks?: readonly ProjectManagementTask[];
   readonly clearancePackage: Phase3ClearancePackage;
   readonly commandPlan: Phase3ClearanceCommandPlan;
+  readonly commandValidation?: Phase3CommandValidationRecordValidation;
   readonly blockerPriority: Phase3ClearanceBlockerPrioritySnapshot;
   readonly handoffGate: Phase3HandoffGate;
 }
@@ -137,6 +140,22 @@ function firstNextAction(
     items.find((item) => item.status === "waiting")?.nextAction ??
     "Keep the active Phase 3 goal, PM rows, clearance evidence, and owner handoff trace linked until Phase 3 exits."
   );
+}
+
+function publicText(value: string | undefined, fallback: string): string {
+  if (!value || value.trim().length === 0) {
+    return fallback;
+  }
+
+  const sanitized = value
+    .replace(/[A-Za-z]:[\\/][^\s]+/g, "local path")
+    .replace(/[\\/](Users|Projects|Documents|Desktop)[\\/][^\s]+/gi, "local path")
+    .replace(/sk-[A-Za-z0-9_-]+/g, "redacted token")
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return sanitized.length > 0 ? sanitized : fallback;
 }
 
 function goalItem(goal: RemainingGoalPlanItem | undefined): Phase3ClearanceTraceabilityItem {
@@ -239,6 +258,37 @@ function clearanceEvidenceItem(
     status: clearancePackage.state,
     detail: `${clearancePackage.openCount} clearance blockers remain; ${blockerPriority.commandAddressableCount} are command-addressable.`,
     nextAction: blockerPriority.nextAction
+  };
+}
+
+function commandValidationItem(
+  commandValidation: Phase3CommandValidationRecordValidation | undefined
+): Phase3ClearanceTraceabilityItem {
+  if (!commandValidation) {
+    return {
+      id: `${SNAPSHOT_ID}:command-validation`,
+      label: "CLI validation trace",
+      kind: "command-validation",
+      status: "waiting",
+      detail: "No Phase 3 CLI smoke validation freshness result is linked to traceability.",
+      nextAction:
+        "Link the freshness-reviewed Phase 3 CLI smoke validation record without using it to unlock desktop proof or handoff."
+    };
+  }
+
+  return {
+    id: `${SNAPSHOT_ID}:command-validation`,
+    label: "CLI validation trace",
+    kind: "command-validation",
+    status: commandValidation.state,
+    detail: publicText(
+      commandValidation.detail,
+      "Phase 3 CLI smoke validation freshness must be reviewed."
+    ),
+    nextAction: publicText(
+      commandValidation.nextAction,
+      "Review the Phase 3 CLI smoke validation record without using it to unlock desktop proof or handoff."
+    )
   };
 }
 
@@ -355,6 +405,7 @@ export function buildPhase3ClearanceTraceability(
       input.commandPlan,
       input.blockerPriority
     ),
+    commandValidationItem(input.commandValidation),
     handoffBoundaryItem(input.clearancePackage, input.handoffGate),
     goalHonestyItem(goal, input.handoffGate)
   ];

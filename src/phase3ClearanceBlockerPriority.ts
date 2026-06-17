@@ -123,6 +123,16 @@ function kindRank(kind: Phase3ClearanceBlockerPriorityKind): number {
   }
 }
 
+function priorityLaneRank(kind: Phase3ClearanceBlockerPriorityKind): number {
+  if (kind === "slash-evidence" || kind === "session-control") {
+    return 0;
+  }
+  if (kind === "desktop-smoke") {
+    return 1;
+  }
+  return 2;
+}
+
 function smokeOrder(blockerId: string): number {
   if (blockerId.includes("live-control-smoke")) {
     return 0;
@@ -221,6 +231,7 @@ export function buildPhase3ClearanceBlockerPriority(
     })
     .sort(
       (left, right) =>
+        priorityLaneRank(left.kind) - priorityLaneRank(right.kind) ||
         stateRank(left.status) - stateRank(right.status) ||
         kindRank(left.kind) - kindRank(right.kind) ||
         smokeOrder(left.blockerId) - smokeOrder(right.blockerId) ||

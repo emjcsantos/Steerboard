@@ -122,6 +122,47 @@ describe("phase 3 clearance blocker priority", () => {
     });
   });
 
+  it("keeps slash or session blockers ahead of blocked desktop smoke", () => {
+    const snapshot = buildPhase3ClearanceBlockerPriority({
+      clearancePackage: clearancePackage({
+        state: "blocked",
+        readiness: 15,
+        blockers: [
+          {
+            id: "phase3-exit-gate:active-turn-steer-smoke",
+            label: "Active-turn steer smoke",
+            state: "blocked",
+            nextAction: "Repair steer smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.active-turn-steer-smoke"
+          },
+          {
+            id: "phase3-exit-gate:slash-execution",
+            label: "Slash execution",
+            state: "waiting",
+            nextAction: "Run provider-routed slash proof.",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
+          }
+        ]
+      }),
+      commandPlan: commandPlan()
+    });
+
+    expect(snapshot.topPriorityLabel).toBe("Slash execution");
+    expect(snapshot.commandCanAddressTopBlocker).toBe(false);
+    expect(snapshot.items.map((item) => item.label)).toEqual([
+      "Slash execution",
+      "Active-turn steer smoke"
+    ]);
+    expect(snapshot.items[0]).toMatchObject({
+      priority: 1,
+      kind: "slash-evidence",
+      severity: "high",
+      canUseSmokeCommand: false
+    });
+  });
+
   it("marks desktop smoke blockers as command-addressable only when the command plan is runnable", () => {
     const runnable = buildPhase3ClearanceBlockerPriority({
       clearancePackage: clearancePackage({

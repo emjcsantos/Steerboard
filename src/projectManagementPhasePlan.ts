@@ -193,18 +193,18 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-03-controls-slash",
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
-    description: "Clear the current blocker by proving slash execution, session controls, live-refreshed desktop proof freshness, command-plan clarity, freshness-reviewed CLI validation, prioritized blocker review, goal/PM traceability, and owner-reviewed handoff readiness tied to compact current non-expired evidence.",
+    description: "Clear the current blocker by proving slash execution, session controls, live-refreshed desktop proof freshness, command-plan clarity, freshness-reviewed CLI validation traceability, slash/session-first blocker review, goal/PM traceability, and owner-reviewed handoff readiness tied to compact current non-expired evidence.",
     status: "ongoing",
-    completionPercent: 97,
+    completionPercent: 98,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-03-parent-proof-clearance",
         title: "Desktop Proof Clearance",
-        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan and CLI validation freshness visible, prioritize open blockers, link goal/PM traceability, and keep the handoff boundary matched to compact current non-expired evidence.",
+        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan and CLI validation freshness visible in traceability, prioritize slash/session blockers before desktop smoke, link goal/PM traceability, and keep the handoff boundary matched to compact current non-expired evidence.",
         status: "ongoing",
-        completionPercent: 97,
+        completionPercent: 98,
         complexity: "extra_high",
         sourceDocument: "Current state and pipeline",
         children: [
@@ -234,16 +234,16 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-blocker-priority",
             title: "Clearance Blocker Priority",
-            description: "Rank exact Phase 3 blockers by severity, proof category, and command-addressable status before owner handoff.",
-            completionPercent: 75,
+            description: "Rank exact Phase 3 blockers by slash/session priority, severity, proof category, and command-addressable status before owner handoff.",
+            completionPercent: 82,
             complexity: "medium",
             sourceDocument: "Phase 3 blocker priority"
           },
           {
             id: "phase-03-child-traceability",
             title: "Clearance Traceability",
-            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, blocker priority, and compact current non-expired evidence handoff boundary in one owner-review trace.",
-            completionPercent: 86,
+            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, CLI validation freshness, blocker priority, and compact current non-expired evidence handoff boundary in one owner-review trace.",
+            completionPercent: 90,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance traceability"
           },

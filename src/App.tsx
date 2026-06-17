@@ -2081,12 +2081,14 @@ export function App() {
       buildPhase3ClearanceTraceability({
         clearancePackage: phase3ClearancePackage,
         commandPlan: phase3ClearanceCommandPlan,
+        commandValidation: phase3CommandValidationRecordValidation,
         blockerPriority: phase3ClearanceBlockerPriority,
         handoffGate: phase3HandoffGate
       }),
     [
       phase3ClearanceBlockerPriority,
       phase3ClearanceCommandPlan,
+      phase3CommandValidationRecordValidation,
       phase3ClearancePackage,
       phase3HandoffGate
     ]
