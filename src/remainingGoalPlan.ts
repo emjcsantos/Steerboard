@@ -122,20 +122,21 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 5"],
     phaseIds: ["phase-05-migration-center"],
     goal:
-      "Finish preview, apply-intent, rollback, and audit review for metadata-only migration work.",
+      "Finish preview, apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and review-depth records for metadata-only migration work.",
     status: "next",
     priority: "high",
-    completionPercent: 45,
+    completionPercent: 50,
     pmTaskIds: [
       "phase-05-migration-center",
       "phase-05-parent-draft-workflow",
       "phase-05-child-profile-drafts",
       "phase-05-child-preview-metadata",
       "phase-05-parent-rollback-audit",
-      "phase-05-child-audit-summary"
+      "phase-05-child-audit-summary",
+      "phase-05-child-review-depth"
     ],
     nextAction:
-      "Use the Migration review gate to keep apply intent locked, confirm rollback evidence, and repair audit blockers before any profile activation."
+      "Use the Migration review gate to keep apply intent locked, confirm rollback evidence, repair audit blockers, verify sensitive exclusions, and keep profile activation locked before any migration apply path."
   },
   {
     id: "goal-phase-7-dispatch-loop",

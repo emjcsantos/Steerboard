@@ -109,7 +109,7 @@ The `File > Migrate...` dialog should include:
 - preview table grouped by category,
 - confirmation step,
 - rollback summary after import.
-- review gate showing apply-intent lock, rollback evidence, audit consistency, and sensitive-exclusion status.
+- review gate showing apply-intent lock, rollback evidence, audit consistency, sensitive-exclusion status, and profile activation lock as separate owner-review records.
 
 The goal is that a user can end with the same practical working condition as the source application: projects visible, usable chat/session context where safely exportable, matching plugins and skills, matching MCP server definitions, matching personalization posture, and matching relevant settings.
 
@@ -129,7 +129,16 @@ The migration dialog includes a review gate before any profile activation path. 
 - whether apply intent is ready, held for review, waiting, or blocked,
 - whether rollback evidence exists for the local draft history,
 - whether the latest audit matches the latest draft,
-- whether sensitive exclusions are present.
+- whether sensitive exclusions are complete,
+- whether profile activation remains locked behind explicit owner approval.
+
+The review-depth records separately show:
+
+- apply-intent lock evidence, including draft id, import state, audit match, and owner-visible apply-intent notice,
+- rollback evidence, including latest draft id, prior active-profile pointer, rollback audit note, checksumable manifest references, and no-source-mutation boundary,
+- audit consistency, including draft/audit id match, selected category count, review-required count, and unsupported count,
+- sensitive exclusions, including secrets, tokens, auth caches/files/state, browser state, source artifacts, source mutation, and raw transcript exclusions,
+- profile activation lock, including the disabled mutation boundary before owner approval.
 
 `Stage apply review` records an owner-visible intent notice only. It does not change the active profile, mutate the source platform, copy secrets, import raw transcripts, run commands, or enable provider execution.
 

@@ -22,6 +22,23 @@ export interface MigrationHardeningReadinessItem {
   readonly detail: string;
 }
 
+export type MigrationReviewDepthKind =
+  | "apply-intent"
+  | "rollback"
+  | "audit"
+  | "exclusion"
+  | "profile-lock";
+
+export interface MigrationReviewDepthItem {
+  readonly id: string;
+  readonly label: string;
+  readonly kind: MigrationReviewDepthKind;
+  readonly status: MigrationHardeningReadinessState;
+  readonly detail: string;
+  readonly evidence: string;
+  readonly nextAction: string;
+}
+
 export interface MigrationHardeningReadinessInput {
   readonly preview: MigrationPreview;
   readonly draftHistory: readonly MigrationProfileDraftHistoryRecord[];
@@ -37,11 +54,14 @@ export interface MigrationHardeningReadiness {
   readonly canCreateDraft: boolean;
   readonly canRollback: boolean;
   readonly canStageApplyIntent: boolean;
+  readonly reviewRecordCount: number;
+  readonly openReviewRecordCount: number;
   readonly applyIntentState: MigrationApplyIntentState;
   readonly applyIntentLabel: string;
   readonly latestDraftId?: string;
   readonly nextAction: string;
   readonly items: readonly MigrationHardeningReadinessItem[];
+  readonly reviewDepthItems: readonly MigrationReviewDepthItem[];
 }
 
 export const MIGRATION_HARDENING_SAFETY =
@@ -182,6 +202,98 @@ function readinessFromItems(items: readonly MigrationHardeningReadinessItem[]): 
   );
 }
 
+function includesAny(value: string, needles: readonly string[]): boolean {
+  const normalized = value.toLowerCase();
+  return needles.some((needle) => normalized.includes(needle));
+}
+
+function sensitiveExclusionStatus(
+  excludedSecretsSummary: readonly string[]
+): MigrationHardeningReadinessState {
+  if (excludedSecretsSummary.length === 0) {
+    return "waiting";
+  }
+
+  const combined = excludedSecretsSummary.join(" ");
+  const hasSecret = includesAny(combined, ["secret", "credential", "token", "auth"]);
+  const hasTranscript = includesAny(combined, ["transcript", "raw"]);
+  const hasSourceBoundary = includesAny(combined, ["source", "mutation", "browser"]);
+
+  return hasSecret && hasTranscript && hasSourceBoundary ? "ready" : "review";
+}
+
+function buildMigrationReviewDepthItems(input: {
+  latestDraft?: MigrationProfileDraft;
+  auditReady: boolean;
+  applyIntentState: MigrationApplyIntentState;
+  applyStatus: MigrationHardeningReadinessState;
+  canRollback: boolean;
+  excludedSecretsSummary: readonly string[];
+}): MigrationReviewDepthItem[] {
+  const hasDraft = Boolean(input.latestDraft);
+  const sensitiveStatus = sensitiveExclusionStatus(input.excludedSecretsSummary);
+
+  return [
+    {
+      id: "migration-review-depth:apply-intent-lock",
+      label: "Apply intent lock",
+      kind: "apply-intent",
+      status: hasDraft ? input.applyStatus : "waiting",
+      detail: hasDraft
+        ? `${applyIntentLabels[input.applyIntentState]}; active profile changes remain locked.`
+        : "Apply review is unavailable until a reviewed draft exists.",
+      evidence: "Draft id, import state, audit match, and owner-visible apply-intent notice.",
+      nextAction: hasDraft
+        ? "Stage owner review only after audit consistency and rollback evidence are visible."
+        : "Create a reviewed local profile draft before staging apply intent."
+    },
+    {
+      id: "migration-review-depth:rollback-evidence",
+      label: "Rollback evidence",
+      kind: "rollback",
+      status: input.canRollback ? "ready" : "waiting",
+      detail: input.canRollback
+        ? "Latest local draft history can be rolled back without touching the source platform."
+        : "Rollback evidence appears after a reviewed draft is created.",
+      evidence: "Latest draft id, prior active-profile pointer, rollback audit note, checksumable manifest references, and no-source-mutation boundary.",
+      nextAction: "Keep rollback evidence visible before any apply review can advance."
+    },
+    {
+      id: "migration-review-depth:audit-consistency",
+      label: "Audit consistency",
+      kind: "audit",
+      status: hasDraft ? input.auditReady ? "ready" : "blocked" : "waiting",
+      detail: hasDraft
+        ? input.auditReady
+          ? "Latest audit matches draft id, selected count, review count, and unsupported count."
+          : "Latest audit does not match the latest draft and blocks apply review."
+        : "Audit consistency is waiting for a draft creation record.",
+      evidence: "Draft/audit id match, selected category count, review-required count, unsupported count.",
+      nextAction: "Repair inconsistent audit metadata before owner apply review."
+    },
+    {
+      id: "migration-review-depth:sensitive-exclusions",
+      label: "Sensitive exclusions",
+      kind: "exclusion",
+      status: sensitiveStatus,
+      detail: input.excludedSecretsSummary.length > 0
+        ? `${input.excludedSecretsSummary.length} sensitive exclusion notes are visible for owner review.`
+        : "No sensitive exclusion notes are visible yet.",
+      evidence: "Secrets, tokens, auth caches/files/state, browser state, source artifacts, source mutation, and raw transcript exclusions.",
+      nextAction: "Confirm secrets, auth/browser state, source mutation, and raw transcripts stay excluded."
+    },
+    {
+      id: "migration-review-depth:profile-activation-lock",
+      label: "Profile activation lock",
+      kind: "profile-lock",
+      status: "ready",
+      detail: "Migration review never changes the active profile, source app, files, commands, plugins, MCP tools, automations, or personalization state.",
+      evidence: "Apply review notice and disabled mutation boundary.",
+      nextAction: "Keep profile activation behind explicit owner approval after review evidence is complete."
+    }
+  ];
+}
+
 export function buildMigrationHardeningReadiness(
   input: MigrationHardeningReadinessInput
 ): MigrationHardeningReadiness {
@@ -199,6 +311,7 @@ export function buildMigrationHardeningReadiness(
   const applyIntentState = applyIntentStateFromDraft(latestDraft, auditReady);
   const applyStatus = applyIntentStatus(applyIntentState);
   const canRollback = input.draftHistory.length > 0;
+  const sensitiveStatus = sensitiveExclusionStatus(excludedSecretsSummary);
 
   const items: MigrationHardeningReadinessItem[] = [
     {
@@ -257,7 +370,7 @@ export function buildMigrationHardeningReadiness(
     {
       id: "sensitive-exclusions",
       label: "Sensitive exclusions",
-      status: excludedSecretsSummary.length > 0 ? "ready" : "waiting",
+      status: sensitiveStatus,
       detail:
         excludedSecretsSummary.length > 0
           ? `${excludedSecretsSummary.length} exclusion notes confirm secrets, auth, browser state, source mutation, or raw transcript data stay out.`
@@ -271,6 +384,17 @@ export function buildMigrationHardeningReadiness(
     Boolean(latestDraft) &&
     auditReady &&
     (applyIntentState === "ready-for-review" || applyIntentState === "needs-review");
+  const reviewDepthItems = buildMigrationReviewDepthItems({
+    latestDraft,
+    auditReady,
+    applyIntentState,
+    applyStatus,
+    canRollback,
+    excludedSecretsSummary
+  });
+  const openReviewRecordCount = reviewDepthItems.filter(
+    (item) => item.status !== "ready"
+  ).length;
 
   return {
     safety: MIGRATION_HARDENING_SAFETY,
@@ -281,11 +405,14 @@ export function buildMigrationHardeningReadiness(
     canCreateDraft: selected.length > 0 && selectedUnsupported === 0,
     canRollback,
     canStageApplyIntent,
+    reviewRecordCount: reviewDepthItems.length,
+    openReviewRecordCount,
     applyIntentState,
     applyIntentLabel: applyIntentLabels[applyIntentState],
     latestDraftId: latestDraft?.id,
     nextAction: nextActionForStatus(state),
-    items
+    items,
+    reviewDepthItems
   };
 }
 

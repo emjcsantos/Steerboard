@@ -332,8 +332,8 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-05-migration-center",
     title: "Phase 5: Migration Center",
-    description: "Turn the metadata-only migration foundations into a guarded, review-first migration workflow.",
-    completionPercent: 45,
+    description: "Turn the metadata-only migration foundations into a guarded, review-first migration workflow with apply-intent locks, rollback evidence, audit consistency, and sensitive exclusions.",
+    completionPercent: 50,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -364,8 +364,8 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-05-parent-rollback-audit",
         title: "Rollback and Audit Review",
-        description: "Make rollback strategy and audit evidence mandatory before migration work can leave review-only mode.",
-        completionPercent: 45,
+        description: "Make rollback strategy, review-depth records, and audit evidence mandatory before migration work can leave review-only mode.",
+        completionPercent: 50,
         complexity: "high",
         sourceDocument: "Permissions and audit",
         children: [
@@ -375,6 +375,14 @@ const phaseSpecs: PhaseSpec[] = [
             description: "Surface who, what, when, risk level, apply-intent lock, and rollback path for every migration draft.",
             completionPercent: 45,
             sourceDocument: "Migration audit summary"
+          },
+          {
+            id: "phase-05-child-review-depth",
+            title: "Migration Review Depth",
+            description: "Show apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock as separate owner-review records.",
+            completionPercent: 45,
+            complexity: "high",
+            sourceDocument: "Migration review gate"
           }
         ]
       }

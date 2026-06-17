@@ -4155,8 +4155,24 @@ function AppDialogSurface({
                   <strong>{migrationHardeningReadiness.canRollback ? "Ready" : "Waiting"}</strong>
                   Rollback
                 </span>
+                <span>
+                  <strong>{migrationHardeningReadiness.openReviewRecordCount}</strong>
+                  Open review
+                </span>
               </div>
               <p>{migrationHardeningReadiness.nextAction}</p>
+              <ol className="migration-review-depth-list" aria-label="Migration review depth records">
+                {migrationHardeningReadiness.reviewDepthItems.map((item) => (
+                  <li className={`migration-review-depth-${item.status}`} key={item.id} title={`${item.detail} ${item.evidence} ${item.nextAction}`}>
+                    <span>{item.kind}</span>
+                    <div>
+                      <strong>{item.label}</strong>
+                      <small>{item.evidence}</small>
+                    </div>
+                    <b>{item.status}</b>
+                  </li>
+                ))}
+              </ol>
               <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
                 {migrationHardeningReadiness.items.map((item) => (
                   <li className={`migration-review-item-${item.status}`} key={item.id} title={item.detail}>

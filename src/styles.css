@@ -1036,7 +1036,7 @@ textarea {
 
 .migration-review-gate-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -1061,6 +1061,69 @@ textarea {
   color: #b7c1ce;
   font-size: 11px;
   line-height: 1.35;
+}
+
+.migration-review-depth-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.migration-review-depth-list li {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 84px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #0f141a;
+  padding: 7px;
+}
+
+.migration-review-depth-list span,
+.migration-review-depth-list strong,
+.migration-review-depth-list small,
+.migration-review-depth-list b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.migration-review-depth-list span {
+  border-radius: 999px;
+  background: #202833;
+  color: #cbd4de;
+  padding: 3px 6px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.migration-review-depth-list div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.migration-review-depth-list strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.migration-review-depth-list small {
+  color: #9fa9b4;
+  font-size: 10px;
+}
+
+.migration-review-depth-list b {
+  color: #cbd4de;
+  font-size: 9px;
+  text-transform: uppercase;
 }
 
 .migration-review-gate-list {
@@ -1105,22 +1168,26 @@ textarea {
 }
 
 .migration-review-gate-ready,
-.migration-review-item-ready {
+.migration-review-item-ready,
+.migration-review-depth-ready {
   border-color: #2f6a49;
 }
 
 .migration-review-gate-review,
-.migration-review-item-review {
+.migration-review-item-review,
+.migration-review-depth-review {
   border-color: #7a6530;
 }
 
 .migration-review-gate-waiting,
-.migration-review-item-waiting {
+.migration-review-item-waiting,
+.migration-review-depth-waiting {
   border-color: #315977;
 }
 
 .migration-review-gate-blocked,
-.migration-review-item-blocked {
+.migration-review-item-blocked,
+.migration-review-depth-blocked {
   border-color: #633337;
 }
 

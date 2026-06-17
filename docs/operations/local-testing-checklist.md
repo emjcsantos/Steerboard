@@ -85,10 +85,11 @@ Do not proceed to the next section until the current item is at least `review`.
 8. `Migration`
    - Validate migration plan preview and reviewed-draft staging flow.
    - Confirm the Migration review gate reports preview selection, apply intent, rollback evidence, audit consistency, and sensitive exclusions before any apply path.
+   - Confirm the Migration review depth records show apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock as separate owner-review rows.
    - Confirm `Stage apply review` only creates an owner-visible intent notice and does not change the active profile, source platform, files, commands, plugins, MCP tools, automations, or personalization state.
    - Confirm migration audit summary exists locally and includes accepted, review-required, unsupported, and excluded counts.
-   - Confirm rollback metadata exists for applied drafts and that rollback restores the prior profile pointer without source mutation.
-   - Confirm secrets, raw transcripts, and source auth state remain excluded from persisted migration metadata.
+   - Confirm rollback metadata includes prior profile pointer, rollback audit note, checksumable manifest references, and no source mutation.
+   - Confirm secrets, tokens, auth caches/files/state, browser state, source artifacts, raw transcripts, and source mutation remain excluded from persisted migration metadata.
 9. `Planning`
    - Create or update a plan item and confirm expected persistence updates.
    - Confirm planning metadata remains readable after a refresh.
