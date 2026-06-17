@@ -7392,6 +7392,205 @@ textarea {
   opacity: 0.62;
 }
 
+.owner-testing-publish-hold-traceability,
+.owner-testing-publish-hold-blocker-priority {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  border: 1px solid #26303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 7px;
+}
+
+.owner-testing-publish-hold-traceability-ready,
+.owner-testing-publish-hold-blocker-priority-ready {
+  border-left: 3px solid #89dda9;
+}
+
+.owner-testing-publish-hold-traceability-review,
+.owner-testing-publish-hold-blocker-priority-review {
+  border-left: 3px solid #8bd7f4;
+}
+
+.owner-testing-publish-hold-traceability-waiting,
+.owner-testing-publish-hold-blocker-priority-waiting {
+  border-left: 3px solid #f0d984;
+}
+
+.owner-testing-publish-hold-traceability-blocked,
+.owner-testing-publish-hold-blocker-priority-blocked {
+  border-left: 3px solid #ff9e85;
+}
+
+.owner-testing-publish-hold-traceability-header,
+.owner-testing-publish-hold-blocker-priority-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.owner-testing-publish-hold-traceability-header strong,
+.owner-testing-publish-hold-traceability-header span,
+.owner-testing-publish-hold-traceability-header b,
+.owner-testing-publish-hold-traceability-list span,
+.owner-testing-publish-hold-traceability-list strong,
+.owner-testing-publish-hold-traceability-list b,
+.owner-testing-publish-hold-blocker-priority-header strong,
+.owner-testing-publish-hold-blocker-priority-header span,
+.owner-testing-publish-hold-blocker-priority-header b,
+.owner-testing-publish-hold-blocker-priority p,
+.owner-testing-publish-hold-blocker-priority-list span,
+.owner-testing-publish-hold-blocker-priority-list strong,
+.owner-testing-publish-hold-blocker-priority-list b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-publish-hold-traceability-header strong,
+.owner-testing-publish-hold-blocker-priority-header strong {
+  color: #edf2f7;
+  font-size: 11px;
+}
+
+.owner-testing-publish-hold-traceability-header span,
+.owner-testing-publish-hold-traceability-header b,
+.owner-testing-publish-hold-blocker-priority-header span,
+.owner-testing-publish-hold-blocker-priority-header b {
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce3eb;
+  padding: 3px 6px;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.owner-testing-publish-hold-traceability-grid,
+.owner-testing-publish-hold-blocker-priority-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+}
+
+.owner-testing-publish-hold-traceability-grid div,
+.owner-testing-publish-hold-blocker-priority-grid div {
+  min-width: 0;
+  border: 1px solid #27303a;
+  border-radius: 6px;
+  background: #151b22;
+  padding: 5px;
+  text-align: center;
+}
+
+.owner-testing-publish-hold-traceability-grid dt,
+.owner-testing-publish-hold-traceability-grid dd,
+.owner-testing-publish-hold-blocker-priority-grid dt,
+.owner-testing-publish-hold-blocker-priority-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-publish-hold-traceability-grid dt,
+.owner-testing-publish-hold-blocker-priority-grid dt {
+  color: #88939f;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.owner-testing-publish-hold-traceability-grid dd,
+.owner-testing-publish-hold-blocker-priority-grid dd {
+  margin-top: 2px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.owner-testing-publish-hold-traceability-list,
+.owner-testing-publish-hold-blocker-priority-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.owner-testing-publish-hold-traceability-list li,
+.owner-testing-publish-hold-blocker-priority-list li {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #27303a;
+  border-radius: 6px;
+  background: #141b23;
+  padding: 5px;
+}
+
+.owner-testing-publish-hold-traceability-list li {
+  grid-template-columns: 108px minmax(0, 1fr) auto;
+}
+
+.owner-testing-publish-hold-blocker-priority-list li {
+  grid-template-columns: 36px minmax(0, 1fr) 96px;
+}
+
+.owner-testing-publish-hold-traceability-list span,
+.owner-testing-publish-hold-blocker-priority-list span {
+  color: #9fa9b4;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.owner-testing-publish-hold-traceability-list strong,
+.owner-testing-publish-hold-blocker-priority-list strong {
+  color: #edf2f7;
+  font-size: 10px;
+}
+
+.owner-testing-publish-hold-traceability-list b,
+.owner-testing-publish-hold-blocker-priority-list b {
+  color: #cfd8e3;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.owner-testing-publish-hold-blocker-priority p {
+  margin: 0;
+  color: #c3ccd6;
+  font-size: 11px;
+}
+
+.owner-testing-publish-hold-traceability-item-ready,
+.owner-testing-publish-hold-blocker-priority-item-ready {
+  border-color: #2f6a49;
+}
+
+.owner-testing-publish-hold-traceability-item-review,
+.owner-testing-publish-hold-blocker-priority-item-review {
+  border-color: #315977;
+}
+
+.owner-testing-publish-hold-traceability-item-waiting,
+.owner-testing-publish-hold-blocker-priority-item-waiting {
+  border-color: #7a6530;
+}
+
+.owner-testing-publish-hold-traceability-item-blocked,
+.owner-testing-publish-hold-blocker-priority-item-blocked {
+  border-color: #633337;
+}
+
 .owner-testing-phase3-diagnostics {
   display: grid;
   gap: 5px;

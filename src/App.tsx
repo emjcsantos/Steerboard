@@ -371,6 +371,8 @@ import {
   buildPhasePriorityEvidence,
   type PhasePriorityEvidenceResult
 } from "./phasePriorityEvidence";
+import { buildPhase126PublishHoldTraceability } from "./phase126PublishHoldTraceability";
+import { buildPhase126PublishHoldBlockerPriority } from "./phase126PublishHoldBlockerPriority";
 import {
   loadPhase3SmokeProofBundle,
   savePhase3SmokeProofBundle
@@ -11049,6 +11051,13 @@ function OwnerTestingReadinessPanel({
   const visibleChecklistItems = checklist.items.slice(0, 6);
   const catalogRefreshItems = checklist.items.filter((item) => item.id.startsWith("catalog-"));
   const visibleFailureFixtures = failureFixtures.slice(0, 4);
+  const phase126PublishHoldTraceability = buildPhase126PublishHoldTraceability({
+    phasePriorityEvidence
+  });
+  const phase126PublishHoldBlockerPriority = buildPhase126PublishHoldBlockerPriority({
+    phasePriorityEvidence,
+    traceability: phase126PublishHoldTraceability
+  });
   const runPhase3Action = (actionId: string) => {
     if (actionId === "phase3-owner-testing:live-control-smoke") {
       onRunCodexLiveControlSmokeProof();
@@ -11175,6 +11184,117 @@ function OwnerTestingReadinessPanel({
               <span>{codexTwoPanelSmokeLoading ? "Running panels..." : "Run two-panel smoke"}</span>
               <strong>Phase 2</strong>
             </button>
+          </div>
+          <div
+            aria-label={phase126PublishHoldTraceability.ariaLabel}
+            className={classNames(
+              "owner-testing-publish-hold-traceability",
+              `owner-testing-publish-hold-traceability-${phase126PublishHoldTraceability.state}`
+            )}
+            title={phase126PublishHoldTraceability.safety}
+          >
+            <div className="owner-testing-publish-hold-traceability-header">
+              <strong>{phase126PublishHoldTraceability.label}</strong>
+              <span>{phase126PublishHoldTraceability.statusLabel}</span>
+              <b>{phase126PublishHoldTraceability.readiness}%</b>
+            </div>
+            <dl
+              className="owner-testing-publish-hold-traceability-grid"
+              aria-label="Phase 1 2 6 publish hold traceability counts"
+            >
+              <div>
+                <dt>Phases</dt>
+                <dd>{phase126PublishHoldTraceability.linkedPhaseCount}</dd>
+              </div>
+              <div>
+                <dt>PM</dt>
+                <dd>{phase126PublishHoldTraceability.linkedPmTaskCount}</dd>
+              </div>
+              <div>
+                <dt>Hold</dt>
+                <dd>{phase126PublishHoldTraceability.publishHoldStatus}</dd>
+              </div>
+            </dl>
+            <ol
+              className="owner-testing-publish-hold-traceability-list"
+              aria-label="Phase 1 2 6 publish hold traceability rows"
+            >
+              {phase126PublishHoldTraceability.items.map((item) => (
+                <li
+                  className={`owner-testing-publish-hold-traceability-item-${item.status}`}
+                  key={item.id}
+                  title={`${item.detail} ${item.nextAction}`}
+                >
+                  <span>{item.kind}</span>
+                  <strong>{item.label}</strong>
+                  <b>{item.status}</b>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div
+            aria-label={phase126PublishHoldBlockerPriority.ariaLabel}
+            className={classNames(
+              "owner-testing-publish-hold-blocker-priority",
+              `owner-testing-publish-hold-blocker-priority-${phase126PublishHoldBlockerPriority.state}`
+            )}
+            title={phase126PublishHoldBlockerPriority.safety}
+          >
+            <div className="owner-testing-publish-hold-blocker-priority-header">
+              <strong>{phase126PublishHoldBlockerPriority.label}</strong>
+              <span>
+                {phase126PublishHoldBlockerPriority.ownerReviewCanAddressTopBlocker
+                  ? "Owner review"
+                  : phase126PublishHoldBlockerPriority.openBlockerCount > 0
+                    ? "Owner action"
+                    : "Ready"}
+              </span>
+              <b>{phase126PublishHoldBlockerPriority.readiness}%</b>
+            </div>
+            <p title={phase126PublishHoldBlockerPriority.topPriorityAction}>
+              {phase126PublishHoldBlockerPriority.topPriorityLabel}
+            </p>
+            <dl
+              className="owner-testing-publish-hold-blocker-priority-grid"
+              aria-label="Phase 1 2 6 publish hold blocker priority counts"
+            >
+              <div>
+                <dt>Open</dt>
+                <dd>{phase126PublishHoldBlockerPriority.openBlockerCount}</dd>
+              </div>
+              <div>
+                <dt>Review</dt>
+                <dd>{phase126PublishHoldBlockerPriority.ownerReviewAddressableCount}</dd>
+              </div>
+              <div>
+                <dt>Status</dt>
+                <dd>{phase126PublishHoldBlockerPriority.statusLabel}</dd>
+              </div>
+            </dl>
+            <ol
+              className="owner-testing-publish-hold-blocker-priority-list"
+              aria-label="Phase 1 2 6 publish hold blocker priority rows"
+            >
+              {phase126PublishHoldBlockerPriority.items.length > 0 ? (
+                phase126PublishHoldBlockerPriority.items.slice(0, 6).map((item) => (
+                  <li
+                    className={`owner-testing-publish-hold-blocker-priority-item-${item.status}`}
+                    key={item.id}
+                    title={`${item.detail} ${item.nextAction}`}
+                  >
+                    <span>#{item.priority}</span>
+                    <strong>{item.label}</strong>
+                    <b>{item.kind}</b>
+                  </li>
+                ))
+              ) : (
+                <li className="owner-testing-publish-hold-blocker-priority-item-ready">
+                  <span>OK</span>
+                  <strong>No open Phase 1/2/6 publish-hold blocker</strong>
+                  <b>ready</b>
+                </li>
+              )}
+            </ol>
           </div>
         </div>
         <div

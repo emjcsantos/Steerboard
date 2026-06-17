@@ -501,6 +501,22 @@ const phaseSpecs: PhaseSpec[] = [
             status: "ongoing",
             completionPercent: 60,
             sourceDocument: "Arena dispatch package"
+          },
+          {
+            id: "phase-06-child-publish-hold-traceability",
+            title: "Publish Hold Traceability",
+            description: "Link Phase 1 live proof, Phase 2 isolation proof, Phase 6 PM staging, required PM rows, and the owner-held publish blocker before pushing is considered.",
+            completionPercent: 45,
+            complexity: "medium",
+            sourceDocument: "Phase 1/2/6 publish hold traceability"
+          },
+          {
+            id: "phase-06-child-publish-hold-blocker-priority",
+            title: "Publish Hold Blocker Priority",
+            description: "Rank the owner/remote publish hold, one-panel proof, two-panel isolation, PM staging, and traceability blockers before owner push approval.",
+            completionPercent: 45,
+            complexity: "medium",
+            sourceDocument: "Phase 1/2/6 publish hold blocker priority"
           }
         ]
       }

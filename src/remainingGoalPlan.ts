@@ -71,20 +71,34 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 1", "Phase 2", "Phase 6"],
     phaseIds: ["phase-01-live-chat", "phase-02-multi-panel", "phase-06-planning-lane"],
     goal:
-      "Hold the completed priority slice locally until the Steerboard public remote is restored and the owner approves pushing.",
+      "Hold the completed priority slice locally with publish-hold traceability and blocker priority until the Steerboard public remote is restored and the owner approves pushing.",
     status: "blocked",
     priority: "critical",
     completionPercent: 95,
     pmTaskIds: [
       "phase-01-live-chat",
       "phase-01-parent-single-panel",
+      "phase-01-child-live-start",
+      "phase-01-child-stream-evidence",
+      "phase-01-parent-owner-check",
+      "phase-01-child-reload-proof",
       "phase-02-multi-panel",
       "phase-02-parent-panel-identity",
+      "phase-02-child-two-panel-smoke",
+      "phase-02-child-no-cross-talk",
+      "phase-02-parent-session-persistence",
+      "phase-02-child-restore-panels",
       "phase-06-planning-lane",
-      "phase-06-parent-phase-board"
+      "phase-06-parent-phase-board",
+      "phase-06-child-current-phase-map",
+      "phase-06-child-saved-state-upgrade",
+      "phase-06-parent-arena-staging",
+      "phase-06-child-run-context",
+      "phase-06-child-publish-hold-traceability",
+      "phase-06-child-publish-hold-blocker-priority"
     ],
     nextAction:
-      "Keep the branch local, preserve the proof commit, and push only after the remote is recreated and the owner says to push."
+      "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push."
   },
   {
     id: "goal-phase-3-proof-clearance",

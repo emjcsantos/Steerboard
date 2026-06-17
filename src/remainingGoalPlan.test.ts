@@ -31,7 +31,7 @@ describe("remaining goal plan", () => {
         "Use the Phase 3 command plan, blocker-priority queue, traceability rows, and handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record owner handoff only after exit-ready, and keep Phase 4 held behind the provider boundary.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
-        "Keep the branch local, preserve the proof commit, and push only after the remote is recreated and the owner says to push.",
+        "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
       coveredPhaseCount: 11,
       remainingPhaseCount: 11,
       priorityGoalTraceCount: 8,
@@ -118,6 +118,23 @@ describe("remaining goal plan", () => {
     });
     expect(publishGoal?.current).toBeUndefined();
     expect(publishGoal?.nextAction.toLowerCase()).toContain("owner says to push");
+    expect(publishGoal?.pmTaskIds).toEqual(
+      expect.arrayContaining([
+        "phase-01-child-live-start",
+        "phase-01-child-stream-evidence",
+        "phase-01-child-reload-proof",
+        "phase-02-child-two-panel-smoke",
+        "phase-02-child-no-cross-talk",
+        "phase-02-child-restore-panels",
+        "phase-06-child-current-phase-map",
+        "phase-06-child-saved-state-upgrade",
+        "phase-06-child-run-context",
+        "phase-06-child-publish-hold-traceability",
+        "phase-06-child-publish-hold-blocker-priority"
+      ])
+    );
+    expect(publishGoal?.nextAction).toContain("publish-hold traceability");
+    expect(publishGoal?.nextAction).toContain("blocker-priority queue");
     expect(phase3Goal?.target).toBe("Phase 3 desktop proof clearance");
     expect(phase3Goal?.current).toBe(true);
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-exit-gate");

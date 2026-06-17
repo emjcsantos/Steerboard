@@ -24,6 +24,8 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm reconnect/restart behavior does not lose panel scope or pending action context.
    - Run live smoke, control smoke, active-turn interrupt smoke, active-turn steer smoke, and two-panel smoke from the connection dialog when desktop runtime access is available.
    - Confirm the Owner Testing Phase 1/2/6 priority card shows one-panel proof, two-panel isolation, and PM phase-board staging as separate evidence rows.
+   - Confirm the Owner Testing Phase 1/2/6 publish-hold traceability rows link `goal-phase-1-2-6-publish`, Phase 1 live proof, Phase 2 isolation proof, Phase 6 PM staging, required PM child rows, and the owner/remote push hold without running smoke, Git, push, release, or packaging actions.
+   - Confirm the Owner Testing Phase 1/2/6 blocker-priority queue ranks the owner/remote push hold above ordinary proof review when local proof is already ready.
    - Use the Owner Testing Phase 1 and Phase 2 smoke buttons to rerun live-panel and two-panel proof only after explicitly choosing the action.
    - Reload after successful Phase 1/2 desktop smoke proof and confirm the priority card keeps the desktop-executed proof states without rerunning prompts on startup.
    - Confirm the Environment panel Remaining Goals summary shows all remaining targets, covers Phase 1 through Phase 11, and keeps `Unblock Phase 1/2/6 publishing` blocked until the owner approves pushing.
@@ -109,6 +111,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Create or update a plan item and confirm expected persistence updates.
    - Confirm planning metadata remains readable after a refresh.
    - Confirm the Project Management board contains Phase 0 through Phase 11 as Epics and that representative Epic, Parent, and Child rows each stage an Arena review package through `Run`.
+   - Confirm Phase 6 includes publish-hold traceability and blocker-priority child rows linked to the Phase 1/2/6 publish-hold goal.
 10. `Dispatch`
     - Dispatch a staged pipeline item through the standard lane.
     - Confirm role-panel plan generation, route details, and log records are consistent.
