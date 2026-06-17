@@ -113,6 +113,50 @@ describe("phase 3 smoke proof readiness", () => {
     expect(result.items.every((item) => item.detail.includes("needs further desktop evidence"))).toBe(true);
   });
 
+  it("returns review when a previously ready desktop proof is stale", () => {
+    const result = buildPhase3SmokeProofReadiness({
+      evaluatedAt: "2026-06-20T00:00:00.000Z",
+      maxProofAgeMs: 24 * 60 * 60 * 1000,
+      liveControlSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-18T00:00:00.000Z",
+        executed: true,
+        ok: true,
+        completed: true,
+        supportedMethodCount: 3,
+        totalMethodCount: 3
+      },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-19T12:00:00.000Z",
+        executed: true,
+        completed: true,
+        interruptObserved: true
+      },
+      activeTurnSteerSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-19T12:00:00.001Z",
+        executed: true,
+        completed: true,
+        steerObserved: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.counts).toEqual({
+      ready: 2,
+      review: 1,
+      blocked: 0,
+      waiting: 0
+    });
+    expect(result.items[0]).toMatchObject({
+      proof: "live-control",
+      state: "review",
+      detail: expect.stringContaining("stale")
+    });
+    expect(result.items[0].detail).toContain("rerun");
+  });
+
   it("returns blocked when executed proof is unsupported-after-execution", () => {
     const result = buildPhase3SmokeProofReadiness({
       liveControlSmoke: {

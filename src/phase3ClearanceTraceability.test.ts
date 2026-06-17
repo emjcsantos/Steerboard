@@ -222,6 +222,31 @@ describe("phase 3 clearance traceability", () => {
     );
   });
 
+  it("keeps trace untrusted when the handoff record no longer matches current evidence", () => {
+    const result = snapshot({
+      handoffGate: handoff({
+        state: "review",
+        statusLabel: "Review",
+        canAdvanceProviderIntegration: false,
+        reviewCount: 2,
+        nextAction:
+          "Clear and record the Phase 3 handoff again from the current exit-ready evidence."
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustTrace).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "handoff-boundary",
+          status: "review",
+          detail: expect.stringContaining("does not match current evidence")
+        })
+      ])
+    );
+  });
+
   it("keeps traceability text public-safe and independent from Phase 7 ownership", () => {
     const result = snapshot({
       clearancePackage: clearance({

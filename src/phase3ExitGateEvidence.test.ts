@@ -144,6 +144,56 @@ describe("phase 3 exit gate evidence", () => {
     expect(result.items[3].nextAction).toBe("Run missing desktop smoke proofs until active-turn controls report completion/readiness.");
   });
 
+  it("returns review when a ready desktop proof is stale", () => {
+    const result = buildPhase3ExitGateEvidence({
+      evaluatedAt: "2026-06-20T00:00:00.000Z",
+      maxProofAgeMs: 24 * 60 * 60 * 1000,
+      slashEvidence: {
+        state: "ready",
+        pass: true,
+        readiness: 100,
+        status: "Ready",
+        detail: "slash command execution live",
+        safety: "none"
+      },
+      sessionControlEvidence: {
+        state: "ready",
+        readiness: 100,
+        pass: true,
+        statusLabel: "Ready",
+        detail: "session controls observed",
+        safety: "none"
+      },
+      liveControlSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-18T00:00:00.000Z",
+        executed: true,
+        ok: true
+      },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-19T12:00:00.000Z",
+        executed: true,
+        completed: true,
+        interruptObserved: true
+      },
+      activeTurnSteerSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-19T12:00:00.001Z",
+        executed: true,
+        ok: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.pass).toBe(false);
+    expect(result.items[2]).toMatchObject({
+      id: "phase3-exit-gate:live-control-smoke",
+      state: "review",
+      detail: expect.stringContaining("stale")
+    });
+  });
+
   it("returns blocked when any smoke proof is unsupported after execution", () => {
     const result = buildPhase3ExitGateEvidence({
       slashEvidence: {

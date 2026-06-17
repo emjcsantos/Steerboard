@@ -356,11 +356,14 @@ import {
   type Phase3HandoffGate
 } from "./phase3HandoffGate";
 import {
+  buildPhase3HandoffEvidenceFingerprint,
   clearPhase3OwnerHandoffRecord,
   createPhase3OwnerHandoffRecord,
+  derivePhase3HandoffRecordValidation,
   derivePhase3HandoffRecordState,
   loadPhase3OwnerHandoffRecord,
   savePhase3OwnerHandoffRecord,
+  type Phase3HandoffRecordValidation,
   type Phase3OwnerHandoffRecord
 } from "./phase3HandoffRecord";
 import {
@@ -1647,6 +1650,7 @@ export function App() {
     phasePrioritySmokeProofInitialBundle.liveSmoke
   );
   const [phase3SmokeProofInitialBundle] = useState(() => loadPhase3SmokeProofBundle());
+  const [phase3ProofEvaluationTime] = useState(() => new Date().toISOString());
   const [phase3OwnerHandoffRecord, setPhase3OwnerHandoffRecord] =
     useState<Phase3OwnerHandoffRecord | undefined>(() => loadPhase3OwnerHandoffRecord());
   const [phase3CommandValidationRecord, setPhase3CommandValidationRecord] =
@@ -1844,12 +1848,14 @@ export function App() {
       buildPhase3SmokeProofReadiness({
         liveControlSmoke: codexLiveControlSmokeProof,
         activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
-        activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof
+        activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof,
+        evaluatedAt: phase3ProofEvaluationTime
       }),
     [
       codexLiveControlSmokeProof,
       codexActiveTurnControlSmokeProof,
-      codexActiveTurnSteerSmokeProof
+      codexActiveTurnSteerSmokeProof,
+      phase3ProofEvaluationTime
     ]
   );
   const phase3ExitGateEvidence = useMemo(
@@ -1859,14 +1865,16 @@ export function App() {
         sessionControlEvidence: sessionControlReadinessEvidence,
         liveControlSmoke: codexLiveControlSmokeProof,
         activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
-        activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof
+        activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof,
+        evaluatedAt: phase3ProofEvaluationTime
       }),
     [
       slashCommandExecutionEvidence,
       sessionControlReadinessEvidence,
       codexLiveControlSmokeProof,
       codexActiveTurnControlSmokeProof,
-      codexActiveTurnSteerSmokeProof
+      codexActiveTurnSteerSmokeProof,
+      phase3ProofEvaluationTime
     ]
   );
   const phase3OwnerTestingActions = useMemo(() => {
@@ -1916,21 +1924,57 @@ export function App() {
       }),
     [phase3ClearanceCommandPlan, phase3ClearancePackage]
   );
+  const phase3HandoffEvidenceFingerprint = useMemo(
+    () =>
+      buildPhase3HandoffEvidenceFingerprint({
+        clearancePackage: phase3ClearancePackage,
+        exitGate: phase3ExitGateEvidence,
+        commandPlanId: phase3ClearanceCommandPlan.id
+      }),
+    [
+      phase3ClearanceCommandPlan.id,
+      phase3ClearancePackage,
+      phase3ExitGateEvidence
+    ]
+  );
+  const phase3HandoffRecordValidation: Phase3HandoffRecordValidation = useMemo(
+    () =>
+      derivePhase3HandoffRecordValidation(
+        phase3OwnerHandoffRecord,
+        phase3ClearancePackage,
+        phase3HandoffEvidenceFingerprint
+      ),
+    [
+      phase3ClearancePackage,
+      phase3HandoffEvidenceFingerprint,
+      phase3OwnerHandoffRecord
+    ]
+  );
   const phase3HandoffRecordState = useMemo(
     () =>
       derivePhase3HandoffRecordState(
         phase3OwnerHandoffRecord,
-        phase3ClearancePackage
+        phase3ClearancePackage,
+        phase3HandoffEvidenceFingerprint
       ),
-    [phase3ClearancePackage, phase3OwnerHandoffRecord]
+    [
+      phase3ClearancePackage,
+      phase3HandoffEvidenceFingerprint,
+      phase3OwnerHandoffRecord
+    ]
   );
   const phase3HandoffGate = useMemo(
     () =>
       buildPhase3HandoffGate({
         clearancePackage: phase3ClearancePackage,
-        handoffRecordState: phase3HandoffRecordState
+        handoffRecordState: phase3HandoffRecordState,
+        handoffRecordValidation: phase3HandoffRecordValidation
       }),
-    [phase3ClearancePackage, phase3HandoffRecordState]
+    [
+      phase3ClearancePackage,
+      phase3HandoffRecordState,
+      phase3HandoffRecordValidation
+    ]
   );
   const phase3ClearanceTraceability = useMemo(
     () =>
@@ -1955,13 +1999,14 @@ export function App() {
 
     const record = createPhase3OwnerHandoffRecord(
       phase3ClearancePackage,
-      new Date().toISOString()
+      new Date().toISOString(),
+      phase3HandoffEvidenceFingerprint
     );
 
     savePhase3OwnerHandoffRecord(record);
     setPhase3OwnerHandoffRecord(record);
     setAppNotice("Phase 3 owner handoff recorded locally");
-  }, [phase3ClearancePackage]);
+  }, [phase3ClearancePackage, phase3HandoffEvidenceFingerprint]);
   const clearPhase3OwnerHandoff = useCallback(() => {
     clearPhase3OwnerHandoffRecord();
     setPhase3OwnerHandoffRecord(undefined);

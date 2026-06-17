@@ -42,6 +42,8 @@ export interface Phase3ExitGateEvidenceInput {
   readonly liveControlSmoke?: unknown;
   readonly activeTurnInterruptSmoke?: unknown;
   readonly activeTurnSteerSmoke?: unknown;
+  readonly evaluatedAt?: string | Date;
+  readonly maxProofAgeMs?: number;
 }
 
 const STATE_LABELS: Record<Phase3ExitGateState, string> = {
@@ -265,7 +267,9 @@ export function buildPhase3ExitGateEvidence(
   const smokeReadiness = buildPhase3SmokeProofReadiness({
     liveControlSmoke: input.liveControlSmoke,
     activeTurnInterruptSmoke: input.activeTurnInterruptSmoke,
-    activeTurnSteerSmoke: input.activeTurnSteerSmoke
+    activeTurnSteerSmoke: input.activeTurnSteerSmoke,
+    evaluatedAt: input.evaluatedAt,
+    maxProofAgeMs: input.maxProofAgeMs
   });
   const liveControlSmokeItem = smokeReadiness.items[0];
   const activeTurnInterruptSmokeItem = smokeReadiness.items[1];

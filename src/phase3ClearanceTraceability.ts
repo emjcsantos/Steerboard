@@ -272,9 +272,14 @@ function handoffBoundaryItem(
     id: `${SNAPSHOT_ID}:handoff-boundary`,
     label: "Handoff boundary",
     kind: "handoff-boundary",
-    status: clearancePackage.canExit ? "waiting" : handoffGate.state,
+    status:
+      clearancePackage.canExit && handoffGate.state === "waiting"
+        ? "waiting"
+        : handoffGate.state,
     detail: clearancePackage.canExit
-      ? "Clearance is exit-ready, but the owner handoff record is not attached yet."
+      ? handoffGate.state === "review"
+        ? "Clearance is exit-ready, but the owner handoff record does not match current evidence."
+        : "Clearance is exit-ready, but the owner handoff record is not attached yet."
       : "Provider integration remains held behind Phase 3 clearance.",
     nextAction: handoffGate.nextAction
   };

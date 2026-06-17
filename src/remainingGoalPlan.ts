@@ -106,10 +106,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 3"],
     phaseIds: ["phase-03-controls-slash"],
     goal:
-      "Clear live-control, active-turn interrupt, active-turn steer, slash, and session-control proof rows from desktop mode with prioritized blocker review and goal/PM traceability.",
+      "Clear live-control, active-turn interrupt, active-turn steer, slash, and session-control proof rows from desktop mode with prioritized blocker review, fresh proof checks, and goal/PM traceability.",
     status: "active",
     priority: "critical",
-    completionPercent: 92,
+    completionPercent: 94,
     current: true,
     pmTaskIds: [
       "phase-03-controls-slash",
@@ -125,7 +125,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-03-child-control-ready"
     ],
     nextAction:
-      "Use the Phase 3 command plan, blocker-priority queue, traceability rows, and handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record owner handoff only after exit-ready, and keep Phase 4 held behind the provider boundary."
+      "Use the Phase 3 command plan, blocker-priority queue, traceability rows, freshness-aware smoke proof rows, and fingerprint-matched handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary."
   },
   {
     id: "goal-phase-4-provider-surfaces",

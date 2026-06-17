@@ -193,34 +193,34 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-03-controls-slash",
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
-    description: "Clear the current blocker by proving slash execution, session controls, desktop proof persistence, command-plan clarity, prioritized blocker review, goal/PM traceability, and owner-reviewed handoff readiness.",
+    description: "Clear the current blocker by proving slash execution, session controls, fresh desktop proof persistence, command-plan clarity, prioritized blocker review, goal/PM traceability, and owner-reviewed handoff readiness tied to current evidence.",
     status: "ongoing",
-    completionPercent: 92,
+    completionPercent: 94,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-03-parent-proof-clearance",
         title: "Desktop Proof Clearance",
-        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload, keep command-plan clarity visible, prioritize open blockers, link goal/PM traceability, and keep the handoff boundary visible.",
+        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload without becoming stale, keep command-plan clarity visible, prioritize open blockers, link goal/PM traceability, and keep the handoff boundary matched to current evidence.",
         status: "ongoing",
-        completionPercent: 92,
+        completionPercent: 94,
         complexity: "extra_high",
         sourceDocument: "Current state and pipeline",
         children: [
           {
             id: "phase-03-child-smoke-rows",
             title: "Persist Smoke Proof Rows",
-            description: "Confirm desktop-executed smoke proof rows survive reload and browser fallback rows remain waiting.",
-            completionPercent: 70,
+            description: "Confirm desktop-executed smoke proof rows survive reload, stale checkedAt timestamps downgrade to review, and browser fallback rows remain waiting.",
+            completionPercent: 82,
             complexity: "high",
             sourceDocument: "Phase 3 smoke proof readiness"
           },
           {
             id: "phase-03-child-exit-gate",
             title: "Expose Exact Exit Blocker",
-            description: "If Phase 3 cannot exit, show the exact remaining blocker and next owner action instead of a vague incomplete state.",
-            completionPercent: 88,
+            description: "If Phase 3 cannot exit, show the exact remaining blocker, stale proof, or next owner action instead of a vague incomplete state.",
+            completionPercent: 91,
             sourceDocument: "Phase 3 exit gate evidence"
           },
           {
@@ -242,16 +242,16 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-traceability",
             title: "Clearance Traceability",
-            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, blocker priority, and handoff boundary in one owner-review trace.",
-            completionPercent: 80,
+            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, blocker priority, and current-evidence handoff boundary in one owner-review trace.",
+            completionPercent: 84,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance traceability"
           },
           {
             id: "phase-03-child-handoff-gate",
             title: "Owner Handoff Gate",
-            description: "Show desktop proof clearance, exact blocker visibility, local owner handoff record actions, and the provider-integration boundary before Phase 4 advances.",
-            completionPercent: 65,
+            description: "Show desktop proof clearance, exact blocker visibility, local owner handoff record actions, current-evidence fingerprint matching, and the provider-integration boundary before Phase 4 advances.",
+            completionPercent: 78,
             complexity: "high",
             sourceDocument: "Phase 3 handoff gate"
           }

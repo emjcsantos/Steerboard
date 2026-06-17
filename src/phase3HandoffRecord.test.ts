@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import {
+  buildPhase3HandoffEvidenceFingerprint,
   clearPhase3OwnerHandoffRecord,
   createPhase3OwnerHandoffRecord,
+  derivePhase3HandoffRecordValidation,
   derivePhase3HandoffRecordState,
   loadPhase3OwnerHandoffRecord,
   parseStoredPhase3OwnerHandoffRecord,
@@ -77,6 +79,68 @@ describe("phase 3 handoff record", () => {
     expect(derivePhase3HandoffRecordState(undefined, clearancePackage())).toBe("waiting");
   });
 
+  it("reviews stored handoff when the current evidence fingerprint differs", () => {
+    const currentClearance = clearancePackage();
+    const originalFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: currentClearance,
+      commandPlanId: "phase-3-clearance-command-plan"
+    });
+    const changedFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: clearancePackage({ readyCount: 4, reviewCount: 1 }),
+      commandPlanId: "phase-3-clearance-command-plan"
+    });
+    const record = createPhase3OwnerHandoffRecord(
+      currentClearance,
+      "2026-06-11T00:00:00.000Z",
+      originalFingerprint
+    );
+
+    expect(
+      derivePhase3HandoffRecordValidation(
+        record,
+        currentClearance,
+        originalFingerprint
+      )
+    ).toMatchObject({
+      state: "ready",
+      matchesCurrentEvidence: true
+    });
+    expect(
+      derivePhase3HandoffRecordValidation(
+        record,
+        currentClearance,
+        changedFingerprint
+      )
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("no longer matches"),
+      matchesCurrentEvidence: false
+    });
+  });
+
+  it("reviews legacy ready handoff records when current evidence has a fingerprint", () => {
+    const currentClearance = clearancePackage();
+    const expectedFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: currentClearance
+    });
+    const record = createPhase3OwnerHandoffRecord(
+      currentClearance,
+      "2026-06-11T00:00:00.000Z"
+    );
+
+    expect(
+      derivePhase3HandoffRecordValidation(
+        record,
+        currentClearance,
+        expectedFingerprint
+      )
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("predates"),
+      matchesCurrentEvidence: false
+    });
+  });
+
   it("parses a stored record with clamped counts and sanitized detail", () => {
     const parsed = parseStoredPhase3OwnerHandoffRecord(
       JSON.stringify({
@@ -86,6 +150,7 @@ describe("phase 3 handoff record", () => {
         clearanceReadiness: 104.6,
         exactBlockerCount: 2.9,
         canExit: true,
+        evidenceFingerprint: " phase3:fingerprint ",
         detail:
           "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
       })
@@ -97,7 +162,8 @@ describe("phase 3 handoff record", () => {
       state: "ready",
       clearanceReadiness: 100,
       exactBlockerCount: 2,
-      canExit: true
+      canExit: true,
+      evidenceFingerprint: "phase3:fingerprint"
     });
     expect(parsed?.detail).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(parsed?.detail).not.toContain("sk-ABCDEF1234567890");

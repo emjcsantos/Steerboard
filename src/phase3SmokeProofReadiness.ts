@@ -27,7 +27,12 @@ export interface Phase3SmokeProofReadinessInput {
   readonly liveControlSmoke?: unknown;
   readonly activeTurnInterruptSmoke?: unknown;
   readonly activeTurnSteerSmoke?: unknown;
+  readonly evaluatedAt?: string | Date;
+  readonly maxProofAgeMs?: number;
 }
+
+export const DEFAULT_PHASE3_SMOKE_PROOF_MAX_AGE_MS =
+  7 * 24 * 60 * 60 * 1000;
 
 const PROOF_IDS = {
   liveControl: "live-control",
@@ -85,6 +90,76 @@ function resolveDetail(label: string, state: Phase3SmokeProofReadinessState): st
   }
 
   return `${label} has not been executed on desktop yet.`;
+}
+
+function toTimestamp(value: string | Date | undefined): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const timestamp = value instanceof Date ? value.getTime() : Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : undefined;
+}
+
+function resolveFreshnessDetail(
+  label: string,
+  state: Phase3SmokeProofReadinessState,
+  source: string,
+  checkedAt: string,
+  evaluatedAt: string | Date | undefined,
+  maxProofAgeMs: number
+): string {
+  const baseDetail = resolveDetail(label, state);
+
+  if (state !== "ready" || source !== "desktop") {
+    return baseDetail;
+  }
+
+  const evaluatedAtMs = toTimestamp(evaluatedAt);
+  if (evaluatedAtMs === undefined) {
+    return baseDetail;
+  }
+
+  const checkedAtMs = toTimestamp(checkedAt);
+  if (checkedAtMs === undefined) {
+    return `${label} has no valid checkedAt timestamp and must be rerun on desktop.`;
+  }
+
+  if (evaluatedAtMs - checkedAtMs > maxProofAgeMs) {
+    return `${label} proof is stale; rerun the desktop smoke proof before Phase 3 handoff.`;
+  }
+
+  return baseDetail;
+}
+
+function applyFreshness(
+  label: string,
+  state: Phase3SmokeProofReadinessState,
+  source: string,
+  checkedAt: string,
+  evaluatedAt: string | Date | undefined,
+  maxProofAgeMs: number
+): { state: Phase3SmokeProofReadinessState; detail: string } {
+  const detail = resolveFreshnessDetail(
+    label,
+    state,
+    source,
+    checkedAt,
+    evaluatedAt,
+    maxProofAgeMs
+  );
+
+  if (state === "ready" && detail !== resolveDetail(label, "ready")) {
+    return {
+      state: "review",
+      detail
+    };
+  }
+
+  return {
+    state,
+    detail
+  };
 }
 
 function evaluateLiveControlSmokeState(record: Record<string, unknown>): Phase3SmokeProofReadinessState {
@@ -177,7 +252,9 @@ function buildItem(
   proof: "live-control" | "active-turn-interrupt" | "active-turn-steer",
   input: unknown,
   label: string,
-  evaluate: (record: Record<string, unknown>) => Phase3SmokeProofReadinessState
+  evaluate: (record: Record<string, unknown>) => Phase3SmokeProofReadinessState,
+  evaluatedAt: string | Date | undefined,
+  maxProofAgeMs: number
 ): Phase3SmokeProofReadinessItem {
   if (!isRecord(input)) {
     return {
@@ -191,15 +268,24 @@ function buildItem(
   }
 
   const record = input;
-  const state = evaluate(record);
+  const source = resolveSource(record);
+  const checkedAt = resolveCheckedAt(record);
+  const freshness = applyFreshness(
+    label,
+    evaluate(record),
+    source,
+    checkedAt,
+    evaluatedAt,
+    maxProofAgeMs
+  );
 
   return {
     proof,
     label,
-    state,
-    source: resolveSource(record),
-    checkedAt: resolveCheckedAt(record),
-    detail: resolveDetail(label, state)
+    state: freshness.state,
+    source,
+    checkedAt,
+    detail: freshness.detail
   };
 }
 
@@ -241,24 +327,34 @@ function resolveOverallState(items: ReadonlyArray<Phase3SmokeProofReadinessItem>
 export function buildPhase3SmokeProofReadiness(
   input: Phase3SmokeProofReadinessInput = {}
 ): Phase3SmokeProofReadinessResult {
+  const maxProofAgeMs =
+    typeof input.maxProofAgeMs === "number" && input.maxProofAgeMs > 0
+      ? input.maxProofAgeMs
+      : DEFAULT_PHASE3_SMOKE_PROOF_MAX_AGE_MS;
   const items: readonly Phase3SmokeProofReadinessItem[] = [
     buildItem(
       PROOF_IDS.liveControl,
       input.liveControlSmoke,
       PROOF_LABELS.liveControl,
-      evaluateLiveControlSmokeState
+      evaluateLiveControlSmokeState,
+      input.evaluatedAt,
+      maxProofAgeMs
     ),
     buildItem(
       PROOF_IDS.activeTurnInterrupt,
       input.activeTurnInterruptSmoke,
       PROOF_LABELS.activeTurnInterrupt,
-      evaluateActiveTurnInterruptSmokeState
+      evaluateActiveTurnInterruptSmokeState,
+      input.evaluatedAt,
+      maxProofAgeMs
     ),
     buildItem(
       PROOF_IDS.activeTurnSteer,
       input.activeTurnSteerSmoke,
       PROOF_LABELS.activeTurnSteer,
-      evaluateActiveTurnSteerSmokeState
+      evaluateActiveTurnSteerSmokeState,
+      input.evaluatedAt,
+      maxProofAgeMs
     )
   ];
 

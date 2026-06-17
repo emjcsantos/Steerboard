@@ -2,6 +2,7 @@ import type {
   Phase3ClearancePackage,
   Phase3ClearancePackageState
 } from "./phase3ClearancePackage";
+import type { Phase3HandoffRecordValidation } from "./phase3HandoffRecord";
 
 export type Phase3HandoffGateState = Phase3ClearancePackageState;
 
@@ -41,6 +42,7 @@ export interface Phase3HandoffGate {
 export interface Phase3HandoffGateInput {
   readonly clearancePackage: Phase3ClearancePackage;
   readonly handoffRecordState?: Phase3HandoffGateState;
+  readonly handoffRecordValidation?: Phase3HandoffRecordValidation;
 }
 
 const GATE_ID = "phase-3-handoff-gate";
@@ -164,9 +166,10 @@ function blockerVisibilityItem(
 
 function handoffRecordItem(
   clearancePackage: Phase3ClearancePackage,
-  handoffRecordState: Phase3HandoffGateState | undefined
+  handoffRecordState: Phase3HandoffGateState | undefined,
+  handoffRecordValidation: Phase3HandoffRecordValidation | undefined
 ): Phase3HandoffGateItem {
-  const status = handoffRecordState ?? "waiting";
+  const status = handoffRecordValidation?.state ?? handoffRecordState ?? "waiting";
 
   return {
     id: `${GATE_ID}:handoff-record`,
@@ -174,22 +177,27 @@ function handoffRecordItem(
     kind: "handoff-record",
     status,
     detail:
-      status === "ready"
+      handoffRecordValidation?.detail ??
+      (status === "ready"
         ? "Owner-reviewed Phase 3 handoff record is attached."
-        : "Owner-reviewed Phase 3 handoff record is not attached yet.",
+        : "Owner-reviewed Phase 3 handoff record is not attached yet."),
     nextAction:
-      status === "ready"
+      handoffRecordValidation?.nextAction ??
+      (status === "ready"
         ? "Keep the owner-reviewed handoff record attached before Phase 4 work advances."
         : clearancePackage.canExit
           ? "Record the owner-reviewed Phase 3 handoff before advancing provider integration."
-          : "Wait for the clearance package to reach exit-ready before recording handoff."
+          : "Wait for the clearance package to reach exit-ready before recording handoff.")
   };
 }
 
 function providerBoundaryItem(
   clearancePackage: Phase3ClearancePackage,
-  handoffRecordState: Phase3HandoffGateState | undefined
+  handoffRecordState: Phase3HandoffGateState | undefined,
+  handoffRecordValidation: Phase3HandoffRecordValidation | undefined
 ): Phase3HandoffGateItem {
+  const validatedRecordState = handoffRecordValidation?.state ?? handoffRecordState;
+
   if (clearancePackage.state === "blocked") {
     return {
       id: `${GATE_ID}:provider-boundary`,
@@ -218,14 +226,20 @@ function providerBoundaryItem(
     };
   }
 
-  if (handoffRecordState !== "ready") {
+  if (validatedRecordState !== "ready") {
     return {
       id: `${GATE_ID}:provider-boundary`,
       label: "Provider boundary",
       kind: "provider-boundary",
-      status: "waiting",
-      detail: "Provider integration remains held until the owner handoff record is attached.",
-      nextAction: "Attach the owner-reviewed Phase 3 handoff before advancing provider integration."
+      status: validatedRecordState === "review" ? "review" : "waiting",
+      detail:
+        handoffRecordValidation?.state === "review"
+          ? "Provider integration remains held because the owner handoff record does not match current evidence."
+          : "Provider integration remains held until the owner handoff record is attached.",
+      nextAction:
+        handoffRecordValidation?.state === "review"
+          ? handoffRecordValidation.nextAction
+          : "Attach the owner-reviewed Phase 3 handoff before advancing provider integration."
     };
   }
 
@@ -254,8 +268,16 @@ export function buildPhase3HandoffGate(
   const items = [
     desktopProofItem(input.clearancePackage),
     blockerVisibilityItem(input.clearancePackage),
-    handoffRecordItem(input.clearancePackage, input.handoffRecordState),
-    providerBoundaryItem(input.clearancePackage, input.handoffRecordState)
+    handoffRecordItem(
+      input.clearancePackage,
+      input.handoffRecordState,
+      input.handoffRecordValidation
+    ),
+    providerBoundaryItem(
+      input.clearancePackage,
+      input.handoffRecordState,
+      input.handoffRecordValidation
+    )
   ];
   const state = resolveState(items);
   const readyCount = items.filter((item) => item.status === "ready").length;
@@ -271,7 +293,7 @@ export function buildPhase3HandoffGate(
     canAdvanceProviderIntegration:
       state === "ready" &&
       input.clearancePackage.canExit &&
-      input.handoffRecordState === "ready",
+      (input.handoffRecordValidation?.state ?? input.handoffRecordState) === "ready",
     readyCount,
     reviewCount,
     blockedCount,

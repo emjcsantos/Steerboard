@@ -60,6 +60,42 @@ describe("phase 3 handoff gate", () => {
     );
   });
 
+  it("blocks provider advance when the owner handoff record is stale", () => {
+    const result = buildPhase3HandoffGate({
+      clearancePackage: clearancePackage(),
+      handoffRecordState: "review",
+      handoffRecordValidation: {
+        state: "review",
+        detail:
+          "Owner handoff record no longer matches the current Phase 3 evidence fingerprint.",
+        nextAction: "Clear and record the Phase 3 handoff again from the current exit-ready evidence.",
+        expectedFingerprint: "current",
+        recordFingerprint: "old",
+        matchesCurrentEvidence: false
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canAdvanceProviderIntegration).toBe(false);
+    expect(result.nextAction).toBe(
+      "Clear and record the Phase 3 handoff again from the current exit-ready evidence."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner handoff record",
+          status: "review",
+          detail: expect.stringContaining("no longer matches")
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          status: "review",
+          detail: expect.stringContaining("does not match current evidence")
+        })
+      ])
+    );
+  });
+
   it("routes exact blockers from the clearance package before handoff", () => {
     const result = buildPhase3HandoffGate({
       clearancePackage: clearancePackage({

@@ -2,6 +2,7 @@ import type {
   Phase3ClearancePackage,
   Phase3ClearancePackageState
 } from "./phase3ClearancePackage";
+import type { Phase3ExitGateEvidence } from "./phase3ExitGateEvidence";
 
 export interface Phase3OwnerHandoffRecord {
   readonly id: string;
@@ -10,7 +11,17 @@ export interface Phase3OwnerHandoffRecord {
   readonly clearanceReadiness: number;
   readonly exactBlockerCount: number;
   readonly canExit: boolean;
+  readonly evidenceFingerprint?: string;
   readonly detail: string;
+}
+
+export interface Phase3HandoffRecordValidation {
+  readonly state: Phase3ClearancePackageState;
+  readonly detail: string;
+  readonly nextAction: string;
+  readonly expectedFingerprint?: string;
+  readonly recordFingerprint?: string;
+  readonly matchesCurrentEvidence: boolean;
 }
 
 export const PHASE3_HANDOFF_RECORD_STORAGE_KEY =
@@ -72,6 +83,44 @@ function publicText(value: string | undefined, fallback: string): string {
     .trim();
 
   return sanitized.length > 0 ? sanitized : fallback;
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableJson).join(",")}]`;
+  }
+
+  if (isRecord(value)) {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`)
+      .join(",")}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
+export function buildPhase3HandoffEvidenceFingerprint(input: {
+  readonly clearancePackage: Phase3ClearancePackage;
+  readonly exitGate?: Pick<Phase3ExitGateEvidence, "items">;
+  readonly commandPlanId?: string;
+}): string {
+  return stableJson({
+    blockerCount: input.clearancePackage.openCount,
+    canExit: input.clearancePackage.canExit,
+    clearanceReadiness: input.clearancePackage.readiness,
+    commandPlanId: input.commandPlanId ?? "phase-3-clearance-command-plan",
+    evidence: (input.exitGate?.items ?? input.clearancePackage.blockers).map((item) => ({
+      detail: "detail" in item ? item.detail : undefined,
+      evidenceKey: item.evidenceKey,
+      id: item.id,
+      pmTaskId: item.pmTaskId,
+      state: item.state
+    })),
+    readyCount: input.clearancePackage.readyCount,
+    reviewCount: input.clearancePackage.reviewCount,
+    waitingCount: input.clearancePackage.waitingCount
+  });
 }
 
 function readStorage(): string | null {
@@ -149,6 +198,9 @@ export function parseStoredPhase3OwnerHandoffRecord(
       clearanceReadiness,
       exactBlockerCount,
       canExit: parsed.canExit,
+      evidenceFingerprint: nonEmptyString(parsed.evidenceFingerprint)
+        ? parsed.evidenceFingerprint.trim()
+        : undefined,
       detail: publicText(
         nonEmptyString(parsed.detail) ? parsed.detail : undefined,
         "Phase 3 owner handoff record is available."
@@ -165,7 +217,8 @@ export function loadPhase3OwnerHandoffRecord(): Phase3OwnerHandoffRecord | undef
 
 export function createPhase3OwnerHandoffRecord(
   clearancePackage: Phase3ClearancePackage,
-  createdAt: string
+  createdAt: string,
+  evidenceFingerprint?: string
 ): Phase3OwnerHandoffRecord {
   const state: Phase3ClearancePackageState = clearancePackage.canExit
     ? "ready"
@@ -178,6 +231,7 @@ export function createPhase3OwnerHandoffRecord(
     clearanceReadiness: clearancePackage.readiness,
     exactBlockerCount: clearancePackage.openCount,
     canExit: clearancePackage.canExit,
+    ...(evidenceFingerprint ? { evidenceFingerprint } : {}),
     detail: clearancePackage.canExit
       ? "Owner-reviewed Phase 3 handoff is recorded from exit-ready clearance evidence."
       : publicText(
@@ -198,19 +252,95 @@ export function savePhase3OwnerHandoffRecord(
 
 export function derivePhase3HandoffRecordState(
   record: Phase3OwnerHandoffRecord | undefined,
-  clearancePackage: Phase3ClearancePackage
+  clearancePackage: Phase3ClearancePackage,
+  expectedFingerprint?: string
 ): Phase3ClearancePackageState {
+  return derivePhase3HandoffRecordValidation(
+    record,
+    clearancePackage,
+    expectedFingerprint
+  ).state;
+}
+
+export function derivePhase3HandoffRecordValidation(
+  record: Phase3OwnerHandoffRecord | undefined,
+  clearancePackage: Phase3ClearancePackage,
+  expectedFingerprint?: string
+): Phase3HandoffRecordValidation {
   if (!clearancePackage.canExit) {
-    return clearancePackage.state;
+    return {
+      state: clearancePackage.state,
+      detail: "Phase 3 clearance is not exit-ready, so any handoff record remains held.",
+      nextAction: publicText(
+        clearancePackage.nextAction,
+        "Clear Phase 3 evidence before validating owner handoff."
+      ),
+      expectedFingerprint,
+      recordFingerprint: record?.evidenceFingerprint,
+      matchesCurrentEvidence: false
+    };
   }
 
   if (!record) {
-    return "waiting";
+    return {
+      state: "waiting",
+      detail: "Owner-reviewed Phase 3 handoff record is not attached yet.",
+      nextAction: "Record the owner-reviewed Phase 3 handoff before advancing provider integration.",
+      expectedFingerprint,
+      matchesCurrentEvidence: false
+    };
   }
 
   if (record.state === "ready" && record.canExit && record.exactBlockerCount === 0) {
-    return "ready";
+    if (!expectedFingerprint) {
+      return {
+        state: "ready",
+        detail: "Owner-reviewed Phase 3 handoff record is attached.",
+        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+        recordFingerprint: record.evidenceFingerprint,
+        matchesCurrentEvidence: Boolean(record.evidenceFingerprint)
+      };
+    }
+
+    if (!record.evidenceFingerprint) {
+      return {
+        state: "review",
+        detail:
+          "Owner handoff record predates the Phase 3 evidence fingerprint and must be refreshed.",
+        nextAction: "Clear and record the Phase 3 handoff again from the current exit-ready evidence.",
+        expectedFingerprint,
+        matchesCurrentEvidence: false
+      };
+    }
+
+    if (expectedFingerprint && record.evidenceFingerprint !== expectedFingerprint) {
+      return {
+        state: "review",
+        detail:
+          "Owner handoff record no longer matches the current Phase 3 evidence fingerprint.",
+        nextAction: "Clear and record the Phase 3 handoff again from the current exit-ready evidence.",
+        expectedFingerprint,
+        recordFingerprint: record.evidenceFingerprint,
+        matchesCurrentEvidence: false
+      };
+    }
+
+    return {
+      state: "ready",
+      detail: "Owner-reviewed Phase 3 handoff record matches the current evidence fingerprint.",
+      nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+      expectedFingerprint,
+      recordFingerprint: record.evidenceFingerprint,
+      matchesCurrentEvidence: true
+    };
   }
 
-  return "review";
+  return {
+    state: "review",
+    detail: "Owner handoff record is attached but is not exit-ready for the current clearance package.",
+    nextAction: "Clear and record the Phase 3 handoff again from exit-ready evidence.",
+    expectedFingerprint,
+    recordFingerprint: record.evidenceFingerprint,
+    matchesCurrentEvidence: false
+  };
 }
