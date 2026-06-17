@@ -513,6 +513,7 @@ import {
   buildPhase9RunnerApprovalSnapshot,
   type Phase9RunnerApprovalSnapshot
 } from "./phase9RunnerApproval";
+import { buildPhase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDepth";
 import {
   buildPhase10ArenaPolishSnapshot,
   type Phase10ArenaPolishSnapshot
@@ -11439,6 +11440,8 @@ function Phase9RunnerApprovalPanel({
 }: {
   snapshot: Phase9RunnerApprovalSnapshot;
 }) {
+  const depth = buildPhase9RunnerApprovalDepthSummary(snapshot);
+
   return (
     <section className="panel-section">
       <h4>Phase 9 Runner Approval</h4>
@@ -11493,6 +11496,33 @@ function Phase9RunnerApprovalPanel({
             </li>
           ))}
         </ol>
+        <div className="phase9-runner-depth" aria-label={depth.ariaLabel}>
+          <div className="phase9-runner-depth-header">
+            <strong>{depth.label}</strong>
+            <span>
+              {depth.readyCount} ready / {depth.mutationLockCount} locks
+            </span>
+          </div>
+          <ol className="phase9-runner-depth-records">
+            {depth.records.map((record) => (
+              <li
+                className={classNames(
+                  "phase9-runner-depth-record",
+                  `phase9-runner-depth-${record.status}`
+                )}
+                key={record.id}
+                title={`${record.evidence} ${record.nextAction}`}
+              >
+                <span>{record.statusLabel}</span>
+                <div>
+                  <strong>{record.label}</strong>
+                  <small>{record.nextAction}</small>
+                </div>
+                <b>{record.locksMutation ? "locked" : "proof"}</b>
+              </li>
+            ))}
+          </ol>
+        </div>
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
     </section>

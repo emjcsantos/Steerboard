@@ -191,17 +191,18 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Allow the fixed terminal read-only desktop probe only after permission, audit, validation, and rollback gates pass.",
     status: "next",
     priority: "high",
-    completionPercent: 35,
+    completionPercent: 40,
     pmTaskIds: [
       "phase-09-desktop-runner",
       "phase-09-parent-runner-probe",
       "phase-09-child-reversible-action",
       "phase-09-child-runner-observability",
       "phase-09-parent-approval-flow",
-      "phase-09-child-approval-record"
+      "phase-09-child-approval-record",
+      "phase-09-child-approval-depth"
     ],
     nextAction:
-      "Use the Phase 9 Runner Approval panel to keep the terminal-readonly-probe selected, owner-approved, previewed, validated, audited, and rollback-safe."
+      "Use the Phase 9 Runner Approval depth records to keep the terminal-readonly-probe selected, owner-approved, previewed, validated, audited, rollback-safe, and locked away from broad desktop mutation paths."
   },
   {
     id: "goal-phase-10-arena-polish",

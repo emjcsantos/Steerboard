@@ -566,7 +566,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-09-desktop-runner",
     title: "Phase 9: Desktop-Backed Runner",
     description: "Enable the fixed terminal read-only desktop probe after permission, preview, audit, validation, and rollback gates pass.",
-    completionPercent: 35,
+    completionPercent: 40,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -590,7 +590,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-09-child-runner-observability",
             title: "Runner Observability",
             description: "Show request readiness, approval window, validation output, audit count, rollback evidence, and final state for the selected probe.",
-            completionPercent: 35,
+            completionPercent: 40,
             complexity: "high",
             sourceDocument: "Live action runner"
           }
@@ -600,7 +600,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-09-parent-approval-flow",
         title: "Approval and Rollback Flow",
         description: "Require owner approval, request preview, validation result, audit record, and rollback evidence before runner expansion.",
-        completionPercent: 35,
+        completionPercent: 40,
         complexity: "extra_high",
         sourceDocument: "Permissions and audit",
         children: [
@@ -610,6 +610,14 @@ const phaseSpecs: PhaseSpec[] = [
             description: "Record terminal request, approval, fallback, failure, execution, and rollback-safe evidence in the owner-visible audit path.",
             completionPercent: 35,
             sourceDocument: "Audit trail"
+          },
+          {
+            id: "phase-09-child-approval-depth",
+            title: "Runner Approval Depth",
+            description: "Show fixed probe selection, owner approval, request preview, validation output, audit record, rollback evidence, and the desktop execution lock as separate depth records.",
+            completionPercent: 40,
+            complexity: "high",
+            sourceDocument: "Phase 9 runner approval depth"
           }
         ]
       }
