@@ -633,6 +633,14 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 40,
             complexity: "high",
             sourceDocument: "Live action runner"
+          },
+          {
+            id: "phase-09-child-traceability",
+            title: "Runner Traceability",
+            description: "Link Phase 9 remaining-goal status, PM child rows, Phase 8 audit readiness, runner approval depth, evidence keys, and mutation locks before the desktop runner can advance.",
+            completionPercent: 35,
+            complexity: "high",
+            sourceDocument: "Phase 9 runner traceability"
           }
         ]
       },

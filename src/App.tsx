@@ -525,6 +525,7 @@ import {
   type Phase9RunnerApprovalSnapshot
 } from "./phase9RunnerApproval";
 import { buildPhase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDepth";
+import { buildPhase9RunnerTraceabilitySummary } from "./phase9RunnerTraceability";
 import {
   buildPhase10ArenaPolishSnapshot,
   type Phase10ArenaPolishSnapshot
@@ -8777,7 +8778,10 @@ function RightPanel({
         summary={runtimeProfileSummary}
       />
 
-      <Phase9RunnerApprovalPanel snapshot={phase9RunnerApproval} />
+      <Phase9RunnerApprovalPanel
+        phase8PermissionAuditDepth={phase8PermissionAuditDepth}
+        snapshot={phase9RunnerApproval}
+      />
 
       <LiveActionRiskGatePanel
         auditExportMarkdown={liveActionAuditMarkdown}
@@ -11690,11 +11694,18 @@ function Phase8PermissionAuditDepthPanel({
 }
 
 function Phase9RunnerApprovalPanel({
+  phase8PermissionAuditDepth,
   snapshot
 }: {
+  phase8PermissionAuditDepth: Phase8PermissionAuditDepthSnapshot;
   snapshot: Phase9RunnerApprovalSnapshot;
 }) {
   const depth = buildPhase9RunnerApprovalDepthSummary(snapshot);
+  const traceability = buildPhase9RunnerTraceabilitySummary({
+    approval: snapshot,
+    depth,
+    phase8: phase8PermissionAuditDepth
+  });
 
   return (
     <section className="panel-section">
@@ -11770,9 +11781,36 @@ function Phase9RunnerApprovalPanel({
                 <span>{record.statusLabel}</span>
                 <div>
                   <strong>{record.label}</strong>
-                  <small>{record.nextAction}</small>
+                <small>{record.pmTaskId} / {record.evidenceKey}</small>
+              </div>
+              <b>{record.locksMutation ? "locked" : "proof"}</b>
+            </li>
+          ))}
+        </ol>
+      </div>
+        <div className="phase9-runner-traceability" aria-label={traceability.ariaLabel}>
+          <div className="phase9-runner-traceability-header">
+            <strong>{traceability.label}</strong>
+            <span>
+              {traceability.statusLabel} / {traceability.readiness}%
+            </span>
+          </div>
+          <ol className="phase9-runner-traceability-records">
+            {traceability.items.map((item) => (
+              <li
+                className={classNames(
+                  "phase9-runner-traceability-record",
+                  `phase9-runner-traceability-${item.status}`
+                )}
+                key={item.id}
+                title={`${item.detail} ${item.nextAction}`}
+              >
+                <span>{item.status}</span>
+                <div>
+                  <strong>{item.label}</strong>
+                  <small>{item.nextAction}</small>
                 </div>
-                <b>{record.locksMutation ? "locked" : "proof"}</b>
+                <b>{item.kind}</b>
               </li>
             ))}
           </ol>

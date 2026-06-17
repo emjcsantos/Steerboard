@@ -217,12 +217,13 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-09-parent-runner-probe",
       "phase-09-child-reversible-action",
       "phase-09-child-runner-observability",
+      "phase-09-child-traceability",
       "phase-09-parent-approval-flow",
       "phase-09-child-approval-record",
       "phase-09-child-approval-depth"
     ],
     nextAction:
-      "Use the Phase 9 Runner Approval depth records to keep the terminal-readonly-probe selected, owner-approved, previewed, validated, audited, rollback-safe, and locked away from broad desktop mutation paths."
+      "Use the Phase 9 Runner Approval depth and traceability records to keep the terminal-readonly-probe selected, linked to PM child rows, uniquely evidenced, owner-approved, previewed, validated, audited, rollback-safe, gated by Phase 8, and locked away from broad desktop mutation paths."
   },
   {
     id: "goal-phase-10-arena-polish",

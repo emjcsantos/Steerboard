@@ -11658,6 +11658,118 @@ textarea {
   color: #ffc2b1;
 }
 
+.phase9-runner-traceability {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.phase9-runner-traceability-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.phase9-runner-traceability-header strong,
+.phase9-runner-traceability-header span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase9-runner-traceability-header strong {
+  color: #edf2f7;
+  font-size: 11px;
+}
+
+.phase9-runner-traceability-header span {
+  color: #9aa5b0;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.phase9-runner-traceability-records {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phase9-runner-traceability-record {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 62px minmax(0, 1fr) 88px;
+  align-items: center;
+  gap: 6px;
+}
+
+.phase9-runner-traceability-record > span,
+.phase9-runner-traceability-record strong,
+.phase9-runner-traceability-record small,
+.phase9-runner-traceability-record b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase9-runner-traceability-record > span {
+  border-radius: 999px;
+  background: #252b34;
+  padding: 3px 6px;
+  color: #cfd8e3;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase9-runner-traceability-record div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.phase9-runner-traceability-record strong {
+  color: #dbe4ee;
+  font-size: 10px;
+}
+
+.phase9-runner-traceability-record small {
+  color: #8f99a5;
+  font-size: 9px;
+}
+
+.phase9-runner-traceability-record b {
+  color: #aab5c0;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.phase9-runner-traceability-ready > span {
+  background: #264d36;
+  color: #b7f2ca;
+}
+
+.phase9-runner-traceability-review > span {
+  background: #234655;
+  color: #b8ecfb;
+}
+
+.phase9-runner-traceability-waiting > span {
+  background: #504825;
+  color: #f6e6a8;
+}
+
+.phase9-runner-traceability-blocked > span {
+  background: #57342e;
+  color: #ffc2b1;
+}
+
 .phase10-arena-polish {
   display: grid;
   gap: 8px;

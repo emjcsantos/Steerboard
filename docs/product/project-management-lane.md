@@ -88,7 +88,7 @@ The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk e
 - Phase 5 Migration review depth records for apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock.
 - Phase 7 Dispatch review depth checks for role counts, max attempt limits, handoff task depth, validation gate depth, main integration ownership, traceability, closure boundaries, and the no-live-worker lock.
 - Phase 8 Audit Depth risk exceptions with disabled-path explanations, evidence requirements, rollback expectations, and audit sources before mutation paths grow.
-- Phase 9 Runner Approval depth records for fixed probe selection, owner approval, request preview, validation output, audit record, rollback evidence, and the desktop execution lock.
+- Phase 9 Runner Approval depth and traceability records for fixed probe selection, owner approval, request preview, validation output, audit record, rollback evidence, unique evidence keys, PM child links, Phase 8 gate linkage, and the desktop execution lock.
 - Phase 11 prioritized remaining-goal trace rows for current critical blockers, active clearance work, and high-priority pending goals with goal IDs, phase IDs, PM task links, status, and completion.
 - Owner Testing evidence and explicit smoke buttons for Phase 1 live panel proof, Phase 2 multi-panel isolation, and Phase 6 PM board staging readiness.
 - Phase 3 clearance package, blocker-priority queue, traceability rows, command plan, and handoff gate with exact open blockers, command-addressable blocker status, active-goal and PM child linkage, next smoke action, local owner handoff record/clear actions, and provider-integration boundary.

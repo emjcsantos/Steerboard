@@ -18,6 +18,8 @@ export interface Phase9RunnerApprovalDepthRecord {
   id: string;
   label: string;
   kind: Phase9RunnerApprovalDepthKind;
+  pmTaskId: string;
+  evidenceKey: string;
   status: Phase9RunnerApprovalState;
   statusLabel: string;
   evidence: string;
@@ -42,6 +44,40 @@ const STATUS_LABELS: Record<Phase9RunnerApprovalState, string> = {
   review: "Review",
   blocked: "Blocked",
   waiting: "Waiting"
+};
+
+const TRACE_BY_KIND: Record<
+  Phase9RunnerApprovalDepthKind,
+  { pmTaskId: string; evidenceKey: string }
+> = {
+  "fixed-probe-selection": {
+    pmTaskId: "phase-09-child-reversible-action",
+    evidenceKey: "phase9.fixed-probe-selection"
+  },
+  "owner-approval": {
+    pmTaskId: "phase-09-parent-approval-flow",
+    evidenceKey: "phase9.owner-approval-window"
+  },
+  "request-preview": {
+    pmTaskId: "phase-09-parent-runner-probe",
+    evidenceKey: "phase9.runner-request-preview"
+  },
+  "validation-output": {
+    pmTaskId: "phase-09-child-runner-observability",
+    evidenceKey: "phase9.validation-output"
+  },
+  "audit-record": {
+    pmTaskId: "phase-09-child-approval-record",
+    evidenceKey: "phase9.approval-result-audit"
+  },
+  "rollback-evidence": {
+    pmTaskId: "phase-09-child-approval-depth",
+    evidenceKey: "phase9.rollback-evidence"
+  },
+  "desktop-execution-lock": {
+    pmTaskId: "phase-09-child-traceability",
+    evidenceKey: "phase9.desktop-execution-lock"
+  }
 };
 
 function itemByKind(
@@ -84,6 +120,8 @@ function recordFromItem(
     id,
     label: item.label,
     kind,
+    pmTaskId: TRACE_BY_KIND[kind].pmTaskId,
+    evidenceKey: TRACE_BY_KIND[kind].evidenceKey,
     status: item.status,
     statusLabel: STATUS_LABELS[item.status],
     evidence: item.detail,
@@ -102,6 +140,8 @@ function missingRecord(
     id,
     label,
     kind,
+    pmTaskId: TRACE_BY_KIND[kind].pmTaskId,
+    evidenceKey: TRACE_BY_KIND[kind].evidenceKey,
     status: "blocked",
     statusLabel: STATUS_LABELS.blocked,
     evidence: "Phase 9 approval depth is missing the source approval target.",
@@ -131,6 +171,8 @@ function ownerApprovalRecord(
     id: `${snapshot.id}:depth-owner-approval`,
     label: "Owner approval and window",
     kind: "owner-approval",
+    pmTaskId: TRACE_BY_KIND["owner-approval"].pmTaskId,
+    evidenceKey: TRACE_BY_KIND["owner-approval"].evidenceKey,
     status,
     statusLabel: STATUS_LABELS[status],
     evidence: `${permission.detail} ${approval.detail}`,
@@ -152,6 +194,8 @@ function desktopExecutionLockRecord(
     id: `${snapshot.id}:depth-desktop-lock`,
     label: "Desktop execution lock",
     kind: "desktop-execution-lock",
+    pmTaskId: TRACE_BY_KIND["desktop-execution-lock"].pmTaskId,
+    evidenceKey: TRACE_BY_KIND["desktop-execution-lock"].evidenceKey,
     status,
     statusLabel: STATUS_LABELS[status],
     evidence:

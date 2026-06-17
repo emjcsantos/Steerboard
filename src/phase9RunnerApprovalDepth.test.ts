@@ -99,15 +99,27 @@ describe("phase 9 runner approval depth", () => {
       "rollback-evidence",
       "desktop-execution-lock"
     ]);
+    expect(new Set(depth.records.map((record) => record.evidenceKey)).size).toBe(depth.records.length);
+    expect(depth.records.map((record) => record.pmTaskId)).toEqual([
+      "phase-09-child-reversible-action",
+      "phase-09-parent-approval-flow",
+      "phase-09-parent-runner-probe",
+      "phase-09-child-runner-observability",
+      "phase-09-child-approval-record",
+      "phase-09-child-approval-depth",
+      "phase-09-child-traceability"
+    ]);
     expect(depth.records).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           kind: "fixed-probe-selection",
+          evidenceKey: "phase9.fixed-probe-selection",
           status: "ready",
           locksMutation: true
         }),
         expect.objectContaining({
           kind: "desktop-execution-lock",
+          evidenceKey: "phase9.desktop-execution-lock",
           status: "ready",
           locksMutation: true
         })

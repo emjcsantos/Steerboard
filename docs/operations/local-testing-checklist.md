@@ -120,7 +120,8 @@ Do not proceed to the next section until the current item is at least `review`.
     - Confirm the panel keeps runtime/profile execution locked while audit and rollback requirements are reviewed.
     - Confirm the Phase 9 Runner Approval panel keeps `terminal-readonly-probe` as the only selected desktop-backed action.
     - Confirm Phase 9 shows owner permission, approval window, request preview, validation output, approval/result audit, and rollback evidence as separate targets.
-    - Confirm the Phase 9 runner approval depth records separately list fixed probe selection, owner approval, request preview, validation output, audit record, rollback evidence, and desktop execution lock.
+    - Confirm the Phase 9 runner approval depth records separately list fixed probe selection, owner approval, request preview, validation output, audit record, rollback evidence, and desktop execution lock, each with a unique evidence key and linked Phase 9 PM child or parent row.
+    - Confirm the Phase 9 runner traceability rows link the remaining goal, PM child coverage, Phase 8 audit gate, runner approval depth, and mutation lock before the fixed desktop probe can be trusted.
     - Confirm the desktop probe request remains held until owner approval is ready, and broad terminal, Git, MCP, plugin, automation, runtime, profile, and external-service mutation paths remain locked.
 12. `Reload`
     - Reload during an in-progress run and resume from persisted context.
