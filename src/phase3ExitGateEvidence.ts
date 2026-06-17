@@ -134,6 +134,12 @@ function safeRecord(value: unknown): Record<string, unknown> | undefined {
   return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : undefined;
 }
 
+function safeNumber(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.floor(value)
+    : 0;
+}
+
 function normalizeState(value: unknown): Phase3ExitGateState | undefined {
   if (typeof value !== "string") {
     return undefined;
@@ -146,6 +152,46 @@ function normalizeState(value: unknown): Phase3ExitGateState | undefined {
   }
 
   return undefined;
+}
+
+function slashEvidenceSupportsReady(record: Record<string, unknown>): boolean {
+  const evidence = safeRecord(record.evidence);
+
+  return (
+    record.route === "provider" &&
+    record.executable === true &&
+    safeNumber(evidence?.providerRoute) > 0 &&
+    safeNumber(evidence?.error) === 0 &&
+    (safeNumber(evidence?.status) > 0 || safeNumber(evidence?.live) > 0)
+  );
+}
+
+function normalizeControlState(value: unknown): string {
+  return typeof value === "string" ? value.toLowerCase() : "waiting";
+}
+
+function sessionControlsSupportReady(record: Record<string, unknown>): boolean {
+  const controlStates = safeRecord(record.controlStates);
+  if (!controlStates) {
+    return false;
+  }
+
+  const interrupt = normalizeControlState(controlStates.interrupt);
+  const retry = normalizeControlState(controlStates.retry);
+  const steer = normalizeControlState(controlStates.steer);
+  const fork = normalizeControlState(controlStates.fork);
+  const resume = normalizeControlState(controlStates.resume);
+  const archive = normalizeControlState(controlStates.archive);
+  const requiredReady = [interrupt, retry, steer].every(
+    (state) => state === "live" || state === "review"
+  );
+  const lifecycleHonest = [fork, resume, archive].every(
+    (state) => state === "live" || state === "review" || state === "unsupported"
+  );
+  const counts = safeRecord(record.counts);
+  const blockedCount = safeNumber(counts?.blocked);
+
+  return requiredReady && lifecycleHonest && blockedCount === 0;
 }
 
 function countStates(states: readonly Phase3ExitGateState[]): Phase3ExitGateEvidenceCounts {
@@ -179,7 +225,8 @@ function evaluateSlashEvidence(input: unknown): {
   }
 
   if (state === "ready") {
-    return { state: safeBoolean(record.pass) ? "ready" : "review", pass: safeBoolean(record.pass), malformed: false };
+    const pass = safeBoolean(record.pass) && slashEvidenceSupportsReady(record);
+    return { state: pass ? "ready" : "review", pass, malformed: false };
   }
 
   return { state, pass: false, malformed: false };
@@ -201,7 +248,8 @@ function evaluateSessionControlEvidence(input: unknown): {
   }
 
   if (state === "ready") {
-    return { state: safeBoolean(record.pass) ? "ready" : "review", pass: safeBoolean(record.pass), malformed: false };
+    const pass = safeBoolean(record.pass) && sessionControlsSupportReady(record);
+    return { state: pass ? "ready" : "review", pass, malformed: false };
   }
 
   return { state, pass: false, malformed: false };

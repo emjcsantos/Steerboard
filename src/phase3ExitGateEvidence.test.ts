@@ -1,34 +1,58 @@
 import { describe, expect, it } from "vitest";
 import { buildPhase3ExitGateEvidence } from "./phase3ExitGateEvidence";
 
+function readySlashEvidence(overrides: Record<string, unknown> = {}) {
+  return {
+    state: "ready",
+    pass: true,
+    readiness: 100,
+    status: "Ready",
+    detail: "slash command execution live",
+    safety: "none",
+    executable: true,
+    command: "/plan",
+    route: "provider",
+    evidence: {
+      providerRoute: 1,
+      status: 1,
+      live: 0,
+      error: 0
+    },
+    ...overrides
+  };
+}
+
+function readySessionControlEvidence(overrides: Record<string, unknown> = {}) {
+  return {
+    state: "ready",
+    readiness: 100,
+    pass: true,
+    statusLabel: "Ready",
+    detail: "session controls observed",
+    safety: "none",
+    counts: {
+      live: 3,
+      review: 0,
+      unsupported: 3,
+      blocked: 0
+    },
+    controlStates: {
+      interrupt: "live",
+      retry: "live",
+      steer: "live",
+      fork: "unsupported",
+      resume: "unsupported",
+      archive: "unsupported"
+    },
+    ...overrides
+  };
+}
+
 describe("phase 3 exit gate evidence", () => {
   it("returns ready only when slash/session evidence and all desktop smokes are satisfied", () => {
     const result = buildPhase3ExitGateEvidence({
-      slashEvidence: {
-        state: "ready",
-        pass: true,
-        readiness: 100,
-        status: "Ready",
-        detail: "slash command execution live",
-        safety: "none",
-        executable: true,
-        command: "/plan",
-        route: "provider"
-      },
-      sessionControlEvidence: {
-        state: "ready",
-        readiness: 100,
-        pass: true,
-        statusLabel: "Ready",
-        detail: "session controls observed",
-        safety: "none",
-        counts: {
-          live: 3,
-          review: 0,
-          unsupported: 3,
-          blocked: 0
-        }
-      },
+      slashEvidence: readySlashEvidence(),
+      sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: { source: "desktop", executed: true, ok: true },
       activeTurnInterruptSmoke: {
         source: "desktop",
@@ -74,31 +98,8 @@ describe("phase 3 exit gate evidence", () => {
 
   it("returns review when desktop proof is incomplete despite good slash/session evidence", () => {
     const result = buildPhase3ExitGateEvidence({
-      slashEvidence: {
-        state: "ready",
-        pass: true,
-        readiness: 100,
-        status: "Ready",
-        detail: "slash command execution live",
-        safety: "none",
-        executable: true,
-        command: "/plan",
-        route: "provider"
-      },
-      sessionControlEvidence: {
-        state: "ready",
-        readiness: 100,
-        pass: true,
-        statusLabel: "Ready",
-        detail: "session controls observed",
-        safety: "none",
-        counts: {
-          live: 3,
-          review: 0,
-          unsupported: 3,
-          blocked: 0
-        }
-      },
+      slashEvidence: readySlashEvidence(),
+      sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: { source: "desktop", executed: true, ok: true },
       activeTurnInterruptSmoke: {
         source: "desktop",
@@ -191,26 +192,67 @@ describe("phase 3 exit gate evidence", () => {
     expect(result.items[1].nextAction).not.toContain("desktop smoke");
   });
 
+  it("does not trust ready slash evidence without provider route and result counts", () => {
+    const result = buildPhase3ExitGateEvidence({
+      slashEvidence: readySlashEvidence({
+        evidence: {
+          providerRoute: 0,
+          status: 0,
+          live: 0,
+          error: 0
+        }
+      }),
+      sessionControlEvidence: readySessionControlEvidence(),
+      liveControlSmoke: { source: "desktop", executed: true, ok: true },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        executed: true,
+        completed: true,
+        interruptObserved: true
+      },
+      activeTurnSteerSmoke: { source: "desktop", executed: true, ok: true }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.pass).toBe(false);
+    expect(result.items[0]).toMatchObject({
+      id: "phase3-exit-gate:slash-execution",
+      state: "review",
+      detail: expect.stringContaining("needs additional evidence")
+    });
+  });
+
+  it("does not trust ready session evidence without canonical control states", () => {
+    const result = buildPhase3ExitGateEvidence({
+      slashEvidence: readySlashEvidence(),
+      sessionControlEvidence: readySessionControlEvidence({
+        controlStates: undefined
+      }),
+      liveControlSmoke: { source: "desktop", executed: true, ok: true },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        executed: true,
+        completed: true,
+        interruptObserved: true
+      },
+      activeTurnSteerSmoke: { source: "desktop", executed: true, ok: true }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.pass).toBe(false);
+    expect(result.items[1]).toMatchObject({
+      id: "phase3-exit-gate:session-controls",
+      state: "review",
+      detail: expect.stringContaining("needs additional evidence")
+    });
+  });
+
   it("returns review when a ready desktop proof is stale", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-20T00:00:00.000Z",
       maxProofAgeMs: 24 * 60 * 60 * 1000,
-      slashEvidence: {
-        state: "ready",
-        pass: true,
-        readiness: 100,
-        status: "Ready",
-        detail: "slash command execution live",
-        safety: "none"
-      },
-      sessionControlEvidence: {
-        state: "ready",
-        readiness: 100,
-        pass: true,
-        statusLabel: "Ready",
-        detail: "session controls observed",
-        safety: "none"
-      },
+      slashEvidence: readySlashEvidence(),
+      sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: {
         source: "desktop",
         checkedAt: "2026-06-18T00:00:00.000Z",
@@ -243,28 +285,8 @@ describe("phase 3 exit gate evidence", () => {
 
   it("returns blocked when any smoke proof is unsupported after execution", () => {
     const result = buildPhase3ExitGateEvidence({
-      slashEvidence: {
-        state: "ready",
-        pass: true,
-        readiness: 100,
-        status: "Ready",
-        detail: "slash command execution live",
-        safety: "none"
-      },
-      sessionControlEvidence: {
-        state: "ready",
-        readiness: 100,
-        pass: true,
-        statusLabel: "Ready",
-        detail: "session controls observed",
-        safety: "none",
-        counts: {
-          live: 3,
-          review: 0,
-          unsupported: 3,
-          blocked: 0
-        }
-      },
+      slashEvidence: readySlashEvidence(),
+      sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: null,
       activeTurnInterruptSmoke: {
         source: "desktop",
@@ -304,20 +326,7 @@ describe("phase 3 exit gate evidence", () => {
         detail: "provider route unavailable",
         safety: "none"
       },
-      sessionControlEvidence: {
-        state: "ready",
-        readiness: 100,
-        pass: true,
-        statusLabel: "Ready",
-        detail: "session controls observed",
-        safety: "none",
-        counts: {
-          live: 3,
-          review: 0,
-          unsupported: 3,
-          blocked: 0
-        }
-      },
+      sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: null,
       activeTurnInterruptSmoke: { completed: true },
       activeTurnSteerSmoke: { source: "desktop", executed: true, ok: true }
@@ -349,20 +358,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns waiting when key evidence is malformed or missing", () => {
     const result = buildPhase3ExitGateEvidence({
       slashEvidence: "not-an-object",
-      sessionControlEvidence: {
-        state: "ready",
-        readiness: 100,
-        pass: true,
-        statusLabel: "Ready",
-        detail: "session controls observed",
-        safety: "none",
-        counts: {
-          live: 3,
-          review: 0,
-          unsupported: 3,
-          blocked: 0
-        }
-      },
+      sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: null,
       activeTurnInterruptSmoke: { completed: true },
       activeTurnSteerSmoke: { source: "desktop", executed: true, ok: true }
@@ -387,28 +383,8 @@ describe("phase 3 exit gate evidence", () => {
   });
 
   it("reports stable counts and does not mutate evidence inputs", () => {
-    const slashEvidence = {
-      state: "ready",
-      pass: true,
-      readiness: 100,
-      status: "Ready",
-      detail: "slash command execution live",
-      safety: "none"
-    };
-    const sessionControlEvidence = {
-      state: "ready",
-      readiness: 100,
-      pass: true,
-      statusLabel: "Ready",
-      detail: "session controls observed",
-      safety: "none",
-      counts: {
-        live: 3,
-        review: 0,
-        unsupported: 3,
-        blocked: 0
-      }
-    };
+    const slashEvidence = readySlashEvidence();
+    const sessionControlEvidence = readySessionControlEvidence();
     const liveControlSmoke = { source: "desktop", executed: true, ok: true };
     const activeTurnInterruptSmoke = {
       source: "desktop",
