@@ -90,13 +90,22 @@ import {
   buildPhase4ProviderSurfaceDepth,
   type Phase4ProviderSurfaceDepthSnapshot
 } from "./phase4ProviderSurfaceDepth";
-import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
+import {
+  buildPhase4ProviderCatalogDepth,
+  type Phase4ProviderCatalogDepthSummary
+} from "./phase4ProviderCatalogDepth";
 import {
   buildCatalogRefreshProviderSmoke,
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
   type CatalogRefreshProviderSmokeResult
 } from "./catalogRefreshProviderSmoke";
-import { buildPhase4RefreshSafetyDepth } from "./phase4RefreshSafetyDepth";
+import {
+  buildPhase4RefreshSafetyDepth
+} from "./phase4RefreshSafetyDepth";
+import {
+  buildPhase4ProviderTraceabilitySummary,
+  type Phase4ProviderTraceabilitySummary
+} from "./phase4ProviderTraceability";
 import {
   buildSlashCommandExecutionEvidence,
   type SlashCommandExecutionEvidence
@@ -1708,9 +1717,26 @@ export function App() {
     () => buildProviderIntegrationReadiness(catalogRefreshOwnerValidation),
     [catalogRefreshOwnerValidation]
   );
+  const phase4ProviderCatalogDepth = useMemo(
+    () => buildPhase4ProviderCatalogDepth(providerIntegrationReadiness),
+    [providerIntegrationReadiness]
+  );
+  const phase4RefreshSafetyDepth = useMemo(
+    () => buildPhase4RefreshSafetyDepth(catalogRefreshProviderSmokeProof),
+    [catalogRefreshProviderSmokeProof]
+  );
   const phase4ProviderSurfaceDepth = useMemo(
     () => buildPhase4ProviderSurfaceDepth(providerIntegrationReadiness),
     [providerIntegrationReadiness]
+  );
+  const phase4ProviderTraceability = useMemo(
+    () =>
+      buildPhase4ProviderTraceabilitySummary({
+        catalogDepth: phase4ProviderCatalogDepth,
+        refreshSafety: phase4RefreshSafetyDepth,
+        surfaceDepth: phase4ProviderSurfaceDepth
+      }),
+    [phase4ProviderCatalogDepth, phase4ProviderSurfaceDepth, phase4RefreshSafetyDepth]
   );
   const slashCommandExecutionEvidence = useMemo(() => {
     const evidenceItems = Object.values(slashCommandExecutionEvidenceByPanel);
@@ -3496,6 +3522,8 @@ export function App() {
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
             project={project}
+            phase4ProviderCatalogDepth={phase4ProviderCatalogDepth}
+            phase4ProviderTraceability={phase4ProviderTraceability}
             phase4ProviderSurfaceDepth={phase4ProviderSurfaceDepth}
             providerIntegrationReadiness={providerIntegrationReadiness}
             registryEntry={registryEntry}
@@ -6382,12 +6410,12 @@ function RemainingGoalsPanel({
 }
 
 function ProviderIntegrationReadinessPanel({
+  catalogDepth,
   readiness
 }: {
+  catalogDepth: Phase4ProviderCatalogDepthSummary;
   readiness: ProviderIntegrationReadiness;
 }) {
-  const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
-
   return (
     <section
       aria-label={`Phase 4 provider integration readiness ${readiness.statusLabel}; ${readiness.readiness}% ready. ${readiness.nextAction}`}
@@ -6531,6 +6559,71 @@ function Phase4ProviderSurfaceDepthPanel({
           ))}
         </ol>
         <small title={snapshot.safety}>{snapshot.safety}</small>
+      </div>
+    </section>
+  );
+}
+
+function Phase4ProviderTraceabilityPanel({
+  summary
+}: {
+  summary: Phase4ProviderTraceabilitySummary;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Phase 4 Traceability</h4>
+      <div
+        aria-label={summary.ariaLabel}
+        className={classNames(
+          "phase4-provider-traceability",
+          `phase4-provider-traceability-${summary.state}`
+        )}
+        title={summary.safety}
+      >
+        <div className="phase4-provider-traceability-header">
+          <strong>{summary.label}</strong>
+          <span>
+            {summary.statusLabel} / {summary.readiness}%
+          </span>
+        </div>
+        <dl className="phase4-provider-traceability-grid" aria-label="Phase 4 provider traceability counts">
+          <div>
+            <dt>PM Links</dt>
+            <dd>{summary.linkedPmTaskCount}</dd>
+          </div>
+          <div>
+            <dt>Catalog</dt>
+            <dd>{summary.catalogDepthRecordCount}</dd>
+          </div>
+          <div>
+            <dt>Refresh</dt>
+            <dd>{summary.refreshSafetyRecordCount}</dd>
+          </div>
+          <div>
+            <dt>Locks</dt>
+            <dd>{summary.executionLockCount}</dd>
+          </div>
+        </dl>
+        <ol className="phase4-provider-traceability-list" aria-label="Phase 4 provider traceability rows">
+          {summary.items.map((item) => (
+            <li
+              className={classNames(
+                "phase4-provider-traceability-item",
+                `phase4-provider-traceability-item-${item.status}`
+              )}
+              key={item.id}
+              title={`${item.detail} ${item.nextAction}`}
+            >
+              <span>{item.status}</span>
+              <div>
+                <strong>{item.label}</strong>
+                <small>{item.nextAction}</small>
+              </div>
+              <b>{item.kind}</b>
+            </li>
+          ))}
+        </ol>
+        <small title={summary.nextAction}>{summary.nextAction}</small>
       </div>
     </section>
   );
@@ -6960,6 +7053,8 @@ function RightPanel({
   onSelectRun,
   onUpdateRunStatus,
   project,
+  phase4ProviderCatalogDepth,
+  phase4ProviderTraceability,
   phase4ProviderSurfaceDepth,
   providerIntegrationReadiness,
   registryEntry,
@@ -7018,6 +7113,8 @@ function RightPanel({
   onSelectRun: (runId: string) => void;
   onUpdateRunStatus: (runId: string, nextStatus: MockRunStatus) => void;
   project: ProjectSummary;
+  phase4ProviderCatalogDepth: Phase4ProviderCatalogDepthSummary;
+  phase4ProviderTraceability: Phase4ProviderTraceabilitySummary;
   phase4ProviderSurfaceDepth: Phase4ProviderSurfaceDepthSnapshot;
   providerIntegrationReadiness: ProviderIntegrationReadiness;
   registryEntry?: RegistryEntry;
@@ -8211,9 +8308,14 @@ function RightPanel({
         summary={remainingGoalSummary}
       />
 
-      <ProviderIntegrationReadinessPanel readiness={providerIntegrationReadiness} />
+      <ProviderIntegrationReadinessPanel
+        catalogDepth={phase4ProviderCatalogDepth}
+        readiness={providerIntegrationReadiness}
+      />
 
       <Phase4ProviderSurfaceDepthPanel snapshot={phase4ProviderSurfaceDepth} />
+
+      <Phase4ProviderTraceabilityPanel summary={phase4ProviderTraceability} />
 
       <OwnerTestingReadinessPanel
         catalogRefreshOwnerValidation={catalogRefreshOwnerValidation}

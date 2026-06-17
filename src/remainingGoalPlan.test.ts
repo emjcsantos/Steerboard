@@ -52,7 +52,7 @@ describe("remaining goal plan", () => {
           goalId: "goal-phase-4-provider-surfaces",
           priority: "high",
           phaseIds: ["phase-04-provider-surfaces"],
-          pmTaskIds: expect.arrayContaining(["phase-04-child-surface-depth"])
+          pmTaskIds: expect.arrayContaining(["phase-04-child-surface-depth", "phase-04-child-traceability"])
         }),
         expect.objectContaining({
           goalId: "goal-phase-5-migration-hardening",
@@ -174,6 +174,27 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase8Goal?.nextAction).toContain("risk traceability rows");
+  });
+
+  it("keeps the Phase 4 provider surfaces target linked to traceability and surface depth", () => {
+    const phase4Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-4-provider-surfaces");
+
+    expect(phase4Goal).toMatchObject({
+      target: "Provider integration surfaces",
+      priority: "high",
+      status: "next"
+    });
+    expect(phase4Goal?.pmTaskIds).toEqual(
+      expect.arrayContaining([
+        "phase-04-child-command-skill",
+        "phase-04-child-plugin-mcp",
+        "phase-04-child-catalog-depth",
+        "phase-04-child-surface-depth",
+        "phase-04-child-traceability",
+        "phase-04-child-refresh-safety-depth"
+      ])
+    );
+    expect(phase4Goal?.nextAction).toContain("traceability panels");
   });
 
   it("keeps remaining goal text public-safe", () => {

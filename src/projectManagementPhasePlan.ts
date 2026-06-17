@@ -331,6 +331,14 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 40,
             complexity: "high",
             sourceDocument: "Phase 4 provider surface depth"
+          },
+          {
+            id: "phase-04-child-traceability",
+            title: "Provider Traceability",
+            description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, surface depth, and execution locks before provider execution is considered.",
+            completionPercent: 35,
+            complexity: "high",
+            sourceDocument: "Phase 4 provider traceability"
           }
         ]
       },
