@@ -61,7 +61,11 @@ describe("remaining goal plan", () => {
         expect.objectContaining({
           goalId: "goal-phase-5-migration-hardening",
           priority: "high",
-          pmTaskIds: expect.arrayContaining(["phase-05-child-review-depth", "phase-05-child-traceability"])
+          pmTaskIds: expect.arrayContaining([
+            "phase-05-child-review-depth",
+            "phase-05-child-traceability",
+            "phase-05-child-blocker-priority"
+          ])
         }),
         expect.objectContaining({
           goalId: "goal-phase-8-permission-audit",
@@ -154,10 +158,11 @@ describe("remaining goal plan", () => {
         "phase-05-child-preview-metadata",
         "phase-05-child-audit-summary",
         "phase-05-child-review-depth",
-        "phase-05-child-traceability"
+        "phase-05-child-traceability",
+        "phase-05-child-blocker-priority"
       ])
     );
-    expect(phase5Goal?.nextAction).toContain("traceability rows");
+    expect(phase5Goal?.nextAction).toContain("blocker-priority queue");
   });
 
   it("keeps the Phase 8 permission audit target linked to traceability and audit persistence", () => {

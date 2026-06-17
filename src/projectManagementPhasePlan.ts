@@ -439,6 +439,14 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 40,
             complexity: "high",
             sourceDocument: "Phase 5 migration traceability"
+          },
+          {
+            id: "phase-05-child-blocker-priority",
+            title: "Migration Blocker Priority",
+            description: "Rank exact Phase 5 blockers across migration hardening, review-depth records, traceability, apply intent, rollback, audit, sensitive exclusions, and profile activation lock before apply review advances.",
+            completionPercent: 35,
+            complexity: "medium",
+            sourceDocument: "Phase 5 migration blocker priority"
           }
         ]
       }

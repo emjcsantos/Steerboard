@@ -59,7 +59,8 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-05-parent-rollback-audit",
   "phase-05-child-audit-summary",
   "phase-05-child-review-depth",
-  "phase-05-child-traceability"
+  "phase-05-child-traceability",
+  "phase-05-child-blocker-priority"
 ];
 const SAFETY =
   "Phase 5 migration traceability is evidence-only. It links the remaining goal, Project Management rows, migration review-depth evidence keys, sensitive exclusions, rollback/audit coverage, and profile activation lock without applying a migration, changing profiles, copying source data, running commands, or enabling provider execution.";

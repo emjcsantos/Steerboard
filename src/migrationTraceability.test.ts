@@ -44,7 +44,7 @@ describe("migration traceability", () => {
     expect(summary.state).toBe("ready");
     expect(summary.canTrustMigrationReview).toBe(true);
     expect(summary.linkedGoalId).toBe("goal-phase-5-migration-hardening");
-    expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(8);
+    expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(9);
     expect(summary.missingPmTaskIds).toEqual([]);
     expect(summary.reviewDepthCount).toBe(5);
     expect(summary.evidenceKeyCount).toBe(5);

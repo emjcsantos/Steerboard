@@ -283,6 +283,9 @@ import {
   createMigrationApplyIntentNotice,
   type MigrationHardeningReadiness
 } from "./migrationHardeningReadiness";
+import {
+  buildMigrationBlockerPriority
+} from "./migrationBlockerPriority";
 import { buildMigrationTraceabilitySummary } from "./migrationTraceability";
 import {
   buildPersonalizationCatalogSnapshot,
@@ -3914,6 +3917,10 @@ function AppDialogSurface({
   const migrationTraceability = buildMigrationTraceabilitySummary({
     readiness: migrationHardeningReadiness
   });
+  const migrationBlockerPriority = buildMigrationBlockerPriority({
+    readiness: migrationHardeningReadiness,
+    traceability: migrationTraceability
+  });
   const catalogRefreshSafetyDepth = buildPhase4RefreshSafetyDepth(catalogRefreshProviderSmokeProof);
   const title =
     dialog === "connection"
@@ -4315,6 +4322,79 @@ function AppDialogSurface({
                       <b>{item.kind}</b>
                     </li>
                   ))}
+                </ol>
+              </div>
+              <div
+                aria-label={migrationBlockerPriority.ariaLabel}
+                className={classNames(
+                  "migration-blocker-priority",
+                  `migration-blocker-priority-${migrationBlockerPriority.state}`
+                )}
+                title={migrationBlockerPriority.safety}
+              >
+                <div className="migration-blocker-priority-header">
+                  <strong>{migrationBlockerPriority.label}</strong>
+                  <span>
+                    {migrationBlockerPriority.metadataReviewCanAddressTopBlocker
+                      ? "Metadata review"
+                      : migrationBlockerPriority.openBlockerCount > 0
+                        ? "Owner action"
+                        : "Ready"}
+                  </span>
+                </div>
+                <p title={migrationBlockerPriority.topPriorityAction}>
+                  {migrationBlockerPriority.topPriorityLabel}
+                </p>
+                <dl
+                  aria-label="Migration blocker priority counts"
+                  className="migration-blocker-priority-grid"
+                >
+                  <div>
+                    <dt>Open</dt>
+                    <dd>{migrationBlockerPriority.openBlockerCount}</dd>
+                  </div>
+                  <div>
+                    <dt>Reviewable</dt>
+                    <dd>{migrationBlockerPriority.metadataReviewAddressableCount}</dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{migrationBlockerPriority.statusLabel}</dd>
+                  </div>
+                  <div>
+                    <dt>Ready</dt>
+                    <dd>{migrationBlockerPriority.readiness}%</dd>
+                  </div>
+                </dl>
+                <ol
+                  aria-label="Migration blocker priority rows"
+                  className="migration-blocker-priority-list"
+                >
+                  {migrationBlockerPriority.items.length > 0 ? (
+                    migrationBlockerPriority.items.map((item) => (
+                      <li
+                        className={`migration-blocker-priority-item-${item.status}`}
+                        key={item.id}
+                        title={`${item.detail} ${item.nextAction}`}
+                      >
+                        <span>#{item.priority}</span>
+                        <div>
+                          <strong>{item.label}</strong>
+                          <small>{item.nextAction}</small>
+                        </div>
+                        <b>{item.kind}</b>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="migration-blocker-priority-item-ready">
+                      <span>OK</span>
+                      <div>
+                        <strong>No open migration blocker</strong>
+                        <small>{migrationBlockerPriority.nextAction}</small>
+                      </div>
+                      <b>ready</b>
+                    </li>
+                  )}
                 </ol>
               </div>
               <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
