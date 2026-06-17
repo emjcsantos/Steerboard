@@ -518,6 +518,10 @@ import {
   type Phase11OwnerCommandCenterSnapshot
 } from "./phase11OwnerCommandCenter";
 import {
+  buildPhase11ProofFreshnessDepth,
+  type Phase11ProofFreshnessDepthSnapshot
+} from "./phase11ProofFreshnessDepth";
+import {
   buildPhase11ReleaseReadinessSnapshot,
   type Phase11ReleaseReadinessSnapshot
 } from "./phase11ReleaseReadiness";
@@ -7218,6 +7222,23 @@ function RightPanel({
       remainingGoalSummary
     ]
   );
+  const phase11ProofFreshnessDepth = useMemo(
+    () =>
+      buildPhase11ProofFreshnessDepth({
+        phasePriorityEvidence,
+        phase3ClearancePackage,
+        phase3SmokeProofReadiness,
+        phase3ClearanceCommandPlan,
+        phase3HandoffGate
+      }),
+    [
+      phase3ClearanceCommandPlan,
+      phase3ClearancePackage,
+      phase3HandoffGate,
+      phase3SmokeProofReadiness,
+      phasePriorityEvidence
+    ]
+  );
   const liveActionAuditMarkdown = useMemo(
     () => buildLiveActionAuditExportMarkdown(liveActionAuditHistory),
     [liveActionAuditHistory]
@@ -7970,6 +7991,8 @@ function RightPanel({
       />
 
       <Phase11OwnerCommandCenterPanel snapshot={phase11OwnerCommandCenter} />
+
+      <Phase11ProofFreshnessDepthPanel snapshot={phase11ProofFreshnessDepth} />
 
       <Phase11ReleaseReadinessPanel snapshot={phase11ReleaseReadiness} />
 
@@ -11469,6 +11492,71 @@ function Phase11OwnerCommandCenterPanel({
           {snapshot.items.map((item) => (
             <li
               className={classNames("phase11-owner-item", `phase11-owner-item-${item.status}`)}
+              key={item.id}
+              title={`${item.detail} ${item.nextAction}`}
+            >
+              <span>{item.kind}</span>
+              <div>
+                <strong>{item.label}</strong>
+                <small>{item.nextAction}</small>
+              </div>
+              <b>{item.status}</b>
+            </li>
+          ))}
+        </ol>
+        <small title={snapshot.safety}>{snapshot.safety}</small>
+      </div>
+    </section>
+  );
+}
+
+function Phase11ProofFreshnessDepthPanel({
+  snapshot
+}: {
+  snapshot: Phase11ProofFreshnessDepthSnapshot;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Phase 11 Proof Freshness</h4>
+      <div
+        aria-label={snapshot.ariaLabel}
+        className={classNames(
+          "phase11-proof-depth",
+          `phase11-proof-depth-${snapshot.state}`
+        )}
+        title={snapshot.safety}
+      >
+        <div className="phase11-proof-depth-header">
+          <span className={classNames("phase11-proof-depth-state", `phase11-proof-depth-state-${snapshot.state}`)}>
+            <span aria-hidden="true" />
+            {snapshot.statusLabel}
+          </span>
+          <strong>{snapshot.label}</strong>
+          <b>{snapshot.readiness}%</b>
+        </div>
+        <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
+        <dl className="phase11-proof-depth-grid" aria-label="Phase 11 proof freshness counts">
+          <div>
+            <dt>Trust</dt>
+            <dd>{snapshot.canTrustOwnerProof ? "Ready" : "Held"}</dd>
+          </div>
+          <div>
+            <dt>Ready</dt>
+            <dd>{snapshot.readyCount}</dd>
+          </div>
+          <div>
+            <dt>Open</dt>
+            <dd>{snapshot.openProofCount}</dd>
+          </div>
+          <div>
+            <dt>Blocked</dt>
+            <dd>{snapshot.blockedCount}</dd>
+          </div>
+        </dl>
+        <ol className="phase11-proof-depth-items" aria-label="Phase 11 proof freshness gates">
+          {snapshot.items.map((item) => (
+            <li
+              className={classNames("phase11-proof-depth-item", `phase11-proof-depth-item-${item.status}`)}
               key={item.id}
               title={`${item.detail} ${item.nextAction}`}
             >
