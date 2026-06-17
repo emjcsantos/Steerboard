@@ -265,7 +265,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 11"],
     phaseIds: ["phase-11-owner-packaging"],
     goal:
-      "Make Owner Testing the single pass-fail release gate for proof freshness, blockers, phase readiness, and next actions.",
+      "Make Owner Testing the single pass-fail release gate for proof freshness, blockers, phase readiness, owner release traceability, blocker priority, and next actions.",
     status: "next",
     priority: "high",
     completionPercent: 55,
@@ -275,10 +275,12 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-owner-checklist",
       "phase-11-child-proof-freshness-depth",
       "phase-11-child-evidence-records",
-      "phase-11-child-fresh-checkout"
+      "phase-11-child-fresh-checkout",
+      "phase-11-child-traceability",
+      "phase-11-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 11 Owner Command, Proof Freshness, and Evidence Records panels to review checklist coverage, proof freshness depth, blockers, phase readiness, next action, and fresh-checkout evidence."
+      "Use the Phase 11 Owner Command, Proof Freshness, Evidence Records, owner release traceability, and blocker-priority panels to review checklist coverage, proof freshness depth, blockers, phase readiness, PM coverage, packaging holds, exact top blocker, next action, and fresh-checkout evidence."
   },
   {
     id: "goal-phase-11-release-readiness",
@@ -286,17 +288,19 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 11"],
     phaseIds: ["phase-11-owner-packaging"],
     goal:
-      "Coordinate the final clean-checkout, build, smoke, packaging-lock, docs, known-limits, and release-decision pass before release.",
+      "Coordinate the final clean-checkout, build, smoke, packaging-lock, docs, known-limits, owner release traceability, blocker-priority review, and release-decision pass before release.",
     status: "paused",
     priority: "medium",
     completionPercent: 20,
     pmTaskIds: [
       "phase-11-owner-packaging",
       "phase-11-parent-release-packaging",
-      "phase-11-child-package-validation"
+      "phase-11-child-package-validation",
+      "phase-11-child-traceability",
+      "phase-11-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 11 Release Readiness panel to review clean checkout, build/test, smoke proof, packaging lock, docs and known limits, and the final release decision while packaging stays paused."
+      "Use the Phase 11 Release Readiness, owner release traceability, and blocker-priority panels to review clean checkout, build/test, smoke proof, packaging lock, docs and known limits, PM coverage, exact top blocker, and the final release decision while packaging stays paused."
   }
 ];
 

@@ -874,6 +874,22 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 40,
             complexity: "high",
             sourceDocument: "Release validation"
+          },
+          {
+            id: "phase-11-child-traceability",
+            title: "Owner Release Traceability",
+            description: "Link Owner Testing command gates, proof freshness, evidence records, release readiness, required PM rows, and packaging holds before release review can be trusted.",
+            completionPercent: 35,
+            complexity: "high",
+            sourceDocument: "Phase 11 owner release traceability"
+          },
+          {
+            id: "phase-11-child-blocker-priority",
+            title: "Owner Release Blocker Priority",
+            description: "Rank exact Phase 11 blockers across owner proof, evidence freshness, release readiness, PM coverage, and packaging hold state before packaging resumes.",
+            completionPercent: 35,
+            complexity: "medium",
+            sourceDocument: "Phase 11 owner release blocker priority"
           }
         ]
       }

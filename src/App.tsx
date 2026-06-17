@@ -570,6 +570,8 @@ import {
   buildPhase11ReleaseReadinessSnapshot,
   type Phase11ReleaseReadinessSnapshot
 } from "./phase11ReleaseReadiness";
+import { buildPhase11OwnerReleaseTraceability } from "./phase11OwnerReleaseTraceability";
+import { buildPhase11OwnerReleaseBlockerPriority } from "./phase11OwnerReleaseBlockerPriority";
 import {
   createReleasePrivacyReadiness,
   type ReleasePrivacyReadinessItemStatus,
@@ -8643,7 +8645,12 @@ function RightPanel({
         slashCommandExecutionEvidence={slashCommandExecutionEvidence}
       />
 
-      <Phase11OwnerCommandCenterPanel snapshot={phase11OwnerCommandCenter} />
+      <Phase11OwnerCommandCenterPanel
+        evidenceRecords={phase11EvidenceRecords}
+        proofFreshnessDepth={phase11ProofFreshnessDepth}
+        releaseReadiness={phase11ReleaseReadiness}
+        snapshot={phase11OwnerCommandCenter}
+      />
 
       <Phase11ProofFreshnessDepthPanel snapshot={phase11ProofFreshnessDepth} />
 
@@ -12601,10 +12608,30 @@ function Phase10ArenaPolishPanel({
 }
 
 function Phase11OwnerCommandCenterPanel({
+  evidenceRecords,
+  proofFreshnessDepth,
+  releaseReadiness,
   snapshot
 }: {
+  evidenceRecords: Phase11EvidenceRecordsSnapshot;
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot;
+  releaseReadiness: Phase11ReleaseReadinessSnapshot;
   snapshot: Phase11OwnerCommandCenterSnapshot;
 }) {
+  const traceability = buildPhase11OwnerReleaseTraceability({
+    ownerCommandCenter: snapshot,
+    proofFreshnessDepth,
+    evidenceRecords,
+    releaseReadiness
+  });
+  const blockerPriority = buildPhase11OwnerReleaseBlockerPriority({
+    ownerCommandCenter: snapshot,
+    proofFreshnessDepth,
+    evidenceRecords,
+    releaseReadiness,
+    traceability
+  });
+
   return (
     <section className="panel-section">
       <h4>Phase 11 Owner Command</h4>
@@ -12679,6 +12706,103 @@ function Phase11OwnerCommandCenterPanel({
             </li>
           ))}
         </ol>
+        <div
+          aria-label={traceability.ariaLabel}
+          className={classNames(
+            "phase11-owner-traceability",
+            `phase11-owner-traceability-${traceability.state}`
+          )}
+          title={traceability.safety}
+        >
+          <div className="phase11-owner-traceability-header">
+            <strong>{traceability.label}</strong>
+            <span>{traceability.statusLabel}</span>
+            <b>{traceability.readiness}%</b>
+          </div>
+          <dl className="phase11-owner-traceability-grid" aria-label="Phase 11 owner release traceability counts">
+            <div>
+              <dt>Goals</dt>
+              <dd>{traceability.linkedGoalIds.length}</dd>
+            </div>
+            <div>
+              <dt>PM</dt>
+              <dd>{traceability.linkedPmTaskCount}</dd>
+            </div>
+            <div>
+              <dt>Hold</dt>
+              <dd>{traceability.releaseHoldStatus}</dd>
+            </div>
+          </dl>
+          <ol className="phase11-owner-traceability-list" aria-label="Phase 11 owner release traceability rows">
+            {traceability.items.map((item) => (
+              <li
+                className={`phase11-owner-traceability-item-${item.status}`}
+                key={item.id}
+                title={`${item.detail} ${item.nextAction}`}
+              >
+                <span>{item.kind}</span>
+                <strong>{item.label}</strong>
+                <b>{item.status}</b>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div
+          aria-label={blockerPriority.ariaLabel}
+          className={classNames(
+            "phase11-owner-blocker-priority",
+            `phase11-owner-blocker-priority-${blockerPriority.state}`
+          )}
+          title={blockerPriority.safety}
+        >
+          <div className="phase11-owner-blocker-priority-header">
+            <strong>{blockerPriority.label}</strong>
+            <span>
+              {blockerPriority.ownerReviewCanAddressTopBlocker
+                ? "Owner review"
+                : blockerPriority.openBlockerCount > 0
+                  ? "Owner action"
+                  : "Ready"}
+            </span>
+            <b>{blockerPriority.readiness}%</b>
+          </div>
+          <p title={blockerPriority.topPriorityAction}>{blockerPriority.topPriorityLabel}</p>
+          <dl className="phase11-owner-blocker-priority-grid" aria-label="Phase 11 owner release blocker priority counts">
+            <div>
+              <dt>Open</dt>
+              <dd>{blockerPriority.openBlockerCount}</dd>
+            </div>
+            <div>
+              <dt>Review</dt>
+              <dd>{blockerPriority.ownerReviewAddressableCount}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>{blockerPriority.statusLabel}</dd>
+            </div>
+          </dl>
+          <ol className="phase11-owner-blocker-priority-list" aria-label="Phase 11 owner release blocker priority rows">
+            {blockerPriority.items.length > 0 ? (
+              blockerPriority.items.slice(0, 8).map((item) => (
+                <li
+                  className={`phase11-owner-blocker-priority-item-${item.status}`}
+                  key={item.id}
+                  title={`${item.detail} ${item.nextAction}`}
+                >
+                  <span>#{item.priority}</span>
+                  <strong>{item.label}</strong>
+                  <b>{item.kind}</b>
+                </li>
+              ))
+            ) : (
+              <li className="phase11-owner-blocker-priority-item-ready">
+                <span>OK</span>
+                <strong>No open Phase 11 blocker</strong>
+                <b>ready</b>
+              </li>
+            )}
+          </ol>
+        </div>
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
     </section>

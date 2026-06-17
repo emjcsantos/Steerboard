@@ -13747,6 +13747,205 @@ textarea {
   text-transform: uppercase;
 }
 
+.phase11-owner-traceability,
+.phase11-owner-blocker-priority {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  border: 1px solid #27303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 7px;
+}
+
+.phase11-owner-traceability-ready,
+.phase11-owner-blocker-priority-ready {
+  border-left: 3px solid #89dda9;
+}
+
+.phase11-owner-traceability-review,
+.phase11-owner-blocker-priority-review {
+  border-left: 3px solid #8bd7f4;
+}
+
+.phase11-owner-traceability-waiting,
+.phase11-owner-blocker-priority-waiting {
+  border-left: 3px solid #f0d984;
+}
+
+.phase11-owner-traceability-blocked,
+.phase11-owner-blocker-priority-blocked {
+  border-left: 3px solid #ff9e85;
+}
+
+.phase11-owner-traceability-header,
+.phase11-owner-blocker-priority-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.phase11-owner-traceability-header strong,
+.phase11-owner-traceability-header span,
+.phase11-owner-traceability-header b,
+.phase11-owner-traceability-list span,
+.phase11-owner-traceability-list strong,
+.phase11-owner-traceability-list b,
+.phase11-owner-blocker-priority-header strong,
+.phase11-owner-blocker-priority-header span,
+.phase11-owner-blocker-priority-header b,
+.phase11-owner-blocker-priority p,
+.phase11-owner-blocker-priority-list span,
+.phase11-owner-blocker-priority-list strong,
+.phase11-owner-blocker-priority-list b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase11-owner-traceability-header strong,
+.phase11-owner-blocker-priority-header strong {
+  color: #edf2f7;
+  font-size: 11px;
+}
+
+.phase11-owner-traceability-header span,
+.phase11-owner-traceability-header b,
+.phase11-owner-blocker-priority-header span,
+.phase11-owner-blocker-priority-header b {
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce3eb;
+  padding: 3px 6px;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase11-owner-traceability-grid,
+.phase11-owner-blocker-priority-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+}
+
+.phase11-owner-traceability-grid div,
+.phase11-owner-blocker-priority-grid div {
+  min-width: 0;
+  border: 1px solid #27303a;
+  border-radius: 6px;
+  background: #151b22;
+  padding: 5px;
+  text-align: center;
+}
+
+.phase11-owner-traceability-grid dt,
+.phase11-owner-traceability-grid dd,
+.phase11-owner-blocker-priority-grid dt,
+.phase11-owner-blocker-priority-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase11-owner-traceability-grid dt,
+.phase11-owner-blocker-priority-grid dt {
+  color: #88939f;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase11-owner-traceability-grid dd,
+.phase11-owner-blocker-priority-grid dd {
+  margin-top: 2px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.phase11-owner-traceability-list,
+.phase11-owner-blocker-priority-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phase11-owner-traceability-list li,
+.phase11-owner-blocker-priority-list li {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #27303a;
+  border-radius: 6px;
+  background: #141b23;
+  padding: 5px;
+}
+
+.phase11-owner-traceability-list li {
+  grid-template-columns: 116px minmax(0, 1fr) auto;
+}
+
+.phase11-owner-blocker-priority-list li {
+  grid-template-columns: 36px minmax(0, 1fr) 110px;
+}
+
+.phase11-owner-traceability-list span,
+.phase11-owner-blocker-priority-list span {
+  color: #9fa9b4;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase11-owner-traceability-list strong,
+.phase11-owner-blocker-priority-list strong {
+  color: #edf2f7;
+  font-size: 10px;
+}
+
+.phase11-owner-traceability-list b,
+.phase11-owner-blocker-priority-list b {
+  color: #cfd8e3;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.phase11-owner-blocker-priority p {
+  margin: 0;
+  color: #c3ccd6;
+  font-size: 11px;
+}
+
+.phase11-owner-traceability-item-ready,
+.phase11-owner-blocker-priority-item-ready {
+  border-color: #2f6a49;
+}
+
+.phase11-owner-traceability-item-review,
+.phase11-owner-blocker-priority-item-review {
+  border-color: #315977;
+}
+
+.phase11-owner-traceability-item-waiting,
+.phase11-owner-blocker-priority-item-waiting {
+  border-color: #7a6530;
+}
+
+.phase11-owner-traceability-item-blocked,
+.phase11-owner-blocker-priority-item-blocked {
+  border-color: #633337;
+}
+
 .phase11-proof-depth {
   display: grid;
   gap: 8px;

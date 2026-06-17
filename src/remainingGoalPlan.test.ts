@@ -97,7 +97,11 @@ describe("remaining goal plan", () => {
         expect.objectContaining({
           goalId: "goal-phase-11-owner-command-center",
           priority: "high",
-          pmTaskIds: expect.arrayContaining(["phase-11-child-evidence-records"])
+          pmTaskIds: expect.arrayContaining([
+            "phase-11-child-evidence-records",
+            "phase-11-child-traceability",
+            "phase-11-child-blocker-priority"
+          ])
         })
       ])
     );
@@ -269,6 +273,43 @@ describe("remaining goal plan", () => {
     );
     expect(phase10Goal?.nextAction).toContain("traceability rows");
     expect(phase10Goal?.nextAction).toContain("blocker-priority queue");
+  });
+
+  it("keeps the Phase 11 owner and release targets linked to traceability and blocker priority", () => {
+    const ownerGoal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-11-owner-command-center");
+    const releaseGoal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-11-release-readiness");
+
+    expect(ownerGoal).toMatchObject({
+      target: "Owner Testing command center",
+      priority: "high",
+      status: "next"
+    });
+    expect(ownerGoal?.pmTaskIds).toEqual(
+      expect.arrayContaining([
+        "phase-11-child-owner-checklist",
+        "phase-11-child-proof-freshness-depth",
+        "phase-11-child-evidence-records",
+        "phase-11-child-fresh-checkout",
+        "phase-11-child-traceability",
+        "phase-11-child-blocker-priority"
+      ])
+    );
+    expect(ownerGoal?.nextAction).toContain("owner release traceability");
+    expect(ownerGoal?.nextAction).toContain("blocker-priority panels");
+    expect(releaseGoal).toMatchObject({
+      target: "Release readiness pass",
+      priority: "medium",
+      status: "paused"
+    });
+    expect(releaseGoal?.pmTaskIds).toEqual(
+      expect.arrayContaining([
+        "phase-11-child-package-validation",
+        "phase-11-child-traceability",
+        "phase-11-child-blocker-priority"
+      ])
+    );
+    expect(releaseGoal?.nextAction).toContain("owner release traceability");
+    expect(releaseGoal?.nextAction).toContain("blocker-priority panels");
   });
 
   it("keeps remaining goal text public-safe", () => {
