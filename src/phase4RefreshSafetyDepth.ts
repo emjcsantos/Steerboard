@@ -9,6 +9,8 @@ export type Phase4RefreshSafetyDepthKind =
   | "run-state"
   | "surface-order"
   | "validation-result"
+  | "proof-freshness"
+  | "catalog-fingerprint"
   | "metadata-only-contract"
   | "execution-lock";
 
@@ -33,8 +35,16 @@ export interface Phase4RefreshSafetyDepthSummary {
   readonly ariaLabel: string;
 }
 
+export interface Phase4RefreshSafetyDepthOptions {
+  readonly evaluatedAt?: string | Date;
+  readonly maxProofAgeMs?: number;
+  readonly expectedCatalogFingerprint?: string;
+}
+
 const SUMMARY_ID = "phase-4-refresh-safety-depth";
 const SUMMARY_LABEL = "Phase 4 refresh safety depth";
+export const DEFAULT_PHASE4_CATALOG_PROOF_MAX_AGE_MS =
+  7 * 24 * 60 * 60 * 1000;
 
 const STATUS_LABELS: Record<Phase4RefreshSafetyDepthState, string> = {
   ready: "Ready",
@@ -115,6 +125,100 @@ function validationRecord(
   };
 }
 
+function toTimestamp(value: string | Date | undefined): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const timestamp = value instanceof Date ? value.getTime() : Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : undefined;
+}
+
+function proofFreshnessRecord(
+  smoke: CatalogRefreshProviderSmokeResult,
+  options: Phase4RefreshSafetyDepthOptions
+): Phase4RefreshSafetyDepthRecord {
+  const evaluatedAtMs = toTimestamp(options.evaluatedAt);
+  const checkedAtMs = toTimestamp(smoke.checkedAt);
+  const maxProofAgeMs =
+    typeof options.maxProofAgeMs === "number" && options.maxProofAgeMs > 0
+      ? options.maxProofAgeMs
+      : DEFAULT_PHASE4_CATALOG_PROOF_MAX_AGE_MS;
+  let status: Phase4RefreshSafetyDepthState = "ready";
+  let evidence = "Catalog smoke proof freshness is not evaluated in this static context.";
+  let nextAction = "Evaluate catalog smoke proof freshness in the owner-visible runtime before provider execution is considered.";
+
+  if (!smoke.executed) {
+    status = "preview";
+    evidence = "Catalog smoke proof has not run yet, so no checkedAt timestamp is available.";
+    nextAction = "Run catalog smoke only from the explicit owner action before trusting Phase 4 refresh proof.";
+  } else if (evaluatedAtMs !== undefined && checkedAtMs === undefined) {
+    status = "preview";
+    evidence = "Executed catalog smoke proof has no valid checkedAt timestamp.";
+    nextAction = "Rerun catalog smoke from the explicit owner action to attach a current checkedAt timestamp.";
+  } else if (
+    evaluatedAtMs !== undefined &&
+    checkedAtMs !== undefined &&
+    evaluatedAtMs - checkedAtMs > maxProofAgeMs
+  ) {
+    status = "preview";
+    evidence = `Catalog smoke proof checked at ${smoke.checkedAt} is stale for the current Phase 4 review.`;
+    nextAction = "Rerun catalog smoke from the explicit owner action before trusting provider refresh proof.";
+  } else if (smoke.executed && smoke.checkedAt) {
+    evidence = `Catalog smoke proof checked at ${smoke.checkedAt} is fresh for this Phase 4 review.`;
+    nextAction = "Keep the fresh catalog smoke proof attached while provider execution remains locked.";
+  }
+
+  return {
+    id: `${SUMMARY_ID}:proof-freshness`,
+    label: "Proof freshness",
+    kind: "proof-freshness",
+    status,
+    statusLabel: statusLabel(status),
+    evidence,
+    nextAction
+  };
+}
+
+function catalogFingerprintRecord(
+  smoke: CatalogRefreshProviderSmokeResult,
+  options: Phase4RefreshSafetyDepthOptions
+): Phase4RefreshSafetyDepthRecord {
+  let status: Phase4RefreshSafetyDepthState = "ready";
+  let evidence = "Catalog fingerprint comparison is not evaluated in this static context.";
+  let nextAction = "Compare catalog smoke proof to the current six-surface catalog snapshot before provider execution is considered.";
+
+  if (!smoke.executed) {
+    status = "preview";
+    evidence = "Catalog smoke proof has not run yet, so no catalog fingerprint is attached.";
+    nextAction = "Run catalog smoke only from the explicit owner action to attach the current catalog fingerprint.";
+  } else if (options.expectedCatalogFingerprint && !smoke.catalogFingerprint) {
+    status = "preview";
+    evidence = "Executed catalog smoke proof predates catalog fingerprint storage.";
+    nextAction = "Rerun catalog smoke from the explicit owner action to attach the current catalog fingerprint.";
+  } else if (
+    options.expectedCatalogFingerprint &&
+    smoke.catalogFingerprint !== options.expectedCatalogFingerprint
+  ) {
+    status = "preview";
+    evidence = "Catalog smoke proof fingerprint does not match the current six-surface catalog snapshot.";
+    nextAction = "Rerun catalog smoke from the explicit owner action before trusting provider refresh proof.";
+  } else if (smoke.catalogFingerprint) {
+    evidence = "Catalog smoke proof fingerprint matches the current six-surface catalog snapshot.";
+    nextAction = "Keep the matching catalog fingerprint attached while provider execution remains locked.";
+  }
+
+  return {
+    id: `${SUMMARY_ID}:catalog-fingerprint`,
+    label: "Catalog fingerprint",
+    kind: "catalog-fingerprint",
+    status,
+    statusLabel: statusLabel(status),
+    evidence,
+    nextAction
+  };
+}
+
 function metadataOnlyRecord(
   smoke: CatalogRefreshProviderSmokeResult
 ): Phase4RefreshSafetyDepthRecord {
@@ -170,12 +274,15 @@ function buildAriaLabel(
 }
 
 export function buildPhase4RefreshSafetyDepth(
-  smoke: CatalogRefreshProviderSmokeResult
+  smoke: CatalogRefreshProviderSmokeResult,
+  options: Phase4RefreshSafetyDepthOptions = {}
 ): Phase4RefreshSafetyDepthSummary {
   const records = [
     runStateRecord(smoke),
     surfaceOrderRecord(smoke),
     validationRecord(smoke),
+    proofFreshnessRecord(smoke, options),
+    catalogFingerprintRecord(smoke, options),
     metadataOnlyRecord(smoke),
     executionLockRecord()
   ];

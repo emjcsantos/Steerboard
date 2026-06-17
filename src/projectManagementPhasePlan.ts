@@ -288,16 +288,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
-    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth after Phase 3 clears.",
-    completionPercent: 45,
+    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, and current six-surface fingerprint checks after Phase 3 clears.",
+    completionPercent: 52,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
-        description: "Render provider catalogs, readiness labels, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 40,
+        description: "Render provider catalogs, readiness labels, current catalog fingerprints, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
+        completionPercent: 45,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
@@ -335,8 +335,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-traceability",
             title: "Provider Traceability",
-            description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, surface depth, and execution locks before provider execution is considered.",
-            completionPercent: 35,
+            description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, and execution locks before provider execution is considered.",
+            completionPercent: 42,
             complexity: "high",
             sourceDocument: "Phase 4 provider traceability"
           },
@@ -353,23 +353,23 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-04-parent-refresh-safety",
         title: "Metadata-Only Refresh Safety",
-        description: "Keep refresh and readiness paths read-only until provider permissions and approval gates are explicit.",
-        completionPercent: 35,
+        description: "Keep refresh and readiness paths read-only, fresh, and matched to current catalog evidence until provider permissions and approval gates are explicit.",
+        completionPercent: 50,
         complexity: "high",
         sourceDocument: "Provider catalog safety",
         children: [
           {
             id: "phase-04-child-refresh-smoke",
             title: "All-Catalog Refresh Smoke",
-            description: "Refresh and classify catalog status without running commands, tools, automations, or mutations.",
-            completionPercent: 40,
+            description: "Refresh and classify catalog status with checkedAt and catalog fingerprint proof without running commands, tools, automations, or mutations.",
+            completionPercent: 52,
             sourceDocument: "Catalog refresh owner validation"
           },
           {
             id: "phase-04-child-refresh-safety-depth",
             title: "Refresh Safety Depth",
-            description: "Show refresh run state, six-surface order, validation result, metadata-only contract, provider execution lock, and reload-safe metadata-only proof as separate review rows.",
-            completionPercent: 35,
+            description: "Show refresh run state, six-surface order, validation result, proof freshness, catalog fingerprint match, metadata-only contract, provider execution lock, and reload-safe metadata-only proof as separate review rows.",
+            completionPercent: 58,
             complexity: "high",
             sourceDocument: "Phase 4 refresh safety depth"
           }

@@ -93,13 +93,17 @@ describe("phase 4 catalog smoke proof storage", () => {
   });
 
   it("parses a persisted executed six-surface metadata-only proof", () => {
-    const proof = buildCatalogRefreshProviderSmoke(snapshotPayloads);
+    const proof = buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+      checkedAt: "2026-06-18T00:00:00.000Z"
+    });
 
     expect(parseStoredPhase4CatalogSmokeProof(JSON.stringify(proof))).toEqual(proof);
   });
 
   it("falls back for not-run preview, malformed, incomplete, or unsafe records", () => {
-    const proof = buildCatalogRefreshProviderSmoke(snapshotPayloads);
+    const proof = buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+      checkedAt: "2026-06-18T00:00:00.000Z"
+    });
 
     expect(parseStoredPhase4CatalogSmokeProof(null)).toEqual(
       CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW
@@ -147,7 +151,9 @@ describe("phase 4 catalog smoke proof storage", () => {
     savePhase4CatalogSmokeProof(CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW);
     expect(setItem).not.toHaveBeenCalled();
 
-    const proof = buildCatalogRefreshProviderSmoke(snapshotPayloads);
+    const proof = buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+      checkedAt: "2026-06-18T00:00:00.000Z"
+    });
     savePhase4CatalogSmokeProof(proof);
     expect(setItem).toHaveBeenCalledWith(
       PHASE4_CATALOG_SMOKE_PROOF_STORAGE_KEY,

@@ -35,6 +35,8 @@ export interface CatalogRefreshProviderSmokeResult {
   readonly ok: boolean;
   readonly readiness: number;
   readonly state: "ready" | "blocked" | "preview";
+  readonly checkedAt?: string;
+  readonly catalogFingerprint?: string;
   readonly detail: string;
   readonly safety: string;
   readonly surfaces: readonly CatalogRefreshProviderSmokeSurfaceResult[];
@@ -43,6 +45,7 @@ export interface CatalogRefreshProviderSmokeResult {
 export interface CatalogRefreshProviderSmokeOptions {
   readonly validationOverride?: CatalogRefreshOwnerValidationResult;
   readonly notRunPreview?: boolean;
+  readonly checkedAt?: string | Date;
 }
 
 export const CATALOG_REFRESH_PROVIDER_SMOKE_SURFACE_ORDER = CATALOG_REFRESH_OWNER_SURFACE_ORDER;
@@ -63,6 +66,52 @@ const NOT_RUN_SOURCE = "unavailable" as const;
 
 function isUnavailableSource(source: CatalogRefreshOwnerValidationSurfaceResult["source"]): boolean {
   return source === "unavailable";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableJson).join(",")}]`;
+  }
+
+  if (isRecord(value)) {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`)
+      .join(",")}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
+function stableHash(value: string): string {
+  let hash = 0x811c9dc5;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+
+  return `phase4-catalog:${(hash >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+export function buildCatalogRefreshProviderFingerprint(
+  snapshots: CatalogRefreshProviderSmokeInput = {}
+): string {
+  return stableHash(
+    stableJson({
+      automation: snapshots.automationCatalogSnapshot,
+      command: snapshots.commandCatalogSnapshot,
+      mcp: snapshots.mcpCatalogSnapshot,
+      personalization: snapshots.personalizationCatalogSnapshot,
+      plugin: snapshots.pluginCatalogSnapshot,
+      skill: snapshots.skillCatalogSnapshot,
+      surfaceOrder: CATALOG_REFRESH_PROVIDER_SMOKE_SURFACE_ORDER
+    })
+  );
 }
 
 function toSmokeSurface(
@@ -143,7 +192,9 @@ function mapSurfaces(
 }
 
 function computeResult(
-  surfaces: readonly CatalogRefreshProviderSmokeSurfaceResult[]
+  surfaces: readonly CatalogRefreshProviderSmokeSurfaceResult[],
+  checkedAt?: string | Date,
+  catalogFingerprint?: string
 ): CatalogRefreshProviderSmokeResult {
   const hasPreview = surfaces.some((surface) => surface.state === "preview");
   const readiness = hasPreview
@@ -158,11 +209,15 @@ function computeResult(
       ? CATALOG_REFRESH_PROVIDER_SMOKE_COMPLETED_DETAIL
       : CATALOG_REFRESH_PROVIDER_SMOKE_BLOCKED_DETAIL;
 
+  const checkedAtValue = checkedAt instanceof Date ? checkedAt.toISOString() : checkedAt;
+
   return {
     executed: surfaces.every((surface) => surface.executed),
     ok,
     readiness,
     state,
+    ...(checkedAtValue ? { checkedAt: checkedAtValue } : {}),
+    ...(catalogFingerprint ? { catalogFingerprint } : {}),
     detail,
     safety: CATALOG_REFRESH_PROVIDER_SMOKE_NO_EXECUTION_SAFETY,
     surfaces
@@ -190,7 +245,11 @@ export function buildCatalogRefreshProviderSmoke(
     const validation = options.validationOverride ?? buildCatalogRefreshOwnerValidation(ownerPayload);
     const surfaces = mapSurfaces(validation);
 
-    return computeResult(surfaces);
+    return computeResult(
+      surfaces,
+      options.checkedAt,
+      buildCatalogRefreshProviderFingerprint(snapshots)
+    );
   } catch {
     return CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW;
   }

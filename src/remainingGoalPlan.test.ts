@@ -25,7 +25,7 @@ describe("remaining goal plan", () => {
       next: 7,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 56,
+      averageCompletionPercent: 57,
       currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
         "Use the Phase 3 command plan, blocker-priority queue, traceability rows, freshness-aware smoke proof rows, and fingerprint-matched handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary.",

@@ -124,7 +124,7 @@ describe("phase 4 provider traceability", () => {
     expect(summary.missingPmTaskIds).toEqual([]);
     expect(summary.linkedPmTaskCount).toBe(11);
     expect(summary.catalogDepthRecordCount).toBe(6);
-    expect(summary.refreshSafetyRecordCount).toBe(5);
+    expect(summary.refreshSafetyRecordCount).toBe(7);
     expect(summary.surfaceDepthItemCount).toBe(5);
     expect(summary.executionLockCount).toBe(6);
     expect(summary.items.map((item) => item.kind)).toEqual([

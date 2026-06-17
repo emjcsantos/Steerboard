@@ -37,6 +37,10 @@ function stringOrFallback(value: unknown, fallback: string): string {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : fallback;
 }
 
+function optionalString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
 function normalizeSurface(value: unknown): CatalogRefreshProviderSmokeSurfaceResult | undefined {
   if (!isRecord(value)) {
     return undefined;
@@ -144,6 +148,10 @@ export function parseStoredPhase4CatalogSmokeProof(
         parsed.state === "ready" || parsed.state === "blocked" || parsed.state === "preview"
           ? parsed.state
           : "preview",
+      ...(optionalString(parsed.checkedAt) ? { checkedAt: optionalString(parsed.checkedAt) } : {}),
+      ...(optionalString(parsed.catalogFingerprint)
+        ? { catalogFingerprint: optionalString(parsed.catalogFingerprint) }
+        : {}),
       detail: stringOrFallback(parsed.detail, "Provider catalog refresh proof is available."),
       safety: stringOrFallback(
         parsed.safety,

@@ -95,6 +95,7 @@ import {
   type Phase4ProviderCatalogDepthSummary
 } from "./phase4ProviderCatalogDepth";
 import {
+  buildCatalogRefreshProviderFingerprint,
   buildCatalogRefreshProviderSmoke,
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
   type CatalogRefreshProviderSmokeResult
@@ -1670,6 +1671,7 @@ export function App() {
   );
   const [catalogRefreshProviderSmokeProof, setCatalogRefreshProviderSmokeProof] =
     useState<CatalogRefreshProviderSmokeResult>(() => loadPhase4CatalogSmokeProof());
+  const [phase4CatalogProofEvaluationTime] = useState(() => new Date().toISOString());
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
@@ -1769,9 +1771,54 @@ export function App() {
     () => buildPhase4ProviderCatalogDepth(providerIntegrationReadiness),
     [providerIntegrationReadiness]
   );
+  const phase4CurrentCatalogFingerprint = useMemo(
+    () =>
+      buildCatalogRefreshProviderFingerprint({
+        commandCatalogSnapshot: {
+          source: commandCatalogSnapshot.source,
+          entries: commandCatalogSnapshot.catalog
+        },
+        skillCatalogSnapshot: {
+          source: skillCatalogSnapshot.source,
+          entries: skillCatalogSnapshot.catalog
+        },
+        pluginCatalogSnapshot: {
+          source: pluginCatalogSnapshot.source,
+          entries: pluginCatalogSnapshot.catalog
+        },
+        mcpCatalogSnapshot: {
+          source: mcpCatalogSnapshot.source,
+          entries: mcpCatalogSnapshot.catalog
+        },
+        automationCatalogSnapshot: {
+          source: automationCatalogSnapshot.source,
+          entries: automationCatalogSnapshot.catalog
+        },
+        personalizationCatalogSnapshot: {
+          source: personalizationCatalogSnapshot.source,
+          entries: personalizationCatalogSnapshot.catalog
+        }
+      }),
+    [
+      automationCatalogSnapshot,
+      commandCatalogSnapshot,
+      mcpCatalogSnapshot,
+      personalizationCatalogSnapshot,
+      pluginCatalogSnapshot,
+      skillCatalogSnapshot
+    ]
+  );
   const phase4RefreshSafetyDepth = useMemo(
-    () => buildPhase4RefreshSafetyDepth(catalogRefreshProviderSmokeProof),
-    [catalogRefreshProviderSmokeProof]
+    () =>
+      buildPhase4RefreshSafetyDepth(catalogRefreshProviderSmokeProof, {
+        evaluatedAt: phase4CatalogProofEvaluationTime,
+        expectedCatalogFingerprint: phase4CurrentCatalogFingerprint
+      }),
+    [
+      catalogRefreshProviderSmokeProof,
+      phase4CatalogProofEvaluationTime,
+      phase4CurrentCatalogFingerprint
+    ]
   );
   const phase4ProviderSurfaceDepth = useMemo(
     () => buildPhase4ProviderSurfaceDepth(providerIntegrationReadiness),
@@ -3093,32 +3140,37 @@ export function App() {
       setAutomationCatalogSnapshot(nextAutomationSnapshot);
       setPersonalizationCatalogSnapshot(nextPersonalizationSnapshot);
 
-      const nextProof = buildCatalogRefreshProviderSmoke({
-        commandCatalogSnapshot: {
-          source: nextCommandSnapshot.source,
-          entries: nextCommandSnapshot.catalog
+      const nextProof = buildCatalogRefreshProviderSmoke(
+        {
+          commandCatalogSnapshot: {
+            source: nextCommandSnapshot.source,
+            entries: nextCommandSnapshot.catalog
+          },
+          skillCatalogSnapshot: {
+            source: nextSkillSnapshot.source,
+            entries: nextSkillSnapshot.catalog
+          },
+          pluginCatalogSnapshot: {
+            source: nextPluginSnapshot.source,
+            entries: nextPluginSnapshot.catalog
+          },
+          mcpCatalogSnapshot: {
+            source: nextMcpSnapshot.source,
+            entries: nextMcpSnapshot.catalog
+          },
+          automationCatalogSnapshot: {
+            source: nextAutomationSnapshot.source,
+            entries: nextAutomationSnapshot.catalog
+          },
+          personalizationCatalogSnapshot: {
+            source: nextPersonalizationSnapshot.source,
+            entries: nextPersonalizationSnapshot.catalog
+          }
         },
-        skillCatalogSnapshot: {
-          source: nextSkillSnapshot.source,
-          entries: nextSkillSnapshot.catalog
-        },
-        pluginCatalogSnapshot: {
-          source: nextPluginSnapshot.source,
-          entries: nextPluginSnapshot.catalog
-        },
-        mcpCatalogSnapshot: {
-          source: nextMcpSnapshot.source,
-          entries: nextMcpSnapshot.catalog
-        },
-        automationCatalogSnapshot: {
-          source: nextAutomationSnapshot.source,
-          entries: nextAutomationSnapshot.catalog
-        },
-        personalizationCatalogSnapshot: {
-          source: nextPersonalizationSnapshot.source,
-          entries: nextPersonalizationSnapshot.catalog
+        {
+          checkedAt: new Date().toISOString()
         }
-      });
+      );
 
       setCatalogRefreshProviderSmokeProof(nextProof);
       savePhase4CatalogSmokeProof(nextProof);
@@ -3706,6 +3758,8 @@ export function App() {
           codexTwoPanelSmokeProof={codexTwoPanelSmokeProof}
           catalogRefreshProviderSmokeLoading={catalogRefreshProviderSmokeLoading}
           catalogRefreshProviderSmokeProof={catalogRefreshProviderSmokeProof}
+          phase4CatalogProofEvaluationTime={phase4CatalogProofEvaluationTime}
+          phase4CurrentCatalogFingerprint={phase4CurrentCatalogFingerprint}
           codexTransportDecision={codexTransportDecision}
           codexTransportLoading={codexTransportLoading}
           dialog={appDialog}
@@ -3904,6 +3958,8 @@ function AppDialogSurface({
   codexTwoPanelSmokeProof,
   catalogRefreshProviderSmokeLoading,
   catalogRefreshProviderSmokeProof,
+  phase4CatalogProofEvaluationTime,
+  phase4CurrentCatalogFingerprint,
   codexTransportDecision,
   codexTransportLoading,
   dialog,
@@ -3963,6 +4019,8 @@ function AppDialogSurface({
   codexTwoPanelSmokeProof: CodexTwoPanelSmokeProof;
   catalogRefreshProviderSmokeLoading: boolean;
   catalogRefreshProviderSmokeProof: CatalogRefreshProviderSmokeResult;
+  phase4CatalogProofEvaluationTime: string;
+  phase4CurrentCatalogFingerprint: string;
   codexTransportDecision: CodexTransportDecision;
   codexTransportLoading: boolean;
   dialog: AppDialog;
@@ -4022,7 +4080,13 @@ function AppDialogSurface({
     readiness: migrationHardeningReadiness,
     traceability: migrationTraceability
   });
-  const catalogRefreshSafetyDepth = buildPhase4RefreshSafetyDepth(catalogRefreshProviderSmokeProof);
+  const catalogRefreshSafetyDepth = buildPhase4RefreshSafetyDepth(
+    catalogRefreshProviderSmokeProof,
+    {
+      evaluatedAt: phase4CatalogProofEvaluationTime,
+      expectedCatalogFingerprint: phase4CurrentCatalogFingerprint
+    }
+  );
   const title =
     dialog === "connection"
       ? "Codex Connection"

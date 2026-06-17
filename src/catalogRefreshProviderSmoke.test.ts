@@ -5,6 +5,7 @@ import {
   type CatalogRefreshOwnerValidationResult
 } from "./catalogRefreshOwnerValidation";
 import {
+  buildCatalogRefreshProviderFingerprint,
   buildCatalogRefreshProviderSmoke,
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
   CATALOG_REFRESH_PROVIDER_SMOKE_SURFACE_ORDER
@@ -145,7 +146,9 @@ const ownerValidationPayload: CatalogRefreshOwnerValidationInput = {
 
 describe("catalog refresh provider smoke model", () => {
   it("returns deterministic six-surface proof for provider/model-agnostic snapshots", () => {
-    const result = buildCatalogRefreshProviderSmoke(snapshotPayloads);
+    const result = buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+      checkedAt: "2026-06-18T00:00:00.000Z"
+    });
 
     expect(result.surfaces.map((surface) => surface.surface)).toEqual(
       Array.from(CATALOG_REFRESH_PROVIDER_SMOKE_SURFACE_ORDER)
@@ -155,6 +158,10 @@ describe("catalog refresh provider smoke model", () => {
     expect(result.ok).toBe(true);
     expect(result.readiness).toBe(100);
     expect(result.state).toBe("ready");
+    expect(result.checkedAt).toBe("2026-06-18T00:00:00.000Z");
+    expect(result.catalogFingerprint).toBe(
+      buildCatalogRefreshProviderFingerprint(snapshotPayloads)
+    );
     expect(result.detail.toLowerCase()).toContain(safeCompletedDetail);
 
     for (const surface of result.surfaces) {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildCatalogRefreshProviderFingerprint,
   buildCatalogRefreshProviderSmoke,
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW
 } from "./catalogRefreshProviderSmoke";
@@ -109,10 +110,16 @@ describe("phase 4 refresh safety depth", () => {
 
   it("marks refresh safety ready after six metadata-only surfaces validate", () => {
     const depth = buildPhase4RefreshSafetyDepth(
-      buildCatalogRefreshProviderSmoke(snapshotPayloads)
+      buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+        checkedAt: "2026-06-18T00:00:00.000Z"
+      }),
+      {
+        evaluatedAt: "2026-06-18T12:00:00.000Z",
+        expectedCatalogFingerprint: buildCatalogRefreshProviderFingerprint(snapshotPayloads)
+      }
     );
 
-    expect(depth.readyCount).toBe(5);
+    expect(depth.readyCount).toBe(7);
     expect(depth.previewCount).toBe(0);
     expect(depth.blockedCount).toBe(0);
     expect(depth.records.every((record) => record.status === "ready")).toBe(true);
@@ -125,6 +132,85 @@ describe("phase 4 refresh safety depth", () => {
         expect.objectContaining({
           kind: "validation-result",
           evidence: expect.stringContaining("without executing")
+        }),
+        expect.objectContaining({
+          kind: "proof-freshness",
+          status: "ready",
+          evidence: expect.stringContaining("2026-06-18T00:00:00.000Z")
+        }),
+        expect.objectContaining({
+          kind: "catalog-fingerprint",
+          status: "ready",
+          evidence: expect.stringContaining("matches")
+        })
+      ])
+    );
+  });
+
+  it("marks catalog smoke proof as preview when the fingerprint no longer matches", () => {
+    const depth = buildPhase4RefreshSafetyDepth(
+      buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+        checkedAt: "2026-06-18T00:00:00.000Z"
+      }),
+      {
+        evaluatedAt: "2026-06-18T12:00:00.000Z",
+        expectedCatalogFingerprint: "phase4-catalog:different"
+      }
+    );
+
+    expect(depth.previewCount).toBe(1);
+    expect(depth.records).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "catalog-fingerprint",
+          status: "preview",
+          evidence: expect.stringContaining("does not match"),
+          nextAction: expect.stringContaining("Rerun catalog smoke")
+        })
+      ])
+    );
+  });
+
+  it("marks executed catalog smoke proof as preview when stale", () => {
+    const depth = buildPhase4RefreshSafetyDepth(
+      buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+        checkedAt: "2026-06-10T00:00:00.000Z"
+      }),
+      {
+        evaluatedAt: "2026-06-18T00:00:00.000Z",
+        maxProofAgeMs: 24 * 60 * 60 * 1000
+      }
+    );
+
+    expect(depth.previewCount).toBe(1);
+    expect(depth.blockedCount).toBe(0);
+    expect(depth.records).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "proof-freshness",
+          status: "preview",
+          evidence: expect.stringContaining("stale"),
+          nextAction: expect.stringContaining("Rerun catalog smoke")
+        })
+      ])
+    );
+  });
+
+  it("marks executed legacy catalog smoke proof as preview when timestamp is missing", () => {
+    const depth = buildPhase4RefreshSafetyDepth(
+      buildCatalogRefreshProviderSmoke(snapshotPayloads),
+      {
+        evaluatedAt: "2026-06-18T00:00:00.000Z"
+      }
+    );
+
+    expect(depth.previewCount).toBe(1);
+    expect(depth.records).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "proof-freshness",
+          status: "preview",
+          evidence: expect.stringContaining("no valid checkedAt")
         })
       ])
     );
