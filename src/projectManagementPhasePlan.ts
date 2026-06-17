@@ -273,7 +273,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth after Phase 3 clears.",
-    completionPercent: 35,
+    completionPercent: 40,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -289,22 +289,30 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-command-skill",
             title: "Command and Skill Catalogs",
             description: "Show command and skill entries with scope, fallback guidance, and owner-safe readiness status.",
-            completionPercent: 30,
+            completionPercent: 40,
             sourceDocument: "Command and skill catalogs"
           },
           {
             id: "phase-04-child-plugin-mcp",
             title: "Plugin and MCP Catalogs",
             description: "Show plugin and MCP entries with connection state, allowed surfaces, and non-mutating readiness evidence.",
-            completionPercent: 20,
+            completionPercent: 35,
             complexity: "high",
             sourceDocument: "Plugin and MCP catalogs"
+          },
+          {
+            id: "phase-04-child-catalog-depth",
+            title: "Provider Catalog Detail Depth",
+            description: "Show command, skill, plugin, MCP, automation, and personalization catalog records with source, totals, readiness state, evidence expectations, and execution locks.",
+            completionPercent: 40,
+            complexity: "high",
+            sourceDocument: "Phase 4 provider catalog depth"
           },
           {
             id: "phase-04-child-surface-depth",
             title: "Provider Surface Depth",
             description: "Show surface coverage, setup blockers, capability gaps, preview review, and execution lock before provider execution is considered.",
-            completionPercent: 35,
+            completionPercent: 40,
             complexity: "high",
             sourceDocument: "Phase 4 provider surface depth"
           }

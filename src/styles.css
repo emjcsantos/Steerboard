@@ -4747,6 +4747,130 @@ textarea {
   line-height: 1.35;
 }
 
+.provider-catalog-depth {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  border: 1px solid #2f3540;
+  border-radius: 8px;
+  background: #111820;
+  padding: 7px;
+}
+
+.provider-catalog-depth-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.provider-catalog-depth-header strong,
+.provider-catalog-depth-header span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider-catalog-depth-header strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.provider-catalog-depth-header span {
+  color: #8f99a4;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.provider-catalog-depth-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.provider-catalog-depth-item {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 74px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 6px;
+}
+
+.provider-catalog-depth-item > span,
+.provider-catalog-depth-item strong,
+.provider-catalog-depth-item small,
+.provider-catalog-depth-item b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider-catalog-depth-item > span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce3eb;
+  padding: 3px 5px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.provider-catalog-depth-item div {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.provider-catalog-depth-item strong {
+  color: #edf3f8;
+  font-size: 10px;
+}
+
+.provider-catalog-depth-item small {
+  color: #8f99a4;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.provider-catalog-depth-item b {
+  color: #aab5c0;
+  font-size: 9px;
+  text-align: right;
+}
+
+.provider-catalog-depth-item-ready > span {
+  background: #254634;
+  color: #b8edca;
+}
+
+.provider-catalog-depth-item-preview > span {
+  background: #244860;
+  color: #b8e7fb;
+}
+
+.provider-catalog-depth-item-setup-required > span {
+  background: #5c4b1b;
+  color: #f2dc91;
+}
+
+.provider-catalog-depth-item-unsupported > span,
+.provider-catalog-depth-item-unavailable > span {
+  background: #4c4120;
+  color: #e9d79a;
+}
+
+.provider-catalog-depth-item-blocked > span {
+  background: #69343a;
+  color: #ffc3c7;
+}
+
 .provider-readiness-list {
   display: grid;
   gap: 5px;

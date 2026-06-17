@@ -35,6 +35,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm the release readiness decision remains held while clean checkout, build/test, smoke proof, docs/known limits, owner proof, or remaining-goal blockers are unresolved.
    - Confirm the packaging lock row is ready only because packaging and resume controls stay locked; do not run packaging, signing, installer, Git push, or external release actions from this gate.
    - Confirm the Environment panel Phase 4 Provider Readiness card classifies all six provider surfaces without executing commands, skills, plugins, MCP tools, automations, or personalization mutations.
+   - Confirm the Phase 4 Provider Readiness card shows catalog-depth rows for command, skill, plugin, MCP, automation, and personalization source labels, totals, evidence expectations, and execution locks.
    - Confirm the Phase 4 Surface Depth panel shows surface coverage, setup blockers, capability gaps, preview review, and the execution lock while remaining metadata-only with no command, skill, plugin, MCP, automation, personalization, network, terminal, Git, or profile execution.
    - Optionally run `npm run smoke:phase1-2` to execute the opt-in one-panel live smoke and two-panel isolation desktop smoke tests. This can send tiny read-only prompts through the local runtime and is intentionally excluded from normal tests.
    - Optionally run `npm run smoke:phase3` to execute the opt-in live-control, active-turn interrupt, and active-turn steer desktop smoke tests. This can send tiny read-only prompts through the local runtime and is intentionally excluded from normal tests.
@@ -74,6 +75,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Verify stable ordering and filtering output across repeated reloads.
    - Confirm the Owner Testing panel shows six catalog refresh validation rows and a metadata-only safety note.
    - Confirm the Phase 4 Provider Readiness card updates from the same catalog snapshots and shows ready, preview, setup-required, unsupported, unavailable, or blocked labels with an exact next action.
+   - Confirm the Phase 4 Provider Readiness catalog-depth rows keep all six provider surfaces visible with source labels, totals, evidence expectations, and locked execution posture.
    - Confirm the Phase 4 Surface Depth panel uses those metadata snapshots to expose surface coverage, setup blockers, capability gaps, preview review, and the execution lock without running provider actions.
    - Open the connection dialog and run the catalog smoke to refresh all six catalog metadata/status surfaces together without execution.
    - Refresh the command catalog as a safe metadata/status refresh and confirm source/state changes are visible without side effects.

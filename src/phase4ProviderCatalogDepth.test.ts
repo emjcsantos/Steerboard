@@ -1,0 +1,192 @@
+import { describe, expect, it } from "vitest";
+import {
+  buildCatalogRefreshOwnerValidation,
+  type CatalogRefreshOwnerValidationResult,
+  type CatalogRefreshOwnerValidationSurfaceResult,
+  type CatalogSurface
+} from "./catalogRefreshOwnerValidation";
+import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
+import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
+
+const surfaces: readonly CatalogSurface[] = [
+  "command",
+  "skill",
+  "plugin",
+  "mcp",
+  "automation",
+  "personalization"
+];
+
+function surfaceFixture(
+  surface: CatalogSurface,
+  overrides: Partial<CatalogRefreshOwnerValidationSurfaceResult> = {}
+): CatalogRefreshOwnerValidationSurfaceResult {
+  return {
+    surface,
+    source: "provider-live",
+    total: 2,
+    readiness: 100,
+    state: "ready",
+    pass: true,
+    itemOrder: [`${surface}-one`, `${surface}-two`],
+    safety: "metadata/status-only",
+    summary: {
+      total: 2,
+      live: 2,
+      preview: 0,
+      disconnected: 0,
+      setupRequired: 0,
+      unsupported: 0,
+      unavailable: 0,
+      actionable: 2,
+      availability: 1
+    },
+    ...overrides
+  };
+}
+
+function validationFixture(
+  surfaceOverrides: Partial<Record<CatalogSurface, Partial<CatalogRefreshOwnerValidationSurfaceResult>>> = {}
+): CatalogRefreshOwnerValidationResult {
+  const surfaceResults = surfaces.map((surface) => surfaceFixture(surface, surfaceOverrides[surface]));
+  const pass = surfaceResults.every((surface) => surface.pass);
+
+  return {
+    safety: "Catalog refresh validation is metadata/status-only.",
+    pass,
+    readiness: pass ? 100 : 0,
+    state: pass ? "ready" : "blocked",
+    surfaces: surfaceResults
+  };
+}
+
+function depthFromValidation(validation: CatalogRefreshOwnerValidationResult) {
+  return buildPhase4ProviderCatalogDepth(buildProviderIntegrationReadiness(validation));
+}
+
+describe("phase 4 provider catalog depth", () => {
+  it("builds one metadata-only depth record for each provider catalog surface", () => {
+    const depth = depthFromValidation(buildCatalogRefreshOwnerValidation());
+
+    expect(depth.records.map((record) => record.kind)).toEqual([
+      "command",
+      "skill",
+      "plugin",
+      "mcp",
+      "automation",
+      "personalization"
+    ]);
+    expect(depth.executionLockCount).toBe(6);
+    expect(depth.records.every((record) => record.executionLocked)).toBe(true);
+    expect(depth.records).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "command",
+          evidence: expect.stringContaining("scope labels")
+        }),
+        expect.objectContaining({
+          kind: "mcp",
+          evidence: expect.stringContaining("tool policy")
+        }),
+        expect.objectContaining({
+          kind: "personalization",
+          evidence: expect.stringContaining("profile-mutation lock")
+        })
+      ])
+    );
+  });
+
+  it("reports ready catalog depth while keeping execution locked", () => {
+    const depth = depthFromValidation(validationFixture());
+
+    expect(depth.readyCount).toBe(6);
+    expect(depth.previewCount).toBe(0);
+    expect(depth.setupRequiredCount).toBe(0);
+    expect(depth.heldCount).toBe(0);
+    expect(depth.nextAction).toContain("execution locked");
+    expect(depth.records.every((record) => record.status === "ready")).toBe(true);
+  });
+
+  it("keeps preview, setup, and held provider states visible per catalog", () => {
+    const depth = depthFromValidation(
+      validationFixture({
+        skill: {
+          summary: {
+            total: 2,
+            live: 1,
+            preview: 0,
+            disconnected: 1,
+            setupRequired: 0,
+            unsupported: 0,
+            unavailable: 0,
+            actionable: 2,
+            availability: 0.5
+          }
+        },
+        plugin: {
+          source: "provider-preview",
+          summary: {
+            total: 2,
+            live: 0,
+            preview: 2,
+            disconnected: 0,
+            setupRequired: 0,
+            unsupported: 0,
+            unavailable: 0,
+            actionable: 2,
+            availability: 1
+          }
+        },
+        automation: {
+          source: "unavailable",
+          total: 0,
+          summary: {
+            total: 0,
+            live: 0,
+            preview: 0,
+            disconnected: 0,
+            setupRequired: 0,
+            unsupported: 0,
+            unavailable: 0,
+            actionable: 0,
+            needsAttention: 0,
+            availability: 0
+          }
+        }
+      })
+    );
+
+    expect(depth.previewCount).toBe(1);
+    expect(depth.setupRequiredCount).toBe(1);
+    expect(depth.heldCount).toBe(1);
+    expect(depth.records).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "skill", status: "setup-required" }),
+        expect.objectContaining({ kind: "plugin", status: "preview" }),
+        expect.objectContaining({ kind: "automation", status: "unavailable" })
+      ])
+    );
+  });
+
+  it("keeps catalog depth text public-safe", () => {
+    const depth = depthFromValidation(validationFixture());
+    const combinedText = [
+      depth.label,
+      depth.ariaLabel,
+      depth.nextAction,
+      ...depth.records.flatMap((record) => [
+        record.label,
+        record.kind,
+        record.statusLabel,
+        record.sourceLabel,
+        record.evidence,
+        record.nextAction
+      ])
+    ].join(" ");
+
+    expect(combinedText).not.toMatch(/[A-Za-z]:[\\/]/);
+    expect(combinedText).not.toMatch(/[\\/](Users|Projects|Documents|Desktop)[\\/]/i);
+    expect(combinedText).not.toContain("<");
+    expect(combinedText).not.toContain(">");
+  });
+});

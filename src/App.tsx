@@ -90,6 +90,7 @@ import {
   buildPhase4ProviderSurfaceDepth,
   type Phase4ProviderSurfaceDepthSnapshot
 } from "./phase4ProviderSurfaceDepth";
+import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
 import {
   buildCatalogRefreshProviderSmoke,
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
@@ -6260,6 +6261,8 @@ function ProviderIntegrationReadinessPanel({
 }: {
   readiness: ProviderIntegrationReadiness;
 }) {
+  const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
+
   return (
     <section
       aria-label={`Phase 4 provider integration readiness ${readiness.statusLabel}; ${readiness.readiness}% ready. ${readiness.nextAction}`}
@@ -6292,6 +6295,33 @@ function ProviderIntegrationReadinessPanel({
         </div>
       </div>
       <p className="provider-readiness-next">{readiness.nextAction}</p>
+      <div className="provider-catalog-depth" aria-label={catalogDepth.ariaLabel}>
+        <div className="provider-catalog-depth-header">
+          <strong>{catalogDepth.label}</strong>
+          <span>
+            {catalogDepth.readyCount} ready / {catalogDepth.executionLockCount} locks
+          </span>
+        </div>
+        <ol className="provider-catalog-depth-list">
+          {catalogDepth.records.map((record) => (
+            <li
+              className={classNames(
+                "provider-catalog-depth-item",
+                `provider-catalog-depth-item-${record.status}`
+              )}
+              key={record.id}
+              title={`${record.evidence} ${record.nextAction}`}
+            >
+              <span>{record.statusLabel}</span>
+              <div>
+                <strong>{record.label}</strong>
+                <small>{record.sourceLabel}</small>
+              </div>
+              <b>{record.total}</b>
+            </li>
+          ))}
+        </ol>
+      </div>
       <ol className="provider-readiness-list" aria-label="Provider readiness by catalog surface">
         {readiness.surfaces.map((surface) => (
           <li

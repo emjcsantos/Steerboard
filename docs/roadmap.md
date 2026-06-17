@@ -4,7 +4,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 ## Current Pipeline
 
-The current development lane is Phase 3 desktop proof clearance: run the explicit desktop smoke actions, persist their proof rows across reload, and verify slash-command plus session-control evidence before advancing broader provider, dispatch, or release work. Phase 4 now includes Provider Readiness plus the Phase 4 Surface Depth panel for metadata-only surface coverage, setup blockers, capability gaps, preview review, and execution lock tracking. Phase 11 tracks release-readiness decision support for clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and owner release decision while packaging remains paused. The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md).
+The current development lane is Phase 3 desktop proof clearance: run the explicit desktop smoke actions, persist their proof rows across reload, and verify slash-command plus session-control evidence before advancing broader provider, dispatch, or release work. Phase 4 now includes Provider Readiness catalog-depth rows plus the Phase 4 Surface Depth panel for metadata-only source coverage, catalog evidence expectations, surface coverage, setup blockers, capability gaps, preview review, and execution lock tracking. Phase 11 tracks release-readiness decision support for clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and owner release decision while packaging remains paused. The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md).
 
 ## Milestone Tracking
 
@@ -57,7 +57,7 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 
 - Provider-neutral adapter contract.
 - Provider-neutral runtime profile readiness model.
-- Phase 4 Surface Depth metadata for provider surface coverage, setup blockers, capability gaps, preview review, and execution lock tracking with no provider execution.
+- Phase 4 Provider Readiness catalog-depth metadata plus Surface Depth tracking for source coverage, catalog evidence expectations, provider surface coverage, setup blockers, capability gaps, preview review, and execution locks with no provider execution.
 - Runtime profile catalog and Arena readiness panel.
 - Editable local runtime profile draft with saved-state repair.
 - Local runtime profile approval request preview.
