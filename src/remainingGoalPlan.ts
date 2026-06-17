@@ -131,12 +131,13 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-04-child-catalog-depth",
       "phase-04-child-surface-depth",
       "phase-04-child-traceability",
+      "phase-04-child-blocker-priority",
       "phase-04-parent-refresh-safety",
       "phase-04-child-refresh-smoke",
       "phase-04-child-refresh-safety-depth"
     ],
     nextAction:
-      "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, Surface Depth, and traceability panels to resolve source coverage, setup blockers, capability gaps, preview rows, metadata-only refresh proof, PM links, and execution locks before provider execution is considered."
+      "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, Surface Depth, traceability, and blocker-priority panels to resolve source coverage, setup blockers, capability gaps, preview rows, metadata-only refresh proof, PM links, and execution locks before provider execution is considered."
   },
   {
     id: "goal-phase-5-migration-hardening",

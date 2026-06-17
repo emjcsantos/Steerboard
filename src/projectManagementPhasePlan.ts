@@ -339,6 +339,14 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 35,
             complexity: "high",
             sourceDocument: "Phase 4 provider traceability"
+          },
+          {
+            id: "phase-04-child-blocker-priority",
+            title: "Provider Blocker Priority",
+            description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action.",
+            completionPercent: 35,
+            complexity: "high",
+            sourceDocument: "Phase 4 provider blocker priority"
           }
         ]
       },

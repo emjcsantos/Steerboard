@@ -107,6 +107,10 @@ import {
   type Phase4ProviderTraceabilitySummary
 } from "./phase4ProviderTraceability";
 import {
+  buildPhase4ProviderBlockerPriority,
+  type Phase4ProviderBlockerPrioritySummary
+} from "./phase4ProviderBlockerPriority";
+import {
   buildSlashCommandExecutionEvidence,
   type SlashCommandExecutionEvidence
 } from "./slashCommandExecutionEvidence";
@@ -1737,6 +1741,21 @@ export function App() {
         surfaceDepth: phase4ProviderSurfaceDepth
       }),
     [phase4ProviderCatalogDepth, phase4ProviderSurfaceDepth, phase4RefreshSafetyDepth]
+  );
+  const phase4ProviderBlockerPriority = useMemo(
+    () =>
+      buildPhase4ProviderBlockerPriority({
+        catalogDepth: phase4ProviderCatalogDepth,
+        refreshSafety: phase4RefreshSafetyDepth,
+        surfaceDepth: phase4ProviderSurfaceDepth,
+        traceability: phase4ProviderTraceability
+      }),
+    [
+      phase4ProviderCatalogDepth,
+      phase4ProviderSurfaceDepth,
+      phase4ProviderTraceability,
+      phase4RefreshSafetyDepth
+    ]
   );
   const slashCommandExecutionEvidence = useMemo(() => {
     const evidenceItems = Object.values(slashCommandExecutionEvidenceByPanel);
@@ -3522,6 +3541,7 @@ export function App() {
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
             project={project}
+            phase4ProviderBlockerPriority={phase4ProviderBlockerPriority}
             phase4ProviderCatalogDepth={phase4ProviderCatalogDepth}
             phase4ProviderTraceability={phase4ProviderTraceability}
             phase4ProviderSurfaceDepth={phase4ProviderSurfaceDepth}
@@ -6629,6 +6649,86 @@ function Phase4ProviderTraceabilityPanel({
   );
 }
 
+function Phase4ProviderBlockerPriorityPanel({
+  summary
+}: {
+  summary: Phase4ProviderBlockerPrioritySummary;
+}) {
+  const visibleItems = summary.items.slice(0, 6);
+
+  return (
+    <section className="panel-section">
+      <h4>Phase 4 Blocker Priority</h4>
+      <div
+        aria-label={summary.ariaLabel}
+        className={classNames(
+          "phase4-provider-blocker-priority",
+          `phase4-provider-blocker-priority-${summary.state}`
+        )}
+        title={summary.safety}
+      >
+        <div className="phase4-provider-blocker-priority-header">
+          <strong>{summary.label}</strong>
+          <span>
+            {summary.statusLabel} / {summary.openBlockerCount} open
+          </span>
+        </div>
+        <dl
+          className="phase4-provider-blocker-priority-grid"
+          aria-label="Phase 4 provider blocker priority counts"
+        >
+          <div>
+            <dt>Top</dt>
+            <dd>{summary.topPriorityLabel}</dd>
+          </div>
+          <div>
+            <dt>Smoke</dt>
+            <dd>{summary.catalogSmokeAddressableCount}</dd>
+          </div>
+          <div>
+            <dt>Ready</dt>
+            <dd>{summary.readiness}%</dd>
+          </div>
+        </dl>
+        <ol
+          className="phase4-provider-blocker-priority-list"
+          aria-label="Phase 4 provider blocker priority rows"
+        >
+          {visibleItems.length > 0 ? (
+            visibleItems.map((item) => (
+              <li
+                className={classNames(
+                  "phase4-provider-blocker-priority-item",
+                  `phase4-provider-blocker-priority-item-${item.status}`
+                )}
+                key={item.id}
+                title={`${item.detail} ${item.nextAction}`}
+              >
+                <span>#{item.priority}</span>
+                <div>
+                  <strong>{item.label}</strong>
+                  <small>{item.nextAction}</small>
+                </div>
+                <b>{item.severity}</b>
+              </li>
+            ))
+          ) : (
+            <li className="phase4-provider-blocker-priority-item phase4-provider-blocker-priority-item-ready">
+              <span>OK</span>
+              <div>
+                <strong>No open Phase 4 provider blocker</strong>
+                <small>{summary.nextAction}</small>
+              </div>
+              <b>ready</b>
+            </li>
+          )}
+        </ol>
+        <small title={summary.nextAction}>{summary.nextAction}</small>
+      </div>
+    </section>
+  );
+}
+
 function PanelPrioritySignal({
   focusTarget,
   onClearFocus,
@@ -7053,6 +7153,7 @@ function RightPanel({
   onSelectRun,
   onUpdateRunStatus,
   project,
+  phase4ProviderBlockerPriority,
   phase4ProviderCatalogDepth,
   phase4ProviderTraceability,
   phase4ProviderSurfaceDepth,
@@ -7113,6 +7214,7 @@ function RightPanel({
   onSelectRun: (runId: string) => void;
   onUpdateRunStatus: (runId: string, nextStatus: MockRunStatus) => void;
   project: ProjectSummary;
+  phase4ProviderBlockerPriority: Phase4ProviderBlockerPrioritySummary;
   phase4ProviderCatalogDepth: Phase4ProviderCatalogDepthSummary;
   phase4ProviderTraceability: Phase4ProviderTraceabilitySummary;
   phase4ProviderSurfaceDepth: Phase4ProviderSurfaceDepthSnapshot;
@@ -8316,6 +8418,8 @@ function RightPanel({
       <Phase4ProviderSurfaceDepthPanel snapshot={phase4ProviderSurfaceDepth} />
 
       <Phase4ProviderTraceabilityPanel summary={phase4ProviderTraceability} />
+
+      <Phase4ProviderBlockerPriorityPanel summary={phase4ProviderBlockerPriority} />
 
       <OwnerTestingReadinessPanel
         catalogRefreshOwnerValidation={catalogRefreshOwnerValidation}

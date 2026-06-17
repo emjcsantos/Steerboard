@@ -9,12 +9,12 @@ import {
   buildCatalogRefreshProviderSmoke,
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW
 } from "./catalogRefreshProviderSmoke";
+import { buildPhase4ProviderBlockerPriority } from "./phase4ProviderBlockerPriority";
 import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
 import { buildPhase4ProviderTraceabilitySummary } from "./phase4ProviderTraceability";
 import { buildPhase4RefreshSafetyDepth } from "./phase4RefreshSafetyDepth";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
-import { remainingGoalPlan } from "./remainingGoalPlan";
 
 const surfaces: readonly CatalogSurface[] = [
   "command",
@@ -95,97 +95,105 @@ function validationFixture(
   };
 }
 
-function traceability({
-  validation = validationFixture(),
-  refreshSafety = buildPhase4RefreshSafetyDepth(buildCatalogRefreshProviderSmoke(snapshotPayloads)),
-  goals = remainingGoalPlan
+function priority({
+  validation = buildCatalogRefreshOwnerValidation(),
+  smoke = CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW
 }: {
   validation?: CatalogRefreshOwnerValidationResult;
-  refreshSafety?: ReturnType<typeof buildPhase4RefreshSafetyDepth>;
-  goals?: typeof remainingGoalPlan;
+  smoke?: ReturnType<typeof buildCatalogRefreshProviderSmoke>;
 } = {}) {
   const readiness = buildProviderIntegrationReadiness(validation);
-
-  return buildPhase4ProviderTraceabilitySummary({
-    catalogDepth: buildPhase4ProviderCatalogDepth(readiness),
+  const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
+  const refreshSafety = buildPhase4RefreshSafetyDepth(smoke);
+  const surfaceDepth = buildPhase4ProviderSurfaceDepth(readiness);
+  const traceability = buildPhase4ProviderTraceabilitySummary({
+    catalogDepth,
     refreshSafety,
-    surfaceDepth: buildPhase4ProviderSurfaceDepth(readiness),
-    goals
+    surfaceDepth
+  });
+
+  return buildPhase4ProviderBlockerPriority({
+    catalogDepth,
+    refreshSafety,
+    surfaceDepth,
+    traceability
   });
 }
 
-describe("phase 4 provider traceability", () => {
-  it("links the Phase 4 remaining goal, PM rows, depth records, refresh safety, and execution locks", () => {
-    const summary = traceability();
+describe("phase 4 provider blocker priority", () => {
+  it("ranks setup-required catalog and surface blockers ahead of preview refresh proof", () => {
+    const snapshot = priority();
 
-    expect(summary.state).toBe("ready");
-    expect(summary.canTrustProviderReview).toBe(true);
-    expect(summary.linkedGoalId).toBe("goal-phase-4-provider-surfaces");
-    expect(summary.missingPmTaskIds).toEqual([]);
-    expect(summary.linkedPmTaskCount).toBe(11);
-    expect(summary.catalogDepthRecordCount).toBe(6);
-    expect(summary.refreshSafetyRecordCount).toBe(5);
-    expect(summary.surfaceDepthItemCount).toBe(5);
-    expect(summary.executionLockCount).toBe(6);
-    expect(summary.items.map((item) => item.kind)).toEqual([
-      "active-goal",
-      "pm-coverage",
-      "catalog-depth",
-      "refresh-safety",
-      "surface-depth",
-      "execution-lock"
-    ]);
-  });
-
-  it("holds provider traceability in preview while refresh smoke has not run", () => {
-    const summary = traceability({
-      refreshSafety: buildPhase4RefreshSafetyDepth(CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW)
+    expect(snapshot.state).toBe("setup-required");
+    expect(snapshot.openBlockerCount).toBeGreaterThan(0);
+    expect(snapshot.topPriorityLabel).toBe("Skills");
+    expect(snapshot.catalogSmokeCanAddressTopBlocker).toBe(false);
+    expect(snapshot.items[0]).toMatchObject({
+      kind: "provider-catalog",
+      status: "setup-required",
+      severity: "critical",
+      priority: 1
     });
-
-    expect(summary.state).toBe("preview");
-    expect(summary.canTrustProviderReview).toBe(false);
-    expect(summary.items).toEqual(
+    expect(snapshot.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: "refresh-safety", status: "preview" })
+        expect.objectContaining({ kind: "refresh-safety", status: "preview", canUseCatalogSmoke: true }),
+        expect.objectContaining({ kind: "surface-depth", status: "setup-required" }),
+        expect.objectContaining({ kind: "traceability", status: "setup-required" })
       ])
     );
   });
 
-  it("blocks when the Phase 4 goal misses the traceability PM child link", () => {
-    const goals = remainingGoalPlan.map((goal) =>
-      goal.id === "goal-phase-4-provider-surfaces"
-        ? {
-            ...goal,
-            pmTaskIds: goal.pmTaskIds.filter((taskId) => taskId !== "phase-04-child-traceability")
+  it("marks a preview-only provider blocker as catalog-smoke addressable", () => {
+    const snapshot = priority({
+      validation: validationFixture({
+        mcp: {
+          source: "provider-preview",
+          summary: {
+            total: 2,
+            live: 0,
+            preview: 2,
+            disconnected: 0,
+            setupRequired: 0,
+            unsupported: 0,
+            unavailable: 0,
+            actionable: 2,
+            availability: 1
           }
-        : goal
-    );
-    const summary = traceability({ goals });
+        }
+      }),
+      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads)
+    });
 
-    expect(summary.state).toBe("blocked");
-    expect(summary.canTrustProviderReview).toBe(false);
-    expect(summary.missingPmTaskIds).toEqual(["phase-04-child-traceability"]);
+    expect(snapshot.state).toBe("preview");
+    expect(snapshot.topPriorityLabel).toBe("MCP");
+    expect(snapshot.catalogSmokeCanAddressTopBlocker).toBe(true);
+    expect(snapshot.nextAction).toContain("catalog smoke");
   });
 
-  it("keeps traceability text public-safe", () => {
-    const summary = buildPhase4ProviderTraceabilitySummary({
-      catalogDepth: buildPhase4ProviderCatalogDepth(
-        buildProviderIntegrationReadiness(buildCatalogRefreshOwnerValidation())
-      ),
-      refreshSafety: buildPhase4RefreshSafetyDepth(CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW),
-      surfaceDepth: buildPhase4ProviderSurfaceDepth(
-        buildProviderIntegrationReadiness(buildCatalogRefreshOwnerValidation())
-      )
+  it("reports ready when provider review and traceability are fully ready", () => {
+    const snapshot = priority({
+      validation: validationFixture(),
+      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads)
     });
+
+    expect(snapshot.state).toBe("ready");
+    expect(snapshot.openBlockerCount).toBe(0);
+    expect(snapshot.readiness).toBe(100);
+    expect(snapshot.topPriorityLabel).toBe("No open Phase 4 provider blocker");
+  });
+
+  it("keeps blocker-priority text public-safe", () => {
+    const snapshot = priority();
     const combinedText = [
-      summary.label,
-      summary.ariaLabel,
-      summary.nextAction,
-      summary.safety,
-      ...summary.items.flatMap((item) => [
+      snapshot.label,
+      snapshot.ariaLabel,
+      snapshot.nextAction,
+      snapshot.safety,
+      ...snapshot.items.flatMap((item) => [
         item.label,
         item.kind,
         item.status,
+        item.severity,
         item.detail,
         item.nextAction
       ])
