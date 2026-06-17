@@ -2,14 +2,17 @@ import { describe, expect, it } from "vitest";
 import { buildDispatchPackage } from "./dispatch";
 import { createDispatchRolePanelPlan } from "./dispatchRolePanelPlan";
 import type { DispatchReviewRecord } from "./dispatchReviewRecord";
-import { createDispatchReviewRecord } from "./dispatchReviewRecord";
+import {
+  buildCurrentDispatchReviewEvidenceFingerprint,
+  createDispatchReviewRecord
+} from "./dispatchReviewRecord";
 import { buildPhase7DispatchBlockerPriority } from "./phase7DispatchBlockerPriority";
 import { buildPhase7DispatchReviewDepth } from "./phase7DispatchReviewDepth";
 import { buildPhase7DispatchTraceability } from "./phase7DispatchTraceability";
 import { buildPhase7IntegrationOwnershipDepth } from "./phase7IntegrationOwnershipDepth";
 import type { PlanningDraft } from "./planning";
 import { remainingGoalPlan } from "./remainingGoalPlan";
-import { createMockRunFromDispatchPackage } from "./run";
+import { createMockRunFromDispatchPackage, type MockOrchestratorRun } from "./run";
 
 const project = {
   id: "phase-7-blocker-project",
@@ -33,6 +36,12 @@ const draft: PlanningDraft = {
 };
 
 function buildRecord(createdAt = "2026-06-14T00:00:00.000Z"): DispatchReviewRecord {
+  return buildRecordBundle(createdAt).record;
+}
+
+function buildRecordBundle(
+  createdAt = "2026-06-14T00:00:00.000Z"
+): { record: DispatchReviewRecord; run: MockOrchestratorRun } {
   const dispatchPackage = buildDispatchPackage(draft, project, {
     createdAt,
     idSeed: "phase-7-blocker",
@@ -45,19 +54,27 @@ function buildRecord(createdAt = "2026-06-14T00:00:00.000Z"): DispatchReviewReco
   });
   const rolePanelPlan = createDispatchRolePanelPlan(dispatchPackage, run);
 
-  return createDispatchReviewRecord(dispatchPackage, rolePanelPlan, run, {
-    createdAt
-  });
+  return {
+    record: createDispatchReviewRecord(dispatchPackage, rolePanelPlan, run, {
+      createdAt
+    }),
+    run
+  };
 }
 
 function priority(options: {
   record?: DispatchReviewRecord;
+  run?: MockOrchestratorRun;
   goals?: typeof remainingGoalPlan;
 } = {}) {
   const record = options.record;
   const depth = buildPhase7DispatchReviewDepth({
     records: record ? [record] : [],
-    selectedRecord: record
+    selectedRecord: record,
+    currentEvidenceFingerprint:
+      record && options.run
+        ? buildCurrentDispatchReviewEvidenceFingerprint(record, options.run)
+        : undefined
   });
   const ownership = record
     ? buildPhase7IntegrationOwnershipDepth(record)
@@ -140,7 +157,8 @@ describe("phase 7 dispatch blocker priority", () => {
   });
 
   it("reports ready when dispatch review, ownership, and traceability are ready", () => {
-    const summary = priority({ record: buildRecord() });
+    const { record, run } = buildRecordBundle();
+    const summary = priority({ record, run });
 
     expect(summary.state).toBe("ready");
     expect(summary.openBlockerCount).toBe(0);

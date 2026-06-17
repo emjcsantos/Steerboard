@@ -183,10 +183,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 7"],
     phaseIds: ["phase-07-dispatch-loop"],
     goal:
-      "Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits, dispatch review depth, main integration ownership, validation gates, traceability, blocker priority, and live-worker locks.",
+      "Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits, dispatch review depth, handoff packet integrity, current evidence freshness, main integration ownership, validation gates, traceability, blocker priority, and live-worker locks.",
     status: "next",
     priority: "high",
-    completionPercent: 50,
+    completionPercent: 57,
     pmTaskIds: [
       "phase-07-dispatch-loop",
       "phase-07-parent-role-panels",
@@ -200,7 +200,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-07-child-blocker-priority"
     ],
     nextAction:
-      "Use dispatch review records, review-depth checks, integration ownership rows, traceability rows, and the blocker-priority queue to audit role counts, attempt limits, handoff tasks, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, and live-worker execution locks before any live worker session spawning."
+      "Use dispatch review records, review-depth checks, per-role handoff packet integrity, current evidence fingerprint matching, integration ownership rows, traceability rows, and the blocker-priority queue to audit role counts, attempt limits, handoff tasks, validation dependencies, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, and live-worker execution locks before any live worker session spawning."
   },
   {
     id: "goal-phase-8-permission-audit",

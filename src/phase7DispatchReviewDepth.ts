@@ -10,7 +10,9 @@ export type Phase7DispatchReviewDepthKind =
   | "role-coverage"
   | "attempt-limit"
   | "handoff-task"
+  | "handoff-packet"
   | "validation-gate"
+  | "evidence-freshness"
   | "execution-lock";
 
 export interface Phase7DispatchReviewDepthItem {
@@ -35,6 +37,8 @@ export interface Phase7DispatchReviewDepthSnapshot {
   handoffTaskCount: number;
   validationGateCount: number;
   latestRecordId?: string;
+  recordEvidenceFingerprint?: string;
+  currentEvidenceFingerprint?: string;
   nextAction: string;
   safety: string;
   ariaLabel: string;
@@ -44,6 +48,7 @@ export interface Phase7DispatchReviewDepthSnapshot {
 export interface Phase7DispatchReviewDepthInput {
   records: readonly DispatchReviewRecord[];
   selectedRecord?: DispatchReviewRecord;
+  currentEvidenceFingerprint?: string;
 }
 
 const SNAPSHOT_ID = "phase-07-dispatch-review-depth";
@@ -129,6 +134,157 @@ function runtimeLockReady(record: DispatchReviewRecord): boolean {
   );
 }
 
+function handoffPacketRuntimeLocked(note: string): boolean {
+  const normalized = note.toLowerCase();
+
+  return normalized.includes("no runtime execution") || normalized.includes("local preview");
+}
+
+function handoffPackets(record: DispatchReviewRecord): DispatchReviewRecord["handoffPackets"] {
+  return Array.isArray(record.handoffPackets) ? record.handoffPackets : [];
+}
+
+function packetByRole(record: DispatchReviewRecord, role: DispatchReviewRecord["handoffPackets"][number]["role"]) {
+  return handoffPackets(record).find((packet) => packet.role === role);
+}
+
+function hasMeaningfulList(items: readonly string[]): boolean {
+  return items.some((item) => {
+    const normalized = item.toLowerCase();
+    return (
+      item.trim().length > 0 &&
+      !normalized.includes("no files listed") &&
+      !normalized.includes("no files declared") &&
+      !normalized.includes("no owned areas listed")
+    );
+  });
+}
+
+function hasNamedDependency(packet: DispatchReviewRecord["handoffPackets"][number] | undefined, term: string): boolean {
+  return Boolean(packet?.dependencies.some((dependency) => dependency.toLowerCase().includes(term)));
+}
+
+function handoffPacketStatus(record: DispatchReviewRecord): Phase7DispatchReviewDepthItem {
+  const packetsForRecord = handoffPackets(record);
+
+  if (packetsForRecord.length === 0) {
+    return {
+      id: `${record.id}:handoff-packet`,
+      label: "Handoff packet integrity",
+      kind: "handoff-packet",
+      status: "review",
+      detail: "This dispatch review record predates persisted per-role handoff packet summaries.",
+      nextAction: "Restage the dispatch review so orchestrator, implementer, validator, and integration packets can be verified."
+    };
+  }
+
+  const roles = ["orchestrator", "implementer", "validator", "integration"] as const;
+  const missingRoles = roles.filter((role) => !packetByRole(record, role));
+  const packets = roles.map((role) => packetByRole(record, role)).filter(Boolean);
+  const missingOwnership = packets.filter(
+    (packet) => !packet || !hasMeaningfulList(packet.ownedAreas) || packet.owner.trim().length === 0
+  );
+  const missingRuntimeLocks = packets.filter(
+    (packet) => packet && !handoffPacketRuntimeLocked(packet.noRuntimeExecutionNote)
+  );
+  const validator = packetByRole(record, "validator");
+  const integration = packetByRole(record, "integration");
+  const validatorDependsOnImplementation = hasNamedDependency(validator, "implementer");
+  const integrationDependsOnUpstream =
+    hasNamedDependency(integration, "planning") &&
+    hasNamedDependency(integration, "implementer") &&
+    hasNamedDependency(integration, "validation");
+
+  if (missingRuntimeLocks.length > 0) {
+    return {
+      id: `${record.id}:handoff-packet`,
+      label: "Handoff packet integrity",
+      kind: "handoff-packet",
+      status: "blocked",
+      detail: `${missingRuntimeLocks.length} handoff packet${missingRuntimeLocks.length === 1 ? "" : "s"} lost the no-runtime execution boundary.`,
+      nextAction: "Restore local preview no-runtime notes on every handoff packet before dispatch review can advance."
+    };
+  }
+
+  if (missingRoles.length > 0 || missingOwnership.length > 0) {
+    return {
+      id: `${record.id}:handoff-packet`,
+      label: "Handoff packet integrity",
+      kind: "handoff-packet",
+      status: "blocked",
+      detail: `${packetsForRecord.length}/4 role packets are present; ${missingOwnership.length} packet${missingOwnership.length === 1 ? "" : "s"} need owner/file-area evidence.`,
+      nextAction: "Restore complete orchestrator, implementer, validator, and integration packet ownership before worker dispatch can be trusted."
+    };
+  }
+
+  if (!validatorDependsOnImplementation || !integrationDependsOnUpstream) {
+    return {
+      id: `${record.id}:handoff-packet`,
+      label: "Handoff packet integrity",
+      kind: "handoff-packet",
+      status: "review",
+      detail: "Handoff packets are present, but validator or integration dependency order needs owner review.",
+      nextAction: "Review validation dependency on implementation and integration dependency on upstream role packets."
+    };
+  }
+
+  return {
+    id: `${record.id}:handoff-packet`,
+    label: "Handoff packet integrity",
+    kind: "handoff-packet",
+    status: "ready",
+    detail: "All four role packets carry owners, file areas, dependencies, validation labels, and local no-runtime boundaries.",
+    nextAction: "Keep per-role handoff packets attached through final integration review."
+  };
+}
+
+function evidenceFreshnessStatus(
+  record: DispatchReviewRecord,
+  currentEvidenceFingerprint?: string
+): Phase7DispatchReviewDepthItem {
+  if (!record.reviewEvidenceFingerprint) {
+    return {
+      id: `${record.id}:evidence-freshness`,
+      label: "Review evidence freshness",
+      kind: "evidence-freshness",
+      status: "review",
+      detail: "This dispatch review record has no saved evidence fingerprint.",
+      nextAction: "Restage the dispatch review so saved evidence can be matched to the current run."
+    };
+  }
+
+  if (!currentEvidenceFingerprint) {
+    return {
+      id: `${record.id}:evidence-freshness`,
+      label: "Review evidence freshness",
+      kind: "evidence-freshness",
+      status: "review",
+      detail: `Saved evidence fingerprint ${record.reviewEvidenceFingerprint} has no current run comparison.`,
+      nextAction: "Select the linked run so Phase 7 can compare the saved review record to current role-panel evidence."
+    };
+  }
+
+  if (record.reviewEvidenceFingerprint !== currentEvidenceFingerprint) {
+    return {
+      id: `${record.id}:evidence-freshness`,
+      label: "Review evidence freshness",
+      kind: "evidence-freshness",
+      status: "review",
+      detail: `Saved evidence fingerprint ${record.reviewEvidenceFingerprint} does not match current run fingerprint ${currentEvidenceFingerprint}.`,
+      nextAction: "Refresh or restage the dispatch review record before trusting handoff closure."
+    };
+  }
+
+  return {
+    id: `${record.id}:evidence-freshness`,
+    label: "Review evidence freshness",
+    kind: "evidence-freshness",
+    status: "ready",
+    detail: `Saved dispatch evidence matches current run fingerprint ${record.reviewEvidenceFingerprint}.`,
+    nextAction: "Keep current evidence fingerprint matched before final integration review."
+  };
+}
+
 function waitingItem(
   id: string,
   label: string,
@@ -146,7 +302,10 @@ function waitingItem(
   };
 }
 
-function buildItems(record?: DispatchReviewRecord): Phase7DispatchReviewDepthItem[] {
+function buildItems(
+  record?: DispatchReviewRecord,
+  currentEvidenceFingerprint?: string
+): Phase7DispatchReviewDepthItem[] {
   if (!record) {
     return [
       waitingItem(
@@ -171,11 +330,25 @@ function buildItems(record?: DispatchReviewRecord): Phase7DispatchReviewDepthIte
         "Create a dispatch review record with scoped worker handoff tasks."
       ),
       waitingItem(
+        `${SNAPSHOT_ID}:handoff-packet`,
+        "Handoff packet integrity",
+        "handoff-packet",
+        "No per-role handoff packet evidence is available yet.",
+        "Create a dispatch review record with orchestrator, implementer, validator, and integration packet summaries."
+      ),
+      waitingItem(
         `${SNAPSHOT_ID}:validation-gate`,
         "Validation gates",
         "validation-gate",
         "No validation gate evidence is available yet.",
         "Create a dispatch review record with explicit validation gates."
+      ),
+      waitingItem(
+        `${SNAPSHOT_ID}:evidence-freshness`,
+        "Review evidence freshness",
+        "evidence-freshness",
+        "No saved dispatch review fingerprint is available yet.",
+        "Create a dispatch review record before matching saved evidence to current run state."
       ),
       waitingItem(
         `${SNAPSHOT_ID}:execution-lock`,
@@ -206,6 +379,8 @@ function buildItems(record?: DispatchReviewRecord): Phase7DispatchReviewDepthIte
     record.validationGateCount > 0 ? "ready" : "waiting";
   const lockStatus: Phase7DispatchReviewDepthState =
     runtimeLockReady(record) ? "ready" : "blocked";
+  const packetItem = handoffPacketStatus(record);
+  const freshnessItem = evidenceFreshnessStatus(record, currentEvidenceFingerprint);
 
   return [
     {
@@ -241,6 +416,7 @@ function buildItems(record?: DispatchReviewRecord): Phase7DispatchReviewDepthIte
           ? "Keep handoff ownership visible through final integration."
           : "Attach worker handoff tasks before dispatch can advance."
     },
+    packetItem,
     {
       id: `${record.id}:validation-gate`,
       label: "Validation gates",
@@ -252,6 +428,7 @@ function buildItems(record?: DispatchReviewRecord): Phase7DispatchReviewDepthIte
           ? "Keep validation gates linked to the staged review record."
           : "Attach validation gates before worker launch review."
     },
+    freshnessItem,
     {
       id: `${record.id}:execution-lock`,
       label: "Live worker lock",
@@ -281,7 +458,7 @@ export function buildPhase7DispatchReviewDepth(
   input: Phase7DispatchReviewDepthInput
 ): Phase7DispatchReviewDepthSnapshot {
   const record = input.selectedRecord ?? input.records[0];
-  const items = buildItems(record);
+  const items = buildItems(record, input.currentEvidenceFingerprint);
   const state = resolveState(items);
   const readiness = calculateReadiness(items);
   const roleCount = record ? roleCoverageCount(record) : 0;
@@ -299,6 +476,8 @@ export function buildPhase7DispatchReviewDepth(
     handoffTaskCount: record?.handoffTaskCount ?? 0,
     validationGateCount: record?.validationGateCount ?? 0,
     latestRecordId: record?.id,
+    recordEvidenceFingerprint: record?.reviewEvidenceFingerprint,
+    currentEvidenceFingerprint: input.currentEvidenceFingerprint,
     nextAction,
     safety: SAFETY,
     items

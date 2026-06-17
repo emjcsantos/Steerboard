@@ -122,26 +122,32 @@ function sourceRank(sourceId: string): number {
   if (normalized.includes("handoff-task")) {
     return 2;
   }
-  if (normalized.includes("validation-gate")) {
+  if (normalized.includes("handoff-packet")) {
     return 3;
   }
-  if (normalized.includes("execution-lock") || normalized.includes("live-worker-lock")) {
+  if (normalized.includes("validation-gate")) {
     return 4;
   }
-  if (normalized.includes("integration-owner")) {
+  if (normalized.includes("evidence-freshness")) {
     return 5;
   }
-  if (normalized.includes("final-validation")) {
+  if (normalized.includes("execution-lock") || normalized.includes("live-worker-lock")) {
     return 6;
   }
-  if (normalized.includes("commit-push-reporting")) {
+  if (normalized.includes("integration-owner")) {
     return 7;
   }
-  if (normalized.includes("traceability") || normalized.includes("pm-coverage")) {
+  if (normalized.includes("final-validation")) {
     return 8;
   }
-  if (normalized.includes("closure-boundary")) {
+  if (normalized.includes("commit-push-reporting")) {
     return 9;
+  }
+  if (normalized.includes("traceability") || normalized.includes("pm-coverage")) {
+    return 10;
+  }
+  if (normalized.includes("closure-boundary")) {
+    return 11;
   }
   return 10;
 }

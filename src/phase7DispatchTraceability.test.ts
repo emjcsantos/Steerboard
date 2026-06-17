@@ -2,13 +2,16 @@ import { describe, expect, it } from "vitest";
 import { buildDispatchPackage } from "./dispatch";
 import { createDispatchRolePanelPlan } from "./dispatchRolePanelPlan";
 import type { DispatchReviewRecord } from "./dispatchReviewRecord";
-import { createDispatchReviewRecord } from "./dispatchReviewRecord";
+import {
+  buildCurrentDispatchReviewEvidenceFingerprint,
+  createDispatchReviewRecord
+} from "./dispatchReviewRecord";
 import { buildPhase7DispatchReviewDepth } from "./phase7DispatchReviewDepth";
 import { buildPhase7DispatchTraceability } from "./phase7DispatchTraceability";
 import { buildPhase7IntegrationOwnershipDepth } from "./phase7IntegrationOwnershipDepth";
 import type { PlanningDraft } from "./planning";
 import { remainingGoalPlan } from "./remainingGoalPlan";
-import { createMockRunFromDispatchPackage } from "./run";
+import { createMockRunFromDispatchPackage, type MockOrchestratorRun } from "./run";
 
 const project = {
   id: "phase-7-trace-project",
@@ -32,6 +35,12 @@ const draft: PlanningDraft = {
 };
 
 function buildRecord(createdAt = "2026-06-14T00:00:00.000Z"): DispatchReviewRecord {
+  return buildRecordBundle(createdAt).record;
+}
+
+function buildRecordBundle(
+  createdAt = "2026-06-14T00:00:00.000Z"
+): { record: DispatchReviewRecord; run: MockOrchestratorRun } {
   const dispatchPackage = buildDispatchPackage(draft, project, {
     createdAt,
     idSeed: "phase-7-trace",
@@ -44,19 +53,27 @@ function buildRecord(createdAt = "2026-06-14T00:00:00.000Z"): DispatchReviewReco
   });
   const rolePanelPlan = createDispatchRolePanelPlan(dispatchPackage, run);
 
-  return createDispatchReviewRecord(dispatchPackage, rolePanelPlan, run, {
-    createdAt
-  });
+  return {
+    record: createDispatchReviewRecord(dispatchPackage, rolePanelPlan, run, {
+      createdAt
+    }),
+    run
+  };
 }
 
 function traceability(options: {
   record?: DispatchReviewRecord;
+  run?: MockOrchestratorRun;
   goals?: typeof remainingGoalPlan;
 } = {}) {
   const record = options.record;
   const depth = buildPhase7DispatchReviewDepth({
     records: record ? [record] : [],
-    selectedRecord: record
+    selectedRecord: record,
+    currentEvidenceFingerprint:
+      record && options.run
+        ? buildCurrentDispatchReviewEvidenceFingerprint(record, options.run)
+        : undefined
   });
   const ownership = record
     ? buildPhase7IntegrationOwnershipDepth(record)
@@ -96,8 +113,8 @@ function traceability(options: {
 
 describe("phase 7 dispatch traceability", () => {
   it("links the Phase 7 goal, PM child rows, review depth, ownership depth, and live-worker lock", () => {
-    const record = buildRecord();
-    const summary = traceability({ record });
+    const { record, run } = buildRecordBundle();
+    const summary = traceability({ record, run });
 
     expect(summary.linkedGoalId).toBe("goal-phase-7-dispatch-loop");
     expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(10);
@@ -131,7 +148,7 @@ describe("phase 7 dispatch traceability", () => {
   });
 
   it("blocks when the Phase 7 goal misses a required PM child link", () => {
-    const record = buildRecord();
+    const { record, run } = buildRecordBundle();
     const goals = remainingGoalPlan.map((goal) =>
       goal.id === "goal-phase-7-dispatch-loop"
         ? {
@@ -140,7 +157,7 @@ describe("phase 7 dispatch traceability", () => {
           }
         : goal
     );
-    const summary = traceability({ record, goals });
+    const summary = traceability({ record, run, goals });
 
     expect(summary.state).toBe("blocked");
     expect(summary.missingPmTaskIds).toEqual(["phase-07-child-traceability"]);

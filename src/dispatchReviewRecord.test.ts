@@ -4,6 +4,7 @@ import { createDispatchRolePanelPlan } from "./dispatchRolePanelPlan";
 import type { DispatchReviewRecord } from "./dispatchReviewRecord";
 import {
   appendDispatchReviewRecord,
+  buildCurrentDispatchReviewEvidenceFingerprint,
   createDispatchReviewRecord,
   DISPATCH_REVIEW_MAIN_OWNERSHIP_NOTE,
   DISPATCH_REVIEW_NO_RUNTIME_NOTE,
@@ -68,6 +69,17 @@ describe("dispatch review records", () => {
       validator: 1,
       integration: 1
     });
+    expect(first.handoffPackets.map((packet) => packet.role)).toEqual([
+      "orchestrator",
+      "implementer",
+      "validator",
+      "integration"
+    ]);
+    expect(
+      first.handoffPackets.every((packet) =>
+        packet.noRuntimeExecutionNote.includes("No runtime execution")
+      )
+    ).toBe(true);
     expect(first.handoffTaskCount).toBeGreaterThan(0);
     expect(first.validationGateCount).toBe(1);
     expect(first.maxAttemptLimit).toBe(3);
@@ -78,6 +90,7 @@ describe("dispatch review records", () => {
     expect(first.closureState).toBe("review-open");
     expect(first.mainIntegrationOwnershipNote).toBe(DISPATCH_REVIEW_MAIN_OWNERSHIP_NOTE);
     expect(first.mainIntegrationOwnershipNote).toContain("push approval");
+    expect(first.reviewEvidenceFingerprint).toMatch(/^phase7-dispatch-[a-f0-9]{8}$/);
     expect(first.noRuntimeExecutionNote).toBe(DISPATCH_REVIEW_NO_RUNTIME_NOTE);
     expect(first.noRuntimeExecutionNote).not.toContain("launched");
     expect(first.detail).toContain("role panels");
@@ -158,9 +171,11 @@ describe("dispatch review records", () => {
     const records = [buildRecord()];
     const recordsCopy = JSON.parse(JSON.stringify(records));
 
-    createDispatchReviewRecord(dispatchPackage, plan, run, {
+    const record = createDispatchReviewRecord(dispatchPackage, plan, run, {
       createdAt: "2026-06-11T00:05:00.000Z"
     });
+
+    expect(buildCurrentDispatchReviewEvidenceFingerprint(record, run)).toBe(record.reviewEvidenceFingerprint);
     appendDispatchReviewRecord(records, buildRecord("2026-06-11T00:06:00.000Z"));
 
     expect(dispatchPackage).toEqual(packageCopy);

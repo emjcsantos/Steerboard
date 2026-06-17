@@ -187,6 +187,7 @@ import {
 } from "./dispatchRolePanelPlan";
 import {
   appendDispatchReviewRecord,
+  buildCurrentDispatchReviewEvidenceFingerprint,
   createDispatchReviewRecord,
   loadDispatchReviewRecords,
   saveDispatchReviewRecords,
@@ -5787,13 +5788,19 @@ function FocusedPanelStatusChip({
 }
 
 function DispatchReviewRecordCard({
-  record
+  record,
+  run
 }: {
   record: DispatchReviewRecord;
+  run?: MockOrchestratorRun;
 }) {
+  const currentEvidenceFingerprint = run
+    ? buildCurrentDispatchReviewEvidenceFingerprint(record, run)
+    : undefined;
   const depth = buildPhase7DispatchReviewDepth({
     records: [record],
-    selectedRecord: record
+    selectedRecord: record,
+    currentEvidenceFingerprint
   });
   const ownershipDepth = buildPhase7IntegrationOwnershipDepth(record);
   const traceability = buildPhase7DispatchTraceability({
@@ -5832,6 +5839,10 @@ function DispatchReviewRecordCard({
         <div>
           <dt>Gates</dt>
           <dd>{record.validationGateCount}</dd>
+        </div>
+        <div>
+          <dt>Packets</dt>
+          <dd>{Array.isArray(record.handoffPackets) ? record.handoffPackets.length : 0}</dd>
         </div>
         <div>
           <dt>Max Try</dt>
@@ -9207,7 +9218,7 @@ function RightPanel({
 
                 {selectedDispatchReviewRecord ? (
                   <section className="selected-dispatch-review" aria-label="Selected run dispatch review record">
-                    <DispatchReviewRecordCard record={selectedDispatchReviewRecord} />
+                    <DispatchReviewRecordCard record={selectedDispatchReviewRecord} run={selectedRun} />
                   </section>
                 ) : (
                   <section className="selected-dispatch-review" aria-label="Selected run dispatch review record">

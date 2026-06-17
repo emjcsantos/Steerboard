@@ -25,7 +25,7 @@ describe("remaining goal plan", () => {
       next: 7,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 58,
+      averageCompletionPercent: 59,
       currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
         "Use the Phase 3 command plan, blocker-priority queue, traceability rows, freshness-aware smoke proof rows, and fingerprint-matched handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary.",
@@ -255,7 +255,8 @@ describe("remaining goal plan", () => {
     expect(phase7Goal).toMatchObject({
       target: "Planning and dispatch loop",
       priority: "high",
-      status: "next"
+      status: "next",
+      completionPercent: 57
     });
     expect(phase7Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -269,6 +270,8 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase7Goal?.nextAction).toContain("traceability rows");
+    expect(phase7Goal?.nextAction).toContain("handoff packet integrity");
+    expect(phase7Goal?.nextAction).toContain("current evidence fingerprint");
     expect(phase7Goal?.nextAction).toContain("blocker-priority queue");
   });
 

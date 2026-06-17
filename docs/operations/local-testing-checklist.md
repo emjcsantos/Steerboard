@@ -117,11 +117,11 @@ Do not proceed to the next section until the current item is at least `review`.
 10. `Dispatch`
     - Dispatch a staged pipeline item through the standard lane.
     - Confirm role-panel plan generation, route details, and log records are consistent.
-    - Confirm the selected local run shows a dispatch review record with role counts, max attempt limit, handoff task count, validation gate count, and a no-runtime-execution note.
-    - Confirm the dispatch review depth checks show role coverage, attempt limits, handoff tasks, validation gates, and the live worker lock as separate rows.
+    - Confirm the selected local run shows a dispatch review record with role counts, max attempt limit, handoff task count, handoff packet count, validation gate count, and a no-runtime-execution note.
+    - Confirm the dispatch review depth checks show role coverage, attempt limits, handoff tasks, handoff packet integrity, evidence freshness, validation gates, and the live worker lock as separate rows.
     - Confirm the integration ownership rows show Main Codex as the final integration, validation, commit, push approval, reporting, traceability, and closure-boundary owner.
-    - Confirm the Phase 7 dispatch traceability rows link the remaining goal, PM child coverage, dispatch review depth, integration ownership depth, and live-worker lock before dispatch review can be trusted.
-    - Confirm the Phase 7 dispatch blocker-priority queue ranks role coverage, attempt limits, handoff tasks, validation gates, integration ownership, traceability, closure boundary, and live-worker lock blockers and shows whether dispatch review can address the top blocker.
+    - Confirm the Phase 7 dispatch traceability rows link the remaining goal, PM child coverage, dispatch review depth, evidence freshness, integration ownership depth, and live-worker lock before dispatch review can be trusted.
+    - Confirm the Phase 7 dispatch blocker-priority queue ranks role coverage, attempt limits, handoff tasks, handoff packet integrity, evidence freshness, validation gates, integration ownership, traceability, closure boundary, and live-worker lock blockers and shows whether dispatch review can address the top blocker.
     - Confirm missing role coverage, missing validation gates, oversized attempt limits, or a missing no-runtime-execution note keep dispatch in waiting, review, or blocked state.
     - Confirm a PM row staged through `Run` creates the same local review trace before any live worker session spawning.
     - Verify the result is a local review artifact only (no runtime worker launch or external session execution).

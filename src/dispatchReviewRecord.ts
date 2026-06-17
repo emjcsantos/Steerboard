@@ -4,10 +4,23 @@ import type {
   DispatchRolePanelPlanCounts,
   DispatchRolePanelPlanState
 } from "./dispatchRolePanelPlan";
+import { createDispatchRolePanelPlan } from "./dispatchRolePanelPlan";
 import type { MockOrchestratorRun } from "./run";
 
 export type DispatchReviewRecordState = DispatchRolePanelPlanState;
 export type DispatchReviewClosureState = "review-open" | "ready-to-close";
+
+export interface DispatchReviewHandoffPacketSummary {
+  role: "orchestrator" | "implementer" | "validator" | "integration";
+  panelId: string;
+  owner: string;
+  files: string[];
+  ownedAreas: string[];
+  acceptanceSummary: string;
+  dependencies: string[];
+  validationLabel: string;
+  noRuntimeExecutionNote: string;
+}
 
 export interface DispatchReviewRecord {
   id: string;
@@ -25,6 +38,7 @@ export interface DispatchReviewRecord {
   panelCount: number;
   roleCounts: DispatchRolePanelPlanCounts;
   handoffTaskCount: number;
+  handoffPackets: DispatchReviewHandoffPacketSummary[];
   validationGateCount: number;
   maxAttemptLimit: number;
   noRuntimeExecutionNote: string;
@@ -33,6 +47,7 @@ export interface DispatchReviewRecord {
   commitPushReportingOwner: string;
   traceabilityLinkCount: number;
   closureState: DispatchReviewClosureState;
+  reviewEvidenceFingerprint: string;
   mainIntegrationOwnershipNote: string;
   detail: string;
   nextAction: string;
@@ -102,6 +117,32 @@ function normalizeCreatedAt(createdAt?: string): string {
     : new Date().toISOString();
 }
 
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableJson(entry)).join(",")}]`;
+  }
+
+  if (value && typeof value === "object") {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${stableJson(entry)}`)
+      .join(",")}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
+function shortHash(value: string): string {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
 function normalizeRoleCounts(value: unknown): DispatchRolePanelPlanCounts {
   const counts = asRecord(value);
 
@@ -111,6 +152,58 @@ function normalizeRoleCounts(value: unknown): DispatchRolePanelPlanCounts {
     validator: safeNumber(counts?.validator),
     integration: safeNumber(counts?.integration)
   };
+}
+
+function normalizeTextList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => safeText(entry, ""))
+    .filter((entry) => entry.length > 0);
+}
+
+function normalizeHandoffPackets(value: unknown): DispatchReviewHandoffPacketSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((entry) => {
+    const record = asRecord(entry);
+    if (!record) {
+      return [];
+    }
+
+    const role = record?.role;
+
+    if (
+      role !== "orchestrator" &&
+      role !== "implementer" &&
+      role !== "validator" &&
+      role !== "integration"
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        role,
+        panelId: safeText(record.panelId, `${role}-panel`),
+        owner: safeText(record.owner, `${role} owner`),
+        files: normalizeTextList(record.files),
+        ownedAreas: normalizeTextList(record.ownedAreas),
+        acceptanceSummary: safeText(record.acceptanceSummary, "No acceptance summary was provided."),
+        dependencies: normalizeTextList(record.dependencies),
+        validationLabel: safeText(record.validationLabel, "No validation signal yet."),
+        noRuntimeExecutionNote: safeText(
+          record.noRuntimeExecutionNote,
+          "No runtime execution is performed for this packet in local preview mode."
+        )
+      }
+    ];
+  });
 }
 
 function isReadinessState(value: unknown): value is DispatchReviewRecordState {
@@ -180,6 +273,118 @@ function createRecordId(sourcePackageId: string, runId: string, createdAt: strin
   ].join("-");
 }
 
+function fingerprintPayload(
+  dispatchPackage: DispatchPackage,
+  rolePanelPlan: DispatchRolePanelPlan,
+  run: MockOrchestratorRun
+) {
+  return {
+    sourcePackageId: dispatchPackage.id,
+    runId: run.id,
+    runStatus: run.status,
+    planId: rolePanelPlan.planId,
+    projectId: rolePanelPlan.projectId,
+    projectName: rolePanelPlan.projectName,
+    packageStatus: dispatchPackage.status,
+    risk: dispatchPackage.risk,
+    deployMode: dispatchPackage.deployMode,
+    panelCount: rolePanelPlan.totalPanelCount,
+    roleCounts: rolePanelPlan.roleCounts,
+    handoffPackets: handoffPacketsFromPlan(rolePanelPlan),
+    panels: rolePanelPlan.panels.map((panel) => ({
+      role: panel.role,
+      owner: panel.owner,
+      state: panel.state,
+      attemptLabel: panel.attemptLabel,
+      validationLabel: panel.validationLabel,
+      files: panel.files,
+      ownedAreas: panel.ownedAreas,
+      acceptanceSummary: panel.acceptanceSummary,
+      dependencies: panel.dependencies,
+      noRuntimeExecutionNote: panel.noRuntimeExecutionNote
+    })),
+    tasks: run.tasks.map((task) => ({
+      id: task.id,
+      role: task.role,
+      status: task.status,
+      attempt: task.attempt,
+      attemptLimit: task.attemptLimit,
+      owner: task.owner,
+      fileOwnership: task.fileOwnership,
+      acceptanceCriteria: task.acceptanceCriteria,
+      validationCommands: task.validationCommands,
+      dependencies: task.dependencies
+    })),
+    validationGates: run.validationGates.map((gate) => ({
+      id: gate.id,
+      command: gate.command,
+      status: gate.status,
+      detail: gate.detail
+    }))
+  };
+}
+
+function handoffPacketsFromPlan(
+  rolePanelPlan: DispatchRolePanelPlan
+): DispatchReviewHandoffPacketSummary[] {
+  return rolePanelPlan.panels.map((panel) => ({
+    role: panel.role,
+    panelId: safeText(panel.panelId, `${panel.role}-panel`),
+    owner: safeText(panel.owner, `${panel.role} owner`),
+    files: panel.files.map((item) => safeText(item, "file")).filter((item) => item.length > 0),
+    ownedAreas: panel.ownedAreas
+      .map((item) => safeText(item, "owned area"))
+      .filter((item) => item.length > 0),
+    acceptanceSummary: safeText(
+      panel.acceptanceSummary,
+      `No acceptance summary was provided for ${panel.role}.`
+    ),
+    dependencies: panel.dependencies
+      .map((item) => safeText(item, "dependency"))
+      .filter((item) => item.length > 0),
+    validationLabel: safeText(panel.validationLabel, "No validation signal yet."),
+    noRuntimeExecutionNote: safeText(
+      panel.noRuntimeExecutionNote,
+      "No runtime execution is performed for this packet in local preview mode."
+    )
+  }));
+}
+
+export function buildDispatchReviewEvidenceFingerprint(
+  dispatchPackage: DispatchPackage,
+  rolePanelPlan: DispatchRolePanelPlan,
+  run: MockOrchestratorRun
+): string {
+  return `phase7-dispatch-${shortHash(stableJson(fingerprintPayload(dispatchPackage, rolePanelPlan, run)))}`;
+}
+
+export function buildCurrentDispatchReviewEvidenceFingerprint(
+  record: DispatchReviewRecord,
+  run: MockOrchestratorRun
+): string {
+  const dispatchPackage: DispatchPackage = {
+    id: record.sourcePackageId,
+    targetProject: {
+      id: record.projectId,
+      name: record.projectName
+    },
+    sourceDraftTitle: record.title,
+    objective: record.detail,
+    deployMode: record.deployMode,
+    risk: record.risk,
+    scope: [],
+    fileAreas: [],
+    acceptanceCriteria: [],
+    validationPlan: [],
+    rollbackNote: "",
+    createdAt: record.createdAt,
+    status: record.packageStatus
+  };
+  const rolePanelPlan = createDispatchRolePanelPlan(dispatchPackage, run);
+
+  return buildDispatchReviewEvidenceFingerprint(dispatchPackage, rolePanelPlan, run);
+}
+
 function nextActionForState(state: DispatchReviewRecordState): string {
   switch (state) {
     case "blocked":
@@ -226,6 +431,7 @@ function isDispatchReviewRecord(value: unknown): value is DispatchReviewRecord {
     Boolean(asRecord(record!.roleCounts)) &&
     typeof record!.handoffTaskCount === "number" &&
     Number.isFinite(record!.handoffTaskCount) &&
+    (record!.handoffPackets === undefined || Array.isArray(record!.handoffPackets)) &&
     typeof record!.validationGateCount === "number" &&
     Number.isFinite(record!.validationGateCount) &&
     typeof record!.maxAttemptLimit === "number" &&
@@ -244,6 +450,9 @@ function isDispatchReviewRecord(value: unknown): value is DispatchReviewRecord {
       (typeof record!.traceabilityLinkCount === "number" &&
         Number.isFinite(record!.traceabilityLinkCount))) &&
     (record!.closureState === undefined || isClosureState(record!.closureState)) &&
+    (record!.reviewEvidenceFingerprint === undefined ||
+      (typeof record!.reviewEvidenceFingerprint === "string" &&
+        record!.reviewEvidenceFingerprint.trim().length > 0)) &&
     (record!.mainIntegrationOwnershipNote === undefined ||
       (typeof record!.mainIntegrationOwnershipNote === "string" &&
         record!.mainIntegrationOwnershipNote.trim().length > 0)) &&
@@ -307,6 +516,11 @@ export function createDispatchReviewRecord(
   const integrationOwner = integrationOwnerFromPlan(rolePanelPlan);
   const recordId = createRecordId(sourcePackageId, runId, createdAt);
   const closureState = closureStateForReadiness(rolePanelPlan.readinessState);
+  const reviewEvidenceFingerprint = buildDispatchReviewEvidenceFingerprint(
+    dispatchPackage,
+    rolePanelPlan,
+    run
+  );
 
   return {
     id: recordId,
@@ -324,6 +538,7 @@ export function createDispatchReviewRecord(
     panelCount,
     roleCounts: { ...rolePanelPlan.roleCounts },
     handoffTaskCount,
+    handoffPackets: handoffPacketsFromPlan(rolePanelPlan),
     validationGateCount,
     maxAttemptLimit: attemptLimit,
     noRuntimeExecutionNote: DISPATCH_REVIEW_NO_RUNTIME_NOTE,
@@ -338,6 +553,7 @@ export function createDispatchReviewRecord(
       projectId: rolePanelPlan.projectId
     }),
     closureState,
+    reviewEvidenceFingerprint,
     mainIntegrationOwnershipNote: DISPATCH_REVIEW_MAIN_OWNERSHIP_NOTE,
     detail: `${panelCount} role panels, ${handoffTaskCount} handoff tasks, ${validationGateCount} validation gates, max attempt limit ${attemptLimit}.`,
     nextAction: nextActionForState(rolePanelPlan.readinessState)
@@ -419,6 +635,7 @@ export function parseStoredDispatchReviewRecords(
         panelCount: safeNumber(item.panelCount),
         roleCounts: normalizeRoleCounts(item.roleCounts),
         handoffTaskCount: safeNumber(item.handoffTaskCount),
+        handoffPackets: normalizeHandoffPackets(item.handoffPackets),
         validationGateCount: safeNumber(item.validationGateCount),
         maxAttemptLimit: safeNumber(item.maxAttemptLimit),
         noRuntimeExecutionNote: safeText(
@@ -441,6 +658,7 @@ export function parseStoredDispatchReviewRecords(
         closureState: isClosureState(item.closureState)
           ? item.closureState
           : closureStateForReadiness(item.readinessState),
+        reviewEvidenceFingerprint: safeText(item.reviewEvidenceFingerprint, ""),
         mainIntegrationOwnershipNote: safeText(
           item.mainIntegrationOwnershipNote,
           DISPATCH_REVIEW_MAIN_OWNERSHIP_NOTE
