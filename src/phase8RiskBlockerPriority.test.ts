@@ -6,6 +6,7 @@ import type { RuntimeExecutionAuditRecord } from "./runtimeExecutionAuditHistory
 import type { RuntimeProfilePermissionApprovalSnapshot } from "./runtimeProfilePermissionApproval";
 import type { RuntimeProfilePermissionAuditSnapshot } from "./runtimeProfilePermissionAudit";
 import type { RuntimeProfilePermissionRequestRecord } from "./runtimeProfilePermissionRequestHistory";
+import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import { buildPhase8PermissionAuditDepth } from "./phase8PermissionAuditDepth";
 import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
@@ -139,6 +140,20 @@ const liveAuditRecord: LiveActionAuditRecord = {
   risk: "high"
 };
 
+const readyOwnerReviewRecord: Phase8AuditReviewRecord = {
+  id: "phase8-audit-review:2026-06-11T00:00:00.000Z",
+  createdAt: "2026-06-11T00:00:00.000Z",
+  state: "ready",
+  readiness: 100,
+  auditRecordCount: 4,
+  openExceptionCount: 0,
+  disabledPathCount: 8,
+  mutationLocked: true,
+  rollbackEvidence:
+    "Mutation paths remain locked; rollback evidence is required before future executed or failed mutation records can advance.",
+  detail: "Owner-reviewed Phase 8 audit depth recorded locally."
+};
+
 function snapshot(options: {
   summaries?: LiveActionPermissionRequestSummary[];
   liveAuditRecords?: LiveActionAuditRecord[];
@@ -147,6 +162,7 @@ function snapshot(options: {
   runtimeProfilePermissionApproval?: RuntimeProfilePermissionApprovalSnapshot;
   runtimeProfilePermissionAudit?: RuntimeProfilePermissionAuditSnapshot;
   runtimeProfilePermissionRequestHistory?: RuntimeProfilePermissionRequestRecord[];
+  ownerAuditReviewRecord?: Phase8AuditReviewRecord;
 } = {}) {
   return buildPhase8PermissionAuditDepth({
     liveActionSummaries: options.summaries ?? [
@@ -162,7 +178,8 @@ function snapshot(options: {
     runtimeProfilePermissionAudit:
       options.runtimeProfilePermissionAudit ?? readyProfilePermissionAudit,
     runtimeProfilePermissionRequestHistory:
-      options.runtimeProfilePermissionRequestHistory ?? []
+      options.runtimeProfilePermissionRequestHistory ?? [],
+    ownerAuditReviewRecord: options.ownerAuditReviewRecord
   });
 }
 
@@ -240,7 +257,8 @@ describe("phase 8 risk blocker priority", () => {
         liveAuditRecords: [liveAuditRecord],
         runtimeExecutionAudit: readyRuntimeExecutionAudit,
         runtimeExecutionAuditHistory: [readyAuditRecord],
-        runtimeProfilePermissionRequestHistory: [readyProfileRequest]
+        runtimeProfilePermissionRequestHistory: [readyProfileRequest],
+        ownerAuditReviewRecord: readyOwnerReviewRecord
       }),
       goals
     });
@@ -265,7 +283,8 @@ describe("phase 8 risk blocker priority", () => {
         liveAuditRecords: [liveAuditRecord],
         runtimeExecutionAudit: readyRuntimeExecutionAudit,
         runtimeExecutionAuditHistory: [readyAuditRecord],
-        runtimeProfilePermissionRequestHistory: [readyProfileRequest]
+        runtimeProfilePermissionRequestHistory: [readyProfileRequest],
+        ownerAuditReviewRecord: readyOwnerReviewRecord
       })
     });
 
@@ -273,6 +292,30 @@ describe("phase 8 risk blocker priority", () => {
     expect(summary.openBlockerCount).toBe(0);
     expect(summary.readiness).toBe(100);
     expect(summary.topPriorityLabel).toBe("No open Phase 8 risk blocker");
+  });
+
+  it("ranks missing owner audit review before lower-value waiting traceability rows", () => {
+    const summary = priority({
+      depth: snapshot({
+        summaries: [
+          liveSummary("terminal", "approved"),
+          liveSummary("git", "approved"),
+          liveSummary("plugin", "approved")
+        ],
+        liveAuditRecords: [liveAuditRecord],
+        runtimeExecutionAudit: readyRuntimeExecutionAudit,
+        runtimeExecutionAuditHistory: [readyAuditRecord],
+        runtimeProfilePermissionRequestHistory: [readyProfileRequest]
+      })
+    });
+
+    expect(summary.state).toBe("waiting");
+    expect(summary.topPriorityLabel).toBe("Owner audit review");
+    expect(summary.items[0]).toMatchObject({
+      kind: "audit-depth",
+      status: "waiting",
+      sourceId: "phase-08-permission-audit-depth:owner-audit-review"
+    });
   });
 
   it("keeps Phase 8 blocker-priority text public-safe", () => {

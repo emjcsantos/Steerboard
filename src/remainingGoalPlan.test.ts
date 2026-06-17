@@ -25,7 +25,7 @@ describe("remaining goal plan", () => {
       next: 7,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 55,
+      averageCompletionPercent: 56,
       currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
         "Use the Phase 3 command plan, blocker-priority queue, traceability rows, and handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record owner handoff only after exit-ready, and keep Phase 4 held behind the provider boundary.",
@@ -224,6 +224,7 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase8Goal?.nextAction).toContain("blocker-priority queue");
+    expect(phase8Goal?.nextAction).toContain("local owner audit-review record");
   });
 
   it("keeps the Phase 4 provider surfaces target linked to traceability and surface depth", () => {

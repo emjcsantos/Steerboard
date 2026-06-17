@@ -6,6 +6,7 @@ import type { RuntimeExecutionAuditRecord } from "./runtimeExecutionAuditHistory
 import type { RuntimeProfilePermissionApprovalSnapshot } from "./runtimeProfilePermissionApproval";
 import type { RuntimeProfilePermissionAuditSnapshot } from "./runtimeProfilePermissionAudit";
 import type { RuntimeProfilePermissionRequestRecord } from "./runtimeProfilePermissionRequestHistory";
+import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import { buildPhase8PermissionAuditDepth } from "./phase8PermissionAuditDepth";
 
 function liveSummary(
@@ -136,6 +137,20 @@ const liveAuditRecord: LiveActionAuditRecord = {
   risk: "high"
 };
 
+const readyOwnerReviewRecord: Phase8AuditReviewRecord = {
+  id: "phase8-audit-review:2026-06-11T00:00:00.000Z",
+  createdAt: "2026-06-11T00:00:00.000Z",
+  state: "ready",
+  readiness: 100,
+  auditRecordCount: 4,
+  openExceptionCount: 0,
+  disabledPathCount: 8,
+  mutationLocked: true,
+  rollbackEvidence:
+    "Mutation paths remain locked; rollback evidence is required before future executed or failed mutation records can advance.",
+  detail: "Owner-reviewed Phase 8 audit depth recorded locally."
+};
+
 function buildSnapshot(options: {
   summaries?: LiveActionPermissionRequestSummary[];
   liveAuditRecords?: LiveActionAuditRecord[];
@@ -144,6 +159,7 @@ function buildSnapshot(options: {
   runtimeProfilePermissionApproval?: RuntimeProfilePermissionApprovalSnapshot;
   runtimeProfilePermissionAudit?: RuntimeProfilePermissionAuditSnapshot;
   runtimeProfilePermissionRequestHistory?: RuntimeProfilePermissionRequestRecord[];
+  ownerAuditReviewRecord?: Phase8AuditReviewRecord;
 } = {}) {
   return buildPhase8PermissionAuditDepth({
     liveActionSummaries: options.summaries ?? [
@@ -159,7 +175,8 @@ function buildSnapshot(options: {
     runtimeProfilePermissionAudit:
       options.runtimeProfilePermissionAudit ?? readyProfilePermissionAudit,
     runtimeProfilePermissionRequestHistory:
-      options.runtimeProfilePermissionRequestHistory ?? []
+      options.runtimeProfilePermissionRequestHistory ?? [],
+    ownerAuditReviewRecord: options.ownerAuditReviewRecord
   });
 }
 
@@ -211,7 +228,8 @@ describe("phase 8 permission and audit depth", () => {
       liveAuditRecords: [liveAuditRecord],
       runtimeExecutionAudit: readyRuntimeExecutionAudit,
       runtimeExecutionAuditHistory: [readyAuditRecord],
-      runtimeProfilePermissionRequestHistory: [readyProfileRequest]
+      runtimeProfilePermissionRequestHistory: [readyProfileRequest],
+      ownerAuditReviewRecord: readyOwnerReviewRecord
     });
 
     expect(snapshot.state).toBe("ready");
@@ -231,6 +249,43 @@ describe("phase 8 permission and audit depth", () => {
         "phase-08-child-audit-persistence",
         "phase-08-child-permission-labels",
         "phase-08-child-risk-exceptions"
+      ])
+    );
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner audit review",
+          kind: "rollback",
+          status: "ready",
+          detail: expect.stringContaining("Mutation paths remain locked")
+        })
+      ])
+    );
+  });
+
+  it("keeps Phase 8 waiting when owner audit review has not been recorded", () => {
+    const snapshot = buildSnapshot({
+      summaries: [
+        liveSummary("terminal", "approved"),
+        liveSummary("git", "approved"),
+        liveSummary("plugin", "approved")
+      ],
+      liveAuditRecords: [liveAuditRecord],
+      runtimeExecutionAudit: readyRuntimeExecutionAudit,
+      runtimeExecutionAuditHistory: [readyAuditRecord],
+      runtimeProfilePermissionRequestHistory: [readyProfileRequest]
+    });
+
+    expect(snapshot.state).toBe("waiting");
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner audit review",
+          kind: "rollback",
+          status: "waiting",
+          pmTaskId: "phase-08-child-risk-exceptions",
+          evidenceKey: expect.stringContaining("phase8.rollback-expectation")
+        })
       ])
     );
   });

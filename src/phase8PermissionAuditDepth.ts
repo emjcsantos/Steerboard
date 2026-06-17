@@ -19,6 +19,7 @@ import type {
 import type {
   RuntimeProfilePermissionRequestRecord
 } from "./runtimeProfilePermissionRequestHistory";
+import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 
 export type Phase8PermissionAuditDepthState =
   | "ready"
@@ -95,6 +96,7 @@ export interface Phase8PermissionAuditDepthInput {
   runtimeProfilePermissionApproval: RuntimeProfilePermissionApprovalSnapshot;
   runtimeProfilePermissionAudit: RuntimeProfilePermissionAuditSnapshot;
   runtimeProfilePermissionRequestHistory: readonly RuntimeProfilePermissionRequestRecord[];
+  ownerAuditReviewRecord?: Phase8AuditReviewRecord;
 }
 
 const SNAPSHOT_ID = "phase-08-permission-audit-depth";
@@ -625,6 +627,72 @@ function rollbackRequirementItem(input: Phase8PermissionAuditDepthInput): Phase8
   };
 }
 
+function ownerAuditReviewItem(
+  record: Phase8AuditReviewRecord | undefined
+): Phase8PermissionAuditDepthItemDraft {
+  if (!record) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-audit-review`,
+      label: "Owner audit review",
+      kind: "rollback",
+      status: "waiting",
+      detail:
+        "No local owner audit review record is attached for Phase 8 permission, audit, disabled-path, and rollback evidence.",
+      nextAction:
+        "Record owner audit review after checking permission, approval, evidence, rollback, exception, and disabled-path rows."
+    };
+  }
+
+  if (!record.mutationLocked) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-audit-review`,
+      label: "Owner audit review",
+      kind: "rollback",
+      status: "blocked",
+      detail:
+        "The local owner audit review record does not preserve the mutation lock.",
+      nextAction:
+        "Clear and recreate the Phase 8 owner audit review record while mutation paths remain locked."
+    };
+  }
+
+  if (record.openExceptionCount > 0 || record.state === "review" || record.state === "waiting") {
+    return {
+      id: `${SNAPSHOT_ID}:owner-audit-review`,
+      label: "Owner audit review",
+      kind: "rollback",
+      status: "review",
+      detail:
+        `${record.openExceptionCount} open exception${record.openExceptionCount === 1 ? "" : "s"} were present when owner audit review was recorded. ${record.rollbackEvidence}`,
+      nextAction:
+        "Resolve or explicitly re-review open exceptions before treating Phase 8 audit depth as trusted."
+    };
+  }
+
+  if (record.state === "blocked") {
+    return {
+      id: `${SNAPSHOT_ID}:owner-audit-review`,
+      label: "Owner audit review",
+      kind: "rollback",
+      status: "blocked",
+      detail: `Owner audit review was recorded while Phase 8 was blocked. ${record.rollbackEvidence}`,
+      nextAction:
+        "Clear blocked owner review evidence, resolve the blocker, and record review again."
+    };
+  }
+
+  return {
+    id: `${SNAPSHOT_ID}:owner-audit-review`,
+    label: "Owner audit review",
+    kind: "rollback",
+    status: "ready",
+    detail:
+      `Owner audit review is recorded at ${record.readiness}% readiness with ${record.auditRecordCount} audit records and ${record.disabledPathCount} disabled paths. ${record.rollbackEvidence}`,
+    nextAction:
+      "Keep the local owner audit review record attached while mutation-capable paths remain locked."
+  };
+}
+
 function buildAriaLabel(snapshot: Omit<Phase8PermissionAuditDepthSnapshot, "ariaLabel">): string {
   return (
     `${snapshot.label}: ${snapshot.statusLabel}; ${snapshot.readiness}% ready; ` +
@@ -648,7 +716,8 @@ export function buildPhase8PermissionAuditDepth(
     profilePermissionApprovalItem(input.runtimeProfilePermissionApproval),
     profilePermissionAuditItem(input.runtimeProfilePermissionAudit),
     auditPersistenceItem(input),
-    rollbackRequirementItem(input)
+    rollbackRequirementItem(input),
+    ownerAuditReviewItem(input.ownerAuditReviewRecord)
   ].map(withTraceability);
 
   const state = resolveSnapshotState(items);

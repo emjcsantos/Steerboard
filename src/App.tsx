@@ -552,6 +552,13 @@ import {
   buildPhase8PermissionAuditDepth,
   type Phase8PermissionAuditDepthSnapshot
 } from "./phase8PermissionAuditDepth";
+import {
+  clearPhase8AuditReviewRecord,
+  createPhase8AuditReviewRecord,
+  loadPhase8AuditReviewRecord,
+  savePhase8AuditReviewRecord,
+  type Phase8AuditReviewRecord
+} from "./phase8AuditReviewRecord";
 import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import {
@@ -7540,6 +7547,8 @@ function RightPanel({
     useState<RuntimeProfilePermissionRequestIntent>(() =>
       latestPermissionRequestIntent(loadRuntimeProfilePermissionRequestHistory())
     );
+  const [phase8AuditReviewRecord, setPhase8AuditReviewRecord] =
+    useState<Phase8AuditReviewRecord | undefined>(() => loadPhase8AuditReviewRecord());
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
@@ -8023,18 +8032,33 @@ function RightPanel({
         runtimeExecutionAuditHistory: executionAuditHistory,
         runtimeProfilePermissionApproval: runtimeProfilePermissionApprovalSnapshot,
         runtimeProfilePermissionAudit: runtimeProfilePermissionAuditSnapshot,
-        runtimeProfilePermissionRequestHistory
+        runtimeProfilePermissionRequestHistory,
+        ownerAuditReviewRecord: phase8AuditReviewRecord
       }),
     [
       executionAuditHistory,
       liveActionAuditHistory,
       liveActionPermissionSummaries,
+      phase8AuditReviewRecord,
       runtimeExecutionAuditSnapshot,
       runtimeProfilePermissionApprovalSnapshot,
       runtimeProfilePermissionAuditSnapshot,
       runtimeProfilePermissionRequestHistory
     ]
   );
+  const recordPhase8AuditReview = useCallback(() => {
+    const record = createPhase8AuditReviewRecord(
+      phase8PermissionAuditDepth,
+      new Date().toISOString()
+    );
+
+    savePhase8AuditReviewRecord(record);
+    setPhase8AuditReviewRecord(record);
+  }, [phase8PermissionAuditDepth]);
+  const clearPhase8AuditReview = useCallback(() => {
+    clearPhase8AuditReviewRecord();
+    setPhase8AuditReviewRecord(undefined);
+  }, []);
   const securityPrivacyThreatModel = useMemo(
     () =>
       createSecurityPrivacyThreatModel(
@@ -9170,7 +9194,12 @@ function RightPanel({
         releasePrivacy={releasePrivacyReadinessSnapshot}
         repeatedRuns={securityAcceptanceRepeatedRunsSnapshot}
       />
-      <Phase8PermissionAuditDepthPanel snapshot={phase8PermissionAuditDepth} />
+      <Phase8PermissionAuditDepthPanel
+        onClearAuditReview={clearPhase8AuditReview}
+        onRecordAuditReview={recordPhase8AuditReview}
+        reviewRecord={phase8AuditReviewRecord}
+        snapshot={phase8PermissionAuditDepth}
+      />
 
       <section className="panel-section">
         <h4>Project Registry</h4>
@@ -12272,8 +12301,14 @@ function toSecurityAcceptanceEvidenceState(
 }
 
 function Phase8PermissionAuditDepthPanel({
+  onClearAuditReview,
+  onRecordAuditReview,
+  reviewRecord,
   snapshot
 }: {
+  onClearAuditReview: () => void;
+  onRecordAuditReview: () => void;
+  reviewRecord?: Phase8AuditReviewRecord;
   snapshot: Phase8PermissionAuditDepthSnapshot;
 }) {
   const visibleItems = snapshot.items.slice(0, 8);
@@ -12304,6 +12339,64 @@ function Phase8PermissionAuditDepthPanel({
           <b>{snapshot.readiness}%</b>
         </div>
         <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
+        <div
+          className={classNames(
+            "phase8-audit-review-record",
+            reviewRecord
+              ? `phase8-audit-review-record-${reviewRecord.state}`
+              : "phase8-audit-review-record-missing"
+          )}
+          aria-label={
+            reviewRecord
+              ? `Phase 8 audit review record ${reviewRecord.state}; ${reviewRecord.readiness}% ready; ${reviewRecord.openExceptionCount} open exceptions`
+              : "Phase 8 audit review record missing"
+          }
+        >
+          <div>
+            <strong>
+              {reviewRecord
+                ? "Audit review recorded"
+                : "No local audit review record"}
+            </strong>
+            <span
+              title={
+                reviewRecord
+                  ? `${reviewRecord.detail} ${reviewRecord.rollbackEvidence}`
+                  : "Record an owner review of Phase 8 audit depth without requesting approval, exporting audit records, or unlocking mutation paths."
+              }
+            >
+              {reviewRecord
+                ? `${formatTimestamp(reviewRecord.createdAt)}; ${reviewRecord.openExceptionCount} open exceptions`
+                : "Mutation paths remain locked"}
+            </span>
+          </div>
+          <div
+            className="phase8-audit-review-record-actions"
+            aria-label="Phase 8 audit review record actions"
+          >
+            <button
+              onClick={onRecordAuditReview}
+              title="Record a local owner review of the current Phase 8 audit-depth evidence."
+              type="button"
+            >
+              <ClipboardList size={13} />
+              <span>Record review</span>
+            </button>
+            <button
+              disabled={!reviewRecord}
+              onClick={onClearAuditReview}
+              title={
+                reviewRecord
+                  ? "Clear the local Phase 8 audit review record."
+                  : "No local Phase 8 audit review record is attached."
+              }
+              type="button"
+            >
+              <RotateCcw size={13} />
+              <span>Clear</span>
+            </button>
+          </div>
+        </div>
         <dl className="phase8-audit-grid" aria-label="Phase 8 permission and audit counts">
           <div>
             <dt>Risky</dt>

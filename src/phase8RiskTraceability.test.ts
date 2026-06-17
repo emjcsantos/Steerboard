@@ -6,6 +6,7 @@ import type { RuntimeExecutionAuditRecord } from "./runtimeExecutionAuditHistory
 import type { RuntimeProfilePermissionApprovalSnapshot } from "./runtimeProfilePermissionApproval";
 import type { RuntimeProfilePermissionAuditSnapshot } from "./runtimeProfilePermissionAudit";
 import type { RuntimeProfilePermissionRequestRecord } from "./runtimeProfilePermissionRequestHistory";
+import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import { buildPhase8PermissionAuditDepth } from "./phase8PermissionAuditDepth";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import { remainingGoalPlan } from "./remainingGoalPlan";
@@ -117,6 +118,20 @@ const profileRequest: RuntimeProfilePermissionRequestRecord = {
   profileLabel: "Profile"
 };
 
+const readyOwnerReviewRecord: Phase8AuditReviewRecord = {
+  id: "phase8-audit-review:2026-06-11T00:00:00.000Z",
+  createdAt: "2026-06-11T00:00:00.000Z",
+  state: "ready",
+  readiness: 100,
+  auditRecordCount: 4,
+  openExceptionCount: 0,
+  disabledPathCount: 8,
+  mutationLocked: true,
+  rollbackEvidence:
+    "Mutation paths remain locked; rollback evidence is required before future executed or failed mutation records can advance.",
+  detail: "Owner-reviewed Phase 8 audit depth recorded locally."
+};
+
 function depth(options: {
   summaries?: LiveActionPermissionRequestSummary[];
   liveAuditRecords?: LiveActionAuditRecord[];
@@ -124,6 +139,7 @@ function depth(options: {
   runtimeExecutionAuditHistory?: RuntimeExecutionAuditRecord[];
   runtimeProfilePermissionAudit?: RuntimeProfilePermissionAuditSnapshot;
   runtimeProfilePermissionRequestHistory?: RuntimeProfilePermissionRequestRecord[];
+  ownerAuditReviewRecord?: Phase8AuditReviewRecord;
 } = {}) {
   return buildPhase8PermissionAuditDepth({
     liveActionSummaries: options.summaries ?? [
@@ -143,7 +159,8 @@ function depth(options: {
     runtimeProfilePermissionAudit:
       options.runtimeProfilePermissionAudit ?? readyProfilePermissionAudit,
     runtimeProfilePermissionRequestHistory:
-      options.runtimeProfilePermissionRequestHistory ?? []
+      options.runtimeProfilePermissionRequestHistory ?? [],
+    ownerAuditReviewRecord: options.ownerAuditReviewRecord
   });
 }
 
@@ -210,7 +227,8 @@ describe("phase 8 risk traceability", () => {
         liveAuditRecords: [liveAuditRecord],
         runtimeExecutionAudit: readyRuntimeExecutionAudit,
         runtimeExecutionAuditHistory: [executionRecord],
-        runtimeProfilePermissionRequestHistory: [profileRequest]
+        runtimeProfilePermissionRequestHistory: [profileRequest],
+        ownerAuditReviewRecord: readyOwnerReviewRecord
       })
     });
 
@@ -221,13 +239,42 @@ describe("phase 8 risk traceability", () => {
     expect(summary.openExceptionCount).toBe(0);
   });
 
+  it("does not trust permission audit without persisted owner review and rollback evidence", () => {
+    const summary = traceability({
+      snapshot: depth({
+        summaries: [
+          liveSummary("terminal", "approved"),
+          liveSummary("git", "approved"),
+          liveSummary("plugin", "approved")
+        ],
+        liveAuditRecords: [liveAuditRecord],
+        runtimeExecutionAudit: readyRuntimeExecutionAudit,
+        runtimeExecutionAuditHistory: [executionRecord],
+        runtimeProfilePermissionRequestHistory: [profileRequest]
+      })
+    });
+
+    expect(summary.state).toBe("waiting");
+    expect(summary.canTrustPermissionAudit).toBe(false);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "audit-depth",
+          status: "waiting",
+          detail: expect.stringContaining("audit-depth rows")
+        })
+      ])
+    );
+  });
+
   it("blocks when disabled-path lock copy is missing", () => {
     const snapshot = depth({
       summaries: [liveSummary("terminal", "approved")],
       liveAuditRecords: [liveAuditRecord],
       runtimeExecutionAudit: readyRuntimeExecutionAudit,
       runtimeExecutionAuditHistory: [executionRecord],
-      runtimeProfilePermissionRequestHistory: [profileRequest]
+      runtimeProfilePermissionRequestHistory: [profileRequest],
+      ownerAuditReviewRecord: readyOwnerReviewRecord
     });
     const summary = traceability({
       snapshot: {
