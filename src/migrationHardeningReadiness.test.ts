@@ -90,6 +90,16 @@ describe("migration hardening readiness", () => {
     expect(readiness.openReviewRecordCount).toBe(0);
     expect(readiness.applyIntentLabel).toBe("Apply review ready");
     expect(readiness.reviewDepthItems.every((item) => item.status === "ready")).toBe(true);
+    expect(new Set(readiness.reviewDepthItems.map((item) => item.evidenceKey)).size).toBe(
+      readiness.reviewDepthItems.length
+    );
+    expect(readiness.reviewDepthItems.map((item) => [item.kind, item.pmTaskId, item.evidenceKey])).toEqual([
+      ["apply-intent", "phase-05-parent-draft-workflow", "phase5.apply-intent-lock"],
+      ["rollback", "phase-05-parent-rollback-audit", "phase5.rollback-evidence"],
+      ["audit", "phase-05-child-audit-summary", "phase5.audit-consistency"],
+      ["exclusion", "phase-05-child-preview-metadata", "phase5.sensitive-exclusions"],
+      ["profile-lock", "phase-05-child-traceability", "phase5.profile-activation-lock"]
+    ]);
     expect(createMigrationApplyIntentNotice(readiness)).toContain("Active profile and source data remain unchanged");
   });
 

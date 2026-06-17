@@ -1224,6 +1224,97 @@ textarea {
   text-transform: uppercase;
 }
 
+.migration-traceability {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.migration-traceability-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.migration-traceability-header strong,
+.migration-traceability-header span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.migration-traceability-header strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.migration-traceability-header span {
+  color: #9fa9b4;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.migration-traceability-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.migration-traceability-list li {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 62px minmax(0, 1fr) 92px;
+  align-items: center;
+  gap: 6px;
+}
+
+.migration-traceability-list span,
+.migration-traceability-list strong,
+.migration-traceability-list small,
+.migration-traceability-list b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.migration-traceability-list span {
+  border-radius: 999px;
+  background: #202833;
+  padding: 3px 6px;
+  color: #cbd4de;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.migration-traceability-list div {
+  display: grid;
+  min-width: 0;
+}
+
+.migration-traceability-list strong {
+  color: #edf3f8;
+  font-size: 10px;
+}
+
+.migration-traceability-list small {
+  color: #9fa9b4;
+  font-size: 9px;
+}
+
+.migration-traceability-list b {
+  color: #cbd4de;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
 .migration-review-gate-list {
   display: grid;
   gap: 5px;
@@ -1267,25 +1358,29 @@ textarea {
 
 .migration-review-gate-ready,
 .migration-review-item-ready,
-.migration-review-depth-ready {
+.migration-review-depth-ready,
+.migration-traceability-ready {
   border-color: #2f6a49;
 }
 
 .migration-review-gate-review,
 .migration-review-item-review,
-.migration-review-depth-review {
+.migration-review-depth-review,
+.migration-traceability-review {
   border-color: #7a6530;
 }
 
 .migration-review-gate-waiting,
 .migration-review-item-waiting,
-.migration-review-depth-waiting {
+.migration-review-depth-waiting,
+.migration-traceability-waiting {
   border-color: #315977;
 }
 
 .migration-review-gate-blocked,
 .migration-review-item-blocked,
-.migration-review-depth-blocked {
+.migration-review-depth-blocked,
+.migration-traceability-blocked {
   border-color: #633337;
 }
 

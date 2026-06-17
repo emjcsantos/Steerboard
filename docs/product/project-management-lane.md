@@ -85,7 +85,7 @@ The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk e
 - Staged Arena review preview for the latest row run.
 - Remaining Goals summary for all open targets across Phase 1 through Phase 11.
 - Phase 4 Provider Readiness catalog depth, Connection Dialog Refresh Safety depth, and Phase 4 Surface Depth panels for source coverage, catalog evidence expectations, metadata-only refresh proof, surface coverage, setup blockers, capability gaps, preview review, and execution locks before execution is considered.
-- Phase 5 Migration review depth records for apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock.
+- Phase 5 Migration review depth and traceability records for apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, profile activation lock, PM child links, and evidence keys.
 - Phase 7 Dispatch review depth checks for role counts, max attempt limits, handoff task depth, validation gate depth, main integration ownership, traceability, closure boundaries, and the no-live-worker lock.
 - Phase 8 Audit Depth risk exceptions with disabled-path explanations, evidence requirements, rollback expectations, and audit sources before mutation paths grow.
 - Phase 9 Runner Approval depth and traceability records for fixed probe selection, owner approval, request preview, validation output, audit record, rollback evidence, unique evidence keys, PM child links, Phase 8 gate linkage, and the desktop execution lock.

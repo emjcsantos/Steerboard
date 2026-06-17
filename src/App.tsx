@@ -270,6 +270,7 @@ import {
   createMigrationApplyIntentNotice,
   type MigrationHardeningReadiness
 } from "./migrationHardeningReadiness";
+import { buildMigrationTraceabilitySummary } from "./migrationTraceability";
 import {
   buildPersonalizationCatalogSnapshot,
   defaultPersonalizationCatalog,
@@ -3861,6 +3862,9 @@ function AppDialogSurface({
   const migrationCounts = buildMigrationPreviewCounts(migrationPreview);
   const selectedCategoryCount = migrationPreview.categories.filter((category) => category.selected).length;
   const migrationProfileDraftHistoryLatestAudit = migrationProfileDraftHistory[0]?.audit;
+  const migrationTraceability = buildMigrationTraceabilitySummary({
+    readiness: migrationHardeningReadiness
+  });
   const catalogRefreshSafetyDepth = buildPhase4RefreshSafetyDepth(catalogRefreshProviderSmokeProof);
   const title =
     dialog === "connection"
@@ -4234,12 +4238,36 @@ function AppDialogSurface({
                     <span>{item.kind}</span>
                     <div>
                       <strong>{item.label}</strong>
-                      <small>{item.evidence}</small>
+                      <small>{item.pmTaskId} / {item.evidenceKey}</small>
                     </div>
                     <b>{item.status}</b>
                   </li>
                 ))}
               </ol>
+              <div className="migration-traceability" aria-label={migrationTraceability.ariaLabel}>
+                <div className="migration-traceability-header">
+                  <strong>{migrationTraceability.label}</strong>
+                  <span>
+                    {migrationTraceability.statusLabel} / {migrationTraceability.readiness}%
+                  </span>
+                </div>
+                <ol className="migration-traceability-list" aria-label="Migration traceability records">
+                  {migrationTraceability.items.map((item) => (
+                    <li
+                      className={`migration-traceability-${item.status}`}
+                      key={item.id}
+                      title={`${item.detail} ${item.nextAction}`}
+                    >
+                      <span>{item.status}</span>
+                      <div>
+                        <strong>{item.label}</strong>
+                        <small>{item.nextAction}</small>
+                      </div>
+                      <b>{item.kind}</b>
+                    </li>
+                  ))}
+                </ol>
+              </div>
               <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
                 {migrationHardeningReadiness.items.map((item) => (
                   <li className={`migration-review-item-${item.status}`} key={item.id} title={item.detail}>

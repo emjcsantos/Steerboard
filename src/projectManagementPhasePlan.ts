@@ -415,6 +415,14 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 45,
             complexity: "high",
             sourceDocument: "Migration review gate"
+          },
+          {
+            id: "phase-05-child-traceability",
+            title: "Migration Traceability",
+            description: "Link Phase 5 remaining-goal status, PM child rows, migration review depth evidence keys, sensitive exclusions, rollback/audit coverage, and the profile activation lock before apply review can advance.",
+            completionPercent: 40,
+            complexity: "high",
+            sourceDocument: "Phase 5 migration traceability"
           }
         ]
       }

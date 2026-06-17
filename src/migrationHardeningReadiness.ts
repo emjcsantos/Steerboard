@@ -33,6 +33,8 @@ export interface MigrationReviewDepthItem {
   readonly id: string;
   readonly label: string;
   readonly kind: MigrationReviewDepthKind;
+  readonly pmTaskId: string;
+  readonly evidenceKey: string;
   readonly status: MigrationHardeningReadinessState;
   readonly detail: string;
   readonly evidence: string;
@@ -87,6 +89,32 @@ const statusWeights: Record<MigrationHardeningReadinessState, number> = {
   review: 55,
   waiting: 0,
   blocked: 0
+};
+
+const migrationReviewTraceByKind: Record<
+  MigrationReviewDepthKind,
+  { pmTaskId: string; evidenceKey: string }
+> = {
+  "apply-intent": {
+    pmTaskId: "phase-05-parent-draft-workflow",
+    evidenceKey: "phase5.apply-intent-lock"
+  },
+  rollback: {
+    pmTaskId: "phase-05-parent-rollback-audit",
+    evidenceKey: "phase5.rollback-evidence"
+  },
+  audit: {
+    pmTaskId: "phase-05-child-audit-summary",
+    evidenceKey: "phase5.audit-consistency"
+  },
+  exclusion: {
+    pmTaskId: "phase-05-child-preview-metadata",
+    evidenceKey: "phase5.sensitive-exclusions"
+  },
+  "profile-lock": {
+    pmTaskId: "phase-05-child-traceability",
+    evidenceKey: "phase5.profile-activation-lock"
+  }
 };
 
 function selectedCategories(preview: MigrationPreview) {
@@ -238,6 +266,8 @@ function buildMigrationReviewDepthItems(input: {
       id: "migration-review-depth:apply-intent-lock",
       label: "Apply intent lock",
       kind: "apply-intent",
+      pmTaskId: migrationReviewTraceByKind["apply-intent"].pmTaskId,
+      evidenceKey: migrationReviewTraceByKind["apply-intent"].evidenceKey,
       status: hasDraft ? input.applyStatus : "waiting",
       detail: hasDraft
         ? `${applyIntentLabels[input.applyIntentState]}; active profile changes remain locked.`
@@ -251,6 +281,8 @@ function buildMigrationReviewDepthItems(input: {
       id: "migration-review-depth:rollback-evidence",
       label: "Rollback evidence",
       kind: "rollback",
+      pmTaskId: migrationReviewTraceByKind.rollback.pmTaskId,
+      evidenceKey: migrationReviewTraceByKind.rollback.evidenceKey,
       status: input.canRollback ? "ready" : "waiting",
       detail: input.canRollback
         ? "Latest local draft history can be rolled back without touching the source platform."
@@ -262,6 +294,8 @@ function buildMigrationReviewDepthItems(input: {
       id: "migration-review-depth:audit-consistency",
       label: "Audit consistency",
       kind: "audit",
+      pmTaskId: migrationReviewTraceByKind.audit.pmTaskId,
+      evidenceKey: migrationReviewTraceByKind.audit.evidenceKey,
       status: hasDraft ? input.auditReady ? "ready" : "blocked" : "waiting",
       detail: hasDraft
         ? input.auditReady
@@ -275,6 +309,8 @@ function buildMigrationReviewDepthItems(input: {
       id: "migration-review-depth:sensitive-exclusions",
       label: "Sensitive exclusions",
       kind: "exclusion",
+      pmTaskId: migrationReviewTraceByKind.exclusion.pmTaskId,
+      evidenceKey: migrationReviewTraceByKind.exclusion.evidenceKey,
       status: sensitiveStatus,
       detail: input.excludedSecretsSummary.length > 0
         ? `${input.excludedSecretsSummary.length} sensitive exclusion notes are visible for owner review.`
@@ -286,6 +322,8 @@ function buildMigrationReviewDepthItems(input: {
       id: "migration-review-depth:profile-activation-lock",
       label: "Profile activation lock",
       kind: "profile-lock",
+      pmTaskId: migrationReviewTraceByKind["profile-lock"].pmTaskId,
+      evidenceKey: migrationReviewTraceByKind["profile-lock"].evidenceKey,
       status: "ready",
       detail: "Migration review never changes the active profile, source app, files, commands, plugins, MCP tools, automations, or personalization state.",
       evidence: "Apply review notice and disabled mutation boundary.",

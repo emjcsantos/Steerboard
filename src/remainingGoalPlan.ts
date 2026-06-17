@@ -152,10 +152,11 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-05-child-preview-metadata",
       "phase-05-parent-rollback-audit",
       "phase-05-child-audit-summary",
-      "phase-05-child-review-depth"
+      "phase-05-child-review-depth",
+      "phase-05-child-traceability"
     ],
     nextAction:
-      "Use the Migration review gate to keep apply intent locked, confirm rollback evidence, repair audit blockers, verify sensitive exclusions, and keep profile activation locked before any migration apply path."
+      "Use the Migration review gate and traceability rows to keep apply intent locked, link PM child rows, confirm rollback evidence, repair audit blockers, verify sensitive exclusions, and keep profile activation locked before any migration apply path."
   },
   {
     id: "goal-phase-7-dispatch-loop",

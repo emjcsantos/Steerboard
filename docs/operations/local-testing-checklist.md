@@ -92,7 +92,8 @@ Do not proceed to the next section until the current item is at least `review`.
 8. `Migration`
    - Validate migration plan preview and reviewed-draft staging flow.
    - Confirm the Migration review gate reports preview selection, apply intent, rollback evidence, audit consistency, and sensitive exclusions before any apply path.
-   - Confirm the Migration review depth records show apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock as separate owner-review rows.
+   - Confirm the Migration review depth records show apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock as separate owner-review rows with PM row links and unique evidence keys.
+   - Confirm the Migration traceability rows link the Phase 5 remaining goal, PM child coverage, review-depth evidence, sensitive exclusion boundary, and profile activation lock before apply review can be trusted.
    - Confirm `Stage apply review` only creates an owner-visible intent notice and does not change the active profile, source platform, files, commands, plugins, MCP tools, automations, or personalization state.
    - Confirm migration audit summary exists locally and includes accepted, review-required, unsupported, and excluded counts.
    - Confirm rollback metadata includes prior profile pointer, rollback audit note, checksumable manifest references, and no source mutation.

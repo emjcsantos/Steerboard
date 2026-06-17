@@ -54,7 +54,7 @@ describe("remaining goal plan", () => {
         expect.objectContaining({
           goalId: "goal-phase-5-migration-hardening",
           priority: "high",
-          pmTaskIds: expect.arrayContaining(["phase-05-child-review-depth"])
+          pmTaskIds: expect.arrayContaining(["phase-05-child-review-depth", "phase-05-child-traceability"])
         }),
         expect.objectContaining({
           goalId: "goal-phase-8-permission-audit",
@@ -112,6 +112,26 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase9Goal?.nextAction).toContain("terminal-readonly-probe");
+  });
+
+  it("keeps the Phase 5 migration hardening target linked to traceability and review depth", () => {
+    const phase5Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-5-migration-hardening");
+
+    expect(phase5Goal).toMatchObject({
+      target: "Migration Center hardening",
+      priority: "high",
+      status: "next"
+    });
+    expect(phase5Goal?.pmTaskIds).toEqual(
+      expect.arrayContaining([
+        "phase-05-child-profile-drafts",
+        "phase-05-child-preview-metadata",
+        "phase-05-child-audit-summary",
+        "phase-05-child-review-depth",
+        "phase-05-child-traceability"
+      ])
+    );
+    expect(phase5Goal?.nextAction).toContain("traceability rows");
   });
 
   it("keeps remaining goal text public-safe", () => {
