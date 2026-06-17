@@ -164,12 +164,33 @@ function blockerVisibilityItem(
   };
 }
 
+function resolveHandoffRecordStatus(
+  clearancePackage: Phase3ClearancePackage,
+  handoffRecordState: Phase3HandoffGateState | undefined,
+  handoffRecordValidation: Phase3HandoffRecordValidation | undefined
+): Phase3HandoffGateState {
+  if (handoffRecordValidation) {
+    return handoffRecordValidation.state;
+  }
+
+  if (handoffRecordState === "ready" && clearancePackage.canExit) {
+    return "review";
+  }
+
+  return handoffRecordState ?? "waiting";
+}
+
 function handoffRecordItem(
   clearancePackage: Phase3ClearancePackage,
   handoffRecordState: Phase3HandoffGateState | undefined,
   handoffRecordValidation: Phase3HandoffRecordValidation | undefined
 ): Phase3HandoffGateItem {
-  const status = handoffRecordValidation?.state ?? handoffRecordState ?? "waiting";
+  const status = resolveHandoffRecordStatus(
+    clearancePackage,
+    handoffRecordState,
+    handoffRecordValidation
+  );
+  const missingValidation = !handoffRecordValidation && handoffRecordState === "ready";
 
   return {
     id: `${GATE_ID}:handoff-record`,
@@ -178,11 +199,17 @@ function handoffRecordItem(
     status,
     detail:
       handoffRecordValidation?.detail ??
+      (missingValidation
+        ? "Owner handoff record state is ready, but current evidence fingerprint validation is not attached."
+        : undefined) ??
       (status === "ready"
         ? "Owner-reviewed Phase 3 handoff record is attached."
         : "Owner-reviewed Phase 3 handoff record is not attached yet."),
     nextAction:
       handoffRecordValidation?.nextAction ??
+      (missingValidation
+        ? "Attach current handoff validation before advancing provider integration."
+        : undefined) ??
       (status === "ready"
         ? "Keep the owner-reviewed handoff record attached before Phase 4 work advances."
         : clearancePackage.canExit
@@ -196,7 +223,11 @@ function providerBoundaryItem(
   handoffRecordState: Phase3HandoffGateState | undefined,
   handoffRecordValidation: Phase3HandoffRecordValidation | undefined
 ): Phase3HandoffGateItem {
-  const validatedRecordState = handoffRecordValidation?.state ?? handoffRecordState;
+  const validatedRecordState = resolveHandoffRecordStatus(
+    clearancePackage,
+    handoffRecordState,
+    handoffRecordValidation
+  );
 
   if (clearancePackage.state === "blocked") {
     return {
@@ -235,10 +266,14 @@ function providerBoundaryItem(
       detail:
         handoffRecordValidation?.state === "review"
           ? `Provider integration remains held because ${handoffRecordValidation.detail}`
+          : !handoffRecordValidation && handoffRecordState === "ready"
+            ? "Provider integration remains held until the owner handoff record is validated against current evidence."
           : "Provider integration remains held until the owner handoff record is attached.",
       nextAction:
         handoffRecordValidation?.state === "review"
           ? handoffRecordValidation.nextAction
+          : !handoffRecordValidation && handoffRecordState === "ready"
+            ? "Attach current handoff validation before advancing provider integration."
           : "Attach the owner-reviewed Phase 3 handoff before advancing provider integration."
     };
   }
@@ -293,7 +328,8 @@ export function buildPhase3HandoffGate(
     canAdvanceProviderIntegration:
       state === "ready" &&
       input.clearancePackage.canExit &&
-      (input.handoffRecordValidation?.state ?? input.handoffRecordState) === "ready",
+      input.handoffRecordValidation?.state === "ready" &&
+      input.handoffRecordValidation.matchesCurrentEvidence === true,
     readyCount,
     reviewCount,
     blockedCount,

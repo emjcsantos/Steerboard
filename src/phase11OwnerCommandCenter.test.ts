@@ -89,7 +89,7 @@ function remainingSummary(
     total: 10,
     blocked: 0,
     active: 0,
-    next: 10,
+    next: 0,
     planned: 0,
     paused: 0,
     averageCompletionPercent: 100,
@@ -193,6 +193,31 @@ describe("phase 11 owner command center", () => {
           label: "Fresh checkout",
           status: "waiting",
           nextAction: "Run the fresh-checkout checklist once live workflow blockers are cleared."
+        })
+      ])
+    );
+  });
+
+  it("keeps release held while active or next remaining goals exist", () => {
+    const result = snapshot({
+      remainingGoalSummary: remainingSummary({
+        active: 1,
+        next: 2,
+        averageCompletionPercent: 64,
+        currentTarget: "Phase 3 desktop proof clearance",
+        currentNextAction: "Clear the current Phase 3 proof blocker before release readiness."
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Phase readiness",
+          status: "review",
+          detail: expect.stringContaining("1 active and 2 next remaining goals remain"),
+          nextAction: "Clear the current Phase 3 proof blocker before release readiness."
         })
       ])
     );

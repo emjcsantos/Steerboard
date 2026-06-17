@@ -27,7 +27,15 @@ describe("phase 3 handoff gate", () => {
   it("advances provider integration only after clearance and owner handoff are ready", () => {
     const result = buildPhase3HandoffGate({
       clearancePackage: clearancePackage(),
-      handoffRecordState: "ready"
+      handoffRecordState: "ready",
+      handoffRecordValidation: {
+        state: "ready",
+        detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
+        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+        expectedFingerprint: "current",
+        recordFingerprint: "current",
+        matchesCurrentEvidence: true
+      }
     });
 
     expect(result.state).toBe("ready");
@@ -36,6 +44,33 @@ describe("phase 3 handoff gate", () => {
     expect(result.exactBlockerCount).toBe(0);
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
     expect(result.ariaLabel).toContain("0 exact blockers");
+  });
+
+  it("holds provider integration when raw ready state is not fingerprint validated", () => {
+    const result = buildPhase3HandoffGate({
+      clearancePackage: clearancePackage(),
+      handoffRecordState: "ready"
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canAdvanceProviderIntegration).toBe(false);
+    expect(result.nextAction).toBe(
+      "Attach current handoff validation before advancing provider integration."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner handoff record",
+          status: "review",
+          detail: expect.stringContaining("fingerprint validation is not attached")
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          status: "review",
+          detail: expect.stringContaining("validated against current evidence")
+        })
+      ])
+    );
   });
 
   it("holds provider integration when clearance is ready but owner handoff is not recorded", () => {

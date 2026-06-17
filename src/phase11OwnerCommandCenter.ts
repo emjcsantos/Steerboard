@@ -316,6 +316,20 @@ function phaseReadinessItem(summary: RemainingGoalPlanSummary): Phase11OwnerComm
     };
   }
 
+  if (summary.active > 0 || summary.next > 0) {
+    return {
+      id: `${SNAPSHOT_ID}:phase-readiness`,
+      label: "Phase readiness",
+      kind: "phase-readiness",
+      status: "review",
+      detail: `${summary.active} active and ${summary.next} next remaining goal${summary.active + summary.next === 1 ? "" : "s"} remain; average completion is ${summary.averageCompletionPercent}%. ${goalTraceDetail(summary)}`,
+      nextAction: publicText(
+        summary.currentNextAction,
+        "Clear active and next remaining goals before using Owner Testing as the release gate."
+      )
+    };
+  }
+
   if (summary.planned > 0 || summary.paused > 0) {
     return {
       id: `${SNAPSHOT_ID}:phase-readiness`,
@@ -419,6 +433,12 @@ export function buildPhase11OwnerCommandCenterSnapshot(
     input.remainingGoalSummary.blocked +
     input.checklist.summary.blocked +
     input.failureSummary.blocked;
+  const unresolvedGoalCount =
+    input.remainingGoalSummary.blocked +
+    input.remainingGoalSummary.active +
+    input.remainingGoalSummary.next +
+    input.remainingGoalSummary.planned +
+    input.remainingGoalSummary.paused;
   const priorityGoalTraces =
     input.remainingGoalSummary.priorityGoalTraces.map(publicGoalTrace);
   const draft = {
@@ -427,7 +447,7 @@ export function buildPhase11OwnerCommandCenterSnapshot(
     state,
     statusLabel: STATUS_LABELS[state],
     readiness,
-    canRelease: state === "ready" && blockerCount === 0,
+    canRelease: state === "ready" && blockerCount === 0 && unresolvedGoalCount === 0,
     checklistReadiness: input.checklist.summary.readiness,
     phaseReadiness: input.remainingGoalSummary.averageCompletionPercent,
     blockerCount,
