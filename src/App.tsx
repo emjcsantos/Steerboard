@@ -383,6 +383,12 @@ import {
   type Phase3OwnerTestingAction
 } from "./phase3OwnerTestingActions";
 import {
+  loadPhase3SessionControlEvidenceByPanel,
+  loadPhase3SlashEvidenceByPanel,
+  savePhase3SessionControlEvidenceByPanel,
+  savePhase3SlashEvidenceByPanel
+} from "./phase3PanelEvidenceStorage";
+import {
   buildPhase3SmokeProofReadiness,
   type Phase3SmokeProofReadinessResult
 } from "./phase3SmokeProofReadiness";
@@ -1638,9 +1644,9 @@ export function App() {
   const [selectedRunId, setSelectedRunId] = useState<string>();
   const [focusedPanelId, setFocusedPanelId] = useState<string>();
   const [slashCommandExecutionEvidenceByPanel, setSlashCommandExecutionEvidenceByPanel] =
-    useState<Record<string, SlashCommandExecutionEvidence>>({});
+    useState<Record<string, SlashCommandExecutionEvidence>>(() => loadPhase3SlashEvidenceByPanel());
   const [sessionControlReadinessEvidenceByPanel, setSessionControlReadinessEvidenceByPanel] =
-    useState<Record<string, SessionControlReadinessEvidence>>({});
+    useState<Record<string, SessionControlReadinessEvidence>>(() => loadPhase3SessionControlEvidenceByPanel());
   const [adaptiveDraggingPanelId, setAdaptiveDraggingPanelId] = useState<string>();
   const [adaptiveDraggingProjectId, setAdaptiveDraggingProjectId] = useState<string>();
   const [adaptiveDropPreview, setAdaptiveDropPreview] = useState<AdaptiveCockpitDropPreview | null>(null);
@@ -3348,10 +3354,13 @@ export function App() {
           return currentEvidenceByPanel;
         }
 
-        return {
+        const nextEvidenceByPanel = {
           ...currentEvidenceByPanel,
           [panelId]: evidence
         };
+        savePhase3SlashEvidenceByPanel(nextEvidenceByPanel);
+
+        return nextEvidenceByPanel;
       });
     },
     []
@@ -3364,10 +3373,13 @@ export function App() {
           return currentEvidenceByPanel;
         }
 
-        return {
+        const nextEvidenceByPanel = {
           ...currentEvidenceByPanel,
           [panelId]: evidence
         };
+        savePhase3SessionControlEvidenceByPanel(nextEvidenceByPanel);
+
+        return nextEvidenceByPanel;
       });
     },
     []

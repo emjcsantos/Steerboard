@@ -65,9 +65,10 @@ Do not proceed to the next section until the current item is at least `review`.
 6. `Slash Commands`
    - Type `/` in an Arena panel composer and confirm suggestions are limited to commands scoped to the active panel.
    - Submit one app/global-only command from a panel and confirm it is blocked with explicit unsupported guidance.
-   - Submit one provider-routed panel command in live desktop mode and confirm the transcript shows provider-route evidence before the live turn runs.
+   - Submit one provider-routed panel command in live desktop mode and confirm the transcript shows provider-route evidence before the live turn runs, then reload and confirm the Owner Testing slash evidence remains attached from local panel evidence storage.
    - Confirm the Owner Testing panel moves slash execution evidence from review to ready only after provider-route plus live/status transcript proof is present.
    - Confirm the Owner Testing Phase 3 gate remains review or waiting until slash execution, session-control evidence, live-control smoke, active-turn interrupt smoke, and active-turn steer smoke are all proven ready, and that each diagnostic row shows its PM child link and unique evidence key.
+   - Confirm session-control evidence survives reload from local panel evidence storage without executing session controls automatically.
    - Confirm the Owner Testing Phase 3 clearance package shows `Exit held` until every gate item is ready, lists exact open blockers, and promotes the next runnable smoke action when one is available.
    - Confirm the Owner Testing Phase 3 blocker-priority queue ranks the top exact blocker, shows the top blocker evidence key plus whether `npm.cmd run smoke:phase3` can address it, and keeps slash or session-control blockers ahead of unrelated smoke actions.
    - Confirm the Owner Testing Phase 3 traceability rows link `goal-phase-3-proof-clearance`, every required Phase 3 PM child row, clearance evidence, blocker priority, command plan, CLI validation freshness, and current-evidence handoff boundary before Phase 3 is treated as exit-ready.
