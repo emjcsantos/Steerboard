@@ -5416,6 +5416,31 @@ mod tests {
         }
     }
 
+    fn record_phase3_smoke_artifact<T: serde::Serialize>(key: &str, proof: &T) {
+        let Some(path) = std::env::var_os("STEERBOARD_PHASE3_SMOKE_PROOF_BUNDLE_PATH") else {
+            return;
+        };
+        let path = std::path::PathBuf::from(path);
+        let mut payload = std::fs::read_to_string(&path)
+            .ok()
+            .and_then(|serialized| serde_json::from_str::<serde_json::Value>(&serialized).ok())
+            .and_then(|value| value.as_object().cloned())
+            .unwrap_or_default();
+
+        let Ok(value) = serde_json::to_value(proof) else {
+            return;
+        };
+
+        payload.insert(key.to_string(), value);
+
+        if let Some(parent) = path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        if let Ok(serialized) = serde_json::to_string_pretty(&payload) {
+            let _ = std::fs::write(path, format!("{serialized}\n"));
+        }
+    }
+
     #[test]
     #[ignore = "phase1-phase2-live-desktop-smoke"]
     fn phase1_phase2_live_desktop_smoke_live_panel_command() {
@@ -5487,6 +5512,7 @@ mod tests {
     #[ignore = "phase3-live-desktop-smoke"]
     fn phase3_live_desktop_smoke_live_control_command() {
         let proof = runtime_bridge::codex_transport_live_control_smoke();
+        record_phase3_smoke_artifact("liveControlSmoke", &proof);
         assert_phase3_smoke_supported_or_unsupported(
             &proof.source,
             proof.executed,
@@ -5499,6 +5525,7 @@ mod tests {
     #[ignore = "phase3-live-desktop-smoke"]
     fn phase3_live_desktop_smoke_active_turn_control_command() {
         let proof = runtime_bridge::codex_transport_active_turn_control_smoke();
+        record_phase3_smoke_artifact("activeTurnInterruptSmoke", &proof);
         assert_phase3_smoke_supported_or_unsupported(
             &proof.source,
             proof.executed,
@@ -5521,6 +5548,7 @@ mod tests {
     #[ignore = "phase3-live-desktop-smoke"]
     fn phase3_live_desktop_smoke_active_turn_steer_command() {
         let proof = runtime_bridge::codex_transport_active_turn_steer_smoke();
+        record_phase3_smoke_artifact("activeTurnSteerSmoke", &proof);
         assert_phase3_smoke_supported_or_unsupported(
             &proof.source,
             proof.executed,

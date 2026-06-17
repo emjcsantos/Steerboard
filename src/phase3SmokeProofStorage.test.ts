@@ -316,6 +316,36 @@ describe("phase 3 smoke proof storage", () => {
     );
   });
 
+  it("drops non-desktop rows from mixed imported proof bundles", () => {
+    const store: { value: string | null } = { value: null };
+
+    vi.stubGlobal("window", {
+      localStorage: {
+        setItem: vi.fn((_key: string, value: string) => {
+          store.value = value;
+        }),
+        getItem: vi.fn(() => store.value)
+      }
+    });
+
+    savePhase3SmokeProofBundle({
+      liveControlSmoke: desktopLiveControlSmoke,
+      activeTurnInterruptSmoke: {
+        ...desktopActiveTurnInterruptSmoke,
+        source: "browser"
+      },
+      activeTurnSteerSmoke: {
+        ...desktopActiveTurnSteerSmoke,
+        source: "browser"
+      }
+    });
+
+    expect(loadPhase3SmokeProofBundle()).toEqual({
+      ...fallbackBundle,
+      liveControlSmoke: desktopLiveControlSmoke
+    });
+  });
+
   it("persists and loads a desktop-executed proof bundle roundtrip", () => {
     const store: { value: string | null } = { value: null };
     const setItem = vi.fn((_key: string, value: string) => {
@@ -369,6 +399,25 @@ describe("phase 3 smoke proof storage", () => {
     expect(loadPhase3SmokeProofBundle()).toEqual(parseStoredPhase3SmokeProofBundle(
       JSON.stringify(expectedStoredBundle)
     ));
+  });
+
+  it("parses the local Phase 3 desktop smoke proof bundle artifact", () => {
+    const parsed = parseStoredPhase3SmokeProofBundle(
+      JSON.stringify({
+        liveControlSmoke: desktopLiveControlSmoke,
+        activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
+        activeTurnSteerSmoke: desktopActiveTurnSteerSmoke
+      })
+    );
+
+    expect(parsed.liveControlSmoke).toEqual(desktopLiveControlSmoke);
+    expect(parsed.activeTurnInterruptSmoke).toEqual(desktopActiveTurnInterruptSmoke);
+    expect(parsed.activeTurnSteerSmoke).toMatchObject({
+      source: "desktop",
+      executed: true,
+      ok: true,
+      checkedAt: "2026-06-05T13:56:40.000Z"
+    });
   });
 
   it("is immutable and does not mutate inputs on parse or save", () => {

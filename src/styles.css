@@ -7646,6 +7646,25 @@ textarea {
   font-weight: 800;
 }
 
+.owner-testing-phase3-smoke-readiness button {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  gap: 4px;
+  border: 1px solid #334150;
+  border-radius: 7px;
+  background: #17202a;
+  color: #eef5fb;
+  padding: 4px 6px;
+  font-size: 9px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.owner-testing-phase3-smoke-readiness input {
+  display: none;
+}
+
 .owner-testing-phase3-diagnostics li {
   display: grid;
   min-width: 0;

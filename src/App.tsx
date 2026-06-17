@@ -394,6 +394,7 @@ import { buildPhase126PublishHoldTraceability } from "./phase126PublishHoldTrace
 import { buildPhase126PublishHoldBlockerPriority } from "./phase126PublishHoldBlockerPriority";
 import {
   loadPhase3SmokeProofBundle,
+  parseStoredPhase3SmokeProofBundle,
   savePhase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
 import {
@@ -2141,6 +2142,28 @@ export function App() {
         : "Phase 3 CLI smoke validation artifact imported with failed status"
     );
   }, []);
+  const importPhase3SmokeProofBundle = useCallback((serializedBundle: string) => {
+    const bundle = parseStoredPhase3SmokeProofBundle(serializedBundle);
+    const desktopExecutedRowCount = [
+      bundle.liveControlSmoke,
+      bundle.activeTurnInterruptSmoke,
+      bundle.activeTurnSteerSmoke
+    ].filter((proof) => proof.source === "desktop" && proof.executed === true).length;
+
+    if (desktopExecutedRowCount === 0) {
+      setAppNotice("Phase 3 desktop smoke proof artifact could not be imported");
+      return;
+    }
+
+    savePhase3SmokeProofBundle(bundle);
+    const persistedBundle = loadPhase3SmokeProofBundle();
+
+    setCodexLiveControlSmokeProof(persistedBundle.liveControlSmoke);
+    setCodexActiveTurnControlSmokeProof(persistedBundle.activeTurnInterruptSmoke);
+    setCodexActiveTurnSteerSmokeProof(persistedBundle.activeTurnSteerSmoke);
+    setPhase3ProofEvaluationTime(new Date().toISOString());
+    setAppNotice(`Imported ${desktopExecutedRowCount} Phase 3 desktop smoke proof row${desktopExecutedRowCount === 1 ? "" : "s"}`);
+  }, []);
   const clearPhase3CommandValidation = useCallback(() => {
     clearPhase3CommandValidationRecord();
     setPhase3CommandValidationRecord(undefined);
@@ -3786,6 +3809,7 @@ export function App() {
             onClearPhase3OwnerHandoff={clearPhase3OwnerHandoff}
             onRecordPhase3CommandValidation={recordPhase3CommandValidation}
             onImportPhase3CommandValidation={importPhase3CommandValidation}
+            onImportPhase3SmokeProofBundle={importPhase3SmokeProofBundle}
             onClearPhase3CommandValidation={clearPhase3CommandValidation}
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
@@ -7607,6 +7631,7 @@ function RightPanel({
   onClearPhase3CommandValidation,
   onClearPhase3OwnerHandoff,
   onImportPhase3CommandValidation,
+  onImportPhase3SmokeProofBundle,
   onRecordPhase3CommandValidation,
   onRecordPhase3OwnerHandoff,
   onRecordWorkerValidationAttempt,
@@ -7669,6 +7694,7 @@ function RightPanel({
   onClearPhase3CommandValidation: () => void;
   onClearPhase3OwnerHandoff: () => void;
   onImportPhase3CommandValidation: (serializedRecord: string) => void;
+  onImportPhase3SmokeProofBundle: (serializedBundle: string) => void;
   onRecordPhase3CommandValidation: () => void;
   onRecordPhase3OwnerHandoff: () => void;
   onRecordWorkerValidationAttempt: (
@@ -8969,6 +8995,7 @@ function RightPanel({
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
         onRecordPhase3CommandValidation={onRecordPhase3CommandValidation}
         onImportPhase3CommandValidation={onImportPhase3CommandValidation}
+        onImportPhase3SmokeProofBundle={onImportPhase3SmokeProofBundle}
         onClearPhase3CommandValidation={onClearPhase3CommandValidation}
         onRecordPhase3OwnerHandoff={onRecordPhase3OwnerHandoff}
         onClearPhase3OwnerHandoff={onClearPhase3OwnerHandoff}
@@ -11366,6 +11393,7 @@ function OwnerTestingReadinessPanel({
   onRecordPhase3CommandValidation,
   onClearPhase3CommandValidation,
   onImportPhase3CommandValidation,
+  onImportPhase3SmokeProofBundle,
   onRecordPhase3OwnerHandoff,
   onClearPhase3OwnerHandoff,
   onRunCodexActiveTurnControlSmokeProof,
@@ -11397,6 +11425,7 @@ function OwnerTestingReadinessPanel({
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   onRecordPhase3CommandValidation: () => void;
   onImportPhase3CommandValidation: (serializedRecord: string) => void;
+  onImportPhase3SmokeProofBundle: (serializedBundle: string) => void;
   onClearPhase3CommandValidation: () => void;
   onRecordPhase3OwnerHandoff: () => void;
   onClearPhase3OwnerHandoff: () => void;
@@ -11412,6 +11441,7 @@ function OwnerTestingReadinessPanel({
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
 }) {
   const phase3CommandValidationImportInputRef = useRef<HTMLInputElement | null>(null);
+  const phase3SmokeProofBundleImportInputRef = useRef<HTMLInputElement | null>(null);
   const visibleChecklistItems = checklist.items.slice(0, 6);
   const catalogRefreshItems = checklist.items.filter((item) => item.id.startsWith("catalog-"));
   const visibleFailureFixtures = failureFixtures.slice(0, 4);
@@ -11427,6 +11457,19 @@ function OwnerTestingReadinessPanel({
       onImportPhase3CommandValidation(await file.text());
     },
     [onImportPhase3CommandValidation]
+  );
+  const handlePhase3SmokeProofBundleImport = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      event.currentTarget.value = "";
+
+      if (!file) {
+        return;
+      }
+
+      onImportPhase3SmokeProofBundle(await file.text());
+    },
+    [onImportPhase3SmokeProofBundle]
   );
   const phase126PublishHoldTraceability = buildPhase126PublishHoldTraceability({
     phasePriorityEvidence
@@ -12236,6 +12279,27 @@ function OwnerTestingReadinessPanel({
             className="owner-testing-phase3-smoke-readiness"
             aria-label={`Phase 3 desktop smoke proof readiness ${phase3SmokeProofReadiness.readiness}% ready`}
           >
+            <li className={`owner-testing-phase3-smoke-${phase3SmokeProofReadiness.state}`}>
+              <strong>Desktop smoke bundle</strong>
+              <span>{phase3SmokeProofReadiness.state}</span>
+              <small>
+                <button
+                  onClick={() => phase3SmokeProofBundleImportInputRef.current?.click()}
+                  title="Import local_private/phase3-smoke-proof-bundle.json after running npm.cmd run smoke:phase3:record."
+                  type="button"
+                >
+                  <Paperclip size={12} />
+                  <span>Import desktop proof</span>
+                </button>
+                <input
+                  accept="application/json,.json"
+                  aria-label="Import Phase 3 desktop smoke proof bundle"
+                  onChange={handlePhase3SmokeProofBundleImport}
+                  ref={phase3SmokeProofBundleImportInputRef}
+                  type="file"
+                />
+              </small>
+            </li>
             {phase3SmokeProofReadiness.items.map((item) => (
               <li
                 className={`owner-testing-phase3-smoke-${item.state}`}

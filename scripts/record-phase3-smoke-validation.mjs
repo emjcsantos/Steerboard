@@ -1,9 +1,10 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { spawn } from "node:child_process";
 
 const command = "npm.cmd run smoke:phase3";
 const artifactPath = resolve("local_private", "phase3-command-validation-record.json");
+const smokeBundleArtifactPath = resolve("local_private", "phase3-smoke-proof-bundle.json");
 const cargoBin = process.platform === "win32" ? "cargo.exe" : "cargo";
 const cargoArgs = [
   "test",
@@ -19,6 +20,10 @@ function runCargoSmoke() {
   return new Promise((resolveRun) => {
     const child = spawn(cargoBin, cargoArgs, {
       cwd: process.cwd(),
+      env: {
+        ...process.env,
+        STEERBOARD_PHASE3_SMOKE_PROOF_BUNDLE_PATH: smokeBundleArtifactPath
+      },
       shell: false,
       stdio: ["ignore", "pipe", "pipe"]
     });
@@ -72,12 +77,15 @@ function createRecord(result) {
   };
 }
 
+await mkdir(dirname(artifactPath), { recursive: true });
+await unlink(smokeBundleArtifactPath).catch(() => undefined);
+
 const result = await runCargoSmoke();
 const record = createRecord(result);
 
-await mkdir(dirname(artifactPath), { recursive: true });
 await writeFile(artifactPath, `${JSON.stringify(record, null, 2)}\n`, "utf8");
 
 console.log(`\nPhase 3 CLI smoke validation artifact written to ${artifactPath}`);
+console.log(`Phase 3 desktop smoke proof bundle artifact written to ${smokeBundleArtifactPath}`);
 
 process.exitCode = result.code;
