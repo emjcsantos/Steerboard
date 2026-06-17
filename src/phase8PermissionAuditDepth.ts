@@ -19,7 +19,10 @@ import type {
 import type {
   RuntimeProfilePermissionRequestRecord
 } from "./runtimeProfilePermissionRequestHistory";
-import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
+import {
+  buildPhase8AuditEvidenceFingerprint,
+  type Phase8AuditReviewRecord
+} from "./phase8AuditReviewRecord";
 
 export type Phase8PermissionAuditDepthState =
   | "ready"
@@ -581,6 +584,21 @@ function auditPersistenceItem(input: Phase8PermissionAuditDepthInput): Phase8Per
   };
 }
 
+function hasRecordSpecificRollbackReview(record: LiveActionAuditRecord): boolean {
+  const combinedEvidence = [
+    record.resultSummary,
+    ...(record.rawTranscript ?? [])
+  ].join(" ").toLowerCase();
+
+  return (
+    combinedEvidence.includes("rollback") &&
+    (combinedEvidence.includes("owner") ||
+      combinedEvidence.includes("path") ||
+      combinedEvidence.includes("review") ||
+      combinedEvidence.includes("note"))
+  );
+}
+
 function rollbackRequirementItem(input: Phase8PermissionAuditDepthInput): Phase8PermissionAuditDepthItemDraft {
   if (
     !input.runtimeExecutionAudit.executionLocked ||
@@ -603,15 +621,32 @@ function rollbackRequirementItem(input: Phase8PermissionAuditDepthInput): Phase8
   );
 
   if (executedRecords.length > 0) {
+    const recordsMissingRollbackReview = executedRecords.filter(
+      (record) => !hasRecordSpecificRollbackReview(record)
+    );
+
+    if (recordsMissingRollbackReview.length === 0) {
+      return {
+        id: `${SNAPSHOT_ID}:rollback-requirement`,
+        label: "Rollback requirement",
+        kind: "rollback",
+        status: "ready",
+        detail:
+          `${executedRecords.length} executed or failed live-action record${executedRecords.length === 1 ? "" : "s"} include record-specific rollback review evidence.`,
+        nextAction:
+          "Keep rollback owner, path, and review notes attached to each executed or failed audit record before mutation paths grow."
+      };
+    }
+
     return {
       id: `${SNAPSHOT_ID}:rollback-requirement`,
       label: "Rollback requirement",
       kind: "rollback",
       status: "review",
       detail:
-        `${executedRecords.length} executed or failed live-action records need rollback review before broader mutation paths grow.`,
+        `${recordsMissingRollbackReview.length}/${executedRecords.length} executed or failed live-action record${executedRecords.length === 1 ? "" : "s"} need record-specific rollback owner, path, or review notes before broader mutation paths grow.`,
       nextAction:
-        "Attach rollback notes to executed or failed live-action records before continuing."
+        "Attach rollback owner, rollback path, and rollback review notes to each executed or failed live-action record before continuing."
     };
   }
 
@@ -628,7 +663,8 @@ function rollbackRequirementItem(input: Phase8PermissionAuditDepthInput): Phase8
 }
 
 function ownerAuditReviewItem(
-  record: Phase8AuditReviewRecord | undefined
+  record: Phase8AuditReviewRecord | undefined,
+  currentAuditEvidenceFingerprint: string
 ): Phase8PermissionAuditDepthItemDraft {
   if (!record) {
     return {
@@ -653,6 +689,32 @@ function ownerAuditReviewItem(
         "The local owner audit review record does not preserve the mutation lock.",
       nextAction:
         "Clear and recreate the Phase 8 owner audit review record while mutation paths remain locked."
+    };
+  }
+
+  if (!record.auditEvidenceFingerprint) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-audit-review`,
+      label: "Owner audit review",
+      kind: "rollback",
+      status: "review",
+      detail:
+        "The local owner audit review record predates Phase 8 audit evidence fingerprinting.",
+      nextAction:
+        "Record owner audit review again so it can be matched to current permission, approval, evidence, rollback, exception, and disabled-path rows."
+    };
+  }
+
+  if (record.auditEvidenceFingerprint !== currentAuditEvidenceFingerprint) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-audit-review`,
+      label: "Owner audit review",
+      kind: "rollback",
+      status: "review",
+      detail:
+        `Owner audit review fingerprint ${record.auditEvidenceFingerprint} does not match current audit evidence ${currentAuditEvidenceFingerprint}. ${record.rollbackEvidence}`,
+      nextAction:
+        "Re-record owner audit review after checking the current Phase 8 permission, audit, rollback, exception, and disabled-path evidence."
     };
   }
 
@@ -709,16 +771,51 @@ export function buildPhase8PermissionAuditDepth(
   const riskyLiveActionItems = input.liveActionSummaries
     .filter((summary) => summary.isRiskGated)
     .map(liveActionItem);
-  const items = [
+  const baseItems = [
     ...riskyLiveActionItems,
     runtimeLaunchApprovalItem(input.runtimeExecutionAudit),
     runtimeExecutionAuditItem(input.runtimeExecutionAudit),
     profilePermissionApprovalItem(input.runtimeProfilePermissionApproval),
     profilePermissionAuditItem(input.runtimeProfilePermissionAudit),
     auditPersistenceItem(input),
-    rollbackRequirementItem(input),
-    ownerAuditReviewItem(input.ownerAuditReviewRecord)
+    rollbackRequirementItem(input)
   ].map(withTraceability);
+  const baseExceptions = buildExceptionRecords(baseItems);
+  const baseState = resolveSnapshotState(baseItems);
+  const baseReadyCount = baseItems.filter((item) => item.status === "ready").length;
+  const baseReviewCount = baseItems.filter((item) => item.status === "review").length;
+  const baseBlockedCount = baseItems.filter((item) => item.status === "blocked").length;
+  const baseWaitingCount = baseItems.filter((item) => item.status === "waiting").length;
+  const auditRecordCount =
+    input.liveActionAuditRecords.length +
+    input.runtimeExecutionAuditHistory.length +
+    input.runtimeProfilePermissionRequestHistory.length +
+    input.runtimeProfilePermissionAudit.recordCount;
+  const baseDraft = {
+    id: SNAPSHOT_ID,
+    label: SNAPSHOT_LABEL,
+    state: baseState,
+    statusLabel: STATUS_LABELS[baseState],
+    readiness: calculateReadiness(baseItems),
+    riskyActionCount: riskyLiveActionItems.length,
+    auditRecordCount,
+    disabledPathCount: baseExceptions.length,
+    openExceptionCount: baseExceptions.filter((exception) => exception.status !== "ready").length,
+    readyCount: baseReadyCount,
+    reviewCount: baseReviewCount,
+    blockedCount: baseBlockedCount,
+    waitingCount: baseWaitingCount,
+    nextAction: findNextAction(baseItems),
+    safety: PHASE8_AUDIT_SAFETY,
+    ariaLabel: "",
+    items: baseItems,
+    exceptions: baseExceptions
+  };
+  const currentAuditEvidenceFingerprint = buildPhase8AuditEvidenceFingerprint(baseDraft);
+  const items = [
+    ...baseItems,
+    withTraceability(ownerAuditReviewItem(input.ownerAuditReviewRecord, currentAuditEvidenceFingerprint))
+  ];
 
   const state = resolveSnapshotState(items);
   const readiness = calculateReadiness(items);
@@ -730,11 +827,6 @@ export function buildPhase8PermissionAuditDepth(
   const openExceptionCount = exceptions.filter(
     (exception) => exception.status !== "ready"
   ).length;
-  const auditRecordCount =
-    input.liveActionAuditRecords.length +
-    input.runtimeExecutionAuditHistory.length +
-    input.runtimeProfilePermissionRequestHistory.length +
-    input.runtimeProfilePermissionAudit.recordCount;
   const nextAction = findNextAction(items);
   const draft = {
     id: SNAPSHOT_ID,

@@ -130,7 +130,9 @@ Do not proceed to the next section until the current item is at least `review`.
     - Verify approval and block branches are explicit and safe.
     - Confirm the Phase 8 Audit Depth panel lists missing permission, approval, evidence, audit persistence, and rollback requirements for risky or blocked actions.
     - Confirm at least one Phase 8 risk exception explains why the path is exceptional, what evidence is required, and which audit source owns the proof.
+    - Confirm executed or failed audit records keep Rollback requirement in review until each record carries rollback owner, rollback path, or rollback review notes.
     - Confirm Phase 8 audit-depth rows and disabled-path exceptions show linked PM child rows and unique evidence keys.
+    - Confirm stale owner audit-review records fall back to review when their saved audit evidence fingerprint no longer matches current Phase 8 evidence.
     - Confirm the Phase 8 risk traceability rows link the remaining goal, PM child coverage, audit-depth evidence, risk exception register, and disabled-path lock before permission audit can be trusted.
     - Confirm the Phase 8 risk blocker-priority queue ranks the exact top permission, approval, evidence, audit, rollback, disabled-path, or traceability blocker and shows whether audit review can address it before mutation paths grow.
     - Confirm the Phase 8 owner audit review can be recorded locally, survives refresh, carries rollback evidence, and never unlocks runtime, profile, terminal, Git, MCP, plugin, automation, or external-service mutation paths by itself.

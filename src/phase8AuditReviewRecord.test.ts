@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Phase8PermissionAuditDepthSnapshot } from "./phase8PermissionAuditDepth";
 import {
+  buildPhase8AuditEvidenceFingerprint,
   clearPhase8AuditReviewRecord,
   createPhase8AuditReviewRecord,
   loadPhase8AuditReviewRecord,
@@ -55,6 +56,7 @@ describe("phase 8 audit review record", () => {
       openExceptionCount: 4,
       disabledPathCount: 8,
       mutationLocked: true,
+      auditEvidenceFingerprint: buildPhase8AuditEvidenceFingerprint(auditDepthSnapshot()),
       rollbackEvidence:
         "Runtime, profile, terminal, Git, MCP, plugin, automation, and external-service mutation paths remain locked; rollback evidence is required before future executed or failed mutation records can advance.",
       detail:
@@ -89,6 +91,7 @@ describe("phase 8 audit review record", () => {
       openExceptionCount: 0,
       disabledPathCount: 9
     });
+    expect(parsed?.auditEvidenceFingerprint).toBe("");
     expect(parsed?.detail).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(parsed?.rollbackEvidence).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(parsed?.detail).not.toContain("sk-ABCDEF1234567890");

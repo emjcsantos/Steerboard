@@ -609,16 +609,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-08-permissions-audit",
     title: "Phase 8: Permissions and Audit",
-    description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, local owner audit-review records, and rollback evidence before mutation-capable paths expand.",
-    completionPercent: 55,
+    description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, current owner audit-review fingerprints, and record-specific rollback evidence before mutation-capable paths expand.",
+    completionPercent: 62,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-08-parent-risk-gates",
         title: "Risk Gate Hardening",
-        description: "Require explicit permission state, action risk, approval scope, fallback behavior, risk exceptions, disabled paths, owner review, and missing-requirement explanations for risky actions.",
-        completionPercent: 60,
+        description: "Require explicit permission state, action risk, approval scope, fallback behavior, risk exceptions, disabled paths, owner review freshness, and missing-requirement explanations for risky actions.",
+        completionPercent: 64,
         complexity: "high",
         sourceDocument: "Permission risk gates",
         children: [
@@ -639,24 +639,24 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-risk-exceptions",
             title: "Risk Exceptions and Disabled Paths",
-            description: "Show each permission, approval, evidence, owner-review, and rollback exception with disabled-path copy, required evidence, rollback expectation, and audit source.",
-            completionPercent: 50,
+            description: "Show each permission, approval, evidence, owner-review, and rollback exception with disabled-path copy, required evidence, rollback expectation, record-specific rollback review, and audit source.",
+            completionPercent: 58,
             complexity: "high",
             sourceDocument: "Phase 8 risk exception register"
           },
           {
             id: "phase-08-child-traceability",
             title: "Risk Traceability",
-            description: "Link Phase 8 remaining-goal status, PM child rows, permission/audit depth records, local owner audit-review records, risk exceptions, disabled paths, evidence keys, and rollback expectations before mutation-capable paths can advance.",
-            completionPercent: 45,
+            description: "Link Phase 8 remaining-goal status, PM child rows, permission/audit depth records, local owner audit-review records, current audit evidence fingerprints, risk exceptions, disabled paths, evidence keys, and rollback expectations before mutation-capable paths can advance.",
+            completionPercent: 52,
             complexity: "high",
             sourceDocument: "Phase 8 risk traceability"
           },
           {
             id: "phase-08-child-blocker-priority",
             title: "Risk Blocker Priority",
-            description: "Rank exact Phase 8 blockers across permission, approval, evidence, audit persistence, rollback, disabled paths, exceptions, and traceability before mutation-capable paths can advance.",
-            completionPercent: 35,
+            description: "Rank exact Phase 8 blockers across permission, approval, evidence, audit persistence, owner-review freshness, record-specific rollback, disabled paths, exceptions, and traceability before mutation-capable paths can advance.",
+            completionPercent: 45,
             complexity: "medium",
             sourceDocument: "Phase 8 risk blocker priority"
           }
@@ -665,16 +665,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-08-parent-audit-log",
         title: "Owner-Visible Audit Trail",
-        description: "Record attempted actions, owner audit reviews, approvals, blocked states, validation outcomes, rollback requirements, and audit persistence depth.",
-        completionPercent: 50,
+        description: "Record attempted actions, owner audit reviews, approvals, blocked states, validation outcomes, record-specific rollback reviews, and audit persistence depth.",
+        completionPercent: 56,
         complexity: "high",
         sourceDocument: "Audit requirements",
         children: [
           {
             id: "phase-08-child-audit-persistence",
             title: "Audit Persistence",
-            description: "Persist audit entries and owner audit-review records locally while keeping malformed audit state from hiding permission, evidence, mutation-lock, or rollback blockers.",
-            completionPercent: 50,
+            description: "Persist audit entries and owner audit-review records locally while keeping malformed or stale audit state from hiding permission, evidence, mutation-lock, fingerprint, or rollback blockers.",
+            completionPercent: 58,
             complexity: "high",
             sourceDocument: "Audit storage"
           }

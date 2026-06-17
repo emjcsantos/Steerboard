@@ -7,6 +7,7 @@ import type { RuntimeProfilePermissionApprovalSnapshot } from "./runtimeProfileP
 import type { RuntimeProfilePermissionAuditSnapshot } from "./runtimeProfilePermissionAudit";
 import type { RuntimeProfilePermissionRequestRecord } from "./runtimeProfilePermissionRequestHistory";
 import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
+import { createPhase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import { buildPhase8PermissionAuditDepth } from "./phase8PermissionAuditDepth";
 
 function liveSummary(
@@ -146,6 +147,7 @@ const readyOwnerReviewRecord: Phase8AuditReviewRecord = {
   openExceptionCount: 0,
   disabledPathCount: 8,
   mutationLocked: true,
+  auditEvidenceFingerprint: "",
   rollbackEvidence:
     "Mutation paths remain locked; rollback evidence is required before future executed or failed mutation records can advance.",
   detail: "Owner-reviewed Phase 8 audit depth recorded locally."
@@ -178,6 +180,13 @@ function buildSnapshot(options: {
       options.runtimeProfilePermissionRequestHistory ?? [],
     ownerAuditReviewRecord: options.ownerAuditReviewRecord
   });
+}
+
+function ownerReviewFor(options: Parameters<typeof buildSnapshot>[0] = {}): Phase8AuditReviewRecord {
+  return createPhase8AuditReviewRecord(
+    buildSnapshot({ ...options, ownerAuditReviewRecord: undefined }),
+    "2026-06-11T00:00:00.000Z"
+  );
 }
 
 describe("phase 8 permission and audit depth", () => {
@@ -229,7 +238,17 @@ describe("phase 8 permission and audit depth", () => {
       runtimeExecutionAudit: readyRuntimeExecutionAudit,
       runtimeExecutionAuditHistory: [readyAuditRecord],
       runtimeProfilePermissionRequestHistory: [readyProfileRequest],
-      ownerAuditReviewRecord: readyOwnerReviewRecord
+      ownerAuditReviewRecord: ownerReviewFor({
+        summaries: [
+          liveSummary("terminal", "approved"),
+          liveSummary("git", "approved"),
+          liveSummary("plugin", "approved")
+        ],
+        liveAuditRecords: [liveAuditRecord],
+        runtimeExecutionAudit: readyRuntimeExecutionAudit,
+        runtimeExecutionAuditHistory: [readyAuditRecord],
+        runtimeProfilePermissionRequestHistory: [readyProfileRequest]
+      })
     });
 
     expect(snapshot.state).toBe("ready");
@@ -257,7 +276,7 @@ describe("phase 8 permission and audit depth", () => {
           label: "Owner audit review",
           kind: "rollback",
           status: "ready",
-          detail: expect.stringContaining("Mutation paths remain locked")
+          detail: expect.stringContaining("mutation paths remain locked")
         })
       ])
     );
@@ -285,6 +304,42 @@ describe("phase 8 permission and audit depth", () => {
           status: "waiting",
           pmTaskId: "phase-08-child-risk-exceptions",
           evidenceKey: expect.stringContaining("phase8.rollback-expectation")
+        })
+      ])
+    );
+  });
+
+  it("reviews stale owner audit records when current audit evidence changes", () => {
+    const staleReview = ownerReviewFor({
+      summaries: [
+        liveSummary("terminal", "approved"),
+        liveSummary("git", "approved"),
+        liveSummary("plugin", "approved")
+      ],
+      runtimeExecutionAudit: readyRuntimeExecutionAudit,
+      runtimeExecutionAuditHistory: [readyAuditRecord],
+      runtimeProfilePermissionRequestHistory: [readyProfileRequest]
+    });
+    const snapshot = buildSnapshot({
+      summaries: [
+        liveSummary("terminal", "approved"),
+        liveSummary("git", "approved"),
+        liveSummary("plugin", "approved")
+      ],
+      liveAuditRecords: [liveAuditRecord],
+      runtimeExecutionAudit: readyRuntimeExecutionAudit,
+      runtimeExecutionAuditHistory: [readyAuditRecord],
+      runtimeProfilePermissionRequestHistory: [readyProfileRequest],
+      ownerAuditReviewRecord: staleReview
+    });
+
+    expect(snapshot.state).toBe("review");
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner audit review",
+          status: "review",
+          detail: expect.stringContaining("does not match current audit evidence")
         })
       ])
     );
@@ -362,6 +417,42 @@ describe("phase 8 permission and audit depth", () => {
           severity: "high",
           status: "review",
           rollbackExpectation: expect.stringContaining("Attach rollback notes")
+        })
+      ])
+    );
+  });
+
+  it("accepts executed or failed audit records only when rollback review evidence is record-specific", () => {
+    const executedRecord: LiveActionAuditRecord = {
+      ...liveAuditRecord,
+      id: "terminal:local:executed:2026-06-11T00:01:00.000Z",
+      action: "executed",
+      resultSummary:
+        "Executed local dry-run action. Rollback review complete: owner Main Codex, rollback path local no-op, rollback note attached."
+    };
+    const reviewOptions = {
+      summaries: [
+        liveSummary("terminal", "approved"),
+        liveSummary("git", "approved"),
+        liveSummary("plugin", "approved")
+      ],
+      liveAuditRecords: [executedRecord],
+      runtimeExecutionAudit: readyRuntimeExecutionAudit,
+      runtimeExecutionAuditHistory: [readyAuditRecord],
+      runtimeProfilePermissionRequestHistory: [readyProfileRequest]
+    };
+    const snapshot = buildSnapshot({
+      ...reviewOptions,
+      ownerAuditReviewRecord: ownerReviewFor(reviewOptions)
+    });
+
+    expect(snapshot.state).toBe("ready");
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Rollback requirement",
+          status: "ready",
+          detail: expect.stringContaining("record-specific rollback review evidence")
         })
       ])
     );

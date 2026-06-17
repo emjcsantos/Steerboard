@@ -12,6 +12,7 @@ export interface Phase8AuditReviewRecord {
   readonly openExceptionCount: number;
   readonly disabledPathCount: number;
   readonly mutationLocked: boolean;
+  readonly auditEvidenceFingerprint?: string;
   readonly rollbackEvidence: string;
   readonly detail: string;
 }
@@ -75,6 +76,73 @@ function publicText(value: string | undefined, fallback: string): string {
     .trim();
 
   return sanitized.length > 0 ? sanitized : fallback;
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableJson(entry)).join(",")}]`;
+  }
+
+  if (value && typeof value === "object") {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${stableJson(entry)}`)
+      .join(",")}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
+function shortHash(value: string): string {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function isOwnerAuditReviewEvidence(id: string): boolean {
+  return id.includes("owner-audit-review");
+}
+
+export function buildPhase8AuditEvidenceFingerprint(
+  snapshot: Phase8PermissionAuditDepthSnapshot
+): string {
+  const payload = {
+    riskyActionCount: snapshot.riskyActionCount,
+    auditRecordCount: snapshot.auditRecordCount,
+    items: snapshot.items
+      .filter((item) => !isOwnerAuditReviewEvidence(item.id))
+      .map((item) => ({
+        id: item.id,
+        label: item.label,
+        kind: item.kind,
+        status: item.status,
+        pmTaskId: item.pmTaskId,
+        evidenceKey: item.evidenceKey,
+        detail: item.detail,
+        nextAction: item.nextAction
+      })),
+    exceptions: snapshot.exceptions
+      .filter((exception) => !isOwnerAuditReviewEvidence(exception.id))
+      .map((exception) => ({
+        id: exception.id,
+        label: exception.label,
+        severity: exception.severity,
+        status: exception.status,
+        disabledPath: exception.disabledPath,
+        evidenceRequired: exception.evidenceRequired,
+        rollbackExpectation: exception.rollbackExpectation,
+        auditSource: exception.auditSource,
+        pmTaskId: exception.pmTaskId,
+        evidenceKey: exception.evidenceKey
+      }))
+  };
+
+  return `phase8-audit-${shortHash(stableJson(payload))}`;
 }
 
 function readStorage(): string | null {
@@ -159,6 +227,12 @@ export function parseStoredPhase8AuditReviewRecord(
       openExceptionCount,
       disabledPathCount,
       mutationLocked: parsed.mutationLocked,
+      auditEvidenceFingerprint: publicText(
+        nonEmptyString(parsed.auditEvidenceFingerprint)
+          ? parsed.auditEvidenceFingerprint
+          : undefined,
+        ""
+      ),
       rollbackEvidence: publicText(
         parsed.rollbackEvidence,
         "Rollback evidence remains required before mutation paths can unlock."
@@ -205,6 +279,7 @@ export function createPhase8AuditReviewRecord(
     openExceptionCount,
     disabledPathCount: snapshot.disabledPathCount,
     mutationLocked: true,
+    auditEvidenceFingerprint: buildPhase8AuditEvidenceFingerprint(snapshot),
     rollbackEvidence:
       "Runtime, profile, terminal, Git, MCP, plugin, automation, and external-service mutation paths remain locked; rollback evidence is required before future executed or failed mutation records can advance.",
     detail: publicText(
@@ -217,6 +292,7 @@ export function createPhase8AuditReviewRecord(
 export function savePhase8AuditReviewRecord(record: Phase8AuditReviewRecord): void {
   writeStorage({
     ...record,
+    auditEvidenceFingerprint: publicText(record.auditEvidenceFingerprint, ""),
     rollbackEvidence: publicText(
       record.rollbackEvidence,
       "Rollback evidence remains required before mutation paths can unlock."

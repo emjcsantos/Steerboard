@@ -7,6 +7,7 @@ import type { RuntimeProfilePermissionApprovalSnapshot } from "./runtimeProfileP
 import type { RuntimeProfilePermissionAuditSnapshot } from "./runtimeProfilePermissionAudit";
 import type { RuntimeProfilePermissionRequestRecord } from "./runtimeProfilePermissionRequestHistory";
 import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
+import { createPhase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import { buildPhase8PermissionAuditDepth } from "./phase8PermissionAuditDepth";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import { remainingGoalPlan } from "./remainingGoalPlan";
@@ -127,6 +128,7 @@ const readyOwnerReviewRecord: Phase8AuditReviewRecord = {
   openExceptionCount: 0,
   disabledPathCount: 8,
   mutationLocked: true,
+  auditEvidenceFingerprint: "",
   rollbackEvidence:
     "Mutation paths remain locked; rollback evidence is required before future executed or failed mutation records can advance.",
   detail: "Owner-reviewed Phase 8 audit depth recorded locally."
@@ -162,6 +164,13 @@ function depth(options: {
       options.runtimeProfilePermissionRequestHistory ?? [],
     ownerAuditReviewRecord: options.ownerAuditReviewRecord
   });
+}
+
+function ownerReviewFor(options: Parameters<typeof depth>[0] = {}): Phase8AuditReviewRecord {
+  return createPhase8AuditReviewRecord(
+    depth({ ...options, ownerAuditReviewRecord: undefined }),
+    "2026-06-11T00:00:00.000Z"
+  );
 }
 
 function traceability(options: {
@@ -228,7 +237,17 @@ describe("phase 8 risk traceability", () => {
         runtimeExecutionAudit: readyRuntimeExecutionAudit,
         runtimeExecutionAuditHistory: [executionRecord],
         runtimeProfilePermissionRequestHistory: [profileRequest],
-        ownerAuditReviewRecord: readyOwnerReviewRecord
+        ownerAuditReviewRecord: ownerReviewFor({
+          summaries: [
+            liveSummary("terminal", "approved"),
+            liveSummary("git", "approved"),
+            liveSummary("plugin", "approved")
+          ],
+          liveAuditRecords: [liveAuditRecord],
+          runtimeExecutionAudit: readyRuntimeExecutionAudit,
+          runtimeExecutionAuditHistory: [executionRecord],
+          runtimeProfilePermissionRequestHistory: [profileRequest]
+        })
       })
     });
 
@@ -274,7 +293,13 @@ describe("phase 8 risk traceability", () => {
       runtimeExecutionAudit: readyRuntimeExecutionAudit,
       runtimeExecutionAuditHistory: [executionRecord],
       runtimeProfilePermissionRequestHistory: [profileRequest],
-      ownerAuditReviewRecord: readyOwnerReviewRecord
+      ownerAuditReviewRecord: ownerReviewFor({
+        summaries: [liveSummary("terminal", "approved")],
+        liveAuditRecords: [liveAuditRecord],
+        runtimeExecutionAudit: readyRuntimeExecutionAudit,
+        runtimeExecutionAuditHistory: [executionRecord],
+        runtimeProfilePermissionRequestHistory: [profileRequest]
+      })
     });
     const summary = traceability({
       snapshot: {
