@@ -544,6 +544,7 @@ import {
   type Phase9RunnerApprovalSnapshot
 } from "./phase9RunnerApproval";
 import { buildPhase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDepth";
+import { buildPhase9RunnerBlockerPriority } from "./phase9RunnerBlockerPriority";
 import { buildPhase9RunnerTraceabilitySummary } from "./phase9RunnerTraceability";
 import {
   buildPhase10ArenaPolishSnapshot,
@@ -12131,6 +12132,12 @@ function Phase9RunnerApprovalPanel({
     depth,
     phase8: phase8PermissionAuditDepth
   });
+  const blockerPriority = buildPhase9RunnerBlockerPriority({
+    approval: snapshot,
+    depth,
+    phase8: phase8PermissionAuditDepth,
+    traceability
+  });
 
   return (
     <section className="panel-section">
@@ -12238,6 +12245,74 @@ function Phase9RunnerApprovalPanel({
                 <b>{item.kind}</b>
               </li>
             ))}
+          </ol>
+        </div>
+        <div
+          aria-label={blockerPriority.ariaLabel}
+          className={classNames(
+            "phase9-runner-blocker-priority",
+            `phase9-runner-blocker-priority-${blockerPriority.state}`
+          )}
+          title={blockerPriority.safety}
+        >
+          <div className="phase9-runner-blocker-priority-header">
+            <strong>{blockerPriority.label}</strong>
+            <span>
+              {blockerPriority.runnerReviewCanAddressTopBlocker
+                ? "Runner review"
+                : blockerPriority.openBlockerCount > 0
+                  ? "Owner action"
+                  : "Ready"}
+            </span>
+          </div>
+          <p title={blockerPriority.topPriorityAction}>{blockerPriority.topPriorityLabel}</p>
+          <dl className="phase9-runner-blocker-priority-grid" aria-label="Phase 9 runner blocker priority counts">
+            <div>
+              <dt>Open</dt>
+              <dd>{blockerPriority.openBlockerCount}</dd>
+            </div>
+            <div>
+              <dt>Reviewable</dt>
+              <dd>{blockerPriority.runnerReviewAddressableCount}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>{blockerPriority.statusLabel}</dd>
+            </div>
+            <div>
+              <dt>Ready</dt>
+              <dd>{blockerPriority.readiness}%</dd>
+            </div>
+          </dl>
+          <ol className="phase9-runner-blocker-priority-list" aria-label="Phase 9 runner blocker priority rows">
+            {blockerPriority.items.length > 0 ? (
+              blockerPriority.items.slice(0, 8).map((item) => (
+                <li
+                  className={classNames(
+                    "phase9-runner-blocker-priority-item",
+                    `phase9-runner-blocker-priority-item-${item.status}`
+                  )}
+                  key={item.id}
+                  title={`${item.detail} ${item.nextAction}`}
+                >
+                  <span>#{item.priority}</span>
+                  <div>
+                    <strong>{item.label}</strong>
+                    <small>{item.nextAction}</small>
+                  </div>
+                  <b>{item.kind}</b>
+                </li>
+              ))
+            ) : (
+              <li className="phase9-runner-blocker-priority-item phase9-runner-blocker-priority-item-ready">
+                <span>OK</span>
+                <div>
+                  <strong>No open Phase 9 blocker</strong>
+                  <small>{blockerPriority.nextAction}</small>
+                </div>
+                <b>ready</b>
+              </li>
+            )}
           </ol>
         </div>
         <small title={snapshot.safety}>{snapshot.safety}</small>

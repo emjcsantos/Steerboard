@@ -689,6 +689,14 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 35,
             complexity: "high",
             sourceDocument: "Phase 9 runner traceability"
+          },
+          {
+            id: "phase-09-child-blocker-priority",
+            title: "Runner Blocker Priority",
+            description: "Rank exact Phase 9 blockers across the Phase 8 gate, owner permission, approval window, request preview, validation output, audit record, rollback evidence, traceability, and mutation locks before the desktop runner can advance.",
+            completionPercent: 35,
+            complexity: "medium",
+            sourceDocument: "Phase 9 runner blocker priority"
           }
         ]
       },

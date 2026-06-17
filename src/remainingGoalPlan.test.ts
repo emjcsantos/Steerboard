@@ -79,7 +79,10 @@ describe("remaining goal plan", () => {
         expect.objectContaining({
           goalId: "goal-phase-9-runner",
           priority: "high",
-          pmTaskIds: expect.arrayContaining(["phase-09-child-traceability"])
+          pmTaskIds: expect.arrayContaining([
+            "phase-09-child-traceability",
+            "phase-09-child-blocker-priority"
+          ])
         }),
         expect.objectContaining({
           goalId: "goal-phase-11-owner-command-center",
@@ -128,7 +131,7 @@ describe("remaining goal plan", () => {
     });
   });
 
-  it("keeps the Phase 9 runner approval target linked to traceability and approval depth", () => {
+  it("keeps the Phase 9 runner approval target linked to traceability, approval depth, and blocker priority", () => {
     const phase9Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-9-runner");
 
     expect(phase9Goal).toMatchObject({
@@ -141,11 +144,13 @@ describe("remaining goal plan", () => {
         "phase-09-child-reversible-action",
         "phase-09-child-runner-observability",
         "phase-09-child-traceability",
+        "phase-09-child-blocker-priority",
         "phase-09-child-approval-record",
         "phase-09-child-approval-depth"
       ])
     );
     expect(phase9Goal?.nextAction).toContain("terminal-readonly-probe");
+    expect(phase9Goal?.nextAction).toContain("blocker-priority queue");
   });
 
   it("keeps the Phase 5 migration hardening target linked to traceability and review depth", () => {

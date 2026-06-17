@@ -136,7 +136,7 @@ describe("phase 9 runner traceability", () => {
     const summary = traceability();
 
     expect(summary.linkedGoalId).toBe("goal-phase-9-runner");
-    expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(8);
+    expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(9);
     expect(summary.missingPmTaskIds).toEqual([]);
     expect(summary.items.map((item) => item.kind)).toEqual([
       "active-goal",

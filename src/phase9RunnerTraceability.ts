@@ -54,6 +54,7 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-09-child-reversible-action",
   "phase-09-child-runner-observability",
   "phase-09-child-traceability",
+  "phase-09-child-blocker-priority",
   "phase-09-parent-approval-flow",
   "phase-09-child-approval-record",
   "phase-09-child-approval-depth"
