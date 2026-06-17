@@ -99,7 +99,7 @@ function remainingSummary(
     ownerHoldNextAction: "No owner hold action.",
     coveredPhaseCount: 11,
     remainingPhaseCount: 11,
-    priorityGoalTraceCount: 8,
+    priorityGoalTraceCount: 9,
     priorityGoalTraces: buildRemainingGoalPriorityTraces(),
     ...overrides
   };

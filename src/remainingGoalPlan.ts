@@ -302,10 +302,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 11"],
     phaseIds: ["phase-11-owner-packaging"],
     goal:
-      "Coordinate the final clean-checkout, build, smoke, packaging-lock, docs, known-limits, owner release traceability, blocker-priority review, and release-decision pass before release.",
-    status: "paused",
-    priority: "medium",
-    completionPercent: 20,
+      "Coordinate the final clean-checkout, build, smoke, packaging-lock, docs, known-limits, owner release traceability, blocker-priority review, structured evidence records, and release-decision pass before release.",
+    status: "next",
+    priority: "high",
+    completionPercent: 35,
     pmTaskIds: [
       "phase-11-owner-packaging",
       "phase-11-parent-release-packaging",
@@ -314,7 +314,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 11 Release Readiness, owner release traceability, and blocker-priority panels to review clean checkout, build/test, smoke proof, packaging lock, docs and known limits, PM coverage, exact top blocker, and the final release decision while packaging stays paused."
+      "Use the Phase 11 Release Readiness, Evidence Records, owner release traceability, and blocker-priority panels to require structured clean-checkout, build/test, and docs-known-limits evidence before any ready state can recommend release while packaging stays paused."
   }
 ];
 
@@ -357,7 +357,7 @@ function compareGoalPriority(a: RemainingGoalPlanItem, b: RemainingGoalPlanItem)
 
 export function buildRemainingGoalPriorityTraces(
   goals: readonly RemainingGoalPlanItem[] = remainingGoalPlan,
-  limit = 8
+  limit = 9
 ): RemainingGoalPlanTrace[] {
   return [...goals]
     .sort(compareGoalPriority)

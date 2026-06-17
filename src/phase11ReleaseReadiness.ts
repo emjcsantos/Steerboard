@@ -137,7 +137,7 @@ function cleanCheckoutItem(
   evidence: Phase11EvidenceRecordSnapshot | undefined,
   state: Phase11ReleaseReadinessState | undefined
 ): Phase11ReleaseReadinessItem {
-  const status = evidence?.state ?? state ?? "waiting";
+  const status = evidence?.state ?? (state === "ready" ? "review" : state) ?? "waiting";
 
   return {
     id: `${SNAPSHOT_ID}:clean-checkout`,
@@ -146,12 +146,12 @@ function cleanCheckoutItem(
     status,
     detail: evidence
       ? `${evidence.detail} Source: ${evidence.source}; recorded: ${evidence.recordedAt}; freshness: ${evidence.freshness}.`
-      : status === "ready"
-        ? "Clean checkout install, dependency verification, and startup proof are recorded."
+      : state === "ready"
+        ? "Clean checkout install, dependency verification, and startup proof need a structured evidence record."
         : "Clean checkout install, dependency verification, and startup proof still need owner evidence.",
     nextAction: evidence?.nextAction ?? (
-      status === "ready"
-        ? "Keep clean-checkout proof attached to the release record."
+      state === "ready"
+        ? "Attach clean-checkout evidence metadata before release readiness can proceed."
         : "Run the clean-checkout checklist after the active owner holds are cleared."
     )
   };
@@ -161,7 +161,7 @@ function buildTestItem(
   evidence: Phase11EvidenceRecordSnapshot | undefined,
   state: Phase11ReleaseReadinessState | undefined
 ): Phase11ReleaseReadinessItem {
-  const status = evidence?.state ?? state ?? "waiting";
+  const status = evidence?.state ?? (state === "ready" ? "review" : state) ?? "waiting";
 
   return {
     id: `${SNAPSHOT_ID}:build-test`,
@@ -170,12 +170,12 @@ function buildTestItem(
     status,
     detail: evidence
       ? `${evidence.detail} Source: ${evidence.source}; recorded: ${evidence.recordedAt}; freshness: ${evidence.freshness}.`
-      : status === "ready"
-        ? "Release-targeted test and build commands are recorded."
+      : state === "ready"
+        ? "Release-targeted test and build commands need a structured evidence record."
         : "Release-targeted test and build commands still need a final clean run.",
     nextAction: evidence?.nextAction ?? (
-      status === "ready"
-        ? "Keep the final test and build output attached to the release record."
+      state === "ready"
+        ? "Attach final test and build evidence metadata before release readiness can proceed."
         : "Record the final test and build pass before release packaging is reconsidered."
     )
   };
@@ -235,7 +235,7 @@ function docsKnownLimitsItem(
   evidence: Phase11EvidenceRecordSnapshot | undefined,
   state: Phase11ReleaseReadinessState | undefined
 ): Phase11ReleaseReadinessItem {
-  const status = evidence?.state ?? state ?? "review";
+  const status = evidence?.state ?? (state === "ready" ? "review" : state) ?? "review";
 
   return {
     id: `${SNAPSHOT_ID}:docs-known-limits`,
@@ -244,12 +244,12 @@ function docsKnownLimitsItem(
     status,
     detail: evidence
       ? `${evidence.detail} Source: ${evidence.source}; recorded: ${evidence.recordedAt}; freshness: ${evidence.freshness}.`
-      : status === "ready"
-        ? "Release notes, owner checklist, packaging limits, and known limits are recorded."
+      : state === "ready"
+        ? "Release notes, owner checklist, packaging limits, and known limits need a structured evidence record."
         : "Release notes, owner checklist, packaging limits, and known limits need a final owner review.",
     nextAction: evidence?.nextAction ?? (
-      status === "ready"
-        ? "Keep release docs and known limits attached to the readiness record."
+      state === "ready"
+        ? "Attach release docs and known-limits evidence metadata before release readiness can proceed."
         : "Review release docs, known limits, and deferred packaging notes before release."
     )
   };

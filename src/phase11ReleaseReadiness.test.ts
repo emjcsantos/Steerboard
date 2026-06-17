@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { DesktopPackagingReadinessSnapshot } from "./desktopPackagingReadiness";
-import { evaluatePhase11EvidenceRecord } from "./phase11EvidenceRecords";
+import {
+  evaluatePhase11EvidenceRecord,
+  type Phase11EvidenceGate
+} from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import { buildPhase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
 import {
@@ -90,10 +93,24 @@ function remainingSummary(
     ownerHoldNextAction: "No owner hold action.",
     coveredPhaseCount: 11,
     remainingPhaseCount: 11,
-    priorityGoalTraceCount: 8,
+    priorityGoalTraceCount: 9,
     priorityGoalTraces: buildRemainingGoalPriorityTraces(),
     ...overrides
   };
+}
+
+function readyEvidence(gate: Phase11EvidenceGate) {
+  return evaluatePhase11EvidenceRecord(
+    gate,
+    {
+      gate,
+      state: "ready",
+      source: `owner ${gate}`,
+      recordedAt: "2026-06-17T10:00:00.000Z",
+      detail: `${gate} passed.`
+    },
+    "2026-06-17T12:00:00.000Z"
+  );
 }
 
 function snapshot(
@@ -104,9 +121,9 @@ function snapshot(
     desktopPackaging: packagingSnapshot(),
     securityFinalReview: securitySnapshot(),
     remainingGoalSummary: remainingSummary(),
-    cleanCheckoutState: "ready",
-    buildTestState: "ready",
-    docsKnownLimitsState: "ready",
+    cleanCheckoutEvidence: readyEvidence("clean-checkout"),
+    buildTestEvidence: readyEvidence("build-test"),
+    docsKnownLimitsEvidence: readyEvidence("docs-known-limits"),
     ...overrides
   });
 }
@@ -121,6 +138,43 @@ describe("phase 11 release readiness", () => {
     expect(result.releaseHoldCount).toBe(0);
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
     expect(result.ariaLabel).toContain("0 holds");
+  });
+
+  it("does not recommend release from state-only ready flags without evidence records", () => {
+    const result = snapshot({
+      cleanCheckoutEvidence: undefined,
+      buildTestEvidence: undefined,
+      docsKnownLimitsEvidence: undefined,
+      cleanCheckoutState: "ready",
+      buildTestState: "ready",
+      docsKnownLimitsState: "ready"
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Clean checkout",
+          status: "review",
+          detail: expect.stringContaining("structured evidence record")
+        }),
+        expect.objectContaining({
+          label: "Build and test",
+          status: "review",
+          detail: expect.stringContaining("structured evidence record")
+        }),
+        expect.objectContaining({
+          label: "Docs and known limits",
+          status: "review",
+          detail: expect.stringContaining("structured evidence record")
+        }),
+        expect.objectContaining({
+          label: "Release decision",
+          status: "review"
+        })
+      ])
+    );
   });
 
   it("keeps the current release pass held when proof and clean-run evidence are missing", () => {
@@ -145,6 +199,9 @@ describe("phase 11 release readiness", () => {
         ownerHoldNextAction:
           "Keep the branch local, preserve the proof commit, and push only after the owner says to push."
       }),
+      cleanCheckoutEvidence: undefined,
+      buildTestEvidence: undefined,
+      docsKnownLimitsEvidence: undefined,
       cleanCheckoutState: "waiting",
       buildTestState: "waiting",
       docsKnownLimitsState: "review"
@@ -196,6 +253,7 @@ describe("phase 11 release readiness", () => {
 
   it("keeps docs and known limits in review when every other release input is ready", () => {
     const result = snapshot({
+      docsKnownLimitsEvidence: undefined,
       docsKnownLimitsState: "review"
     });
 
