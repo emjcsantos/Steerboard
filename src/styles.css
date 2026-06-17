@@ -10284,7 +10284,7 @@ textarea {
 
 .phase8-audit-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 5px;
   margin: 0;
 }
@@ -10379,6 +10379,93 @@ textarea {
 .phase8-audit-item b {
   color: #cfd8e3;
   font-size: 9px;
+  text-transform: uppercase;
+}
+
+.phase8-exception-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phase8-exception-item {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 64px minmax(0, 1fr) 88px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #27303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 6px;
+}
+
+.phase8-exception-item > span,
+.phase8-exception-item strong,
+.phase8-exception-item small,
+.phase8-exception-item em,
+.phase8-exception-item b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase8-exception-item > span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce4ed;
+  padding: 3px 6px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase8-exception-ready > span {
+  color: #10161d;
+  background: #89dda9;
+}
+
+.phase8-exception-review > span {
+  color: #10161d;
+  background: #8bd7f4;
+}
+
+.phase8-exception-waiting > span {
+  color: #10161d;
+  background: #f0d984;
+}
+
+.phase8-exception-blocked > span {
+  color: #10161d;
+  background: #ff9e85;
+}
+
+.phase8-exception-item div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.phase8-exception-item strong {
+  color: #edf2f7;
+  font-size: 11px;
+}
+
+.phase8-exception-item small,
+.phase8-exception-item em {
+  color: #8f99a5;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.phase8-exception-item b {
+  color: #cfd8e3;
+  font-size: 9px;
+  text-align: right;
   text-transform: uppercase;
 }
 

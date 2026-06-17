@@ -42,6 +42,8 @@ The Environment panel also includes a Phase 4 Provider Readiness panel. It reads
 
 The Environment panel also includes a Phase 4 Surface Depth panel beside Provider Readiness. It turns the same metadata snapshots into surface coverage, setup blocker, capability gap, preview review, and execution lock rows, and it remains metadata-only with no command, skill, plugin, MCP, automation, personalization, network, terminal, Git, or profile execution.
 
+The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk exceptions, disabled mutation paths, required evidence, rollback expectations, and audit sources for permission, approval, evidence, and rollback gates before Phase 9 runner expansion or any broader mutation-capable path can advance.
+
 ## Core Jobs
 
 - Create and manage projects.
@@ -78,6 +80,7 @@ The Environment panel also includes a Phase 4 Surface Depth panel beside Provide
 - Staged Arena review preview for the latest row run.
 - Remaining Goals summary for all open targets across Phase 1 through Phase 11.
 - Phase 4 Provider Readiness and Phase 4 Surface Depth panels for catalog-surface labels, surface coverage, setup blockers, capability gaps, preview review, and the execution lock before execution is considered.
+- Phase 8 Audit Depth risk exceptions with disabled-path explanations, evidence requirements, rollback expectations, and audit sources before mutation paths grow.
 - Owner Testing evidence and explicit smoke buttons for Phase 1 live panel proof, Phase 2 multi-panel isolation, and Phase 6 PM board staging readiness.
 - Phase 3 clearance package and handoff gate with exact open blockers, next smoke action, local owner handoff record/clear actions, and provider-integration boundary.
 - Phase 11 Release Readiness gate for clean checkout, build/test, smoke proof, packaging lock, docs/known limits, and release decision while packaging stays paused.

@@ -489,16 +489,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-08-permissions-audit",
     title: "Phase 8: Permissions and Audit",
-    description: "Harden risk gates, audit trails, permission boundaries, and rollback explanations before mutation-capable paths expand.",
-    completionPercent: 45,
+    description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, and rollback evidence before mutation-capable paths expand.",
+    completionPercent: 50,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-08-parent-risk-gates",
         title: "Risk Gate Hardening",
-        description: "Require explicit permission state, action risk, approval scope, fallback behavior, and missing-requirement explanations for risky actions.",
-        completionPercent: 50,
+        description: "Require explicit permission state, action risk, approval scope, fallback behavior, risk exceptions, disabled paths, and missing-requirement explanations for risky actions.",
+        completionPercent: 55,
         complexity: "high",
         sourceDocument: "Permission risk gates",
         children: [
@@ -515,6 +515,14 @@ const phaseSpecs: PhaseSpec[] = [
             description: "Explain why an action is blocked and what permission, approval, evidence, or rollback requirement is needed to continue.",
             completionPercent: 45,
             sourceDocument: "Permission audit"
+          },
+          {
+            id: "phase-08-child-risk-exceptions",
+            title: "Risk Exceptions and Disabled Paths",
+            description: "Show each permission, approval, evidence, and rollback exception with disabled-path copy, required evidence, rollback expectation, and audit source.",
+            completionPercent: 45,
+            complexity: "high",
+            sourceDocument: "Phase 8 risk exception register"
           }
         ]
       },

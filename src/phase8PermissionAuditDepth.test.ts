@@ -169,6 +169,8 @@ describe("phase 8 permission and audit depth", () => {
 
     expect(snapshot.state).toBe("waiting");
     expect(snapshot.riskyActionCount).toBe(3);
+    expect(snapshot.disabledPathCount).toBe(snapshot.items.length);
+    expect(snapshot.openExceptionCount).toBeGreaterThan(0);
     expect(snapshot.waitingCount).toBeGreaterThan(0);
     expect(snapshot.nextAction).toContain("Request permission");
     expect(snapshot.items).toEqual(
@@ -177,6 +179,18 @@ describe("phase 8 permission and audit depth", () => {
           kind: "permission",
           status: "waiting",
           label: "terminal action"
+        })
+      ])
+    );
+    expect(snapshot.exceptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "terminal action",
+          status: "waiting",
+          disabledPath: expect.stringContaining("Access stays disabled"),
+          evidenceRequired: expect.stringContaining("Permission scope"),
+          rollbackExpectation: expect.stringContaining("rollback evidence"),
+          auditSource: "permission review record"
         })
       ])
     );
@@ -200,7 +214,9 @@ describe("phase 8 permission and audit depth", () => {
     expect(snapshot.statusLabel).toBe("Ready");
     expect(snapshot.readiness).toBe(100);
     expect(snapshot.auditRecordCount).toBe(4);
+    expect(snapshot.openExceptionCount).toBe(0);
     expect(snapshot.items.every((item) => item.status === "ready")).toBe(true);
+    expect(snapshot.exceptions.every((exception) => exception.status === "ready")).toBe(true);
   });
 
   it("blocks denied risky actions and blocked runtime audit evidence", () => {
@@ -211,6 +227,7 @@ describe("phase 8 permission and audit depth", () => {
 
     expect(snapshot.state).toBe("blocked");
     expect(snapshot.blockedCount).toBeGreaterThanOrEqual(2);
+    expect(snapshot.openExceptionCount).toBeGreaterThanOrEqual(2);
     expect(snapshot.nextAction).toContain("Reset or re-request approval");
     expect(snapshot.items).toEqual(
       expect.arrayContaining([
@@ -221,6 +238,17 @@ describe("phase 8 permission and audit depth", () => {
         expect.objectContaining({
           kind: "evidence",
           status: "blocked"
+        })
+      ])
+    );
+    expect(snapshot.exceptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "terminal action",
+          severity: "critical",
+          status: "blocked",
+          disabledPath: expect.stringContaining("approval state"),
+          evidenceRequired: expect.stringContaining("Approval decision")
         })
       ])
     );
@@ -246,12 +274,23 @@ describe("phase 8 permission and audit depth", () => {
 
     expect(snapshot.state).toBe("review");
     expect(snapshot.reviewCount).toBeGreaterThanOrEqual(3);
+    expect(snapshot.openExceptionCount).toBeGreaterThanOrEqual(3);
     expect(snapshot.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           label: "Rollback requirement",
           kind: "rollback",
           status: "review"
+        })
+      ])
+    );
+    expect(snapshot.exceptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Rollback requirement",
+          severity: "high",
+          status: "review",
+          rollbackExpectation: expect.stringContaining("Attach rollback notes")
         })
       ])
     );
@@ -276,6 +315,16 @@ describe("phase 8 permission and audit depth", () => {
         })
       ])
     );
+    expect(snapshot.exceptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Rollback requirement",
+          status: "blocked",
+          disabledPath: expect.stringContaining("Mutation paths stay disabled"),
+          auditSource: "rollback review notes"
+        })
+      ])
+    );
   });
 
   it("keeps labels and details public-safe", () => {
@@ -289,6 +338,13 @@ describe("phase 8 permission and audit depth", () => {
         item.label,
         item.detail,
         item.nextAction
+      ]),
+      ...snapshot.exceptions.flatMap((exception) => [
+        exception.label,
+        exception.disabledPath,
+        exception.evidenceRequired,
+        exception.rollbackExpectation,
+        exception.auditSource
       ])
     ].join(" ");
 

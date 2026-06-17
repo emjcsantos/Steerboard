@@ -164,20 +164,21 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 8"],
     phaseIds: ["phase-08-permissions-audit"],
     goal:
-      "Expand approval gates, disabled-path explanations, audit persistence, and rollback notes before mutation paths grow.",
+      "Expand approval gates, risk exceptions, disabled-path explanations, audit persistence, and rollback evidence before mutation paths grow.",
     status: "next",
     priority: "high",
-    completionPercent: 45,
+    completionPercent: 50,
     pmTaskIds: [
       "phase-08-permissions-audit",
       "phase-08-parent-risk-gates",
       "phase-08-child-permission-labels",
       "phase-08-child-risk-blockers",
+      "phase-08-child-risk-exceptions",
       "phase-08-parent-audit-log",
       "phase-08-child-audit-persistence"
     ],
     nextAction:
-      "Use the Phase 8 Audit Depth panel to resolve missing permission, approval, evidence, audit persistence, and rollback explanations before mutation paths grow."
+      "Use the Phase 8 Audit Depth panel to resolve risk exceptions, disabled paths, missing permission, approval, evidence, audit persistence, and rollback explanations before mutation paths grow."
   },
   {
     id: "goal-phase-9-runner",

@@ -103,6 +103,9 @@ Do not proceed to the next section until the current item is at least `review`.
     - Trigger at least one sensitive action.
     - Verify approval and block branches are explicit and safe.
     - Confirm the Phase 8 Audit Depth panel lists missing permission, approval, evidence, audit persistence, and rollback requirements for risky or blocked actions.
+    - Confirm at least one Phase 8 risk exception explains why the path is exceptional, what evidence is required, and which audit source owns the proof.
+    - Confirm at least one disabled mutation path explains what remains locked before terminal, Git, MCP, plugin, automation, runtime, profile, or external-service actions can proceed.
+    - Confirm rollback expectations are visible separately from audit evidence so approval alone never implies mutation readiness.
     - Confirm the panel keeps runtime/profile execution locked while audit and rollback requirements are reviewed.
     - Confirm the Phase 9 Runner Approval panel keeps `terminal-readonly-probe` as the only selected desktop-backed action.
     - Confirm Phase 9 shows owner permission, approval window, request preview, validation output, approval/result audit, and rollback evidence as separate targets.

@@ -32,6 +32,11 @@ export type Phase8PermissionAuditRequirementKind =
   | "evidence"
   | "rollback";
 
+export type Phase8PermissionAuditExceptionSeverity =
+  | "critical"
+  | "high"
+  | "medium";
+
 export interface Phase8PermissionAuditDepthItem {
   id: string;
   label: string;
@@ -39,6 +44,17 @@ export interface Phase8PermissionAuditDepthItem {
   status: Phase8PermissionAuditDepthState;
   detail: string;
   nextAction: string;
+}
+
+export interface Phase8PermissionAuditException {
+  id: string;
+  label: string;
+  severity: Phase8PermissionAuditExceptionSeverity;
+  status: Phase8PermissionAuditDepthState;
+  disabledPath: string;
+  evidenceRequired: string;
+  rollbackExpectation: string;
+  auditSource: string;
 }
 
 export interface Phase8PermissionAuditDepthSnapshot {
@@ -49,6 +65,8 @@ export interface Phase8PermissionAuditDepthSnapshot {
   readiness: number;
   riskyActionCount: number;
   auditRecordCount: number;
+  disabledPathCount: number;
+  openExceptionCount: number;
   readyCount: number;
   reviewCount: number;
   blockedCount: number;
@@ -57,6 +75,7 @@ export interface Phase8PermissionAuditDepthSnapshot {
   safety: string;
   ariaLabel: string;
   items: Phase8PermissionAuditDepthItem[];
+  exceptions: Phase8PermissionAuditException[];
 }
 
 export interface Phase8PermissionAuditDepthInput {
@@ -137,6 +156,89 @@ function findNextAction(
     items.find((item) => item.status === "waiting")?.nextAction ??
     "Keep permission, approval, evidence, and rollback explanations visible while mutation paths stay locked."
   );
+}
+
+function exceptionSeverity(
+  item: Phase8PermissionAuditDepthItem
+): Phase8PermissionAuditExceptionSeverity {
+  if (item.status === "blocked") {
+    return "critical";
+  }
+
+  if (item.kind === "approval" || item.kind === "rollback") {
+    return "high";
+  }
+
+  return "medium";
+}
+
+function disabledPathForItem(item: Phase8PermissionAuditDepthItem): string {
+  switch (item.kind) {
+    case "approval":
+      return "Execution stays disabled until the approval state is explicit, current, and auditable.";
+    case "evidence":
+      return "Execution stays disabled until matching evidence and audit records can be reviewed.";
+    case "rollback":
+      return "Mutation paths stay disabled until rollback expectations are visible before execution.";
+    case "permission":
+    default:
+      return "Access stays disabled until the permission scope is requested, reviewed, and recorded.";
+  }
+}
+
+function evidenceRequiredForItem(item: Phase8PermissionAuditDepthItem): string {
+  switch (item.kind) {
+    case "approval":
+      return "Approval decision, requester, risk level, timestamp, and audit record.";
+    case "evidence":
+      return "Dry-run or preview evidence, execution-lock state, and durable audit trail.";
+    case "rollback":
+      return "Rollback owner, expected reversal path, affected surface, and audit note.";
+    case "permission":
+    default:
+      return "Permission scope, provider, requested action, reviewer, and blocked-path reason.";
+  }
+}
+
+function rollbackExpectationForItem(item: Phase8PermissionAuditDepthItem): string {
+  if (item.kind === "rollback") {
+    return "Attach rollback notes before any executed or failed mutation record can advance.";
+  }
+
+  if (item.kind === "approval") {
+    return "Approval does not imply execution; rollback notes are still required before mutation.";
+  }
+
+  return "Keep rollback evidence required before this gate can unlock mutation-capable work.";
+}
+
+function auditSourceForItem(item: Phase8PermissionAuditDepthItem): string {
+  switch (item.kind) {
+    case "approval":
+      return "permission request history";
+    case "evidence":
+      return "execution audit history";
+    case "rollback":
+      return "rollback review notes";
+    case "permission":
+    default:
+      return "permission review record";
+  }
+}
+
+function buildExceptionRecords(
+  items: readonly Phase8PermissionAuditDepthItem[]
+): Phase8PermissionAuditException[] {
+  return items.map((item) => ({
+    id: `${item.id}:risk-exception`,
+    label: item.label,
+    severity: exceptionSeverity(item),
+    status: item.status,
+    disabledPath: disabledPathForItem(item),
+    evidenceRequired: evidenceRequiredForItem(item),
+    rollbackExpectation: rollbackExpectationForItem(item),
+    auditSource: auditSourceForItem(item)
+  }));
 }
 
 function liveActionItem(
@@ -476,6 +578,7 @@ function buildAriaLabel(snapshot: Omit<Phase8PermissionAuditDepthSnapshot, "aria
     `${snapshot.label}: ${snapshot.statusLabel}; ${snapshot.readiness}% ready; ` +
     `${snapshot.readyCount} ready, ${snapshot.reviewCount} review, ` +
     `${snapshot.blockedCount} blocked, ${snapshot.waitingCount} waiting; ` +
+    `${snapshot.openExceptionCount} open exceptions across ${snapshot.disabledPathCount} disabled paths; ` +
     `next action: ${snapshot.nextAction}`
   );
 }
@@ -502,6 +605,10 @@ export function buildPhase8PermissionAuditDepth(
   const reviewCount = items.filter((item) => item.status === "review").length;
   const blockedCount = items.filter((item) => item.status === "blocked").length;
   const waitingCount = items.filter((item) => item.status === "waiting").length;
+  const exceptions = buildExceptionRecords(items);
+  const openExceptionCount = exceptions.filter(
+    (exception) => exception.status !== "ready"
+  ).length;
   const auditRecordCount =
     input.liveActionAuditRecords.length +
     input.runtimeExecutionAuditHistory.length +
@@ -516,13 +623,16 @@ export function buildPhase8PermissionAuditDepth(
     readiness,
     riskyActionCount: riskyLiveActionItems.length,
     auditRecordCount,
+    disabledPathCount: exceptions.length,
+    openExceptionCount,
     readyCount,
     reviewCount,
     blockedCount,
     waitingCount,
     nextAction,
     safety: PHASE8_AUDIT_SAFETY,
-    items
+    items,
+    exceptions
   };
 
   return {

@@ -11266,6 +11266,7 @@ function Phase8PermissionAuditDepthPanel({
   snapshot: Phase8PermissionAuditDepthSnapshot;
 }) {
   const visibleItems = snapshot.items.slice(0, 8);
+  const visibleExceptions = snapshot.exceptions.slice(0, 5);
 
   return (
     <section className="panel-section">
@@ -11304,6 +11305,10 @@ function Phase8PermissionAuditDepthPanel({
             <dt>Blocked</dt>
             <dd>{snapshot.blockedCount}</dd>
           </div>
+          <div>
+            <dt>Open Exceptions</dt>
+            <dd>{snapshot.openExceptionCount}</dd>
+          </div>
         </dl>
         <ol className="phase8-audit-items" aria-label="Phase 8 missing requirement explanations">
           {visibleItems.map((item) => (
@@ -11318,6 +11323,26 @@ function Phase8PermissionAuditDepthPanel({
                 <small>{item.nextAction}</small>
               </div>
               <b>{item.status}</b>
+            </li>
+          ))}
+        </ol>
+        <ol className="phase8-exception-list" aria-label="Phase 8 disabled path exceptions">
+          {visibleExceptions.map((exception) => (
+            <li
+              className={classNames(
+                "phase8-exception-item",
+                `phase8-exception-${exception.status}`
+              )}
+              key={exception.id}
+              title={`${exception.disabledPath} ${exception.evidenceRequired} ${exception.rollbackExpectation}`}
+            >
+              <span>{exception.severity}</span>
+              <div>
+                <strong>{exception.label}</strong>
+                <small>{exception.disabledPath}</small>
+                <em>{exception.evidenceRequired}</em>
+              </div>
+              <b>{exception.auditSource}</b>
             </li>
           ))}
         </ol>
