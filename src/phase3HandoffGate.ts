@@ -234,7 +234,7 @@ function providerBoundaryItem(
       status: validatedRecordState === "review" ? "review" : "waiting",
       detail:
         handoffRecordValidation?.state === "review"
-          ? "Provider integration remains held because the owner handoff record does not match current evidence."
+          ? `Provider integration remains held because ${handoffRecordValidation.detail}`
           : "Provider integration remains held until the owner handoff record is attached.",
       nextAction:
         handoffRecordValidation?.state === "review"

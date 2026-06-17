@@ -24,8 +24,16 @@ export interface Phase3HandoffRecordValidation {
   readonly matchesCurrentEvidence: boolean;
 }
 
+export interface Phase3HandoffRecordValidationOptions {
+  readonly evaluatedAt?: string | Date;
+  readonly maxRecordAgeMs?: number;
+}
+
 export const PHASE3_HANDOFF_RECORD_STORAGE_KEY =
   "steerboard.phase3.ownerHandoffRecord.v1";
+
+export const DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS =
+  24 * 60 * 60 * 1000;
 
 const VALID_STATES: Phase3ClearancePackageState[] = [
   "ready",
@@ -109,6 +117,35 @@ function shortHash(value: string): string {
   }
 
   return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function toTimestamp(value: string | Date | undefined): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const timestamp = value instanceof Date ? value.getTime() : Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : undefined;
+}
+
+function isRecordFresh(
+  record: Phase3OwnerHandoffRecord,
+  options: Phase3HandoffRecordValidationOptions | undefined
+): boolean | undefined {
+  const evaluatedAtMs = toTimestamp(options?.evaluatedAt);
+  if (evaluatedAtMs === undefined) {
+    return undefined;
+  }
+
+  const createdAtMs = toTimestamp(record.createdAt);
+  if (createdAtMs === undefined) {
+    return false;
+  }
+
+  const maxRecordAgeMs =
+    options?.maxRecordAgeMs ?? DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS;
+
+  return evaluatedAtMs - createdAtMs <= maxRecordAgeMs;
 }
 
 export function buildPhase3HandoffEvidenceFingerprint(input: {
@@ -266,19 +303,22 @@ export function savePhase3OwnerHandoffRecord(
 export function derivePhase3HandoffRecordState(
   record: Phase3OwnerHandoffRecord | undefined,
   clearancePackage: Phase3ClearancePackage,
-  expectedFingerprint?: string
+  expectedFingerprint?: string,
+  options?: Phase3HandoffRecordValidationOptions
 ): Phase3ClearancePackageState {
   return derivePhase3HandoffRecordValidation(
     record,
     clearancePackage,
-    expectedFingerprint
+    expectedFingerprint,
+    options
   ).state;
 }
 
 export function derivePhase3HandoffRecordValidation(
   record: Phase3OwnerHandoffRecord | undefined,
   clearancePackage: Phase3ClearancePackage,
-  expectedFingerprint?: string
+  expectedFingerprint?: string,
+  options?: Phase3HandoffRecordValidationOptions
 ): Phase3HandoffRecordValidation {
   if (!clearancePackage.canExit) {
     return {
@@ -335,6 +375,19 @@ export function derivePhase3HandoffRecordValidation(
         expectedFingerprint,
         recordFingerprint: record.evidenceFingerprint,
         matchesCurrentEvidence: false
+      };
+    }
+
+    const freshRecord = isRecordFresh(record, options);
+    if (freshRecord === false) {
+      return {
+        state: "review",
+        detail:
+          "Owner handoff record is stale and must be recorded again from current exit-ready evidence.",
+        nextAction: "Clear and record the Phase 3 handoff again from fresh exit-ready evidence.",
+        expectedFingerprint,
+        recordFingerprint: record.evidenceFingerprint,
+        matchesCurrentEvidence: true
       };
     }
 

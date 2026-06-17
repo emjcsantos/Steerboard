@@ -2021,12 +2021,14 @@ export function App() {
       derivePhase3HandoffRecordValidation(
         phase3OwnerHandoffRecord,
         phase3ClearancePackage,
-        phase3HandoffEvidenceFingerprint
+        phase3HandoffEvidenceFingerprint,
+        { evaluatedAt: phase3ProofEvaluationTime }
       ),
     [
       phase3ClearancePackage,
       phase3HandoffEvidenceFingerprint,
-      phase3OwnerHandoffRecord
+      phase3OwnerHandoffRecord,
+      phase3ProofEvaluationTime
     ]
   );
   const phase3HandoffRecordState = useMemo(
@@ -2034,12 +2036,14 @@ export function App() {
       derivePhase3HandoffRecordState(
         phase3OwnerHandoffRecord,
         phase3ClearancePackage,
-        phase3HandoffEvidenceFingerprint
+        phase3HandoffEvidenceFingerprint,
+        { evaluatedAt: phase3ProofEvaluationTime }
       ),
     [
       phase3ClearancePackage,
       phase3HandoffEvidenceFingerprint,
-      phase3OwnerHandoffRecord
+      phase3OwnerHandoffRecord,
+      phase3ProofEvaluationTime
     ]
   );
   const phase3HandoffGate = useMemo(

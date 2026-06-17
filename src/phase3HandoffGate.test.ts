@@ -60,7 +60,7 @@ describe("phase 3 handoff gate", () => {
     );
   });
 
-  it("blocks provider advance when the owner handoff record is stale", () => {
+  it("blocks provider advance when the owner handoff record fingerprint is stale", () => {
     const result = buildPhase3HandoffGate({
       clearancePackage: clearancePackage(),
       handoffRecordState: "review",
@@ -90,7 +90,43 @@ describe("phase 3 handoff gate", () => {
         expect.objectContaining({
           label: "Provider boundary",
           status: "review",
-          detail: expect.stringContaining("does not match current evidence")
+          detail: expect.stringContaining("no longer matches")
+        })
+      ])
+    );
+  });
+
+  it("blocks provider advance when the owner handoff record age is stale", () => {
+    const result = buildPhase3HandoffGate({
+      clearancePackage: clearancePackage(),
+      handoffRecordState: "review",
+      handoffRecordValidation: {
+        state: "review",
+        detail:
+          "Owner handoff record is stale and must be recorded again from current exit-ready evidence.",
+        nextAction: "Clear and record the Phase 3 handoff again from fresh exit-ready evidence.",
+        expectedFingerprint: "current",
+        recordFingerprint: "current",
+        matchesCurrentEvidence: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canAdvanceProviderIntegration).toBe(false);
+    expect(result.nextAction).toBe(
+      "Clear and record the Phase 3 handoff again from fresh exit-ready evidence."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner handoff record",
+          status: "review",
+          detail: expect.stringContaining("stale")
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          status: "review",
+          detail: expect.stringContaining("stale")
         })
       ])
     );

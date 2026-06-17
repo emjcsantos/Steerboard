@@ -6,6 +6,7 @@ import {
   createPhase3OwnerHandoffRecord,
   derivePhase3HandoffRecordValidation,
   derivePhase3HandoffRecordState,
+  DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS,
   loadPhase3OwnerHandoffRecord,
   parseStoredPhase3OwnerHandoffRecord,
   PHASE3_HANDOFF_RECORD_STORAGE_KEY,
@@ -142,6 +143,80 @@ describe("phase 3 handoff record", () => {
       state: "review",
       detail: expect.stringContaining("predates"),
       matchesCurrentEvidence: false
+    });
+  });
+
+  it("reviews current-matching handoff records when the owner review is stale", () => {
+    const currentClearance = clearancePackage();
+    const expectedFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: currentClearance
+    });
+    const record = createPhase3OwnerHandoffRecord(
+      currentClearance,
+      "2026-06-11T00:00:00.000Z",
+      expectedFingerprint
+    );
+
+    expect(
+      derivePhase3HandoffRecordValidation(
+        record,
+        currentClearance,
+        expectedFingerprint,
+        {
+          evaluatedAt: "2026-06-11T23:59:00.000Z",
+          maxRecordAgeMs: DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS
+        }
+      )
+    ).toMatchObject({
+      state: "ready",
+      matchesCurrentEvidence: true
+    });
+    expect(
+      derivePhase3HandoffRecordValidation(
+        record,
+        currentClearance,
+        expectedFingerprint,
+        {
+          evaluatedAt: "2026-06-12T00:01:00.000Z",
+          maxRecordAgeMs: DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS
+        }
+      )
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("stale"),
+      nextAction: expect.stringContaining("fresh exit-ready evidence"),
+      matchesCurrentEvidence: true
+    });
+  });
+
+  it("reviews current-matching handoff records with malformed review timestamps", () => {
+    const currentClearance = clearancePackage();
+    const expectedFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: currentClearance
+    });
+    const record = {
+      ...createPhase3OwnerHandoffRecord(
+        currentClearance,
+        "2026-06-11T00:00:00.000Z",
+        expectedFingerprint
+      ),
+      createdAt: "not-a-date"
+    };
+
+    expect(
+      derivePhase3HandoffRecordValidation(
+        record,
+        currentClearance,
+        expectedFingerprint,
+        {
+          evaluatedAt: "2026-06-11T00:01:00.000Z",
+          maxRecordAgeMs: DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS
+        }
+      )
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("stale"),
+      matchesCurrentEvidence: true
     });
   });
 

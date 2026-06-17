@@ -193,7 +193,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-03-controls-slash",
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
-    description: "Clear the current blocker by proving slash execution, session controls, live-refreshed desktop proof freshness, command-plan clarity, prioritized blocker review, goal/PM traceability, and owner-reviewed handoff readiness tied to compact current evidence.",
+    description: "Clear the current blocker by proving slash execution, session controls, live-refreshed desktop proof freshness, command-plan clarity, prioritized blocker review, goal/PM traceability, and owner-reviewed handoff readiness tied to compact current non-expired evidence.",
     status: "ongoing",
     completionPercent: 95,
     complexity: "extra_high",
@@ -202,7 +202,7 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-03-parent-proof-clearance",
         title: "Desktop Proof Clearance",
-        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan clarity visible, prioritize open blockers, link goal/PM traceability, and keep the handoff boundary matched to compact current evidence.",
+        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan clarity visible, prioritize open blockers, link goal/PM traceability, and keep the handoff boundary matched to compact current non-expired evidence.",
         status: "ongoing",
         completionPercent: 95,
         complexity: "extra_high",
@@ -242,7 +242,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-traceability",
             title: "Clearance Traceability",
-            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, blocker priority, and compact current-evidence handoff boundary in one owner-review trace.",
+            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, blocker priority, and compact current non-expired evidence handoff boundary in one owner-review trace.",
             completionPercent: 86,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance traceability"
@@ -250,7 +250,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-handoff-gate",
             title: "Owner Handoff Gate",
-            description: "Show desktop proof clearance, exact blocker visibility, local owner handoff record actions, compact current-evidence fingerprint matching, and the provider-integration boundary before Phase 4 advances.",
+            description: "Show desktop proof clearance, exact blocker visibility, local owner handoff record actions, compact current-evidence fingerprint and age matching, and the provider-integration boundary before Phase 4 advances.",
             completionPercent: 82,
             complexity: "high",
             sourceDocument: "Phase 3 handoff gate"
