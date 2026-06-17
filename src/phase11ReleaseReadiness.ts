@@ -1,4 +1,5 @@
 import type { DesktopPackagingReadinessSnapshot } from "./desktopPackagingReadiness";
+import type { Phase11EvidenceRecordSnapshot } from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import type { RemainingGoalPlanSummary } from "./remainingGoalPlan";
 import type { SecurityFinalReviewSnapshot } from "./securityFinalReview";
@@ -48,6 +49,9 @@ export interface Phase11ReleaseReadinessInput {
   desktopPackaging: DesktopPackagingReadinessSnapshot;
   securityFinalReview: SecurityFinalReviewSnapshot;
   remainingGoalSummary: RemainingGoalPlanSummary;
+  cleanCheckoutEvidence?: Phase11EvidenceRecordSnapshot;
+  buildTestEvidence?: Phase11EvidenceRecordSnapshot;
+  docsKnownLimitsEvidence?: Phase11EvidenceRecordSnapshot;
   cleanCheckoutState?: Phase11ReleaseReadinessState;
   buildTestState?: Phase11ReleaseReadinessState;
   docsKnownLimitsState?: Phase11ReleaseReadinessState;
@@ -130,44 +134,50 @@ function firstNextAction(items: readonly Phase11ReleaseReadinessItem[]): string 
 }
 
 function cleanCheckoutItem(
+  evidence: Phase11EvidenceRecordSnapshot | undefined,
   state: Phase11ReleaseReadinessState | undefined
 ): Phase11ReleaseReadinessItem {
-  const status = state ?? "waiting";
+  const status = evidence?.state ?? state ?? "waiting";
 
   return {
     id: `${SNAPSHOT_ID}:clean-checkout`,
     label: "Clean checkout",
     kind: "clean-checkout",
     status,
-    detail:
-      status === "ready"
+    detail: evidence
+      ? `${evidence.detail} Source: ${evidence.source}; recorded: ${evidence.recordedAt}; freshness: ${evidence.freshness}.`
+      : status === "ready"
         ? "Clean checkout install, dependency verification, and startup proof are recorded."
         : "Clean checkout install, dependency verification, and startup proof still need owner evidence.",
-    nextAction:
+    nextAction: evidence?.nextAction ?? (
       status === "ready"
         ? "Keep clean-checkout proof attached to the release record."
         : "Run the clean-checkout checklist after the active owner holds are cleared."
+    )
   };
 }
 
 function buildTestItem(
+  evidence: Phase11EvidenceRecordSnapshot | undefined,
   state: Phase11ReleaseReadinessState | undefined
 ): Phase11ReleaseReadinessItem {
-  const status = state ?? "waiting";
+  const status = evidence?.state ?? state ?? "waiting";
 
   return {
     id: `${SNAPSHOT_ID}:build-test`,
     label: "Build and test",
     kind: "build-test",
     status,
-    detail:
-      status === "ready"
+    detail: evidence
+      ? `${evidence.detail} Source: ${evidence.source}; recorded: ${evidence.recordedAt}; freshness: ${evidence.freshness}.`
+      : status === "ready"
         ? "Release-targeted test and build commands are recorded."
         : "Release-targeted test and build commands still need a final clean run.",
-    nextAction:
+    nextAction: evidence?.nextAction ?? (
       status === "ready"
         ? "Keep the final test and build output attached to the release record."
         : "Record the final test and build pass before release packaging is reconsidered."
+    )
   };
 }
 
@@ -222,23 +232,26 @@ function packagingLockItem(
 }
 
 function docsKnownLimitsItem(
+  evidence: Phase11EvidenceRecordSnapshot | undefined,
   state: Phase11ReleaseReadinessState | undefined
 ): Phase11ReleaseReadinessItem {
-  const status = state ?? "review";
+  const status = evidence?.state ?? state ?? "review";
 
   return {
     id: `${SNAPSHOT_ID}:docs-known-limits`,
     label: "Docs and known limits",
     kind: "docs-known-limits",
     status,
-    detail:
-      status === "ready"
+    detail: evidence
+      ? `${evidence.detail} Source: ${evidence.source}; recorded: ${evidence.recordedAt}; freshness: ${evidence.freshness}.`
+      : status === "ready"
         ? "Release notes, owner checklist, packaging limits, and known limits are recorded."
         : "Release notes, owner checklist, packaging limits, and known limits need a final owner review.",
-    nextAction:
+    nextAction: evidence?.nextAction ?? (
       status === "ready"
         ? "Keep release docs and known limits attached to the readiness record."
         : "Review release docs, known limits, and deferred packaging notes before release."
+    )
   };
 }
 
@@ -408,11 +421,11 @@ export function buildPhase11ReleaseReadinessSnapshot(
   input: Phase11ReleaseReadinessInput
 ): Phase11ReleaseReadinessSnapshot {
   const prerequisiteItems = [
-    cleanCheckoutItem(input.cleanCheckoutState),
-    buildTestItem(input.buildTestState),
+    cleanCheckoutItem(input.cleanCheckoutEvidence, input.cleanCheckoutState),
+    buildTestItem(input.buildTestEvidence, input.buildTestState),
     smokeProofItem(input.ownerCommandCenter),
     packagingLockItem(input.desktopPackaging, input.securityFinalReview),
-    docsKnownLimitsItem(input.docsKnownLimitsState)
+    docsKnownLimitsItem(input.docsKnownLimitsEvidence, input.docsKnownLimitsState)
   ];
   const items = [
     ...prerequisiteItems,

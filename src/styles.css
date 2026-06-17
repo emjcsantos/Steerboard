@@ -11218,6 +11218,131 @@ textarea {
   text-transform: uppercase;
 }
 
+.phase11-evidence-records {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #27303a;
+  border-left: 3px solid #f0d984;
+  border-radius: 8px;
+  background: #131820;
+  padding: 9px;
+}
+
+.phase11-evidence-records-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  margin: 0;
+}
+
+.phase11-evidence-records-grid div {
+  min-width: 0;
+  border: 1px solid #27303a;
+  border-radius: 7px;
+  background: #10161d;
+  padding: 6px;
+  text-align: center;
+}
+
+.phase11-evidence-records-grid dt,
+.phase11-evidence-records-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase11-evidence-records-grid dt {
+  color: #88939f;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase11-evidence-records-grid dd {
+  margin-top: 2px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.phase11-evidence-record-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phase11-evidence-record {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 6px;
+}
+
+.phase11-evidence-record > span,
+.phase11-evidence-record strong,
+.phase11-evidence-record small,
+.phase11-evidence-record b,
+.phase11-evidence-records > small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase11-evidence-record > span {
+  border-radius: 999px;
+  background: #f0d984;
+  color: #10161d;
+  padding: 3px 6px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase11-evidence-record-ready > span {
+  background: #89dda9;
+}
+
+.phase11-evidence-record-review > span {
+  background: #8bd7f4;
+}
+
+.phase11-evidence-record-blocked > span {
+  background: #ff9e85;
+}
+
+.phase11-evidence-record div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.phase11-evidence-record strong {
+  color: #edf2f7;
+  font-size: 11px;
+}
+
+.phase11-evidence-record small,
+.phase11-evidence-records > small {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.phase11-evidence-record b {
+  color: #cfd8e3;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
 .phase11-release-readiness {
   display: grid;
   gap: 8px;

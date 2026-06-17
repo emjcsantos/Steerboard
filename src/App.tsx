@@ -518,6 +518,10 @@ import {
   type Phase11OwnerCommandCenterSnapshot
 } from "./phase11OwnerCommandCenter";
 import {
+  buildPhase11EvidenceRecords,
+  type Phase11EvidenceRecordsSnapshot
+} from "./phase11EvidenceRecords";
+import {
   buildPhase11ProofFreshnessDepth,
   type Phase11ProofFreshnessDepthSnapshot
 } from "./phase11ProofFreshnessDepth";
@@ -7202,6 +7206,10 @@ function RightPanel({
     () => summarizeFailureStateFixtures(failureStateFixtures),
     [failureStateFixtures]
   );
+  const phase11EvidenceRecords = useMemo(
+    () => buildPhase11EvidenceRecords(),
+    []
+  );
   const phase11OwnerCommandCenter = useMemo(
     () =>
       buildPhase11OwnerCommandCenterSnapshot({
@@ -7211,13 +7219,14 @@ function RightPanel({
         phase3SmokeProofReadiness,
         failureSummary: failureStateFixtureSummary,
         remainingGoalSummary,
-        freshCheckoutState: "waiting"
+        freshCheckoutEvidence: phase11EvidenceRecords.records["fresh-checkout"]
       }),
     [
       failureStateFixtureSummary,
       ownerTestingChecklist,
       phase3ClearancePackage,
       phase3SmokeProofReadiness,
+      phase11EvidenceRecords,
       phasePriorityEvidence,
       remainingGoalSummary
     ]
@@ -7465,13 +7474,14 @@ function RightPanel({
         desktopPackaging: desktopPackagingReadinessSnapshot,
         securityFinalReview: securityFinalReviewSnapshot,
         remainingGoalSummary,
-        cleanCheckoutState: "waiting",
-        buildTestState: "waiting",
-        docsKnownLimitsState: "review"
+        cleanCheckoutEvidence: phase11EvidenceRecords.records["clean-checkout"],
+        buildTestEvidence: phase11EvidenceRecords.records["build-test"],
+        docsKnownLimitsEvidence: phase11EvidenceRecords.records["docs-known-limits"]
       }),
     [
       desktopPackagingReadinessSnapshot,
       phase11OwnerCommandCenter,
+      phase11EvidenceRecords,
       remainingGoalSummary,
       securityFinalReviewSnapshot
     ]
@@ -7993,6 +8003,8 @@ function RightPanel({
       <Phase11OwnerCommandCenterPanel snapshot={phase11OwnerCommandCenter} />
 
       <Phase11ProofFreshnessDepthPanel snapshot={phase11ProofFreshnessDepth} />
+
+      <Phase11EvidenceRecordsPanel snapshot={phase11EvidenceRecords} />
 
       <Phase11ReleaseReadinessPanel snapshot={phase11ReleaseReadiness} />
 
@@ -11570,6 +11582,60 @@ function Phase11ProofFreshnessDepthPanel({
           ))}
         </ol>
         <small title={snapshot.safety}>{snapshot.safety}</small>
+      </div>
+    </section>
+  );
+}
+
+function Phase11EvidenceRecordsPanel({
+  snapshot
+}: {
+  snapshot: Phase11EvidenceRecordsSnapshot;
+}) {
+  const records = Object.values(snapshot.records);
+
+  return (
+    <section className="panel-section">
+      <h4>Phase 11 Evidence Records</h4>
+      <div
+        className="phase11-evidence-records"
+        title="Phase 11 evidence records are metadata-only and do not run release actions."
+      >
+        <dl className="phase11-evidence-records-grid" aria-label="Phase 11 evidence record counts">
+          <div>
+            <dt>Ready</dt>
+            <dd>{snapshot.readyCount}</dd>
+          </div>
+          <div>
+            <dt>Waiting</dt>
+            <dd>{snapshot.waitingCount}</dd>
+          </div>
+          <div>
+            <dt>Stale</dt>
+            <dd>{snapshot.staleCount}</dd>
+          </div>
+          <div>
+            <dt>Malformed</dt>
+            <dd>{snapshot.malformedCount}</dd>
+          </div>
+        </dl>
+        <ol className="phase11-evidence-record-list" aria-label="Phase 11 evidence records">
+          {records.map((record) => (
+            <li
+              className={classNames("phase11-evidence-record", `phase11-evidence-record-${record.state}`)}
+              key={record.gate}
+              title={`${record.detail} ${record.nextAction}`}
+            >
+              <span>{record.freshness}</span>
+              <div>
+                <strong>{record.label}</strong>
+                <small>{record.source} / {record.recordedAt}</small>
+              </div>
+              <b>{record.state}</b>
+            </li>
+          ))}
+        </ol>
+        <small>{records[0]?.safety}</small>
       </div>
     </section>
   );

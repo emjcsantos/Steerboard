@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DesktopPackagingReadinessSnapshot } from "./desktopPackagingReadiness";
+import { evaluatePhase11EvidenceRecord } from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import { buildPhase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
 import type { RemainingGoalPlanSummary } from "./remainingGoalPlan";
@@ -192,6 +193,60 @@ describe("phase 11 release readiness", () => {
       expect.arrayContaining([
         expect.objectContaining({ label: "Docs and known limits", status: "review" }),
         expect.objectContaining({ label: "Release decision", status: "review" })
+      ])
+    );
+  });
+
+  it("maps structured release evidence records into clean checkout, build, and docs gates", () => {
+    const result = snapshot({
+      cleanCheckoutEvidence: evaluatePhase11EvidenceRecord(
+        "clean-checkout",
+        {
+          gate: "clean-checkout",
+          state: "ready",
+          source: "owner fresh checkout",
+          recordedAt: "2026-06-12T10:00:00.000Z",
+          detail: "Clean checkout passed."
+        },
+        "2026-06-17T12:00:00.000Z"
+      ),
+      buildTestEvidence: evaluatePhase11EvidenceRecord(
+        "build-test",
+        {
+          gate: "build-test",
+          state: "ready",
+          source: "owner build",
+          recordedAt: "2026-06-17T10:00:00.000Z",
+          detail: "Build and tests passed."
+        },
+        "2026-06-17T12:00:00.000Z"
+      ),
+      docsKnownLimitsEvidence: evaluatePhase11EvidenceRecord(
+        "docs-known-limits",
+        undefined,
+        "2026-06-17T12:00:00.000Z"
+      )
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Clean checkout",
+          status: "review",
+          detail: expect.stringContaining("stale")
+        }),
+        expect.objectContaining({
+          label: "Build and test",
+          status: "ready",
+          detail: expect.stringContaining("owner build")
+        }),
+        expect.objectContaining({
+          label: "Docs and known limits",
+          status: "waiting",
+          detail: expect.stringContaining("has not been recorded")
+        })
       ])
     );
   });

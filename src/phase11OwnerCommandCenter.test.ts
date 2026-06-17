@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildFailureStateFixtures, summarizeFailureStateFixtures } from "./failureStateFixtures";
 import { buildOwnerTestingChecklist } from "./ownerTestingChecklist";
+import { evaluatePhase11EvidenceRecord } from "./phase11EvidenceRecords";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
@@ -179,6 +180,35 @@ describe("phase 11 owner command center", () => {
           label: "Fresh checkout",
           status: "waiting",
           nextAction: "Run the fresh-checkout checklist once live workflow blockers are cleared."
+        })
+      ])
+    );
+  });
+
+  it("uses structured fresh-checkout evidence in the owner command center", () => {
+    const result = snapshot({
+      freshCheckoutEvidence: evaluatePhase11EvidenceRecord(
+        "fresh-checkout",
+        {
+          gate: "fresh-checkout",
+          state: "ready",
+          source: "owner checkout",
+          recordedAt: "2026-06-17T10:00:00.000Z",
+          detail: "Fresh checkout install, test, build, and desktop run passed."
+        },
+        "2026-06-17T12:00:00.000Z"
+      )
+    });
+
+    expect(result.state).toBe("ready");
+    expect(result.canRelease).toBe(true);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Fresh checkout",
+          status: "ready",
+          detail: expect.stringContaining("owner checkout"),
+          nextAction: expect.stringContaining("fresh-checkout evidence attached")
         })
       ])
     );

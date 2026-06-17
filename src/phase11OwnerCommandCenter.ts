@@ -2,6 +2,7 @@ import type { FailureStateFixtureSummary } from "./failureStateFixtures";
 import type { OwnerTestingChecklist, OwnerTestingReadinessState } from "./ownerTestingChecklist";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
+import type { Phase11EvidenceRecordSnapshot } from "./phase11EvidenceRecords";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
 import type { RemainingGoalPlanSummary } from "./remainingGoalPlan";
 
@@ -51,6 +52,7 @@ export interface Phase11OwnerCommandCenterInput {
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   failureSummary: FailureStateFixtureSummary;
   remainingGoalSummary: RemainingGoalPlanSummary;
+  freshCheckoutEvidence?: Phase11EvidenceRecordSnapshot;
   freshCheckoutState?: Phase11OwnerCommandCenterState;
 }
 
@@ -313,23 +315,26 @@ function nextActionItem(summary: RemainingGoalPlanSummary): Phase11OwnerCommandC
 }
 
 function freshCheckoutItem(
+  evidence: Phase11EvidenceRecordSnapshot | undefined,
   state: Phase11OwnerCommandCenterState | undefined
 ): Phase11OwnerCommandCenterItem {
-  const status = state ?? "waiting";
+  const status = evidence?.state ?? state ?? "waiting";
 
   return {
     id: `${SNAPSHOT_ID}:fresh-checkout`,
     label: "Fresh checkout",
     kind: "fresh-checkout",
     status,
-    detail:
-      status === "ready"
+    detail: evidence
+      ? `${evidence.detail} Source: ${evidence.source}; recorded: ${evidence.recordedAt}; freshness: ${evidence.freshness}.`
+      : status === "ready"
         ? "Fresh checkout install, test, build, desktop run, and proof panel checks are recorded."
         : "Fresh checkout install, test, build, desktop run, and proof panel checks still need owner evidence.",
-    nextAction:
+    nextAction: evidence?.nextAction ?? (
       status === "ready"
         ? "Keep fresh-checkout evidence attached to the release gate."
         : "Run the fresh-checkout checklist once live workflow blockers are cleared."
+    )
   };
 }
 
@@ -351,7 +356,7 @@ export function buildPhase11OwnerCommandCenterSnapshot(
     blockersItem(input),
     phaseReadinessItem(input.remainingGoalSummary),
     nextActionItem(input.remainingGoalSummary),
-    freshCheckoutItem(input.freshCheckoutState)
+    freshCheckoutItem(input.freshCheckoutEvidence, input.freshCheckoutState)
   ];
   const state = resolveState(items);
   const readiness = scoreItems(items);

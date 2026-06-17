@@ -646,16 +646,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-11-owner-packaging",
     title: "Phase 11: Owner Testing and Release Readiness",
-    description: "Prepare owner-facing pass/fail command gates, proof-freshness depth, fresh checkout instructions, packaging locks, known-limit review, and release-decision proof.",
-    completionPercent: 50,
+    description: "Prepare owner-facing pass/fail command gates, proof-freshness depth, structured evidence records, fresh checkout instructions, packaging locks, known-limit review, and release-decision proof.",
+    completionPercent: 55,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-11-parent-owner-testing",
         title: "Owner Testing Flow",
-        description: "Turn owner testing actions into one command-center pass/fail path for proof freshness, blockers, phase readiness, and next action.",
-        completionPercent: 55,
+        description: "Turn owner testing actions into one command-center pass/fail path for proof freshness, blockers, phase readiness, evidence records, and next action.",
+        completionPercent: 60,
         sourceDocument: "Owner testing panel",
         children: [
           {
@@ -674,10 +674,18 @@ const phaseSpecs: PhaseSpec[] = [
             sourceDocument: "Phase 11 proof freshness depth"
           },
           {
+            id: "phase-11-child-evidence-records",
+            title: "Structured Evidence Records",
+            description: "Represent fresh checkout, clean checkout, build/test, and docs/known-limits proof as source/timestamp/detail records with missing, stale, malformed, waiting, review, blocked, and ready states.",
+            completionPercent: 45,
+            complexity: "high",
+            sourceDocument: "Phase 11 evidence records"
+          },
+          {
             id: "phase-11-child-fresh-checkout",
             title: "Fresh Checkout Install Run",
             description: "Track fresh-checkout install, test, build, desktop run, and expected proof-panel evidence as a held release gate.",
-            completionPercent: 35,
+            completionPercent: 45,
             complexity: "high",
             sourceDocument: "Packaging checklist"
           }
@@ -686,16 +694,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-11-parent-release-packaging",
         title: "Release Readiness Gate",
-        description: "Keep clean checkout, build/test, smoke proof, packaging lock, docs, known limits, and release decision visible while packaging stays paused.",
-        completionPercent: 35,
+        description: "Keep clean checkout, build/test, smoke proof, packaging lock, docs, known limits, evidence records, and release decision visible while packaging stays paused.",
+        completionPercent: 40,
         complexity: "high",
         sourceDocument: "Phase 11 release readiness",
         children: [
           {
             id: "phase-11-child-package-validation",
             title: "Package Lock Validation",
-            description: "Validate packaged-app prerequisites, proof persistence, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
-            completionPercent: 35,
+            description: "Validate packaged-app prerequisites, proof persistence, evidence-record inputs, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
+            completionPercent: 40,
             complexity: "high",
             sourceDocument: "Release validation"
           }
