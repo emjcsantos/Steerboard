@@ -103,7 +103,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Harden command, skill, plugin, MCP, automation, and personalization readiness states while keeping refresh metadata-only.",
     status: "next",
     priority: "high",
-    completionPercent: 40,
+    completionPercent: 45,
     pmTaskIds: [
       "phase-04-provider-surfaces",
       "phase-04-parent-catalogs",
@@ -112,10 +112,11 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-04-child-catalog-depth",
       "phase-04-child-surface-depth",
       "phase-04-parent-refresh-safety",
-      "phase-04-child-refresh-smoke"
+      "phase-04-child-refresh-smoke",
+      "phase-04-child-refresh-safety-depth"
     ],
     nextAction:
-      "Use the Phase 4 Provider Readiness catalog depth and Surface Depth panels to resolve source coverage, setup blockers, capability gaps, preview rows, and execution locks before provider execution is considered."
+      "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, and Surface Depth panels to resolve source coverage, setup blockers, capability gaps, preview rows, metadata-only refresh proof, and execution locks before provider execution is considered."
   },
   {
     id: "goal-phase-5-migration-hardening",

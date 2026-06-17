@@ -96,6 +96,7 @@ import {
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
   type CatalogRefreshProviderSmokeResult
 } from "./catalogRefreshProviderSmoke";
+import { buildPhase4RefreshSafetyDepth } from "./phase4RefreshSafetyDepth";
 import {
   buildSlashCommandExecutionEvidence,
   type SlashCommandExecutionEvidence
@@ -3825,6 +3826,7 @@ function AppDialogSurface({
   const migrationCounts = buildMigrationPreviewCounts(migrationPreview);
   const selectedCategoryCount = migrationPreview.categories.filter((category) => category.selected).length;
   const migrationProfileDraftHistoryLatestAudit = migrationProfileDraftHistory[0]?.audit;
+  const catalogRefreshSafetyDepth = buildPhase4RefreshSafetyDepth(catalogRefreshProviderSmokeProof);
   const title =
     dialog === "connection"
       ? "Codex Connection"
@@ -3982,6 +3984,30 @@ function AppDialogSurface({
                   </li>
                 ))}
               </ul>
+              <div className="transport-catalog-safety" aria-label={catalogRefreshSafetyDepth.ariaLabel}>
+                <div className="transport-catalog-safety-header">
+                  <strong>{catalogRefreshSafetyDepth.label}</strong>
+                  <b>
+                    {catalogRefreshSafetyDepth.readyCount} ready / {catalogRefreshSafetyDepth.previewCount} preview
+                  </b>
+                </div>
+                <ol className="transport-catalog-safety-list">
+                  {catalogRefreshSafetyDepth.records.map((record) => (
+                    <li
+                      className={classNames(
+                        "transport-catalog-safety-item",
+                        `catalog-safety-${record.status}`
+                      )}
+                      key={record.id}
+                      title={`${record.evidence} ${record.nextAction}`}
+                    >
+                      <span>{record.statusLabel}</span>
+                      <strong>{record.label}</strong>
+                      <small>{record.nextAction}</small>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             </div>
             <p className="transport-fallback">{codexTransportDecision.fallback}</p>
             <div className="dialog-action-row">

@@ -663,6 +663,104 @@ textarea {
   border-color: rgba(88, 166, 255, 0.32);
 }
 
+.transport-catalog-safety {
+  grid-column: 1 / -1;
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  border-top: 1px solid #273241;
+  padding-top: 7px;
+}
+
+.transport-catalog-safety-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.transport-catalog-safety-header strong,
+.transport-catalog-safety-header b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transport-catalog-safety-header strong {
+  color: #edf3f8;
+  font-size: 0.78rem;
+}
+
+.transport-catalog-safety-header b {
+  color: #9fa9b4;
+  font-size: 0.72rem;
+}
+
+.transport-catalog-safety-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.transport-catalog-safety-item {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 66px minmax(0, 1fr);
+  gap: 3px 6px;
+  border: 1px solid #273241;
+  border-radius: 6px;
+  background: #0e141b;
+  padding: 5px 7px;
+}
+
+.transport-catalog-safety-item span,
+.transport-catalog-safety-item strong,
+.transport-catalog-safety-item small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transport-catalog-safety-item span {
+  align-self: start;
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce6ef;
+  padding: 2px 5px;
+  text-align: center;
+  font-size: 0.64rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.transport-catalog-safety-item strong {
+  color: #edf3f8;
+  font-size: 0.74rem;
+}
+
+.transport-catalog-safety-item small {
+  grid-column: 2;
+  color: #9fa9b4;
+  font-size: 0.7rem;
+}
+
+.transport-catalog-safety-item.catalog-safety-ready {
+  border-color: rgba(73, 209, 141, 0.35);
+}
+
+.transport-catalog-safety-item.catalog-safety-preview {
+  border-color: rgba(88, 166, 255, 0.32);
+}
+
+.transport-catalog-safety-item.catalog-safety-blocked {
+  border-color: rgba(255, 107, 107, 0.38);
+}
+
 .connection-checks,
 .migration-grid,
 .slash-command-list {

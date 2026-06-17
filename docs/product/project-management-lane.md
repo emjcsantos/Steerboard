@@ -40,6 +40,8 @@ The Environment panel also includes a Phase 11 Release Readiness gate. It aggreg
 
 The Environment panel also includes a Phase 4 Provider Readiness panel. It reads the same safe catalog validation snapshots used by Owner Testing, classifies each provider surface as ready, preview, setup-required, unsupported, unavailable, or blocked, and keeps the next action metadata-only until explicit execution, approval, audit, and rollback gates exist. The same card now includes catalog-depth rows for command, skill, plugin, MCP, automation, and personalization sources, totals, evidence expectations, and execution locks.
 
+The Connection Dialog catalog smoke proof includes Phase 4 Refresh Safety depth rows. They keep refresh run state, six-surface order, validation result, metadata-only contract, and provider execution lock visible beside the explicit catalog smoke action.
+
 The Environment panel also includes a Phase 4 Surface Depth panel beside Provider Readiness. It turns the same metadata snapshots into surface coverage, setup blocker, capability gap, preview review, and execution lock rows, and it remains metadata-only with no command, skill, plugin, MCP, automation, personalization, network, terminal, Git, or profile execution.
 
 The Environment panel also includes the Migration review gate for Phase 5. It keeps migration metadata-only while showing apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock as separate owner-review records before any active profile or source platform state can change.
@@ -82,7 +84,7 @@ The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk e
 - Bottom PM chat/terminal panel scoped to dashboard alignment, updates, and revision requests.
 - Staged Arena review preview for the latest row run.
 - Remaining Goals summary for all open targets across Phase 1 through Phase 11.
-- Phase 4 Provider Readiness catalog depth and Phase 4 Surface Depth panels for source coverage, catalog evidence expectations, surface coverage, setup blockers, capability gaps, preview review, and execution locks before execution is considered.
+- Phase 4 Provider Readiness catalog depth, Connection Dialog Refresh Safety depth, and Phase 4 Surface Depth panels for source coverage, catalog evidence expectations, metadata-only refresh proof, surface coverage, setup blockers, capability gaps, preview review, and execution locks before execution is considered.
 - Phase 5 Migration review depth records for apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock.
 - Phase 7 Dispatch review depth checks for role counts, max attempt limits, handoff task depth, validation gate depth, and the no-live-worker lock.
 - Phase 8 Audit Depth risk exceptions with disabled-path explanations, evidence requirements, rollback expectations, and audit sources before mutation paths grow.
