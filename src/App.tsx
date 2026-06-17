@@ -310,6 +310,10 @@ import {
   type Phase3ClearancePackage
 } from "./phase3ClearancePackage";
 import {
+  buildPhase3ClearanceCommandPlan,
+  type Phase3ClearanceCommandPlan
+} from "./phase3ClearanceCommandPlan";
+import {
   buildPhase3HandoffGate,
   type Phase3HandoffGate
 } from "./phase3HandoffGate";
@@ -1783,6 +1787,14 @@ export function App() {
         actions: phase3OwnerTestingActions
       }),
     [phase3ExitGateEvidence, phase3OwnerTestingActions]
+  );
+  const phase3ClearanceCommandPlan = useMemo(
+    () =>
+      buildPhase3ClearanceCommandPlan({
+        clearancePackage: phase3ClearancePackage,
+        actions: phase3OwnerTestingActions
+      }),
+    [phase3ClearancePackage, phase3OwnerTestingActions]
   );
   const phase3HandoffRecordState = useMemo(
     () =>
@@ -3444,6 +3456,7 @@ export function App() {
             selectedDispatchReviewRecord={selectedDispatchReviewRecord}
             selectedRun={selectedRun}
             phasePriorityEvidence={phasePriorityEvidence}
+            phase3ClearanceCommandPlan={phase3ClearanceCommandPlan}
             phase3ClearancePackage={phase3ClearancePackage}
             phase3ExitGateEvidence={phase3ExitGateEvidence}
             phase3HandoffGate={phase3HandoffGate}
@@ -6711,6 +6724,7 @@ function RightPanel({
   selectedDispatchReviewRecord,
   selectedRun,
   phasePriorityEvidence,
+  phase3ClearanceCommandPlan,
   phase3ClearancePackage,
   phase3ExitGateEvidence,
   phase3HandoffGate,
@@ -6766,6 +6780,7 @@ function RightPanel({
   selectedDispatchReviewRecord?: DispatchReviewRecord;
   selectedRun?: MockOrchestratorRun;
   phasePriorityEvidence: PhasePriorityEvidenceResult;
+  phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3HandoffGate: Phase3HandoffGate;
@@ -7933,6 +7948,7 @@ function RightPanel({
         failureFixtures={failureStateFixtures}
         failureSummary={failureStateFixtureSummary}
         phasePriorityEvidence={phasePriorityEvidence}
+        phase3ClearanceCommandPlan={phase3ClearanceCommandPlan}
         phase3ClearancePackage={phase3ClearancePackage}
         phase3ExitGateEvidence={phase3ExitGateEvidence}
         phase3HandoffGate={phase3HandoffGate}
@@ -10293,6 +10309,7 @@ function OwnerTestingReadinessPanel({
   failureFixtures,
   failureSummary,
   phasePriorityEvidence,
+  phase3ClearanceCommandPlan,
   phase3ClearancePackage,
   phase3ExitGateEvidence,
   phase3HandoffGate,
@@ -10317,6 +10334,7 @@ function OwnerTestingReadinessPanel({
   failureFixtures: readonly FailureStateFixture[];
   failureSummary: FailureStateFixtureSummary;
   phasePriorityEvidence: PhasePriorityEvidenceResult;
+  phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3HandoffGate: Phase3HandoffGate;
@@ -10642,6 +10660,61 @@ function OwnerTestingReadinessPanel({
             </ol>
             <small title={phase3ClearancePackage.nextAction}>
               {phase3ClearancePackage.nextAction}
+            </small>
+          </div>
+          <div
+            aria-label={phase3ClearanceCommandPlan.ariaLabel}
+            className={classNames(
+              "owner-testing-phase3-command-plan",
+              `owner-testing-phase3-command-plan-${phase3ClearanceCommandPlan.state}`
+            )}
+            title={phase3ClearanceCommandPlan.safety}
+          >
+            <div className="owner-testing-phase3-command-plan-header">
+              <strong>{phase3ClearanceCommandPlan.label}</strong>
+              <span>{phase3ClearanceCommandPlan.canRunCommand ? "Runnable" : "Held"}</span>
+            </div>
+            <code title={phase3ClearanceCommandPlan.nextAction}>
+              {phase3ClearanceCommandPlan.command}
+            </code>
+            <dl
+              className="owner-testing-phase3-command-plan-grid"
+              aria-label="Phase 3 command plan smoke counts"
+            >
+              <div>
+                <dt>Ready</dt>
+                <dd>{phase3ClearanceCommandPlan.readySmokeCount}</dd>
+              </div>
+              <div>
+                <dt>Open</dt>
+                <dd>{phase3ClearanceCommandPlan.openSmokeCount}</dd>
+              </div>
+              <div>
+                <dt>Covers</dt>
+                <dd>{phase3ClearanceCommandPlan.coveredSmokeCount}</dd>
+              </div>
+              <div>
+                <dt>State</dt>
+                <dd>{phase3ClearanceCommandPlan.statusLabel}</dd>
+              </div>
+            </dl>
+            <ol
+              className="owner-testing-phase3-command-plan-list"
+              aria-label="Phase 3 command plan rows"
+            >
+              {phase3ClearanceCommandPlan.items.map((item) => (
+                <li
+                  className={`owner-testing-phase3-command-plan-item-${item.state}`}
+                  key={item.id}
+                  title={`${item.detail} ${item.nextAction}`}
+                >
+                  <strong>{item.label}</strong>
+                  <span>{item.state}</span>
+                </li>
+              ))}
+            </ol>
+            <small title={phase3ClearanceCommandPlan.safety}>
+              {phase3ClearanceCommandPlan.nextAction}
             </small>
           </div>
           <div

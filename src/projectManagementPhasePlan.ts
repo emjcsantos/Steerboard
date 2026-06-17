@@ -193,18 +193,18 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-03-controls-slash",
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
-    description: "Clear the current blocker by proving slash execution, session controls, desktop proof persistence, and owner-reviewed handoff readiness.",
+    description: "Clear the current blocker by proving slash execution, session controls, desktop proof persistence, command-plan clarity, and owner-reviewed handoff readiness.",
     status: "ongoing",
-    completionPercent: 85,
+    completionPercent: 88,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-03-parent-proof-clearance",
         title: "Desktop Proof Clearance",
-        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload, and keep the handoff boundary visible.",
+        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload, keep command-plan clarity visible, and keep the handoff boundary visible.",
         status: "ongoing",
-        completionPercent: 85,
+        completionPercent: 88,
         complexity: "extra_high",
         sourceDocument: "Current state and pipeline",
         children: [
@@ -220,8 +220,16 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-03-child-exit-gate",
             title: "Expose Exact Exit Blocker",
             description: "If Phase 3 cannot exit, show the exact remaining blocker and next owner action instead of a vague incomplete state.",
-            completionPercent: 85,
+            completionPercent: 88,
             sourceDocument: "Phase 3 exit gate evidence"
+          },
+          {
+            id: "phase-03-child-command-plan",
+            title: "Desktop Smoke Command Plan",
+            description: "Show the exact local Phase 3 smoke command, covered proof rows, command-held state, and blocker-correlated next action without running commands automatically.",
+            completionPercent: 80,
+            complexity: "medium",
+            sourceDocument: "Phase 3 clearance command plan"
           },
           {
             id: "phase-03-child-handoff-gate",

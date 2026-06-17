@@ -61,6 +61,27 @@ function isOpenState(state: Phase3ExitGateState): boolean {
   return state !== "ready";
 }
 
+function actionMatchesBlocker(
+  action: Phase3OwnerTestingAction,
+  blocker: Phase3ClearanceBlocker | undefined
+): boolean {
+  if (!blocker) {
+    return false;
+  }
+
+  if (blocker.id === "phase3-exit-gate:live-control-smoke") {
+    return action.id === "phase3-owner-testing:live-control-smoke";
+  }
+  if (blocker.id === "phase3-exit-gate:active-turn-interrupt-smoke") {
+    return action.id === "phase3-owner-testing:active-turn-interrupt-smoke";
+  }
+  if (blocker.id === "phase3-exit-gate:active-turn-steer-smoke") {
+    return action.id === "phase3-owner-testing:active-turn-steer-smoke";
+  }
+
+  return false;
+}
+
 function toBlocker(item: Phase3ExitGateDiagnostic): Phase3ClearanceBlocker {
   return {
     id: item.id,
@@ -146,8 +167,15 @@ export function buildPhase3ClearancePackage(
 
   const blockers = exitGate.items.filter((item) => isOpenState(item.state)).map(toBlocker);
   const runningAction = actions.find(isRunningAction);
-  const runnableAction = actions.find(isActionRunnable);
-  const primaryAction = runningAction ?? runnableAction;
+  const firstBlocker = blockers[0];
+  const blockerAction =
+    actions.find((action) => isRunningAction(action) && actionMatchesBlocker(action, firstBlocker)) ??
+    actions.find((action) => isActionRunnable(action) && actionMatchesBlocker(action, firstBlocker));
+  const fallbackAction =
+    firstBlocker && !firstBlocker.id.includes("-smoke")
+      ? undefined
+      : runningAction ?? actions.find(isActionRunnable);
+  const primaryAction = blockerAction ?? fallbackAction;
   const state = exitGate.state;
   const counts = exitGate.counts;
 

@@ -239,4 +239,85 @@ describe("phase 3 clearance package", () => {
     expect(result.primaryActionId).toBe("phase3-owner-testing:active-turn-steer-smoke");
     expect(result.nextAction).toBe("Run Active-turn steer smoke from Owner Testing.");
   });
+
+  it("keeps slash blockers ahead of unrelated runnable smoke actions", () => {
+    const result = buildPhase3ClearancePackage({
+      exitGate: buildExitGate({
+        state: "waiting",
+        readiness: 35,
+        pass: false,
+        counts: {
+          ready: 1,
+          review: 0,
+          blocked: 0,
+          waiting: 4
+        },
+        items: [
+          {
+            id: "phase3-exit-gate:slash-execution",
+            label: "Slash execution",
+            state: "waiting",
+            detail: "Slash missing.",
+            nextAction: "Run provider-routed slash proof."
+          },
+          {
+            id: "phase3-exit-gate:live-control-smoke",
+            label: "Live control smoke",
+            state: "waiting",
+            detail: "Smoke missing.",
+            nextAction: "Run live-control smoke."
+          }
+        ]
+      }),
+      actions: [
+        smokeAction({
+          id: "phase3-owner-testing:live-control-smoke",
+          label: "Live-control smoke"
+        })
+      ]
+    });
+
+    expect(result.primaryActionId).toBeUndefined();
+    expect(result.primaryActionLabel).toBeUndefined();
+    expect(result.nextAction).toBe("Run provider-routed slash proof.");
+  });
+
+  it("promotes a smoke action only when it matches the first smoke blocker", () => {
+    const result = buildPhase3ClearancePackage({
+      exitGate: buildExitGate({
+        state: "waiting",
+        readiness: 35,
+        pass: false,
+        counts: {
+          ready: 2,
+          review: 0,
+          blocked: 0,
+          waiting: 3
+        },
+        items: [
+          {
+            id: "phase3-exit-gate:active-turn-steer-smoke",
+            label: "Active-turn steer smoke",
+            state: "waiting",
+            detail: "Steer missing.",
+            nextAction: "Run steer smoke."
+          }
+        ]
+      }),
+      actions: [
+        smokeAction({
+          id: "phase3-owner-testing:live-control-smoke",
+          label: "Live-control smoke"
+        }),
+        smokeAction({
+          id: "phase3-owner-testing:active-turn-steer-smoke",
+          label: "Active-turn steer smoke"
+        })
+      ]
+    });
+
+    expect(result.primaryActionId).toBe("phase3-owner-testing:active-turn-steer-smoke");
+    expect(result.primaryActionLabel).toBe("Active-turn steer smoke");
+    expect(result.nextAction).toBe("Run Active-turn steer smoke from Owner Testing.");
+  });
 });
