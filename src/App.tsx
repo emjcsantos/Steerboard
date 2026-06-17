@@ -360,6 +360,13 @@ import {
   type Phase3OwnerHandoffRecord
 } from "./phase3HandoffRecord";
 import {
+  clearPhase3CommandValidationRecord,
+  createPhase3CommandValidationRecord,
+  loadPhase3CommandValidationRecord,
+  savePhase3CommandValidationRecord,
+  type Phase3CommandValidationRecord
+} from "./phase3CommandValidationRecord";
+import {
   buildPhase3OwnerTestingActions,
   type Phase3OwnerTestingAction
 } from "./phase3OwnerTestingActions";
@@ -1624,6 +1631,8 @@ export function App() {
   const [phase3SmokeProofInitialBundle] = useState(() => loadPhase3SmokeProofBundle());
   const [phase3OwnerHandoffRecord, setPhase3OwnerHandoffRecord] =
     useState<Phase3OwnerHandoffRecord | undefined>(() => loadPhase3OwnerHandoffRecord());
+  const [phase3CommandValidationRecord, setPhase3CommandValidationRecord] =
+    useState<Phase3CommandValidationRecord | undefined>(() => loadPhase3CommandValidationRecord());
   const [codexActiveTurnControlSmokeProof, setCodexActiveTurnControlSmokeProof] =
     useState<CodexActiveTurnControlSmokeProof>(() =>
       phase3SmokeProofInitialBundle.activeTurnInterruptSmoke
@@ -1939,6 +1948,21 @@ export function App() {
     clearPhase3OwnerHandoffRecord();
     setPhase3OwnerHandoffRecord(undefined);
     setAppNotice("Phase 3 owner handoff record cleared");
+  }, []);
+  const recordPhase3CommandValidation = useCallback(() => {
+    const record = createPhase3CommandValidationRecord(
+      phase3ClearanceCommandPlan.command,
+      new Date().toISOString()
+    );
+
+    savePhase3CommandValidationRecord(record);
+    setPhase3CommandValidationRecord(record);
+    setAppNotice("Phase 3 CLI smoke validation recorded locally");
+  }, [phase3ClearanceCommandPlan.command]);
+  const clearPhase3CommandValidation = useCallback(() => {
+    clearPhase3CommandValidationRecord();
+    setPhase3CommandValidationRecord(undefined);
+    setAppNotice("Phase 3 CLI smoke validation record cleared");
   }, []);
 
   useEffect(() => {
@@ -3551,6 +3575,8 @@ export function App() {
             onRecordWorkerValidationAttempt={handleWorkerValidationAttempt}
             onRecordPhase3OwnerHandoff={recordPhase3OwnerHandoff}
             onClearPhase3OwnerHandoff={clearPhase3OwnerHandoff}
+            onRecordPhase3CommandValidation={recordPhase3CommandValidation}
+            onClearPhase3CommandValidation={clearPhase3CommandValidation}
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
             project={project}
@@ -3574,6 +3600,7 @@ export function App() {
             phase3ExitGateEvidence={phase3ExitGateEvidence}
             phase3HandoffGate={phase3HandoffGate}
             phase3OwnerHandoffRecord={phase3OwnerHandoffRecord}
+            phase3CommandValidationRecord={phase3CommandValidationRecord}
             phase3OwnerTestingActions={phase3OwnerTestingActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
             sessionControlOwnerTestingState={sessionControlOwnerTestingState}
@@ -7344,7 +7371,9 @@ function RightPanel({
   modeHandoff,
   modeHandoffQa,
   mockRuns,
+  onClearPhase3CommandValidation,
   onClearPhase3OwnerHandoff,
+  onRecordPhase3CommandValidation,
   onRecordPhase3OwnerHandoff,
   onRecordWorkerValidationAttempt,
   onSelectRun,
@@ -7369,6 +7398,7 @@ function RightPanel({
   phase3ClearancePackage,
   phase3ExitGateEvidence,
   phase3HandoffGate,
+  phase3CommandValidationRecord,
   phase3OwnerHandoffRecord,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
@@ -7401,7 +7431,9 @@ function RightPanel({
   modeHandoffQa: CockpitModeHandoffQa;
   mockRuns: MockOrchestratorRun[];
   onFocusPanel: (panelId: string | undefined) => void;
+  onClearPhase3CommandValidation: () => void;
   onClearPhase3OwnerHandoff: () => void;
+  onRecordPhase3CommandValidation: () => void;
   onRecordPhase3OwnerHandoff: () => void;
   onRecordWorkerValidationAttempt: (
     runId: string,
@@ -7430,6 +7462,7 @@ function RightPanel({
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3HandoffGate: Phase3HandoffGate;
+  phase3CommandValidationRecord?: Phase3CommandValidationRecord;
   phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
@@ -8630,9 +8663,12 @@ function RightPanel({
         phase3ClearancePackage={phase3ClearancePackage}
         phase3ExitGateEvidence={phase3ExitGateEvidence}
         phase3HandoffGate={phase3HandoffGate}
+        phase3CommandValidationRecord={phase3CommandValidationRecord}
         phase3OwnerHandoffRecord={phase3OwnerHandoffRecord}
         phase3OwnerTestingActions={phase3OwnerTestingActions}
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
+        onRecordPhase3CommandValidation={onRecordPhase3CommandValidation}
+        onClearPhase3CommandValidation={onClearPhase3CommandValidation}
         onRecordPhase3OwnerHandoff={onRecordPhase3OwnerHandoff}
         onClearPhase3OwnerHandoff={onClearPhase3OwnerHandoff}
         onRunCodexActiveTurnControlSmokeProof={onRunCodexActiveTurnControlSmokeProof}
@@ -11005,9 +11041,12 @@ function OwnerTestingReadinessPanel({
   phase3ClearancePackage,
   phase3ExitGateEvidence,
   phase3HandoffGate,
+  phase3CommandValidationRecord,
   phase3OwnerHandoffRecord,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
+  onRecordPhase3CommandValidation,
+  onClearPhase3CommandValidation,
   onRecordPhase3OwnerHandoff,
   onClearPhase3OwnerHandoff,
   onRunCodexActiveTurnControlSmokeProof,
@@ -11032,9 +11071,12 @@ function OwnerTestingReadinessPanel({
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3HandoffGate: Phase3HandoffGate;
+  phase3CommandValidationRecord?: Phase3CommandValidationRecord;
   phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
+  onRecordPhase3CommandValidation: () => void;
+  onClearPhase3CommandValidation: () => void;
   onRecordPhase3OwnerHandoff: () => void;
   onClearPhase3OwnerHandoff: () => void;
   onRunCodexActiveTurnControlSmokeProof: () => void;
@@ -11656,6 +11698,65 @@ function OwnerTestingReadinessPanel({
             <small title={phase3ClearanceCommandPlan.safety}>
               {phase3ClearanceCommandPlan.nextAction}
             </small>
+            <div
+              className={classNames(
+                "owner-testing-phase3-command-validation",
+                phase3CommandValidationRecord
+                  ? `owner-testing-phase3-command-validation-${phase3CommandValidationRecord.status}`
+                  : "owner-testing-phase3-command-validation-missing"
+              )}
+              aria-label={
+                phase3CommandValidationRecord
+                  ? `Phase 3 CLI smoke validation ${phase3CommandValidationRecord.status}; ${phase3CommandValidationRecord.passedTestCount} passed, ${phase3CommandValidationRecord.failedTestCount} failed`
+                  : "Phase 3 CLI smoke validation missing"
+              }
+            >
+              <div>
+                <strong>
+                  {phase3CommandValidationRecord
+                    ? "CLI smoke validation recorded"
+                    : "No CLI smoke validation record"}
+                </strong>
+                <span
+                  title={
+                    phase3CommandValidationRecord?.detail ??
+                    "Run npm.cmd run smoke:phase3, then record the local pass without changing desktop proof rows."
+                  }
+                >
+                  {phase3CommandValidationRecord
+                    ? `${phase3CommandValidationRecord.status}; ${formatTimestamp(
+                        phase3CommandValidationRecord.createdAt
+                      )}`
+                    : "Desktop proof rows remain the source of exit readiness"}
+                </span>
+              </div>
+              <div
+                className="owner-testing-phase3-command-validation-actions"
+                aria-label="Phase 3 CLI smoke validation record actions"
+              >
+                <button
+                  onClick={onRecordPhase3CommandValidation}
+                  title="Record that the local Phase 3 CLI smoke command passed. This does not mark persisted desktop UI proof rows ready."
+                  type="button"
+                >
+                  <CheckCircle2 size={13} />
+                  <span>Record pass</span>
+                </button>
+                <button
+                  disabled={!phase3CommandValidationRecord}
+                  onClick={onClearPhase3CommandValidation}
+                  title={
+                    phase3CommandValidationRecord
+                      ? "Clear the local Phase 3 CLI smoke validation record."
+                      : "No local Phase 3 CLI smoke validation record is attached."
+                  }
+                  type="button"
+                >
+                  <RotateCcw size={13} />
+                  <span>Clear</span>
+                </button>
+              </div>
+            </div>
           </div>
           <div
             aria-label={phase3HandoffGate.ariaLabel}
