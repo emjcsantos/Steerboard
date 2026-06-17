@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { LiveActionAuditRecord } from "./liveActionAudit";
 import type { LiveActionPermissionRequest } from "./liveActionPermission";
+import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
+import type { Phase9RunnerApprovalRecord } from "./phase9RunnerApprovalRecord";
 import type { DesktopActionRunnerExecuteResult } from "./desktopActionRunner";
 import {
   evaluateLiveActionRunnerExecution,
@@ -10,6 +12,34 @@ import { buildPhase9RunnerApprovalSnapshot } from "./phase9RunnerApproval";
 import { buildPhase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDepth";
 
 const terminalDefinition = LIVE_ACTION_RUNNER_DEFINITIONS[0];
+
+const readyPhase8ReviewRecord: Phase8AuditReviewRecord = {
+  id: "phase8-audit-review:2026-06-18T00:00:00.000Z",
+  createdAt: "2026-06-18T00:00:00.000Z",
+  state: "ready",
+  readiness: 100,
+  auditRecordCount: 8,
+  openExceptionCount: 0,
+  disabledPathCount: 8,
+  mutationLocked: true,
+  rollbackEvidence: "Phase 8 rollback evidence is attached.",
+  detail: "Phase 8 owner audit review is ready."
+};
+
+const readyRunnerApprovalRecord: Phase9RunnerApprovalRecord = {
+  id: "phase9-runner-approval:2026-06-18T01:00:00.000Z",
+  createdAt: "2026-06-18T01:00:00.000Z",
+  state: "ready",
+  readiness: 100,
+  selectedAction: "terminal-readonly-probe",
+  auditRecordCount: 2,
+  phase8ReviewRecordId: readyPhase8ReviewRecord.id,
+  phase8ReviewState: "ready",
+  canRequestDesktopProbe: true,
+  mutationLocked: true,
+  rollbackEvidence: "Phase 9 rollback evidence is attached.",
+  detail: "Phase 9 runner approval review is ready."
+};
 
 function permissionRequest(
   overrides: Partial<LiveActionPermissionRequest> = {}
@@ -65,6 +95,8 @@ function snapshot(options: {
   request?: LiveActionPermissionRequest;
   result?: DesktopActionRunnerExecuteResult;
   auditRecords?: LiveActionAuditRecord[];
+  phase8ReviewRecord?: Phase8AuditReviewRecord;
+  runnerApprovalRecord?: Phase9RunnerApprovalRecord;
   now?: string;
 } = {}) {
   const request = options.request;
@@ -82,6 +114,8 @@ function snapshot(options: {
     runnerEvaluation: evaluation,
     desktopRunnerResult: options.result ?? desktopResult(),
     auditRecords: options.auditRecords ?? [],
+    phase8AuditReviewRecord: options.phase8ReviewRecord ?? readyPhase8ReviewRecord,
+    runnerApprovalRecord: options.runnerApprovalRecord ?? readyRunnerApprovalRecord,
     evaluatedAt: options.now ?? "2026-06-11T00:05:00.000Z"
   });
 }
@@ -96,6 +130,7 @@ describe("phase 9 runner approval depth", () => {
       "request-preview",
       "validation-output",
       "audit-record",
+      "runner-review-record",
       "rollback-evidence",
       "desktop-execution-lock"
     ]);
@@ -105,6 +140,7 @@ describe("phase 9 runner approval depth", () => {
       "phase-09-parent-approval-flow",
       "phase-09-parent-runner-probe",
       "phase-09-child-runner-observability",
+      "phase-09-child-approval-record",
       "phase-09-child-approval-record",
       "phase-09-child-approval-depth",
       "phase-09-child-traceability"
@@ -126,7 +162,7 @@ describe("phase 9 runner approval depth", () => {
       ])
     );
     expect(depth.waitingCount).toBeGreaterThan(0);
-    expect(depth.mutationLockCount).toBe(5);
+    expect(depth.mutationLockCount).toBe(6);
   });
 
   it("marks the full depth ready only when approval, preview, validation, audit, and rollback proof are present", () => {
@@ -146,7 +182,7 @@ describe("phase 9 runner approval depth", () => {
     );
 
     expect(depth.records.every((record) => record.status === "ready")).toBe(true);
-    expect(depth.readyCount).toBe(7);
+    expect(depth.readyCount).toBe(8);
     expect(depth.records).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

@@ -569,6 +569,13 @@ import { buildPhase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDep
 import { buildPhase9RunnerBlockerPriority } from "./phase9RunnerBlockerPriority";
 import { buildPhase9RunnerTraceabilitySummary } from "./phase9RunnerTraceability";
 import {
+  clearPhase9RunnerApprovalRecord,
+  createPhase9RunnerApprovalRecord,
+  loadPhase9RunnerApprovalRecord,
+  savePhase9RunnerApprovalRecord,
+  type Phase9RunnerApprovalRecord
+} from "./phase9RunnerApprovalRecord";
+import {
   buildPhase10ArenaPolishSnapshot,
   type Phase10ArenaPolishSnapshot
 } from "./phase10ArenaPolish";
@@ -7549,6 +7556,8 @@ function RightPanel({
     );
   const [phase8AuditReviewRecord, setPhase8AuditReviewRecord] =
     useState<Phase8AuditReviewRecord | undefined>(() => loadPhase8AuditReviewRecord());
+  const [phase9RunnerApprovalRecord, setPhase9RunnerApprovalRecord] =
+    useState<Phase9RunnerApprovalRecord | undefined>(() => loadPhase9RunnerApprovalRecord());
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
@@ -7961,15 +7970,33 @@ function RightPanel({
         permissionRequest: terminalLiveActionRequest,
         runnerEvaluation: terminalLiveActionRunnerEvaluation,
         desktopRunnerResult: desktopActionRunnerResult,
-        auditRecords: liveActionAuditHistory
+        auditRecords: liveActionAuditHistory,
+        phase8AuditReviewRecord,
+        runnerApprovalRecord: phase9RunnerApprovalRecord
       }),
     [
       desktopActionRunnerResult,
+      phase8AuditReviewRecord,
+      phase9RunnerApprovalRecord,
       liveActionAuditHistory,
       terminalLiveActionRequest,
       terminalLiveActionRunnerEvaluation
     ]
   );
+  const recordPhase9RunnerApprovalReview = useCallback(() => {
+    const record = createPhase9RunnerApprovalRecord(
+      phase9RunnerApproval,
+      phase8AuditReviewRecord,
+      new Date().toISOString()
+    );
+
+    savePhase9RunnerApprovalRecord(record);
+    setPhase9RunnerApprovalRecord(record);
+  }, [phase8AuditReviewRecord, phase9RunnerApproval]);
+  const clearPhase9RunnerApprovalReview = useCallback(() => {
+    clearPhase9RunnerApprovalRecord();
+    setPhase9RunnerApprovalRecord(undefined);
+  }, []);
   const selectedRuntimeProfile = useMemo(
     () => selectRuntimeProfileForAdapter(runtimeProfiles, runtimeAdapter?.id ?? project.id),
     [project.id, runtimeAdapter?.id]
@@ -9293,7 +9320,10 @@ function RightPanel({
       />
 
       <Phase9RunnerApprovalPanel
+        onClearRunnerReview={clearPhase9RunnerApprovalReview}
+        onRecordRunnerReview={recordPhase9RunnerApprovalReview}
         phase8PermissionAuditDepth={phase8PermissionAuditDepth}
+        reviewRecord={phase9RunnerApprovalRecord}
         snapshot={phase9RunnerApproval}
       />
 
@@ -12557,17 +12587,24 @@ function Phase8PermissionAuditDepthPanel({
 }
 
 function Phase9RunnerApprovalPanel({
+  onClearRunnerReview,
+  onRecordRunnerReview,
   phase8PermissionAuditDepth,
+  reviewRecord,
   snapshot
 }: {
+  onClearRunnerReview: () => void;
+  onRecordRunnerReview: () => void;
   phase8PermissionAuditDepth: Phase8PermissionAuditDepthSnapshot;
+  reviewRecord?: Phase9RunnerApprovalRecord;
   snapshot: Phase9RunnerApprovalSnapshot;
 }) {
   const depth = buildPhase9RunnerApprovalDepthSummary(snapshot);
   const traceability = buildPhase9RunnerTraceabilitySummary({
     approval: snapshot,
     depth,
-    phase8: phase8PermissionAuditDepth
+    phase8: phase8PermissionAuditDepth,
+    runnerReviewRecord: reviewRecord
   });
   const blockerPriority = buildPhase9RunnerBlockerPriority({
     approval: snapshot,
@@ -12596,6 +12633,62 @@ function Phase9RunnerApprovalPanel({
           <b>{snapshot.readiness}%</b>
         </div>
         <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
+        <div
+          className={classNames(
+            "phase9-runner-review-record",
+            reviewRecord
+              ? `phase9-runner-review-record-${reviewRecord.state}`
+              : "phase9-runner-review-record-missing"
+          )}
+          aria-label={
+            reviewRecord
+              ? `Phase 9 runner review record ${reviewRecord.state}; ${reviewRecord.readiness}% ready; ${reviewRecord.auditRecordCount} audit records`
+              : "Phase 9 runner review record missing"
+          }
+        >
+          <div>
+            <strong>
+              {reviewRecord ? "Runner review recorded" : "No local runner review record"}
+            </strong>
+            <span
+              title={
+                reviewRecord
+                  ? `${reviewRecord.detail} ${reviewRecord.rollbackEvidence}`
+                  : "Record a local owner review after checking Phase 9 approval, preview, validation, audit, rollback, and mutation-lock evidence."
+              }
+            >
+              {reviewRecord
+                ? `${formatTimestamp(reviewRecord.createdAt)}; ${reviewRecord.auditRecordCount} audit records`
+                : "Fixed probe remains held"}
+            </span>
+          </div>
+          <div
+            className="phase9-runner-review-record-actions"
+            aria-label="Phase 9 runner review record actions"
+          >
+            <button
+              onClick={onRecordRunnerReview}
+              title="Record a local owner review of the current Phase 9 runner approval evidence."
+              type="button"
+            >
+              <ClipboardList size={13} />
+              Record review
+            </button>
+            <button
+              disabled={!reviewRecord}
+              onClick={onClearRunnerReview}
+              title={
+                reviewRecord
+                  ? "Clear the local Phase 9 runner review record."
+                  : "No local Phase 9 runner review record is attached."
+              }
+              type="button"
+            >
+              <RotateCcw size={13} />
+              Clear
+            </button>
+          </div>
+        </div>
         <dl className="phase9-runner-grid" aria-label="Phase 9 desktop runner approval counts">
           <div>
             <dt>Request</dt>

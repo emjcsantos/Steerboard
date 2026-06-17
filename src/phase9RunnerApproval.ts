@@ -1,11 +1,13 @@
 import type { LiveActionAuditRecord } from "./liveActionAudit";
 import type { LiveActionPermissionRequest } from "./liveActionPermission";
 import type { LiveActionRunnerExecutionResult } from "./liveActionRunner";
+import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import {
   buildTerminalReadonlyProbeRequest,
   type DesktopActionRunnerExecuteResult,
   type DesktopActionRunnerRequestBuildResult
 } from "./desktopActionRunner";
+import type { Phase9RunnerApprovalRecord } from "./phase9RunnerApprovalRecord";
 
 export type Phase9RunnerApprovalState = "ready" | "review" | "blocked" | "waiting";
 
@@ -16,6 +18,7 @@ export type Phase9RunnerApprovalItemKind =
   | "preview"
   | "validation"
   | "audit"
+  | "owner-review"
   | "rollback";
 
 export interface Phase9RunnerApprovalItem {
@@ -51,6 +54,8 @@ export interface Phase9RunnerApprovalInput {
   runnerEvaluation?: LiveActionRunnerExecutionResult;
   desktopRunnerResult: DesktopActionRunnerExecuteResult;
   auditRecords: readonly LiveActionAuditRecord[];
+  phase8AuditReviewRecord?: Phase8AuditReviewRecord;
+  runnerApprovalRecord?: Phase9RunnerApprovalRecord;
   evaluatedAt?: string | Date;
 }
 
@@ -368,6 +373,114 @@ function auditItem(records: readonly LiveActionAuditRecord[]): Phase9RunnerAppro
   };
 }
 
+function ownerReviewItem(
+  phase8Record: Phase8AuditReviewRecord | undefined,
+  record: Phase9RunnerApprovalRecord | undefined
+): Phase9RunnerApprovalItem {
+  if (!phase8Record) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-review`,
+      label: "Owner runner review",
+      kind: "owner-review",
+      status: "blocked",
+      detail:
+        "Phase 9 cannot trust runner approval until the persisted Phase 8 owner audit review is attached.",
+      nextAction:
+        "Record the Phase 8 owner audit review before reviewing the Phase 9 runner approval path."
+    };
+  }
+
+  if (phase8Record.state !== "ready" || !phase8Record.mutationLocked) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-review`,
+      label: "Owner runner review",
+      kind: "owner-review",
+      status: phase8Record.state === "blocked" || !phase8Record.mutationLocked ? "blocked" : "review",
+      detail:
+        "The persisted Phase 8 owner audit review is not ready or does not preserve the mutation lock.",
+      nextAction:
+        "Resolve Phase 8 owner audit review blockers before recording Phase 9 runner approval."
+    };
+  }
+
+  if (!record) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-review`,
+      label: "Owner runner review",
+      kind: "owner-review",
+      status: "waiting",
+      detail:
+        "No local Phase 9 runner approval review record is attached to the fixed probe path.",
+      nextAction:
+        "Record a local owner review for the current Phase 9 runner approval evidence."
+    };
+  }
+
+  if (
+    record.selectedAction !== SELECTED_ACTION ||
+    record.phase8ReviewRecordId !== phase8Record.id ||
+    record.phase8ReviewState !== "ready"
+  ) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-review`,
+      label: "Owner runner review",
+      kind: "owner-review",
+      status: "review",
+      detail:
+        "The persisted Phase 9 runner review is stale against the current fixed probe or Phase 8 owner audit review record.",
+      nextAction:
+        "Record a fresh Phase 9 runner approval review for the current Phase 8 audit record."
+    };
+  }
+
+  if (!record.mutationLocked || !record.rollbackEvidence.trim()) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-review`,
+      label: "Owner runner review",
+      kind: "owner-review",
+      status: "blocked",
+      detail:
+        "The persisted Phase 9 runner review is missing mutation-lock or rollback evidence.",
+      nextAction:
+        "Clear and re-record the Phase 9 runner approval review with rollback evidence attached."
+    };
+  }
+
+  if (record.state === "blocked") {
+    return {
+      id: `${SNAPSHOT_ID}:owner-review`,
+      label: "Owner runner review",
+      kind: "owner-review",
+      status: "blocked",
+      detail: record.detail,
+      nextAction:
+        "Resolve the blocked Phase 9 runner review record before trusting the runner path."
+    };
+  }
+
+  if (record.state === "review" || record.state === "waiting") {
+    return {
+      id: `${SNAPSHOT_ID}:owner-review`,
+      label: "Owner runner review",
+      kind: "owner-review",
+      status: "review",
+      detail: record.detail,
+      nextAction:
+        "Review the persisted Phase 9 runner approval record before runner approval advances."
+    };
+  }
+
+  return {
+    id: `${SNAPSHOT_ID}:owner-review`,
+    label: "Owner runner review",
+    kind: "owner-review",
+    status: "ready",
+    detail: `${record.detail} ${record.rollbackEvidence}`,
+    nextAction:
+      "Keep the Phase 9 runner approval review record attached before expanding runner actions."
+  };
+}
+
 function rollbackItem(): Phase9RunnerApprovalItem {
   return {
     id: `${SNAPSHOT_ID}:rollback`,
@@ -408,6 +521,7 @@ export function buildPhase9RunnerApprovalSnapshot(
     previewItem(buildResult),
     validationItem(input.desktopRunnerResult),
     auditItem(input.auditRecords),
+    ownerReviewItem(input.phase8AuditReviewRecord, input.runnerApprovalRecord),
     rollbackItem()
   ];
   const state = resolveState(items);
@@ -417,7 +531,13 @@ export function buildPhase9RunnerApprovalSnapshot(
   const blockedCount = items.filter((item) => item.status === "blocked").length;
   const waitingCount = items.filter((item) => item.status === "waiting").length;
   const auditRecordCount = input.auditRecords.filter(isTerminalAuditRecord).length;
-  const canRequestDesktopProbe = Boolean(buildResult?.ok) && blockedCount === 0;
+  const canRequestDesktopProbe =
+    Boolean(buildResult?.ok) &&
+    blockedCount === 0 &&
+    input.phase8AuditReviewRecord?.state === "ready" &&
+    input.runnerApprovalRecord?.state === "ready" &&
+    input.runnerApprovalRecord.phase8ReviewRecordId === input.phase8AuditReviewRecord.id &&
+    input.runnerApprovalRecord.mutationLocked;
   const draft = {
     id: SNAPSHOT_ID,
     label: SNAPSHOT_LABEL,

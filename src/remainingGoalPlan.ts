@@ -232,10 +232,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 9"],
     phaseIds: ["phase-09-desktop-runner"],
     goal:
-      "Allow the fixed terminal read-only desktop probe only after permission, audit, validation, and rollback gates pass.",
+      "Allow the fixed terminal read-only desktop probe only after permission, audit, validation, rollback, Phase 8 owner review, and persisted runner-review gates pass.",
     status: "next",
     priority: "high",
-    completionPercent: 40,
+    completionPercent: 45,
     pmTaskIds: [
       "phase-09-desktop-runner",
       "phase-09-parent-runner-probe",
@@ -248,7 +248,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-09-child-approval-depth"
     ],
     nextAction:
-      "Use the Phase 9 Runner Approval depth, traceability records, and blocker-priority queue to keep the terminal-readonly-probe selected, linked to PM child rows, uniquely evidenced, owner-approved, previewed, validated, audited, rollback-safe, gated by Phase 8, ranked by exact top blocker, and locked away from broad desktop mutation paths."
+      "Use the Phase 9 Runner Approval depth, local runner-review record, traceability records, and blocker-priority queue to keep the terminal-readonly-probe selected, linked to PM child rows, uniquely evidenced, owner-approved, previewed, validated, audited, rollback-safe, gated by Phase 8 owner review, ranked by exact top blocker, and locked away from broad desktop mutation paths."
   },
   {
     id: "goal-phase-10-arena-polish",

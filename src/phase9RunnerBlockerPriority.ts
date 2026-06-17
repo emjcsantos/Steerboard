@@ -121,31 +121,34 @@ function sourceRank(sourceId: string): number {
   if (normalized.includes("phase8-gate")) {
     return 0;
   }
-  if (normalized.includes("permission") || normalized.includes("owner-approval")) {
+  if (normalized.includes("owner-review") || normalized.includes("runner-review")) {
     return 1;
   }
-  if (normalized.includes("approval")) {
+  if (normalized.includes("permission") || normalized.includes("owner-approval")) {
     return 2;
   }
-  if (normalized.includes("preview")) {
+  if (normalized.includes("approval")) {
     return 3;
   }
-  if (normalized.includes("validation")) {
+  if (normalized.includes("preview")) {
     return 4;
   }
-  if (normalized.includes("audit")) {
+  if (normalized.includes("validation")) {
     return 5;
   }
-  if (normalized.includes("rollback")) {
+  if (normalized.includes("audit")) {
     return 6;
   }
-  if (normalized.includes("lock") || normalized.includes("mutation")) {
+  if (normalized.includes("rollback")) {
     return 7;
   }
-  if (normalized.includes("pm") || normalized.includes("traceability")) {
+  if (normalized.includes("lock") || normalized.includes("mutation")) {
     return 8;
   }
-  return 9;
+  if (normalized.includes("pm") || normalized.includes("traceability")) {
+    return 9;
+  }
+  return 10;
 }
 
 function severityForState(state: Phase9RunnerBlockerPriorityState): Phase9RunnerBlockerPrioritySeverity {

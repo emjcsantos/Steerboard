@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { LiveActionAuditRecord } from "./liveActionAudit";
 import type { LiveActionPermissionRequest } from "./liveActionPermission";
+import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
+import type { Phase9RunnerApprovalRecord } from "./phase9RunnerApprovalRecord";
 import {
   buildDesktopActionRunnerBrowserFallbackResult,
   type DesktopActionRunnerExecuteResult
@@ -12,6 +14,34 @@ import {
 import { buildPhase9RunnerApprovalSnapshot } from "./phase9RunnerApproval";
 
 const terminalDefinition = LIVE_ACTION_RUNNER_DEFINITIONS[0];
+
+const readyPhase8ReviewRecord: Phase8AuditReviewRecord = {
+  id: "phase8-audit-review:2026-06-18T00:00:00.000Z",
+  createdAt: "2026-06-18T00:00:00.000Z",
+  state: "ready",
+  readiness: 100,
+  auditRecordCount: 8,
+  openExceptionCount: 0,
+  disabledPathCount: 8,
+  mutationLocked: true,
+  rollbackEvidence: "Phase 8 rollback evidence is attached.",
+  detail: "Phase 8 owner audit review is ready."
+};
+
+const readyRunnerApprovalRecord: Phase9RunnerApprovalRecord = {
+  id: "phase9-runner-approval:2026-06-18T01:00:00.000Z",
+  createdAt: "2026-06-18T01:00:00.000Z",
+  state: "ready",
+  readiness: 100,
+  selectedAction: "terminal-readonly-probe",
+  auditRecordCount: 2,
+  phase8ReviewRecordId: readyPhase8ReviewRecord.id,
+  phase8ReviewState: "ready",
+  canRequestDesktopProbe: true,
+  mutationLocked: true,
+  rollbackEvidence: "Phase 9 rollback evidence is attached.",
+  detail: "Phase 9 runner approval review is ready."
+};
 
 function permissionRequest(
   overrides: Partial<LiveActionPermissionRequest> = {}
@@ -67,6 +97,8 @@ function snapshot(options: {
   request?: LiveActionPermissionRequest;
   result?: DesktopActionRunnerExecuteResult;
   auditRecords?: LiveActionAuditRecord[];
+  phase8ReviewRecord?: Phase8AuditReviewRecord | null;
+  runnerApprovalRecord?: Phase9RunnerApprovalRecord | null;
   now?: string;
 } = {}) {
   const request = options.request;
@@ -84,6 +116,14 @@ function snapshot(options: {
     runnerEvaluation: evaluation,
     desktopRunnerResult: options.result ?? desktopResult(),
     auditRecords: options.auditRecords ?? [],
+    phase8AuditReviewRecord:
+      options.phase8ReviewRecord === null
+        ? undefined
+        : options.phase8ReviewRecord ?? readyPhase8ReviewRecord,
+    runnerApprovalRecord:
+      options.runnerApprovalRecord === null
+        ? undefined
+        : options.runnerApprovalRecord ?? readyRunnerApprovalRecord,
     evaluatedAt: options.now ?? "2026-06-11T00:05:00.000Z"
   });
 }
@@ -135,6 +175,25 @@ describe("phase 9 runner approval", () => {
         expect.objectContaining({
           label: "Validation output",
           status: "waiting"
+        })
+      ])
+    );
+  });
+
+  it("blocks runner approval when persisted owner review evidence is missing", () => {
+    const approval = snapshot({
+      request: permissionRequest({ state: "approved" }),
+      phase8ReviewRecord: null
+    });
+
+    expect(approval.state).toBe("blocked");
+    expect(approval.canRequestDesktopProbe).toBe(false);
+    expect(approval.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner runner review",
+          kind: "owner-review",
+          status: "blocked"
         })
       ])
     );

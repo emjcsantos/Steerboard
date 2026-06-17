@@ -6,7 +6,9 @@ import {
   evaluateLiveActionRunnerExecution,
   LIVE_ACTION_RUNNER_DEFINITIONS
 } from "./liveActionRunner";
+import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import type { Phase8PermissionAuditDepthSnapshot } from "./phase8PermissionAuditDepth";
+import type { Phase9RunnerApprovalRecord } from "./phase9RunnerApprovalRecord";
 import { buildPhase9RunnerApprovalSnapshot } from "./phase9RunnerApproval";
 import { buildPhase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDepth";
 import { buildPhase9RunnerBlockerPriority } from "./phase9RunnerBlockerPriority";
@@ -14,6 +16,34 @@ import { buildPhase9RunnerTraceabilitySummary } from "./phase9RunnerTraceability
 import { remainingGoalPlan } from "./remainingGoalPlan";
 
 const terminalDefinition = LIVE_ACTION_RUNNER_DEFINITIONS[0];
+
+const readyPhase8ReviewRecord: Phase8AuditReviewRecord = {
+  id: "phase8-audit-review:2026-06-18T00:00:00.000Z",
+  createdAt: "2026-06-18T00:00:00.000Z",
+  state: "ready",
+  readiness: 100,
+  auditRecordCount: 8,
+  openExceptionCount: 0,
+  disabledPathCount: 8,
+  mutationLocked: true,
+  rollbackEvidence: "Phase 8 rollback evidence is attached.",
+  detail: "Phase 8 owner audit review is ready."
+};
+
+const readyRunnerApprovalRecord: Phase9RunnerApprovalRecord = {
+  id: "phase9-runner-approval:2026-06-18T01:00:00.000Z",
+  createdAt: "2026-06-18T01:00:00.000Z",
+  state: "ready",
+  readiness: 100,
+  selectedAction: "terminal-readonly-probe",
+  auditRecordCount: 2,
+  phase8ReviewRecordId: readyPhase8ReviewRecord.id,
+  phase8ReviewState: "ready",
+  canRequestDesktopProbe: true,
+  mutationLocked: true,
+  rollbackEvidence: "Phase 9 rollback evidence is attached.",
+  detail: "Phase 9 runner approval review is ready."
+};
 
 function permissionRequest(
   overrides: Partial<LiveActionPermissionRequest> = {}
@@ -98,6 +128,8 @@ function approvalSnapshot(options: {
   request?: LiveActionPermissionRequest;
   result?: DesktopActionRunnerExecuteResult;
   auditRecords?: LiveActionAuditRecord[];
+  phase8ReviewRecord?: Phase8AuditReviewRecord;
+  runnerApprovalRecord?: Phase9RunnerApprovalRecord | null;
   now?: string;
 } = {}) {
   const request = options.request;
@@ -115,6 +147,11 @@ function approvalSnapshot(options: {
     runnerEvaluation: evaluation,
     desktopRunnerResult: options.result ?? desktopResult(),
     auditRecords: options.auditRecords ?? [],
+    phase8AuditReviewRecord: options.phase8ReviewRecord ?? readyPhase8ReviewRecord,
+    runnerApprovalRecord:
+      options.runnerApprovalRecord === null
+        ? undefined
+        : options.runnerApprovalRecord ?? readyRunnerApprovalRecord,
     evaluatedAt: options.now ?? "2026-06-11T00:05:00.000Z"
   });
 }
@@ -122,10 +159,12 @@ function approvalSnapshot(options: {
 function priority({
   approval = approvalSnapshot(),
   phase8 = phase8Snapshot(),
+  runnerApprovalRecord,
   goals = remainingGoalPlan
 }: {
   approval?: ReturnType<typeof approvalSnapshot>;
   phase8?: Phase8PermissionAuditDepthSnapshot;
+  runnerApprovalRecord?: Phase9RunnerApprovalRecord | null;
   goals?: typeof remainingGoalPlan;
 } = {}) {
   const depth = buildPhase9RunnerApprovalDepthSummary(approval);
@@ -133,6 +172,10 @@ function priority({
     approval,
     depth,
     phase8,
+    runnerReviewRecord:
+      runnerApprovalRecord === null
+        ? undefined
+        : runnerApprovalRecord ?? readyRunnerApprovalRecord,
     goals
   });
 
@@ -211,6 +254,33 @@ describe("phase 9 runner blocker priority", () => {
       kind: "traceability",
       status: "blocked",
       severity: "critical"
+    });
+  });
+
+  it("ranks missing persisted runner review before lower-value traceability rows", () => {
+    const approval = approvalSnapshot({
+      request: permissionRequest({ state: "approved" }),
+      result: desktopResult({
+        requestId: "terminal-permission-1",
+        status: "executed",
+        code: "ok",
+        canExecute: true,
+        summary: "Desktop terminal read-only probe executed through the approved runner contract.",
+        detail: "Executed fixed terminal read-only probe command for audit trail."
+      }),
+      auditRecords: [terminalAuditRecord("approved"), terminalAuditRecord("executed")],
+      runnerApprovalRecord: null
+    });
+    const summary = priority({
+      approval,
+      runnerApprovalRecord: null
+    });
+
+    expect(summary.state).toBe("waiting");
+    expect(summary.topPriorityLabel).toBe("Owner runner review");
+    expect(summary.items[0]).toMatchObject({
+      kind: "approval",
+      status: "waiting"
     });
   });
 

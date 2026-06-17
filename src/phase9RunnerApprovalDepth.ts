@@ -11,6 +11,7 @@ export type Phase9RunnerApprovalDepthKind =
   | "request-preview"
   | "validation-output"
   | "audit-record"
+  | "runner-review-record"
   | "rollback-evidence"
   | "desktop-execution-lock";
 
@@ -69,6 +70,10 @@ const TRACE_BY_KIND: Record<
   "audit-record": {
     pmTaskId: "phase-09-child-approval-record",
     evidenceKey: "phase9.approval-result-audit"
+  },
+  "runner-review-record": {
+    pmTaskId: "phase-09-child-approval-record",
+    evidenceKey: "phase9.runner-approval-review-record"
   },
   "rollback-evidence": {
     pmTaskId: "phase-09-child-approval-depth",
@@ -213,6 +218,7 @@ function buildRecords(
   const preview = itemByKind(snapshot, "preview");
   const validation = itemByKind(snapshot, "validation");
   const audit = itemByKind(snapshot, "audit");
+  const ownerReview = itemByKind(snapshot, "owner-review");
   const rollback = itemByKind(snapshot, "rollback");
 
   return [
@@ -253,6 +259,19 @@ function buildRecords(
           "Approval and result audit",
           "audit-record",
           "Restore audit record tracking before the desktop runner path can be approved."
+        ),
+    ownerReview
+      ? recordFromItem(
+          `${snapshot.id}:depth-runner-review`,
+          "runner-review-record",
+          ownerReview,
+          true
+        )
+      : missingRecord(
+          `${snapshot.id}:depth-runner-review`,
+          "Owner runner review",
+          "runner-review-record",
+          "Restore the local Phase 9 runner approval review record before the desktop runner path can be trusted."
         ),
     rollback
       ? recordFromItem(`${snapshot.id}:depth-rollback`, "rollback-evidence", rollback, true)

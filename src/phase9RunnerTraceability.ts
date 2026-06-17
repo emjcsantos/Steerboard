@@ -1,6 +1,7 @@
 import { currentProjectManagementPhasePlanTaskIds } from "./projectManagementPhasePlan";
 import type { Phase8PermissionAuditDepthSnapshot } from "./phase8PermissionAuditDepth";
 import type { Phase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDepth";
+import type { Phase9RunnerApprovalRecord } from "./phase9RunnerApprovalRecord";
 import type { Phase9RunnerApprovalSnapshot, Phase9RunnerApprovalState } from "./phase9RunnerApproval";
 import { remainingGoalPlan, type RemainingGoalPlanItem } from "./remainingGoalPlan";
 
@@ -11,6 +12,7 @@ export type Phase9RunnerTraceabilityItemKind =
   | "pm-coverage"
   | "phase8-gate"
   | "approval-depth"
+  | "runner-review-record"
   | "mutation-lock";
 
 export interface Phase9RunnerTraceabilityItem {
@@ -38,6 +40,7 @@ export interface Phase9RunnerTraceabilitySummary {
   linkedPmTaskCount: number;
   phase8OpenExceptionCount: number;
   mutationLockCount: number;
+  runnerReviewRecordReady: boolean;
   nextAction: string;
   safety: string;
   ariaLabel: string;
@@ -297,22 +300,88 @@ function approvalDepthItem(
   };
 }
 
+function runnerReviewRecordItem(
+  record: Phase9RunnerApprovalRecord | undefined
+): Phase9RunnerTraceabilityItem {
+  if (!record) {
+    return {
+      id: `${TRACE_ID}:runner-review-record`,
+      label: "Runner review record",
+      kind: "runner-review-record",
+      status: "waiting",
+      detail: "No persisted Phase 9 runner approval review record is attached.",
+      nextAction:
+        "Record a local owner review of the Phase 9 runner approval evidence before trusting the fixed probe path."
+    };
+  }
+
+  if (!record.mutationLocked || !record.rollbackEvidence.trim()) {
+    return {
+      id: `${TRACE_ID}:runner-review-record`,
+      label: "Runner review record",
+      kind: "runner-review-record",
+      status: "blocked",
+      detail:
+        "The persisted Phase 9 runner approval review record is missing mutation-lock or rollback evidence.",
+      nextAction:
+        "Clear and re-record the Phase 9 runner review with rollback and mutation-lock evidence."
+    };
+  }
+
+  if (record.state === "blocked") {
+    return {
+      id: `${TRACE_ID}:runner-review-record`,
+      label: "Runner review record",
+      kind: "runner-review-record",
+      status: "blocked",
+      detail: record.detail,
+      nextAction:
+        "Resolve the persisted Phase 9 runner review blocker before runner approval can be trusted."
+    };
+  }
+
+  if (record.state === "review" || record.state === "waiting") {
+    return {
+      id: `${TRACE_ID}:runner-review-record`,
+      label: "Runner review record",
+      kind: "runner-review-record",
+      status: "review",
+      detail: record.detail,
+      nextAction:
+        "Review or refresh the persisted Phase 9 runner approval record before the fixed probe can be trusted."
+    };
+  }
+
+  return {
+    id: `${TRACE_ID}:runner-review-record`,
+    label: "Runner review record",
+    kind: "runner-review-record",
+    status: "ready",
+    detail: `${record.detail} ${record.rollbackEvidence}`,
+    nextAction:
+      "Keep the persisted Phase 9 runner review attached while broader desktop execution remains locked."
+  };
+}
+
 function mutationLockItem(
   approval: Phase9RunnerApprovalSnapshot,
-  depth: Phase9RunnerApprovalDepthSummary
+  depth: Phase9RunnerApprovalDepthSummary,
+  runnerReviewRecord: Phase9RunnerApprovalRecord | undefined
 ): Phase9RunnerTraceabilityItem {
   const hasSelectedProbe = approval.selectedAction === "terminal-readonly-probe";
-  const hasDepthLocks = depth.mutationLockCount >= 5;
-  const canTrustLock = hasSelectedProbe && hasDepthLocks && !approval.canRequestDesktopProbe;
+  const hasDepthLocks = depth.mutationLockCount >= 6;
+  const hasPersistedLock = runnerReviewRecord?.mutationLocked === true;
+  const canTrustLock = hasSelectedProbe && hasDepthLocks && hasPersistedLock;
 
-  if (!hasSelectedProbe || !hasDepthLocks) {
+  if (!hasSelectedProbe || !hasDepthLocks || !hasPersistedLock) {
     return {
       id: `${TRACE_ID}:mutation-lock`,
       label: "Mutation lock",
       kind: "mutation-lock",
-      status: "blocked",
-      detail: `Selected probe check: ${hasSelectedProbe ? "ready" : "blocked"}; depth mutation locks: ${depth.mutationLockCount}.`,
-      nextAction: "Restore the fixed read-only probe and all mutation-lock depth records before runner approval advances."
+      status: hasSelectedProbe && hasDepthLocks ? "waiting" : "blocked",
+      detail: `Selected probe check: ${hasSelectedProbe ? "ready" : "blocked"}; depth mutation locks: ${depth.mutationLockCount}; persisted runner lock: ${hasPersistedLock ? "ready" : "missing"}.`,
+      nextAction:
+        "Restore the fixed read-only probe, all mutation-lock depth records, and persisted runner-review lock evidence before runner approval advances."
     };
   }
 
@@ -322,7 +391,7 @@ function mutationLockItem(
     kind: "mutation-lock",
     status: "ready",
     detail: canTrustLock
-      ? "The fixed read-only probe is selected, depth locks are visible, and the desktop request remains held."
+      ? "The fixed read-only probe is selected, depth locks are visible, and persisted runner-review lock evidence is attached."
       : "The fixed read-only probe is requestable after approval, and broader terminal, Git, MCP, plugin, automation, runtime, profile, and external-service mutation locks remain visible.",
     nextAction: canTrustLock
       ? "Keep terminal, Git, MCP, plugin, automation, runtime, profile, and external-service mutation paths locked."
@@ -344,11 +413,13 @@ export function buildPhase9RunnerTraceabilitySummary({
   approval,
   depth,
   phase8,
+  runnerReviewRecord,
   goals = remainingGoalPlan
 }: {
   approval: Phase9RunnerApprovalSnapshot;
   depth: Phase9RunnerApprovalDepthSummary;
   phase8: Phase8PermissionAuditDepthSnapshot;
+  runnerReviewRecord?: Phase9RunnerApprovalRecord;
   goals?: readonly RemainingGoalPlanItem[];
 }): Phase9RunnerTraceabilitySummary {
   const goal = phase9Goal(goals);
@@ -362,7 +433,8 @@ export function buildPhase9RunnerTraceabilitySummary({
     pmCoverageItem(goal, missingPmTaskIds),
     phase8GateItem(phase8),
     approvalDepthItem(approval, depth),
-    mutationLockItem(approval, depth)
+    runnerReviewRecordItem(runnerReviewRecord),
+    mutationLockItem(approval, depth, runnerReviewRecord)
   ];
   const state = resolveState(items);
   const readiness = scoreItems(items);
@@ -380,7 +452,9 @@ export function buildPhase9RunnerTraceabilitySummary({
       state === "ready" &&
       missingPmTaskIds.length === 0 &&
       phase8.openExceptionCount === 0 &&
-      phase8.blockedCount === 0,
+      phase8.blockedCount === 0 &&
+      runnerReviewRecord?.state === "ready" &&
+      runnerReviewRecord.mutationLocked,
     readyCount,
     reviewCount,
     blockedCount,
@@ -390,6 +464,7 @@ export function buildPhase9RunnerTraceabilitySummary({
     linkedPmTaskCount: goal?.pmTaskIds.length ?? 0,
     phase8OpenExceptionCount: phase8.openExceptionCount,
     mutationLockCount: depth.mutationLockCount,
+    runnerReviewRecordReady: runnerReviewRecord?.state === "ready",
     nextAction: firstNextAction(items),
     safety: SAFETY,
     items
