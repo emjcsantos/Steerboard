@@ -685,48 +685,48 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-09-desktop-runner",
     title: "Phase 9: Desktop-Backed Runner",
-    description: "Enable the fixed terminal read-only desktop probe after permission, preview, audit, validation, persisted runner-review, Phase 8 owner-review, and rollback gates pass.",
-    completionPercent: 45,
+    description: "Enable the fixed terminal read-only desktop probe after permission, preview, audit, validation, persisted runner-review, Phase 8 owner-review, rollback, and Phase 9 request gates pass.",
+    completionPercent: 52,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-09-parent-runner-probe",
         title: "Runner Probe Hardening",
-        description: "Keep the desktop runner limited to the fixed terminal-readonly-probe with visible request preview, approval checks, local runner-review evidence, and mutation locks.",
-        completionPercent: 45,
+        description: "Keep the desktop runner limited to the fixed terminal-readonly-probe with visible request preview, Phase 9 approval checks, local runner-review evidence, and mutation locks.",
+        completionPercent: 52,
         complexity: "high",
         sourceDocument: "Desktop runner probe",
         children: [
           {
             id: "phase-09-child-reversible-action",
             title: "Choose One Reversible Action",
-            description: "Use terminal-readonly-probe as the single selected read-only action with no workspace write, Git, external call, or profile mutation.",
-            completionPercent: 40,
+            description: "Use terminal-readonly-probe as the single selected read-only action, with the visible Probe control disabled until the Phase 9 request gate is ready.",
+            completionPercent: 50,
             complexity: "high",
             sourceDocument: "Runner approval plan"
           },
           {
             id: "phase-09-child-runner-observability",
             title: "Runner Observability",
-            description: "Show request readiness, approval window, validation output, audit count, local runner-review evidence, rollback evidence, and final state for the selected probe.",
-            completionPercent: 45,
+            description: "Show request readiness, approval window, validation output, audit count, local runner-review evidence, rollback evidence, direct-handler blocks, and final state for the selected probe.",
+            completionPercent: 50,
             complexity: "high",
             sourceDocument: "Live action runner"
           },
           {
             id: "phase-09-child-traceability",
             title: "Runner Traceability",
-            description: "Link Phase 9 remaining-goal status, PM child rows, Phase 8 owner audit review, runner approval depth, local runner-review records, evidence keys, and mutation locks before the desktop runner can advance.",
-            completionPercent: 45,
+            description: "Link Phase 9 remaining-goal status, PM child rows, Phase 8 owner audit review, runner approval depth, local runner-review records, Phase 9 request gate evidence, evidence keys, and mutation locks before the desktop runner can advance.",
+            completionPercent: 48,
             complexity: "high",
             sourceDocument: "Phase 9 runner traceability"
           },
           {
             id: "phase-09-child-blocker-priority",
             title: "Runner Blocker Priority",
-            description: "Rank exact Phase 9 blockers across the Phase 8 gate, owner permission, approval window, request preview, validation output, audit record, local runner-review record, rollback evidence, traceability, and mutation locks before the desktop runner can advance.",
-            completionPercent: 45,
+            description: "Rank exact Phase 9 blockers across the Phase 8 gate, owner permission, approval window, request preview, validation output, audit record, local runner-review record, rollback evidence, request-gate enforcement, traceability, and mutation locks before the desktop runner can advance.",
+            completionPercent: 48,
             complexity: "medium",
             sourceDocument: "Phase 9 runner blocker priority"
           }
@@ -735,23 +735,23 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-09-parent-approval-flow",
         title: "Approval and Rollback Flow",
-        description: "Require owner approval, request preview, validation result, audit record, local runner-review record, and rollback evidence before runner expansion.",
-        completionPercent: 45,
+        description: "Require owner approval, request preview, validation result, audit record, local runner-review record, rollback evidence, and Phase 9 request-gate enforcement before runner expansion.",
+        completionPercent: 50,
         complexity: "extra_high",
         sourceDocument: "Permissions and audit",
         children: [
           {
             id: "phase-09-child-approval-record",
             title: "Approval Record",
-            description: "Record terminal request, approval, fallback, failure, execution, local runner-review, and rollback-safe evidence in the owner-visible audit path.",
-            completionPercent: 45,
+            description: "Record terminal request, approval, Phase 9 held blocks, fallback, failure, execution, local runner-review, and rollback-safe evidence in the owner-visible audit path.",
+            completionPercent: 50,
             sourceDocument: "Audit trail"
           },
           {
             id: "phase-09-child-approval-depth",
             title: "Runner Approval Depth",
-            description: "Show fixed probe selection, owner approval, request preview, validation output, audit record, local runner-review record, rollback evidence, and the desktop execution lock as separate depth records.",
-            completionPercent: 45,
+            description: "Show fixed probe selection, owner approval, request preview, validation output, audit record, local runner-review record, rollback evidence, Phase 9 request-gate enforcement, and the desktop execution lock as separate depth records.",
+            completionPercent: 50,
             complexity: "high",
             sourceDocument: "Phase 9 runner approval depth"
           }

@@ -8650,12 +8650,35 @@ function RightPanel({
     }
 
     const timestamp = new Date().toISOString();
+    const request =
+      liveActionRequestsByProvider[definition.provider] ??
+      createLiveActionPermissionRequest(definition, "idle", timestamp);
+
+    if (!phase9RunnerApproval.canRequestDesktopProbe) {
+      const result = buildDesktopActionRunnerBuildFailureResult(
+        request.id,
+        "execution-blocked",
+        "Phase 9 runner approval is held until Phase 8 owner review, Phase 9 runner review, rollback evidence, and mutation-lock gates are ready.",
+        timestamp
+      );
+      setDesktopActionRunnerResult(result);
+      const resultSummary = summarizeDesktopActionRunnerResult(result);
+      const record = createLiveActionAuditRecord(
+        buildLiveActionAuditInput(
+          definition,
+          `${resultSummary.statusLabel}: ${resultSummary.auditText}. ${resultSummary.detail}`
+        ),
+        "failed",
+        timestamp
+      );
+
+      setLiveActionAuditHistory((current) => appendLiveActionAuditRecord(current, record));
+      return;
+    }
+
     setDesktopActionRunnerBusyProvider(definition.provider);
 
     try {
-      const request =
-        liveActionRequestsByProvider[definition.provider] ??
-        createLiveActionPermissionRequest(definition, "idle", timestamp);
       const evaluation = evaluateLiveActionRunnerExecution(
         runnerDefinition,
         request,
@@ -9516,6 +9539,7 @@ function RightPanel({
         onRunDesktopProbe={recordDesktopActionRunnerProbe}
         desktopActionRunnerBusyProvider={desktopActionRunnerBusyProvider}
         desktopActionRunnerSummary={desktopActionRunnerSummary}
+        phase9CanRequestDesktopProbe={phase9RunnerApproval.canRequestDesktopProbe}
         requestsByProvider={liveActionRequestsByProvider}
         runnerEvaluations={liveActionRunnerEvaluations}
         runnerSummary={liveActionRunnerSummary}
@@ -10524,6 +10548,7 @@ function LiveActionRiskGatePanel({
   onRunDesktopProbe,
   desktopActionRunnerBusyProvider,
   desktopActionRunnerSummary,
+  phase9CanRequestDesktopProbe,
   requestsByProvider,
   runnerEvaluations,
   runnerSummary,
@@ -10541,6 +10566,7 @@ function LiveActionRiskGatePanel({
   onRunDesktopProbe: (definition: LiveActionGateDefinition) => void;
   desktopActionRunnerBusyProvider?: string;
   desktopActionRunnerSummary: DesktopActionRunnerResultSummary;
+  phase9CanRequestDesktopProbe: boolean;
   requestsByProvider: Record<string, LiveActionPermissionRequest>;
   runnerEvaluations: LiveActionRunnerExecutionResult[];
   runnerSummary: LiveActionRunnerSummary;
@@ -10635,7 +10661,10 @@ function LiveActionRiskGatePanel({
             const canRequest = summary.state === "idle";
             const canReview = summary.state === "requested";
             const canReset = summary.state !== "idle";
-            const canRunDesktopProbe = definition.provider === "terminal" && Boolean(runner?.canExecute);
+            const canRunDesktopProbe =
+              definition.provider === "terminal" &&
+              Boolean(runner?.canExecute) &&
+              phase9CanRequestDesktopProbe;
             const isDesktopProbeBusy = desktopActionRunnerBusyProvider === definition.provider;
             const runnerLabel =
               runner?.status === "ready"
@@ -10717,9 +10746,11 @@ function LiveActionRiskGatePanel({
                     disabled={!canRunDesktopProbe || isDesktopProbeBusy}
                     onClick={() => onRunDesktopProbe(definition)}
                     title={
-                      definition.provider === "terminal"
-                        ? "Run a fixed read-only terminal probe through the desktop runner."
-                        : "Desktop probe is not enabled for this provider yet."
+                      definition.provider !== "terminal"
+                        ? "Desktop probe is not enabled for this provider yet."
+                        : phase9CanRequestDesktopProbe
+                          ? "Run a fixed read-only terminal probe through the desktop runner."
+                          : "Phase 9 runner approval is held until owner review, runner review, rollback evidence, and mutation lock gates are ready."
                     }
                     type="button"
                   >
