@@ -138,7 +138,10 @@ function auditMatchesLatestDraft(record: MigrationProfileDraftHistoryRecord | un
     record.audit.draftId === record.draft.id &&
     record.audit.selectedCategoryCount === record.draft.selectedCategories.length &&
     record.audit.reviewRequiredCategoryCount === reviewCategoryCount(record.draft) &&
-    record.audit.unsupportedCategoryCount === unsupportedCategoryCount(record.draft)
+    record.audit.unsupportedCategoryCount === unsupportedCategoryCount(record.draft) &&
+    typeof record.audit.evidenceFingerprint === "string" &&
+    record.audit.evidenceFingerprint.length > 0 &&
+    record.audit.evidenceFingerprint === record.draft.evidenceFingerprint
   );
 }
 
@@ -299,10 +302,10 @@ function buildMigrationReviewDepthItems(input: {
       status: hasDraft ? input.auditReady ? "ready" : "blocked" : "waiting",
       detail: hasDraft
         ? input.auditReady
-          ? "Latest audit matches draft id, selected count, review count, and unsupported count."
-          : "Latest audit does not match the latest draft and blocks apply review."
+          ? "Latest audit matches draft id, category counts, and the draft evidence fingerprint."
+          : "Latest audit does not match the latest draft fingerprint or category counts and blocks apply review."
         : "Audit consistency is waiting for a draft creation record.",
-      evidence: "Draft/audit id match, selected category count, review-required count, unsupported count.",
+      evidence: "Draft/audit id match, selected category count, review-required count, unsupported count, and draft evidence fingerprint.",
       nextAction: "Repair inconsistent audit metadata before owner apply review."
     },
     {

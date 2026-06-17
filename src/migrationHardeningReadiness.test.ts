@@ -186,6 +186,42 @@ describe("migration hardening readiness", () => {
     );
   });
 
+  it("blocks apply intent when audit counts match but the evidence fingerprint differs", () => {
+    const history = historyForAcceptedDraft();
+    const badAudit = createMigrationProfileDraftAuditRecord(history[0].draft, "created");
+    const inconsistentHistory: MigrationProfileDraftHistoryRecord[] = [
+      {
+        draft: history[0].draft,
+        audit: {
+          ...badAudit,
+          evidenceFingerprint: "phase5-migration:different"
+        }
+      }
+    ];
+
+    const readiness = buildMigrationHardeningReadiness({
+      preview: selectedPreview(),
+      draftHistory: inconsistentHistory,
+      excludedSecretsSummary: [
+        "Credentials excluded",
+        "Raw transcripts excluded",
+        "Source mutation excluded"
+      ]
+    });
+
+    expect(readiness.state).toBe("blocked");
+    expect(readiness.canStageApplyIntent).toBe(false);
+    expect(readiness.reviewDepthItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "migration-review-depth:audit-consistency",
+          status: "blocked",
+          detail: expect.stringContaining("fingerprint")
+        })
+      ])
+    );
+  });
+
   it("keeps incomplete sensitive exclusions in review before apply depth is complete", () => {
     const readiness = buildMigrationHardeningReadiness({
       preview: selectedPreview(),

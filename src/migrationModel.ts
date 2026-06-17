@@ -63,7 +63,11 @@ export interface MigrationPreview {
 }
 
 export type MigrationProfileDraftImportState = "ready" | "review" | "waiting" | "blocked" | "applied";
-export type MigrationProfileDraftAuditAction = "created" | "applied" | "rolled-back";
+export type MigrationProfileDraftAuditAction =
+  | "created"
+  | "apply-review-staged"
+  | "applied"
+  | "rolled-back";
 
 export interface MigrationProfileDraftCategory {
   id: MigrationCategoryId;
@@ -83,6 +87,7 @@ export interface MigrationProfileDraft {
   counts: MigrationPreviewCounts;
   importState: MigrationProfileDraftImportState;
   readiness: number;
+  evidenceFingerprint: string;
   summary: string;
   safetyNote: string;
 }
@@ -97,6 +102,7 @@ export interface MigrationProfileDraftAudit {
   selectedCategoryCount: number;
   reviewRequiredCategoryCount: number;
   unsupportedCategoryCount: number;
+  evidenceFingerprint?: string;
   detail: string;
 }
 
@@ -872,6 +878,55 @@ function normalizeDraftReadiness(
   return Math.round((readyCount / selectedCategories.length) * 100);
 }
 
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableJson).join(",")}]`;
+  }
+
+  if (isRecord(value)) {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`)
+      .join(",")}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
+function stableHash(value: string): string {
+  let hash = 0x811c9dc5;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+
+  return `phase5-migration:${(hash >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+export function buildMigrationProfileDraftEvidenceFingerprint(
+  draft: Pick<
+    MigrationProfileDraft,
+    "sourceId" | "selectedCategories" | "selectedCategoryIds" | "counts" | "importState" | "readiness"
+  >
+): string {
+  return stableHash(
+    stableJson({
+      counts: draft.counts,
+      importState: draft.importState,
+      readiness: draft.readiness,
+      selectedCategories: draft.selectedCategories.map((category) => ({
+        detail: category.detail,
+        id: category.id,
+        itemCount: category.itemCount,
+        state: category.state
+      })),
+      selectedCategoryIds: draft.selectedCategoryIds,
+      sourceId: draft.sourceId
+    })
+  );
+}
+
 export function createMigrationProfileDraft(
   preview: MigrationPreview,
   options: CreateMigrationProfileDraftOptions = {}
@@ -891,7 +946,7 @@ export function createMigrationProfileDraft(
 
   const id = buildDraftId(normalizedPreview.source, createdAt, selectedCategoryIds);
 
-  return {
+  const draftBase = {
     id,
     sourceId: normalizedPreview.source,
     sourceLabel,
@@ -901,10 +956,16 @@ export function createMigrationProfileDraft(
     counts,
     importState,
     readiness,
+    evidenceFingerprint: "",
     summary: normalizeDraftSummary(
       buildMigrationDraftSummary(normalizedPreview, selectedCategoryIds.length)
     ),
     safetyNote: normalizeDraftSafetyNote(options.safetyNote)
+  };
+
+  return {
+    ...draftBase,
+    evidenceFingerprint: buildMigrationProfileDraftEvidenceFingerprint(draftBase)
   };
 }
 
@@ -946,6 +1007,7 @@ export function createMigrationProfileDraftAuditRecord(
     selectedCategoryCount: draft.selectedCategories.length,
     reviewRequiredCategoryCount: reviewRequiredCount,
     unsupportedCategoryCount: unsupportedCount,
+    evidenceFingerprint: draft.evidenceFingerprint,
     detail: redactMigrationPreviewDetail(
       `${action} for ${draft.sourceLabel} migration draft with ${draft.selectedCategories.length} selected categories`
     )
@@ -1086,6 +1148,14 @@ function createFallbackMigrationProfileDraft(): MigrationProfileDraft {
     counts: { accepted: 0, reviewRequired: 0, unsupported: 0, excluded: 15 },
     importState: "waiting",
     readiness: 0,
+    evidenceFingerprint: buildMigrationProfileDraftEvidenceFingerprint({
+      sourceId: defaultMigrationSource,
+      selectedCategories: [],
+      selectedCategoryIds: [],
+      counts: { accepted: 0, reviewRequired: 0, unsupported: 0, excluded: 15 },
+      importState: "waiting",
+      readiness: 0
+    }),
     summary: "No migration draft selected.",
     safetyNote: normalizeDraftSafetyNote(DEFAULT_DRAFT_SAFETY_NOTE)
   };
@@ -1152,7 +1222,7 @@ function repairMigrationProfileDraft(
     ? selectedCategoryIds
     : selectedCategoryIdsFromEntries(normalizedSelectedCategories);
 
-  return {
+  const draftBase = {
     id: safeText(record.id, buildDraftId(sourceId, createdAt, normalizedSelectedCategoryIds)),
     sourceId,
     sourceLabel: normalizeDraftSourceLabel(
@@ -1183,8 +1253,14 @@ function repairMigrationProfileDraft(
         })) }, sortedSelectedCategories),
     importState: importState,
     readiness,
+    evidenceFingerprint: "",
     summary,
     safetyNote: normalizeDraftSafetyNote(safeText(record.safetyNote, DEFAULT_DRAFT_SAFETY_NOTE))
+  };
+
+  return {
+    ...draftBase,
+    evidenceFingerprint: buildMigrationProfileDraftEvidenceFingerprint(draftBase)
   };
 }
 
@@ -1215,12 +1291,18 @@ function repairMigrationProfileDraftAudit(
     selectedCategoryCount: safeNumber(record?.selectedCategoryCount ?? draft.selectedCategories.length),
     reviewRequiredCategoryCount: safeNumber(record?.reviewRequiredCategoryCount ?? draft.selectedCategories.filter((category) => category.state === "review-required").length),
     unsupportedCategoryCount: safeNumber(record?.unsupportedCategoryCount ?? draft.selectedCategories.filter((category) => category.state === "unsupported").length),
+    evidenceFingerprint: safeText(record?.evidenceFingerprint, ""),
     detail: redactMigrationPreviewDetail(safeText(record?.detail, `${action} migration draft ${draft.id}`))
   };
 }
 
 function isMigrationProfileDraftAuditAction(value: unknown): value is MigrationProfileDraftAuditAction {
-  return value === "created" || value === "applied" || value === "rolled-back";
+  return (
+    value === "created" ||
+    value === "apply-review-staged" ||
+    value === "applied" ||
+    value === "rolled-back"
+  );
 }
 
 export function parseStoredMigrationProfileDraftHistory(

@@ -380,24 +380,24 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-05-migration-center",
     title: "Phase 5: Migration Center",
-    description: "Turn the metadata-only migration foundations into a guarded, review-first migration workflow with apply-intent locks, rollback evidence, audit consistency, and sensitive exclusions.",
-    completionPercent: 50,
+    description: "Turn the metadata-only migration foundations into a guarded, review-first migration workflow with apply-intent locks, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, and sensitive exclusions.",
+    completionPercent: 58,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-05-parent-draft-workflow",
         title: "Migration Draft Workflow",
-        description: "Create, persist, preview, review, and stage apply intent for migration profile drafts before any mutation-capable action.",
-        completionPercent: 50,
+        description: "Create, persist, preview, review, and stage metadata-only apply intent for migration profile drafts before any mutation-capable action.",
+        completionPercent: 58,
         complexity: "high",
         sourceDocument: "Migration Center",
         children: [
           {
             id: "phase-05-child-profile-drafts",
             title: "Profile Draft Persistence",
-            description: "Persist migration profiles, history, apply-intent notes, rollback notes, and audit summaries locally.",
-            completionPercent: 55,
+            description: "Persist migration profiles, history, evidence fingerprints, apply-review staging notes, rollback notes, and audit summaries locally.",
+            completionPercent: 62,
             sourceDocument: "Migration model"
           },
           {
@@ -412,39 +412,39 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-05-parent-rollback-audit",
         title: "Rollback and Audit Review",
-        description: "Make rollback strategy, review-depth records, and audit evidence mandatory before migration work can leave review-only mode.",
-        completionPercent: 50,
+        description: "Make rollback strategy, review-depth records, and fingerprint-matched audit evidence mandatory before migration work can leave review-only mode.",
+        completionPercent: 58,
         complexity: "high",
         sourceDocument: "Permissions and audit",
         children: [
           {
             id: "phase-05-child-audit-summary",
             title: "Audit Summary Review",
-            description: "Surface who, what, when, risk level, apply-intent lock, and rollback path for every migration draft.",
-            completionPercent: 45,
+            description: "Surface who, what, when, risk level, evidence fingerprint, apply-intent lock, and rollback path for every migration draft.",
+            completionPercent: 56,
             sourceDocument: "Migration audit summary"
           },
           {
             id: "phase-05-child-review-depth",
             title: "Migration Review Depth",
-            description: "Show apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock as separate owner-review records.",
-            completionPercent: 45,
+            description: "Show apply-intent lock, rollback evidence, fingerprint-matched audit consistency, sensitive exclusions, and profile activation lock as separate owner-review records.",
+            completionPercent: 54,
             complexity: "high",
             sourceDocument: "Migration review gate"
           },
           {
             id: "phase-05-child-traceability",
             title: "Migration Traceability",
-            description: "Link Phase 5 remaining-goal status, PM child rows, migration review depth evidence keys, sensitive exclusions, rollback/audit coverage, and the profile activation lock before apply review can advance.",
-            completionPercent: 40,
+            description: "Link Phase 5 remaining-goal status, PM child rows, migration review depth evidence keys, draft/audit fingerprint coverage, sensitive exclusions, rollback/audit coverage, and the profile activation lock before apply review can advance.",
+            completionPercent: 46,
             complexity: "high",
             sourceDocument: "Phase 5 migration traceability"
           },
           {
             id: "phase-05-child-blocker-priority",
             title: "Migration Blocker Priority",
-            description: "Rank exact Phase 5 blockers across migration hardening, review-depth records, traceability, apply intent, rollback, audit, sensitive exclusions, and profile activation lock before apply review advances.",
-            completionPercent: 35,
+            description: "Rank exact Phase 5 blockers across migration hardening, review-depth records, traceability, apply intent, rollback, fingerprint-matched audit, sensitive exclusions, and profile activation lock before apply review advances.",
+            completionPercent: 42,
             complexity: "medium",
             sourceDocument: "Phase 5 migration blocker priority"
           }

@@ -2945,9 +2945,30 @@ export function App() {
   }
 
   function handleStageMigrationApplyIntent() {
-    setMigrationProfileDraftActionNotice(
-      createMigrationApplyIntentNotice(migrationHardeningReadiness)
-    );
+    if (!migrationHardeningReadiness.canStageApplyIntent || !migrationProfileDraftHistory[0]) {
+      setMigrationProfileDraftActionNotice(migrationHardeningReadiness.nextAction);
+      return;
+    }
+
+    setMigrationProfileDraftHistory((current) => {
+      const latestDraft = current[0]?.draft;
+      if (!latestDraft) {
+        setMigrationProfileDraftActionNotice("No migration draft is ready for apply review staging.");
+        return current;
+      }
+
+      const nextHistory = appendMigrationProfileDraftHistory(
+        current,
+        latestDraft,
+        "apply-review-staged",
+        MIGRATION_DRAFT_HISTORY_LIMIT,
+        new Date().toISOString()
+      );
+      setMigrationProfileDraftActionNotice(
+        createMigrationApplyIntentNotice(migrationHardeningReadiness)
+      );
+      return nextHistory;
+    });
   }
 
   async function runCodexLiveSmokeProof() {

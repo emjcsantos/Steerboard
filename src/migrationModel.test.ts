@@ -200,6 +200,8 @@ describe("migration draft persistence and rollback model", () => {
     expect(firstDraft).toEqual(secondDraft);
     expect(firstDraft.importState).toBe("review");
     expect(firstDraft.selectedCategoryIds).toEqual(["projects", "commands"]);
+    expect(firstDraft.evidenceFingerprint).toMatch(/^phase5-migration:/);
+    expect(firstDraft.evidenceFingerprint).toBe(secondDraft.evidenceFingerprint);
     expect(firstDraft.selectedCategories.map((item) => item.id)).toEqual(["projects", "commands"]);
     expect(firstDraft.safetyNote).not.toContain("/tmp");
     expect(firstDraft.safetyNote).not.toContain("sk-ABCDEF");
@@ -295,6 +297,7 @@ describe("migration draft persistence and rollback model", () => {
 
     expect(firstHistory).toHaveLength(1);
     expect(firstHistory[0].draft).toEqual(first);
+    expect(firstHistory[0].audit.evidenceFingerprint).toBe(first.evidenceFingerprint);
     expect(firstHistory[0].audit.createdAt).toBe("2026-01-01T00:00:00.000Z");
     expect(secondHistory).toHaveLength(2);
     expect(secondHistory[0].draft).toEqual(second);
@@ -307,6 +310,46 @@ describe("migration draft persistence and rollback model", () => {
     expect(rollback.rollbackAudit?.action).toBe("rolled-back");
     expect(rollback.history).toHaveLength(1);
     expect(rollback.history[0].draft).toEqual(first);
+  });
+
+  it("persists metadata-only apply review staging as an audit action", () => {
+    const draft = createMigrationProfileDraft(
+      {
+        ...buildDefaultMigrationPreview("codex"),
+        categories: buildDefaultMigrationPreview("codex").categories.map((category) =>
+          category.id === "projects"
+            ? { ...category, selected: true, itemCount: 2 }
+            : category
+        )
+      },
+      { createdAt: "2026-01-04T00:00:00.000Z" }
+    );
+    const createdHistory = appendMigrationProfileDraftHistory(
+      [],
+      draft,
+      "created",
+      8,
+      "2026-01-04T00:00:00.000Z"
+    );
+    const stagedHistory = appendMigrationProfileDraftHistory(
+      createdHistory,
+      draft,
+      "apply-review-staged",
+      8,
+      "2026-01-04T00:00:01.000Z"
+    );
+    const roundTrip = parseStoredMigrationProfileDraftHistory(JSON.stringify(stagedHistory));
+
+    expect(stagedHistory).toHaveLength(1);
+    expect(stagedHistory[0].draft.importState).toBe("ready");
+    expect(stagedHistory[0].audit).toMatchObject({
+      action: "apply-review-staged",
+      draftId: draft.id,
+      importState: "ready",
+      evidenceFingerprint: draft.evidenceFingerprint
+    });
+    expect(roundTrip[0].audit.action).toBe("apply-review-staged");
+    expect(roundTrip[0].draft.importState).toBe("ready");
   });
 
   it("summarizes migration draft history by import state", () => {

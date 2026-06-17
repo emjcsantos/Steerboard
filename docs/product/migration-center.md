@@ -70,8 +70,8 @@ The migration dialog should present these categories as checkboxes. Unsupported 
 9. Secrets, tokens, auth caches, private browser state, and raw transcripts are marked excluded.
 10. User confirms the import.
 11. Steerboard writes imported data into a named, reviewable Steerboard profile draft.
-12. Steerboard records a local migration audit summary for the draft, including import mode, selected categories, acceptance decisions, excluded fields, and safe metadata diffs.
-13. Steerboard shows a migration review gate for preview selection, apply intent, rollback evidence, audit consistency, and sensitive exclusions.
+12. Steerboard records a local migration audit summary for the draft, including import mode, selected categories, evidence fingerprint, acceptance decisions, excluded fields, and safe metadata diffs.
+13. Steerboard shows a migration review gate for preview selection, apply intent, rollback evidence, fingerprint-matched audit consistency, and sensitive exclusions.
 14. User can review the draft, stage apply review, refresh from source, or roll it back safely. Profile activation remains locked until explicit approval and future apply support exist.
 
 ## Desktop Menu Requirement
@@ -128,21 +128,21 @@ The migration dialog includes a review gate before any profile activation path. 
 - whether a reviewed draft exists,
 - whether apply intent is ready, held for review, waiting, or blocked,
 - whether rollback evidence exists for the local draft history,
-- whether the latest audit matches the latest draft,
+- whether the latest audit matches the latest draft and draft evidence fingerprint,
 - whether sensitive exclusions are complete,
 - whether profile activation remains locked behind explicit owner approval.
 
 The review-depth records separately show:
 
-- apply-intent lock evidence, including draft id, import state, audit match, and owner-visible apply-intent notice,
+- apply-intent lock evidence, including draft id, import state, audit fingerprint match, and owner-visible apply-intent notice,
 - rollback evidence, including latest draft id, prior active-profile pointer, rollback audit note, checksumable manifest references, and no-source-mutation boundary,
-- audit consistency, including draft/audit id match, selected category count, review-required count, and unsupported count,
+- audit consistency, including draft/audit id match, selected category count, review-required count, unsupported count, and draft evidence fingerprint,
 - sensitive exclusions, including secrets, tokens, auth caches/files/state, browser state, source artifacts, source mutation, and raw transcript exclusions,
 - profile activation lock, including the disabled mutation boundary before owner approval.
 
-Each review-depth record also carries a Project Management row link and a unique evidence key. The Migration traceability rows use those links to keep the Phase 5 remaining goal, PM child coverage, review-depth evidence, sensitive exclusion boundary, rollback/audit evidence, and profile activation lock visible before apply review can advance.
+Each review-depth record also carries a Project Management row link and a unique evidence key. The Migration traceability rows use those links to keep the Phase 5 remaining goal, PM child coverage, review-depth evidence, sensitive exclusion boundary, fingerprint-matched rollback/audit evidence, and profile activation lock visible before apply review can advance.
 
-`Stage apply review` records an owner-visible intent notice only. It does not change the active profile, mutate the source platform, copy secrets, import raw transcripts, run commands, or enable provider execution.
+`Stage apply review` records an owner-visible intent notice and a local metadata-only `apply-review-staged` audit history event. It does not change the active profile, mutate the source platform, copy secrets, import raw transcripts, run commands, or enable provider execution.
 
 ## Safety Rules
 

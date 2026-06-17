@@ -101,11 +101,11 @@ Do not proceed to the next section until the current item is at least `review`.
    - Refresh the personalization catalog as a safe metadata/status refresh and confirm source/state changes are visible without mutating profile or instruction sources.
 8. `Migration`
    - Validate migration plan preview and reviewed-draft staging flow.
-   - Confirm the Migration review gate reports preview selection, apply intent, rollback evidence, audit consistency, and sensitive exclusions before any apply path.
-   - Confirm the Migration review depth records show apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock as separate owner-review rows with PM row links and unique evidence keys.
-   - Confirm the Migration traceability rows link the Phase 5 remaining goal, PM child coverage, review-depth evidence, sensitive exclusion boundary, and profile activation lock before apply review can be trusted.
+   - Confirm the Migration review gate reports preview selection, apply intent, rollback evidence, fingerprint-matched audit consistency, and sensitive exclusions before any apply path.
+   - Confirm the Migration review depth records show apply-intent lock, rollback evidence, fingerprint-matched audit consistency, sensitive exclusions, and profile activation lock as separate owner-review rows with PM row links and unique evidence keys.
+   - Confirm the Migration traceability rows link the Phase 5 remaining goal, PM child coverage, review-depth evidence, sensitive exclusion boundary, draft/audit fingerprint coverage, and profile activation lock before apply review can be trusted.
    - Confirm the Migration blocker-priority queue ranks the exact top blocker, shows whether metadata review can address it, and keeps blocked audit/apply-intent blockers ahead of waiting or review-only evidence before any migration apply path.
-   - Confirm `Stage apply review` only creates an owner-visible intent notice and does not change the active profile, source platform, files, commands, plugins, MCP tools, automations, or personalization state.
+   - Confirm `Stage apply review` creates only an owner-visible intent notice plus a local `apply-review-staged` audit history event, survives reload, and does not change the active profile, source platform, files, commands, plugins, MCP tools, automations, or personalization state.
    - Confirm migration audit summary exists locally and includes accepted, review-required, unsupported, and excluded counts.
    - Confirm rollback metadata includes prior profile pointer, rollback audit note, checksumable manifest references, and no source mutation.
    - Confirm secrets, tokens, auth caches/files/state, browser state, source artifacts, raw transcripts, and source mutation remain excluded from persisted migration metadata.
