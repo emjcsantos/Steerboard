@@ -253,7 +253,7 @@ function proofFreshnessItem(input: Phase11OwnerCommandCenterInput): Phase11Owner
     kind: "proof-freshness",
     status: "ready",
     detail: "Phase 1/2/6 priority proof and Phase 3 proof rows are current.",
-    nextAction: "Keep proof rows fresh across reload before packaging resumes."
+    nextAction: "Keep proof rows fresh across reload and while the app remains open before packaging resumes."
   };
 }
 

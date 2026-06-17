@@ -193,26 +193,26 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-03-controls-slash",
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
-    description: "Clear the current blocker by proving slash execution, session controls, fresh desktop proof persistence, command-plan clarity, prioritized blocker review, goal/PM traceability, and owner-reviewed handoff readiness tied to current evidence.",
+    description: "Clear the current blocker by proving slash execution, session controls, live-refreshed desktop proof freshness, command-plan clarity, prioritized blocker review, goal/PM traceability, and owner-reviewed handoff readiness tied to compact current evidence.",
     status: "ongoing",
-    completionPercent: 94,
+    completionPercent: 95,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-03-parent-proof-clearance",
         title: "Desktop Proof Clearance",
-        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload without becoming stale, keep command-plan clarity visible, prioritize open blockers, link goal/PM traceability, and keep the handoff boundary matched to current evidence.",
+        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan clarity visible, prioritize open blockers, link goal/PM traceability, and keep the handoff boundary matched to compact current evidence.",
         status: "ongoing",
-        completionPercent: 94,
+        completionPercent: 95,
         complexity: "extra_high",
         sourceDocument: "Current state and pipeline",
         children: [
           {
             id: "phase-03-child-smoke-rows",
             title: "Persist Smoke Proof Rows",
-            description: "Confirm desktop-executed smoke proof rows survive reload, stale checkedAt timestamps downgrade to review, and browser fallback rows remain waiting.",
-            completionPercent: 82,
+            description: "Confirm desktop-executed smoke proof rows survive reload, stale checkedAt timestamps downgrade to review during long-open sessions, and browser fallback rows remain waiting.",
+            completionPercent: 85,
             complexity: "high",
             sourceDocument: "Phase 3 smoke proof readiness"
           },
@@ -242,16 +242,16 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-traceability",
             title: "Clearance Traceability",
-            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, blocker priority, and current-evidence handoff boundary in one owner-review trace.",
-            completionPercent: 84,
+            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, blocker priority, and compact current-evidence handoff boundary in one owner-review trace.",
+            completionPercent: 86,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance traceability"
           },
           {
             id: "phase-03-child-handoff-gate",
             title: "Owner Handoff Gate",
-            description: "Show desktop proof clearance, exact blocker visibility, local owner handoff record actions, current-evidence fingerprint matching, and the provider-integration boundary before Phase 4 advances.",
-            completionPercent: 78,
+            description: "Show desktop proof clearance, exact blocker visibility, local owner handoff record actions, compact current-evidence fingerprint matching, and the provider-integration boundary before Phase 4 advances.",
+            completionPercent: 82,
             complexity: "high",
             sourceDocument: "Phase 3 handoff gate"
           }

@@ -95,6 +95,10 @@ describe("phase 3 handoff record", () => {
       originalFingerprint
     );
 
+    expect(originalFingerprint).toMatch(/^phase3-handoff-[a-f0-9]{8}$/);
+    expect(changedFingerprint).toMatch(/^phase3-handoff-[a-f0-9]{8}$/);
+    expect(originalFingerprint).not.toBe(changedFingerprint);
+    expect(originalFingerprint).not.toContain("phase3-exit-gate");
     expect(
       derivePhase3HandoffRecordValidation(
         record,
@@ -150,7 +154,8 @@ describe("phase 3 handoff record", () => {
         clearanceReadiness: 104.6,
         exactBlockerCount: 2.9,
         canExit: true,
-        evidenceFingerprint: " phase3:fingerprint ",
+        evidenceFingerprint:
+          " phase3-handoff-C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret ",
         detail:
           "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
       })
@@ -163,8 +168,9 @@ describe("phase 3 handoff record", () => {
       clearanceReadiness: 100,
       exactBlockerCount: 2,
       canExit: true,
-      evidenceFingerprint: "phase3:fingerprint"
+      evidenceFingerprint: "phase3-handoff-local path"
     });
+    expect(parsed?.evidenceFingerprint).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(parsed?.detail).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(parsed?.detail).not.toContain("sk-ABCDEF1234567890");
     expect(parsed?.detail).not.toContain("<");

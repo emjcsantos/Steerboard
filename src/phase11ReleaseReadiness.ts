@@ -193,7 +193,7 @@ function smokeProofItem(
     status,
     detail: `Owner command center is ${ownerCommandCenter.statusLabel.toLowerCase()} at ${ownerCommandCenter.readiness}% with ${ownerCommandCenter.blockerCount} blocker${ownerCommandCenter.blockerCount === 1 ? "" : "s"}.`,
     nextAction: ownerCommandCenter.canRelease
-      ? "Keep owner smoke proof fresh across reload before release packaging resumes."
+      ? "Keep owner smoke proof fresh across reload and while the app remains open before release packaging resumes."
       : publicText(
           ownerCommandCenter.nextAction,
           "Resolve Owner Testing command-center holds before release readiness."

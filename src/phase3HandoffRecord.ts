@@ -100,12 +100,23 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
+function shortHash(value: string): string {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
 export function buildPhase3HandoffEvidenceFingerprint(input: {
   readonly clearancePackage: Phase3ClearancePackage;
   readonly exitGate?: Pick<Phase3ExitGateEvidence, "items">;
   readonly commandPlanId?: string;
 }): string {
-  return stableJson({
+  const payload = {
     blockerCount: input.clearancePackage.openCount,
     canExit: input.clearancePackage.canExit,
     clearanceReadiness: input.clearancePackage.readiness,
@@ -120,7 +131,9 @@ export function buildPhase3HandoffEvidenceFingerprint(input: {
     readyCount: input.clearancePackage.readyCount,
     reviewCount: input.clearancePackage.reviewCount,
     waitingCount: input.clearancePackage.waitingCount
-  });
+  };
+
+  return `phase3-handoff-${shortHash(stableJson(payload))}`;
 }
 
 function readStorage(): string | null {
@@ -199,7 +212,7 @@ export function parseStoredPhase3OwnerHandoffRecord(
       exactBlockerCount,
       canExit: parsed.canExit,
       evidenceFingerprint: nonEmptyString(parsed.evidenceFingerprint)
-        ? parsed.evidenceFingerprint.trim()
+        ? publicText(parsed.evidenceFingerprint, "")
         : undefined,
       detail: publicText(
         nonEmptyString(parsed.detail) ? parsed.detail : undefined,

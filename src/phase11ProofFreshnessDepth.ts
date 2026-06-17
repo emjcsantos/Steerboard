@@ -106,7 +106,7 @@ function firstNextAction(
     items.find((item) => item.status === "blocked")?.nextAction ??
     items.find((item) => item.status === "review")?.nextAction ??
     items.find((item) => item.status === "waiting")?.nextAction ??
-    "Keep owner proof attached and fresh across reload before release readiness is resumed."
+    "Keep owner proof attached and fresh across reload and while the app remains open before release readiness is resumed."
   );
 }
 
@@ -155,7 +155,7 @@ function desktopSmokeItem(
     detail: `${phase3SmokeProofReadiness.counts.ready}/3 desktop smoke rows are ready; ${phase3SmokeProofReadiness.counts.review} review, ${phase3SmokeProofReadiness.counts.blocked} blocked, and ${phase3SmokeProofReadiness.counts.waiting} waiting.`,
     nextAction:
       phase3SmokeProofReadiness.state === "ready"
-        ? "Keep desktop smoke proof rows fresh across reload."
+        ? "Keep desktop smoke proof rows fresh across reload and while the app remains open."
         : "Use the Phase 3 command plan to refresh only the missing desktop smoke rows."
   };
 }
@@ -186,7 +186,7 @@ function handoffProofItem(
     detail: `${phase3HandoffGate.readyCount} handoff rows are ready; ${phase3HandoffGate.exactBlockerCount} exact blocker${phase3HandoffGate.exactBlockerCount === 1 ? "" : "s"} remain.`,
     nextAction:
       status === "ready"
-        ? "Keep the owner handoff record attached before provider or release readiness advances."
+        ? "Keep the owner handoff record attached and matching current evidence before provider or release readiness advances."
         : phase3HandoffGate.nextAction
   };
 }

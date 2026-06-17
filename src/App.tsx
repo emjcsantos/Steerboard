@@ -1573,6 +1573,8 @@ function hasDesktopRuntime(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
+const PHASE3_PROOF_EVALUATION_REFRESH_MS = 60 * 1000;
+
 async function invokeDesktopCommand<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   const { invoke } = await import("@tauri-apps/api/core");
   return invoke<T>(command, args);
@@ -1652,7 +1654,9 @@ export function App() {
     phasePrioritySmokeProofInitialBundle.liveSmoke
   );
   const [phase3SmokeProofInitialBundle] = useState(() => loadPhase3SmokeProofBundle());
-  const [phase3ProofEvaluationTime] = useState(() => new Date().toISOString());
+  const [phase3ProofEvaluationTime, setPhase3ProofEvaluationTime] = useState(() =>
+    new Date().toISOString()
+  );
   const [phase3OwnerHandoffRecord, setPhase3OwnerHandoffRecord] =
     useState<Phase3OwnerHandoffRecord | undefined>(() => loadPhase3OwnerHandoffRecord());
   const [phase3CommandValidationRecord, setPhase3CommandValidationRecord] =
@@ -1722,6 +1726,33 @@ export function App() {
     loadMigrationProfileDraftHistory([], MIGRATION_DRAFT_HISTORY_LIMIT)
   );
   const [migrationProfileDraftActionNotice, setMigrationProfileDraftActionNotice] = useState("");
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return undefined;
+    }
+
+    const refreshPhase3ProofEvaluationTime = () => {
+      setPhase3ProofEvaluationTime(new Date().toISOString());
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        refreshPhase3ProofEvaluationTime();
+      }
+    };
+    const intervalId = window.setInterval(
+      refreshPhase3ProofEvaluationTime,
+      PHASE3_PROOF_EVALUATION_REFRESH_MS
+    );
+
+    window.addEventListener("focus", refreshPhase3ProofEvaluationTime);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refreshPhase3ProofEvaluationTime);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, []);
   const { selectedProjectId, mode, layoutId, view, adaptiveProjectTemplateId } = preferences;
   const codexTransportDecision = useMemo(
     () => decideCodexTransport(codexTransportProbe, codexLiveSmokeProof),
