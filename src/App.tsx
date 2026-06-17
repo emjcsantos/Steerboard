@@ -173,6 +173,10 @@ import {
   type DispatchReviewRecord
 } from "./dispatchReviewRecord";
 import {
+  buildPhase7DispatchReviewDepth,
+  type Phase7DispatchReviewDepthSnapshot
+} from "./phase7DispatchReviewDepth";
+import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
 } from "./pipelineItemRunLink";
@@ -5381,6 +5385,11 @@ function DispatchReviewRecordCard({
 }: {
   record: DispatchReviewRecord;
 }) {
+  const depth = buildPhase7DispatchReviewDepth({
+    records: [record],
+    selectedRecord: record
+  });
+
   return (
     <article
       aria-label={`Dispatch review record for ${record.title}`}
@@ -5419,8 +5428,65 @@ function DispatchReviewRecordCard({
         <span>Int {record.roleCounts.integration}</span>
       </div>
       <p>{record.nextAction}</p>
+      <DispatchReviewDepthSummary snapshot={depth} />
       <small>{record.noRuntimeExecutionNote}</small>
     </article>
+  );
+}
+
+function DispatchReviewDepthSummary({
+  snapshot
+}: {
+  snapshot: Phase7DispatchReviewDepthSnapshot;
+}) {
+  const visibleItems = snapshot.items.slice(0, 5);
+
+  return (
+    <div
+      aria-label={snapshot.ariaLabel}
+      className={classNames(
+        "dispatch-review-depth",
+        `dispatch-review-depth-${snapshot.state}`
+      )}
+      title={snapshot.nextAction}
+    >
+      <div className="dispatch-review-depth-header">
+        <strong>Review depth</strong>
+        <span>{snapshot.statusLabel}</span>
+        <b>{snapshot.readiness}%</b>
+      </div>
+      <dl className="dispatch-review-depth-grid">
+        <div>
+          <dt>Open</dt>
+          <dd>{snapshot.openDepthCount}</dd>
+        </div>
+        <div>
+          <dt>Roles</dt>
+          <dd>{snapshot.roleCoverageCount}/4</dd>
+        </div>
+        <div>
+          <dt>Tasks</dt>
+          <dd>{snapshot.handoffTaskCount}</dd>
+        </div>
+        <div>
+          <dt>Gates</dt>
+          <dd>{snapshot.validationGateCount}</dd>
+        </div>
+      </dl>
+      <ol className="dispatch-review-depth-list" aria-label="Phase 7 dispatch review depth checks">
+        {visibleItems.map((item) => (
+          <li
+            className={`dispatch-review-depth-item-${item.status}`}
+            key={item.id}
+            title={`${item.detail} ${item.nextAction}`}
+          >
+            <span>{item.kind}</span>
+            <strong>{item.label}</strong>
+            <b>{item.status}</b>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 

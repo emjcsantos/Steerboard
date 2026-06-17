@@ -54,6 +54,7 @@ The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk e
 - Track pipeline state: idea, planned, ready, dispatched, running, validating, blocked, accepted, shipped.
 - Select an Epic, Parent, or Child and stage a structured Arena review package.
 - Show which pipeline item created each staged role-panel plan and which worker tasks would be spawned.
+- Show dispatch review depth for role coverage, attempt limits, handoff tasks, validation gates, and the no-live-worker execution lock.
 - Preserve the Arena chat as the source of planning intent when the user does not need structured pipeline management.
 
 ## User Flow
@@ -83,6 +84,7 @@ The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk e
 - Remaining Goals summary for all open targets across Phase 1 through Phase 11.
 - Phase 4 Provider Readiness and Phase 4 Surface Depth panels for catalog-surface labels, surface coverage, setup blockers, capability gaps, preview review, and the execution lock before execution is considered.
 - Phase 5 Migration review depth records for apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock.
+- Phase 7 Dispatch review depth checks for role counts, max attempt limits, handoff task depth, validation gate depth, and the no-live-worker lock.
 - Phase 8 Audit Depth risk exceptions with disabled-path explanations, evidence requirements, rollback expectations, and audit sources before mutation paths grow.
 - Owner Testing evidence and explicit smoke buttons for Phase 1 live panel proof, Phase 2 multi-panel isolation, and Phase 6 PM board staging readiness.
 - Phase 3 clearance package and handoff gate with exact open blockers, next smoke action, local owner handoff record/clear actions, and provider-integration boundary.
@@ -154,6 +156,7 @@ Deploying to a configured runtime creates:
 
 - a staged dispatch package,
 - a local mock orchestrator role-panel projection,
+- local dispatch review depth checks,
 - a persisted local run-history entry,
 - a traceable link from the selected pipeline item back to matching local run-history entries,
 - a compact linked-run status summary for the selected pipeline item,

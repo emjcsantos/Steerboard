@@ -445,8 +445,8 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-07-dispatch-loop",
     title: "Phase 7: Orchestrator-Worker Dispatch",
-    description: "Move from local dispatch previews to saved, reviewable orchestrator-worker handoff records.",
-    completionPercent: 40,
+    description: "Move from local dispatch previews to saved, reviewable orchestrator-worker handoff records with explicit dispatch review depth.",
+    completionPercent: 45,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -477,8 +477,8 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-07-parent-observed-loop",
         title: "Observed Dispatch-to-Handoff Loop",
-        description: "Record role-panel plan, attempts, validation gates, handoff tasks, closure, and final merge review in one trace.",
-        completionPercent: 35,
+        description: "Record role-panel plan, attempts, validation gates, handoff tasks, review-depth checks, closure, and final merge review in one trace.",
+        completionPercent: 40,
         complexity: "extra_high",
         sourceDocument: "Orchestrator-worker dispatch",
         children: [
@@ -489,6 +489,14 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 35,
             complexity: "high",
             sourceDocument: "Worker handoff"
+          },
+          {
+            id: "phase-07-child-review-depth",
+            title: "Dispatch Review Depth",
+            description: "Audit role counts, max attempt limits, handoff task depth, validation gate depth, and the no-live-worker execution lock for staged PM Run outputs.",
+            completionPercent: 45,
+            complexity: "high",
+            sourceDocument: "Dispatch review records"
           }
         ]
       }
