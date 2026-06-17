@@ -82,6 +82,8 @@ function blockerPriority(
     openBlockerCount: 0,
     commandAddressableCount: 0,
     topPriorityLabel: "No open Phase 3 blocker",
+    topPriorityEvidenceKey: "phase3.clearance.none",
+    topPriorityPmTaskId: "phase-03-child-handoff-gate",
     topPriorityAction: "Record owner handoff.",
     commandCanAddressTopBlocker: false,
     nextAction: "Record owner handoff.",

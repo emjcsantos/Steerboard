@@ -42,6 +42,8 @@ export interface Phase3ClearanceBlockerPrioritySnapshot {
   readonly openBlockerCount: number;
   readonly commandAddressableCount: number;
   readonly topPriorityLabel: string;
+  readonly topPriorityEvidenceKey: string;
+  readonly topPriorityPmTaskId: string;
   readonly topPriorityAction: string;
   readonly commandCanAddressTopBlocker: boolean;
   readonly nextAction: string;
@@ -199,7 +201,8 @@ function buildAriaLabel(
 ): string {
   return (
     `${snapshot.label}: ${snapshot.statusLabel}; ${snapshot.openBlockerCount} open blockers; ` +
-    `top priority ${snapshot.topPriorityLabel}; next action: ${snapshot.nextAction}`
+    `top priority ${snapshot.topPriorityLabel}; evidence ${snapshot.topPriorityEvidenceKey}; ` +
+    `command addressable ${snapshot.commandCanAddressTopBlocker ? "yes" : "no"}; next action: ${snapshot.nextAction}`
   );
 }
 
@@ -250,6 +253,8 @@ export function buildPhase3ClearanceBlockerPriority(
     openBlockerCount: items.length,
     commandAddressableCount,
     topPriorityLabel: topItem?.label ?? "No open Phase 3 blocker",
+    topPriorityEvidenceKey: topItem?.evidenceKey ?? "phase3.clearance.none",
+    topPriorityPmTaskId: topItem?.pmTaskId ?? "phase-03-child-handoff-gate",
     topPriorityAction:
       topItem?.nextAction ?? "Record the Phase 3 handoff after owner review.",
     commandCanAddressTopBlocker: topItem?.canUseSmokeCommand === true,

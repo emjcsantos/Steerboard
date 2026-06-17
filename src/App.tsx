@@ -11836,6 +11836,16 @@ function OwnerTestingReadinessPanel({
             <p title={phase3ClearanceBlockerPriority.topPriorityAction}>
               {phase3ClearanceBlockerPriority.topPriorityLabel}
             </p>
+            <small
+              title={`${phase3ClearanceBlockerPriority.topPriorityPmTaskId} / ${phase3ClearanceBlockerPriority.topPriorityEvidenceKey}`}
+            >
+              {phase3ClearanceBlockerPriority.topPriorityEvidenceKey} /{" "}
+              {phase3ClearanceBlockerPriority.commandCanAddressTopBlocker
+                ? "smoke command can address"
+                : phase3ClearanceBlockerPriority.openBlockerCount > 0
+                  ? "manual evidence required"
+                  : "handoff ready"}
+            </small>
             <dl
               className="owner-testing-phase3-blocker-priority-grid"
               aria-label="Phase 3 blocker priority counts"

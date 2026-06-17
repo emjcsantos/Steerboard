@@ -108,7 +108,11 @@ describe("phase 3 clearance blocker priority", () => {
 
     expect(snapshot.state).toBe("blocked");
     expect(snapshot.topPriorityLabel).toBe("Session controls");
+    expect(snapshot.topPriorityEvidenceKey).toBe("phase3.session-controls");
+    expect(snapshot.topPriorityPmTaskId).toBe("phase-03-child-control-ready");
     expect(snapshot.commandCanAddressTopBlocker).toBe(false);
+    expect(snapshot.ariaLabel).toContain("evidence phase3.session-controls");
+    expect(snapshot.ariaLabel).toContain("command addressable no");
     expect(snapshot.items.map((item) => item.label)).toEqual([
       "Session controls",
       "Slash execution",
@@ -223,6 +227,8 @@ describe("phase 3 clearance blocker priority", () => {
     expect(snapshot.openBlockerCount).toBe(0);
     expect(snapshot.items).toEqual([]);
     expect(snapshot.topPriorityLabel).toBe("No open Phase 3 blocker");
+    expect(snapshot.topPriorityEvidenceKey).toBe("phase3.clearance.none");
+    expect(snapshot.topPriorityPmTaskId).toBe("phase-03-child-handoff-gate");
     expect(snapshot.nextAction).toContain("No Phase 3 blockers remain");
   });
 
