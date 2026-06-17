@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import type { Phase9RunnerApprovalSnapshot } from "./phase9RunnerApproval";
 import {
+  buildPhase9RunnerEvidenceFingerprint,
   clearPhase9RunnerApprovalRecord,
   createPhase9RunnerApprovalRecord,
   loadPhase9RunnerApprovalRecord,
@@ -70,6 +71,9 @@ describe("phase 9 runner approval record", () => {
       phase8ReviewState: "ready",
       canRequestDesktopProbe: false,
       mutationLocked: true,
+      runnerEvidenceFingerprint: buildPhase9RunnerEvidenceFingerprint(
+        runnerApprovalSnapshot()
+      ),
       rollbackEvidence:
         "Phase 9 remains limited to terminal-readonly-probe; broad terminal, Git, MCP, plugin, automation, runtime, profile, and external-service mutation paths stay locked before runner expansion.",
       detail:
@@ -103,6 +107,56 @@ describe("phase 9 runner approval record", () => {
 
     expect(record.state).toBe("ready");
     expect(record.readiness).toBe(100);
+    expect(record.runnerEvidenceFingerprint).toBe(
+      buildPhase9RunnerEvidenceFingerprint(
+        runnerApprovalSnapshot({
+          state: "waiting",
+          readiness: 91,
+          readyCount: 7,
+          reviewCount: 0,
+          blockedCount: 0,
+          waitingCount: 1,
+          items: [
+            {
+              id: "phase-09-desktop-runner-approval:owner-review",
+              label: "Owner runner review",
+              kind: "owner-review",
+              status: "waiting",
+              detail: "No local record.",
+              nextAction: "Record review."
+            }
+          ]
+        })
+      )
+    );
+  });
+
+  it("treats a stale self-review row as ready when recording fresh evidence", () => {
+    const record = createPhase9RunnerApprovalRecord(
+      runnerApprovalSnapshot({
+        state: "review",
+        readiness: 91,
+        readyCount: 7,
+        reviewCount: 1,
+        blockedCount: 0,
+        waitingCount: 0,
+        items: [
+          {
+            id: "phase-09-desktop-runner-approval:owner-review",
+            label: "Owner runner review",
+            kind: "owner-review",
+            status: "review",
+            detail: "Stale record.",
+            nextAction: "Record fresh review."
+          }
+        ]
+      }),
+      phase8ReviewRecord,
+      "2026-06-18T01:05:00.000Z"
+    );
+
+    expect(record.state).toBe("ready");
+    expect(record.readiness).toBe(100);
   });
 
   it("parses a stored review record with clamped counts and sanitized text", () => {
@@ -118,6 +172,7 @@ describe("phase 9 runner approval record", () => {
         phase8ReviewState: "READY",
         canRequestDesktopProbe: true,
         mutationLocked: true,
+        runnerEvidenceFingerprint: " phase9-runner-12345678 ",
         rollbackEvidence:
           "Rollback C:\\Users\\MJ\\Projects\\ProjectAtlas\\rollback.md with token sk-ABCDEF1234567890 <unsafe>",
         detail:
@@ -134,7 +189,8 @@ describe("phase 9 runner approval record", () => {
       phase8ReviewRecordId: "phase8-audit-review:1",
       phase8ReviewState: "ready",
       canRequestDesktopProbe: true,
-      mutationLocked: true
+      mutationLocked: true,
+      runnerEvidenceFingerprint: "phase9-runner-12345678"
     });
     expect(parsed?.detail).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(parsed?.rollbackEvidence).not.toMatch(/[A-Za-z]:[\\/]/);

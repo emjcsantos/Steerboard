@@ -15,6 +15,7 @@ export interface Phase9RunnerApprovalRecord {
   readonly phase8ReviewState: Phase9RunnerApprovalState;
   readonly canRequestDesktopProbe: boolean;
   readonly mutationLocked: boolean;
+  readonly runnerEvidenceFingerprint?: string;
   readonly rollbackEvidence: string;
   readonly detail: string;
 }
@@ -78,6 +79,53 @@ function publicText(value: string | undefined, fallback: string): string {
     .trim();
 
   return sanitized.length > 0 ? sanitized : fallback;
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableJson(entry)).join(",")}]`;
+  }
+
+  if (value && typeof value === "object") {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${stableJson(entry)}`)
+      .join(",")}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
+function shortHash(value: string): string {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+export function buildPhase9RunnerEvidenceFingerprint(
+  snapshot: Phase9RunnerApprovalSnapshot
+): string {
+  const payload = {
+    selectedAction: snapshot.selectedAction,
+    auditRecordCount: snapshot.auditRecordCount,
+    items: snapshot.items
+      .filter((item) => item.kind !== "owner-review")
+      .map((item) => ({
+        id: item.id,
+        label: item.label,
+        kind: item.kind,
+        status: item.status,
+        detail: item.detail,
+        nextAction: item.nextAction
+      }))
+  };
+
+  return `phase9-runner-${shortHash(stableJson(payload))}`;
 }
 
 function readStorage(): string | null {
@@ -167,6 +215,12 @@ export function parseStoredPhase9RunnerApprovalRecord(
       phase8ReviewState,
       canRequestDesktopProbe: parsed.canRequestDesktopProbe,
       mutationLocked: parsed.mutationLocked,
+      runnerEvidenceFingerprint: publicText(
+        nonEmptyString(parsed.runnerEvidenceFingerprint)
+          ? parsed.runnerEvidenceFingerprint
+          : undefined,
+        ""
+      ),
       rollbackEvidence: publicText(
         parsed.rollbackEvidence,
         "Rollback evidence remains required before runner expansion can unlock."
@@ -194,11 +248,10 @@ export function createPhase9RunnerApprovalRecord(
     snapshot.items.some(
       (item) =>
         item.id === "phase-09-desktop-runner-approval:owner-review" &&
-        item.status === "waiting"
+        (item.status === "waiting" || item.status === "review")
     ) &&
     snapshot.blockedCount === 0 &&
-    snapshot.reviewCount === 0 &&
-    snapshot.waitingCount === 1;
+    snapshot.reviewCount + snapshot.waitingCount === 1;
   const state = ownerReviewMissingOnly ? "ready" : snapshot.state;
   const readiness = ownerReviewMissingOnly ? 100 : snapshot.readiness;
   const phase8ReviewState = phase8ReviewRecord?.state ?? "blocked";
@@ -218,6 +271,7 @@ export function createPhase9RunnerApprovalRecord(
     phase8ReviewState,
     canRequestDesktopProbe,
     mutationLocked: true,
+    runnerEvidenceFingerprint: buildPhase9RunnerEvidenceFingerprint(snapshot),
     rollbackEvidence:
       "Phase 9 remains limited to terminal-readonly-probe; broad terminal, Git, MCP, plugin, automation, runtime, profile, and external-service mutation paths stay locked before runner expansion.",
     detail: publicText(
@@ -232,6 +286,7 @@ export function savePhase9RunnerApprovalRecord(
 ): void {
   writeStorage({
     ...record,
+    runnerEvidenceFingerprint: publicText(record.runnerEvidenceFingerprint, ""),
     rollbackEvidence: publicText(
       record.rollbackEvidence,
       "Rollback evidence remains required before runner expansion can unlock."

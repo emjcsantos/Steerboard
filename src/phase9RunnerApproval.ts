@@ -7,7 +7,10 @@ import {
   type DesktopActionRunnerExecuteResult,
   type DesktopActionRunnerRequestBuildResult
 } from "./desktopActionRunner";
-import type { Phase9RunnerApprovalRecord } from "./phase9RunnerApprovalRecord";
+import {
+  buildPhase9RunnerEvidenceFingerprint,
+  type Phase9RunnerApprovalRecord
+} from "./phase9RunnerApprovalRecord";
 
 export type Phase9RunnerApprovalState = "ready" | "review" | "blocked" | "waiting";
 
@@ -375,7 +378,8 @@ function auditItem(records: readonly LiveActionAuditRecord[]): Phase9RunnerAppro
 
 function ownerReviewItem(
   phase8Record: Phase8AuditReviewRecord | undefined,
-  record: Phase9RunnerApprovalRecord | undefined
+  record: Phase9RunnerApprovalRecord | undefined,
+  currentRunnerEvidenceFingerprint: string
 ): Phase9RunnerApprovalItem {
   if (!phase8Record) {
     return {
@@ -430,6 +434,32 @@ function ownerReviewItem(
         "The persisted Phase 9 runner review is stale against the current fixed probe or Phase 8 owner audit review record.",
       nextAction:
         "Record a fresh Phase 9 runner approval review for the current Phase 8 audit record."
+    };
+  }
+
+  if (!record.runnerEvidenceFingerprint) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-review`,
+      label: "Owner runner review",
+      kind: "owner-review",
+      status: "review",
+      detail:
+        "The persisted Phase 9 runner review predates runner evidence fingerprinting.",
+      nextAction:
+        "Record a fresh Phase 9 runner approval review for the current permission, preview, validation, audit, rollback, and mutation-lock evidence."
+    };
+  }
+
+  if (record.runnerEvidenceFingerprint !== currentRunnerEvidenceFingerprint) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-review`,
+      label: "Owner runner review",
+      kind: "owner-review",
+      status: "review",
+      detail:
+        `Phase 9 runner review fingerprint ${record.runnerEvidenceFingerprint} does not match current runner evidence ${currentRunnerEvidenceFingerprint}. ${record.rollbackEvidence}`,
+      nextAction:
+        "Re-record Phase 9 runner approval review after checking the current permission, preview, validation, audit, rollback, and mutation-lock evidence."
     };
   }
 
@@ -514,15 +544,42 @@ export function buildPhase9RunnerApprovalSnapshot(
           input.evaluatedAt
         )
       : undefined;
-  const items = [
+  const baseItems = [
     selectedActionItem(),
     permissionItem(input.permissionRequest, input.runnerEvaluation),
     approvalItem(input.permissionRequest, buildResult),
     previewItem(buildResult),
     validationItem(input.desktopRunnerResult),
     auditItem(input.auditRecords),
-    ownerReviewItem(input.phase8AuditReviewRecord, input.runnerApprovalRecord),
     rollbackItem()
+  ];
+  const baseDraft = {
+    id: SNAPSHOT_ID,
+    label: SNAPSHOT_LABEL,
+    state: resolveState(baseItems),
+    statusLabel: STATUS_LABELS[resolveState(baseItems)],
+    readiness: scoreItems(baseItems),
+    selectedAction: SELECTED_ACTION,
+    canRequestDesktopProbe: false,
+    auditRecordCount: input.auditRecords.filter(isTerminalAuditRecord).length,
+    readyCount: baseItems.filter((item) => item.status === "ready").length,
+    reviewCount: baseItems.filter((item) => item.status === "review").length,
+    blockedCount: baseItems.filter((item) => item.status === "blocked").length,
+    waitingCount: baseItems.filter((item) => item.status === "waiting").length,
+    nextAction: firstNextAction(baseItems),
+    safety: SAFETY,
+    ariaLabel: "",
+    items: baseItems
+  };
+  const currentRunnerEvidenceFingerprint =
+    buildPhase9RunnerEvidenceFingerprint(baseDraft);
+  const items = [
+    ...baseItems,
+    ownerReviewItem(
+      input.phase8AuditReviewRecord,
+      input.runnerApprovalRecord,
+      currentRunnerEvidenceFingerprint
+    )
   ];
   const state = resolveState(items);
   const readiness = scoreItems(items);
@@ -537,6 +594,7 @@ export function buildPhase9RunnerApprovalSnapshot(
     input.phase8AuditReviewRecord?.state === "ready" &&
     input.runnerApprovalRecord?.state === "ready" &&
     input.runnerApprovalRecord.phase8ReviewRecordId === input.phase8AuditReviewRecord.id &&
+    input.runnerApprovalRecord.runnerEvidenceFingerprint === currentRunnerEvidenceFingerprint &&
     input.runnerApprovalRecord.mutationLocked;
   const draft = {
     id: SNAPSHOT_ID,
