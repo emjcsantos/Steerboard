@@ -12020,11 +12020,17 @@ function OwnerTestingReadinessPanel({
                   }
                 >
                   {phase3CommandValidationRecord
-                    ? `${phase3CommandValidationRecordValidation.state}; ${formatTimestamp(
+                    ? `${phase3CommandValidationRecordValidation.statusLabel}; ${formatTimestamp(
                         phase3CommandValidationRecord.createdAt
                       )}`
                     : "Desktop proof rows remain the source of exit readiness"}
                 </span>
+                <small
+                  className="owner-testing-phase3-command-validation-note"
+                  title={phase3CommandValidationRecordValidation.detail}
+                >
+                  {phase3CommandValidationRecordValidation.nextAction}
+                </small>
               </div>
               <div
                 className="owner-testing-phase3-command-validation-actions"
@@ -12036,7 +12042,9 @@ function OwnerTestingReadinessPanel({
                   type="button"
                 >
                   <CheckCircle2 size={13} />
-                  <span>Record pass</span>
+                  <span>
+                    {phase3CommandValidationRecord ? "Record again" : "Record pass"}
+                  </span>
                 </button>
                 <button
                   disabled={!phase3CommandValidationRecord}

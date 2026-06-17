@@ -8415,6 +8415,13 @@ textarea {
   font-weight: 800;
 }
 
+.owner-testing-phase3-command-validation-note {
+  color: #8fa2b7;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
 .owner-testing-phase3-command-validation-actions {
   display: flex;
   flex-wrap: wrap;
