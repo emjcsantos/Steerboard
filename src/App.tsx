@@ -32,8 +32,8 @@ import {
   UserRound,
   Workflow
 } from "lucide-react";
-import type { DragEvent, FormEvent, KeyboardEvent, PointerEvent, ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ChangeEvent, DragEvent, FormEvent, KeyboardEvent, PointerEvent, ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ADAPTIVE_COCKPIT_DROP_JSON_MIME,
   ADAPTIVE_COCKPIT_DROP_PANEL_ID_MIME,
@@ -373,6 +373,7 @@ import {
   createPhase3CommandValidationRecord,
   derivePhase3CommandValidationRecordValidation,
   loadPhase3CommandValidationRecord,
+  parseStoredPhase3CommandValidationRecord,
   savePhase3CommandValidationRecord,
   type Phase3CommandValidationRecordValidation,
   type Phase3CommandValidationRecord
@@ -2124,6 +2125,22 @@ export function App() {
     setPhase3CommandValidationRecord(record);
     setAppNotice("Phase 3 CLI smoke validation recorded locally");
   }, [phase3ClearanceCommandPlan.command]);
+  const importPhase3CommandValidation = useCallback((serializedRecord: string) => {
+    const record = parseStoredPhase3CommandValidationRecord(serializedRecord);
+
+    if (!record) {
+      setAppNotice("Phase 3 CLI smoke validation artifact could not be imported");
+      return;
+    }
+
+    savePhase3CommandValidationRecord(record);
+    setPhase3CommandValidationRecord(record);
+    setAppNotice(
+      record.status === "passed"
+        ? "Phase 3 CLI smoke validation artifact imported"
+        : "Phase 3 CLI smoke validation artifact imported with failed status"
+    );
+  }, []);
   const clearPhase3CommandValidation = useCallback(() => {
     clearPhase3CommandValidationRecord();
     setPhase3CommandValidationRecord(undefined);
@@ -3768,6 +3785,7 @@ export function App() {
             onRecordPhase3OwnerHandoff={recordPhase3OwnerHandoff}
             onClearPhase3OwnerHandoff={clearPhase3OwnerHandoff}
             onRecordPhase3CommandValidation={recordPhase3CommandValidation}
+            onImportPhase3CommandValidation={importPhase3CommandValidation}
             onClearPhase3CommandValidation={clearPhase3CommandValidation}
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
@@ -7588,6 +7606,7 @@ function RightPanel({
   mockRuns,
   onClearPhase3CommandValidation,
   onClearPhase3OwnerHandoff,
+  onImportPhase3CommandValidation,
   onRecordPhase3CommandValidation,
   onRecordPhase3OwnerHandoff,
   onRecordWorkerValidationAttempt,
@@ -7649,6 +7668,7 @@ function RightPanel({
   onFocusPanel: (panelId: string | undefined) => void;
   onClearPhase3CommandValidation: () => void;
   onClearPhase3OwnerHandoff: () => void;
+  onImportPhase3CommandValidation: (serializedRecord: string) => void;
   onRecordPhase3CommandValidation: () => void;
   onRecordPhase3OwnerHandoff: () => void;
   onRecordWorkerValidationAttempt: (
@@ -8948,6 +8968,7 @@ function RightPanel({
         phase3OwnerTestingActions={phase3OwnerTestingActions}
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
         onRecordPhase3CommandValidation={onRecordPhase3CommandValidation}
+        onImportPhase3CommandValidation={onImportPhase3CommandValidation}
         onClearPhase3CommandValidation={onClearPhase3CommandValidation}
         onRecordPhase3OwnerHandoff={onRecordPhase3OwnerHandoff}
         onClearPhase3OwnerHandoff={onClearPhase3OwnerHandoff}
@@ -11344,6 +11365,7 @@ function OwnerTestingReadinessPanel({
   phase3SmokeProofReadiness,
   onRecordPhase3CommandValidation,
   onClearPhase3CommandValidation,
+  onImportPhase3CommandValidation,
   onRecordPhase3OwnerHandoff,
   onClearPhase3OwnerHandoff,
   onRunCodexActiveTurnControlSmokeProof,
@@ -11374,6 +11396,7 @@ function OwnerTestingReadinessPanel({
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   onRecordPhase3CommandValidation: () => void;
+  onImportPhase3CommandValidation: (serializedRecord: string) => void;
   onClearPhase3CommandValidation: () => void;
   onRecordPhase3OwnerHandoff: () => void;
   onClearPhase3OwnerHandoff: () => void;
@@ -11388,9 +11411,23 @@ function OwnerTestingReadinessPanel({
   sessionControlReadinessEvidence: SessionControlReadinessEvidence;
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
 }) {
+  const phase3CommandValidationImportInputRef = useRef<HTMLInputElement | null>(null);
   const visibleChecklistItems = checklist.items.slice(0, 6);
   const catalogRefreshItems = checklist.items.filter((item) => item.id.startsWith("catalog-"));
   const visibleFailureFixtures = failureFixtures.slice(0, 4);
+  const handlePhase3CommandValidationImport = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      event.currentTarget.value = "";
+
+      if (!file) {
+        return;
+      }
+
+      onImportPhase3CommandValidation(await file.text());
+    },
+    [onImportPhase3CommandValidation]
+  );
   const phase126PublishHoldTraceability = buildPhase126PublishHoldTraceability({
     phasePriorityEvidence
   });
@@ -12056,6 +12093,21 @@ function OwnerTestingReadinessPanel({
                     {phase3CommandValidationRecord ? "Record again" : "Record pass"}
                   </span>
                 </button>
+                <button
+                  onClick={() => phase3CommandValidationImportInputRef.current?.click()}
+                  title="Import local_private/phase3-command-validation-record.json after running npm.cmd run smoke:phase3:record."
+                  type="button"
+                >
+                  <Paperclip size={13} />
+                  <span>Import</span>
+                </button>
+                <input
+                  accept="application/json,.json"
+                  aria-label="Import Phase 3 CLI smoke validation artifact"
+                  onChange={handlePhase3CommandValidationImport}
+                  ref={phase3CommandValidationImportInputRef}
+                  type="file"
+                />
                 <button
                   disabled={!phase3CommandValidationRecord}
                   onClick={onClearPhase3CommandValidation}

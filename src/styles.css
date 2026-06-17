@@ -8444,6 +8444,10 @@ textarea {
   white-space: nowrap;
 }
 
+.owner-testing-phase3-command-validation-actions input {
+  display: none;
+}
+
 .owner-testing-phase3-command-validation-actions button:disabled {
   cursor: not-allowed;
   opacity: 0.48;

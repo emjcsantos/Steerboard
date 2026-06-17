@@ -61,6 +61,39 @@ describe("phase 3 command validation record", () => {
     expect(parsed?.detail).not.toContain(">");
   });
 
+  it("parses the local phase 3 smoke artifact schema", () => {
+    const parsed = parseStoredPhase3CommandValidationRecord(
+      JSON.stringify({
+        id: "phase3-command-validation:2026-06-18T07:30:00.000Z",
+        createdAt: "2026-06-18T07:30:00.000Z",
+        command: "npm.cmd run smoke:phase3",
+        status: "passed",
+        passedTestCount: 3,
+        failedTestCount: 0,
+        detail:
+          "Phase 3 CLI smoke validation passed locally via npm.cmd run smoke:phase3; desktop UI proof rows still require persisted desktop evidence."
+      })
+    );
+
+    expect(parsed).toMatchObject({
+      id: "phase3-command-validation:2026-06-18T07:30:00.000Z",
+      command: "npm.cmd run smoke:phase3",
+      status: "passed",
+      passedTestCount: 3,
+      failedTestCount: 0
+    });
+    expect(
+      derivePhase3CommandValidationRecordValidation(parsed, {
+        evaluatedAt: "2026-06-18T07:31:00.000Z",
+        expectedCommand: "npm.cmd run smoke:phase3"
+      })
+    ).toMatchObject({
+      state: "ready",
+      isFresh: true,
+      nextAction: expect.stringContaining("without using it to unlock handoff")
+    });
+  });
+
   it("classifies fresh passed CLI smoke validation as ready without unlocking UI proof", () => {
     const record = createPhase3CommandValidationRecord(
       "npm.cmd run smoke:phase3",

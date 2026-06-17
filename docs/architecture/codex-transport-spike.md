@@ -39,7 +39,7 @@ The working spike proves this path:
 
 The app exposes this as an explicit live smoke action from the Codex connection dialog. It should not run on app startup or during passive readiness refresh.
 
-For repeatable local validation, `npm run smoke:phase3` runs the ignored Tauri smoke tests for live-control, active-turn interrupt, and active-turn steer. This command is opt-in because it can send tiny read-only prompts through the local runtime; normal `npm test` and `cargo test` do not run these live smoke checks.
+For repeatable local validation, `npm run smoke:phase3` runs the ignored Tauri smoke tests for live-control, active-turn interrupt, and active-turn steer. This command is opt-in because it can send tiny read-only prompts through the local runtime; normal `npm test` and `cargo test` do not run these live smoke checks. `npm run smoke:phase3:record` runs the same smoke harness and writes `local_private/phase3-command-validation-record.json`, which Owner Testing can import as a CLI validation record without treating it as persisted desktop UI proof.
 
 The Owner Testing panel also summarizes those three smoke proofs in evidence-only readiness rows. Browser fallback and non-executed proofs remain `waiting`, successful desktop proofs are `ready`, incomplete desktop executions are `review`, and unsupported-after-execution proofs are `blocked`.
 
