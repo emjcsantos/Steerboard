@@ -552,6 +552,8 @@ import {
   buildPhase10ArenaPolishSnapshot,
   type Phase10ArenaPolishSnapshot
 } from "./phase10ArenaPolish";
+import { buildPhase10ArenaPolishTraceability } from "./phase10ArenaPolishTraceability";
+import { buildPhase10ArenaPolishBlockerPriority } from "./phase10ArenaPolishBlockerPriority";
 import {
   buildPhase11OwnerCommandCenterSnapshot,
   type Phase11OwnerCommandCenterSnapshot
@@ -12435,6 +12437,12 @@ function Phase10ArenaPolishPanel({
 }: {
   snapshot: Phase10ArenaPolishSnapshot;
 }) {
+  const traceability = buildPhase10ArenaPolishTraceability({ snapshot });
+  const blockerPriority = buildPhase10ArenaPolishBlockerPriority({
+    snapshot,
+    traceability
+  });
+
   return (
     <section className="panel-section">
       <h4>Phase 10 Arena Polish</h4>
@@ -12489,6 +12497,103 @@ function Phase10ArenaPolishPanel({
             </li>
           ))}
         </ol>
+        <div
+          aria-label={traceability.ariaLabel}
+          className={classNames(
+            "phase10-arena-traceability",
+            `phase10-arena-traceability-${traceability.state}`
+          )}
+          title={traceability.safety}
+        >
+          <div className="phase10-arena-traceability-header">
+            <strong>{traceability.label}</strong>
+            <span>{traceability.statusLabel}</span>
+            <b>{traceability.readiness}%</b>
+          </div>
+          <dl className="phase10-arena-traceability-grid" aria-label="Phase 10 Arena polish traceability counts">
+            <div>
+              <dt>PM</dt>
+              <dd>{traceability.linkedPmTaskCount}</dd>
+            </div>
+            <div>
+              <dt>Accept</dt>
+              <dd>{traceability.acceptanceGateStatus}</dd>
+            </div>
+            <div>
+              <dt>Open</dt>
+              <dd>{traceability.blockedCount + traceability.waitingCount + traceability.reviewCount}</dd>
+            </div>
+          </dl>
+          <ol className="phase10-arena-traceability-list" aria-label="Phase 10 Arena polish traceability rows">
+            {traceability.items.map((item) => (
+              <li
+                className={`phase10-arena-traceability-item-${item.status}`}
+                key={item.id}
+                title={`${item.detail} ${item.nextAction}`}
+              >
+                <span>{item.kind}</span>
+                <strong>{item.label}</strong>
+                <b>{item.status}</b>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div
+          aria-label={blockerPriority.ariaLabel}
+          className={classNames(
+            "phase10-arena-blocker-priority",
+            `phase10-arena-blocker-priority-${blockerPriority.state}`
+          )}
+          title={blockerPriority.safety}
+        >
+          <div className="phase10-arena-blocker-priority-header">
+            <strong>{blockerPriority.label}</strong>
+            <span>
+              {blockerPriority.arenaReviewCanAddressTopBlocker
+                ? "Arena review"
+                : blockerPriority.openBlockerCount > 0
+                  ? "Owner action"
+                  : "Ready"}
+            </span>
+            <b>{blockerPriority.readiness}%</b>
+          </div>
+          <p title={blockerPriority.topPriorityAction}>{blockerPriority.topPriorityLabel}</p>
+          <dl className="phase10-arena-blocker-priority-grid" aria-label="Phase 10 Arena polish blocker priority counts">
+            <div>
+              <dt>Open</dt>
+              <dd>{blockerPriority.openBlockerCount}</dd>
+            </div>
+            <div>
+              <dt>Review</dt>
+              <dd>{blockerPriority.arenaReviewAddressableCount}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>{blockerPriority.statusLabel}</dd>
+            </div>
+          </dl>
+          <ol className="phase10-arena-blocker-priority-list" aria-label="Phase 10 Arena polish blocker priority rows">
+            {blockerPriority.items.length > 0 ? (
+              blockerPriority.items.slice(0, 6).map((item) => (
+                <li
+                  className={`phase10-arena-blocker-priority-item-${item.status}`}
+                  key={item.id}
+                  title={`${item.detail} ${item.nextAction}`}
+                >
+                  <span>#{item.priority}</span>
+                  <strong>{item.label}</strong>
+                  <b>{item.kind}</b>
+                </li>
+              ))
+            ) : (
+              <li className="phase10-arena-blocker-priority-item-ready">
+                <span>OK</span>
+                <strong>No open Phase 10 blocker</strong>
+                <b>ready</b>
+              </li>
+            )}
+          </ol>
+        </div>
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
     </section>

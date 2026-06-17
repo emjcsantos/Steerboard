@@ -790,6 +790,22 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 55,
             complexity: "low",
             sourceDocument: "Arena rename validation"
+          },
+          {
+            id: "phase-10-child-traceability",
+            title: "Arena Polish Traceability",
+            description: "Link Phase 10 remaining-goal status, PM child rows, layout regression, density, keyboard, focus, terminology, and acceptance gates before release packaging can resume.",
+            completionPercent: 40,
+            complexity: "medium",
+            sourceDocument: "Phase 10 Arena polish traceability"
+          },
+          {
+            id: "phase-10-child-blocker-priority",
+            title: "Arena Polish Blocker Priority",
+            description: "Rank exact Phase 10 blockers across layout regression, density, keyboard controls, focus state, terminology, acceptance gates, PM coverage, and traceability before packaging resumes.",
+            completionPercent: 35,
+            complexity: "medium",
+            sourceDocument: "Phase 10 Arena polish blocker priority"
           }
         ]
       }

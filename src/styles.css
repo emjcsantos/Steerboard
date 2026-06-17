@@ -13261,6 +13261,205 @@ textarea {
   text-transform: uppercase;
 }
 
+.phase10-arena-traceability,
+.phase10-arena-blocker-priority {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  border: 1px solid #27303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 7px;
+}
+
+.phase10-arena-traceability-ready,
+.phase10-arena-blocker-priority-ready {
+  border-left: 3px solid #89dda9;
+}
+
+.phase10-arena-traceability-review,
+.phase10-arena-blocker-priority-review {
+  border-left: 3px solid #8bd7f4;
+}
+
+.phase10-arena-traceability-waiting,
+.phase10-arena-blocker-priority-waiting {
+  border-left: 3px solid #f0d984;
+}
+
+.phase10-arena-traceability-blocked,
+.phase10-arena-blocker-priority-blocked {
+  border-left: 3px solid #ff9e85;
+}
+
+.phase10-arena-traceability-header,
+.phase10-arena-blocker-priority-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.phase10-arena-traceability-header strong,
+.phase10-arena-traceability-header span,
+.phase10-arena-traceability-header b,
+.phase10-arena-traceability-list span,
+.phase10-arena-traceability-list strong,
+.phase10-arena-traceability-list b,
+.phase10-arena-blocker-priority-header strong,
+.phase10-arena-blocker-priority-header span,
+.phase10-arena-blocker-priority-header b,
+.phase10-arena-blocker-priority p,
+.phase10-arena-blocker-priority-list span,
+.phase10-arena-blocker-priority-list strong,
+.phase10-arena-blocker-priority-list b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase10-arena-traceability-header strong,
+.phase10-arena-blocker-priority-header strong {
+  color: #edf2f7;
+  font-size: 11px;
+}
+
+.phase10-arena-traceability-header span,
+.phase10-arena-traceability-header b,
+.phase10-arena-blocker-priority-header span,
+.phase10-arena-blocker-priority-header b {
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce3eb;
+  padding: 3px 6px;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase10-arena-traceability-grid,
+.phase10-arena-blocker-priority-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+}
+
+.phase10-arena-traceability-grid div,
+.phase10-arena-blocker-priority-grid div {
+  min-width: 0;
+  border: 1px solid #27303a;
+  border-radius: 6px;
+  background: #151b22;
+  padding: 5px;
+  text-align: center;
+}
+
+.phase10-arena-traceability-grid dt,
+.phase10-arena-traceability-grid dd,
+.phase10-arena-blocker-priority-grid dt,
+.phase10-arena-blocker-priority-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase10-arena-traceability-grid dt,
+.phase10-arena-blocker-priority-grid dt {
+  color: #88939f;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase10-arena-traceability-grid dd,
+.phase10-arena-blocker-priority-grid dd {
+  margin-top: 2px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.phase10-arena-traceability-list,
+.phase10-arena-blocker-priority-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phase10-arena-traceability-list li,
+.phase10-arena-blocker-priority-list li {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #27303a;
+  border-radius: 6px;
+  background: #141b23;
+  padding: 5px;
+}
+
+.phase10-arena-traceability-list li {
+  grid-template-columns: 116px minmax(0, 1fr) auto;
+}
+
+.phase10-arena-blocker-priority-list li {
+  grid-template-columns: 36px minmax(0, 1fr) 92px;
+}
+
+.phase10-arena-traceability-list span,
+.phase10-arena-blocker-priority-list span {
+  color: #9fa9b4;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase10-arena-traceability-list strong,
+.phase10-arena-blocker-priority-list strong {
+  color: #edf2f7;
+  font-size: 10px;
+}
+
+.phase10-arena-traceability-list b,
+.phase10-arena-blocker-priority-list b {
+  color: #cfd8e3;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.phase10-arena-blocker-priority p {
+  margin: 0;
+  color: #c3ccd6;
+  font-size: 11px;
+}
+
+.phase10-arena-traceability-item-ready,
+.phase10-arena-blocker-priority-item-ready {
+  border-color: #2f6a49;
+}
+
+.phase10-arena-traceability-item-review,
+.phase10-arena-blocker-priority-item-review {
+  border-color: #315977;
+}
+
+.phase10-arena-traceability-item-waiting,
+.phase10-arena-blocker-priority-item-waiting {
+  border-color: #7a6530;
+}
+
+.phase10-arena-traceability-item-blocked,
+.phase10-arena-blocker-priority-item-blocked {
+  border-color: #633337;
+}
+
 .phase11-owner-command {
   display: grid;
   gap: 8px;

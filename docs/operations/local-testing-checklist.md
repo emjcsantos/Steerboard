@@ -48,6 +48,8 @@ Do not proceed to the next section until the current item is at least `review`.
    - Verify each panel preserves its own session context and activity state.
    - Confirm corrupted saved panel metadata with duplicate live identities shows a conflict warning and does not send live chat through the duplicated identity.
    - Switch to Adaptive Arena and confirm the Phase 10 Arena Polish panel reports layout regression, density/readability, keyboard controls, focus state, terminology, and acceptance gates separately.
+   - Confirm the Phase 10 Arena polish traceability rows link the remaining goal, PM child coverage, Arena polish readiness, layout/density evidence, and acceptance gate before packaging can resume.
+   - Confirm the Phase 10 Arena polish blocker-priority queue ranks layout, density, keyboard, focus, terminology, acceptance, PM coverage, and traceability blockers and shows whether Arena review can address the top blocker.
    - Use drag, keyboard arrow movement, shift-arrow resize, hide, reveal, and reset paths on adaptive panels, then confirm no source session or project data is mutated.
 5. `Controls`
    - Exercise stop, retry, pause, and route controls.

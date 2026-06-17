@@ -242,7 +242,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 10"],
     phaseIds: ["phase-10-adaptive-arena"],
     goal:
-      "Polish adaptive layout, density, keyboard controls, focus state, and Arena terminology after core live proof clears.",
+      "Polish adaptive layout, density, keyboard controls, focus state, Arena terminology, traceability, and blocker priority after core live proof clears.",
     status: "next",
     priority: "medium",
     completionPercent: 55,
@@ -252,10 +252,12 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-10-child-layout-regression",
       "phase-10-child-density-polish",
       "phase-10-parent-arena-identity",
-      "phase-10-child-term-scan"
+      "phase-10-child-term-scan",
+      "phase-10-child-traceability",
+      "phase-10-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 10 Arena Polish panel to verify adaptive layout regression, density, keyboard controls, focus state, terminology, and acceptance gates."
+      "Use the Phase 10 Arena Polish panel, traceability rows, and blocker-priority queue to verify adaptive layout regression, density, keyboard controls, focus state, terminology, acceptance gates, PM child links, and the exact top blocker before packaging resumes."
   },
   {
     id: "goal-phase-11-owner-command-center",

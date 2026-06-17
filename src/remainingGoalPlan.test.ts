@@ -250,6 +250,27 @@ describe("remaining goal plan", () => {
     expect(phase7Goal?.nextAction).toContain("blocker-priority queue");
   });
 
+  it("keeps the Phase 10 Arena polish target linked to traceability and blocker priority", () => {
+    const phase10Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-10-arena-polish");
+
+    expect(phase10Goal).toMatchObject({
+      target: "Adaptive Arena polish",
+      priority: "medium",
+      status: "next"
+    });
+    expect(phase10Goal?.pmTaskIds).toEqual(
+      expect.arrayContaining([
+        "phase-10-child-layout-regression",
+        "phase-10-child-density-polish",
+        "phase-10-child-term-scan",
+        "phase-10-child-traceability",
+        "phase-10-child-blocker-priority"
+      ])
+    );
+    expect(phase10Goal?.nextAction).toContain("traceability rows");
+    expect(phase10Goal?.nextAction).toContain("blocker-priority queue");
+  });
+
   it("keeps remaining goal text public-safe", () => {
     const combinedText = remainingGoalPlan
       .flatMap((goal) => [
