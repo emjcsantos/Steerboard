@@ -321,6 +321,10 @@ import {
   type Phase3ClearanceCommandPlan
 } from "./phase3ClearanceCommandPlan";
 import {
+  buildPhase3ClearanceBlockerPriority,
+  type Phase3ClearanceBlockerPrioritySnapshot
+} from "./phase3ClearanceBlockerPriority";
+import {
   buildPhase3HandoffGate,
   type Phase3HandoffGate
 } from "./phase3HandoffGate";
@@ -1811,6 +1815,14 @@ export function App() {
         actions: phase3OwnerTestingActions
       }),
     [phase3ClearancePackage, phase3OwnerTestingActions]
+  );
+  const phase3ClearanceBlockerPriority = useMemo(
+    () =>
+      buildPhase3ClearanceBlockerPriority({
+        clearancePackage: phase3ClearancePackage,
+        commandPlan: phase3ClearanceCommandPlan
+      }),
+    [phase3ClearanceCommandPlan, phase3ClearancePackage]
   );
   const phase3HandoffRecordState = useMemo(
     () =>
@@ -3472,6 +3484,7 @@ export function App() {
             selectedDispatchReviewRecord={selectedDispatchReviewRecord}
             selectedRun={selectedRun}
             phasePriorityEvidence={phasePriorityEvidence}
+            phase3ClearanceBlockerPriority={phase3ClearanceBlockerPriority}
             phase3ClearanceCommandPlan={phase3ClearanceCommandPlan}
             phase3ClearancePackage={phase3ClearancePackage}
             phase3ExitGateEvidence={phase3ExitGateEvidence}
@@ -6900,6 +6913,7 @@ function RightPanel({
   selectedDispatchReviewRecord,
   selectedRun,
   phasePriorityEvidence,
+  phase3ClearanceBlockerPriority,
   phase3ClearanceCommandPlan,
   phase3ClearancePackage,
   phase3ExitGateEvidence,
@@ -6956,6 +6970,7 @@ function RightPanel({
   selectedDispatchReviewRecord?: DispatchReviewRecord;
   selectedRun?: MockOrchestratorRun;
   phasePriorityEvidence: PhasePriorityEvidenceResult;
+  phase3ClearanceBlockerPriority: Phase3ClearanceBlockerPrioritySnapshot;
   phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
@@ -8147,6 +8162,7 @@ function RightPanel({
         failureFixtures={failureStateFixtures}
         failureSummary={failureStateFixtureSummary}
         phasePriorityEvidence={phasePriorityEvidence}
+        phase3ClearanceBlockerPriority={phase3ClearanceBlockerPriority}
         phase3ClearanceCommandPlan={phase3ClearanceCommandPlan}
         phase3ClearancePackage={phase3ClearancePackage}
         phase3ExitGateEvidence={phase3ExitGateEvidence}
@@ -10512,6 +10528,7 @@ function OwnerTestingReadinessPanel({
   failureFixtures,
   failureSummary,
   phasePriorityEvidence,
+  phase3ClearanceBlockerPriority,
   phase3ClearanceCommandPlan,
   phase3ClearancePackage,
   phase3ExitGateEvidence,
@@ -10537,6 +10554,7 @@ function OwnerTestingReadinessPanel({
   failureFixtures: readonly FailureStateFixture[];
   failureSummary: FailureStateFixtureSummary;
   phasePriorityEvidence: PhasePriorityEvidenceResult;
+  phase3ClearanceBlockerPriority: Phase3ClearanceBlockerPrioritySnapshot;
   phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
@@ -10863,6 +10881,74 @@ function OwnerTestingReadinessPanel({
             </ol>
             <small title={phase3ClearancePackage.nextAction}>
               {phase3ClearancePackage.nextAction}
+            </small>
+          </div>
+          <div
+            aria-label={phase3ClearanceBlockerPriority.ariaLabel}
+            className={classNames(
+              "owner-testing-phase3-blocker-priority",
+              `owner-testing-phase3-blocker-priority-${phase3ClearanceBlockerPriority.state}`
+            )}
+            title={phase3ClearanceBlockerPriority.safety}
+          >
+            <div className="owner-testing-phase3-blocker-priority-header">
+              <strong>{phase3ClearanceBlockerPriority.label}</strong>
+              <span>
+                {phase3ClearanceBlockerPriority.commandCanAddressTopBlocker
+                  ? "Command match"
+                  : phase3ClearanceBlockerPriority.openBlockerCount > 0
+                    ? "Manual first"
+                    : "Clear"}
+              </span>
+            </div>
+            <p title={phase3ClearanceBlockerPriority.topPriorityAction}>
+              {phase3ClearanceBlockerPriority.topPriorityLabel}
+            </p>
+            <dl
+              className="owner-testing-phase3-blocker-priority-grid"
+              aria-label="Phase 3 blocker priority counts"
+            >
+              <div>
+                <dt>Open</dt>
+                <dd>{phase3ClearanceBlockerPriority.openBlockerCount}</dd>
+              </div>
+              <div>
+                <dt>Command</dt>
+                <dd>{phase3ClearanceBlockerPriority.commandAddressableCount}</dd>
+              </div>
+              <div>
+                <dt>State</dt>
+                <dd>{phase3ClearanceBlockerPriority.statusLabel}</dd>
+              </div>
+              <div>
+                <dt>Ready</dt>
+                <dd>{phase3ClearanceBlockerPriority.readiness}%</dd>
+              </div>
+            </dl>
+            <ol
+              className="owner-testing-phase3-blocker-priority-list"
+              aria-label="Phase 3 prioritized blocker queue"
+            >
+              {phase3ClearanceBlockerPriority.items.length > 0 ? (
+                phase3ClearanceBlockerPriority.items.map((item) => (
+                  <li
+                    className={`owner-testing-phase3-blocker-priority-item-${item.status}`}
+                    key={item.id}
+                    title={`${item.detail} ${item.nextAction}`}
+                  >
+                    <strong>{item.priority}. {item.label}</strong>
+                    <span>{item.canUseSmokeCommand ? "command" : item.severity}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="owner-testing-phase3-blocker-priority-item-ready">
+                  <strong>No open blockers</strong>
+                  <span>ready</span>
+                </li>
+              )}
+            </ol>
+            <small title={phase3ClearanceBlockerPriority.safety}>
+              {phase3ClearanceBlockerPriority.nextAction}
             </small>
           </div>
           <div

@@ -193,18 +193,18 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-03-controls-slash",
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
-    description: "Clear the current blocker by proving slash execution, session controls, desktop proof persistence, command-plan clarity, and owner-reviewed handoff readiness.",
+    description: "Clear the current blocker by proving slash execution, session controls, desktop proof persistence, command-plan clarity, prioritized blocker review, and owner-reviewed handoff readiness.",
     status: "ongoing",
-    completionPercent: 88,
+    completionPercent: 90,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-03-parent-proof-clearance",
         title: "Desktop Proof Clearance",
-        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload, keep command-plan clarity visible, and keep the handoff boundary visible.",
+        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload, keep command-plan clarity visible, prioritize open blockers, and keep the handoff boundary visible.",
         status: "ongoing",
-        completionPercent: 88,
+        completionPercent: 90,
         complexity: "extra_high",
         sourceDocument: "Current state and pipeline",
         children: [
@@ -227,9 +227,17 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-03-child-command-plan",
             title: "Desktop Smoke Command Plan",
             description: "Show the exact local Phase 3 smoke command, covered proof rows, command-held state, and blocker-correlated next action without running commands automatically.",
-            completionPercent: 80,
+            completionPercent: 85,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance command plan"
+          },
+          {
+            id: "phase-03-child-blocker-priority",
+            title: "Clearance Blocker Priority",
+            description: "Rank exact Phase 3 blockers by severity, proof category, and command-addressable status before owner handoff.",
+            completionPercent: 75,
+            complexity: "medium",
+            sourceDocument: "Phase 3 blocker priority"
           },
           {
             id: "phase-03-child-handoff-gate",
