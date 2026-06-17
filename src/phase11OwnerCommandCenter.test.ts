@@ -5,7 +5,10 @@ import { evaluatePhase11EvidenceRecord } from "./phase11EvidenceRecords";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
-import type { RemainingGoalPlanSummary } from "./remainingGoalPlan";
+import {
+  buildRemainingGoalPriorityTraces,
+  type RemainingGoalPlanSummary
+} from "./remainingGoalPlan";
 import { buildPhase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 
 function readyChecklist() {
@@ -94,6 +97,8 @@ function remainingSummary(
     currentNextAction: "Keep Owner Testing as the release gate.",
     coveredPhaseCount: 11,
     remainingPhaseCount: 11,
+    priorityGoalTraceCount: 8,
+    priorityGoalTraces: buildRemainingGoalPriorityTraces(),
     ...overrides
   };
 }
@@ -242,13 +247,56 @@ describe("phase 11 owner command center", () => {
     );
   });
 
+  it("exposes prioritized remaining goal and PM task trace links", () => {
+    const result = snapshot();
+
+    expect(result.priorityGoalTraceCount).toBeGreaterThan(0);
+    expect(result.priorityGoalTraces.map((trace) => trace.goalId).slice(0, 2)).toEqual([
+      "goal-phase-1-2-6-publish",
+      "goal-phase-3-proof-clearance"
+    ]);
+    expect(result.priorityGoalTraces).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          goalId: "goal-phase-11-owner-command-center",
+          priority: "high",
+          phaseIds: ["phase-11-owner-packaging"],
+          pmTaskIds: expect.arrayContaining(["phase-11-child-evidence-records"])
+        })
+      ])
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Phase readiness",
+          detail: expect.stringContaining("Top priority")
+        })
+      ])
+    );
+  });
+
   it("keeps command center text public-safe", () => {
     const result = snapshot({
       remainingGoalSummary: remainingSummary({
         blocked: 1,
         currentTarget: "Review C:\\Users\\MJ\\Desktop\\secret-plan.md",
         currentNextAction:
-          "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
+          "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
+        priorityGoalTraces: [
+          {
+            goalId: "goal-unsafe",
+            target: "Review C:\\Users\\MJ\\Desktop\\secret-plan.md",
+            status: "blocked",
+            priority: "critical",
+            completionPercent: 10,
+            phaseIds: ["phase-unsafe"],
+            pmTaskIds: ["task-unsafe"],
+            nextAction:
+              "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
+            current: true
+          }
+        ],
+        priorityGoalTraceCount: 1
       })
     });
     const combinedText = [
@@ -256,7 +304,14 @@ describe("phase 11 owner command center", () => {
       result.nextAction,
       result.safety,
       result.ariaLabel,
-      ...result.items.flatMap((item) => [item.label, item.detail, item.nextAction])
+      ...result.items.flatMap((item) => [item.label, item.detail, item.nextAction]),
+      ...result.priorityGoalTraces.flatMap((trace) => [
+        trace.goalId,
+        trace.target,
+        trace.phaseIds.join(" "),
+        trace.pmTaskIds.join(" "),
+        trace.nextAction
+      ])
     ].join(" ");
 
     expect(combinedText).not.toMatch(/[A-Za-z]:[\\/]/);

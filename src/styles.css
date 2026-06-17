@@ -12076,6 +12076,84 @@ textarea {
   text-transform: uppercase;
 }
 
+.phase11-owner-goal-traces {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phase11-owner-goal-trace {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #27303a;
+  border-radius: 8px;
+  background: #0f151c;
+  padding: 6px;
+}
+
+.phase11-owner-goal-trace-current {
+  border-color: #f0d984;
+}
+
+.phase11-owner-goal-trace > span,
+.phase11-owner-goal-trace strong,
+.phase11-owner-goal-trace small,
+.phase11-owner-goal-trace b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase11-owner-goal-trace > span {
+  border-radius: 999px;
+  padding: 3px 6px;
+  text-align: center;
+  color: #10161d;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase11-owner-goal-trace-critical > span {
+  background: #ff9e85;
+}
+
+.phase11-owner-goal-trace-high > span {
+  background: #8bd7f4;
+}
+
+.phase11-owner-goal-trace-medium > span {
+  background: #89dda9;
+}
+
+.phase11-owner-goal-trace div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.phase11-owner-goal-trace strong {
+  color: #edf2f7;
+  font-size: 11px;
+}
+
+.phase11-owner-goal-trace small {
+  color: #8f99a5;
+  font-size: 10px;
+}
+
+.phase11-owner-goal-trace b {
+  color: #cfd8e3;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
 .phase11-proof-depth {
   display: grid;
   gap: 8px;

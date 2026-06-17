@@ -31,6 +31,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm the Phase 11 Proof Freshness panel breaks proof into Phase 1/2/6 priority proof, Phase 3 clearance, desktop smoke, command-plan, and handoff proof rows without running smoke commands or release actions.
    - Confirm the Phase 11 Evidence Records panel shows fresh checkout, clean checkout, build/test, and docs/known-limits records with source/timestamp text and missing, stale, malformed, waiting, review, blocked, or ready states without running release actions.
    - Confirm the Phase 11 command center holds release readiness while the owner-approved push blocker or fresh-checkout evidence is unresolved.
+   - Confirm the Phase 11 command center shows prioritized remaining-goal trace rows with critical/current goals first, then high-priority pending goals, including goal IDs, phase counts, PM task link counts, status, and completion.
    - Confirm the Phase 11 Release Readiness panel shows clean checkout, build/test, owner smoke proof, packaging lock, docs/known limits, and final release decision as separate gates.
    - Confirm the release readiness decision remains held while clean checkout, build/test, smoke proof, docs/known limits, owner proof, or remaining-goal blockers are unresolved.
    - Confirm the packaging lock row is ready only because packaging and resume controls stay locked; do not run packaging, signing, installer, Git push, or external release actions from this gate.

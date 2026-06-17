@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildRemainingGoalPriorityTraces,
   findRemainingGoalPlanIssues,
   remainingGoalPlan,
   remainingProjectManagementPhaseIds,
@@ -29,8 +30,45 @@ describe("remaining goal plan", () => {
       currentNextAction:
         "Keep the branch local, preserve the proof commit, and push only after the remote is recreated and the owner says to push.",
       coveredPhaseCount: 11,
-      remainingPhaseCount: 11
+      remainingPhaseCount: 11,
+      priorityGoalTraceCount: 8,
+      priorityGoalTraces: buildRemainingGoalPriorityTraces()
     });
+  });
+
+  it("keeps critical and high-priority goal traces at the top with PM task links", () => {
+    const traces = buildRemainingGoalPriorityTraces();
+
+    expect(traces.map((trace) => trace.goalId).slice(0, 2)).toEqual([
+      "goal-phase-1-2-6-publish",
+      "goal-phase-3-proof-clearance"
+    ]);
+    expect(traces).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          goalId: "goal-phase-4-provider-surfaces",
+          priority: "high",
+          phaseIds: ["phase-04-provider-surfaces"],
+          pmTaskIds: expect.arrayContaining(["phase-04-child-surface-depth"])
+        }),
+        expect.objectContaining({
+          goalId: "goal-phase-5-migration-hardening",
+          priority: "high",
+          pmTaskIds: expect.arrayContaining(["phase-05-child-review-depth"])
+        }),
+        expect.objectContaining({
+          goalId: "goal-phase-8-permission-audit",
+          priority: "high",
+          pmTaskIds: expect.arrayContaining(["phase-08-child-audit-persistence"])
+        }),
+        expect.objectContaining({
+          goalId: "goal-phase-11-owner-command-center",
+          priority: "high",
+          pmTaskIds: expect.arrayContaining(["phase-11-child-evidence-records"])
+        })
+      ])
+    );
+    expect(traces.every((trace) => trace.phaseIds.length > 0 && trace.pmTaskIds.length > 0)).toBe(true);
   });
 
   it("keeps the owner hold and Phase 3 proof target explicit", () => {

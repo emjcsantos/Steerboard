@@ -11907,6 +11907,26 @@ function Phase11OwnerCommandCenterPanel({
             </li>
           ))}
         </ol>
+        <ol className="phase11-owner-goal-traces" aria-label="Prioritized remaining goal traces">
+          {snapshot.priorityGoalTraces.map((trace) => (
+            <li
+              className={classNames(
+                "phase11-owner-goal-trace",
+                `phase11-owner-goal-trace-${trace.priority}`,
+                trace.current && "phase11-owner-goal-trace-current"
+              )}
+              key={trace.goalId}
+              title={`${trace.goalId}; phases: ${trace.phaseIds.join(", ")}; PM tasks: ${trace.pmTaskIds.join(", ")}; ${trace.nextAction}`}
+            >
+              <span>{trace.priority}</span>
+              <div>
+                <strong>{trace.target}</strong>
+                <small>{trace.goalId} - {trace.phaseIds.length} phases - {trace.pmTaskIds.length} PM links</small>
+              </div>
+              <b>{trace.status} - {trace.completionPercent}%</b>
+            </li>
+          ))}
+        </ol>
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
     </section>

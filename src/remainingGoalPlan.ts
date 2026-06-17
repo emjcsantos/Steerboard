@@ -20,6 +20,18 @@ export interface RemainingGoalPlanItem {
   current?: boolean;
 }
 
+export interface RemainingGoalPlanTrace {
+  goalId: string;
+  target: string;
+  status: RemainingGoalStatus;
+  priority: RemainingGoalPriority;
+  completionPercent: number;
+  phaseIds: string[];
+  pmTaskIds: string[];
+  nextAction: string;
+  current: boolean;
+}
+
 export interface RemainingGoalPlanSummary {
   total: number;
   blocked: number;
@@ -32,6 +44,8 @@ export interface RemainingGoalPlanSummary {
   currentNextAction: string;
   coveredPhaseCount: number;
   remainingPhaseCount: number;
+  priorityGoalTraceCount: number;
+  priorityGoalTraces: RemainingGoalPlanTrace[];
 }
 
 export const remainingProjectManagementPhaseIds = [
@@ -272,6 +286,63 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
   }
 ];
 
+const PRIORITY_ORDER: Record<RemainingGoalPriority, number> = {
+  critical: 0,
+  high: 1,
+  medium: 2
+};
+
+const STATUS_ORDER: Record<RemainingGoalStatus, number> = {
+  blocked: 0,
+  active: 1,
+  next: 2,
+  planned: 3,
+  paused: 4
+};
+
+function compareGoalPriority(a: RemainingGoalPlanItem, b: RemainingGoalPlanItem): number {
+  if (Boolean(a.current) !== Boolean(b.current)) {
+    return a.current ? -1 : 1;
+  }
+
+  const priorityDelta = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+  if (priorityDelta !== 0) {
+    return priorityDelta;
+  }
+
+  const statusDelta = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+  if (statusDelta !== 0) {
+    return statusDelta;
+  }
+
+  const completionDelta = a.completionPercent - b.completionPercent;
+  if (completionDelta !== 0) {
+    return completionDelta;
+  }
+
+  return a.target.localeCompare(b.target);
+}
+
+export function buildRemainingGoalPriorityTraces(
+  goals: readonly RemainingGoalPlanItem[] = remainingGoalPlan,
+  limit = 8
+): RemainingGoalPlanTrace[] {
+  return [...goals]
+    .sort(compareGoalPriority)
+    .slice(0, Math.max(0, limit))
+    .map((goal) => ({
+      goalId: goal.id,
+      target: goal.target,
+      status: goal.status,
+      priority: goal.priority,
+      completionPercent: goal.completionPercent,
+      phaseIds: [...goal.phaseIds],
+      pmTaskIds: [...goal.pmTaskIds],
+      nextAction: goal.nextAction,
+      current: Boolean(goal.current)
+    }));
+}
+
 export function summarizeRemainingGoalPlan(
   goals: readonly RemainingGoalPlanItem[] = remainingGoalPlan
 ): RemainingGoalPlanSummary {
@@ -286,7 +357,9 @@ export function summarizeRemainingGoalPlan(
     currentTarget: "No remaining goal",
     currentNextAction: "No remaining action.",
     coveredPhaseCount: 0,
-    remainingPhaseCount: remainingProjectManagementPhaseIds.length
+    remainingPhaseCount: remainingProjectManagementPhaseIds.length,
+    priorityGoalTraceCount: 0,
+    priorityGoalTraces: []
   };
   const coveredPhases = new Set<string>();
 
@@ -319,6 +392,8 @@ export function summarizeRemainingGoalPlan(
   summary.coveredPhaseCount = remainingProjectManagementPhaseIds.filter((phaseId) =>
     coveredPhases.has(phaseId)
   ).length;
+  summary.priorityGoalTraces = buildRemainingGoalPriorityTraces(goals);
+  summary.priorityGoalTraceCount = summary.priorityGoalTraces.length;
 
   return summary;
 }

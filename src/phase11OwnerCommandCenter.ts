@@ -4,7 +4,10 @@ import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
 import type { Phase11EvidenceRecordSnapshot } from "./phase11EvidenceRecords";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
-import type { RemainingGoalPlanSummary } from "./remainingGoalPlan";
+import type {
+  RemainingGoalPlanSummary,
+  RemainingGoalPlanTrace
+} from "./remainingGoalPlan";
 
 export type Phase11OwnerCommandCenterState = "ready" | "review" | "blocked" | "waiting";
 
@@ -25,6 +28,18 @@ export interface Phase11OwnerCommandCenterItem {
   nextAction: string;
 }
 
+export interface Phase11OwnerCommandCenterGoalTrace {
+  goalId: string;
+  target: string;
+  status: RemainingGoalPlanTrace["status"];
+  priority: RemainingGoalPlanTrace["priority"];
+  completionPercent: number;
+  phaseIds: string[];
+  pmTaskIds: string[];
+  nextAction: string;
+  current: boolean;
+}
+
 export interface Phase11OwnerCommandCenterSnapshot {
   id: string;
   label: string;
@@ -43,6 +58,8 @@ export interface Phase11OwnerCommandCenterSnapshot {
   safety: string;
   ariaLabel: string;
   items: Phase11OwnerCommandCenterItem[];
+  priorityGoalTraceCount: number;
+  priorityGoalTraces: Phase11OwnerCommandCenterGoalTrace[];
 }
 
 export interface Phase11OwnerCommandCenterInput {
@@ -126,12 +143,45 @@ function publicText(value: string | undefined, fallback: string): string {
   const sanitized = value
     .replace(/[A-Za-z]:[\\/][^\s]+/g, "local path")
     .replace(/[\\/](Users|Projects|Documents|Desktop)[\\/][^\s]+/gi, "local path")
-    .replace(/sk-[A-Za-z0-9_-]+/g, "redacted token")
+    .replace(/sk-[A-Za-z0-9_-]{12,}/g, "redacted token")
     .replace(/[<>]/g, "")
     .replace(/\s+/g, " ")
     .trim();
 
   return sanitized.length > 0 ? sanitized : fallback;
+}
+
+function publicIdList(values: readonly string[]): string[] {
+  return values.map((value) => publicText(value, "unknown-id"));
+}
+
+function publicGoalTrace(trace: RemainingGoalPlanTrace): Phase11OwnerCommandCenterGoalTrace {
+  return {
+    goalId: publicText(trace.goalId, "unknown-goal"),
+    target: publicText(trace.target, "Untitled goal"),
+    status: trace.status,
+    priority: trace.priority,
+    completionPercent: trace.completionPercent,
+    phaseIds: publicIdList(trace.phaseIds),
+    pmTaskIds: publicIdList(trace.pmTaskIds),
+    nextAction: publicText(trace.nextAction, "No next action recorded."),
+    current: trace.current
+  };
+}
+
+function goalTraceDetail(summary: RemainingGoalPlanSummary): string {
+  const topTrace = summary.priorityGoalTraces[0];
+
+  if (!topTrace) {
+    return "No prioritized remaining-goal trace is attached.";
+  }
+
+  return (
+    `Top priority: ${publicText(topTrace.target, "Untitled goal")} ` +
+    `(${publicText(topTrace.goalId, "unknown-goal")}); ` +
+    `${topTrace.phaseIds.length} phase link${topTrace.phaseIds.length === 1 ? "" : "s"}, ` +
+    `${topTrace.pmTaskIds.length} PM task link${topTrace.pmTaskIds.length === 1 ? "" : "s"}.`
+  );
 }
 
 function checklistItem(checklist: OwnerTestingChecklist): Phase11OwnerCommandCenterItem {
@@ -258,7 +308,7 @@ function phaseReadinessItem(summary: RemainingGoalPlanSummary): Phase11OwnerComm
       label: "Phase readiness",
       kind: "phase-readiness",
       status: "blocked",
-      detail: `${summary.blocked} remaining goal${summary.blocked === 1 ? "" : "s"} are blocked; average completion is ${summary.averageCompletionPercent}%.`,
+      detail: `${summary.blocked} remaining goal${summary.blocked === 1 ? "" : "s"} are blocked; average completion is ${summary.averageCompletionPercent}%. ${goalTraceDetail(summary)}`,
       nextAction: publicText(
         summary.currentNextAction,
         "Clear blocked remaining goals before release readiness."
@@ -272,7 +322,7 @@ function phaseReadinessItem(summary: RemainingGoalPlanSummary): Phase11OwnerComm
       label: "Phase readiness",
       kind: "phase-readiness",
       status: "review",
-      detail: `${summary.planned} planned and ${summary.paused} paused goal${summary.planned + summary.paused === 1 ? "" : "s"} remain; average completion is ${summary.averageCompletionPercent}%.`,
+      detail: `${summary.planned} planned and ${summary.paused} paused goal${summary.planned + summary.paused === 1 ? "" : "s"} remain; average completion is ${summary.averageCompletionPercent}%. ${goalTraceDetail(summary)}`,
       nextAction: "Review remaining planned and paused goals before using Owner Testing as the release gate."
     };
   }
@@ -282,7 +332,7 @@ function phaseReadinessItem(summary: RemainingGoalPlanSummary): Phase11OwnerComm
     label: "Phase readiness",
     kind: "phase-readiness",
     status: "ready",
-    detail: `All ${summary.coveredPhaseCount} covered phases have an active or completed path.`,
+    detail: `All ${summary.coveredPhaseCount} covered phases have an active or completed path. ${goalTraceDetail(summary)}`,
     nextAction: "Keep phase readiness current as goals close."
   };
 }
@@ -343,7 +393,8 @@ function buildAriaLabel(snapshot: Omit<Phase11OwnerCommandCenterSnapshot, "ariaL
     `${snapshot.label}: ${snapshot.statusLabel}; ${snapshot.readiness}% ready; ` +
     `${snapshot.readyCount} ready, ${snapshot.reviewCount} review, ` +
     `${snapshot.blockedCount} blocked, ${snapshot.waitingCount} waiting; ` +
-    `${snapshot.blockerCount} blockers; next action: ${snapshot.nextAction}`
+    `${snapshot.blockerCount} blockers; ${snapshot.priorityGoalTraceCount} priority goal traces; ` +
+    `next action: ${snapshot.nextAction}`
   );
 }
 
@@ -368,6 +419,8 @@ export function buildPhase11OwnerCommandCenterSnapshot(
     input.remainingGoalSummary.blocked +
     input.checklist.summary.blocked +
     input.failureSummary.blocked;
+  const priorityGoalTraces =
+    input.remainingGoalSummary.priorityGoalTraces.map(publicGoalTrace);
   const draft = {
     id: SNAPSHOT_ID,
     label: SNAPSHOT_LABEL,
@@ -384,7 +437,9 @@ export function buildPhase11OwnerCommandCenterSnapshot(
     waitingCount,
     nextAction: firstNextAction(items),
     safety: SAFETY,
-    items
+    items,
+    priorityGoalTraceCount: priorityGoalTraces.length,
+    priorityGoalTraces
   };
 
   return {

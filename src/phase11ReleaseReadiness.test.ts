@@ -3,7 +3,10 @@ import type { DesktopPackagingReadinessSnapshot } from "./desktopPackagingReadin
 import { evaluatePhase11EvidenceRecord } from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import { buildPhase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
-import type { RemainingGoalPlanSummary } from "./remainingGoalPlan";
+import {
+  buildRemainingGoalPriorityTraces,
+  type RemainingGoalPlanSummary
+} from "./remainingGoalPlan";
 import type { SecurityFinalReviewSnapshot } from "./securityFinalReview";
 
 function ownerSnapshot(
@@ -27,6 +30,8 @@ function ownerSnapshot(
     safety: "Evidence only.",
     ariaLabel: "Owner command ready.",
     items: [],
+    priorityGoalTraceCount: 0,
+    priorityGoalTraces: [],
     ...overrides
   };
 }
@@ -83,6 +88,8 @@ function remainingSummary(
     currentNextAction: "Attach release readiness proof.",
     coveredPhaseCount: 11,
     remainingPhaseCount: 11,
+    priorityGoalTraceCount: 8,
+    priorityGoalTraces: buildRemainingGoalPriorityTraces(),
     ...overrides
   };
 }
