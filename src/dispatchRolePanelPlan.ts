@@ -14,6 +14,7 @@ export interface DispatchRolePanel {
   panelId: string;
   role: DispatchRolePanelRole;
   title: string;
+  owner: string;
   state: MockRunSessionState;
   attemptLabel: string;
   validationLabel: string;
@@ -63,6 +64,7 @@ interface TaskLike {
   acceptanceCriteria: string[];
   dependencies: string[];
   validationCommands: string[];
+  owner?: string;
 }
 
 const ROLE_ORDER: DispatchRolePanelRole[] = [
@@ -280,12 +282,14 @@ function planPanelFromSources(
       fileOwnership: toList(task.fileOwnership),
       acceptanceCriteria: toList(task.acceptanceCriteria),
       dependencies: toList(task.dependencies),
-      validationCommands: toList(task.validationCommands)
+      validationCommands: toList(task.validationCommands),
+      owner: toText(task.owner)
     }));
 
   const state = resolvePanelState(sessions, tasks);
   const panelId = sessions[0]?.id ?? tasks[0]?.id ?? compactId("panel", run.id, role);
   const title = sessions[0]?.title || tasks[0]?.title || `${role} panel`;
+  const owner = tasks.find((task) => task.owner)?.owner || `${role} owner`;
   const attemptLabel = deriveAttemptLabel(role, tasks, sessions);
   const validationLabel = (
     (sessions[0]?.validation && sessions[0].validation) ||
@@ -313,6 +317,7 @@ function planPanelFromSources(
     panelId,
     role,
     title,
+    owner,
     state,
     attemptLabel,
     validationLabel,

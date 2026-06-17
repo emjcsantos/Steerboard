@@ -103,6 +103,7 @@ Do not proceed to the next section until the current item is at least `review`.
     - Confirm role-panel plan generation, route details, and log records are consistent.
     - Confirm the selected local run shows a dispatch review record with role counts, max attempt limit, handoff task count, validation gate count, and a no-runtime-execution note.
     - Confirm the dispatch review depth checks show role coverage, attempt limits, handoff tasks, validation gates, and the live worker lock as separate rows.
+    - Confirm the integration ownership rows show Main Codex as the final integration, validation, commit, push approval, reporting, traceability, and closure-boundary owner.
     - Confirm missing role coverage, missing validation gates, oversized attempt limits, or a missing no-runtime-execution note keep dispatch in waiting, review, or blocked state.
     - Confirm a PM row staged through `Run` creates the same local review trace before any live worker session spawning.
     - Verify the result is a local review artifact only (no runtime worker launch or external session execution).

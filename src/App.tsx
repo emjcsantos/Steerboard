@@ -178,6 +178,7 @@ import {
   buildPhase7DispatchReviewDepth,
   type Phase7DispatchReviewDepthSnapshot
 } from "./phase7DispatchReviewDepth";
+import { buildPhase7IntegrationOwnershipDepth } from "./phase7IntegrationOwnershipDepth";
 import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
@@ -5417,6 +5418,7 @@ function DispatchReviewRecordCard({
     records: [record],
     selectedRecord: record
   });
+  const ownershipDepth = buildPhase7IntegrationOwnershipDepth(record);
 
   return (
     <article
@@ -5457,6 +5459,33 @@ function DispatchReviewRecordCard({
       </div>
       <p>{record.nextAction}</p>
       <DispatchReviewDepthSummary snapshot={depth} />
+      <div
+        aria-label={ownershipDepth.ariaLabel}
+        className={classNames(
+          "dispatch-integration-depth",
+          `dispatch-integration-depth-${ownershipDepth.state}`
+        )}
+        title={ownershipDepth.nextAction}
+      >
+        <div className="dispatch-integration-depth-header">
+          <strong>Integration ownership</strong>
+          <span>{ownershipDepth.statusLabel}</span>
+          <b>{ownershipDepth.readiness}%</b>
+        </div>
+        <ol className="dispatch-integration-depth-list" aria-label="Phase 7 integration ownership checks">
+          {ownershipDepth.items.map((item) => (
+            <li
+              className={`dispatch-integration-depth-item-${item.status}`}
+              key={item.id}
+              title={`${item.detail} ${item.nextAction}`}
+            >
+              <span>{item.kind}</span>
+              <strong>{item.label}</strong>
+              <b>{item.status}</b>
+            </li>
+          ))}
+        </ol>
+      </div>
       <small>{record.noRuntimeExecutionNote}</small>
     </article>
   );

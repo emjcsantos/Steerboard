@@ -7,6 +7,7 @@ import type {
 import type { MockOrchestratorRun } from "./run";
 
 export type DispatchReviewRecordState = DispatchRolePanelPlanState;
+export type DispatchReviewClosureState = "review-open" | "ready-to-close";
 
 export interface DispatchReviewRecord {
   id: string;
@@ -27,6 +28,12 @@ export interface DispatchReviewRecord {
   validationGateCount: number;
   maxAttemptLimit: number;
   noRuntimeExecutionNote: string;
+  integrationOwner: string;
+  finalValidationOwner: string;
+  commitPushReportingOwner: string;
+  traceabilityLinkCount: number;
+  closureState: DispatchReviewClosureState;
+  mainIntegrationOwnershipNote: string;
   detail: string;
   nextAction: string;
 }
@@ -36,6 +43,9 @@ export const DISPATCH_REVIEW_RECORD_STORAGE_KEY =
 
 export const DISPATCH_REVIEW_NO_RUNTIME_NOTE =
   "Dispatch review records are local metadata only; they do not launch worker sessions or execute runtime actions.";
+
+export const DISPATCH_REVIEW_MAIN_OWNERSHIP_NOTE =
+  "Main Codex owns final integration, final validation, commit preparation, push approval, reporting, and dispatch-review traceability; worker records remain local metadata.";
 
 const validReadinessStates: DispatchReviewRecordState[] = [
   "complete",
@@ -47,6 +57,7 @@ const validReadinessStates: DispatchReviewRecordState[] = [
 const validPackageStatuses: DispatchPackageStatus[] = ["staged", "ready"];
 const validRisks: DispatchPackage["risk"][] = ["low", "medium", "high"];
 const validDeployModes: DispatchPackage["deployMode"][] = ["dry-run", "staged", "full"];
+const validClosureStates: DispatchReviewClosureState[] = ["review-open", "ready-to-close"];
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -118,6 +129,10 @@ function isDeployMode(value: unknown): value is DispatchPackage["deployMode"] {
   return validDeployModes.includes(value as DispatchPackage["deployMode"]);
 }
 
+function isClosureState(value: unknown): value is DispatchReviewClosureState {
+  return validClosureStates.includes(value as DispatchReviewClosureState);
+}
+
 function attemptLimitFromLabel(label: string): number {
   const match = label.match(/\/\s*(\d+)/);
   return match ? safeNumber(match[1]) : 0;
@@ -125,6 +140,35 @@ function attemptLimitFromLabel(label: string): number {
 
 function maxAttemptLimit(plan: DispatchRolePanelPlan): number {
   return Math.max(0, ...plan.panels.map((panel) => attemptLimitFromLabel(panel.attemptLabel)));
+}
+
+function integrationOwnerFromPlan(plan: DispatchRolePanelPlan): string {
+  return safeText(
+    plan.panels.find((panel) => panel.role === "integration")?.owner,
+    "Main Codex"
+  );
+}
+
+function traceabilityLinkCount(record: {
+  id?: string;
+  sourcePackageId?: string;
+  runId?: string;
+  planId?: string;
+  projectId?: string;
+}): number {
+  return [
+    record.id,
+    record.sourcePackageId,
+    record.runId,
+    record.planId,
+    record.projectId
+  ].filter((value) => typeof value === "string" && value.trim().length > 0).length;
+}
+
+function closureStateForReadiness(
+  readinessState: DispatchReviewRecordState
+): DispatchReviewClosureState {
+  return readinessState === "complete" ? "ready-to-close" : "review-open";
 }
 
 function createRecordId(sourcePackageId: string, runId: string, createdAt: string): string {
@@ -188,6 +232,21 @@ function isDispatchReviewRecord(value: unknown): value is DispatchReviewRecord {
     Number.isFinite(record!.maxAttemptLimit) &&
     typeof record!.noRuntimeExecutionNote === "string" &&
     record!.noRuntimeExecutionNote.trim().length > 0 &&
+    (record!.integrationOwner === undefined ||
+      (typeof record!.integrationOwner === "string" && record!.integrationOwner.trim().length > 0)) &&
+    (record!.finalValidationOwner === undefined ||
+      (typeof record!.finalValidationOwner === "string" &&
+        record!.finalValidationOwner.trim().length > 0)) &&
+    (record!.commitPushReportingOwner === undefined ||
+      (typeof record!.commitPushReportingOwner === "string" &&
+        record!.commitPushReportingOwner.trim().length > 0)) &&
+    (record!.traceabilityLinkCount === undefined ||
+      (typeof record!.traceabilityLinkCount === "number" &&
+        Number.isFinite(record!.traceabilityLinkCount))) &&
+    (record!.closureState === undefined || isClosureState(record!.closureState)) &&
+    (record!.mainIntegrationOwnershipNote === undefined ||
+      (typeof record!.mainIntegrationOwnershipNote === "string" &&
+        record!.mainIntegrationOwnershipNote.trim().length > 0)) &&
     typeof record!.detail === "string" &&
     record!.detail.trim().length > 0 &&
     typeof record!.nextAction === "string" &&
@@ -245,9 +304,12 @@ export function createDispatchReviewRecord(
   const handoffTaskCount = Array.isArray(run.tasks) ? run.tasks.length : 0;
   const validationGateCount = Array.isArray(run.validationGates) ? run.validationGates.length : 0;
   const attemptLimit = maxAttemptLimit(rolePanelPlan);
+  const integrationOwner = integrationOwnerFromPlan(rolePanelPlan);
+  const recordId = createRecordId(sourcePackageId, runId, createdAt);
+  const closureState = closureStateForReadiness(rolePanelPlan.readinessState);
 
   return {
-    id: createRecordId(sourcePackageId, runId, createdAt),
+    id: recordId,
     sourcePackageId,
     runId,
     planId: safeText(rolePanelPlan.planId, "unknown-plan"),
@@ -265,6 +327,18 @@ export function createDispatchReviewRecord(
     validationGateCount,
     maxAttemptLimit: attemptLimit,
     noRuntimeExecutionNote: DISPATCH_REVIEW_NO_RUNTIME_NOTE,
+    integrationOwner,
+    finalValidationOwner: "Main Codex",
+    commitPushReportingOwner: "Main Codex",
+    traceabilityLinkCount: traceabilityLinkCount({
+      id: recordId,
+      sourcePackageId,
+      runId,
+      planId: rolePanelPlan.planId,
+      projectId: rolePanelPlan.projectId
+    }),
+    closureState,
+    mainIntegrationOwnershipNote: DISPATCH_REVIEW_MAIN_OWNERSHIP_NOTE,
     detail: `${panelCount} role panels, ${handoffTaskCount} handoff tasks, ${validationGateCount} validation gates, max attempt limit ${attemptLimit}.`,
     nextAction: nextActionForState(rolePanelPlan.readinessState)
   };
@@ -350,6 +424,26 @@ export function parseStoredDispatchReviewRecords(
         noRuntimeExecutionNote: safeText(
           item.noRuntimeExecutionNote,
           DISPATCH_REVIEW_NO_RUNTIME_NOTE
+        ),
+        integrationOwner: safeText(item.integrationOwner, "Main Codex"),
+        finalValidationOwner: safeText(item.finalValidationOwner, "Main Codex"),
+        commitPushReportingOwner: safeText(item.commitPushReportingOwner, "Main Codex"),
+        traceabilityLinkCount: safeNumber(
+          item.traceabilityLinkCount,
+          traceabilityLinkCount({
+            id: item.id,
+            sourcePackageId: item.sourcePackageId,
+            runId: item.runId,
+            planId: item.planId,
+            projectId: item.projectId
+          })
+        ),
+        closureState: isClosureState(item.closureState)
+          ? item.closureState
+          : closureStateForReadiness(item.readinessState),
+        mainIntegrationOwnershipNote: safeText(
+          item.mainIntegrationOwnershipNote,
+          DISPATCH_REVIEW_MAIN_OWNERSHIP_NOTE
         ),
         detail: safeText(item.detail, "Dispatch review record is waiting for detail."),
         nextAction: safeText(item.nextAction, nextActionForState(item.readinessState))

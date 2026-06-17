@@ -461,8 +461,8 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-07-dispatch-loop",
     title: "Phase 7: Orchestrator-Worker Dispatch",
-    description: "Move from local dispatch previews to saved, reviewable orchestrator-worker handoff records with explicit dispatch review depth.",
-    completionPercent: 45,
+    description: "Move from local dispatch previews to saved, reviewable orchestrator-worker handoff records with explicit dispatch review and main integration ownership depth.",
+    completionPercent: 50,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -485,8 +485,16 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-07-child-integration-owner",
             title: "Main Integration Ownership",
             description: "Keep final integration, validation, commit, push, reporting, and dispatch-review traceability owned by the main Arena path.",
-            completionPercent: 35,
+            completionPercent: 50,
             sourceDocument: "Dispatch safety rules"
+          },
+          {
+            id: "phase-07-child-integration-ownership-depth",
+            title: "Integration Ownership Depth",
+            description: "Show integration owner, final validation owner, commit/push/reporting owner, traceability links, and closure boundary as separate review rows.",
+            completionPercent: 50,
+            complexity: "high",
+            sourceDocument: "Phase 7 integration ownership depth"
           }
         ]
       },

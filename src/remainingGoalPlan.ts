@@ -146,21 +146,22 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 7"],
     phaseIds: ["phase-07-dispatch-loop"],
     goal:
-      "Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits, dispatch review depth, validation gates, and live-worker locks.",
+      "Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits, dispatch review depth, main integration ownership, validation gates, and live-worker locks.",
     status: "next",
     priority: "high",
-    completionPercent: 45,
+    completionPercent: 50,
     pmTaskIds: [
       "phase-07-dispatch-loop",
       "phase-07-parent-role-panels",
       "phase-07-child-worker-preview",
       "phase-07-child-integration-owner",
+      "phase-07-child-integration-ownership-depth",
       "phase-07-parent-observed-loop",
       "phase-07-child-handoff-trace",
       "phase-07-child-review-depth"
     ],
     nextAction:
-      "Use dispatch review records and review-depth checks to audit role counts, attempt limits, handoff tasks, validation gates, and live-worker execution locks before any live worker session spawning."
+      "Use dispatch review records, review-depth checks, and integration ownership rows to audit role counts, attempt limits, handoff tasks, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, and live-worker execution locks before any live worker session spawning."
   },
   {
     id: "goal-phase-8-permission-audit",

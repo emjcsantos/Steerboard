@@ -76,6 +76,21 @@ describe("dispatch role panel plan", () => {
       "validator",
       "integration"
     ]);
+    expect(plan.panels.every((panel) => panel.owner.trim().length > 0)).toBe(true);
+    expect(plan.panels.find((panel) => panel.role === "integration")?.owner).toBe("Main Codex");
+  });
+
+  it("preserves owner labels from run tasks", () => {
+    const plan = buildPlan({ idSeed: "owner-seed", createdAt: "2026-06-04T11:15:00.000Z" });
+
+    expect(plan.panels).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ role: "orchestrator", owner: "Orchestrator" }),
+        expect.objectContaining({ role: "implementer", owner: "Mock Worker" }),
+        expect.objectContaining({ role: "validator", owner: "Validation Worker 1" }),
+        expect.objectContaining({ role: "integration", owner: "Main Codex" })
+      ])
+    );
   });
 
   it("uses three-attempt labels for worker roles", () => {

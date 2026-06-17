@@ -56,7 +56,7 @@ The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk e
 - Track pipeline state: idea, planned, ready, dispatched, running, validating, blocked, accepted, shipped.
 - Select an Epic, Parent, or Child and stage a structured Arena review package.
 - Show which pipeline item created each staged role-panel plan and which worker tasks would be spawned.
-- Show dispatch review depth for role coverage, attempt limits, handoff tasks, validation gates, and the no-live-worker execution lock.
+- Show dispatch review depth for role coverage, attempt limits, handoff tasks, validation gates, integration ownership, traceability, closure boundaries, and the no-live-worker execution lock.
 - Preserve the Arena chat as the source of planning intent when the user does not need structured pipeline management.
 
 ## User Flow
@@ -86,7 +86,7 @@ The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk e
 - Remaining Goals summary for all open targets across Phase 1 through Phase 11.
 - Phase 4 Provider Readiness catalog depth, Connection Dialog Refresh Safety depth, and Phase 4 Surface Depth panels for source coverage, catalog evidence expectations, metadata-only refresh proof, surface coverage, setup blockers, capability gaps, preview review, and execution locks before execution is considered.
 - Phase 5 Migration review depth records for apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, and profile activation lock.
-- Phase 7 Dispatch review depth checks for role counts, max attempt limits, handoff task depth, validation gate depth, and the no-live-worker lock.
+- Phase 7 Dispatch review depth checks for role counts, max attempt limits, handoff task depth, validation gate depth, main integration ownership, traceability, closure boundaries, and the no-live-worker lock.
 - Phase 8 Audit Depth risk exceptions with disabled-path explanations, evidence requirements, rollback expectations, and audit sources before mutation paths grow.
 - Phase 9 Runner Approval depth records for fixed probe selection, owner approval, request preview, validation output, audit record, rollback evidence, and the desktop execution lock.
 - Owner Testing evidence and explicit smoke buttons for Phase 1 live panel proof, Phase 2 multi-panel isolation, and Phase 6 PM board staging readiness.
@@ -159,7 +159,7 @@ Deploying to a configured runtime creates:
 
 - a staged dispatch package,
 - a local mock orchestrator role-panel projection,
-- local dispatch review depth checks,
+- local dispatch review depth and integration ownership checks,
 - a persisted local run-history entry,
 - a traceable link from the selected pipeline item back to matching local run-history entries,
 - a compact linked-run status summary for the selected pipeline item,
@@ -179,6 +179,6 @@ Deploying to a configured runtime creates:
 - worker task briefs,
 - validator task briefs,
 - expected files or ownership boundaries,
-- final integration checklist.
+- final integration checklist owned by the main Arena path.
 
-The main orchestrator remains responsible for architecture, final validation, commit, push, and reporting.
+The main orchestrator remains responsible for architecture, final validation, commit preparation, push approval, reporting, and dispatch-review traceability.

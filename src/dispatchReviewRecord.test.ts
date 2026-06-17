@@ -5,6 +5,7 @@ import type { DispatchReviewRecord } from "./dispatchReviewRecord";
 import {
   appendDispatchReviewRecord,
   createDispatchReviewRecord,
+  DISPATCH_REVIEW_MAIN_OWNERSHIP_NOTE,
   DISPATCH_REVIEW_NO_RUNTIME_NOTE,
   DISPATCH_REVIEW_RECORD_STORAGE_KEY,
   loadDispatchReviewRecords,
@@ -70,6 +71,13 @@ describe("dispatch review records", () => {
     expect(first.handoffTaskCount).toBeGreaterThan(0);
     expect(first.validationGateCount).toBe(1);
     expect(first.maxAttemptLimit).toBe(3);
+    expect(first.integrationOwner).toBe("Main Codex");
+    expect(first.finalValidationOwner).toBe("Main Codex");
+    expect(first.commitPushReportingOwner).toBe("Main Codex");
+    expect(first.traceabilityLinkCount).toBe(5);
+    expect(first.closureState).toBe("review-open");
+    expect(first.mainIntegrationOwnershipNote).toBe(DISPATCH_REVIEW_MAIN_OWNERSHIP_NOTE);
+    expect(first.mainIntegrationOwnershipNote).toContain("push approval");
     expect(first.noRuntimeExecutionNote).toBe(DISPATCH_REVIEW_NO_RUNTIME_NOTE);
     expect(first.noRuntimeExecutionNote).not.toContain("launched");
     expect(first.detail).toContain("role panels");
@@ -105,6 +113,25 @@ describe("dispatch review records", () => {
       validator: 0,
       integration: 0
     });
+  });
+
+  it("repairs legacy records that predate integration ownership fields", () => {
+    const legacy = buildRecord("2026-06-11T00:07:00.000Z") as Partial<DispatchReviewRecord>;
+    delete legacy.integrationOwner;
+    delete legacy.finalValidationOwner;
+    delete legacy.commitPushReportingOwner;
+    delete legacy.traceabilityLinkCount;
+    delete legacy.closureState;
+    delete legacy.mainIntegrationOwnershipNote;
+
+    const [parsed] = parseStoredDispatchReviewRecords(JSON.stringify([legacy]));
+
+    expect(parsed.integrationOwner).toBe("Main Codex");
+    expect(parsed.finalValidationOwner).toBe("Main Codex");
+    expect(parsed.commitPushReportingOwner).toBe("Main Codex");
+    expect(parsed.traceabilityLinkCount).toBe(5);
+    expect(parsed.closureState).toBe("review-open");
+    expect(parsed.mainIntegrationOwnershipNote).toBe(DISPATCH_REVIEW_MAIN_OWNERSHIP_NOTE);
   });
 
   it("returns [] for invalid JSON, non-array, and zero limits", () => {

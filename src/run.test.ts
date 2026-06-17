@@ -108,6 +108,22 @@ describe("mock run creation", () => {
 
     expect(plannerTasks.every((task) => task.attemptLimit === 1)).toBe(true);
     expect(integrationTasks.every((task) => task.attemptLimit === 1)).toBe(true);
+    expect(integrationTasks.every((task) => task.owner === "Main Codex")).toBe(true);
+    expect(integrationTasks[0]?.scope).toEqual(
+      expect.arrayContaining([
+        "Collect validated command evidence.",
+        "Prepare operator-visible Arena rows and handoff metadata.",
+        "Keep final merge review, commit preparation, push approval, and reporting owned by Main Codex."
+      ])
+    );
+    expect(integrationTasks[0]?.validationCommands).toEqual(
+      expect.arrayContaining([
+        "Final validation reviewed by Main Codex",
+        "Commit prepared only after owner approval",
+        "Push held until owner approval",
+        "Dispatch report complete"
+      ])
+    );
     expect(implementationTasks.every((task) => task.attemptLimit === 3)).toBe(true);
     expect(validationTasks.every((task) => task.attemptLimit === 3)).toBe(true);
   });

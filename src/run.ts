@@ -330,15 +330,21 @@ function createMockTasks(
     status: resolveTaskStatus(runStatus, "integration"),
     attempt: 0,
     attemptLimit: ORCHESTRATOR_ATTEMPT_LIMIT,
-    owner: "Orchestrator",
-    objective: "Collect summaries, task state, and handoff gates for operator review.",
+    owner: "Main Codex",
+    objective: "Own final integration, final validation review, commit preparation, push approval, reporting, and closure traceability for operator review.",
     scope: [
       "Collect validated command evidence.",
-      "Prepare operator-visible Arena rows and handoff metadata."
+      "Prepare operator-visible Arena rows and handoff metadata.",
+      "Keep final merge review, commit preparation, push approval, and reporting owned by Main Codex."
     ],
     fileOwnership: ["run summary", "session rows"],
     acceptanceCriteria: fallbackAcceptance,
-    validationCommands: ["Handoff complete"],
+    validationCommands: [
+      "Final validation reviewed by Main Codex",
+      "Commit prepared only after owner approval",
+      "Push held until owner approval",
+      "Dispatch report complete"
+    ],
     dependencies: tasks.map((task) => task.id),
     rollback: "No rollback action is required for handoff preparation."
   });
