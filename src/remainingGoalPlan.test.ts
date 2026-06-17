@@ -46,7 +46,9 @@ describe("remaining goal plan", () => {
     expect(phase3Goal?.target).toBe("Phase 3 desktop proof clearance");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-exit-gate");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-blocker-priority");
+    expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-traceability");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-handoff-gate");
+    expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-slash-ready");
   });
 
   it("keeps remaining goal text public-safe", () => {

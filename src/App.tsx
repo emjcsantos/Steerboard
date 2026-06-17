@@ -325,6 +325,10 @@ import {
   type Phase3ClearanceBlockerPrioritySnapshot
 } from "./phase3ClearanceBlockerPriority";
 import {
+  buildPhase3ClearanceTraceability,
+  type Phase3ClearanceTraceabilitySnapshot
+} from "./phase3ClearanceTraceability";
+import {
   buildPhase3HandoffGate,
   type Phase3HandoffGate
 } from "./phase3HandoffGate";
@@ -1839,6 +1843,21 @@ export function App() {
         handoffRecordState: phase3HandoffRecordState
       }),
     [phase3ClearancePackage, phase3HandoffRecordState]
+  );
+  const phase3ClearanceTraceability = useMemo(
+    () =>
+      buildPhase3ClearanceTraceability({
+        clearancePackage: phase3ClearancePackage,
+        commandPlan: phase3ClearanceCommandPlan,
+        blockerPriority: phase3ClearanceBlockerPriority,
+        handoffGate: phase3HandoffGate
+      }),
+    [
+      phase3ClearanceBlockerPriority,
+      phase3ClearanceCommandPlan,
+      phase3ClearancePackage,
+      phase3HandoffGate
+    ]
   );
   const recordPhase3OwnerHandoff = useCallback(() => {
     if (!phase3ClearancePackage.canExit) {
@@ -3485,6 +3504,7 @@ export function App() {
             selectedRun={selectedRun}
             phasePriorityEvidence={phasePriorityEvidence}
             phase3ClearanceBlockerPriority={phase3ClearanceBlockerPriority}
+            phase3ClearanceTraceability={phase3ClearanceTraceability}
             phase3ClearanceCommandPlan={phase3ClearanceCommandPlan}
             phase3ClearancePackage={phase3ClearancePackage}
             phase3ExitGateEvidence={phase3ExitGateEvidence}
@@ -6914,6 +6934,7 @@ function RightPanel({
   selectedRun,
   phasePriorityEvidence,
   phase3ClearanceBlockerPriority,
+  phase3ClearanceTraceability,
   phase3ClearanceCommandPlan,
   phase3ClearancePackage,
   phase3ExitGateEvidence,
@@ -6971,6 +6992,7 @@ function RightPanel({
   selectedRun?: MockOrchestratorRun;
   phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ClearanceBlockerPriority: Phase3ClearanceBlockerPrioritySnapshot;
+  phase3ClearanceTraceability: Phase3ClearanceTraceabilitySnapshot;
   phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
@@ -8163,6 +8185,7 @@ function RightPanel({
         failureSummary={failureStateFixtureSummary}
         phasePriorityEvidence={phasePriorityEvidence}
         phase3ClearanceBlockerPriority={phase3ClearanceBlockerPriority}
+        phase3ClearanceTraceability={phase3ClearanceTraceability}
         phase3ClearanceCommandPlan={phase3ClearanceCommandPlan}
         phase3ClearancePackage={phase3ClearancePackage}
         phase3ExitGateEvidence={phase3ExitGateEvidence}
@@ -10529,6 +10552,7 @@ function OwnerTestingReadinessPanel({
   failureSummary,
   phasePriorityEvidence,
   phase3ClearanceBlockerPriority,
+  phase3ClearanceTraceability,
   phase3ClearanceCommandPlan,
   phase3ClearancePackage,
   phase3ExitGateEvidence,
@@ -10555,6 +10579,7 @@ function OwnerTestingReadinessPanel({
   failureSummary: FailureStateFixtureSummary;
   phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ClearanceBlockerPriority: Phase3ClearanceBlockerPrioritySnapshot;
+  phase3ClearanceTraceability: Phase3ClearanceTraceabilitySnapshot;
   phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
@@ -10949,6 +10974,64 @@ function OwnerTestingReadinessPanel({
             </ol>
             <small title={phase3ClearanceBlockerPriority.safety}>
               {phase3ClearanceBlockerPriority.nextAction}
+            </small>
+          </div>
+          <div
+            aria-label={phase3ClearanceTraceability.ariaLabel}
+            className={classNames(
+              "owner-testing-phase3-traceability",
+              `owner-testing-phase3-traceability-${phase3ClearanceTraceability.state}`
+            )}
+            title={phase3ClearanceTraceability.safety}
+          >
+            <div className="owner-testing-phase3-traceability-header">
+              <strong>{phase3ClearanceTraceability.label}</strong>
+              <span>{phase3ClearanceTraceability.canTrustTrace ? "Trusted" : "Open"}</span>
+            </div>
+            <p title={phase3ClearanceTraceability.nextAction}>
+              {phase3ClearanceTraceability.linkedGoalId}
+            </p>
+            <dl
+              className="owner-testing-phase3-traceability-grid"
+              aria-label="Phase 3 clearance traceability counts"
+            >
+              <div>
+                <dt>PM Rows</dt>
+                <dd>
+                  {phase3ClearanceTraceability.linkedPmTaskCount}/
+                  {phase3ClearanceTraceability.requiredPmTaskCount}
+                </dd>
+              </div>
+              <div>
+                <dt>Open</dt>
+                <dd>{phase3ClearanceTraceability.openTraceCount}</dd>
+              </div>
+              <div>
+                <dt>State</dt>
+                <dd>{phase3ClearanceTraceability.statusLabel}</dd>
+              </div>
+              <div>
+                <dt>Ready</dt>
+                <dd>{phase3ClearanceTraceability.readiness}%</dd>
+              </div>
+            </dl>
+            <ol
+              className="owner-testing-phase3-traceability-list"
+              aria-label="Phase 3 clearance traceability rows"
+            >
+              {phase3ClearanceTraceability.items.map((item) => (
+                <li
+                  className={`owner-testing-phase3-traceability-item-${item.status}`}
+                  key={item.id}
+                  title={`${item.detail} ${item.nextAction}`}
+                >
+                  <strong>{item.label}</strong>
+                  <span>{item.status}</span>
+                </li>
+              ))}
+            </ol>
+            <small title={phase3ClearanceTraceability.safety}>
+              {phase3ClearanceTraceability.nextAction}
             </small>
           </div>
           <div

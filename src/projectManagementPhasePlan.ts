@@ -193,18 +193,18 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-03-controls-slash",
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
-    description: "Clear the current blocker by proving slash execution, session controls, desktop proof persistence, command-plan clarity, prioritized blocker review, and owner-reviewed handoff readiness.",
+    description: "Clear the current blocker by proving slash execution, session controls, desktop proof persistence, command-plan clarity, prioritized blocker review, goal/PM traceability, and owner-reviewed handoff readiness.",
     status: "ongoing",
-    completionPercent: 90,
+    completionPercent: 92,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-03-parent-proof-clearance",
         title: "Desktop Proof Clearance",
-        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload, keep command-plan clarity visible, prioritize open blockers, and keep the handoff boundary visible.",
+        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload, keep command-plan clarity visible, prioritize open blockers, link goal/PM traceability, and keep the handoff boundary visible.",
         status: "ongoing",
-        completionPercent: 90,
+        completionPercent: 92,
         complexity: "extra_high",
         sourceDocument: "Current state and pipeline",
         children: [
@@ -238,6 +238,14 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 75,
             complexity: "medium",
             sourceDocument: "Phase 3 blocker priority"
+          },
+          {
+            id: "phase-03-child-traceability",
+            title: "Clearance Traceability",
+            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, blocker priority, and handoff boundary in one owner-review trace.",
+            completionPercent: 80,
+            complexity: "medium",
+            sourceDocument: "Phase 3 clearance traceability"
           },
           {
             id: "phase-03-child-handoff-gate",
