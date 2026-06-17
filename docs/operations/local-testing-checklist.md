@@ -91,6 +91,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm the Phase 4 Provider Blocker Priority rows rank the exact top provider blocker, show whether catalog smoke can address it, and keep setup-required or unavailable provider blockers ahead of preview-only refresh proof.
    - Open the connection dialog and run the catalog smoke to refresh all six catalog metadata/status surfaces together without execution.
    - Confirm the Connection Dialog Refresh Safety depth rows show refresh run state, six-surface order, validation result, metadata-only contract, and provider execution lock.
+   - Reload after a passed catalog smoke and confirm the Phase 4 catalog smoke proof and refresh-safety depth rows keep the last metadata-only six-surface result without running provider actions on startup.
    - Confirm Owner Testing validation rows, Connection Dialog catalog smoke rows, Provider Readiness catalog-depth rows, Refresh Safety depth rows, Surface Depth rows, Provider Traceability rows, and Provider Blocker Priority rows report the same six provider surfaces as one linked metadata-only safety chain.
    - Refresh the command catalog as a safe metadata/status refresh and confirm source/state changes are visible without side effects.
    - Refresh the skill catalog as a safe metadata/status refresh and confirm source/state changes are visible without executing skills.

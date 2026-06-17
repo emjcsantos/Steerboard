@@ -368,7 +368,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-refresh-safety-depth",
             title: "Refresh Safety Depth",
-            description: "Show refresh run state, six-surface order, validation result, metadata-only contract, and provider execution lock as separate review rows.",
+            description: "Show refresh run state, six-surface order, validation result, metadata-only contract, provider execution lock, and reload-safe metadata-only proof as separate review rows.",
             completionPercent: 35,
             complexity: "high",
             sourceDocument: "Phase 4 refresh safety depth"

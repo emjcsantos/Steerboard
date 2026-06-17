@@ -100,6 +100,10 @@ import {
   type CatalogRefreshProviderSmokeResult
 } from "./catalogRefreshProviderSmoke";
 import {
+  loadPhase4CatalogSmokeProof,
+  savePhase4CatalogSmokeProof
+} from "./phase4CatalogSmokeProofStorage";
+import {
   buildPhase4RefreshSafetyDepth
 } from "./phase4RefreshSafetyDepth";
 import {
@@ -1647,7 +1651,7 @@ export function App() {
     phasePrioritySmokeProofInitialBundle.twoPanelSmoke
   );
   const [catalogRefreshProviderSmokeProof, setCatalogRefreshProviderSmokeProof] =
-    useState<CatalogRefreshProviderSmokeResult>(() => CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW);
+    useState<CatalogRefreshProviderSmokeResult>(() => loadPhase4CatalogSmokeProof());
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
@@ -3058,6 +3062,7 @@ export function App() {
       });
 
       setCatalogRefreshProviderSmokeProof(nextProof);
+      savePhase4CatalogSmokeProof(nextProof);
       setCodexConnectionRequested(true);
       setAppNotice(
         nextProof.ok
