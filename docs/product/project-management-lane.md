@@ -56,7 +56,7 @@ The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk e
 - Track pipeline state: idea, planned, ready, dispatched, running, validating, blocked, accepted, shipped.
 - Select an Epic, Parent, or Child and stage a structured Arena review package.
 - Show which pipeline item created each staged role-panel plan and which worker tasks would be spawned.
-- Show dispatch review depth for role coverage, attempt limits, handoff tasks, validation gates, integration ownership, traceability, closure boundaries, and the no-live-worker execution lock.
+- Show dispatch review depth, traceability, and blocker-priority records for role coverage, attempt limits, handoff tasks, validation gates, integration ownership, exact top blocker, closure boundaries, and the no-live-worker execution lock.
 - Preserve the Arena chat as the source of planning intent when the user does not need structured pipeline management.
 
 ## User Flow
@@ -86,7 +86,7 @@ The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk e
 - Remaining Goals summary for all open targets across Phase 1 through Phase 11.
 - Phase 4 Provider Readiness catalog depth, Connection Dialog Refresh Safety depth, Phase 4 Surface Depth, provider traceability, and provider blocker-priority panels for source coverage, catalog evidence expectations, metadata-only refresh proof, surface coverage, setup blockers, capability gaps, preview review, PM links, exact top blocker, catalog-smoke relevance, and execution locks before execution is considered.
 - Phase 5 Migration review depth, traceability, and blocker-priority records for apply-intent lock, rollback evidence, audit consistency, sensitive exclusions, profile activation lock, exact top blocker, PM child links, and evidence keys.
-- Phase 7 Dispatch review depth checks for role counts, max attempt limits, handoff task depth, validation gate depth, main integration ownership, traceability, closure boundaries, and the no-live-worker lock.
+- Phase 7 Dispatch review depth, integration ownership, traceability, and blocker-priority checks for role counts, max attempt limits, handoff task depth, validation gate depth, main integration ownership, PM child links, exact top blocker, closure boundaries, and the no-live-worker lock.
 - Phase 8 Audit Depth, risk traceability, and blocker-priority records with disabled-path explanations, evidence requirements, rollback expectations, audit sources, exact top blocker, PM child links, and unique evidence keys before mutation paths grow.
 - Phase 9 Runner Approval depth, traceability, and blocker-priority records for fixed probe selection, owner approval, request preview, validation output, audit record, rollback evidence, unique evidence keys, PM child links, Phase 8 gate linkage, exact top blocker, runner-review addressability, and the desktop execution lock.
 - Phase 11 prioritized remaining-goal trace rows for current critical blockers, active clearance work, and high-priority pending goals with goal IDs, phase IDs, PM task links, status, and completion.

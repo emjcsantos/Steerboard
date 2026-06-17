@@ -192,6 +192,8 @@ import {
   type Phase7DispatchReviewDepthSnapshot
 } from "./phase7DispatchReviewDepth";
 import { buildPhase7IntegrationOwnershipDepth } from "./phase7IntegrationOwnershipDepth";
+import { buildPhase7DispatchTraceability } from "./phase7DispatchTraceability";
+import { buildPhase7DispatchBlockerPriority } from "./phase7DispatchBlockerPriority";
 import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
@@ -5612,6 +5614,16 @@ function DispatchReviewRecordCard({
     selectedRecord: record
   });
   const ownershipDepth = buildPhase7IntegrationOwnershipDepth(record);
+  const traceability = buildPhase7DispatchTraceability({
+    record,
+    depth,
+    ownership: ownershipDepth
+  });
+  const blockerPriority = buildPhase7DispatchBlockerPriority({
+    depth,
+    ownership: ownershipDepth,
+    traceability
+  });
 
   return (
     <article
@@ -5677,6 +5689,103 @@ function DispatchReviewRecordCard({
               <b>{item.status}</b>
             </li>
           ))}
+        </ol>
+      </div>
+      <div
+        aria-label={traceability.ariaLabel}
+        className={classNames(
+          "dispatch-traceability",
+          `dispatch-traceability-${traceability.state}`
+        )}
+        title={traceability.safety}
+      >
+        <div className="dispatch-traceability-header">
+          <strong>{traceability.label}</strong>
+          <span>{traceability.statusLabel}</span>
+          <b>{traceability.readiness}%</b>
+        </div>
+        <dl className="dispatch-traceability-grid" aria-label="Phase 7 dispatch traceability counts">
+          <div>
+            <dt>PM</dt>
+            <dd>{traceability.linkedPmTaskCount}</dd>
+          </div>
+          <div>
+            <dt>Locks</dt>
+            <dd>{traceability.liveWorkerLockCount}</dd>
+          </div>
+          <div>
+            <dt>Open</dt>
+            <dd>{traceability.blockedCount + traceability.waitingCount + traceability.reviewCount}</dd>
+          </div>
+        </dl>
+        <ol className="dispatch-traceability-list" aria-label="Phase 7 dispatch traceability rows">
+          {traceability.items.map((item) => (
+            <li
+              className={`dispatch-traceability-item-${item.status}`}
+              key={item.id}
+              title={`${item.detail} ${item.nextAction}`}
+            >
+              <span>{item.kind}</span>
+              <strong>{item.label}</strong>
+              <b>{item.status}</b>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div
+        aria-label={blockerPriority.ariaLabel}
+        className={classNames(
+          "dispatch-blocker-priority",
+          `dispatch-blocker-priority-${blockerPriority.state}`
+        )}
+        title={blockerPriority.safety}
+      >
+        <div className="dispatch-blocker-priority-header">
+          <strong>{blockerPriority.label}</strong>
+          <span>
+            {blockerPriority.dispatchReviewCanAddressTopBlocker
+              ? "Reviewable"
+              : blockerPriority.openBlockerCount > 0
+                ? "Owner action"
+                : "Ready"}
+          </span>
+          <b>{blockerPriority.readiness}%</b>
+        </div>
+        <p title={blockerPriority.topPriorityAction}>{blockerPriority.topPriorityLabel}</p>
+        <dl className="dispatch-blocker-priority-grid" aria-label="Phase 7 dispatch blocker priority counts">
+          <div>
+            <dt>Open</dt>
+            <dd>{blockerPriority.openBlockerCount}</dd>
+          </div>
+          <div>
+            <dt>Review</dt>
+            <dd>{blockerPriority.dispatchReviewAddressableCount}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{blockerPriority.statusLabel}</dd>
+          </div>
+        </dl>
+        <ol className="dispatch-blocker-priority-list" aria-label="Phase 7 dispatch blocker priority rows">
+          {blockerPriority.items.length > 0 ? (
+            blockerPriority.items.slice(0, 5).map((item) => (
+              <li
+                className={`dispatch-blocker-priority-item-${item.status}`}
+                key={item.id}
+                title={`${item.detail} ${item.nextAction}`}
+              >
+                <span>#{item.priority}</span>
+                <strong>{item.label}</strong>
+                <b>{item.kind}</b>
+              </li>
+            ))
+          ) : (
+            <li className="dispatch-blocker-priority-item-ready">
+              <span>OK</span>
+              <strong>No open Phase 7 blocker</strong>
+              <b>ready</b>
+            </li>
+          )}
         </ol>
       </div>
       <small>{record.noRuntimeExecutionNote}</small>

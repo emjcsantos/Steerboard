@@ -569,6 +569,22 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 45,
             complexity: "high",
             sourceDocument: "Dispatch review records"
+          },
+          {
+            id: "phase-07-child-traceability",
+            title: "Dispatch Traceability",
+            description: "Link Phase 7 remaining-goal status, PM child rows, dispatch review depth, integration ownership depth, and live-worker locks before any worker spawning can be trusted.",
+            completionPercent: 40,
+            complexity: "high",
+            sourceDocument: "Phase 7 dispatch traceability"
+          },
+          {
+            id: "phase-07-child-blocker-priority",
+            title: "Dispatch Blocker Priority",
+            description: "Rank exact Phase 7 blockers across role coverage, attempt limits, handoff tasks, validation gates, integration ownership, traceability, closure boundaries, and live-worker locks before dispatch can expand.",
+            completionPercent: 35,
+            complexity: "medium",
+            sourceDocument: "Phase 7 dispatch blocker priority"
           }
         ]
       }

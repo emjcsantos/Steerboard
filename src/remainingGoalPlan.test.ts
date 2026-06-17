@@ -68,6 +68,16 @@ describe("remaining goal plan", () => {
           ])
         }),
         expect.objectContaining({
+          goalId: "goal-phase-7-dispatch-loop",
+          priority: "high",
+          pmTaskIds: expect.arrayContaining([
+            "phase-07-child-review-depth",
+            "phase-07-child-integration-ownership-depth",
+            "phase-07-child-traceability",
+            "phase-07-child-blocker-priority"
+          ])
+        }),
+        expect.objectContaining({
           goalId: "goal-phase-8-permission-audit",
           priority: "high",
           pmTaskIds: expect.arrayContaining([
@@ -215,6 +225,29 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase4Goal?.nextAction).toContain("blocker-priority panels");
+  });
+
+  it("keeps the Phase 7 dispatch loop target linked to traceability and blocker priority", () => {
+    const phase7Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-7-dispatch-loop");
+
+    expect(phase7Goal).toMatchObject({
+      target: "Planning and dispatch loop",
+      priority: "high",
+      status: "next"
+    });
+    expect(phase7Goal?.pmTaskIds).toEqual(
+      expect.arrayContaining([
+        "phase-07-child-worker-preview",
+        "phase-07-child-integration-owner",
+        "phase-07-child-integration-ownership-depth",
+        "phase-07-child-handoff-trace",
+        "phase-07-child-review-depth",
+        "phase-07-child-traceability",
+        "phase-07-child-blocker-priority"
+      ])
+    );
+    expect(phase7Goal?.nextAction).toContain("traceability rows");
+    expect(phase7Goal?.nextAction).toContain("blocker-priority queue");
   });
 
   it("keeps remaining goal text public-safe", () => {
