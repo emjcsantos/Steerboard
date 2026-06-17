@@ -193,18 +193,18 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-03-controls-slash",
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
-    description: "Clear the current blocker by proving slash execution, session controls, live-refreshed desktop proof freshness, command-plan clarity, prioritized blocker review, goal/PM traceability, and owner-reviewed handoff readiness tied to compact current non-expired evidence.",
+    description: "Clear the current blocker by proving slash execution, session controls, live-refreshed desktop proof freshness, command-plan clarity, freshness-reviewed CLI validation, prioritized blocker review, goal/PM traceability, and owner-reviewed handoff readiness tied to compact current non-expired evidence.",
     status: "ongoing",
-    completionPercent: 95,
+    completionPercent: 97,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-03-parent-proof-clearance",
         title: "Desktop Proof Clearance",
-        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan clarity visible, prioritize open blockers, link goal/PM traceability, and keep the handoff boundary matched to compact current non-expired evidence.",
+        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan and CLI validation freshness visible, prioritize open blockers, link goal/PM traceability, and keep the handoff boundary matched to compact current non-expired evidence.",
         status: "ongoing",
-        completionPercent: 95,
+        completionPercent: 97,
         complexity: "extra_high",
         sourceDocument: "Current state and pipeline",
         children: [
@@ -226,8 +226,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-command-plan",
             title: "Desktop Smoke Command Plan",
-            description: "Show the exact local Phase 3 smoke command, covered proof rows, command-held state, and blocker-correlated next action without running commands automatically.",
-            completionPercent: 85,
+            description: "Show the exact local Phase 3 smoke command, covered proof rows, command-held state, freshness-reviewed CLI validation record, and blocker-correlated next action without running commands automatically.",
+            completionPercent: 88,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance command plan"
           },
@@ -852,8 +852,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-proof-freshness-depth",
             title: "Proof Freshness Depth",
-            description: "Break owner proof freshness into Phase 1/2/6 proof, Phase 3 clearance, desktop smoke, command-plan, and handoff proof rows before release readiness.",
-            completionPercent: 45,
+            description: "Break owner proof freshness into Phase 1/2/6 proof, Phase 3 clearance, desktop smoke, command-plan, CLI validation, and handoff proof rows before release readiness.",
+            completionPercent: 48,
             complexity: "high",
             sourceDocument: "Phase 11 proof freshness depth"
           },

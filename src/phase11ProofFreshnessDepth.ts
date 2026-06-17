@@ -1,5 +1,6 @@
 import type { Phase3ClearanceCommandPlan } from "./phase3ClearanceCommandPlan";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
+import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffGate } from "./phase3HandoffGate";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
@@ -11,6 +12,7 @@ export type Phase11ProofFreshnessDepthItemKind =
   | "phase3-clearance"
   | "desktop-smoke"
   | "command-plan"
+  | "command-validation"
   | "handoff-proof";
 
 export interface Phase11ProofFreshnessDepthItem {
@@ -45,6 +47,7 @@ export interface Phase11ProofFreshnessDepthInput {
   readonly phase3ClearancePackage: Phase3ClearancePackage;
   readonly phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   readonly phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
+  readonly phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation;
   readonly phase3HandoffGate: Phase3HandoffGate;
 }
 
@@ -173,6 +176,19 @@ function commandPlanItem(
   };
 }
 
+function commandValidationItem(
+  phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation
+): Phase11ProofFreshnessDepthItem {
+  return {
+    id: `${SNAPSHOT_ID}:command-validation`,
+    label: "CLI smoke validation record",
+    kind: "command-validation",
+    status: phase3CommandValidationRecordValidation.state,
+    detail: phase3CommandValidationRecordValidation.detail,
+    nextAction: phase3CommandValidationRecordValidation.nextAction
+  };
+}
+
 function handoffProofItem(
   phase3HandoffGate: Phase3HandoffGate
 ): Phase11ProofFreshnessDepthItem {
@@ -208,6 +224,7 @@ export function buildPhase11ProofFreshnessDepth(
     phase3ClearanceItem(input.phase3ClearancePackage),
     desktopSmokeItem(input.phase3SmokeProofReadiness),
     commandPlanItem(input.phase3ClearanceCommandPlan),
+    commandValidationItem(input.phase3CommandValidationRecordValidation),
     handoffProofItem(input.phase3HandoffGate)
   ];
   const state = resolveState(items);

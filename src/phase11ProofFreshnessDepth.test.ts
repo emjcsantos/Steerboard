@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Phase3ClearanceCommandPlan } from "./phase3ClearanceCommandPlan";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
+import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffGate } from "./phase3HandoffGate";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
 import { buildPhase11ProofFreshnessDepth } from "./phase11ProofFreshnessDepth";
@@ -97,6 +98,21 @@ function handoff(
   };
 }
 
+function commandValidation(
+  overrides: Partial<Phase3CommandValidationRecordValidation> = {}
+): Phase3CommandValidationRecordValidation {
+  return {
+    state: "ready",
+    statusLabel: "Ready",
+    detail:
+      "Phase 3 CLI smoke validation is fresh, but persisted desktop UI proof rows remain the exit-readiness source.",
+    nextAction:
+      "Keep the CLI smoke validation attached for owner review without using it to unlock handoff.",
+    isFresh: true,
+    ...overrides
+  };
+}
+
 function snapshot(
   overrides: Partial<Parameters<typeof buildPhase11ProofFreshnessDepth>[0]> = {}
 ) {
@@ -105,13 +121,14 @@ function snapshot(
     phase3ClearancePackage: clearance(),
     phase3SmokeProofReadiness: smoke(),
     phase3ClearanceCommandPlan: commandPlan(),
+    phase3CommandValidationRecordValidation: commandValidation(),
     phase3HandoffGate: handoff(),
     ...overrides
   });
 }
 
 describe("phase 11 proof freshness depth", () => {
-  it("trusts owner proof only when priority, clearance, smoke, command, and handoff rows are ready", () => {
+  it("trusts owner proof only when priority, clearance, smoke, command, CLI validation, and handoff rows are ready", () => {
     const result = snapshot();
 
     expect(result.state).toBe("ready");
@@ -146,6 +163,33 @@ describe("phase 11 proof freshness depth", () => {
       expect.arrayContaining([
         expect.objectContaining({ label: "Desktop smoke proof", status: "waiting" }),
         expect.objectContaining({ label: "Desktop smoke command plan", status: "waiting" })
+      ])
+    );
+  });
+
+  it("reviews owner proof when CLI smoke validation is stale", () => {
+    const result = snapshot({
+      phase3CommandValidationRecordValidation: commandValidation({
+        state: "review",
+        statusLabel: "Review",
+        detail:
+          "Phase 3 CLI smoke validation record is stale and must be recorded again.",
+        nextAction:
+          "Rerun npm.cmd run smoke:phase3 manually, then record a fresh local CLI pass.",
+        isFresh: false
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerProof).toBe(false);
+    expect(result.nextAction).toContain("fresh local CLI pass");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "CLI smoke validation record",
+          status: "review",
+          detail: expect.stringContaining("stale")
+        })
       ])
     );
   });

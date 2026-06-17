@@ -28,7 +28,7 @@ describe("remaining goal plan", () => {
       averageCompletionPercent: 61,
       currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
-        "Use the Phase 3 command plan, blocker-priority queue, traceability rows, live freshness-aware smoke proof rows, and compact fingerprint-plus-age matched handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary.",
+        "Use the Phase 3 command plan, freshness-reviewed CLI validation record, blocker-priority queue, traceability rows, live freshness-aware smoke proof rows, and compact fingerprint-plus-age matched handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",

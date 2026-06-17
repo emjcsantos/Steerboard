@@ -371,8 +371,10 @@ import {
 import {
   clearPhase3CommandValidationRecord,
   createPhase3CommandValidationRecord,
+  derivePhase3CommandValidationRecordValidation,
   loadPhase3CommandValidationRecord,
   savePhase3CommandValidationRecord,
+  type Phase3CommandValidationRecordValidation,
   type Phase3CommandValidationRecord
 } from "./phase3CommandValidationRecord";
 import {
@@ -1994,6 +1996,21 @@ export function App() {
         actions: phase3OwnerTestingActions
       }),
     [phase3ClearancePackage, phase3OwnerTestingActions]
+  );
+  const phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation = useMemo(
+    () =>
+      derivePhase3CommandValidationRecordValidation(
+        phase3CommandValidationRecord,
+        {
+          evaluatedAt: phase3ProofEvaluationTime,
+          expectedCommand: phase3ClearanceCommandPlan.command
+        }
+      ),
+    [
+      phase3ClearanceCommandPlan.command,
+      phase3CommandValidationRecord,
+      phase3ProofEvaluationTime
+    ]
   );
   const phase3ClearanceBlockerPriority = useMemo(
     () =>
@@ -3774,6 +3791,7 @@ export function App() {
             phase3HandoffGate={phase3HandoffGate}
             phase3OwnerHandoffRecord={phase3OwnerHandoffRecord}
             phase3CommandValidationRecord={phase3CommandValidationRecord}
+            phase3CommandValidationRecordValidation={phase3CommandValidationRecordValidation}
             phase3OwnerTestingActions={phase3OwnerTestingActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
             sessionControlOwnerTestingState={sessionControlOwnerTestingState}
@@ -7594,6 +7612,7 @@ function RightPanel({
   phase3ExitGateEvidence,
   phase3HandoffGate,
   phase3CommandValidationRecord,
+  phase3CommandValidationRecordValidation,
   phase3OwnerHandoffRecord,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
@@ -7658,6 +7677,7 @@ function RightPanel({
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3HandoffGate: Phase3HandoffGate;
   phase3CommandValidationRecord?: Phase3CommandValidationRecord;
+  phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation;
   phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
@@ -8108,11 +8128,13 @@ function RightPanel({
         phase3ClearancePackage,
         phase3SmokeProofReadiness,
         phase3ClearanceCommandPlan,
+        phase3CommandValidationRecordValidation,
         phase3HandoffGate
       }),
     [
       phase3ClearanceCommandPlan,
       phase3ClearancePackage,
+      phase3CommandValidationRecordValidation,
       phase3HandoffGate,
       phase3SmokeProofReadiness,
       phasePriorityEvidence
@@ -8919,6 +8941,7 @@ function RightPanel({
         phase3ExitGateEvidence={phase3ExitGateEvidence}
         phase3HandoffGate={phase3HandoffGate}
         phase3CommandValidationRecord={phase3CommandValidationRecord}
+        phase3CommandValidationRecordValidation={phase3CommandValidationRecordValidation}
         phase3OwnerHandoffRecord={phase3OwnerHandoffRecord}
         phase3OwnerTestingActions={phase3OwnerTestingActions}
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
@@ -11313,6 +11336,7 @@ function OwnerTestingReadinessPanel({
   phase3ExitGateEvidence,
   phase3HandoffGate,
   phase3CommandValidationRecord,
+  phase3CommandValidationRecordValidation,
   phase3OwnerHandoffRecord,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
@@ -11343,6 +11367,7 @@ function OwnerTestingReadinessPanel({
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
   phase3HandoffGate: Phase3HandoffGate;
   phase3CommandValidationRecord?: Phase3CommandValidationRecord;
+  phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation;
   phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
@@ -11972,13 +11997,11 @@ function OwnerTestingReadinessPanel({
             <div
               className={classNames(
                 "owner-testing-phase3-command-validation",
-                phase3CommandValidationRecord
-                  ? `owner-testing-phase3-command-validation-${phase3CommandValidationRecord.status}`
-                  : "owner-testing-phase3-command-validation-missing"
+                `owner-testing-phase3-command-validation-${phase3CommandValidationRecordValidation.state}`
               )}
               aria-label={
                 phase3CommandValidationRecord
-                  ? `Phase 3 CLI smoke validation ${phase3CommandValidationRecord.status}; ${phase3CommandValidationRecord.passedTestCount} passed, ${phase3CommandValidationRecord.failedTestCount} failed`
+                  ? `Phase 3 CLI smoke validation ${phase3CommandValidationRecordValidation.statusLabel}; ${phase3CommandValidationRecord.passedTestCount} passed, ${phase3CommandValidationRecord.failedTestCount} failed`
                   : "Phase 3 CLI smoke validation missing"
               }
             >
@@ -11990,12 +12013,12 @@ function OwnerTestingReadinessPanel({
                 </strong>
                 <span
                   title={
-                    phase3CommandValidationRecord?.detail ??
+                    phase3CommandValidationRecordValidation.detail ??
                     "Run npm.cmd run smoke:phase3, then record the local pass without changing desktop proof rows."
                   }
                 >
                   {phase3CommandValidationRecord
-                    ? `${phase3CommandValidationRecord.status}; ${formatTimestamp(
+                    ? `${phase3CommandValidationRecordValidation.state}; ${formatTimestamp(
                         phase3CommandValidationRecord.createdAt
                       )}`
                     : "Desktop proof rows remain the source of exit readiness"}

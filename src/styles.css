@@ -8442,15 +8442,16 @@ textarea {
   opacity: 0.48;
 }
 
-.owner-testing-phase3-command-validation-passed {
+.owner-testing-phase3-command-validation-ready {
   border-color: #254634;
 }
 
-.owner-testing-phase3-command-validation-failed {
+.owner-testing-phase3-command-validation-blocked {
   border-color: #69343a;
 }
 
-.owner-testing-phase3-command-validation-missing {
+.owner-testing-phase3-command-validation-review,
+.owner-testing-phase3-command-validation-waiting {
   border-color: #5c4b1b;
 }
 

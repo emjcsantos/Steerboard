@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   clearPhase3CommandValidationRecord,
   createPhase3CommandValidationRecord,
+  DEFAULT_PHASE3_COMMAND_VALIDATION_RECORD_MAX_AGE_MS,
+  derivePhase3CommandValidationRecordValidation,
   loadPhase3CommandValidationRecord,
   parseStoredPhase3CommandValidationRecord,
   PHASE3_COMMAND_VALIDATION_RECORD_STORAGE_KEY,
@@ -57,6 +59,96 @@ describe("phase 3 command validation record", () => {
     expect(parsed?.detail).not.toContain("sk-ABCDEF1234567890");
     expect(parsed?.detail).not.toContain("<");
     expect(parsed?.detail).not.toContain(">");
+  });
+
+  it("classifies fresh passed CLI smoke validation as ready without unlocking UI proof", () => {
+    const record = createPhase3CommandValidationRecord(
+      "npm.cmd run smoke:phase3",
+      "2026-06-18T00:00:00.000Z"
+    );
+
+    expect(
+      derivePhase3CommandValidationRecordValidation(record, {
+        evaluatedAt: "2026-06-18T00:30:00.000Z",
+        expectedCommand: "npm.cmd run smoke:phase3"
+      })
+    ).toMatchObject({
+      state: "ready",
+      statusLabel: "Ready",
+      isFresh: true,
+      nextAction: expect.stringContaining("without using it to unlock handoff")
+    });
+  });
+
+  it("classifies stale or malformed passed CLI smoke validation as review", () => {
+    const record = createPhase3CommandValidationRecord(
+      "npm.cmd run smoke:phase3",
+      "2026-06-18T00:00:00.000Z"
+    );
+
+    expect(
+      derivePhase3CommandValidationRecordValidation(record, {
+        evaluatedAt: "2026-06-19T00:01:00.000Z",
+        expectedCommand: "npm.cmd run smoke:phase3",
+        maxRecordAgeMs: DEFAULT_PHASE3_COMMAND_VALIDATION_RECORD_MAX_AGE_MS
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("stale"),
+      isFresh: false
+    });
+    expect(
+      derivePhase3CommandValidationRecordValidation(
+        { ...record, createdAt: "not-a-date" },
+        {
+          evaluatedAt: "2026-06-18T00:01:00.000Z",
+          expectedCommand: "npm.cmd run smoke:phase3"
+        }
+      )
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("stale"),
+      isFresh: false
+    });
+  });
+
+  it("classifies failed or mismatched CLI smoke validation as blocked or review", () => {
+    const failed = parseStoredPhase3CommandValidationRecord(
+      JSON.stringify({
+        id: "phase3-command-validation:failed",
+        createdAt: "2026-06-18T00:00:00.000Z",
+        command: "npm.cmd run smoke:phase3",
+        status: "failed",
+        passedTestCount: 1,
+        failedTestCount: 2,
+        detail: "CLI smoke failed."
+      })
+    );
+    const passed = createPhase3CommandValidationRecord(
+      "npm.cmd run smoke:phase3",
+      "2026-06-18T00:00:00.000Z"
+    );
+
+    expect(
+      derivePhase3CommandValidationRecordValidation(failed, {
+        evaluatedAt: "2026-06-18T00:01:00.000Z",
+        expectedCommand: "npm.cmd run smoke:phase3"
+      })
+    ).toMatchObject({
+      state: "blocked",
+      detail: "CLI smoke failed.",
+      isFresh: false
+    });
+    expect(
+      derivePhase3CommandValidationRecordValidation(passed, {
+        evaluatedAt: "2026-06-18T00:01:00.000Z",
+        expectedCommand: "npm.cmd run smoke:phase3 --other"
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("different command"),
+      isFresh: false
+    });
   });
 
   it("rejects malformed stored records", () => {
