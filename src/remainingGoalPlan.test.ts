@@ -59,7 +59,7 @@ describe("remaining goal plan", () => {
         expect.objectContaining({
           goalId: "goal-phase-8-permission-audit",
           priority: "high",
-          pmTaskIds: expect.arrayContaining(["phase-08-child-audit-persistence"])
+          pmTaskIds: expect.arrayContaining(["phase-08-child-audit-persistence", "phase-08-child-traceability"])
         }),
         expect.objectContaining({
           goalId: "goal-phase-9-runner",
@@ -132,6 +132,26 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase5Goal?.nextAction).toContain("traceability rows");
+  });
+
+  it("keeps the Phase 8 permission audit target linked to traceability and audit persistence", () => {
+    const phase8Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-8-permission-audit");
+
+    expect(phase8Goal).toMatchObject({
+      target: "Permission and audit depth",
+      priority: "high",
+      status: "next"
+    });
+    expect(phase8Goal?.pmTaskIds).toEqual(
+      expect.arrayContaining([
+        "phase-08-child-permission-labels",
+        "phase-08-child-risk-blockers",
+        "phase-08-child-risk-exceptions",
+        "phase-08-child-traceability",
+        "phase-08-child-audit-persistence"
+      ])
+    );
+    expect(phase8Goal?.nextAction).toContain("risk traceability rows");
   });
 
   it("keeps remaining goal text public-safe", () => {

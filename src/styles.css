@@ -11281,6 +11281,125 @@ textarea {
   font-weight: 900;
 }
 
+.phase8-traceability {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #27303a;
+  border-radius: 8px;
+  background: #111820;
+  padding: 7px;
+}
+
+.phase8-traceability-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.phase8-traceability-header strong,
+.phase8-traceability-header span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase8-traceability-header strong {
+  color: #edf2f7;
+  font-size: 11px;
+}
+
+.phase8-traceability-header span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce3eb;
+  padding: 3px 7px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase8-traceability-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phase8-traceability-item {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 58px minmax(0, 1fr) 92px;
+  align-items: center;
+  gap: 6px;
+  border-left: 3px solid #3a4652;
+  border-radius: 7px;
+  background: #0d131a;
+  padding: 5px 6px;
+}
+
+.phase8-traceability-item > span,
+.phase8-traceability-item strong,
+.phase8-traceability-item small,
+.phase8-traceability-item b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase8-traceability-item > span {
+  border-radius: 999px;
+  background: #252b34;
+  color: #dce4ed;
+  padding: 3px 6px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase8-traceability-item div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.phase8-traceability-item strong {
+  color: #edf2f7;
+  font-size: 10px;
+}
+
+.phase8-traceability-item small {
+  color: #8f99a5;
+  font-size: 9px;
+}
+
+.phase8-traceability-item b {
+  color: #cfd8e3;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.phase8-traceability-ready {
+  border-left-color: #89dda9;
+}
+
+.phase8-traceability-review {
+  border-left-color: #8bd7f4;
+}
+
+.phase8-traceability-waiting {
+  border-left-color: #f0d984;
+}
+
+.phase8-traceability-blocked {
+  border-left-color: #ff9e85;
+}
+
 .phase8-audit-items {
   display: grid;
   gap: 5px;

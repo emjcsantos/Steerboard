@@ -44,6 +44,8 @@ export interface Phase8PermissionAuditDepthItem {
   status: Phase8PermissionAuditDepthState;
   detail: string;
   nextAction: string;
+  pmTaskId: string;
+  evidenceKey: string;
 }
 
 export interface Phase8PermissionAuditException {
@@ -55,7 +57,14 @@ export interface Phase8PermissionAuditException {
   evidenceRequired: string;
   rollbackExpectation: string;
   auditSource: string;
+  pmTaskId: string;
+  evidenceKey: string;
 }
+
+type Phase8PermissionAuditDepthItemDraft = Omit<
+  Phase8PermissionAuditDepthItem,
+  "pmTaskId" | "evidenceKey"
+>;
 
 export interface Phase8PermissionAuditDepthSnapshot {
   id: string;
@@ -92,6 +101,27 @@ const SNAPSHOT_ID = "phase-08-permission-audit-depth";
 const SNAPSHOT_LABEL = "Phase 8 permission and audit depth";
 const PHASE8_AUDIT_SAFETY =
   "Phase 8 review only. Missing permission, approval, evidence, and rollback requirements are explained without granting access or running actions.";
+const PHASE8_TRACE_BY_KIND: Record<
+  Phase8PermissionAuditRequirementKind,
+  { pmTaskId: string; evidencePrefix: string }
+> = {
+  permission: {
+    pmTaskId: "phase-08-child-permission-labels",
+    evidencePrefix: "phase8.permission-scope"
+  },
+  approval: {
+    pmTaskId: "phase-08-child-risk-blockers",
+    evidencePrefix: "phase8.approval-gate"
+  },
+  evidence: {
+    pmTaskId: "phase-08-child-audit-persistence",
+    evidencePrefix: "phase8.audit-evidence"
+  },
+  rollback: {
+    pmTaskId: "phase-08-child-risk-exceptions",
+    evidencePrefix: "phase8.rollback-expectation"
+  }
+};
 
 const STATUS_LABELS: Record<Phase8PermissionAuditDepthState, string> = {
   ready: "Ready",
@@ -226,6 +256,26 @@ function auditSourceForItem(item: Phase8PermissionAuditDepthItem): string {
   }
 }
 
+function evidenceSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 52) || "record";
+}
+
+function withTraceability(
+  item: Omit<Phase8PermissionAuditDepthItem, "pmTaskId" | "evidenceKey">
+): Phase8PermissionAuditDepthItem {
+  const trace = PHASE8_TRACE_BY_KIND[item.kind];
+
+  return {
+    ...item,
+    pmTaskId: trace.pmTaskId,
+    evidenceKey: `${trace.evidencePrefix}.${evidenceSlug(item.id)}`
+  };
+}
+
 function buildExceptionRecords(
   items: readonly Phase8PermissionAuditDepthItem[]
 ): Phase8PermissionAuditException[] {
@@ -237,13 +287,15 @@ function buildExceptionRecords(
     disabledPath: disabledPathForItem(item),
     evidenceRequired: evidenceRequiredForItem(item),
     rollbackExpectation: rollbackExpectationForItem(item),
-    auditSource: auditSourceForItem(item)
+    auditSource: auditSourceForItem(item),
+    pmTaskId: item.pmTaskId,
+    evidenceKey: `${item.evidenceKey}.exception`
   }));
 }
 
 function liveActionItem(
   summary: LiveActionPermissionRequestSummary
-): Phase8PermissionAuditDepthItem {
+): Phase8PermissionAuditDepthItemDraft {
   if (summary.state === "denied" || summary.state === "timed-out") {
     return {
       id: `phase8-live-action-${summary.id}`,
@@ -297,7 +349,7 @@ function liveActionItem(
 
 function runtimeLaunchApprovalItem(
   audit: RuntimeExecutionAuditSnapshot
-): Phase8PermissionAuditDepthItem {
+): Phase8PermissionAuditDepthItemDraft {
   if (audit.state === "blocked") {
     return {
       id: `${audit.id}:phase8-launch-approval`,
@@ -347,7 +399,7 @@ function runtimeLaunchApprovalItem(
 
 function runtimeExecutionAuditItem(
   audit: RuntimeExecutionAuditSnapshot
-): Phase8PermissionAuditDepthItem {
+): Phase8PermissionAuditDepthItemDraft {
   if (audit.state === "blocked") {
     return {
       id: `${audit.id}:phase8-execution-evidence`,
@@ -397,7 +449,7 @@ function runtimeExecutionAuditItem(
 
 function profilePermissionApprovalItem(
   approval: RuntimeProfilePermissionApprovalSnapshot
-): Phase8PermissionAuditDepthItem {
+): Phase8PermissionAuditDepthItemDraft {
   if (approval.state === "blocked") {
     return {
       id: `${approval.id}:phase8-profile-approval`,
@@ -447,7 +499,7 @@ function profilePermissionApprovalItem(
 
 function profilePermissionAuditItem(
   audit: RuntimeProfilePermissionAuditSnapshot
-): Phase8PermissionAuditDepthItem {
+): Phase8PermissionAuditDepthItemDraft {
   if (audit.state === "blocked") {
     return {
       id: `${audit.id}:phase8-profile-audit`,
@@ -495,7 +547,7 @@ function profilePermissionAuditItem(
   };
 }
 
-function auditPersistenceItem(input: Phase8PermissionAuditDepthInput): Phase8PermissionAuditDepthItem {
+function auditPersistenceItem(input: Phase8PermissionAuditDepthInput): Phase8PermissionAuditDepthItemDraft {
   const auditRecordCount =
     input.liveActionAuditRecords.length +
     input.runtimeExecutionAuditHistory.length +
@@ -527,7 +579,7 @@ function auditPersistenceItem(input: Phase8PermissionAuditDepthInput): Phase8Per
   };
 }
 
-function rollbackRequirementItem(input: Phase8PermissionAuditDepthInput): Phase8PermissionAuditDepthItem {
+function rollbackRequirementItem(input: Phase8PermissionAuditDepthInput): Phase8PermissionAuditDepthItemDraft {
   if (
     !input.runtimeExecutionAudit.executionLocked ||
     !input.runtimeProfilePermissionAudit.executionLocked
@@ -597,7 +649,7 @@ export function buildPhase8PermissionAuditDepth(
     profilePermissionAuditItem(input.runtimeProfilePermissionAudit),
     auditPersistenceItem(input),
     rollbackRequirementItem(input)
-  ];
+  ].map(withTraceability);
 
   const state = resolveSnapshotState(items);
   const readiness = calculateReadiness(items);

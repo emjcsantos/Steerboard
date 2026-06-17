@@ -521,6 +521,7 @@ import {
   buildPhase8PermissionAuditDepth,
   type Phase8PermissionAuditDepthSnapshot
 } from "./phase8PermissionAuditDepth";
+import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import {
   buildPhase9RunnerApprovalSnapshot,
   type Phase9RunnerApprovalSnapshot
@@ -11636,6 +11637,7 @@ function Phase8PermissionAuditDepthPanel({
 }) {
   const visibleItems = snapshot.items.slice(0, 8);
   const visibleExceptions = snapshot.exceptions.slice(0, 5);
+  const traceability = buildPhase8RiskTraceabilitySummary({ snapshot });
 
   return (
     <section className="panel-section">
@@ -11679,6 +11681,33 @@ function Phase8PermissionAuditDepthPanel({
             <dd>{snapshot.openExceptionCount}</dd>
           </div>
         </dl>
+        <div className="phase8-traceability" aria-label={traceability.ariaLabel}>
+          <div className="phase8-traceability-header">
+            <strong>{traceability.label}</strong>
+            <span>
+              {traceability.statusLabel} / {traceability.readiness}%
+            </span>
+          </div>
+          <ol className="phase8-traceability-list" aria-label="Phase 8 risk traceability records">
+            {traceability.items.map((item) => (
+              <li
+                className={classNames(
+                  "phase8-traceability-item",
+                  `phase8-traceability-${item.status}`
+                )}
+                key={item.id}
+                title={`${item.detail} ${item.nextAction}`}
+              >
+                <span>{item.status}</span>
+                <div>
+                  <strong>{item.label}</strong>
+                  <small>{item.nextAction}</small>
+                </div>
+                <b>{item.kind}</b>
+              </li>
+            ))}
+          </ol>
+        </div>
         <ol className="phase8-audit-items" aria-label="Phase 8 missing requirement explanations">
           {visibleItems.map((item) => (
             <li
@@ -11689,7 +11718,7 @@ function Phase8PermissionAuditDepthPanel({
               <span>{item.kind}</span>
               <div>
                 <strong>{item.label}</strong>
-                <small>{item.nextAction}</small>
+                <small>{item.pmTaskId} / {item.evidenceKey}</small>
               </div>
               <b>{item.status}</b>
             </li>
@@ -11709,7 +11738,7 @@ function Phase8PermissionAuditDepthPanel({
               <div>
                 <strong>{exception.label}</strong>
                 <small>{exception.disabledPath}</small>
-                <em>{exception.evidenceRequired}</em>
+                <em>{exception.pmTaskId} / {exception.evidenceKey}</em>
               </div>
               <b>{exception.auditSource}</b>
             </li>

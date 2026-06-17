@@ -178,7 +178,9 @@ describe("phase 8 permission and audit depth", () => {
         expect.objectContaining({
           kind: "permission",
           status: "waiting",
-          label: "terminal action"
+          label: "terminal action",
+          pmTaskId: "phase-08-child-permission-labels",
+          evidenceKey: expect.stringContaining("phase8.permission-scope")
         })
       ])
     );
@@ -190,7 +192,9 @@ describe("phase 8 permission and audit depth", () => {
           disabledPath: expect.stringContaining("Access stays disabled"),
           evidenceRequired: expect.stringContaining("Permission scope"),
           rollbackExpectation: expect.stringContaining("rollback evidence"),
-          auditSource: "permission review record"
+          auditSource: "permission review record",
+          pmTaskId: "phase-08-child-permission-labels",
+          evidenceKey: expect.stringContaining("phase8.permission-scope")
         })
       ])
     );
@@ -217,6 +221,18 @@ describe("phase 8 permission and audit depth", () => {
     expect(snapshot.openExceptionCount).toBe(0);
     expect(snapshot.items.every((item) => item.status === "ready")).toBe(true);
     expect(snapshot.exceptions.every((exception) => exception.status === "ready")).toBe(true);
+    expect(new Set(snapshot.items.map((item) => item.evidenceKey)).size).toBe(snapshot.items.length);
+    expect(new Set(snapshot.exceptions.map((exception) => exception.evidenceKey)).size).toBe(
+      snapshot.exceptions.length
+    );
+    expect(snapshot.items.map((item) => item.pmTaskId)).toEqual(
+      expect.arrayContaining([
+        "phase-08-child-risk-blockers",
+        "phase-08-child-audit-persistence",
+        "phase-08-child-permission-labels",
+        "phase-08-child-risk-exceptions"
+      ])
+    );
   });
 
   it("blocks denied risky actions and blocked runtime audit evidence", () => {
@@ -344,7 +360,9 @@ describe("phase 8 permission and audit depth", () => {
         exception.disabledPath,
         exception.evidenceRequired,
         exception.rollbackExpectation,
-        exception.auditSource
+        exception.auditSource,
+        exception.pmTaskId,
+        exception.evidenceKey
       ])
     ].join(" ");
 
