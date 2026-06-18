@@ -382,6 +382,7 @@ import {
 } from "./phase3CommandValidationRecord";
 import {
   buildPhase3OwnerTestingActions,
+  gatePhase3OwnerTestingActionsToPrimary,
   type Phase3OwnerTestingAction
 } from "./phase3OwnerTestingActions";
 import {
@@ -2022,6 +2023,17 @@ export function App() {
         actions: phase3OwnerTestingActions
       }),
     [phase3ExitGateEvidence, phase3OwnerTestingActions]
+  );
+  const phase3OwnerTestingDisplayActions = useMemo(
+    () =>
+      gatePhase3OwnerTestingActionsToPrimary({
+        actions: phase3OwnerTestingActions,
+        primaryActionId: phase3ClearancePackage.primaryActionId,
+        holdDetail: phase3ClearancePackage.primaryActionId
+          ? undefined
+          : phase3ClearancePackage.nextAction
+      }),
+    [phase3ClearancePackage, phase3OwnerTestingActions]
   );
   const phase3ClearanceCommandPlan = useMemo(
     () =>
@@ -3932,7 +3944,7 @@ export function App() {
             phase3OwnerHandoffRecord={phase3OwnerHandoffRecord}
             phase3CommandValidationRecord={phase3CommandValidationRecord}
             phase3CommandValidationRecordValidation={phase3CommandValidationRecordValidation}
-            phase3OwnerTestingActions={phase3OwnerTestingActions}
+            phase3OwnerTestingActions={phase3OwnerTestingDisplayActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
             sessionControlOwnerTestingState={sessionControlOwnerTestingState}
             sessionControlReadinessEvidence={sessionControlReadinessEvidence}

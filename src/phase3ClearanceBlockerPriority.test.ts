@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Phase3ClearanceCommandPlan } from "./phase3ClearanceCommandPlan";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import { buildPhase3ClearanceBlockerPriority } from "./phase3ClearanceBlockerPriority";
+import { buildPhase3ClearanceCommandPlan } from "./phase3ClearanceCommandPlan";
 
 function clearancePackage(
   overrides: Partial<Phase3ClearancePackage> = {}
@@ -207,6 +208,44 @@ describe("phase 3 clearance blocker priority", () => {
     expect(runnable.items[0].detail).toContain("npm.cmd run smoke:phase3 can refresh this blocker");
     expect(held.commandAddressableCount).toBe(0);
     expect(held.commandCanAddressTopBlocker).toBe(false);
+  });
+
+  it("inherits smoke addressability from blocker evidence even when current actions are disabled", () => {
+    const clearance = clearancePackage({
+      blockers: [
+        {
+          id: "phase3-exit-gate:active-turn-steer-smoke",
+          label: "Active-turn steer smoke",
+          state: "waiting",
+          nextAction: "Run steer smoke.",
+          pmTaskId: "phase-03-child-smoke-rows",
+          evidenceKey: "phase3.active-turn-steer-smoke"
+        }
+      ]
+    });
+    const realCommandPlan = buildPhase3ClearanceCommandPlan({
+      clearancePackage: clearance,
+      actions: [
+        {
+          id: "phase3-owner-testing:live-control-smoke",
+          label: "Live-control smoke",
+          kind: "smoke",
+          state: "recommended",
+          detail: "Held by another blocker.",
+          buttonLabel: "Run smoke",
+          disabled: true
+        }
+      ]
+    });
+    const snapshot = buildPhase3ClearanceBlockerPriority({
+      clearancePackage: clearance,
+      commandPlan: realCommandPlan
+    });
+
+    expect(realCommandPlan.canRunCommand).toBe(true);
+    expect(snapshot.commandAddressableCount).toBe(1);
+    expect(snapshot.commandCanAddressTopBlocker).toBe(true);
+    expect(snapshot.topPriorityEvidenceKey).toBe("phase3.active-turn-steer-smoke");
   });
 
   it("returns ready when no Phase 3 blockers remain", () => {

@@ -56,11 +56,6 @@ const STATUS_LABELS: Record<Phase3ClearanceCommandPlanState, string> = {
   waiting: "Waiting"
 };
 
-const SMOKE_ACTION_IDS = new Set([
-  "phase3-owner-testing:live-control-smoke",
-  "phase3-owner-testing:active-turn-interrupt-smoke",
-  "phase3-owner-testing:active-turn-steer-smoke"
-]);
 const SMOKE_PROOF_ROWS = [
   {
     actionId: "phase3-owner-testing:live-control-smoke",
@@ -129,30 +124,8 @@ function firstNextAction(
   );
 }
 
-function smokeActions(
-  actions: readonly Phase3OwnerTestingAction[]
-): readonly Phase3OwnerTestingAction[] {
-  return actions.filter((action) => SMOKE_ACTION_IDS.has(action.id));
-}
-
-function smokeActionIdForBlocker(blockerId: string | undefined): string | undefined {
-  const row = SMOKE_PROOF_ROWS.find((proofRow) => proofRow.blockerId === blockerId);
-  return row?.actionId;
-}
-
-function runnableCommandAction(
-  clearancePackage: Phase3ClearancePackage,
-  actions: readonly Phase3OwnerTestingAction[]
-): Phase3OwnerTestingAction | undefined {
-  const firstBlocker = clearancePackage.blockers[0];
-  const actionId = smokeActionIdForBlocker(firstBlocker?.id);
-  if (!actionId) {
-    return undefined;
-  }
-
-  return actions.find(
-    (action) => action.id === actionId && action.state === "recommended" && !action.disabled
-  );
+function isSmokeBlocker(blockerId: string | undefined): boolean {
+  return SMOKE_PROOF_ROWS.some((proofRow) => proofRow.blockerId === blockerId);
 }
 
 function buildItems(
@@ -216,17 +189,14 @@ function buildAriaLabel(
 export function buildPhase3ClearanceCommandPlan(
   input: Phase3ClearanceCommandPlanInput
 ): Phase3ClearanceCommandPlan {
-  const actions = input.actions ?? [];
   const items = buildItems(input.clearancePackage);
   const smokeItems = items.filter((item) => item.kind.endsWith("-smoke"));
   const readySmokeCount = smokeItems.filter((item) => item.state === "ready").length;
   const openSmokeCount = Math.max(0, 3 - readySmokeCount);
   const state = resolveState(items);
-  const commandAction = runnableCommandAction(input.clearancePackage, actions);
   const canRunCommand =
-    state !== "blocked" &&
     !input.clearancePackage.canExit &&
-    commandAction !== undefined;
+    isSmokeBlocker(input.clearancePackage.blockers[0]?.id);
   const draft = {
     id: PLAN_ID,
     label: PLAN_LABEL,

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildPhase3OwnerTestingActions } from "./phase3OwnerTestingActions";
+import {
+  buildPhase3OwnerTestingActions,
+  gatePhase3OwnerTestingActionsToPrimary
+} from "./phase3OwnerTestingActions";
 
 describe("phase 3 owner-testing actions", () => {
   it("returns five actions in stable order with expected ids and kinds", () => {
@@ -124,5 +127,63 @@ describe("phase 3 owner-testing actions", () => {
         disabled: false
       });
     }
+  });
+
+  it("holds non-primary recommended smoke actions behind the top Phase 3 blocker", () => {
+    const actions = buildPhase3OwnerTestingActions({
+      canStartSession: true,
+      liveControlSmokeGate: { state: "waiting" },
+      activeTurnInterruptSmokeGate: { state: "waiting" },
+      activeTurnSteerSmokeGate: { state: "ready" }
+    });
+
+    const gated = gatePhase3OwnerTestingActionsToPrimary({
+      actions,
+      primaryActionId: "phase3-owner-testing:active-turn-interrupt-smoke"
+    });
+
+    expect(gated[0]).toEqual(actions[0]);
+    expect(gated[1]).toEqual(actions[1]);
+    expect(gated[2]).toMatchObject({
+      id: "phase3-owner-testing:live-control-smoke",
+      state: "recommended",
+      disabled: true,
+      detail: expect.stringContaining("top Phase 3 blocker")
+    });
+    expect(gated[3]).toMatchObject({
+      id: "phase3-owner-testing:active-turn-interrupt-smoke",
+      state: "recommended",
+      disabled: false
+    });
+    expect(gated[4]).toMatchObject({
+      id: "phase3-owner-testing:active-turn-steer-smoke",
+      state: "ready",
+      disabled: false
+    });
+  });
+
+  it("holds all recommended smoke actions when no primary blocker action is available", () => {
+    const actions = buildPhase3OwnerTestingActions({
+      canStartSession: true,
+      liveControlSmokeGate: { state: "waiting" },
+      activeTurnInterruptSmokeGate: { state: "waiting" },
+      activeTurnSteerSmokeGate: { state: "waiting" }
+    });
+
+    const gated = gatePhase3OwnerTestingActionsToPrimary({
+      actions,
+      holdDetail: "Slash proof is the current top blocker."
+    });
+
+    expect(gated.slice(2)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          state: "recommended",
+          disabled: true,
+          detail: "Slash proof is the current top blocker."
+        })
+      ])
+    );
+    expect(gated.slice(2).every((action) => action.disabled)).toBe(true);
   });
 });

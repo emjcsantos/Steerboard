@@ -30,6 +30,12 @@ export interface Phase3OwnerTestingActionsInput {
   readonly loading?: Phase3OwnerTestingLoading;
 }
 
+export interface Phase3OwnerTestingActionGateInput {
+  readonly actions: readonly Phase3OwnerTestingAction[];
+  readonly primaryActionId?: string;
+  readonly holdDetail?: string;
+}
+
 const PHASE3_ACTION_IDS = {
   slashGuidance: "phase3-owner-testing:slash-guidance",
   sessionGuidance: "phase3-owner-testing:session-guidance",
@@ -159,4 +165,38 @@ export function buildPhase3OwnerTestingActions(
       input.activeTurnSteerSmokeGate
     )
   ];
+}
+
+export function gatePhase3OwnerTestingActionsToPrimary(
+  input: Phase3OwnerTestingActionGateInput
+): readonly Phase3OwnerTestingAction[] {
+  const primaryActionId = input.primaryActionId;
+
+  if (!primaryActionId) {
+    return input.actions.map((action) =>
+      action.kind === "smoke" && action.state === "recommended"
+        ? {
+            ...action,
+            disabled: true,
+            detail:
+              input.holdDetail ??
+              "This smoke action is held until it matches the top Phase 3 blocker."
+          }
+        : action
+    );
+  }
+
+  return input.actions.map((action) =>
+    action.kind === "smoke" &&
+    action.state === "recommended" &&
+    action.id !== primaryActionId
+      ? {
+          ...action,
+          disabled: true,
+          detail:
+            input.holdDetail ??
+            "This smoke action is held until it matches the top Phase 3 blocker."
+        }
+      : action
+  );
 }
