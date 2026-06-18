@@ -454,7 +454,7 @@ function releaseDecisionItem(
     status: "ready",
     detail: "Release readiness evidence is complete and packaging remains locked for explicit owner resume.",
     nextAction:
-      "Owner can decide whether to resume release packaging from this recorded gate while current active goal/PM traceability stays attached."
+      "Owner can decide whether to resume release packaging from this recorded gate while Phase 3 clearance PM traceability with handoff proof stays attached."
   };
 }
 

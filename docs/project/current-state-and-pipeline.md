@@ -44,7 +44,7 @@ The current implementation includes:
 | Desktop-backed runner approval | Next | Use the Phase 9 Runner Approval depth, local runner-review record, current runner evidence fingerprint matching, traceability records, and blocker-priority queue to keep the fixed terminal read-only probe selected, linked to PM child rows, owner-approved, previewed, validated, audited, rollback-safe, uniquely evidenced, guarded by the Phase 9 request gate, gated by Phase 8 owner review, stale-record reviewed in traceability, ranked by exact top blocker, and locked away from broad desktop mutation paths before expanding runner actions. |
 | Adaptive Arena polish | Next | Use the Phase 10 Arena Polish panel, traceability rows, and blocker-priority queue to verify adaptive layout regression, density/readability, keyboard controls, focus state, terminology, acceptance gates, PM child links, source-aware Arena-review addressability, current-active Phase 10 goal state, and the exact top blocker before packaging resumes. |
 | Owner Testing command center | Next | Use the Phase 11 Owner Command, Proof Freshness, Evidence Records, owner release traceability, and blocker-priority panels to keep checklist coverage, proof freshness depth, blockers, phase readiness, PM coverage, packaging holds, exact top blocker, next action, fresh-checkout evidence, and prioritized goal/PM traces visible as a single pass/fail release gate. |
-| Release readiness pass | Next | Use the Phase 11 Release Readiness, Evidence Records, owner release traceability, and blocker-priority panels to require structured clean-checkout, build/test, and docs-known-limits evidence before any ready state can recommend release while packaging stays paused. |
+| Release readiness pass | Next | Use the Phase 11 Release Readiness, Evidence Records, owner release traceability, and blocker-priority panels to require structured clean-checkout, build/test, Phase 3 clearance PM traceability with handoff proof, and docs-known-limits evidence before any ready state can recommend release while packaging stays paused. |
 
 ## Remaining Goals
 
@@ -70,7 +70,7 @@ The current implementation includes:
 - Add plugin, skill, MCP, and automation execution paths behind explicit provider support and approval gates.
 - Add permissioned terminal and Git evidence capture after the read-only runner path is proven.
 - Add signed audit export, rollback references, and release privacy checks.
-- Prepare a clean Git-based install path and desktop packaging only after the Phase 11 Release Readiness gate records clean checkout, build/test, smoke proof, docs/known limits, and an explicit owner release decision.
+- Prepare a clean Git-based install path and desktop packaging only after the Phase 11 Release Readiness gate records clean checkout, build/test, smoke proof, Phase 3 clearance PM traceability with handoff proof, docs/known limits, and an explicit owner release decision.
 
 ## Closeout Note
 

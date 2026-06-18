@@ -196,7 +196,7 @@ describe("phase 11 release readiness", () => {
         }),
         expect.objectContaining({
           label: "Release decision",
-          nextAction: expect.stringContaining("current active goal/PM traceability")
+          nextAction: expect.stringContaining("Phase 3 clearance PM traceability with handoff proof")
         })
       ])
     );
