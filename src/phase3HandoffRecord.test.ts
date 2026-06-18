@@ -239,6 +239,35 @@ describe("phase 3 handoff record", () => {
     });
   });
 
+  it("reviews current-matching handoff records dated after the current evaluation", () => {
+    const currentClearance = clearancePackage();
+    const expectedFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: currentClearance
+    });
+    const record = createPhase3OwnerHandoffRecord(
+      currentClearance,
+      "2026-06-12T00:01:00.000Z",
+      expectedFingerprint
+    );
+
+    expect(
+      derivePhase3HandoffRecordValidation(
+        record,
+        currentClearance,
+        expectedFingerprint,
+        {
+          evaluatedAt: "2026-06-12T00:00:00.000Z",
+          maxRecordAgeMs: DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS
+        }
+      )
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("stale"),
+      nextAction: expect.stringContaining("fresh exit-ready evidence"),
+      matchesCurrentEvidence: true
+    });
+  });
+
   it("parses a stored record with clamped counts and sanitized detail", () => {
     const parsed = parseStoredPhase3OwnerHandoffRecord(
       JSON.stringify({

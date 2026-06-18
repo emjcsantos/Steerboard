@@ -145,7 +145,8 @@ function isRecordFresh(
   const maxRecordAgeMs =
     options?.maxRecordAgeMs ?? DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS;
 
-  return evaluatedAtMs - createdAtMs <= maxRecordAgeMs;
+  const recordAgeMs = evaluatedAtMs - createdAtMs;
+  return recordAgeMs >= 0 && recordAgeMs <= maxRecordAgeMs;
 }
 
 export function buildPhase3HandoffEvidenceFingerprint(input: {

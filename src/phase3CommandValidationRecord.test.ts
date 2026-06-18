@@ -163,6 +163,25 @@ describe("phase 3 command validation record", () => {
     });
   });
 
+  it("reviews passed CLI smoke validation dated after the current evaluation", () => {
+    const record = createPhase3CommandValidationRecord(
+      "npm.cmd run smoke:phase3",
+      "2026-06-18T01:00:00.000Z"
+    );
+
+    expect(
+      derivePhase3CommandValidationRecordValidation(record, {
+        evaluatedAt: "2026-06-18T00:30:00.000Z",
+        expectedCommand: "npm.cmd run smoke:phase3",
+        maxRecordAgeMs: DEFAULT_PHASE3_COMMAND_VALIDATION_RECORD_MAX_AGE_MS
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("stale"),
+      isFresh: false
+    });
+  });
+
   it("classifies failed or mismatched CLI smoke validation as blocked or review", () => {
     const failed = parseStoredPhase3CommandValidationRecord(
       JSON.stringify({

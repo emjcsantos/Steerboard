@@ -114,7 +114,8 @@ function resolveFreshness(
   const maxRecordAgeMs =
     options?.maxRecordAgeMs ?? DEFAULT_PHASE3_COMMAND_VALIDATION_RECORD_MAX_AGE_MS;
 
-  return evaluatedAtMs - createdAtMs <= maxRecordAgeMs;
+  const recordAgeMs = evaluatedAtMs - createdAtMs;
+  return recordAgeMs >= 0 && recordAgeMs <= maxRecordAgeMs;
 }
 
 function readStorage(): string | null {
