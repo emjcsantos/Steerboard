@@ -184,6 +184,10 @@ function canUseRunnerReview(status: Phase9RunnerBlockerPriorityState): boolean {
   return status !== "ready";
 }
 
+function canUseRunnerReviewForTraceability(item: Phase9RunnerTraceabilityItem): boolean {
+  return item.kind === "runner-review-record" && item.status !== "ready";
+}
+
 function phase8GateItems(
   phase8: Phase8PermissionAuditDepthSnapshot,
   traceability: Phase9RunnerTraceabilitySummary
@@ -276,6 +280,8 @@ function traceabilityItems(
 function buildItemFromTraceability(
   item: Phase9RunnerTraceabilityItem
 ): Phase9RunnerBlockerPriorityItem {
+  const canUseReview = canUseRunnerReviewForTraceability(item);
+
   return {
     id: `${SNAPSHOT_ID}:traceability:${item.kind}`,
     sourceId: item.id,
@@ -284,9 +290,11 @@ function buildItemFromTraceability(
     status: item.status,
     severity: severityForState(item.status),
     priority: 0,
-    canUseRunnerReview: canUseRunnerReview(item.status),
+    canUseRunnerReview: canUseReview,
     detail: `${item.label} trace is ${STATUS_LABELS[item.status]}; ${item.detail}`,
-    nextAction: `${RUNNER_REVIEW_ACTION}, then re-check Phase 9 runner traceability.`
+    nextAction: canUseReview
+      ? `${RUNNER_REVIEW_ACTION}, then re-check Phase 9 runner traceability.`
+      : item.nextAction
   };
 }
 

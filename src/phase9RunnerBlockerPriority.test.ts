@@ -307,10 +307,15 @@ describe("phase 9 runner blocker priority", () => {
 
     expect(summary.state).toBe("blocked");
     expect(summary.topPriorityLabel).toBe("PM row coverage");
+    expect(summary.topPriorityAction).toBe(
+      "Add the missing Phase 9 PM child links before runner approval advances."
+    );
+    expect(summary.runnerReviewCanAddressTopBlocker).toBe(false);
     expect(summary.items[0]).toMatchObject({
       kind: "traceability",
       status: "blocked",
-      severity: "critical"
+      severity: "critical",
+      canUseRunnerReview: false
     });
   });
 
