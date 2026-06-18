@@ -46,6 +46,9 @@ export interface Phase9RunnerBlockerPrioritySummary {
   readonly runnerReviewAddressableCount: number;
   readonly topPriorityLabel: string;
   readonly topPriorityAction: string;
+  readonly topPrioritySourceId: string;
+  readonly topPriorityKind: Phase9RunnerBlockerPriorityKind | "none";
+  readonly topPriorityStatus: Phase9RunnerBlockerPriorityState | "ready";
   readonly runnerReviewCanAddressTopBlocker: boolean;
   readonly nextAction: string;
   readonly safety: string;
@@ -323,6 +326,7 @@ function buildAriaLabel(
   return (
     `${summary.label}: ${summary.statusLabel}; ${summary.openBlockerCount} open blockers; ` +
     `${summary.runnerReviewAddressableCount} runner-review addressable; top priority ${summary.topPriorityLabel}; ` +
+    `source ${summary.topPrioritySourceId}; kind ${summary.topPriorityKind}; status ${summary.topPriorityStatus}; ` +
     `next action: ${summary.nextAction}`
   );
 }
@@ -359,6 +363,9 @@ export function buildPhase9RunnerBlockerPriority(
     topPriorityAction:
       topItem?.nextAction ??
       "Keep the fixed terminal-readonly-probe scoped, approved, audited, rollback-safe, and locked away from broad desktop execution.",
+    topPrioritySourceId: topItem?.sourceId ?? "phase9.runner-blocker.none",
+    topPriorityKind: topItem?.kind ?? "none",
+    topPriorityStatus: topItem?.status ?? "ready",
     runnerReviewCanAddressTopBlocker: topItem?.canUseRunnerReview === true,
     nextAction:
       topItem?.nextAction ??

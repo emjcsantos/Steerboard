@@ -14886,6 +14886,10 @@ export function Phase9RunnerApprovalPanel({
             </span>
           </div>
           <p title={blockerPriority.topPriorityAction}>{blockerPriority.topPriorityLabel}</p>
+          <small className="phase9-runner-blocker-priority-source">
+            {blockerPriority.topPrioritySourceId} / {blockerPriority.topPriorityKind} /{" "}
+            {blockerPriority.topPriorityStatus}
+          </small>
           <dl className="phase9-runner-blocker-priority-grid" aria-label="Phase 9 runner blocker priority counts">
             <div>
               <dt>Open</dt>

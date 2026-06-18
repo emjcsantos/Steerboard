@@ -231,6 +231,12 @@ describe("phase 9 runner blocker priority", () => {
 
     expect(summary.state).toBe("blocked");
     expect(summary.topPriorityLabel).toBe("Phase 8 audit gate");
+    expect(summary.topPrioritySourceId).toBe(summary.items[0].sourceId);
+    expect(summary.topPriorityKind).toBe("phase8-gate");
+    expect(summary.topPriorityStatus).toBe("blocked");
+    expect(summary.ariaLabel).toContain(`source ${summary.topPrioritySourceId}`);
+    expect(summary.ariaLabel).toContain("kind phase8-gate");
+    expect(summary.ariaLabel).toContain("status blocked");
     expect(summary.runnerReviewCanAddressTopBlocker).toBe(true);
     expect(summary.items[0]).toMatchObject({
       kind: "phase8-gate",
@@ -246,6 +252,9 @@ describe("phase 9 runner blocker priority", () => {
     expect(summary.state).toBe("waiting");
     expect(summary.openBlockerCount).toBeGreaterThan(0);
     expect(summary.topPriorityLabel).toBe("Owner permission");
+    expect(summary.topPrioritySourceId).toBe("phase-09-desktop-runner-approval:permission");
+    expect(summary.topPriorityKind).toBe("approval");
+    expect(summary.topPriorityStatus).toBe("waiting");
     expect(summary.items[0]).toMatchObject({
       kind: "approval",
       status: "waiting",
@@ -341,6 +350,12 @@ describe("phase 9 runner blocker priority", () => {
     expect(summary.openBlockerCount).toBe(0);
     expect(summary.readiness).toBe(100);
     expect(summary.topPriorityLabel).toBe("No open Phase 9 runner blocker");
+    expect(summary.topPrioritySourceId).toBe("phase9.runner-blocker.none");
+    expect(summary.topPriorityKind).toBe("none");
+    expect(summary.topPriorityStatus).toBe("ready");
+    expect(summary.ariaLabel).toContain("source phase9.runner-blocker.none");
+    expect(summary.ariaLabel).toContain("kind none");
+    expect(summary.ariaLabel).toContain("status ready");
   });
 
   it("keeps Phase 9 blocker-priority text public-safe", () => {
