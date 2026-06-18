@@ -162,7 +162,7 @@
 - Desktop permission approval previews should later become real approval gates with signed audit records.
 - Desktop permission approval status should later connect to the real shell approval command after safety checks are implemented.
 - Desktop permission audit previews should later export signed review records after the desktop approval and rollback model is implemented.
-- Desktop packaging readiness should later hand off to real local build, signing, and installer checks only after the Phase 11 release-readiness gate records clean checkout, build/test, smoke proof, docs/known limits, package-lock validation, and an explicit owner release decision.
+- Desktop packaging readiness should later hand off to real local build, signing, and installer checks only after the Phase 11 release-readiness gate records clean checkout, build/test, smoke proof, docs/known limits, package-lock validation, and an explicit owner release decision; ready desktop inputs remain held while `canPackage` is false.
 - Local validation evidence readiness should later connect to real terminal, test, and Git evidence capture after the execution permission model is implemented.
 - Terminal and Git evidence readiness should later become permissioned command/test/Git capture with rollback-aware audit records.
 

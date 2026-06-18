@@ -1,7 +1,7 @@
 import type { DesktopPermissionApprovalStatus } from "./desktopPermissionApproval";
 import type { DesktopRuntimeBridgeStatus } from "./desktopRuntimeBridge";
 
-export type DesktopPackagingReadinessState = "blocked" | "waiting" | "ready";
+export type DesktopPackagingReadinessState = "blocked" | "waiting" | "held";
 export type DesktopPackagingReadinessItemStatus =
   | "blocked"
   | "waiting"
@@ -243,8 +243,8 @@ export function buildDesktopPackagingReadinessSnapshot(
     return {
       id: DESKTOP_PACKAGING_READINESS_ID,
       label: DESKTOP_PACKAGING_READINESS_LABEL,
-      state: "ready",
-      statusLabel: "Ready",
+      state: "held",
+      statusLabel: "Inputs ready",
       readiness: READY_READINESS,
       canPackage: false,
       packagingLocked: true,

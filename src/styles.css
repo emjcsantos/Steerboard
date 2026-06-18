@@ -15948,6 +15948,10 @@ textarea {
   background: #f0d984;
 }
 
+.desktop-packaging-held .desktop-packaging-state span {
+  background: #f0d984;
+}
+
 .desktop-packaging-blocked .desktop-packaging-state span {
   background: #ff9e85;
 }

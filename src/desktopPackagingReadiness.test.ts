@@ -101,17 +101,18 @@ describe("desktop packaging readiness snapshot", () => {
     expect(snapshot.packagingLocked).toBe(true);
   });
 
-  it("returns ready when bridge and permission are fully ready, but package action is locked", () => {
+  it("returns held when bridge and permission inputs are ready but package action is locked", () => {
     const snapshot = buildDesktopPackagingReadinessSnapshot(
       readyBridgeStatus,
       readyPermissionStatus
     );
 
-    expect(snapshot.state).toBe("ready");
-    expect(snapshot.statusLabel).toBe("Ready");
+    expect(snapshot.state).toBe("held");
+    expect(snapshot.statusLabel).toBe("Inputs ready");
     expect(snapshot.readiness).toBe(80);
     expect(snapshot.canPackage).toBe(false);
     expect(snapshot.packagingLocked).toBe(true);
+    expect(snapshot.detail).toContain("packaging actions stay locked");
   });
 
   it("returns blocked on error states", () => {

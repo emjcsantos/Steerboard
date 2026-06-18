@@ -109,7 +109,7 @@ Steerboard is a local-first desktop arena. The UI presents project lanes, agent 
 - Runtime profile permission approval previews derive blocked, requestable, requested, and review states from local handoff/request state while execution remains locked.
 - A narrow desktop permission approval status command reports shell approval reachability before any permission grant or runtime execution can occur.
 - Runtime profile permission audit previews combine local approval state, shell approval status, request records, and execution lock state into a reviewable export preview without writing files.
-- Desktop packaging readiness derives shell, bridge, permission, and packaging-lock status into a local preview before any build, signing, installer, or filesystem action exists.
+- Desktop packaging readiness derives shell, bridge, permission, and packaging-lock status into a local preview before any build, signing, installer, or filesystem action exists; when inputs are ready but packaging remains locked, the top-level state is held rather than release-ready.
 - Each runtime adapter should declare capabilities, required permissions, configuration fields, supported commands, event mapping, and mock fixtures.
 - The Arena must consume normalized session, task, validation, and tool-call events instead of provider-specific payloads.
 - The scaffold exposes an adapter contract inspector that summarizes transport, capability, permission, and normalized-event readiness before runtime execution exists.

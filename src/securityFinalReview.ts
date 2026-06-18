@@ -57,6 +57,10 @@ function itemStateFromReleasePrivacy(
     return "waiting";
   }
 
+  if (snapshot.state === "ready" && !snapshot.canRecommendRelease) {
+    return "review";
+  }
+
   return snapshot.state;
 }
 
@@ -67,6 +71,10 @@ function itemStateFromCurrentAcceptance(
     return "waiting";
   }
 
+  if (snapshot.state === "ready" && !snapshot.canAdvanceSecurity) {
+    return "review";
+  }
+
   return snapshot.state;
 }
 
@@ -75,6 +83,10 @@ function itemStateFromRepeatedRuns(
 ): SecurityAcceptanceCoverageState {
   if (!snapshot) {
     return "waiting";
+  }
+
+  if (snapshot.state === "ready" && !snapshot.canCloseEvidence) {
+    return "review";
   }
 
   return snapshot.state;
@@ -164,7 +176,7 @@ function buildReleaseItem(snapshot?: ReleasePrivacyReadinessSnapshot): SecurityF
     label: "Release privacy review",
     status: itemStateFromReleasePrivacy(snapshot),
     detail: snapshot
-      ? `Release privacy readiness is ${snapshot.state}.`
+      ? `Release privacy readiness is ${snapshot.state}; release recommendation is ${snapshot.canRecommendRelease ? "available" : "held"}.`
       : "Release privacy evidence has not been provided."
   };
 }
@@ -177,7 +189,7 @@ function buildCurrentAcceptanceItem(
     label: "Current run security acceptance",
     status: itemStateFromCurrentAcceptance(snapshot),
     detail: snapshot
-      ? `Current security acceptance state is ${snapshot.state}.`
+      ? `Current security acceptance state is ${snapshot.state}; security advancement is ${snapshot.canAdvanceSecurity ? "available" : "held"}.`
       : "Current security acceptance evidence has not been provided."
   };
 }
@@ -190,7 +202,7 @@ function buildRepeatedRunsItem(
     label: "Repeated evidence closure",
     status: itemStateFromRepeatedRuns(snapshot),
     detail: snapshot
-      ? `Repeated evidence closure state is ${snapshot.state}.`
+      ? `Repeated evidence closure state is ${snapshot.state}; evidence closure is ${snapshot.canCloseEvidence ? "available" : "held"}.`
       : "Repeated evidence closure evidence has not been provided."
   };
 }

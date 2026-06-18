@@ -45,8 +45,8 @@ function packagingSnapshot(
   return {
     id: "desktop-packaging-readiness",
     label: "Desktop packaging readiness",
-    state: "ready",
-    statusLabel: "Ready",
+    state: "held",
+    statusLabel: "Inputs ready",
     readiness: 80,
     canPackage: false,
     packagingLocked: true,

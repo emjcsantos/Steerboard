@@ -227,6 +227,95 @@ describe("security final review", () => {
     expect(snapshot.items[4].status).toBe("review");
   });
 
+  it("does not close security when ready child snapshots still hold their action flags", () => {
+    const baseEvidence = {
+      releasePrivacy: {
+        id: "release",
+        label: "release privacy",
+        state: "ready" as const,
+        statusLabel: "Ready",
+        readiness: 100,
+        canRecommendRelease: true,
+        detail: "",
+        safety: "",
+        items: [],
+        ariaLabel: ""
+      },
+      currentAcceptance: {
+        id: "current",
+        label: "current security acceptance",
+        state: "ready" as const,
+        statusLabel: "Ready",
+        readiness: 100,
+        detail: "",
+        safety: "",
+        canAdvanceSecurity: true,
+        items: [],
+        ariaLabel: ""
+      },
+      repeatedRuns: {
+        id: "repeated",
+        label: "repeated runs",
+        state: "ready" as const,
+        statusLabel: "Ready",
+        readiness: 100,
+        reviewedRunCount: 3,
+        requiredRunCount: 3,
+        readyRunCount: 3,
+        reviewRunCount: 0,
+        blockedRunCount: 0,
+        waitingRunCount: 0,
+        canCloseEvidence: true,
+        detail: "",
+        safety: "",
+        items: [],
+        ariaLabel: ""
+      },
+      packagingPaused: true,
+      packagingLocked: true
+    };
+    const releaseHeld = createSecurityFinalReview({
+      ...baseEvidence,
+      releasePrivacy: {
+        ...baseEvidence.releasePrivacy,
+        canRecommendRelease: false
+      }
+    });
+    const acceptanceHeld = createSecurityFinalReview({
+      ...baseEvidence,
+      currentAcceptance: {
+        ...baseEvidence.currentAcceptance,
+        canAdvanceSecurity: false
+      }
+    });
+    const evidenceHeld = createSecurityFinalReview({
+      ...baseEvidence,
+      repeatedRuns: {
+        ...baseEvidence.repeatedRuns,
+        canCloseEvidence: false
+      }
+    });
+
+    expect(releaseHeld.state).toBe("review");
+    expect(releaseHeld.canCloseSecurity).toBe(false);
+    expect(releaseHeld.items[0]).toMatchObject({
+      status: "review",
+      detail: expect.stringContaining("held")
+    });
+    expect(acceptanceHeld.state).toBe("review");
+    expect(acceptanceHeld.canCloseSecurity).toBe(false);
+    expect(acceptanceHeld.items[1]).toMatchObject({
+      status: "review",
+      detail: expect.stringContaining("held")
+    });
+    expect(evidenceHeld.state).toBe("review");
+    expect(evidenceHeld.canCloseSecurity).toBe(false);
+    expect(evidenceHeld.items[2]).toMatchObject({
+      status: "review",
+      detail: expect.stringContaining("held")
+    });
+  });
+
   it("preserves stable item order", () => {
     const snapshot = createSecurityFinalReview({
       releasePrivacy: {
