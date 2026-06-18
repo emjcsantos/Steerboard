@@ -377,6 +377,8 @@ function renderOwnerTestingReadinessPanel(props: OwnerVisiblePhase3Props) {
       onExportPhase3ProofArtifact={() => undefined}
       onImportPhase3CommandValidation={() => undefined}
       onImportPhase3SmokeProofBundle={() => undefined}
+      onLoadRecordedPhase3CommandValidation={() => undefined}
+      onLoadRecordedPhase3SmokeProofBundle={() => undefined}
       onVerifyImportedPhase3ProofArtifact={() => undefined}
       onRecordPhase3CommandValidation={() => undefined}
       onRecordPhase3OwnerHandoff={() => undefined}
@@ -634,6 +636,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Phase 3 proof export");
     expect(html).toContain("Export proof");
     expect(html).toContain("Import proof");
+    expect(html).toContain("Load recorded");
     expect(html).toContain("Panel proof 2/2");
     expect(html).toContain("CLI attached");
     expect(html).toContain("Handoff attached");
@@ -706,6 +709,8 @@ describe("phase 3 owner-visible proof panel", () => {
       onExportPhase3ProofArtifact: vi.fn(),
       onImportPhase3CommandValidation: vi.fn(),
       onImportPhase3SmokeProofBundle: vi.fn(),
+      onLoadRecordedPhase3CommandValidation: vi.fn(),
+      onLoadRecordedPhase3SmokeProofBundle: vi.fn(),
       onRecordPhase3CommandValidation: vi.fn(),
       onRecordPhase3OwnerHandoff: vi.fn(),
       onRunCodexActiveTurnControlSmokeProof: vi.fn(),

@@ -627,6 +627,44 @@ mod runtime_bridge {
         Ok(stdout)
     }
 
+    pub(crate) fn read_phase3_local_artifact_from(
+        base_dir: &std::path::Path,
+        artifact_name: &str,
+    ) -> Result<String, String> {
+        if artifact_name.contains('/')
+            || artifact_name.contains('\\')
+            || artifact_name.contains("..")
+            || !artifact_name.ends_with(".json")
+        {
+            return Err("blocked_invalid_phase3_artifact_name".to_string());
+        }
+
+        let artifact_path = base_dir.join("local_private").join(artifact_name);
+        std::fs::read_to_string(&artifact_path).map_err(|error| {
+            format!(
+                "phase3_artifact_read_failed:{}:{}",
+                artifact_name,
+                error.kind()
+            )
+        })
+    }
+
+    fn read_phase3_local_artifact(artifact_name: &str) -> Result<String, String> {
+        let base_dir = std::env::current_dir()
+            .map_err(|error| format!("phase3_artifact_cwd_failed:{error}"))?;
+        read_phase3_local_artifact_from(&base_dir, artifact_name)
+    }
+
+    #[tauri::command]
+    pub fn phase3_command_validation_artifact_read() -> Result<String, String> {
+        read_phase3_local_artifact("phase3-command-validation-record.json")
+    }
+
+    #[tauri::command]
+    pub fn phase3_smoke_proof_bundle_artifact_read() -> Result<String, String> {
+        read_phase3_local_artifact("phase3-smoke-proof-bundle.json")
+    }
+
     #[tauri::command]
     pub fn live_action_runner_execute(request: LiveActionRunnerRequest) -> LiveActionRunnerResult {
         let requested_timestamp = match parse_millis_timestamp(&request.requested_timestamp) {
@@ -4061,7 +4099,9 @@ pub fn run() {
             runtime_bridge::codex_panel_session_retry,
             runtime_bridge::codex_panel_session_interrupt,
             runtime_bridge::codex_panel_session_steer,
-            runtime_bridge::codex_panel_session_close
+            runtime_bridge::codex_panel_session_close,
+            runtime_bridge::phase3_command_validation_artifact_read,
+            runtime_bridge::phase3_smoke_proof_bundle_artifact_read
         ])
         .run(tauri::generate_context!())
         .expect("error while running Steerboard");
@@ -4296,6 +4336,37 @@ mod tests {
         assert!(!result
             .result_summary
             .contains("unsafe-request-id-$(whoami)"));
+    }
+
+    #[test]
+    fn phase3_local_artifact_reader_reads_only_local_private_json() {
+        let base_dir = std::env::temp_dir().join(format!(
+            "steerboard-phase3-artifact-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos()
+        ));
+        let local_private_dir = base_dir.join("local_private");
+        std::fs::create_dir_all(&local_private_dir).unwrap();
+        std::fs::write(
+            local_private_dir.join("phase3-smoke-proof-bundle.json"),
+            "{\"source\":\"steerboard.phase3.smoke-record.v1\"}\n",
+        )
+        .unwrap();
+
+        let artifact = runtime_bridge::read_phase3_local_artifact_from(
+            &base_dir,
+            "phase3-smoke-proof-bundle.json",
+        )
+        .unwrap();
+
+        assert!(artifact.contains("steerboard.phase3.smoke-record.v1"));
+        assert!(
+            runtime_bridge::read_phase3_local_artifact_from(&base_dir, "../secret.json").is_err()
+        );
+
+        let _ = std::fs::remove_dir_all(base_dir);
     }
 
     #[test]

@@ -2685,6 +2685,30 @@ export function App() {
       setAppNotice
     });
   }, []);
+  const loadRecordedPhase3CommandValidation = useCallback(async () => {
+    try {
+      const serializedRecord = await invokeDesktopCommand<string>(
+        "phase3_command_validation_artifact_read"
+      );
+      importPhase3CommandValidation(serializedRecord);
+    } catch {
+      setAppNotice(
+        "Recorded Phase 3 CLI smoke validation artifact is unavailable; run npm.cmd run smoke:phase3:record first"
+      );
+    }
+  }, [importPhase3CommandValidation]);
+  const loadRecordedPhase3SmokeProofBundle = useCallback(async () => {
+    try {
+      const serializedBundle = await invokeDesktopCommand<string>(
+        "phase3_smoke_proof_bundle_artifact_read"
+      );
+      importPhase3SmokeProofBundle(serializedBundle);
+    } catch {
+      setAppNotice(
+        "Recorded Phase 3 desktop smoke proof bundle is unavailable; run npm.cmd run smoke:phase3:record first"
+      );
+    }
+  }, [importPhase3SmokeProofBundle]);
   const exportPhase3ProofArtifact = useCallback(() => {
     const now = new Date().toISOString();
     const artifact = buildPhase3ProofExportArtifact({
@@ -4549,6 +4573,8 @@ export function App() {
             onRecordPhase3CommandValidation={recordPhase3CommandValidation}
             onImportPhase3CommandValidation={importPhase3CommandValidation}
             onImportPhase3SmokeProofBundle={importPhase3SmokeProofBundle}
+            onLoadRecordedPhase3CommandValidation={loadRecordedPhase3CommandValidation}
+            onLoadRecordedPhase3SmokeProofBundle={loadRecordedPhase3SmokeProofBundle}
             onClearPhase3CommandValidation={clearPhase3CommandValidation}
             onClearPhase11EvidenceRecord={clearPhase11EvidenceRecord}
             onImportPhase11EvidenceRecords={importPhase11EvidenceRecords}
@@ -8812,6 +8838,8 @@ function RightPanel({
   onExportPhase4ProviderReviewArtifact,
   onImportPhase3CommandValidation,
   onImportPhase3SmokeProofBundle,
+  onLoadRecordedPhase3CommandValidation,
+  onLoadRecordedPhase3SmokeProofBundle,
   onImportPhase11EvidenceRecords,
   onRecordPhase3CommandValidation,
   onRecordPhase3OwnerHandoff,
@@ -8907,6 +8935,8 @@ function RightPanel({
   onExportPhase4ProviderReviewArtifact: () => void;
   onImportPhase3CommandValidation: (serializedRecord: string) => void;
   onImportPhase3SmokeProofBundle: (serializedBundle: string) => void;
+  onLoadRecordedPhase3CommandValidation: () => void;
+  onLoadRecordedPhase3SmokeProofBundle: () => void;
   onImportPhase11EvidenceRecords: (serializedRecords: string) => void;
   onRecordPhase3CommandValidation: () => void;
   onRecordPhase3OwnerHandoff: () => void;
@@ -10353,6 +10383,8 @@ function RightPanel({
         onRecordPhase3CommandValidation={onRecordPhase3CommandValidation}
         onImportPhase3CommandValidation={onImportPhase3CommandValidation}
         onImportPhase3SmokeProofBundle={onImportPhase3SmokeProofBundle}
+        onLoadRecordedPhase3CommandValidation={onLoadRecordedPhase3CommandValidation}
+        onLoadRecordedPhase3SmokeProofBundle={onLoadRecordedPhase3SmokeProofBundle}
         onClearPhase3CommandValidation={onClearPhase3CommandValidation}
         onRecordPhase3OwnerHandoff={onRecordPhase3OwnerHandoff}
         onClearPhase3OwnerHandoff={onClearPhase3OwnerHandoff}
@@ -12766,6 +12798,8 @@ export function OwnerTestingReadinessPanel({
   onClearPhase3CommandValidation,
   onImportPhase3CommandValidation,
   onImportPhase3SmokeProofBundle,
+  onLoadRecordedPhase3CommandValidation,
+  onLoadRecordedPhase3SmokeProofBundle,
   onRecordPhase3OwnerHandoff,
   onClearPhase3OwnerHandoff,
   onRunCodexActiveTurnControlSmokeProof,
@@ -12803,6 +12837,8 @@ export function OwnerTestingReadinessPanel({
   onRecordPhase3CommandValidation: () => void;
   onImportPhase3CommandValidation: (serializedRecord: string) => void;
   onImportPhase3SmokeProofBundle: (serializedBundle: string) => void;
+  onLoadRecordedPhase3CommandValidation: () => void;
+  onLoadRecordedPhase3SmokeProofBundle: () => void;
   onClearPhase3CommandValidation: () => void;
   onRecordPhase3OwnerHandoff: () => void;
   onClearPhase3OwnerHandoff: () => void;
@@ -13537,6 +13573,14 @@ export function OwnerTestingReadinessPanel({
                   <Paperclip size={13} />
                   <span>Import</span>
                 </button>
+                <button
+                  onClick={onLoadRecordedPhase3CommandValidation}
+                  title="Load local_private/phase3-command-validation-record.json from the desktop workspace."
+                  type="button"
+                >
+                  <Paperclip size={13} />
+                  <span>Load recorded</span>
+                </button>
                 <input
                   accept="application/json,.json"
                   aria-label="Import Phase 3 CLI smoke validation artifact"
@@ -13818,6 +13862,14 @@ export function OwnerTestingReadinessPanel({
                 >
                   <Paperclip size={12} />
                   <span>Import desktop proof</span>
+                </button>
+                <button
+                  onClick={onLoadRecordedPhase3SmokeProofBundle}
+                  title="Load local_private/phase3-smoke-proof-bundle.json from the desktop workspace."
+                  type="button"
+                >
+                  <Paperclip size={12} />
+                  <span>Load recorded</span>
                 </button>
                 <input
                   accept="application/json,.json"
