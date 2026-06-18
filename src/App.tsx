@@ -100,6 +100,16 @@ import {
   type Phase4ProviderApprovalRecordValidation
 } from "./phase4ProviderApprovalRecord";
 import {
+  buildPhase4ProviderAuditEvidenceFingerprint,
+  clearPhase4ProviderAuditRecord,
+  createPhase4ProviderAuditRecord,
+  derivePhase4ProviderAuditRecordValidation,
+  loadPhase4ProviderAuditRecord,
+  savePhase4ProviderAuditRecord,
+  type Phase4ProviderAuditRecord,
+  type Phase4ProviderAuditRecordValidation
+} from "./phase4ProviderAuditRecord";
+import {
   buildPhase4ProviderCatalogDepth,
   type Phase4ProviderCatalogDepthSummary
 } from "./phase4ProviderCatalogDepth";
@@ -1755,6 +1765,8 @@ export function App() {
     useState<Phase4ProviderApprovalRecord | undefined>(() =>
       loadPhase4ProviderApprovalRecord()
     );
+  const [phase4ProviderAuditRecord, setPhase4ProviderAuditRecord] =
+    useState<Phase4ProviderAuditRecord | undefined>(() => loadPhase4ProviderAuditRecord());
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
@@ -1947,13 +1959,49 @@ export function App() {
       phase4RefreshSafetyDepth
     ]
   );
-  const phase4ProviderSurfaceDepth = useMemo(
+  const phase4ProviderApprovalSurfaceDepth = useMemo(
     () =>
       buildPhase4ProviderSurfaceDepth(
         providerIntegrationReadiness,
         phase4ProviderApprovalValidation
       ),
     [phase4ProviderApprovalValidation, providerIntegrationReadiness]
+  );
+  const phase4ProviderAuditEvidenceFingerprint = useMemo(
+    () => buildPhase4ProviderAuditEvidenceFingerprint(phase4ProviderApprovalSurfaceDepth),
+    [phase4ProviderApprovalSurfaceDepth]
+  );
+  const phase4ProviderAuditValidation = useMemo(
+    () =>
+      derivePhase4ProviderAuditRecordValidation({
+        record: phase4ProviderAuditRecord,
+        approvalRecord: phase4ProviderApprovalRecord,
+        approvalValidation: phase4ProviderApprovalValidation,
+        expectedAuditEvidenceFingerprint: phase4ProviderAuditEvidenceFingerprint,
+        expectedCatalogFingerprint: phase4CurrentCatalogFingerprint,
+        options: { evaluatedAt: phase4CatalogProofEvaluationTime }
+      }),
+    [
+      phase4CatalogProofEvaluationTime,
+      phase4CurrentCatalogFingerprint,
+      phase4ProviderApprovalRecord,
+      phase4ProviderApprovalValidation,
+      phase4ProviderAuditEvidenceFingerprint,
+      phase4ProviderAuditRecord
+    ]
+  );
+  const phase4ProviderSurfaceDepth = useMemo(
+    () =>
+      buildPhase4ProviderSurfaceDepth(
+        providerIntegrationReadiness,
+        phase4ProviderApprovalValidation,
+        phase4ProviderAuditValidation
+      ),
+    [
+      phase4ProviderApprovalValidation,
+      phase4ProviderAuditValidation,
+      providerIntegrationReadiness
+    ]
   );
   const phase4ProviderTraceability = useMemo(
     () =>
@@ -1998,8 +2046,39 @@ export function App() {
   }, [phase4CurrentCatalogFingerprint, phase4RefreshSafetyDepth]);
   const clearPhase4ProviderApproval = useCallback(() => {
     clearPhase4ProviderApprovalRecord();
+    clearPhase4ProviderAuditRecord();
     setPhase4ProviderApprovalRecord(undefined);
+    setPhase4ProviderAuditRecord(undefined);
     setAppNotice("Phase 4 provider approval record cleared");
+  }, []);
+  const recordPhase4ProviderAudit = useCallback(() => {
+    if (phase4ProviderApprovalValidation.state !== "ready" || !phase4ProviderApprovalRecord) {
+      setAppNotice(phase4ProviderApprovalValidation.nextAction);
+      return;
+    }
+
+    const createdAt = new Date().toISOString();
+    const record = createPhase4ProviderAuditRecord({
+      approvalRecord: phase4ProviderApprovalRecord,
+      auditEvidenceFingerprint: phase4ProviderAuditEvidenceFingerprint,
+      catalogFingerprint: phase4CurrentCatalogFingerprint,
+      createdAt
+    });
+
+    setPhase4CatalogProofEvaluationTime(createdAt);
+    savePhase4ProviderAuditRecord(record);
+    setPhase4ProviderAuditRecord(record);
+    setAppNotice("Phase 4 provider audit review recorded locally");
+  }, [
+    phase4CurrentCatalogFingerprint,
+    phase4ProviderApprovalRecord,
+    phase4ProviderApprovalValidation,
+    phase4ProviderAuditEvidenceFingerprint
+  ]);
+  const clearPhase4ProviderAudit = useCallback(() => {
+    clearPhase4ProviderAuditRecord();
+    setPhase4ProviderAuditRecord(undefined);
+    setAppNotice("Phase 4 provider audit record cleared");
   }, []);
   const slashCommandExecutionEvidence = useMemo(() => {
     return selectPhase3SlashCommandEvidence(
@@ -4015,6 +4094,8 @@ export function App() {
             phase4ProviderCatalogDepth={phase4ProviderCatalogDepth}
             phase4ProviderApprovalRecord={phase4ProviderApprovalRecord}
             phase4ProviderApprovalValidation={phase4ProviderApprovalValidation}
+            phase4ProviderAuditRecord={phase4ProviderAuditRecord}
+            phase4ProviderAuditValidation={phase4ProviderAuditValidation}
             phase4ProviderTraceability={phase4ProviderTraceability}
             phase4ProviderSurfaceDepth={phase4ProviderSurfaceDepth}
             providerIntegrationReadiness={providerIntegrationReadiness}
@@ -4053,6 +4134,8 @@ export function App() {
             onRunCodexTwoPanelSmokeProof={runCodexTwoPanelSmokeProof}
             onRecordPhase4ProviderApproval={recordPhase4ProviderApproval}
             onClearPhase4ProviderApproval={clearPhase4ProviderApproval}
+            onRecordPhase4ProviderAudit={recordPhase4ProviderAudit}
+            onClearPhase4ProviderAudit={clearPhase4ProviderAudit}
             codexCanStartSession={codexTransportDecision.canStartSession}
             codexLiveSmokeLoading={codexLiveSmokeLoading}
             codexTwoPanelSmokeLoading={codexTwoPanelSmokeLoading}
@@ -7394,14 +7477,22 @@ export function ProviderIntegrationReadinessPanel({
 
 export function Phase4ProviderSurfaceDepthPanel({
   approvalValidation,
+  auditRecord,
+  auditValidation,
   onClearApproval,
+  onClearAudit,
   onRecordApproval,
+  onRecordAudit,
   record,
   snapshot
 }: {
   approvalValidation?: Phase4ProviderApprovalRecordValidation;
+  auditRecord?: Phase4ProviderAuditRecord;
+  auditValidation?: Phase4ProviderAuditRecordValidation;
   onClearApproval?: () => void;
+  onClearAudit?: () => void;
   onRecordApproval?: () => void;
+  onRecordAudit?: () => void;
   record?: Phase4ProviderApprovalRecord;
   snapshot: Phase4ProviderSurfaceDepthSnapshot;
 }) {
@@ -7444,6 +7535,27 @@ export function Phase4ProviderSurfaceDepthPanel({
           </button>
           <button type="button" disabled={!record} onClick={onClearApproval}>
             Clear approval
+          </button>
+        </div>
+        <div
+          aria-label="Phase 4 provider audit actions"
+          className="phase4-provider-depth-actions"
+        >
+          <div>
+            <strong>Audit record</strong>
+            <small>
+              {auditValidation?.state ?? "preview"} / {auditRecord?.createdAt ?? "not recorded"}
+            </small>
+            <small>
+              Approval {auditValidation?.recordApprovalRecordId ?? "missing"} / expected{" "}
+              {auditValidation?.expectedApprovalRecordId ?? "missing"}
+            </small>
+          </div>
+          <button type="button" onClick={onRecordAudit}>
+            Record audit
+          </button>
+          <button type="button" disabled={!auditRecord} onClick={onClearAudit}>
+            Clear audit
           </button>
         </div>
         <dl className="phase4-provider-depth-grid" aria-label="Phase 4 provider surface depth counts">
@@ -8065,6 +8177,7 @@ function RightPanel({
   onRecordPhase3OwnerHandoff,
   onRecordPhase11Evidence,
   onRecordPhase4ProviderApproval,
+  onRecordPhase4ProviderAudit,
   onRecordWorkerValidationAttempt,
   onSelectRun,
   onUpdateRunStatus,
@@ -8073,6 +8186,8 @@ function RightPanel({
   phase4ProviderCatalogDepth,
   phase4ProviderApprovalRecord,
   phase4ProviderApprovalValidation,
+  phase4ProviderAuditRecord,
+  phase4ProviderAuditValidation,
   phase4ProviderTraceability,
   phase4ProviderSurfaceDepth,
   providerIntegrationReadiness,
@@ -8110,6 +8225,7 @@ function RightPanel({
   onRunCodexLiveControlSmokeProof,
   onRunCodexTwoPanelSmokeProof,
   onClearPhase4ProviderApproval,
+  onClearPhase4ProviderAudit,
   codexCanStartSession,
   codexLiveSmokeLoading,
   codexTwoPanelSmokeLoading,
@@ -8138,6 +8254,7 @@ function RightPanel({
   onRecordPhase3OwnerHandoff: () => void;
   onRecordPhase11Evidence: (gate: Phase11EvidenceGate) => void;
   onRecordPhase4ProviderApproval: () => void;
+  onRecordPhase4ProviderAudit: () => void;
   onRecordWorkerValidationAttempt: (
     runId: string,
     taskId: string,
@@ -8150,6 +8267,8 @@ function RightPanel({
   phase4ProviderCatalogDepth: Phase4ProviderCatalogDepthSummary;
   phase4ProviderApprovalRecord?: Phase4ProviderApprovalRecord;
   phase4ProviderApprovalValidation: Phase4ProviderApprovalRecordValidation;
+  phase4ProviderAuditRecord?: Phase4ProviderAuditRecord;
+  phase4ProviderAuditValidation: Phase4ProviderAuditRecordValidation;
   phase4ProviderTraceability: Phase4ProviderTraceabilitySummary;
   phase4ProviderSurfaceDepth: Phase4ProviderSurfaceDepthSnapshot;
   providerIntegrationReadiness: ProviderIntegrationReadiness;
@@ -8187,6 +8306,7 @@ function RightPanel({
   onRunCodexLiveControlSmokeProof: () => void;
   onRunCodexTwoPanelSmokeProof: () => void;
   onClearPhase4ProviderApproval: () => void;
+  onClearPhase4ProviderAudit: () => void;
   codexCanStartSession: boolean;
   codexLiveSmokeLoading: boolean;
   codexTwoPanelSmokeLoading: boolean;
@@ -9428,8 +9548,12 @@ function RightPanel({
 
       <Phase4ProviderSurfaceDepthPanel
         approvalValidation={phase4ProviderApprovalValidation}
+        auditRecord={phase4ProviderAuditRecord}
+        auditValidation={phase4ProviderAuditValidation}
         onClearApproval={onClearPhase4ProviderApproval}
+        onClearAudit={onClearPhase4ProviderAudit}
         onRecordApproval={onRecordPhase4ProviderApproval}
+        onRecordAudit={onRecordPhase4ProviderAudit}
         record={phase4ProviderApprovalRecord}
         snapshot={phase4ProviderSurfaceDepth}
       />

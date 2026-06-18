@@ -341,9 +341,17 @@ const phaseSpecs: PhaseSpec[] = [
             sourceDocument: "Phase 4 provider approval record"
           },
           {
+            id: "phase-04-child-audit-record",
+            title: "Provider Audit Record",
+            description: "Record and clear local provider audit review only when the current approval record, current six-surface catalog fingerprint, and current surface-depth audit evidence fingerprint match, without unlocking rollback, permission, or execution.",
+            completionPercent: 35,
+            complexity: "high",
+            sourceDocument: "Phase 4 provider audit record"
+          },
+          {
             id: "phase-04-child-traceability",
             title: "Provider Traceability",
-            description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval record, and execution locks before provider execution is considered.",
+            description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval and audit records, and execution locks before provider execution is considered.",
             completionPercent: 42,
             complexity: "high",
             sourceDocument: "Phase 4 provider traceability"

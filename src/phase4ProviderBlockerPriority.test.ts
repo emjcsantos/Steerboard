@@ -14,6 +14,11 @@ import {
   derivePhase4ProviderApprovalRecordValidation,
   type Phase4ProviderApprovalRecordValidation
 } from "./phase4ProviderApprovalRecord";
+import {
+  createPhase4ProviderAuditRecord,
+  derivePhase4ProviderAuditRecordValidation,
+  type Phase4ProviderAuditRecordValidation
+} from "./phase4ProviderAuditRecord";
 import { buildPhase4ProviderBlockerPriority } from "./phase4ProviderBlockerPriority";
 import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
@@ -106,16 +111,22 @@ function validationFixture(
 function priority({
   validation = buildCatalogRefreshOwnerValidation(),
   smoke = CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
-  approvalValidation
+  approvalValidation,
+  auditValidation
 }: {
   approvalValidation?: Phase4ProviderApprovalRecordValidation;
+  auditValidation?: Phase4ProviderAuditRecordValidation;
   validation?: CatalogRefreshOwnerValidationResult;
   smoke?: ReturnType<typeof buildCatalogRefreshProviderSmoke>;
 } = {}) {
   const readiness = buildProviderIntegrationReadiness(validation);
   const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
   const refreshSafety = buildPhase4RefreshSafetyDepth(smoke);
-  const surfaceDepth = buildPhase4ProviderSurfaceDepth(readiness, approvalValidation);
+  const surfaceDepth = buildPhase4ProviderSurfaceDepth(
+    readiness,
+    approvalValidation,
+    auditValidation
+  );
   const traceability = buildPhase4ProviderTraceabilitySummary({
     catalogDepth,
     refreshSafety,
@@ -141,15 +152,37 @@ const readyRefreshSafety: Phase4RefreshSafetyDepthSummary = {
   ariaLabel: "Refresh safety ready."
 };
 
+const readyApprovalRecord = createPhase4ProviderApprovalRecord({
+  catalogFingerprint: "phase4-catalog-current",
+  createdAt: "2026-06-18T10:00:00.000Z"
+});
+
 function readyApprovalValidation(): Phase4ProviderApprovalRecordValidation {
   return derivePhase4ProviderApprovalRecordValidation({
-    record: createPhase4ProviderApprovalRecord({
-      catalogFingerprint: "phase4-catalog-current",
-      createdAt: "2026-06-18T10:00:00.000Z"
-    }),
+    record: readyApprovalRecord,
     expectedCatalogFingerprint: "phase4-catalog-current",
     refreshSafety: readyRefreshSafety,
     options: { evaluatedAt: "2026-06-18T10:05:00.000Z" }
+  });
+}
+
+function readyAuditValidation(
+  approvalValidation = readyApprovalValidation()
+): Phase4ProviderAuditRecordValidation {
+  const record = createPhase4ProviderAuditRecord({
+    approvalRecord: readyApprovalRecord,
+    auditEvidenceFingerprint: "phase4-provider-audit-current",
+    catalogFingerprint: "phase4-catalog-current",
+    createdAt: "2026-06-18T10:10:00.000Z"
+  });
+
+  return derivePhase4ProviderAuditRecordValidation({
+    record,
+    approvalRecord: readyApprovalRecord,
+    approvalValidation,
+    expectedAuditEvidenceFingerprint: "phase4-provider-audit-current",
+    expectedCatalogFingerprint: "phase4-catalog-current",
+    options: { evaluatedAt: "2026-06-18T10:15:00.000Z" }
   });
 }
 
@@ -228,8 +261,9 @@ describe("phase 4 provider blocker priority", () => {
   });
 
   it("moves blocker priority to audit after current approval evidence is attached", () => {
+    const approvalValidation = readyApprovalValidation();
     const snapshot = priority({
-      approvalValidation: readyApprovalValidation(),
+      approvalValidation,
       validation: validationFixture(),
       smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads)
     });
@@ -252,6 +286,39 @@ describe("phase 4 provider blocker priority", () => {
       expect.arrayContaining([
         expect.objectContaining({
           label: "Approval gate",
+          status: "preview"
+        })
+      ])
+    );
+  });
+
+  it("moves blocker priority to rollback after current audit evidence is attached", () => {
+    const approvalValidation = readyApprovalValidation();
+    const snapshot = priority({
+      approvalValidation,
+      auditValidation: readyAuditValidation(approvalValidation),
+      validation: validationFixture(),
+      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads)
+    });
+
+    expect(snapshot.state).toBe("preview");
+    expect(snapshot.topPriorityLabel).toBe("Rollback gate");
+    expect(snapshot.catalogSmokeCanAddressTopBlocker).toBe(false);
+    expect(snapshot.topPriorityAction).toContain("rollback owner");
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Rollback gate",
+          kind: "surface-depth",
+          status: "preview",
+          evidenceKey: "phase-04-surface-depth:rollback-gate"
+        })
+      ])
+    );
+    expect(snapshot.items).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Audit gate",
           status: "preview"
         })
       ])

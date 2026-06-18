@@ -152,7 +152,22 @@ function sourceRank(item: Phase4ProviderBlockerPriorityItem): number {
   if (sourceId.includes("personalization")) {
     return 5;
   }
-  return 6;
+  if (sourceId.includes("approval-gate")) {
+    return 6;
+  }
+  if (sourceId.includes("audit-gate")) {
+    return 7;
+  }
+  if (sourceId.includes("rollback-gate")) {
+    return 8;
+  }
+  if (sourceId.includes("permission-gate")) {
+    return 9;
+  }
+  if (sourceId.includes("execution-lock")) {
+    return 10;
+  }
+  return 11;
 }
 
 function severityForState(

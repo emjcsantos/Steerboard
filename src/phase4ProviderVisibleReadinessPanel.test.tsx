@@ -14,6 +14,10 @@ import {
   createPhase4ProviderApprovalRecord,
   derivePhase4ProviderApprovalRecordValidation
 } from "./phase4ProviderApprovalRecord";
+import {
+  createPhase4ProviderAuditRecord,
+  derivePhase4ProviderAuditRecordValidation
+} from "./phase4ProviderAuditRecord";
 import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
 import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
@@ -121,12 +125,34 @@ describe("phase 4 provider visible readiness panel", () => {
       refreshSafety: readyRefreshSafety,
       options: { evaluatedAt: "2026-06-18T10:05:00.000Z" }
     });
-    const surfaceDepth = buildPhase4ProviderSurfaceDepth(readiness, approvalValidation);
+    const auditRecord = createPhase4ProviderAuditRecord({
+      approvalRecord: record,
+      auditEvidenceFingerprint: "phase4-provider-audit-current",
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:10:00.000Z"
+    });
+    const auditValidation = derivePhase4ProviderAuditRecordValidation({
+      record: auditRecord,
+      approvalRecord: record,
+      approvalValidation,
+      expectedAuditEvidenceFingerprint: "phase4-provider-audit-current",
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      options: { evaluatedAt: "2026-06-18T10:15:00.000Z" }
+    });
+    const surfaceDepth = buildPhase4ProviderSurfaceDepth(
+      readiness,
+      approvalValidation,
+      auditValidation
+    );
     const html = renderToStaticMarkup(
       <Phase4ProviderSurfaceDepthPanel
         approvalValidation={approvalValidation}
+        auditRecord={auditRecord}
+        auditValidation={auditValidation}
         onClearApproval={() => undefined}
+        onClearAudit={() => undefined}
         onRecordApproval={() => undefined}
+        onRecordAudit={() => undefined}
         record={record}
         snapshot={surfaceDepth}
       />
@@ -134,11 +160,14 @@ describe("phase 4 provider visible readiness panel", () => {
 
     expect(html).toContain("Phase 4 Surface Depth");
     expect(html).toContain("Approval record");
+    expect(html).toContain("Audit record");
     expect(html).toContain("Record approval");
     expect(html).toContain("Clear approval");
+    expect(html).toContain("Record audit");
+    expect(html).toContain("Clear audit");
     expect(html).toContain("phase-04-surface-depth:approval-gate");
     expect(html).toContain("phase-04-surface-depth:audit-gate");
-    expect(html).toContain("Audit gate");
+    expect(html).toContain("Rollback gate");
     expect(html).toContain("Execution lock");
     expect(html).toContain("does not execute commands");
   });

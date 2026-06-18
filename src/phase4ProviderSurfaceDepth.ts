@@ -3,6 +3,7 @@ import type {
   ProviderIntegrationReadinessState
 } from "./providerIntegrationReadiness";
 import type { Phase4ProviderApprovalRecordValidation } from "./phase4ProviderApprovalRecord";
+import type { Phase4ProviderAuditRecordValidation } from "./phase4ProviderAuditRecord";
 
 export type Phase4ProviderSurfaceDepthState = ProviderIntegrationReadinessState;
 
@@ -64,8 +65,10 @@ function surfaceEvidenceKey(kind: Phase4ProviderSurfaceDepthItemKind): string {
   return `phase-04-surface-depth:${kind}`;
 }
 
-function phase4StateFromApproval(
-  state: Phase4ProviderApprovalRecordValidation["state"]
+function phase4StateFromRecordValidation(
+  state:
+    | Phase4ProviderApprovalRecordValidation["state"]
+    | Phase4ProviderAuditRecordValidation["state"]
 ): Phase4ProviderSurfaceDepthState {
   return state === "ready" ? "ready" : state === "blocked" ? "blocked" : "preview";
 }
@@ -277,7 +280,7 @@ function approvalGateItem(
   approvalValidation: Phase4ProviderApprovalRecordValidation | undefined
 ): Phase4ProviderSurfaceDepthItem {
   if (approvalValidation) {
-    const status = phase4StateFromApproval(approvalValidation.state);
+    const status = phase4StateFromRecordValidation(approvalValidation.state);
 
     return {
       id: `${SNAPSHOT_ID}:approval-gate`,
@@ -303,7 +306,25 @@ function approvalGateItem(
   };
 }
 
-function auditGateItem(): Phase4ProviderSurfaceDepthItem {
+function auditGateItem(
+  auditValidation: Phase4ProviderAuditRecordValidation | undefined
+): Phase4ProviderSurfaceDepthItem {
+  if (auditValidation) {
+    const status = phase4StateFromRecordValidation(auditValidation.state);
+
+    return {
+      id: `${SNAPSHOT_ID}:audit-gate`,
+      label: "Audit gate",
+      kind: "audit-gate",
+      status,
+      evidenceKey: surfaceEvidenceKey("audit-gate"),
+      detail:
+        `${auditValidation.detail} Expected audit ${auditValidation.expectedAuditEvidenceFingerprint ?? "missing"}, ` +
+        `record audit ${auditValidation.recordAuditEvidenceFingerprint ?? "missing"}.`,
+      nextAction: auditValidation.nextAction
+    };
+  }
+
   return {
     id: `${SNAPSHOT_ID}:audit-gate`,
     label: "Audit gate",
@@ -362,7 +383,8 @@ function buildAriaLabel(
 
 export function buildPhase4ProviderSurfaceDepth(
   readiness: ProviderIntegrationReadiness,
-  approvalValidation?: Phase4ProviderApprovalRecordValidation
+  approvalValidation?: Phase4ProviderApprovalRecordValidation,
+  auditValidation?: Phase4ProviderAuditRecordValidation
 ): Phase4ProviderSurfaceDepthSnapshot {
   const items = [
     surfaceCoverageItem(readiness),
@@ -370,7 +392,7 @@ export function buildPhase4ProviderSurfaceDepth(
     capabilityGapsItem(readiness),
     previewReviewItem(readiness),
     approvalGateItem(approvalValidation),
-    auditGateItem(),
+    auditGateItem(auditValidation),
     rollbackGateItem(),
     permissionGateItem(),
     executionLockItem()
