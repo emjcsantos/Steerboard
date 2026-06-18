@@ -345,6 +345,9 @@ describe("phase 3 clearance traceability", () => {
 
     expect(result.state).toBe("blocked");
     expect(result.canTrustTrace).toBe(false);
+    expect(result.linkedPmTaskCount).toBe(
+      REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS.length - 1
+    );
     expect(result.missingPmTaskIds).toEqual(["phase-03-child-control-ready"]);
     expect(result.items).toEqual(
       expect.arrayContaining([

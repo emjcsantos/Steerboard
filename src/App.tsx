@@ -2122,8 +2122,11 @@ export function App() {
     ]
   );
   const phase3ClearanceTraceabilityPrecondition = useMemo(
-    () => buildPhase3ClearanceTraceabilityPrecondition(),
-    []
+    () =>
+      buildPhase3ClearanceTraceabilityPrecondition({
+        pmTasks: projectManagementTasks
+      }),
+    [projectManagementTasks]
   );
   const phase3HandoffGate = useMemo(
     () =>
@@ -2143,6 +2146,7 @@ export function App() {
   const phase3ClearanceTraceability = useMemo(
     () =>
       buildPhase3ClearanceTraceability({
+        pmTasks: projectManagementTasks,
         clearancePackage: phase3ClearancePackage,
         commandPlan: phase3ClearanceCommandPlan,
         commandValidation: phase3CommandValidationRecordValidation,
@@ -2154,7 +2158,8 @@ export function App() {
       phase3ClearanceCommandPlan,
       phase3CommandValidationRecordValidation,
       phase3ClearancePackage,
-      phase3HandoffGate
+      phase3HandoffGate,
+      projectManagementTasks
     ]
   );
   const recordPhase3OwnerHandoff = useCallback(() => {

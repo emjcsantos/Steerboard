@@ -520,8 +520,9 @@ export function buildPhase3ClearanceTraceability(
   const missingGoalPmTaskIds = REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS.filter(
     (taskId) => !goalPmTaskIds.has(taskId)
   );
-  const linkedPmTaskCount =
-    REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS.length - missingGoalPmTaskIds.length;
+  const linkedPmTaskCount = REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS.filter(
+    (taskId) => pmTaskIds.has(taskId) && goalPmTaskIds.has(taskId)
+  ).length;
   const items = [
     goalItem(goal, currentActiveGoalIds),
     pmCoverageItem(missingPmTaskIds, missingGoalPmTaskIds),
