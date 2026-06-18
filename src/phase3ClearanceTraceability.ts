@@ -11,6 +11,7 @@ import {
 } from "./projectManagementPhasePlan";
 import type { ProjectManagementTask } from "./projectManagementHierarchy";
 import {
+  findCurrentActiveRemainingGoals,
   isCurrentActiveRemainingGoal,
   remainingGoalPlan,
   type RemainingGoalPlanItem
@@ -159,7 +160,10 @@ function publicText(value: string | undefined, fallback: string): string {
   return sanitized.length > 0 ? sanitized : fallback;
 }
 
-function goalItem(goal: RemainingGoalPlanItem | undefined): Phase3ClearanceTraceabilityItem {
+function goalItem(
+  goal: RemainingGoalPlanItem | undefined,
+  currentActiveGoalIds: readonly string[]
+): Phase3ClearanceTraceabilityItem {
   if (!goal) {
     return {
       id: `${SNAPSHOT_ID}:active-goal`,
@@ -173,6 +177,7 @@ function goalItem(goal: RemainingGoalPlanItem | undefined): Phase3ClearanceTrace
 
   const isLinked =
     isCurrentActiveRemainingGoal(goal) &&
+    currentActiveGoalIds.length === 1 &&
     goal.priority === "critical" &&
     goal.phaseIds.includes(PHASE3_CLEARANCE_PHASE_ID);
   const status: Phase3ClearanceTraceabilityState = isLinked
@@ -186,10 +191,13 @@ function goalItem(goal: RemainingGoalPlanItem | undefined): Phase3ClearanceTrace
     label: "Active Phase 3 goal",
     kind: "active-goal",
     status,
-    detail: `${goal.id} is ${goal.status}, ${goal.priority}, current ${goal.current === true ? "yes" : "no"}, and ${goal.completionPercent}% complete.`,
-    nextAction: isLinked
-      ? "Keep Phase 3 as the current active critical clearance goal until handoff is recorded."
-      : "Restore Phase 3 to the current active critical goal linked to phase-03-controls-slash."
+    detail: `${goal.id} is ${goal.status}, ${goal.priority}, current ${goal.current === true ? "yes" : "no"}, ${goal.completionPercent}% complete, with ${currentActiveGoalIds.length} current active goal${currentActiveGoalIds.length === 1 ? "" : "s"}.`,
+    nextAction:
+      currentActiveGoalIds.length > 1
+        ? `Keep exactly one current active remaining goal before Phase 3 traceability can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
+        : isLinked
+          ? "Keep Phase 3 as the current active critical clearance goal until handoff is recorded."
+          : "Restore Phase 3 to the current active critical goal linked to phase-03-controls-slash."
   };
 }
 
@@ -217,12 +225,12 @@ function pmCoverageItem(
     status: missingGoalPmTaskIds.length > 0 ? "review" : "ready",
     detail:
       missingCount === 0
-        ? "All required Phase 3 Epic, Parent, and Child rows are linked to the active goal."
-        : `${missingGoalPmTaskIds.length} required Phase 3 PM rows are not linked from the active goal.`,
+        ? "All required Phase 3 Epic, Parent, and Child rows are linked to the current active goal."
+        : `${missingGoalPmTaskIds.length} required Phase 3 PM rows are not linked from the current active goal.`,
     nextAction:
       missingGoalPmTaskIds.length > 0
-        ? `Link missing Phase 3 PM rows from the active goal: ${missingGoalPmTaskIds.join(", ")}.`
-        : "Keep all required Phase 3 PM rows linked to the active goal."
+        ? `Link missing Phase 3 PM rows from the current active goal: ${missingGoalPmTaskIds.join(", ")}.`
+        : "Keep all required Phase 3 PM rows linked to the current active goal."
   };
 }
 
@@ -408,7 +416,11 @@ export function buildPhase3ClearanceTraceability(
   const goals = input.goals ?? remainingGoalPlan;
   const pmTasks = input.pmTasks ?? createDefaultProjectManagementPhasePlan();
   const goal = goals.find((item) => item.id === PHASE3_CLEARANCE_GOAL_ID);
+  const currentActiveGoalIds = findCurrentActiveRemainingGoals(goals).map(
+    (item) => item.id
+  );
   const isCurrentActiveGoal = isCurrentActiveRemainingGoal(goal);
+  const hasExactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
   const pmTaskIds = new Set(pmTasks.map((task) => task.id));
   const goalPmTaskIds = new Set(goal?.pmTaskIds ?? []);
   const missingPmTaskIds = REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS.filter(
@@ -420,7 +432,7 @@ export function buildPhase3ClearanceTraceability(
   const linkedPmTaskCount =
     REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS.length - missingGoalPmTaskIds.length;
   const items = [
-    goalItem(goal),
+    goalItem(goal, currentActiveGoalIds),
     pmCoverageItem(missingPmTaskIds, missingGoalPmTaskIds),
     clearanceEvidenceItem(
       input.clearancePackage,
@@ -448,6 +460,7 @@ export function buildPhase3ClearanceTraceability(
     canTrustTrace:
       state === "ready" &&
       isCurrentActiveGoal &&
+      hasExactlyOneCurrentActiveGoal &&
       missingPmTaskIds.length === 0 &&
       missingGoalPmTaskIds.length === 0,
     nextAction: firstNextAction(items),

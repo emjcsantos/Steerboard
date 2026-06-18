@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import {
   buildRemainingGoalPriorityTraces,
+  findCurrentActiveRemainingGoals,
   findRemainingGoalPlanIssues,
   isCurrentActiveRemainingGoal,
   remainingGoalPlan,
@@ -29,7 +31,7 @@ describe("remaining goal plan", () => {
       averageCompletionPercent: 63,
       currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
-        "Use the Phase 3 command plan, freshness-reviewed CLI validation trace, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, live freshness-aware smoke proof rows, and compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary.",
+        "Use the Phase 3 command plan, freshness-reviewed CLI validation trace, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, live freshness-aware smoke proof rows, and compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -153,6 +155,21 @@ describe("remaining goal plan", () => {
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-handoff-gate");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-slash-ready");
     expect(phase3Goal?.nextAction).toContain("clearance-snapshot");
+    expect(phase3Goal?.nextAction).toContain("current active goal");
+  });
+
+  it("keeps the Phase 3 PM traceability child aligned to the current active goal boundary", () => {
+    const traceabilityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-03-child-traceability"
+    );
+
+    expect(traceabilityChild).toMatchObject({
+      title: "Clearance Traceability",
+      sourceDocument: "Phase 3 clearance traceability"
+    });
+    expect(traceabilityChild?.description).toContain("current active Phase 3 goal");
+    expect(traceabilityChild?.description).toContain("required PM rows");
+    expect(traceabilityChild?.description).toContain("handoff-review details");
   });
 
   it("separates the blocked owner hold from the active implementation target", () => {
@@ -177,6 +194,7 @@ describe("remaining goal plan", () => {
     const phase3Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-3-proof-clearance");
     const phase4Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-4-provider-surfaces");
 
+    expect(findCurrentActiveRemainingGoals()).toEqual([phase3Goal]);
     expect(isCurrentActiveRemainingGoal(phase3Goal)).toBe(true);
     expect(isCurrentActiveRemainingGoal(phase4Goal)).toBe(false);
     expect(isCurrentActiveRemainingGoal({ ...phase3Goal!, current: false })).toBe(false);
@@ -184,6 +202,22 @@ describe("remaining goal plan", () => {
     expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, status: "active" })).toBe(false);
     expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, status: "active", current: true })).toBe(true);
     expect(isCurrentActiveRemainingGoal(undefined)).toBe(false);
+  });
+
+  it("reports duplicate current active goals before summaries and traceability can disagree", () => {
+    const duplicateCurrentGoals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-4-provider-surfaces"
+        ? { ...goal, status: "active" as const, current: true }
+        : goal
+    );
+
+    expect(findCurrentActiveRemainingGoals(duplicateCurrentGoals).map((goal) => goal.id)).toEqual([
+      "goal-phase-3-proof-clearance",
+      "goal-phase-4-provider-surfaces"
+    ]);
+    expect(findRemainingGoalPlanIssues(duplicateCurrentGoals)).toContain(
+      "Remaining goals must have exactly one current active goal; found 2: goal-phase-3-proof-clearance, goal-phase-4-provider-surfaces."
+    );
   });
 
   it("keeps the Phase 9 runner approval target linked to traceability, approval depth, and blocker priority", () => {

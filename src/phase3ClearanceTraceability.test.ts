@@ -201,6 +201,40 @@ describe("phase 3 clearance traceability", () => {
     );
   });
 
+  it("keeps trace untrusted when another goal is also current active", () => {
+    const phase4Goal = remainingGoalPlan.find(
+      (goal) => goal.id === "goal-phase-4-provider-surfaces"
+    );
+
+    if (!phase4Goal) {
+      throw new Error("Missing Phase 4 goal fixture.");
+    }
+
+    const result = snapshot({
+      goals: [
+        phase3Goal(),
+        {
+          ...phase4Goal,
+          status: "active",
+          current: true
+        }
+      ]
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustTrace).toBe(false);
+    expect(result.nextAction).toContain("exactly one current active remaining goal");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "active-goal",
+          status: "review",
+          detail: expect.stringContaining("2 current active goals")
+        })
+      ])
+    );
+  });
+
   it("blocks when the required Phase 3 goal is missing or no longer active critical", () => {
     const missing = snapshot({ goals: [] });
     const wrongStatus = snapshot({

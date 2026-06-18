@@ -242,7 +242,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-traceability",
             title: "Clearance Traceability",
-            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, CLI validation freshness, blocker priority, and exact handoff-review details for current fingerprint, clearance snapshot, and age matching in one owner-review trace.",
+            description: "Link the current active Phase 3 goal, required PM rows, clearance evidence, command plan, CLI validation freshness, blocker priority, and exact handoff-review details for current fingerprint, clearance snapshot, and age matching in one owner-review trace.",
             completionPercent: 90,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance traceability"

@@ -70,6 +70,12 @@ export function isCurrentActiveRemainingGoal(
   return goal?.current === true && goal.status === "active";
 }
 
+export function findCurrentActiveRemainingGoals(
+  goals: readonly RemainingGoalPlanItem[] = remainingGoalPlan
+): Array<RemainingGoalPlanItem & { current: true; status: "active" }> {
+  return goals.filter(isCurrentActiveRemainingGoal);
+}
+
 export const remainingGoalPlan: RemainingGoalPlanItem[] = [
   {
     id: "goal-phase-1-2-6-publish",
@@ -131,7 +137,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-03-child-control-ready"
     ],
     nextAction:
-      "Use the Phase 3 command plan, freshness-reviewed CLI validation trace, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, live freshness-aware smoke proof rows, and compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary."
+      "Use the Phase 3 command plan, freshness-reviewed CLI validation trace, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, live freshness-aware smoke proof rows, and compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary."
   },
   {
     id: "goal-phase-4-provider-surfaces",
@@ -411,13 +417,16 @@ export function summarizeRemainingGoalPlan(
     }
   }
 
+  const currentActiveGoals = findCurrentActiveRemainingGoals(goals);
   const currentGoal =
-    goals.find((goal) => goal.current && goal.status !== "blocked") ??
-    goals.find((goal) => goal.status === "active") ??
-    goals.find((goal) => goal.current) ??
-    goals.find((goal) => goal.status === "blocked") ??
-    goals.find((goal) => goal.status === "next") ??
-    goals[0];
+    currentActiveGoals.length === 1
+      ? currentActiveGoals[0]
+      : (goals.find((goal) => goal.current && goal.status !== "blocked") ??
+        goals.find((goal) => goal.status === "active") ??
+        goals.find((goal) => goal.current) ??
+        goals.find((goal) => goal.status === "blocked") ??
+        goals.find((goal) => goal.status === "next") ??
+        goals[0]);
   const ownerHoldGoal =
     goals.find((goal) => goal.status === "blocked" && goal.priority === "critical") ??
     goals.find((goal) => goal.status === "blocked");
@@ -452,6 +461,15 @@ export function findRemainingGoalPlanIssues(
   const issues: string[] = [];
   const goalIds = new Set<string>();
   const coveredPhaseIds = new Set<string>();
+  const currentActiveGoalIds = findCurrentActiveRemainingGoals(goals).map(
+    (goal) => goal.id
+  );
+
+  if (currentActiveGoalIds.length !== 1) {
+    issues.push(
+      `Remaining goals must have exactly one current active goal; found ${currentActiveGoalIds.length}: ${currentActiveGoalIds.join(", ") || "none"}.`
+    );
+  }
 
   for (const goal of goals) {
     if (goalIds.has(goal.id)) {
