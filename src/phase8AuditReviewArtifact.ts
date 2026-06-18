@@ -96,6 +96,21 @@ function snapshotMutationLocked(snapshot: Phase8PermissionAuditDepthSnapshot): b
   );
 }
 
+function hasCompleteReviewedBlockerProof(record: Phase8AuditReviewRecord): boolean {
+  const values = [
+    record.topBlockerLabel,
+    record.topBlockerSourceId,
+    record.topBlockerKind,
+    record.topBlockerStatus,
+    record.topBlockerAction
+  ];
+  const presentCount = values.filter(
+    (value) => typeof value === "string" && value.trim().length > 0
+  ).length;
+
+  return presentCount === 0 || presentCount === values.length;
+}
+
 function counts(
   artifact: Phase8AuditReviewArtifact | undefined
 ): Pick<
@@ -265,6 +280,15 @@ export function verifyPhase8AuditReviewArtifact(
       artifact,
       "Phase 8 audit review artifact includes an owner review record that does not preserve the mutation lock.",
       "Clear and recreate the owner audit review record while mutation-capable paths remain locked."
+    );
+  }
+
+  if (artifact.reviewRecord && !hasCompleteReviewedBlockerProof(artifact.reviewRecord)) {
+    return result(
+      "review",
+      artifact,
+      "Phase 8 audit review artifact has incomplete reviewed top-blocker proof.",
+      "Re-record owner audit review so label, source, kind, status, and action for the reviewed blocker stay attached together."
     );
   }
 

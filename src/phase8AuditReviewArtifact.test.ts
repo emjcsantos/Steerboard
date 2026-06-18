@@ -182,6 +182,27 @@ describe("phase 8 audit review artifact", () => {
     });
   });
 
+  it("reviews artifacts with partial owner reviewed-blocker proof", () => {
+    const exported = artifact({
+      reviewRecord: {
+        ...createPhase8AuditReviewRecord(
+          artifact().snapshot,
+          "2026-06-18T10:00:00.000Z"
+        ),
+        topBlockerSourceId: "phase8-live-action-terminal:permission"
+      }
+    });
+
+    expect(
+      verifyPhase8AuditReviewArtifact(exported, {
+        verifiedAt: "2026-06-18T10:05:00.000Z"
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("incomplete reviewed top-blocker proof")
+    });
+  });
+
   it("reviews stale artifacts and artifacts with incomplete evidence-key traceability", () => {
     const exported = artifact();
 
