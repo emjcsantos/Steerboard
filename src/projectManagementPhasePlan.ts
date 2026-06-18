@@ -757,7 +757,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-09-child-blocker-priority",
             title: "Runner Blocker Priority",
-            description: "Rank exact Phase 9 blockers across the Phase 8 gate, owner permission, approval window, request preview, validation output, audit record, local runner-review record, current runner evidence fingerprint, rollback evidence, request-gate enforcement, traceability, and mutation locks before the desktop runner can advance.",
+            description: "Rank exact Phase 9 blockers across the Phase 8 gate, owner permission, approval window, request preview, validation output, audit record, local runner-review record, current runner evidence fingerprint, rollback evidence, request-gate enforcement, traceability, and mutation locks while separating owner-action blockers from runner-review-addressable blockers before the desktop runner can advance.",
             completionPercent: 54,
             complexity: "medium",
             sourceDocument: "Phase 9 runner blocker priority"

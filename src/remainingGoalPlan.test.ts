@@ -286,6 +286,9 @@ describe("remaining goal plan", () => {
     const traceabilityChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-09-child-traceability"
     );
+    const blockerPriorityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-09-child-blocker-priority"
+    );
 
     expect(phase9Parent?.description).toContain(
       "trusted Phase 9 traceability/current active goal gates"
@@ -294,6 +297,9 @@ describe("remaining goal plan", () => {
       "trusted Phase 9 traceability/current active goal proof"
     );
     expect(traceabilityChild?.description).toContain("current active goal trust");
+    expect(blockerPriorityChild?.description).toContain(
+      "owner-action blockers from runner-review-addressable blockers"
+    );
   });
 
   it("keeps the Phase 5 migration hardening target linked to traceability and review depth", () => {
