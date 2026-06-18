@@ -104,34 +104,40 @@ function sourceRank(sourceId: string): number {
   if (normalized.includes("phase3-trace")) {
     return 0;
   }
-  if (normalized.includes("owner-goal") || normalized.includes("phase-readiness")) {
+  if (normalized.includes("packaging") || normalized.includes("release-decision")) {
     return 1;
   }
-  if (normalized.includes("packaging") || normalized.includes("release-decision")) {
+  if (normalized.includes("phase3-clearance") || normalized.includes("phase3-smoke-proof")) {
     return 2;
   }
-  if (normalized.includes("owner-command") || normalized.includes("checklist")) {
+  if (normalized.includes("phase-priority-proof")) {
     return 3;
   }
-  if (normalized.includes("proof")) {
+  if (normalized.includes("owner-goal") || normalized.includes("phase-readiness")) {
     return 4;
   }
-  if (normalized.includes("fresh-checkout")) {
+  if (normalized.includes("owner-command") || normalized.includes("checklist")) {
     return 5;
   }
-  if (normalized.includes("clean-checkout")) {
+  if (normalized.includes("proof")) {
     return 6;
   }
-  if (normalized.includes("build-test")) {
+  if (normalized.includes("fresh-checkout")) {
     return 7;
   }
-  if (normalized.includes("docs-known-limits")) {
+  if (normalized.includes("clean-checkout")) {
     return 8;
   }
-  if (normalized.includes("pm-coverage") || normalized.includes("traceability")) {
+  if (normalized.includes("build-test")) {
     return 9;
   }
-  return 10;
+  if (normalized.includes("docs-known-limits")) {
+    return 10;
+  }
+  if (normalized.includes("pm-coverage") || normalized.includes("traceability")) {
+    return 11;
+  }
+  return 12;
 }
 
 function severityForState(

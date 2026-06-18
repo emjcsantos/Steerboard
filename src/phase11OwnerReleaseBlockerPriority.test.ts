@@ -317,6 +317,106 @@ describe("phase 11 owner release blocker priority", () => {
     );
   });
 
+  it("ranks blocked Phase 3 clearance owner rows above stale proof and evidence rows", () => {
+    const result = priority({
+      ownerCommandCenter: ownerSnapshot({
+        state: "blocked",
+        statusLabel: "Blocked",
+        canRelease: false,
+        blockerCount: 1,
+        items: [
+          {
+            id: "phase-11-owner-command-center:phase3-clearance",
+            label: "Phase 3 clearance",
+            kind: "phase3-clearance",
+            status: "blocked",
+            detail:
+              "Top blocker: Slash execution (phase-03-child-slash-ready / phase3.slash-execution) is blocked.",
+            nextAction: "Refresh slash execution evidence from the current Arena panel transcript."
+          }
+        ]
+      }),
+      proofFreshnessDepth: proofSnapshot({
+        state: "blocked",
+        statusLabel: "Blocked",
+        canTrustOwnerProof: false,
+        blockedCount: 1,
+        openProofCount: 1,
+        items: [
+          {
+            id: "phase-11-proof-freshness-depth:command-validation",
+            label: "CLI smoke validation record",
+            kind: "command-validation",
+            status: "blocked",
+            detail: "CLI validation is blocked.",
+            nextAction: "Record a fresh CLI validation."
+          }
+        ]
+      }),
+      evidenceRecords: evidenceSnapshot({
+        records: {
+          ...evidenceSnapshot().records,
+          "build-test": {
+            ...evidenceSnapshot().records["build-test"],
+            state: "blocked",
+            freshness: "fresh",
+            detail: "Build and test evidence is blocked.",
+            nextAction: "Record build and test evidence."
+          }
+        },
+        readyCount: 3,
+        blockedCount: 1
+      })
+    });
+    const priorityByLabel = new Map(result.items.map((item) => [item.label, item.priority]));
+
+    expect(result.state).toBe("blocked");
+    expect(result.topPriorityLabel).toBe("Phase 3 clearance");
+    expect(result.topPriorityAction).toContain("Refresh slash execution evidence");
+    expect(priorityByLabel.get("Phase 3 clearance")).toBeLessThan(
+      priorityByLabel.get("CLI smoke validation record") ?? Number.POSITIVE_INFINITY
+    );
+    expect(priorityByLabel.get("Phase 3 clearance")).toBeLessThan(
+      priorityByLabel.get("Build and test") ?? Number.POSITIVE_INFINITY
+    );
+  });
+
+  it("ranks blocked Phase 3 clearance above generic phase readiness", () => {
+    const result = priority({
+      ownerCommandCenter: ownerSnapshot({
+        state: "blocked",
+        statusLabel: "Blocked",
+        canRelease: false,
+        blockerCount: 2,
+        items: [
+          {
+            id: "phase-11-owner-command-center:phase-readiness",
+            label: "Phase readiness",
+            kind: "phase-readiness",
+            status: "blocked",
+            detail: "Remaining goal is blocked.",
+            nextAction: "Clear the remaining goal."
+          },
+          {
+            id: "phase-11-owner-command-center:phase3-clearance",
+            label: "Phase 3 clearance",
+            kind: "phase3-clearance",
+            status: "blocked",
+            detail: "Phase 3 clearance is blocked.",
+            nextAction: "Refresh Phase 3 clearance proof."
+          }
+        ]
+      })
+    });
+
+    expect(result.topPriorityLabel).toBe("Phase 3 clearance");
+    expect(result.topPriorityAction).toContain("Refresh Phase 3 clearance proof");
+    expect(result.items[0]).toMatchObject({
+      label: "Phase 3 clearance",
+      status: "blocked"
+    });
+  });
+
   it("ranks blocked owner and release rows before waiting evidence rows", () => {
     const result = priority({
       ownerCommandCenter: ownerSnapshot({
@@ -377,6 +477,22 @@ describe("phase 11 owner release blocker priority", () => {
 
   it("ranks open packaging holds above proof and evidence blockers", () => {
     const result = priority({
+      ownerCommandCenter: ownerSnapshot({
+        state: "blocked",
+        statusLabel: "Blocked",
+        canRelease: false,
+        blockerCount: 1,
+        items: [
+          {
+            id: "phase-11-owner-command-center:phase3-clearance",
+            label: "Phase 3 clearance",
+            kind: "phase3-clearance",
+            status: "blocked",
+            detail: "Phase 3 clearance is blocked.",
+            nextAction: "Refresh Phase 3 clearance proof."
+          }
+        ]
+      }),
       proofFreshnessDepth: proofSnapshot({
         state: "blocked",
         canTrustOwnerProof: false,
@@ -442,6 +558,9 @@ describe("phase 11 owner release blocker priority", () => {
     expect(result.topPriorityLabel).toBe("Packaging lock");
     expect(priorityByLabel.get("Packaging lock")).toBeLessThan(
       priorityByLabel.get("CLI smoke validation record") ?? Number.POSITIVE_INFINITY
+    );
+    expect(priorityByLabel.get("Packaging lock")).toBeLessThan(
+      priorityByLabel.get("Phase 3 clearance") ?? Number.POSITIVE_INFINITY
     );
     expect(priorityByLabel.get("Packaging lock")).toBeLessThan(
       priorityByLabel.get("Build and test") ?? Number.POSITIVE_INFINITY
