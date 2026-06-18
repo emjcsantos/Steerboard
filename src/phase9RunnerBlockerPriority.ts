@@ -207,7 +207,7 @@ function phase8GateItems(
       status: phase8Trace.status,
       severity: severityForState(phase8Trace.status),
       priority: 0,
-      canUseRunnerReview: true,
+      canUseRunnerReview: false,
       detail:
         `${phase8Trace.label} is ${STATUS_LABELS[phase8Trace.status]}; ` +
         `${phase8Trace.detail} Phase 8 open exceptions: ${phase8.openExceptionCount}.`,

@@ -249,12 +249,13 @@ describe("phase 9 runner blocker priority", () => {
     expect(summary.ariaLabel).toContain(`source ${summary.topPrioritySourceId}`);
     expect(summary.ariaLabel).toContain("kind phase8-gate");
     expect(summary.ariaLabel).toContain("status blocked");
-    expect(summary.runnerReviewCanAddressTopBlocker).toBe(true);
+    expect(summary.runnerReviewCanAddressTopBlocker).toBe(false);
     expect(summary.items[0]).toMatchObject({
       kind: "phase8-gate",
       status: "blocked",
       severity: "critical",
-      priority: 1
+      priority: 1,
+      canUseRunnerReview: false
     });
   });
 
