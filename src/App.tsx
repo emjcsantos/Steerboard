@@ -12737,6 +12737,9 @@ export function OwnerTestingReadinessPanel({
                 Storage {phase3SmokeProofReadiness.storageAttestedCount}/
                 {phase3SmokeProofReadiness.items.length} attested
               </small>
+              <small title="Transient passed smoke runs stay in review until their desktop rows are persisted with storage proof.">
+                Transient {phase3SmokeProofReadiness.storageReviewCount} review
+              </small>
               <small>
                 <button
                   onClick={() => phase3SmokeProofBundleImportInputRef.current?.click()}

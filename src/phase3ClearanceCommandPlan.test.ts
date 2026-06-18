@@ -297,6 +297,71 @@ describe("phase 3 clearance command plan", () => {
     expect(plan.nextAction).toContain("npm.cmd run smoke:phase3");
   });
 
+  it("keeps transient smoke passes open until storage-attested proof rows exist", () => {
+    const plan = buildPhase3ClearanceCommandPlan({
+      clearancePackage: clearancePackage({
+        state: "review",
+        statusLabel: "Review",
+        readiness: 65,
+        blockers: [
+          {
+            id: "phase3-exit-gate:live-control-smoke",
+            label: "Live control smoke",
+            state: "review",
+            detail:
+              "Live-control desktop smoke proof must be loaded from persisted/imported desktop proof storage before Phase 3 handoff.",
+            nextAction: "Import storage-attested live-control desktop proof.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.live-control-smoke"
+          },
+          {
+            id: "phase3-exit-gate:active-turn-interrupt-smoke",
+            label: "Active-turn interrupt smoke",
+            state: "review",
+            detail:
+              "Active-turn interrupt desktop smoke proof must be loaded from persisted/imported desktop proof storage before Phase 3 handoff.",
+            nextAction: "Import storage-attested interrupt desktop proof.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.active-turn-interrupt-smoke"
+          },
+          {
+            id: "phase3-exit-gate:active-turn-steer-smoke",
+            label: "Active-turn steer smoke",
+            state: "review",
+            detail:
+              "Active-turn steer desktop smoke proof must be loaded from persisted/imported desktop proof storage before Phase 3 handoff.",
+            nextAction: "Import storage-attested steer desktop proof.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.active-turn-steer-smoke"
+          }
+        ]
+      }),
+      actions: smokeActions
+    });
+
+    expect(plan.canRunCommand).toBe(true);
+    expect(plan.readySmokeCount).toBe(0);
+    expect(plan.openSmokeCount).toBe(3);
+    expect(plan.items.filter((item) => item.kind.endsWith("-smoke"))).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Live-control smoke proof",
+          state: "review",
+          detail: expect.stringContaining("storage-attested")
+        }),
+        expect.objectContaining({
+          label: "Active-turn interrupt smoke proof",
+          state: "review",
+          detail: expect.stringContaining("persisted/imported desktop proof storage")
+        }),
+        expect.objectContaining({
+          label: "Active-turn steer smoke proof",
+          state: "review"
+        })
+      ])
+    );
+  });
+
   it("keeps command-plan blocker detail public-safe", () => {
     const plan = buildPhase3ClearanceCommandPlan({
       clearancePackage: clearancePackage({

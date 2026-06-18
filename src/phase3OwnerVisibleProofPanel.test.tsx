@@ -688,6 +688,8 @@ describe("phase 3 owner-visible proof panel", () => {
 
     expect(html).toContain("Desktop smoke bundle");
     expect(html).toContain("Storage 1/");
+    expect(html).toContain("Transient 2 review");
+    expect(html).toContain("Transient passed smoke runs stay in review");
     expect(html).toContain("Live-control desktop smoke proof");
     expect(html).toContain("stale; rerun the desktop smoke proof");
     expect(html).toContain("Active-turn interrupt desktop smoke proof");
@@ -697,6 +699,31 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Advance held");
     expect(html).toContain("Phase 3 clearance must be exit-ready before recording handoff");
     expect(html).toContain("Record handoff");
+  });
+
+  it("keeps transient passed desktop smoke rows in review until storage proof is attached", () => {
+    const props = buildPhase3PropsWithSmokeProofs({
+      evaluatedAt: "2026-06-18T07:58:00.000Z",
+      persistedDesktopProofs: {
+        liveControlSmoke: false,
+        activeTurnInterruptSmoke: false,
+        activeTurnSteerSmoke: false
+      },
+      liveControlSmoke,
+      activeTurnInterruptSmoke,
+      activeTurnSteerSmoke
+    });
+    const html = renderOwnerTestingReadinessPanel(props);
+
+    expect(html).toContain("Desktop smoke bundle");
+    expect(html).toContain("Storage 0/3 attested");
+    expect(html).toContain("Transient 3 review");
+    expect(html).toContain("storage review");
+    expect(html).toContain("must be loaded from persisted/imported desktop proof storage");
+    expect(html).toContain("Phase 3 blocker priority");
+    expect(html).toContain("Advance held");
+    expect(html).not.toContain("Storage 3/3 attested");
+    expect(html).not.toContain("Smoke verified");
   });
 
   it("keeps future-dated desktop smoke proof visibly in review", () => {

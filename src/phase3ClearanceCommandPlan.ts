@@ -203,7 +203,7 @@ function buildItems(
         kind: row.kind,
         state,
         detail: blockerDetail(
-          `${PHASE3_SMOKE_COMMAND} covers this ${row.label.toLowerCase()} row.`,
+          `${PHASE3_SMOKE_COMMAND} must produce or import a storage-attested ${row.label.toLowerCase()} row.`,
           blocker?.detail
         ),
         nextAction:
