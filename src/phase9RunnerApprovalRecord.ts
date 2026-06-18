@@ -13,6 +13,12 @@ export interface Phase9RunnerApprovalRecord {
   readonly auditRecordCount: number;
   readonly phase8ReviewRecordId: string;
   readonly phase8ReviewState: Phase9RunnerApprovalState;
+  readonly phase8ReviewFingerprint?: string;
+  readonly phase8ReviewedBlockerLabel?: string;
+  readonly phase8ReviewedBlockerSourceId?: string;
+  readonly phase8ReviewedBlockerKind?: string;
+  readonly phase8ReviewedBlockerStatus?: string;
+  readonly phase8ReviewedBlockerAction?: string;
   readonly canRequestDesktopProbe: boolean;
   readonly mutationLocked: boolean;
   readonly runnerEvidenceFingerprint?: string;
@@ -213,6 +219,24 @@ export function parseStoredPhase9RunnerApprovalRecord(
       auditRecordCount,
       phase8ReviewRecordId: parsed.phase8ReviewRecordId.trim(),
       phase8ReviewState,
+      phase8ReviewFingerprint: nonEmptyString(parsed.phase8ReviewFingerprint)
+        ? publicText(parsed.phase8ReviewFingerprint, "")
+        : undefined,
+      phase8ReviewedBlockerLabel: nonEmptyString(parsed.phase8ReviewedBlockerLabel)
+        ? publicText(parsed.phase8ReviewedBlockerLabel, "")
+        : undefined,
+      phase8ReviewedBlockerSourceId: nonEmptyString(parsed.phase8ReviewedBlockerSourceId)
+        ? publicText(parsed.phase8ReviewedBlockerSourceId, "")
+        : undefined,
+      phase8ReviewedBlockerKind: nonEmptyString(parsed.phase8ReviewedBlockerKind)
+        ? publicText(parsed.phase8ReviewedBlockerKind, "")
+        : undefined,
+      phase8ReviewedBlockerStatus: nonEmptyString(parsed.phase8ReviewedBlockerStatus)
+        ? publicText(parsed.phase8ReviewedBlockerStatus, "")
+        : undefined,
+      phase8ReviewedBlockerAction: nonEmptyString(parsed.phase8ReviewedBlockerAction)
+        ? publicText(parsed.phase8ReviewedBlockerAction, "")
+        : undefined,
       canRequestDesktopProbe: parsed.canRequestDesktopProbe,
       mutationLocked: parsed.mutationLocked,
       runnerEvidenceFingerprint: publicText(
@@ -269,6 +293,12 @@ export function createPhase9RunnerApprovalRecord(
     auditRecordCount: snapshot.auditRecordCount,
     phase8ReviewRecordId: phase8ReviewRecord?.id ?? "missing-phase8-review-record",
     phase8ReviewState,
+    phase8ReviewFingerprint: phase8ReviewRecord?.auditEvidenceFingerprint,
+    phase8ReviewedBlockerLabel: phase8ReviewRecord?.topBlockerLabel,
+    phase8ReviewedBlockerSourceId: phase8ReviewRecord?.topBlockerSourceId,
+    phase8ReviewedBlockerKind: phase8ReviewRecord?.topBlockerKind,
+    phase8ReviewedBlockerStatus: phase8ReviewRecord?.topBlockerStatus,
+    phase8ReviewedBlockerAction: phase8ReviewRecord?.topBlockerAction,
     canRequestDesktopProbe,
     mutationLocked: true,
     runnerEvidenceFingerprint: buildPhase9RunnerEvidenceFingerprint(snapshot),
@@ -287,6 +317,24 @@ export function savePhase9RunnerApprovalRecord(
   writeStorage({
     ...record,
     runnerEvidenceFingerprint: publicText(record.runnerEvidenceFingerprint, ""),
+    phase8ReviewFingerprint: record.phase8ReviewFingerprint
+      ? publicText(record.phase8ReviewFingerprint, "")
+      : undefined,
+    phase8ReviewedBlockerLabel: record.phase8ReviewedBlockerLabel
+      ? publicText(record.phase8ReviewedBlockerLabel, "")
+      : undefined,
+    phase8ReviewedBlockerSourceId: record.phase8ReviewedBlockerSourceId
+      ? publicText(record.phase8ReviewedBlockerSourceId, "")
+      : undefined,
+    phase8ReviewedBlockerKind: record.phase8ReviewedBlockerKind
+      ? publicText(record.phase8ReviewedBlockerKind, "")
+      : undefined,
+    phase8ReviewedBlockerStatus: record.phase8ReviewedBlockerStatus
+      ? publicText(record.phase8ReviewedBlockerStatus, "")
+      : undefined,
+    phase8ReviewedBlockerAction: record.phase8ReviewedBlockerAction
+      ? publicText(record.phase8ReviewedBlockerAction, "")
+      : undefined,
     rollbackEvidence: publicText(
       record.rollbackEvidence,
       "Rollback evidence remains required before runner expansion can unlock."

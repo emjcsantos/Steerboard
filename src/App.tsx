@@ -14740,6 +14740,14 @@ export function Phase9RunnerApprovalPanel({
                 ? `${formatTimestamp(reviewRecord.createdAt)}; ${reviewRecord.auditRecordCount} audit records`
                 : "Fixed probe remains held"}
             </span>
+            {reviewRecord?.phase8ReviewFingerprint ? (
+              <small title={reviewRecord.phase8ReviewedBlockerAction ?? reviewRecord.phase8ReviewRecordId}>
+                Phase 8 proof {reviewRecord.phase8ReviewFingerprint}
+                {reviewRecord.phase8ReviewedBlockerSourceId
+                  ? ` / ${reviewRecord.phase8ReviewedBlockerSourceId} / ${reviewRecord.phase8ReviewedBlockerKind ?? "none"} / ${reviewRecord.phase8ReviewedBlockerStatus ?? "ready"}`
+                  : ""}
+              </small>
+            ) : null}
           </div>
           <div
             className="phase9-runner-review-record-actions"

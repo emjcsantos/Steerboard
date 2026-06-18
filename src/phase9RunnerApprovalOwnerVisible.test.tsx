@@ -27,6 +27,12 @@ const readyPhase8ReviewRecord: Phase8AuditReviewRecord = {
   openExceptionCount: 0,
   disabledPathCount: 8,
   mutationLocked: true,
+  auditEvidenceFingerprint: "phase8-audit:abcdef12",
+  topBlockerLabel: "Owner audit review",
+  topBlockerSourceId: "phase-08-permission-audit-depth:owner-audit-review",
+  topBlockerKind: "audit-depth",
+  topBlockerStatus: "waiting",
+  topBlockerAction: "Record Phase 8 owner audit review.",
   rollbackEvidence: "Phase 8 rollback evidence is attached.",
   detail: "Phase 8 owner audit review is ready."
 };
@@ -218,6 +224,9 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("Request");
     expect(html).toContain("Records");
     expect(html).toContain("Phase 9 runner review record ready");
+    expect(html).toContain(
+      "Phase 8 proof phase8-audit:abcdef12 / phase-08-permission-audit-depth:owner-audit-review / audit-depth / waiting"
+    );
     expect(html).toContain("Desktop terminal read-only probe executed through the approved runner contract");
     expect(html).toContain("Phase 9 remains limited to terminal-readonly-probe");
     expect(html).toContain("broad terminal, Git, MCP, plugin, automation, runtime, profile, and external-service mutation paths stay locked");

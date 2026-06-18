@@ -20,6 +20,12 @@ const phase8ReviewRecord: Phase8AuditReviewRecord = {
   openExceptionCount: 0,
   disabledPathCount: 8,
   mutationLocked: true,
+  auditEvidenceFingerprint: "phase8-audit:abcdef12",
+  topBlockerLabel: "Owner audit review",
+  topBlockerSourceId: "phase-08-permission-audit-depth:owner-audit-review",
+  topBlockerKind: "audit-depth",
+  topBlockerStatus: "waiting",
+  topBlockerAction: "Record Phase 8 owner audit review.",
   rollbackEvidence: "Phase 8 rollback evidence is attached.",
   detail: "Phase 8 owner audit review is ready."
 };
@@ -69,6 +75,12 @@ describe("phase 9 runner approval record", () => {
       auditRecordCount: 2,
       phase8ReviewRecordId: phase8ReviewRecord.id,
       phase8ReviewState: "ready",
+      phase8ReviewFingerprint: "phase8-audit:abcdef12",
+      phase8ReviewedBlockerLabel: "Owner audit review",
+      phase8ReviewedBlockerSourceId: "phase-08-permission-audit-depth:owner-audit-review",
+      phase8ReviewedBlockerKind: "audit-depth",
+      phase8ReviewedBlockerStatus: "waiting",
+      phase8ReviewedBlockerAction: "Record Phase 8 owner audit review.",
       canRequestDesktopProbe: false,
       mutationLocked: true,
       runnerEvidenceFingerprint: buildPhase9RunnerEvidenceFingerprint(
@@ -170,6 +182,10 @@ describe("phase 9 runner approval record", () => {
         auditRecordCount: 2.9,
         phase8ReviewRecordId: " phase8-audit-review:1 ",
         phase8ReviewState: "READY",
+        phase8ReviewFingerprint:
+          "phase8 C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md sk-ABCDEF1234567890 <unsafe>",
+        phase8ReviewedBlockerSourceId:
+          "blocker C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md sk-ABCDEF1234567890 <unsafe>",
         canRequestDesktopProbe: true,
         mutationLocked: true,
         runnerEvidenceFingerprint: " phase9-runner-12345678 ",
@@ -188,14 +204,20 @@ describe("phase 9 runner approval record", () => {
       auditRecordCount: 2,
       phase8ReviewRecordId: "phase8-audit-review:1",
       phase8ReviewState: "ready",
+      phase8ReviewFingerprint: expect.stringContaining("phase8 local path"),
+      phase8ReviewedBlockerSourceId: expect.stringContaining("blocker local path"),
       canRequestDesktopProbe: true,
       mutationLocked: true,
       runnerEvidenceFingerprint: "phase9-runner-12345678"
     });
     expect(parsed?.detail).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(parsed?.rollbackEvidence).not.toMatch(/[A-Za-z]:[\\/]/);
+    expect(parsed?.phase8ReviewFingerprint).not.toMatch(/[A-Za-z]:[\\/]/);
+    expect(parsed?.phase8ReviewedBlockerSourceId).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(parsed?.detail).not.toContain("sk-ABCDEF1234567890");
     expect(parsed?.rollbackEvidence).not.toContain("sk-ABCDEF1234567890");
+    expect(parsed?.phase8ReviewFingerprint).not.toContain("sk-ABCDEF1234567890");
+    expect(parsed?.phase8ReviewedBlockerSourceId).not.toContain("sk-ABCDEF1234567890");
     expect(parsed?.detail).not.toContain("<");
     expect(parsed?.detail).not.toContain(">");
   });
