@@ -210,7 +210,7 @@ describe("phase 3 clearance blocker priority", () => {
     expect(held.commandCanAddressTopBlocker).toBe(false);
   });
 
-  it("inherits smoke addressability from blocker evidence even when current actions are disabled", () => {
+  it("holds smoke addressability when the matching action is unavailable", () => {
     const clearance = clearancePackage({
       blockers: [
         {
@@ -223,7 +223,7 @@ describe("phase 3 clearance blocker priority", () => {
         }
       ]
     });
-    const realCommandPlan = buildPhase3ClearanceCommandPlan({
+    const heldCommandPlan = buildPhase3ClearanceCommandPlan({
       clearancePackage: clearance,
       actions: [
         {
@@ -237,15 +237,36 @@ describe("phase 3 clearance blocker priority", () => {
         }
       ]
     });
-    const snapshot = buildPhase3ClearanceBlockerPriority({
+    const heldSnapshot = buildPhase3ClearanceBlockerPriority({
       clearancePackage: clearance,
-      commandPlan: realCommandPlan
+      commandPlan: heldCommandPlan
+    });
+    const runnableCommandPlan = buildPhase3ClearanceCommandPlan({
+      clearancePackage: clearance,
+      actions: [
+        {
+          id: "phase3-owner-testing:active-turn-steer-smoke",
+          label: "Active-turn steer smoke",
+          kind: "smoke",
+          state: "recommended",
+          detail: "Run steer smoke.",
+          buttonLabel: "Run smoke",
+          disabled: false
+        }
+      ]
+    });
+    const runnableSnapshot = buildPhase3ClearanceBlockerPriority({
+      clearancePackage: clearance,
+      commandPlan: runnableCommandPlan
     });
 
-    expect(realCommandPlan.canRunCommand).toBe(true);
-    expect(snapshot.commandAddressableCount).toBe(1);
-    expect(snapshot.commandCanAddressTopBlocker).toBe(true);
-    expect(snapshot.topPriorityEvidenceKey).toBe("phase3.active-turn-steer-smoke");
+    expect(heldCommandPlan.canRunCommand).toBe(false);
+    expect(heldSnapshot.commandAddressableCount).toBe(0);
+    expect(heldSnapshot.commandCanAddressTopBlocker).toBe(false);
+    expect(runnableCommandPlan.canRunCommand).toBe(true);
+    expect(runnableSnapshot.commandAddressableCount).toBe(1);
+    expect(runnableSnapshot.commandCanAddressTopBlocker).toBe(true);
+    expect(runnableSnapshot.topPriorityEvidenceKey).toBe("phase3.active-turn-steer-smoke");
   });
 
   it("preserves focused-panel blocker detail in the prioritized queue", () => {

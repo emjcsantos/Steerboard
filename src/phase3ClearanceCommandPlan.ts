@@ -130,6 +130,55 @@ function isSmokeBlocker(blockerId: string | undefined): boolean {
   return SMOKE_PROOF_ROWS.some((proofRow) => proofRow.blockerId === blockerId);
 }
 
+function actionIdForSmokeBlocker(blockerId: string | undefined): string | undefined {
+  return SMOKE_PROOF_ROWS.find((proofRow) => proofRow.blockerId === blockerId)?.actionId;
+}
+
+function matchingSmokeActionCanRun(
+  blockerId: string | undefined,
+  actions: readonly Phase3OwnerTestingAction[]
+): boolean {
+  const actionId = actionIdForSmokeBlocker(blockerId);
+  if (!actionId) {
+    return false;
+  }
+
+  const action = actions.find((item) => item.id === actionId);
+  if (!action || action.kind !== "smoke") {
+    return false;
+  }
+
+  return action.state === "running" || (action.state === "recommended" && !action.disabled);
+}
+
+function commandHeldAction(
+  blockerId: string | undefined,
+  actions: readonly Phase3OwnerTestingAction[]
+): string | undefined {
+  const actionId = actionIdForSmokeBlocker(blockerId);
+  if (!actionId) {
+    return undefined;
+  }
+
+  const action = actions.find((item) => item.id === actionId);
+  if (!action) {
+    return "Attach the matching Phase 3 owner smoke action before running npm.cmd run smoke:phase3.";
+  }
+
+  if (action.kind !== "smoke") {
+    return "Attach a matching Phase 3 smoke action before running npm.cmd run smoke:phase3.";
+  }
+
+  if (action.state === "blocked" || action.disabled) {
+    return publicText(
+      action.detail,
+      "Unlock the matching Phase 3 smoke action before running npm.cmd run smoke:phase3."
+    );
+  }
+
+  return undefined;
+}
+
 function publicText(value: string | undefined, fallback: string): string {
   if (!value || value.trim().length === 0) {
     return fallback;
@@ -236,9 +285,12 @@ export function buildPhase3ClearanceCommandPlan(
   const readySmokeCount = smokeItems.filter((item) => item.state === "ready").length;
   const openSmokeCount = Math.max(0, 3 - readySmokeCount);
   const state = resolveState(items);
+  const firstBlockerId = input.clearancePackage.blockers[0]?.id;
   const canRunCommand =
     !input.clearancePackage.canExit &&
-    isSmokeBlocker(input.clearancePackage.blockers[0]?.id);
+    isSmokeBlocker(firstBlockerId) &&
+    matchingSmokeActionCanRun(firstBlockerId, input.actions ?? []);
+  const heldAction = commandHeldAction(firstBlockerId, input.actions ?? []);
   const draft = {
     id: PLAN_ID,
     label: PLAN_LABEL,
@@ -249,7 +301,11 @@ export function buildPhase3ClearanceCommandPlan(
     coveredSmokeCount: 3,
     readySmokeCount,
     openSmokeCount,
-    nextAction: firstNextAction(items, canRunCommand, input.clearancePackage.blockers[0]?.nextAction),
+    nextAction: firstNextAction(
+      items,
+      canRunCommand,
+      heldAction ?? input.clearancePackage.blockers[0]?.nextAction
+    ),
     safety: SAFETY,
     items
   };

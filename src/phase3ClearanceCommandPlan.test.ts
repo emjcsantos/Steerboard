@@ -244,7 +244,7 @@ describe("phase 3 clearance command plan", () => {
     );
   });
 
-  it("uses first smoke blocker evidence instead of current button availability for command addressability", () => {
+  it("holds first smoke blocker command addressability when the matching action is unavailable", () => {
     const plan = buildPhase3ClearanceCommandPlan({
       clearancePackage: clearancePackage({
         blockers: [
@@ -266,14 +266,43 @@ describe("phase 3 clearance command plan", () => {
       ]
     });
 
+    expect(plan.canRunCommand).toBe(false);
+    expect(plan.nextAction).toBe(
+      "Attach the matching Phase 3 owner smoke action before running npm.cmd run smoke:phase3."
+    );
+  });
+
+  it("uses the matching runnable smoke action for command addressability", () => {
+    const plan = buildPhase3ClearanceCommandPlan({
+      clearancePackage: clearancePackage({
+        blockers: [
+          {
+            id: "phase3-exit-gate:active-turn-steer-smoke",
+            label: "Active-turn steer smoke",
+            state: "waiting",
+            nextAction: "Run steer smoke first.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.active-turn-steer-smoke"
+          }
+        ]
+      }),
+      actions: [
+        smokeAction("phase3-owner-testing:active-turn-steer-smoke", {
+          label: "Active-turn steer smoke",
+          disabled: false,
+          state: "recommended"
+        })
+      ]
+    });
+
     expect(plan.canRunCommand).toBe(true);
     expect(plan.nextAction).toBe(
       "Run npm.cmd run smoke:phase3 locally to refresh live-control, active-turn interrupt, and active-turn steer proofs."
     );
   });
 
-  it("keeps blocked smoke blockers command-addressable for rerun evidence", () => {
-    const plan = buildPhase3ClearanceCommandPlan({
+  it("keeps blocked smoke blockers command-addressable only when their action can rerun evidence", () => {
+    const held = buildPhase3ClearanceCommandPlan({
       clearancePackage: clearancePackage({
         state: "blocked",
         statusLabel: "Blocked",
@@ -291,7 +320,32 @@ describe("phase 3 clearance command plan", () => {
       }),
       actions: []
     });
+    const plan = buildPhase3ClearanceCommandPlan({
+      clearancePackage: clearancePackage({
+        state: "blocked",
+        statusLabel: "Blocked",
+        readiness: 15,
+        blockers: [
+          {
+            id: "phase3-exit-gate:active-turn-interrupt-smoke",
+            label: "Active-turn interrupt smoke",
+            state: "blocked",
+            nextAction: "Rerun interrupt smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.active-turn-interrupt-smoke"
+          }
+        ]
+      }),
+      actions: [
+        smokeAction("phase3-owner-testing:active-turn-interrupt-smoke", {
+          label: "Active-turn interrupt smoke"
+        })
+      ]
+    });
 
+    expect(held.state).toBe("blocked");
+    expect(held.canRunCommand).toBe(false);
+    expect(held.nextAction).toContain("matching Phase 3 owner smoke action");
     expect(plan.state).toBe("blocked");
     expect(plan.canRunCommand).toBe(true);
     expect(plan.nextAction).toContain("npm.cmd run smoke:phase3");
