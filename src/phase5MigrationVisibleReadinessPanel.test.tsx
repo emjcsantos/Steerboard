@@ -1,10 +1,12 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { MigrationReviewGatePanel } from "./App";
 import {
   appendMigrationProfileDraftHistory,
   buildDefaultMigrationPreview,
   createMigrationProfileDraft,
+  loadMigrationProfileDraftHistory,
+  saveMigrationProfileDraftHistory,
   toggleMigrationCategory
 } from "./migrationModel";
 import { buildMigrationHardeningReadiness } from "./migrationHardeningReadiness";
@@ -28,6 +30,10 @@ function stagedDraftHistory() {
 }
 
 describe("phase 5 migration visible readiness panel", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("renders staged apply-review audit evidence and migration safety locks for owner review", () => {
     const readiness = buildMigrationHardeningReadiness({
       preview: selectedPreview(),
@@ -53,6 +59,50 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("Migration hardening is preview/apply-intent metadata only");
     expect(html).toContain("Phase 5 migration traceability");
     expect(html).toContain("Phase 5 migration blocker priority");
+  });
+
+  it("renders staged apply-review evidence after saved draft history reload", () => {
+    const storage = { value: "" };
+    const memoryStorage = {
+      getItem: vi.fn(() => (storage.value.length ? storage.value : null)),
+      setItem: vi.fn((_key: string, next: string) => {
+        storage.value = next;
+      })
+    };
+
+    vi.stubGlobal("window", { localStorage: memoryStorage });
+    saveMigrationProfileDraftHistory(stagedDraftHistory());
+
+    const loadedHistory = loadMigrationProfileDraftHistory([], 8);
+    const readiness = buildMigrationHardeningReadiness({
+      preview: selectedPreview(),
+      draftHistory: loadedHistory,
+      excludedSecretsSummary: [
+        "Credentials excluded",
+        "Raw transcripts excluded",
+        "Source mutation excluded"
+      ]
+    });
+    const html = renderToStaticMarkup(
+      <MigrationReviewGatePanel migrationHardeningReadiness={readiness} />
+    );
+
+    expect(loadedHistory).toHaveLength(1);
+    expect(loadedHistory[0].audit.action).toBe("apply-review-staged");
+    expect(memoryStorage.setItem).toHaveBeenCalled();
+    expect(memoryStorage.getItem).toHaveBeenCalled();
+    expect(html).toContain("apply-review-staged");
+    expect(html).toContain("phase5.apply-review-staged-audit");
+    expect(html).toContain("Local apply-review-staged audit action");
+    expect(html).toContain("active-profile lock");
+    expect(html).toContain("source-data lock");
+    expect(html).toContain("Profile activation lock");
+    expect(html).toContain("Phase 5 migration traceability");
+    expect(html).toContain("Phase 5 migration blocker priority");
+    expect(html).toContain("top priority Remaining goal link");
+    expect(html).not.toContain("has not recorded a local apply-review-staged audit action yet");
+    expect(html).not.toContain("top priority Apply review staging");
+    expect(html).not.toContain("Review required");
   });
 
   it("keeps unstaged drafts visibly held before apply-review staging is recorded", () => {
