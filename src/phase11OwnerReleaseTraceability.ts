@@ -287,8 +287,14 @@ function phase3TraceItem(
   const handoffProofReady = proofFreshnessDepth.items.some(
     (item) => item.kind === "handoff-proof" && item.status === "ready"
   );
+  const traceIsCurrent = phase3Trace?.current === true;
+  const traceIsActive = phase3Trace?.status === "active";
   const status: Phase11OwnerReleaseTraceabilityState =
-    !phase3Trace || !handoffProofReady || missingPmTaskIds.length > 0
+    !phase3Trace ||
+    !traceIsCurrent ||
+    !traceIsActive ||
+    !handoffProofReady ||
+    missingPmTaskIds.length > 0
       ? "review"
       : "ready";
 
@@ -302,8 +308,8 @@ function phase3TraceItem(
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction:
       status === "ready"
-        ? "Keep current Phase 3 clearance PM traceability and ready handoff proof visible before release readiness is trusted."
-        : `Restore current Phase 3 clearance PM traceability and ready handoff proof before Phase 11 owner release review can be trusted: ${missingPmTaskIds.join(", ") || (phase3Trace ? "phase-11-proof-freshness-depth:handoff-proof" : PHASE3_CLEARANCE_GOAL_ID)}.`
+        ? "Keep current active Phase 3 clearance PM traceability and ready handoff proof visible before release readiness is trusted."
+        : `Restore current active Phase 3 clearance PM traceability and ready handoff proof before Phase 11 owner release review can be trusted: ${missingPmTaskIds.join(", ") || (!traceIsCurrent || !traceIsActive ? PHASE3_CLEARANCE_GOAL_ID : "phase-11-proof-freshness-depth:handoff-proof")}.`
   };
 }
 

@@ -83,10 +83,10 @@ describe("project management hierarchy", () => {
     expect(byId.get("phase-03-child-handoff-gate")?.description).toContain("clearance snapshot");
     expect(byId.get("phase-03-child-traceability")?.description).toContain("handoff-review details");
     expect(byId.get("phase-11-parent-owner-testing")?.description).toContain("proof freshness depth");
-    expect(byId.get("phase-11-parent-release-packaging")?.description).toContain("current Phase 3 clearance PM traceability and handoff proof");
-    expect(byId.get("phase-11-child-package-validation")?.description).toContain("current Phase 3 clearance PM traceability and handoff proof");
+    expect(byId.get("phase-11-parent-release-packaging")?.description).toContain("current active Phase 3 clearance PM traceability and handoff proof");
+    expect(byId.get("phase-11-child-package-validation")?.description).toContain("current active Phase 3 clearance PM traceability and handoff proof");
     expect(byId.get("phase-11-child-traceability")?.description).toContain("proof freshness depth");
-    expect(byId.get("phase-11-child-traceability")?.description).toContain("current Phase 3 clearance PM traceability and handoff proof");
+    expect(byId.get("phase-11-child-traceability")?.description).toContain("current active Phase 3 clearance PM traceability and handoff proof");
   });
 
   it("builds a staged Arena dispatch package with hierarchy context", () => {

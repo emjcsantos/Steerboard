@@ -264,7 +264,7 @@ describe("phase 11 owner release traceability", () => {
 
     expect(result.state).toBe("review");
     expect(result.canTrustOwnerReleaseGate).toBe(false);
-    expect(result.nextAction).toContain("current Phase 3 clearance PM traceability");
+    expect(result.nextAction).toContain("current active Phase 3 clearance PM traceability");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -281,7 +281,7 @@ describe("phase 11 owner release traceability", () => {
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
           trace.goalId === "goal-phase-3-proof-clearance"
-            ? { ...trace, status: "next" }
+            ? { ...trace, status: "active" }
             : trace
         )
       })
@@ -294,8 +294,72 @@ describe("phase 11 owner release traceability", () => {
         expect.objectContaining({
           kind: "phase3-trace",
           status: "ready",
+          detail: expect.stringContaining("is active"),
+          nextAction: expect.stringContaining("current active Phase 3 clearance PM traceability")
+        })
+      ])
+    );
+  });
+
+  it("reviews when Phase 3 traceability is not current", () => {
+    const result = trace({
+      ownerCommandCenter: ownerSnapshot({
+        priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
+          trace.goalId === "goal-phase-3-proof-clearance"
+            ? {
+                ...trace,
+                status: "next" as const,
+                completionPercent: 100,
+                current: false,
+                nextAction: "Keep the completed Phase 3 handoff proof attached."
+              }
+            : trace
+        )
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.nextAction).toContain("goal-phase-3-proof-clearance");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "phase3-trace",
+          status: "review",
+          detail: expect.stringContaining("current no"),
+          nextAction: expect.stringContaining("goal-phase-3-proof-clearance")
+        })
+      ])
+    );
+  });
+
+  it("reviews when Phase 3 traceability is current but not active", () => {
+    const result = trace({
+      ownerCommandCenter: ownerSnapshot({
+        priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
+          trace.goalId === "goal-phase-3-proof-clearance"
+            ? {
+                ...trace,
+                status: "next" as const,
+                completionPercent: 100,
+                current: true,
+                nextAction: "Keep the completed Phase 3 handoff proof attached."
+              }
+            : trace
+        )
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.nextAction).toContain("goal-phase-3-proof-clearance");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "phase3-trace",
+          status: "review",
           detail: expect.stringContaining("is next"),
-          nextAction: expect.stringContaining("current Phase 3 clearance PM traceability")
+          nextAction: expect.stringContaining("goal-phase-3-proof-clearance")
         })
       ])
     );
