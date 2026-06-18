@@ -70,8 +70,8 @@ describe("phase 3 clearance command plan", () => {
     expect(plan.canRunCommand).toBe(true);
     expect(plan.state).toBe("waiting");
     expect(plan.coveredSmokeCount).toBe(3);
-    expect(plan.readySmokeCount).toBe(0);
-    expect(plan.openSmokeCount).toBe(3);
+    expect(plan.readySmokeCount).toBe(2);
+    expect(plan.openSmokeCount).toBe(1);
     expect(plan.nextAction).toContain("npm.cmd run smoke:phase3");
     expect(plan.safety).toContain("does not run commands");
     expect(plan.items.map((item) => item.kind)).toEqual([
@@ -90,12 +90,12 @@ describe("phase 3 clearance command plan", () => {
         }),
         expect.objectContaining({
           label: "Active-turn interrupt smoke proof",
-          state: "waiting",
+          state: "ready",
           detail: expect.stringContaining("active-turn interrupt")
         }),
         expect.objectContaining({
           label: "Active-turn steer smoke proof",
-          state: "waiting",
+          state: "ready",
           detail: expect.stringContaining("active-turn steer")
         })
       ])
@@ -144,6 +144,36 @@ describe("phase 3 clearance command plan", () => {
             nextAction: "Run slash proof first.",
             pmTaskId: "phase-03-child-slash-ready",
             evidenceKey: "phase3.slash-execution"
+          }
+        ]
+      }),
+      actions: smokeActions
+    });
+
+    expect(plan.canRunCommand).toBe(false);
+    expect(plan.nextAction).toBe("Run slash proof first.");
+    expect(plan.readySmokeCount).toBe(3);
+    expect(plan.openSmokeCount).toBe(0);
+    expect(plan.items.filter((item) => item.kind.endsWith("-smoke"))).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Live-control smoke proof", state: "ready" }),
+        expect.objectContaining({ label: "Active-turn interrupt smoke proof", state: "ready" }),
+        expect.objectContaining({ label: "Active-turn steer smoke proof", state: "ready" })
+      ])
+    );
+  });
+
+  it("keeps slash blockers ahead when a smoke blocker is also open", () => {
+    const plan = buildPhase3ClearanceCommandPlan({
+      clearancePackage: clearancePackage({
+        blockers: [
+          {
+            id: "phase3-exit-gate:slash-execution",
+            label: "Slash execution",
+            state: "waiting",
+            nextAction: "Run slash proof first.",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
           },
           {
             id: "phase3-exit-gate:live-control-smoke",
@@ -160,6 +190,15 @@ describe("phase 3 clearance command plan", () => {
 
     expect(plan.canRunCommand).toBe(false);
     expect(plan.nextAction).toBe("Run slash proof first.");
+    expect(plan.readySmokeCount).toBe(2);
+    expect(plan.openSmokeCount).toBe(1);
+    expect(plan.items.filter((item) => item.kind.endsWith("-smoke"))).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Live-control smoke proof", state: "waiting" }),
+        expect.objectContaining({ label: "Active-turn interrupt smoke proof", state: "ready" }),
+        expect.objectContaining({ label: "Active-turn steer smoke proof", state: "ready" })
+      ])
+    );
   });
 
   it("holds the command when the runnable smoke action does not match the first smoke blocker", () => {
@@ -208,5 +247,31 @@ describe("phase 3 clearance command plan", () => {
     expect(plan.openSmokeCount).toBe(0);
     expect(plan.nextAction).toContain("no longer needed");
     expect(plan.ariaLabel).toContain("3/3 smoke proofs ready");
+  });
+
+  it("keeps exit-ready smoke rows ready when current smoke controls are disabled", () => {
+    const plan = buildPhase3ClearanceCommandPlan({
+      clearancePackage: clearancePackage({
+        state: "ready",
+        statusLabel: "Ready",
+        readiness: 100,
+        canExit: true,
+        readyCount: 5,
+        openCount: 0,
+        waitingCount: 0,
+        blockers: []
+      }),
+      actions: smokeActions.map((action) => ({ ...action, state: "blocked", disabled: true }))
+    });
+
+    expect(plan.state).toBe("ready");
+    expect(plan.canRunCommand).toBe(false);
+    expect(plan.readySmokeCount).toBe(3);
+    expect(plan.openSmokeCount).toBe(0);
+    expect(plan.items.filter((item) => item.kind.endsWith("-smoke")).map((item) => item.state)).toEqual([
+      "ready",
+      "ready",
+      "ready"
+    ]);
   });
 });

@@ -156,11 +156,9 @@ function runnableCommandAction(
 }
 
 function buildItems(
-  clearancePackage: Phase3ClearancePackage,
-  actions: readonly Phase3OwnerTestingAction[]
+  clearancePackage: Phase3ClearancePackage
 ): readonly Phase3ClearanceCommandPlanItem[] {
   const blockerById = new Map(clearancePackage.blockers.map((blocker) => [blocker.id, blocker]));
-  const actionById = new Map(actions.map((action) => [action.id, action]));
   const slashBlocker = blockerById.get("phase3-exit-gate:slash-execution");
   const sessionBlocker = blockerById.get("phase3-exit-gate:session-controls");
 
@@ -186,17 +184,8 @@ function buildItems(
   };
   const smokeItems = SMOKE_PROOF_ROWS.map((row): Phase3ClearanceCommandPlanItem => {
       const blocker = blockerById.get(row.blockerId);
-      const action = actionById.get(row.actionId);
       const state = blocker?.state ??
-        (action?.state === "blocked"
-          ? "blocked"
-          : action?.state === "running"
-            ? "review"
-            : action?.state === "recommended"
-              ? "waiting"
-              : action?.state === "ready" || clearancePackage.canExit
-                ? "ready"
-                : "waiting");
+        "ready";
 
       return {
         id: `${PLAN_ID}:${row.kind}`,
@@ -228,10 +217,10 @@ export function buildPhase3ClearanceCommandPlan(
   input: Phase3ClearanceCommandPlanInput
 ): Phase3ClearanceCommandPlan {
   const actions = input.actions ?? [];
-  const smokes = smokeActions(actions);
-  const readySmokeCount = smokes.filter((action) => action.state === "ready").length;
+  const items = buildItems(input.clearancePackage);
+  const smokeItems = items.filter((item) => item.kind.endsWith("-smoke"));
+  const readySmokeCount = smokeItems.filter((item) => item.state === "ready").length;
   const openSmokeCount = Math.max(0, 3 - readySmokeCount);
-  const items = buildItems(input.clearancePackage, actions);
   const state = resolveState(items);
   const commandAction = runnableCommandAction(input.clearancePackage, actions);
   const canRunCommand =
