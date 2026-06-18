@@ -404,6 +404,10 @@ import {
   savePhase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
 import {
+  buildPhase3SmokeProofNotice,
+  countPersistedPhase3SmokeProofRows
+} from "./phase3SmokeProofNotice";
+import {
   loadPhasePrioritySmokeProofBundle,
   savePhasePrioritySmokeProofBundle
 } from "./phasePrioritySmokeProofStorage";
@@ -2178,7 +2182,14 @@ export function App() {
     setCodexActiveTurnSteerSmokeProof(persistedBundle.activeTurnSteerSmoke);
     setPhase3PersistedDesktopProofs(persistedLoad.persistedDesktopProofs);
     setPhase3ProofEvaluationTime(new Date().toISOString());
-    setAppNotice(`Imported ${desktopExecutedRowCount} Phase 3 desktop smoke proof row${desktopExecutedRowCount === 1 ? "" : "s"}`);
+    const persistedRowCount = countPersistedPhase3SmokeProofRows(
+      persistedLoad.persistedDesktopProofs
+    );
+    setAppNotice(
+      persistedRowCount > 0
+        ? `Phase 3 persisted smoke proof storage has ${persistedRowCount} desktop proof row${persistedRowCount === 1 ? "" : "s"}`
+        : "Phase 3 desktop smoke proof artifact could not be persisted"
+    );
   }, []);
   const clearPhase3CommandValidation = useCallback(() => {
     clearPhase3CommandValidationRecord();
@@ -3118,9 +3129,11 @@ export function App() {
     setCodexActiveTurnControlSmokeLoading(false);
     setCodexConnectionRequested(true);
     setAppNotice(
-      nextProof.ok
-        ? "Codex active-turn interrupt smoke passed"
-        : "Codex active-turn interrupt smoke did not pass"
+      buildPhase3SmokeProofNotice({
+        label: "Codex active-turn interrupt",
+        passed: nextProof.ok,
+        persisted: persistedLoad.persistedDesktopProofs.activeTurnInterruptSmoke
+      })
     );
   }
 
@@ -3141,7 +3154,13 @@ export function App() {
     setPhase3PersistedDesktopProofs(persistedLoad.persistedDesktopProofs);
     setCodexActiveTurnSteerSmokeLoading(false);
     setCodexConnectionRequested(true);
-    setAppNotice(nextProof.ok ? "Codex active-turn steer smoke passed" : "Codex active-turn steer smoke did not pass");
+    setAppNotice(
+      buildPhase3SmokeProofNotice({
+        label: "Codex active-turn steer",
+        passed: nextProof.ok,
+        persisted: persistedLoad.persistedDesktopProofs.activeTurnSteerSmoke
+      })
+    );
   }
 
   async function runCodexLiveControlSmokeProof() {
@@ -3162,9 +3181,11 @@ export function App() {
     setCodexLiveControlSmokeLoading(false);
     setCodexConnectionRequested(true);
     setAppNotice(
-      nextProof.ok
-        ? "Codex control smoke passed"
-        : "Codex live-control smoke did not pass"
+      buildPhase3SmokeProofNotice({
+        label: "Codex live-control",
+        passed: nextProof.ok,
+        persisted: persistedLoad.persistedDesktopProofs.liveControlSmoke
+      })
     );
   }
 
