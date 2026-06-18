@@ -51,6 +51,11 @@ export interface Phase9RunnerTraceabilitySummary {
   items: Phase9RunnerTraceabilityItem[];
 }
 
+export interface Phase9DesktopProbeGate {
+  canRun: boolean;
+  holdReason: string;
+}
+
 const TRACE_ID = "phase-09-runner-traceability";
 const TRACE_LABEL = "Phase 9 runner traceability";
 const PHASE9_GOAL_ID = "goal-phase-9-runner";
@@ -514,5 +519,36 @@ export function buildPhase9RunnerTraceabilitySummary({
   return {
     ...draft,
     ariaLabel: buildAriaLabel(draft)
+  };
+}
+
+export function buildPhase9DesktopProbeGate(
+  approval: Phase9RunnerApprovalSnapshot,
+  traceability: Phase9RunnerTraceabilitySummary
+): Phase9DesktopProbeGate {
+  if (!approval.canRequestDesktopProbe) {
+    return {
+      canRun: false,
+      holdReason: approval.nextAction
+    };
+  }
+
+  if (!traceability.canTrustRunnerApproval) {
+    const traceabilityBlocker =
+      traceability.items.find((item) => item.status === "blocked") ??
+      traceability.items.find((item) => item.status === "review") ??
+      traceability.items.find((item) => item.status === "waiting");
+
+    return {
+      canRun: false,
+      holdReason: traceabilityBlocker
+        ? `${traceabilityBlocker.detail} ${traceabilityBlocker.nextAction}`
+        : traceability.nextAction
+    };
+  }
+
+  return {
+    canRun: true,
+    holdReason: "Run a fixed read-only terminal probe through the desktop runner."
   };
 }

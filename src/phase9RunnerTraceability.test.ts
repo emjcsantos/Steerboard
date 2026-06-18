@@ -14,7 +14,10 @@ import {
 } from "./phase9RunnerApprovalRecord";
 import { buildPhase9RunnerApprovalSnapshot } from "./phase9RunnerApproval";
 import { buildPhase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDepth";
-import { buildPhase9RunnerTraceabilitySummary } from "./phase9RunnerTraceability";
+import {
+  buildPhase9DesktopProbeGate,
+  buildPhase9RunnerTraceabilitySummary
+} from "./phase9RunnerTraceability";
 import { currentProjectManagementPhasePlanTaskIds } from "./projectManagementPhasePlan";
 import { remainingGoalPlan } from "./remainingGoalPlan";
 
@@ -343,6 +346,10 @@ describe("phase 9 runner traceability", () => {
     expect(summary.readyCount).toBe(6);
     expect(summary.mutationLockCount).toBeGreaterThanOrEqual(6);
     expect(summary.runnerReviewRecordReady).toBe(true);
+    expect(buildPhase9DesktopProbeGate(approval, summary)).toMatchObject({
+      canRun: true,
+      holdReason: "Run a fixed read-only terminal probe through the desktop runner."
+    });
   });
 
   it("does not trust runner approval when Phase 9 is current but still next", () => {
@@ -362,6 +369,10 @@ describe("phase 9 runner traceability", () => {
 
     expect(summary.state).toBe("waiting");
     expect(summary.canTrustRunnerApproval).toBe(false);
+    expect(buildPhase9DesktopProbeGate(approval, summary)).toMatchObject({
+      canRun: false,
+      holdReason: expect.stringContaining("goal-phase-9-runner is next")
+    });
     expect(summary.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "active-goal", status: "waiting" })

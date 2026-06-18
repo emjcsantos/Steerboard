@@ -655,7 +655,10 @@ import {
 } from "./phase9RunnerApproval";
 import { buildPhase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDepth";
 import { buildPhase9RunnerBlockerPriority } from "./phase9RunnerBlockerPriority";
-import { buildPhase9RunnerTraceabilitySummary } from "./phase9RunnerTraceability";
+import {
+  buildPhase9DesktopProbeGate,
+  buildPhase9RunnerTraceabilitySummary
+} from "./phase9RunnerTraceability";
 import {
   clearPhase9RunnerApprovalRecord,
   createPhase9RunnerApprovalRecord,
@@ -9637,6 +9640,29 @@ function RightPanel({
       runtimeProfilePermissionRequestHistory
     ]
   );
+  const phase9RunnerApprovalDepth = useMemo(
+    () => buildPhase9RunnerApprovalDepthSummary(phase9RunnerApproval),
+    [phase9RunnerApproval]
+  );
+  const phase9RunnerTraceability = useMemo(
+    () =>
+      buildPhase9RunnerTraceabilitySummary({
+        approval: phase9RunnerApproval,
+        depth: phase9RunnerApprovalDepth,
+        phase8: phase8PermissionAuditDepth,
+        runnerReviewRecord: phase9RunnerApprovalRecord
+      }),
+    [
+      phase8PermissionAuditDepth,
+      phase9RunnerApproval,
+      phase9RunnerApprovalDepth,
+      phase9RunnerApprovalRecord
+    ]
+  );
+  const phase9DesktopProbeGate = useMemo(
+    () => buildPhase9DesktopProbeGate(phase9RunnerApproval, phase9RunnerTraceability),
+    [phase9RunnerApproval, phase9RunnerTraceability]
+  );
   const phase8RiskTraceability = useMemo(
     () => buildPhase8RiskTraceabilitySummary({ snapshot: phase8PermissionAuditDepth }),
     [phase8PermissionAuditDepth]
@@ -10158,11 +10184,11 @@ function RightPanel({
       liveActionRequestsByProvider[definition.provider] ??
       createLiveActionPermissionRequest(definition, "idle", timestamp);
 
-    if (!phase9RunnerApproval.canRequestDesktopProbe) {
+    if (!phase9DesktopProbeGate.canRun) {
       const result = buildDesktopActionRunnerBuildFailureResult(
         request.id,
         "execution-blocked",
-        `Phase 9 runner approval is held: ${phase9RunnerApproval.nextAction}`,
+        `Phase 9 runner approval is held: ${phase9DesktopProbeGate.holdReason}`,
         timestamp
       );
       setDesktopActionRunnerResult(result);
@@ -11086,8 +11112,8 @@ function RightPanel({
         onRunDesktopProbe={recordDesktopActionRunnerProbe}
         desktopActionRunnerBusyProvider={desktopActionRunnerBusyProvider}
         desktopActionRunnerSummary={desktopActionRunnerSummary}
-        phase9CanRequestDesktopProbe={phase9RunnerApproval.canRequestDesktopProbe}
-        phase9DesktopProbeHoldReason={phase9RunnerApproval.nextAction}
+        phase9CanRequestDesktopProbe={phase9DesktopProbeGate.canRun}
+        phase9DesktopProbeHoldReason={phase9DesktopProbeGate.holdReason}
         requestsByProvider={liveActionRequestsByProvider}
         runnerEvaluations={liveActionRunnerEvaluations}
         runnerSummary={liveActionRunnerSummary}
