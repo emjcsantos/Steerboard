@@ -5,7 +5,14 @@ import type { LiveActionAuditRecord } from "./liveActionAudit";
 import type { LiveActionPermissionRequestSummary } from "./liveActionPermission";
 import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import { createPhase8AuditReviewRecord } from "./phase8AuditReviewRecord";
+import {
+  buildPhase8AuditReviewArtifact,
+  verifyPhase8AuditReviewArtifact,
+  type Phase8AuditReviewArtifactVerification
+} from "./phase8AuditReviewArtifact";
 import { buildPhase8PermissionAuditDepth } from "./phase8PermissionAuditDepth";
+import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
+import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import type { RuntimeExecutionAuditSnapshot } from "./runtimeExecutionAudit";
 import type { RuntimeExecutionAuditRecord } from "./runtimeExecutionAuditHistory";
 import type { RuntimeProfilePermissionApprovalSnapshot } from "./runtimeProfilePermissionApproval";
@@ -170,15 +177,38 @@ function ownerReviewFor(options: Parameters<typeof auditDepth>[0] = {}) {
 }
 
 function renderPhase8Proof(options: {
+  artifactVerification?: Phase8AuditReviewArtifactVerification;
+  importedArtifactVerification?: Phase8AuditReviewArtifactVerification;
   reviewRecord?: Phase8AuditReviewRecord;
   snapshot?: ReturnType<typeof auditDepth>;
 } = {}) {
+  const snapshot = options.snapshot ?? auditDepth();
+  const traceability = buildPhase8RiskTraceabilitySummary({ snapshot });
+  const blockerPriority = buildPhase8RiskBlockerPriority({ snapshot, traceability });
+  const artifactVerification =
+    options.artifactVerification ??
+    verifyPhase8AuditReviewArtifact(
+      buildPhase8AuditReviewArtifact({
+        exportedAt: "2026-06-18T10:00:00.000Z",
+        evaluatedAt: "2026-06-18T10:00:00.000Z",
+        snapshot,
+        traceability,
+        blockerPriority,
+        reviewRecord: options.reviewRecord
+      }),
+      { verifiedAt: "2026-06-18T10:05:00.000Z" }
+    );
+
   return renderToStaticMarkup(
     <Phase8PermissionAuditDepthPanel
+      artifactVerification={artifactVerification}
+      importedArtifactVerification={options.importedArtifactVerification}
       onClearAuditReview={() => undefined}
+      onExportAuditReviewArtifact={() => undefined}
       onRecordAuditReview={() => undefined}
+      onVerifyImportedAuditReviewArtifact={() => undefined}
       reviewRecord={options.reviewRecord}
-      snapshot={options.snapshot ?? auditDepth()}
+      snapshot={snapshot}
     />
   );
 }
@@ -197,6 +227,11 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("No local audit review record");
     expect(html).toContain("Mutation paths remain locked");
     expect(html).toContain("Record review");
+    expect(html).toContain("Audit review artifact");
+    expect(html).toContain("Export review");
+    expect(html).toContain("Import review");
+    expect(html).toContain("Depth 10");
+    expect(html).toContain("Mutation locked");
     expect(html).toContain("terminal action");
     expect(html).toContain("git action");
     expect(html).toContain("plugin action");
@@ -219,6 +254,7 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("Audit review");
     expect(html).toContain("permission review record");
     expect(html).toContain("rollback evidence");
+    expect(html).toContain("without requesting approval, exporting audit records, running actions, or unlocking mutation paths");
     expect(html).toContain("without granting access or running actions");
   });
 
@@ -247,6 +283,8 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("Phase 8 audit review record ready");
     expect(html).toContain("audit evidence fingerprint");
     expect(html).toContain("current audit evidence");
+    expect(html).toContain("Audit review artifact");
+    expect(html).toContain("Review record attached");
     expect(html).toContain("Runtime, profile, terminal, Git, MCP, plugin, automation, and external-service mutation paths remain locked");
     expect(html).toContain("Clear");
     expect(html).toContain("Record review");
@@ -283,5 +321,29 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("Re-record owner audit review");
     expect(html).toContain("Phase 8 risk blocker priority");
     expect(html).toContain("Reviewable");
+  });
+
+  it("renders imported artifact verification without mutating the local owner review record", () => {
+    const snapshot = auditDepth();
+    const importedArtifactVerification = verifyPhase8AuditReviewArtifact(
+      buildPhase8AuditReviewArtifact({
+        exportedAt: "2026-06-18T10:00:00.000Z",
+        evaluatedAt: "2026-06-18T10:00:00.000Z",
+        snapshot,
+        traceability: buildPhase8RiskTraceabilitySummary({ snapshot }),
+        blockerPriority: buildPhase8RiskBlockerPriority({
+          snapshot,
+          traceability: buildPhase8RiskTraceabilitySummary({ snapshot })
+        })
+      }),
+      { verifiedAt: "2026-06-18T10:05:00.000Z" }
+    );
+    const html = renderPhase8Proof({ importedArtifactVerification });
+
+    expect(html).toContain("Imported audit review");
+    expect(html).toContain("Phase 8 audit review artifact is valid but still has");
+    expect(html).toContain("Review record missing");
+    expect(html).toContain("Mutation locked");
+    expect(html).toContain("No local audit review record");
   });
 });

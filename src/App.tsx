@@ -640,6 +640,13 @@ import {
   savePhase8AuditReviewRecord,
   type Phase8AuditReviewRecord
 } from "./phase8AuditReviewRecord";
+import {
+  buildPhase8AuditReviewArtifact,
+  serializePhase8AuditReviewArtifact,
+  verifyPhase8AuditReviewArtifact,
+  verifySerializedPhase8AuditReviewArtifact,
+  type Phase8AuditReviewArtifactVerification
+} from "./phase8AuditReviewArtifact";
 import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import {
@@ -4533,6 +4540,7 @@ export function App() {
             modeHandoff={cockpitModeHandoff}
             modeHandoffQa={cockpitModeHandoffQa}
             mockRuns={projectMockRuns}
+            onAppNotice={setAppNotice}
             onRecordWorkerValidationAttempt={handleWorkerValidationAttempt}
             onExportPhase3ProofArtifact={exportPhase3ProofArtifact}
             onVerifyImportedPhase3ProofArtifact={verifyImportedPhase3ProofArtifact}
@@ -8796,6 +8804,7 @@ function RightPanel({
   modeHandoff,
   modeHandoffQa,
   mockRuns,
+  onAppNotice,
   onClearPhase3CommandValidation,
   onClearPhase3OwnerHandoff,
   onClearPhase11EvidenceRecord,
@@ -8889,6 +8898,7 @@ function RightPanel({
   modeHandoff: CockpitModeHandoff;
   modeHandoffQa: CockpitModeHandoffQa;
   mockRuns: MockOrchestratorRun[];
+  onAppNotice: (notice: string) => void;
   onFocusPanel: (panelId: string | undefined) => void;
   onClearPhase3CommandValidation: () => void;
   onClearPhase3OwnerHandoff: () => void;
@@ -9030,6 +9040,10 @@ function RightPanel({
     );
   const [phase8AuditReviewRecord, setPhase8AuditReviewRecord] =
     useState<Phase8AuditReviewRecord | undefined>(() => loadPhase8AuditReviewRecord());
+  const [
+    importedPhase8AuditReviewArtifactVerification,
+    setImportedPhase8AuditReviewArtifactVerification
+  ] = useState<Phase8AuditReviewArtifactVerification | undefined>();
   const [phase9RunnerApprovalRecord, setPhase9RunnerApprovalRecord] =
     useState<Phase9RunnerApprovalRecord | undefined>(() => loadPhase9RunnerApprovalRecord());
   const blocked = sessions.filter((session) => session.state === "blocked").length;
@@ -9555,6 +9569,81 @@ function RightPanel({
       runtimeProfilePermissionRequestHistory
     ]
   );
+  const phase8RiskTraceability = useMemo(
+    () => buildPhase8RiskTraceabilitySummary({ snapshot: phase8PermissionAuditDepth }),
+    [phase8PermissionAuditDepth]
+  );
+  const phase8RiskBlockerPriority = useMemo(
+    () =>
+      buildPhase8RiskBlockerPriority({
+        snapshot: phase8PermissionAuditDepth,
+        traceability: phase8RiskTraceability
+      }),
+    [phase8PermissionAuditDepth, phase8RiskTraceability]
+  );
+  const phase8AuditReviewArtifactVerification = useMemo(() => {
+    const artifact = buildPhase8AuditReviewArtifact({
+      exportedAt: phase11EvidenceEvaluationTime,
+      evaluatedAt: phase11EvidenceEvaluationTime,
+      snapshot: phase8PermissionAuditDepth,
+      traceability: phase8RiskTraceability,
+      blockerPriority: phase8RiskBlockerPriority,
+      reviewRecord: phase8AuditReviewRecord
+    });
+
+    return verifyPhase8AuditReviewArtifact(artifact, {
+      verifiedAt: phase11EvidenceEvaluationTime
+    });
+  }, [
+    phase11EvidenceEvaluationTime,
+    phase8AuditReviewRecord,
+    phase8PermissionAuditDepth,
+    phase8RiskBlockerPriority,
+    phase8RiskTraceability
+  ]);
+  const exportPhase8AuditReviewArtifact = useCallback(() => {
+    const now = new Date().toISOString();
+    const artifact = buildPhase8AuditReviewArtifact({
+      exportedAt: now,
+      evaluatedAt: phase11EvidenceEvaluationTime,
+      snapshot: phase8PermissionAuditDepth,
+      traceability: phase8RiskTraceability,
+      blockerPriority: phase8RiskBlockerPriority,
+      reviewRecord: phase8AuditReviewRecord
+    });
+    const serializedArtifact = serializePhase8AuditReviewArtifact(artifact);
+    const verification = verifyPhase8AuditReviewArtifact(artifact, { verifiedAt: now });
+
+    if (typeof document !== "undefined" && typeof URL !== "undefined" && typeof Blob !== "undefined") {
+      const blob = new Blob([serializedArtifact], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `phase8-audit-review-${now.replace(/[:.]/g, "-")}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+
+    onAppNotice(
+      `Phase 8 audit review export ${verification.statusLabel}: ${verification.detail}`
+    );
+  }, [
+    onAppNotice,
+    phase11EvidenceEvaluationTime,
+    phase8AuditReviewRecord,
+    phase8PermissionAuditDepth,
+    phase8RiskBlockerPriority,
+    phase8RiskTraceability
+  ]);
+  const verifyImportedPhase8AuditReviewArtifact = useCallback((serializedArtifact: string) => {
+    const now = new Date().toISOString();
+    const verification = verifySerializedPhase8AuditReviewArtifact(serializedArtifact, {
+      verifiedAt: now
+    });
+
+    setImportedPhase8AuditReviewArtifactVerification(verification);
+    onAppNotice(`Imported Phase 8 audit review ${verification.statusLabel}: ${verification.detail}`);
+  }, [onAppNotice]);
   const recordPhase8AuditReview = useCallback(() => {
     const record = createPhase8AuditReviewRecord(
       phase8PermissionAuditDepth,
@@ -10768,8 +10857,12 @@ function RightPanel({
         repeatedRuns={securityAcceptanceRepeatedRunsSnapshot}
       />
       <Phase8PermissionAuditDepthPanel
+        artifactVerification={phase8AuditReviewArtifactVerification}
+        importedArtifactVerification={importedPhase8AuditReviewArtifactVerification}
         onClearAuditReview={clearPhase8AuditReview}
+        onExportAuditReviewArtifact={exportPhase8AuditReviewArtifact}
         onRecordAuditReview={recordPhase8AuditReview}
+        onVerifyImportedAuditReviewArtifact={verifyImportedPhase8AuditReviewArtifact}
         reviewRecord={phase8AuditReviewRecord}
         snapshot={phase8PermissionAuditDepth}
       />
@@ -14135,16 +14228,25 @@ function toSecurityAcceptanceEvidenceState(
 }
 
 export function Phase8PermissionAuditDepthPanel({
+  artifactVerification,
+  importedArtifactVerification,
   onClearAuditReview,
+  onExportAuditReviewArtifact,
   onRecordAuditReview,
+  onVerifyImportedAuditReviewArtifact,
   reviewRecord,
   snapshot
 }: {
+  artifactVerification?: Phase8AuditReviewArtifactVerification;
+  importedArtifactVerification?: Phase8AuditReviewArtifactVerification;
   onClearAuditReview: () => void;
+  onExportAuditReviewArtifact?: () => void;
   onRecordAuditReview: () => void;
+  onVerifyImportedAuditReviewArtifact?: (serializedArtifact: string) => void;
   reviewRecord?: Phase8AuditReviewRecord;
   snapshot: Phase8PermissionAuditDepthSnapshot;
 }) {
+  const auditReviewArtifactImportInputRef = useRef<HTMLInputElement | null>(null);
   const visibleItems = snapshot.items.slice(0, 8);
   const visibleExceptions = snapshot.exceptions.slice(0, 5);
   const traceability = buildPhase8RiskTraceabilitySummary({ snapshot });
@@ -14152,6 +14254,19 @@ export function Phase8PermissionAuditDepthPanel({
     snapshot,
     traceability
   });
+  const handleAuditReviewArtifactImport = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      event.currentTarget.value = "";
+
+      if (!file) {
+        return;
+      }
+
+      onVerifyImportedAuditReviewArtifact?.(await file.text());
+    },
+    [onVerifyImportedAuditReviewArtifact]
+  );
 
   return (
     <section className="panel-section">
@@ -14231,6 +14346,83 @@ export function Phase8PermissionAuditDepthPanel({
             </button>
           </div>
         </div>
+        {artifactVerification ? (
+          <div
+            aria-label={`Phase 8 audit review artifact verifier ${artifactVerification.statusLabel}; ${artifactVerification.readiness}% ready`}
+            className={classNames(
+              "phase8-audit-review-record",
+              `phase8-audit-review-record-${artifactVerification.state}`
+            )}
+            title={artifactVerification.detail}
+          >
+            <div>
+              <strong>Audit review artifact</strong>
+              <span>
+                {artifactVerification.statusLabel} / blockers{" "}
+                {artifactVerification.openBlockerCount}
+              </span>
+              <small>
+                Depth {artifactVerification.auditDepthItemCount} | Exceptions{" "}
+                {artifactVerification.exceptionCount} | Keys{" "}
+                {artifactVerification.evidenceKeyCount} | Mutation{" "}
+                {artifactVerification.mutationLocked ? "locked" : "unlocked"}
+              </small>
+              <small>
+                Review record {artifactVerification.hasReviewRecord ? "attached" : "missing"} |
+                Open exceptions {artifactVerification.openExceptionCount}
+              </small>
+            </div>
+            <div
+              className="phase8-audit-review-record-actions"
+              aria-label="Phase 8 audit review artifact actions"
+            >
+              <button
+                onClick={onExportAuditReviewArtifact}
+                title="Export Phase 8 audit review evidence without requesting approval, exporting audit records, running actions, or unlocking mutation paths."
+                type="button"
+              >
+                <ClipboardList size={13} />
+                <span>Export review</span>
+              </button>
+              <button
+                onClick={() => auditReviewArtifactImportInputRef.current?.click()}
+                title="Verify a Phase 8 audit review artifact without changing local review records."
+                type="button"
+              >
+                <Paperclip size={13} />
+                <span>Import review</span>
+              </button>
+              <input
+                accept="application/json,.json"
+                aria-label="Import Phase 8 audit review artifact for verification"
+                onChange={handleAuditReviewArtifactImport}
+                ref={auditReviewArtifactImportInputRef}
+                type="file"
+              />
+            </div>
+          </div>
+        ) : null}
+        {importedArtifactVerification ? (
+          <div
+            aria-label={`Imported Phase 8 audit review artifact verifier ${importedArtifactVerification.statusLabel}; ${importedArtifactVerification.readiness}% ready`}
+            className={classNames(
+              "phase8-audit-review-record",
+              `phase8-audit-review-record-${importedArtifactVerification.state}`
+            )}
+            title={importedArtifactVerification.detail}
+          >
+            <div>
+              <strong>Imported audit review</strong>
+              <span>{importedArtifactVerification.detail}</span>
+              <small>{importedArtifactVerification.nextAction}</small>
+              <small>
+                Review record {importedArtifactVerification.hasReviewRecord ? "attached" : "missing"} |
+                Mutation {importedArtifactVerification.mutationLocked ? "locked" : "unlocked"} |
+                Open exceptions {importedArtifactVerification.openExceptionCount}
+              </small>
+            </div>
+          </div>
+        ) : null}
         <dl className="phase8-audit-grid" aria-label="Phase 8 permission and audit counts">
           <div>
             <dt>Risky</dt>
