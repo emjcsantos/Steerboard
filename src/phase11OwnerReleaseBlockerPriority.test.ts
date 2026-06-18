@@ -317,6 +317,48 @@ describe("phase 11 owner release blocker priority", () => {
     );
   });
 
+  it("ranks desktop-smoke storage review above generic proof review rows", () => {
+    const proofFreshnessDepth = proofSnapshot({
+      state: "review",
+      statusLabel: "Review",
+      readiness: 78,
+      canTrustOwnerProof: false,
+      readyCount: 4,
+      reviewCount: 2,
+      openProofCount: 2,
+      nextAction: "Import or rerun desktop smoke proof rows until each required row is storage-proof attested.",
+      items: [
+        {
+          id: "phase-11-proof-freshness-depth:command-validation",
+          label: "CLI smoke validation record",
+          kind: "command-validation",
+          status: "review",
+          detail: "CLI validation record needs review.",
+          nextAction: "Record a fresh CLI validation."
+        },
+        {
+          id: "phase-11-proof-freshness-depth:desktop-smoke",
+          label: "Desktop smoke proof",
+          kind: "desktop-smoke",
+          status: "review",
+          detail:
+            "2/3 desktop smoke rows are ready; 1 review, 0 blocked, and 0 waiting; 2/3 storage-proof attested, 1 storage review.",
+          nextAction:
+            "Import or rerun desktop smoke proof rows until each required row is storage-proof attested."
+        }
+      ]
+    });
+    const result = priority({ proofFreshnessDepth });
+    const priorityByLabel = new Map(result.items.map((item) => [item.label, item.priority]));
+
+    expect(result.state).toBe("review");
+    expect(result.topPriorityLabel).toBe("Desktop smoke proof");
+    expect(result.topPriorityAction).toContain("storage-proof attested");
+    expect(priorityByLabel.get("Desktop smoke proof")).toBeLessThan(
+      priorityByLabel.get("CLI smoke validation record") ?? Number.POSITIVE_INFINITY
+    );
+  });
+
   it("ranks blocked Phase 3 clearance owner rows above stale proof and evidence rows", () => {
     const result = priority({
       ownerCommandCenter: ownerSnapshot({

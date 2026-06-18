@@ -212,6 +212,15 @@ function phase3HandoffProofDetail(
   );
 }
 
+function desktopSmokeProofDetail(
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
+): string {
+  return (
+    proofFreshnessDepth.items.find((item) => item.kind === "desktop-smoke")?.detail ??
+    "Desktop smoke proof detail is missing from proof freshness depth."
+  );
+}
+
 function smokeProofItem(
   ownerCommandCenter: Phase11OwnerCommandCenterSnapshot,
   proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
@@ -229,7 +238,9 @@ function smokeProofItem(
     kind: "smoke-proof",
     status,
     detail:
-      `Owner command center is ${ownerCommandCenter.statusLabel.toLowerCase()} at ${ownerCommandCenter.readiness}% with ${ownerCommandCenter.blockerCount} blocker${ownerCommandCenter.blockerCount === 1 ? "" : "s"}; proof freshness is ${proofFreshnessDepth.statusLabel.toLowerCase()} at ${proofFreshnessDepth.readiness}% with ${proofFreshnessDepth.openProofCount} open proof row${proofFreshnessDepth.openProofCount === 1 ? "" : "s"}.`,
+      `Owner command center is ${ownerCommandCenter.statusLabel.toLowerCase()} at ${ownerCommandCenter.readiness}% with ${ownerCommandCenter.blockerCount} blocker${ownerCommandCenter.blockerCount === 1 ? "" : "s"}; ` +
+      `proof freshness is ${proofFreshnessDepth.statusLabel.toLowerCase()} at ${proofFreshnessDepth.readiness}% with ${proofFreshnessDepth.openProofCount} open proof row${proofFreshnessDepth.openProofCount === 1 ? "" : "s"}; ` +
+      `desktop smoke proof: ${desktopSmokeProofDetail(proofFreshnessDepth)}`,
     nextAction:
       status === "ready"
         ? "Keep owner smoke proof fresh across reload and while the app remains open before release packaging resumes."

@@ -107,7 +107,11 @@ function sourceRank(sourceId: string): number {
   if (normalized.includes("packaging") || normalized.includes("release-decision")) {
     return 1;
   }
-  if (normalized.includes("phase3-clearance") || normalized.includes("phase3-smoke-proof")) {
+  if (
+    normalized.includes("phase3-clearance") ||
+    normalized.includes("phase3-smoke-proof") ||
+    normalized.includes("desktop-smoke")
+  ) {
     return 2;
   }
   if (normalized.includes("phase-priority-proof")) {
