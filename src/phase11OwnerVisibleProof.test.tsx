@@ -419,10 +419,13 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Decision");
     expect(html).toContain("Owner");
     expect(html).toContain("Security");
+    expect(html).toContain("<dt>Security</dt><dd>100%</dd>");
     expect(html).toContain("Package");
     expect(html).toContain("Holds");
     expect(html).toContain("Owner smoke proof");
     expect(html).toContain("Security closure");
+    expect(html).toContain("Security closure capability is available.");
+    expect(html).toContain("Keep security closure evidence attached.");
     expect(html).toContain("Release decision");
     expect(html).toContain("storage-proof attested");
     expect(html).toContain("current active Phase 3 clearance PM traceability");
