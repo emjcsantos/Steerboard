@@ -91,6 +91,15 @@ import {
   type Phase4ProviderSurfaceDepthSnapshot
 } from "./phase4ProviderSurfaceDepth";
 import {
+  clearPhase4ProviderApprovalRecord,
+  createPhase4ProviderApprovalRecord,
+  derivePhase4ProviderApprovalRecordValidation,
+  loadPhase4ProviderApprovalRecord,
+  savePhase4ProviderApprovalRecord,
+  type Phase4ProviderApprovalRecord,
+  type Phase4ProviderApprovalRecordValidation
+} from "./phase4ProviderApprovalRecord";
+import {
   buildPhase4ProviderCatalogDepth,
   type Phase4ProviderCatalogDepthSummary
 } from "./phase4ProviderCatalogDepth";
@@ -1740,7 +1749,12 @@ export function App() {
   );
   const [catalogRefreshProviderSmokeProof, setCatalogRefreshProviderSmokeProof] =
     useState<CatalogRefreshProviderSmokeResult>(() => loadPhase4CatalogSmokeProof());
-  const [phase4CatalogProofEvaluationTime] = useState(() => new Date().toISOString());
+  const [phase4CatalogProofEvaluationTime, setPhase4CatalogProofEvaluationTime] =
+    useState(() => new Date().toISOString());
+  const [phase4ProviderApprovalRecord, setPhase4ProviderApprovalRecord] =
+    useState<Phase4ProviderApprovalRecord | undefined>(() =>
+      loadPhase4ProviderApprovalRecord()
+    );
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
@@ -1918,9 +1932,28 @@ export function App() {
       phase4CurrentCatalogFingerprint
     ]
   );
+  const phase4ProviderApprovalValidation = useMemo(
+    () =>
+      derivePhase4ProviderApprovalRecordValidation({
+        record: phase4ProviderApprovalRecord,
+        expectedCatalogFingerprint: phase4CurrentCatalogFingerprint,
+        refreshSafety: phase4RefreshSafetyDepth,
+        options: { evaluatedAt: phase4CatalogProofEvaluationTime }
+      }),
+    [
+      phase4CatalogProofEvaluationTime,
+      phase4CurrentCatalogFingerprint,
+      phase4ProviderApprovalRecord,
+      phase4RefreshSafetyDepth
+    ]
+  );
   const phase4ProviderSurfaceDepth = useMemo(
-    () => buildPhase4ProviderSurfaceDepth(providerIntegrationReadiness),
-    [providerIntegrationReadiness]
+    () =>
+      buildPhase4ProviderSurfaceDepth(
+        providerIntegrationReadiness,
+        phase4ProviderApprovalValidation
+      ),
+    [phase4ProviderApprovalValidation, providerIntegrationReadiness]
   );
   const phase4ProviderTraceability = useMemo(
     () =>
@@ -1946,6 +1979,28 @@ export function App() {
       phase4RefreshSafetyDepth
     ]
   );
+  const recordPhase4ProviderApproval = useCallback(() => {
+    if (phase4RefreshSafetyDepth.blockedCount > 0 || phase4RefreshSafetyDepth.previewCount > 0) {
+      setAppNotice(phase4RefreshSafetyDepth.nextAction);
+      return;
+    }
+
+    const createdAt = new Date().toISOString();
+    const record = createPhase4ProviderApprovalRecord({
+      catalogFingerprint: phase4CurrentCatalogFingerprint,
+      createdAt
+    });
+
+    setPhase4CatalogProofEvaluationTime(createdAt);
+    savePhase4ProviderApprovalRecord(record);
+    setPhase4ProviderApprovalRecord(record);
+    setAppNotice("Phase 4 provider approval recorded locally");
+  }, [phase4CurrentCatalogFingerprint, phase4RefreshSafetyDepth]);
+  const clearPhase4ProviderApproval = useCallback(() => {
+    clearPhase4ProviderApprovalRecord();
+    setPhase4ProviderApprovalRecord(undefined);
+    setAppNotice("Phase 4 provider approval record cleared");
+  }, []);
   const slashCommandExecutionEvidence = useMemo(() => {
     return selectPhase3SlashCommandEvidence(
       slashCommandExecutionEvidenceByPanel,
@@ -3958,6 +4013,8 @@ export function App() {
             project={project}
             phase4ProviderBlockerPriority={phase4ProviderBlockerPriority}
             phase4ProviderCatalogDepth={phase4ProviderCatalogDepth}
+            phase4ProviderApprovalRecord={phase4ProviderApprovalRecord}
+            phase4ProviderApprovalValidation={phase4ProviderApprovalValidation}
             phase4ProviderTraceability={phase4ProviderTraceability}
             phase4ProviderSurfaceDepth={phase4ProviderSurfaceDepth}
             providerIntegrationReadiness={providerIntegrationReadiness}
@@ -3994,6 +4051,8 @@ export function App() {
             onRunCodexLiveSmokeProof={runCodexLiveSmokeProof}
             onRunCodexLiveControlSmokeProof={runCodexLiveControlSmokeProof}
             onRunCodexTwoPanelSmokeProof={runCodexTwoPanelSmokeProof}
+            onRecordPhase4ProviderApproval={recordPhase4ProviderApproval}
+            onClearPhase4ProviderApproval={clearPhase4ProviderApproval}
             codexCanStartSession={codexTransportDecision.canStartSession}
             codexLiveSmokeLoading={codexLiveSmokeLoading}
             codexTwoPanelSmokeLoading={codexTwoPanelSmokeLoading}
@@ -7333,9 +7392,17 @@ export function ProviderIntegrationReadinessPanel({
   );
 }
 
-function Phase4ProviderSurfaceDepthPanel({
+export function Phase4ProviderSurfaceDepthPanel({
+  approvalValidation,
+  onClearApproval,
+  onRecordApproval,
+  record,
   snapshot
 }: {
+  approvalValidation?: Phase4ProviderApprovalRecordValidation;
+  onClearApproval?: () => void;
+  onRecordApproval?: () => void;
+  record?: Phase4ProviderApprovalRecord;
   snapshot: Phase4ProviderSurfaceDepthSnapshot;
 }) {
   return (
@@ -7358,6 +7425,27 @@ function Phase4ProviderSurfaceDepthPanel({
           <b>{snapshot.readiness}%</b>
         </div>
         <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
+        <div
+          aria-label="Phase 4 provider approval actions"
+          className="phase4-provider-depth-actions"
+        >
+          <div>
+            <strong>Approval record</strong>
+            <small>
+              {approvalValidation?.state ?? "preview"} / {record?.createdAt ?? "not recorded"}
+            </small>
+            <small>
+              Catalog {approvalValidation?.recordCatalogFingerprint ?? "missing"} / expected{" "}
+              {approvalValidation?.expectedCatalogFingerprint ?? "missing"}
+            </small>
+          </div>
+          <button type="button" onClick={onRecordApproval}>
+            Record approval
+          </button>
+          <button type="button" disabled={!record} onClick={onClearApproval}>
+            Clear approval
+          </button>
+        </div>
         <dl className="phase4-provider-depth-grid" aria-label="Phase 4 provider surface depth counts">
           <div>
             <dt>Execution</dt>
@@ -7387,7 +7475,9 @@ function Phase4ProviderSurfaceDepthPanel({
               <div>
                 <strong>{item.label}</strong>
                 <em>{item.detail}</em>
-                <small>{item.nextAction}</small>
+                <small>
+                  {item.evidenceKey} / {item.nextAction}
+                </small>
               </div>
               <b>{item.status}</b>
             </li>
@@ -7523,7 +7613,9 @@ function Phase4ProviderBlockerPriorityPanel({
                 <span>#{item.priority}</span>
                 <div>
                   <strong>{item.label}</strong>
-                  <small>{item.nextAction}</small>
+                  <small>
+                    {item.evidenceKey} / {item.nextAction}
+                  </small>
                 </div>
                 <b>{item.severity}</b>
               </li>
@@ -7972,12 +8064,15 @@ function RightPanel({
   onRecordPhase3CommandValidation,
   onRecordPhase3OwnerHandoff,
   onRecordPhase11Evidence,
+  onRecordPhase4ProviderApproval,
   onRecordWorkerValidationAttempt,
   onSelectRun,
   onUpdateRunStatus,
   project,
   phase4ProviderBlockerPriority,
   phase4ProviderCatalogDepth,
+  phase4ProviderApprovalRecord,
+  phase4ProviderApprovalValidation,
   phase4ProviderTraceability,
   phase4ProviderSurfaceDepth,
   providerIntegrationReadiness,
@@ -8014,6 +8109,7 @@ function RightPanel({
   onRunCodexLiveSmokeProof,
   onRunCodexLiveControlSmokeProof,
   onRunCodexTwoPanelSmokeProof,
+  onClearPhase4ProviderApproval,
   codexCanStartSession,
   codexLiveSmokeLoading,
   codexTwoPanelSmokeLoading,
@@ -8041,6 +8137,7 @@ function RightPanel({
   onRecordPhase3CommandValidation: () => void;
   onRecordPhase3OwnerHandoff: () => void;
   onRecordPhase11Evidence: (gate: Phase11EvidenceGate) => void;
+  onRecordPhase4ProviderApproval: () => void;
   onRecordWorkerValidationAttempt: (
     runId: string,
     taskId: string,
@@ -8051,6 +8148,8 @@ function RightPanel({
   project: ProjectSummary;
   phase4ProviderBlockerPriority: Phase4ProviderBlockerPrioritySummary;
   phase4ProviderCatalogDepth: Phase4ProviderCatalogDepthSummary;
+  phase4ProviderApprovalRecord?: Phase4ProviderApprovalRecord;
+  phase4ProviderApprovalValidation: Phase4ProviderApprovalRecordValidation;
   phase4ProviderTraceability: Phase4ProviderTraceabilitySummary;
   phase4ProviderSurfaceDepth: Phase4ProviderSurfaceDepthSnapshot;
   providerIntegrationReadiness: ProviderIntegrationReadiness;
@@ -8087,6 +8186,7 @@ function RightPanel({
   onRunCodexLiveSmokeProof: () => void;
   onRunCodexLiveControlSmokeProof: () => void;
   onRunCodexTwoPanelSmokeProof: () => void;
+  onClearPhase4ProviderApproval: () => void;
   codexCanStartSession: boolean;
   codexLiveSmokeLoading: boolean;
   codexTwoPanelSmokeLoading: boolean;
@@ -9326,7 +9426,13 @@ function RightPanel({
         readiness={providerIntegrationReadiness}
       />
 
-      <Phase4ProviderSurfaceDepthPanel snapshot={phase4ProviderSurfaceDepth} />
+      <Phase4ProviderSurfaceDepthPanel
+        approvalValidation={phase4ProviderApprovalValidation}
+        onClearApproval={onClearPhase4ProviderApproval}
+        onRecordApproval={onRecordPhase4ProviderApproval}
+        record={phase4ProviderApprovalRecord}
+        snapshot={phase4ProviderSurfaceDepth}
+      />
 
       <Phase4ProviderTraceabilityPanel summary={phase4ProviderTraceability} />
 

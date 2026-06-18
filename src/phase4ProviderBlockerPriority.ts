@@ -35,6 +35,7 @@ export interface Phase4ProviderBlockerPriorityItem {
   readonly label: string;
   readonly kind: Phase4ProviderBlockerPriorityKind;
   readonly status: Phase4ProviderBlockerPriorityState;
+  readonly evidenceKey: string;
   readonly severity: Phase4ProviderBlockerPrioritySeverity;
   readonly priority: number;
   readonly canUseCatalogSmoke: boolean;
@@ -218,6 +219,7 @@ function buildItemFromCatalogRecord(
     label: record.label,
     kind: "provider-catalog",
     status: record.status,
+    evidenceKey: `phase-04-provider-catalog:${record.kind}`,
     severity: severityForState(record.status),
     priority: 0,
     canUseCatalogSmoke: smokeAddressable,
@@ -243,6 +245,7 @@ function refreshSafetyItems(
         label: record.label,
         kind: "refresh-safety",
         status,
+        evidenceKey: `phase-04-refresh-safety:${record.kind}`,
         severity: severityForState(status),
         priority: 0,
         canUseCatalogSmoke: smokeAddressable,
@@ -280,6 +283,7 @@ function buildItemFromSurfaceDepth(
     label: item.label,
     kind: "surface-depth",
     status: item.status,
+    evidenceKey: item.evidenceKey,
     severity: severityForState(item.status),
     priority: 0,
     canUseCatalogSmoke: smokeAddressable,
@@ -309,6 +313,7 @@ function buildItemFromTraceability(
     label: item.label,
     kind: "traceability",
     status: item.status,
+    evidenceKey: `phase-04-traceability:${item.kind}`,
     severity: severityForState(item.status),
     priority: 0,
     canUseCatalogSmoke: smokeAddressable,

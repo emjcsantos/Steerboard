@@ -57,6 +57,7 @@ describe("remaining goal plan", () => {
           phaseIds: ["phase-04-provider-surfaces"],
           pmTaskIds: expect.arrayContaining([
             "phase-04-child-surface-depth",
+            "phase-04-child-approval-record",
             "phase-04-child-traceability",
             "phase-04-child-blocker-priority"
           ])
@@ -310,12 +311,14 @@ describe("remaining goal plan", () => {
         "phase-04-child-plugin-mcp",
         "phase-04-child-catalog-depth",
         "phase-04-child-surface-depth",
+        "phase-04-child-approval-record",
         "phase-04-child-traceability",
         "phase-04-child-blocker-priority",
         "phase-04-child-refresh-safety-depth"
       ])
     );
     expect(phase4Goal?.nextAction).toContain("blocker-priority panels");
+    expect(phase4Goal?.nextAction).toContain("local approval record validation");
     expect(phase4Goal?.nextAction).toContain("owner-visible provider readiness check");
     expect(phase4Goal?.nextAction).toContain("approval, audit, rollback, permission");
   });

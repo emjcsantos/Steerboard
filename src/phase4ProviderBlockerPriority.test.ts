@@ -9,11 +9,19 @@ import {
   buildCatalogRefreshProviderSmoke,
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW
 } from "./catalogRefreshProviderSmoke";
+import {
+  createPhase4ProviderApprovalRecord,
+  derivePhase4ProviderApprovalRecordValidation,
+  type Phase4ProviderApprovalRecordValidation
+} from "./phase4ProviderApprovalRecord";
 import { buildPhase4ProviderBlockerPriority } from "./phase4ProviderBlockerPriority";
 import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
 import { buildPhase4ProviderTraceabilitySummary } from "./phase4ProviderTraceability";
-import { buildPhase4RefreshSafetyDepth } from "./phase4RefreshSafetyDepth";
+import {
+  buildPhase4RefreshSafetyDepth,
+  type Phase4RefreshSafetyDepthSummary
+} from "./phase4RefreshSafetyDepth";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
 
 const surfaces: readonly CatalogSurface[] = [
@@ -97,15 +105,17 @@ function validationFixture(
 
 function priority({
   validation = buildCatalogRefreshOwnerValidation(),
-  smoke = CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW
+  smoke = CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
+  approvalValidation
 }: {
+  approvalValidation?: Phase4ProviderApprovalRecordValidation;
   validation?: CatalogRefreshOwnerValidationResult;
   smoke?: ReturnType<typeof buildCatalogRefreshProviderSmoke>;
 } = {}) {
   const readiness = buildProviderIntegrationReadiness(validation);
   const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
   const refreshSafety = buildPhase4RefreshSafetyDepth(smoke);
-  const surfaceDepth = buildPhase4ProviderSurfaceDepth(readiness);
+  const surfaceDepth = buildPhase4ProviderSurfaceDepth(readiness, approvalValidation);
   const traceability = buildPhase4ProviderTraceabilitySummary({
     catalogDepth,
     refreshSafety,
@@ -117,6 +127,29 @@ function priority({
     refreshSafety,
     surfaceDepth,
     traceability
+  });
+}
+
+const readyRefreshSafety: Phase4RefreshSafetyDepthSummary = {
+  id: "phase-4-refresh-safety-depth",
+  label: "Phase 4 refresh safety depth",
+  records: [],
+  readyCount: 7,
+  previewCount: 0,
+  blockedCount: 0,
+  nextAction: "Keep refresh safety attached.",
+  ariaLabel: "Refresh safety ready."
+};
+
+function readyApprovalValidation(): Phase4ProviderApprovalRecordValidation {
+  return derivePhase4ProviderApprovalRecordValidation({
+    record: createPhase4ProviderApprovalRecord({
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:00:00.000Z"
+    }),
+    expectedCatalogFingerprint: "phase4-catalog-current",
+    refreshSafety: readyRefreshSafety,
+    options: { evaluatedAt: "2026-06-18T10:05:00.000Z" }
   });
 }
 
@@ -187,7 +220,39 @@ describe("phase 4 provider blocker priority", () => {
           label: "Approval gate",
           kind: "surface-depth",
           status: "preview",
+          evidenceKey: "phase-04-surface-depth:approval-gate",
           severity: "medium"
+        })
+      ])
+    );
+  });
+
+  it("moves blocker priority to audit after current approval evidence is attached", () => {
+    const snapshot = priority({
+      approvalValidation: readyApprovalValidation(),
+      validation: validationFixture(),
+      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads)
+    });
+
+    expect(snapshot.state).toBe("preview");
+    expect(snapshot.topPriorityLabel).toBe("Audit gate");
+    expect(snapshot.catalogSmokeCanAddressTopBlocker).toBe(false);
+    expect(snapshot.topPriorityAction).toContain("audit persistence");
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Audit gate",
+          kind: "surface-depth",
+          status: "preview",
+          evidenceKey: "phase-04-surface-depth:audit-gate"
+        })
+      ])
+    );
+    expect(snapshot.items).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Approval gate",
+          status: "preview"
         })
       ])
     );

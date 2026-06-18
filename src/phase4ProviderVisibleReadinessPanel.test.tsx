@@ -1,13 +1,22 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ProviderIntegrationReadinessPanel } from "./App";
+import {
+  Phase4ProviderSurfaceDepthPanel,
+  ProviderIntegrationReadinessPanel
+} from "./App";
 import {
   buildCatalogRefreshOwnerValidation,
   type CatalogRefreshOwnerValidationResult,
   type CatalogRefreshOwnerValidationSurfaceResult,
   type CatalogSurface
 } from "./catalogRefreshOwnerValidation";
+import {
+  createPhase4ProviderApprovalRecord,
+  derivePhase4ProviderApprovalRecordValidation
+} from "./phase4ProviderApprovalRecord";
 import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
+import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
+import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
 
 const surfaces: readonly CatalogSurface[] = [
@@ -57,6 +66,17 @@ function validationFixture(): CatalogRefreshOwnerValidationResult {
   };
 }
 
+const readyRefreshSafety: Phase4RefreshSafetyDepthSummary = {
+  id: "phase-4-refresh-safety-depth",
+  label: "Phase 4 refresh safety depth",
+  records: [],
+  readyCount: 7,
+  previewCount: 0,
+  blockedCount: 0,
+  nextAction: "Keep refresh safety attached.",
+  ariaLabel: "Refresh safety ready."
+};
+
 describe("phase 4 provider visible readiness panel", () => {
   it("renders catalog evidence, execution locks, totals, and next actions for owner review", () => {
     const readiness = buildProviderIntegrationReadiness(validationFixture());
@@ -87,5 +107,39 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("Fallback metadata");
     expect(html).toContain("Resolve setup-required or disconnected rows");
     expect(html).toContain("must not execute commands");
+  });
+
+  it("renders approval record actions and evidence keys without provider execution", () => {
+    const readiness = buildProviderIntegrationReadiness(validationFixture());
+    const record = createPhase4ProviderApprovalRecord({
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:00:00.000Z"
+    });
+    const approvalValidation = derivePhase4ProviderApprovalRecordValidation({
+      record,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      refreshSafety: readyRefreshSafety,
+      options: { evaluatedAt: "2026-06-18T10:05:00.000Z" }
+    });
+    const surfaceDepth = buildPhase4ProviderSurfaceDepth(readiness, approvalValidation);
+    const html = renderToStaticMarkup(
+      <Phase4ProviderSurfaceDepthPanel
+        approvalValidation={approvalValidation}
+        onClearApproval={() => undefined}
+        onRecordApproval={() => undefined}
+        record={record}
+        snapshot={surfaceDepth}
+      />
+    );
+
+    expect(html).toContain("Phase 4 Surface Depth");
+    expect(html).toContain("Approval record");
+    expect(html).toContain("Record approval");
+    expect(html).toContain("Clear approval");
+    expect(html).toContain("phase-04-surface-depth:approval-gate");
+    expect(html).toContain("phase-04-surface-depth:audit-gate");
+    expect(html).toContain("Audit gate");
+    expect(html).toContain("Execution lock");
+    expect(html).toContain("does not execute commands");
   });
 });

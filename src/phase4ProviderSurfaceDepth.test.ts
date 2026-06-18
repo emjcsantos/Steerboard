@@ -5,7 +5,12 @@ import {
   type CatalogRefreshOwnerValidationSurfaceResult,
   type CatalogSurface
 } from "./catalogRefreshOwnerValidation";
+import {
+  createPhase4ProviderApprovalRecord,
+  derivePhase4ProviderApprovalRecordValidation
+} from "./phase4ProviderApprovalRecord";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
+import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
 
 const surfaces: readonly CatalogSurface[] = [
@@ -64,6 +69,17 @@ function depthFromValidation(validation: CatalogRefreshOwnerValidationResult) {
   return buildPhase4ProviderSurfaceDepth(buildProviderIntegrationReadiness(validation));
 }
 
+const readyRefreshSafety: Phase4RefreshSafetyDepthSummary = {
+  id: "phase-4-refresh-safety-depth",
+  label: "Phase 4 refresh safety depth",
+  records: [],
+  readyCount: 7,
+  previewCount: 0,
+  blockedCount: 0,
+  nextAction: "Keep refresh safety attached.",
+  ariaLabel: "Refresh safety ready."
+};
+
 describe("phase 4 provider surface depth", () => {
   it("keeps default fallback catalogs in setup-required review with execution locked", () => {
     const depth = depthFromValidation(buildCatalogRefreshOwnerValidation());
@@ -98,6 +114,40 @@ describe("phase 4 provider surface depth", () => {
     expect(depth.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: "Approval gate", status: "preview" }),
+        expect.objectContaining({ label: "Audit gate", status: "preview" }),
+        expect.objectContaining({ label: "Rollback gate", status: "preview" }),
+        expect.objectContaining({ label: "Permission gate", status: "preview" }),
+        expect.objectContaining({ label: "Execution lock", status: "ready" })
+      ])
+    );
+  });
+
+  it("marks only the approval gate ready when current approval evidence is attached", () => {
+    const readiness = buildProviderIntegrationReadiness(validationFixture());
+    const approvalValidation = derivePhase4ProviderApprovalRecordValidation({
+      record: createPhase4ProviderApprovalRecord({
+        catalogFingerprint: "phase4-catalog-current",
+        createdAt: "2026-06-18T10:00:00.000Z"
+      }),
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      refreshSafety: readyRefreshSafety,
+      options: { evaluatedAt: "2026-06-18T10:05:00.000Z" }
+    });
+    const depth = buildPhase4ProviderSurfaceDepth(readiness, approvalValidation);
+
+    expect(depth.state).toBe("preview");
+    expect(depth.readiness).toBe(90);
+    expect(depth.canEnableExecution).toBe(false);
+    expect(depth.previewCount).toBe(3);
+    expect(depth.nextSurfaceLabel).toBe("Audit gate");
+    expect(depth.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Approval gate",
+          status: "ready",
+          evidenceKey: "phase-04-surface-depth:approval-gate",
+          detail: expect.stringContaining("matches the current catalog fingerprint")
+        }),
         expect.objectContaining({ label: "Audit gate", status: "preview" }),
         expect.objectContaining({ label: "Rollback gate", status: "preview" }),
         expect.objectContaining({ label: "Permission gate", status: "preview" }),

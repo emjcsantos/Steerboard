@@ -156,6 +156,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-04-child-plugin-mcp",
       "phase-04-child-catalog-depth",
       "phase-04-child-surface-depth",
+      "phase-04-child-approval-record",
       "phase-04-child-traceability",
       "phase-04-child-blocker-priority",
       "phase-04-parent-refresh-safety",
@@ -163,7 +164,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-04-child-refresh-safety-depth"
     ],
     nextAction:
-      "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, Surface Depth, traceability, blocker-priority panels, and owner-visible provider readiness check to resolve source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks before provider execution is considered."
+      "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, Surface Depth, local approval record validation, traceability, blocker-priority panels, and owner-visible provider readiness check to resolve source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks before provider execution is considered."
   },
   {
     id: "goal-phase-5-migration-hardening",
