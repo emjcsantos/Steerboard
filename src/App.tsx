@@ -1235,6 +1235,17 @@ function formatTimestamp(value: string): string {
   });
 }
 
+function formatProofFreshnessWindow(valueMs: number): string {
+  const dayMs = 24 * 60 * 60 * 1000;
+  const days = valueMs / dayMs;
+
+  if (Number.isInteger(days)) {
+    return `${days}d`;
+  }
+
+  return `${Math.round(valueMs / (60 * 60 * 1000))}h`;
+}
+
 function codexNotice(decision: CodexTransportDecision): string {
   if (decision.state === "live") {
     return "Codex live transport enabled";
@@ -12382,6 +12393,10 @@ function OwnerTestingReadinessPanel({
             <li className={`owner-testing-phase3-smoke-${phase3SmokeProofReadiness.state}`}>
               <strong>Desktop smoke bundle</strong>
               <span>{phase3SmokeProofReadiness.state}</span>
+              <small title="Current evaluation timestamp and maximum accepted desktop proof age">
+                Evaluated {formatTimestamp(phase3SmokeProofReadiness.evaluatedAt)} | window{" "}
+                {formatProofFreshnessWindow(phase3SmokeProofReadiness.maxProofAgeMs)}
+              </small>
               <small>
                 <button
                   onClick={() => phase3SmokeProofBundleImportInputRef.current?.click()}

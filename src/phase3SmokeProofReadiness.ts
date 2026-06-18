@@ -20,6 +20,8 @@ export interface Phase3SmokeProofReadinessItem {
 export interface Phase3SmokeProofReadinessResult {
   readonly state: Phase3SmokeProofReadinessState;
   readonly readiness: number;
+  readonly evaluatedAt: string;
+  readonly maxProofAgeMs: number;
   readonly items: readonly Phase3SmokeProofReadinessItem[];
   readonly counts: Phase3SmokeProofReadinessCounts;
 }
@@ -105,6 +107,19 @@ function toTimestamp(value: string | Date | undefined): number | undefined {
 
   const timestamp = value instanceof Date ? value.getTime() : Date.parse(value);
   return Number.isFinite(timestamp) ? timestamp : undefined;
+}
+
+function normalizeEvaluatedAt(value: string | Date | undefined): string {
+  if (!value) {
+    return "unavailable";
+  }
+
+  if (value instanceof Date) {
+    return Number.isFinite(value.getTime()) ? value.toISOString() : "unavailable";
+  }
+
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : "unavailable";
 }
 
 function resolveFreshnessDetail(
@@ -405,6 +420,8 @@ export function buildPhase3SmokeProofReadiness(
   return {
     state,
     readiness: READINESS_BY_STATE[state],
+    evaluatedAt: normalizeEvaluatedAt(input.evaluatedAt),
+    maxProofAgeMs,
     items,
     counts
   };

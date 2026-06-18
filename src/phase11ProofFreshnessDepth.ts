@@ -150,12 +150,17 @@ function phase3ClearanceItem(
 function desktopSmokeItem(
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult
 ): Phase11ProofFreshnessDepthItem {
+  const evaluationDetail =
+    phase3SmokeProofReadiness.evaluatedAt === "unavailable"
+      ? "freshness evaluation timestamp unavailable"
+      : `freshness evaluated at ${phase3SmokeProofReadiness.evaluatedAt}`;
+
   return {
     id: `${SNAPSHOT_ID}:desktop-smoke`,
     label: "Desktop smoke proof",
     kind: "desktop-smoke",
     status: phase3SmokeProofReadiness.state,
-    detail: `${phase3SmokeProofReadiness.counts.ready}/3 desktop smoke rows are ready; ${phase3SmokeProofReadiness.counts.review} review, ${phase3SmokeProofReadiness.counts.blocked} blocked, and ${phase3SmokeProofReadiness.counts.waiting} waiting.`,
+    detail: `${phase3SmokeProofReadiness.counts.ready}/3 desktop smoke rows are ready; ${phase3SmokeProofReadiness.counts.review} review, ${phase3SmokeProofReadiness.counts.blocked} blocked, and ${phase3SmokeProofReadiness.counts.waiting} waiting; ${evaluationDetail}.`,
     nextAction:
       phase3SmokeProofReadiness.state === "ready"
         ? "Keep desktop smoke proof rows fresh across reload and while the app remains open."

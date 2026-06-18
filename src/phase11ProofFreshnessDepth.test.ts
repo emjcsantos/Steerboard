@@ -48,6 +48,8 @@ function smoke(
   return {
     state: "ready",
     readiness: 100,
+    evaluatedAt: "2026-06-06T00:01:00.000Z",
+    maxProofAgeMs: 7 * 24 * 60 * 60 * 1000,
     items: [],
     counts: { ready: 3, review: 0, blocked: 0, waiting: 0 },
     ...overrides
@@ -139,6 +141,10 @@ describe("phase 11 proof freshness depth", () => {
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
+          label: "Desktop smoke proof",
+          detail: expect.stringContaining("freshness evaluated at 2026-06-06T00:01:00.000Z")
+        }),
+        expect.objectContaining({
           label: "Owner handoff proof",
           nextAction: expect.stringContaining("current active goal/PM traceability")
         })
@@ -200,7 +206,33 @@ describe("phase 11 proof freshness depth", () => {
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: "Desktop smoke proof", status: "waiting" }),
+        expect.objectContaining({
+          label: "Desktop smoke proof",
+          detail: expect.stringContaining("freshness evaluated at 2026-06-06T00:01:00.000Z")
+        }),
         expect.objectContaining({ label: "Desktop smoke command plan", status: "waiting" })
+      ])
+    );
+  });
+
+  it("surfaces missing desktop smoke freshness evaluation metadata for release review", () => {
+    const result = snapshot({
+      phase3SmokeProofReadiness: smoke({
+        state: "review",
+        readiness: 65,
+        evaluatedAt: "unavailable",
+        counts: { ready: 2, review: 1, blocked: 0, waiting: 0 }
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Desktop smoke proof",
+          status: "review",
+          detail: expect.stringContaining("freshness evaluation timestamp unavailable")
+        })
       ])
     );
   });

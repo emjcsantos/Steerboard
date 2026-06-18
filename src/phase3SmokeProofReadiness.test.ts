@@ -48,6 +48,8 @@ describe("phase 3 smoke proof readiness", () => {
     expect(result.items.map((item) => item.state)).toEqual(["ready", "ready", "ready"]);
     expect(result.items.every((item) => item.source === "desktop")).toBe(true);
     expect(result.items.every((item) => item.persisted)).toBe(true);
+    expect(result.evaluatedAt).toBe("2026-06-06T00:01:00.000Z");
+    expect(result.maxProofAgeMs).toBe(7 * 24 * 60 * 60 * 1000);
   });
 
   it("returns waiting for browser fallback or non-executed proofs", () => {
@@ -173,6 +175,8 @@ describe("phase 3 smoke proof readiness", () => {
       detail: expect.stringContaining("stale")
     });
     expect(result.items[0].detail).toContain("rerun");
+    expect(result.evaluatedAt).toBe("2026-06-20T00:00:00.000Z");
+    expect(result.maxProofAgeMs).toBe(24 * 60 * 60 * 1000);
   });
 
   it("returns review when a ready desktop proof is dated after the current evaluation", () => {
@@ -216,6 +220,7 @@ describe("phase 3 smoke proof readiness", () => {
       state: "review",
       detail: expect.stringContaining("dated after the current evaluation timestamp")
     });
+    expect(result.evaluatedAt).toBe("2026-06-06T00:01:00.000Z");
   });
 
   it("returns review when ready desktop proofs cannot be freshness-checked", () => {
@@ -254,6 +259,8 @@ describe("phase 3 smoke proof readiness", () => {
       waiting: 0
     });
     expect(result.items.every((item) => item.detail.includes("freshness-checked"))).toBe(true);
+    expect(result.evaluatedAt).toBe("unavailable");
+    expect(result.maxProofAgeMs).toBe(7 * 24 * 60 * 60 * 1000);
   });
 
   it("returns review when otherwise ready desktop proofs are not storage-attested", () => {

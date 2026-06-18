@@ -77,6 +77,8 @@ function smokeProof(
   return {
     state: "ready",
     readiness: 100,
+    evaluatedAt: "2026-06-06T00:01:00.000Z",
+    maxProofAgeMs: 7 * 24 * 60 * 60 * 1000,
     items: [],
     counts: { ready: 3, review: 0, blocked: 0, waiting: 0 },
     ...overrides
