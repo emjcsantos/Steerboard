@@ -266,6 +266,56 @@ describe("phase 3 clearance traceability", () => {
     );
   });
 
+  it("carries handoff snapshot mismatch detail into traceability", () => {
+    const result = snapshot({
+      handoffGate: handoff({
+        state: "review",
+        statusLabel: "Review",
+        canAdvanceProviderIntegration: false,
+        reviewCount: 2,
+        nextAction:
+          "Clear and record the Phase 3 handoff again from the current clearance snapshot.",
+        items: [
+          {
+            id: "phase-3-handoff-gate:handoff-record",
+            label: "Owner handoff record",
+            kind: "handoff-record",
+            status: "review",
+            detail:
+              "Owner handoff record snapshot no longer matches current Phase 3 clearance readiness or blocker evidence.",
+            nextAction:
+              "Clear and record the Phase 3 handoff again from the current clearance snapshot."
+          },
+          {
+            id: "phase-3-handoff-gate:provider-boundary",
+            label: "Provider boundary",
+            kind: "provider-boundary",
+            status: "review",
+            detail:
+              "Provider integration remains held because Owner handoff record snapshot no longer matches current Phase 3 clearance readiness or blocker evidence.",
+            nextAction:
+              "Clear and record the Phase 3 handoff again from the current clearance snapshot."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustTrace).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "handoff-boundary",
+          status: "review",
+          detail: expect.stringContaining("snapshot no longer matches current Phase 3 clearance")
+        })
+      ])
+    );
+    expect(result.nextAction).toBe(
+      "Clear and record the Phase 3 handoff again from the current clearance snapshot."
+    );
+  });
+
   it("keeps trace untrusted when CLI validation freshness needs review", () => {
     const result = snapshot({
       commandValidation: commandValidation({

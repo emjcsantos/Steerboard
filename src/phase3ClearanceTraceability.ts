@@ -295,6 +295,15 @@ function commandValidationItem(
   };
 }
 
+function handoffGateReviewDetail(handoffGate: Phase3HandoffGate): string | undefined {
+  return (
+    handoffGate.items.find((item) => item.kind === "provider-boundary" && item.status === "review")
+      ?.detail ??
+    handoffGate.items.find((item) => item.kind === "handoff-record" && item.status === "review")
+      ?.detail
+  );
+}
+
 function handoffBoundaryItem(
   clearancePackage: Phase3ClearancePackage,
   handoffGate: Phase3HandoffGate
@@ -331,7 +340,10 @@ function handoffBoundaryItem(
         : handoffGate.state,
     detail: clearancePackage.canExit
       ? handoffGate.state === "review"
-        ? "Clearance is exit-ready, but the owner handoff record does not match current evidence."
+        ? publicText(
+            handoffGateReviewDetail(handoffGate),
+            "Clearance is exit-ready, but the owner handoff record does not match current evidence."
+          )
         : "Clearance is exit-ready, but the owner handoff record is not attached yet."
       : "Provider integration remains held behind Phase 3 clearance.",
     nextAction: handoffGate.nextAction
