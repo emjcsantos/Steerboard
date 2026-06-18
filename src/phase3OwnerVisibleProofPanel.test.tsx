@@ -24,6 +24,10 @@ import {
   type Phase3OwnerHandoffRecord
 } from "./phase3HandoffRecord";
 import {
+  buildPhase3ProofExportArtifact,
+  verifyPhase3ProofExportArtifact
+} from "./phase3ProofExport";
+import {
   loadPhase3SessionControlEvidenceByPanel,
   loadPhase3SlashEvidenceByPanel,
   savePhase3SessionControlEvidenceByPanel,
@@ -36,7 +40,8 @@ import {
 import { buildPhase3SmokeProofReadiness } from "./phase3SmokeProofReadiness";
 import {
   createPhase3SmokeProofFingerprint,
-  PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE
+  PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE,
+  type Phase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
 import { buildPhasePriorityEvidence } from "./phasePriorityEvidence";
 import { buildSessionControlReadinessEvidence } from "./sessionControlReadinessEvidence";
@@ -307,6 +312,21 @@ function buildReadyPhase3Props(input: {
     blockerPriority: phase3ClearanceBlockerPriority,
     handoffGate: phase3HandoffGate
   });
+  const phase3ProofExportVerification = verifyPhase3ProofExportArtifact(
+    buildPhase3ProofExportArtifact({
+      currentPanelId: focusedPanelId,
+      evaluatedAt,
+      exportedAt: evaluatedAt,
+      handoffEvidenceFingerprint: expectedFingerprint,
+      slashEvidenceByPanel: loadedSlashEvidenceByPanel,
+      sessionControlEvidenceByPanel: loadedSessionControlEvidenceByPanel,
+      smokeProofBundle: bundle as Phase3SmokeProofBundle,
+      persistedDesktopProofs,
+      commandValidationRecord: phase3CommandValidationRecord,
+      ownerHandoffRecord: phase3OwnerHandoffRecord
+    }),
+    { verifiedAt: evaluatedAt }
+  );
   const failureFixtures = buildFailureStateFixtures();
 
   return {
@@ -325,6 +345,7 @@ function buildReadyPhase3Props(input: {
     phase3CommandValidationRecord,
     phase3CommandValidationRecordValidation,
     phase3OwnerHandoffRecord,
+    phase3ProofExportVerification,
     phase3OwnerTestingActions: phase3OwnerTestingDisplayActions,
     phase3SmokeProofReadiness,
     sessionControlReadinessEvidence:
@@ -349,6 +370,7 @@ function renderOwnerTestingReadinessPanel(props: OwnerVisiblePhase3Props) {
       codexTwoPanelSmokeLoading={false}
       onClearPhase3CommandValidation={() => undefined}
       onClearPhase3OwnerHandoff={() => undefined}
+      onExportPhase3ProofArtifact={() => undefined}
       onImportPhase3CommandValidation={() => undefined}
       onImportPhase3SmokeProofBundle={() => undefined}
       onRecordPhase3CommandValidation={() => undefined}
@@ -604,6 +626,11 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Traceability boundary");
     expect(html).toContain("Owner handoff record");
     expect(html).toContain("Provider boundary");
+    expect(html).toContain("Phase 3 proof export");
+    expect(html).toContain("Export proof");
+    expect(html).toContain("Panel proof 2/2");
+    expect(html).toContain("CLI attached");
+    expect(html).toContain("Handoff attached");
     expect(html).toContain("Record handoff");
     expect(html).toContain("Clear record");
     expect(html).toContain("phase3-smoke-record:2026-06-18T07:57:30.551Z");

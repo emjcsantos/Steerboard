@@ -438,6 +438,12 @@ import {
   shouldSavePhase3PanelEvidence
 } from "./phase3PanelEvidenceStorage";
 import {
+  buildPhase3ProofExportArtifact,
+  serializePhase3ProofExportArtifact,
+  verifyPhase3ProofExportArtifact,
+  type Phase3ProofExportVerification
+} from "./phase3ProofExport";
+import {
   buildPhase3SmokeProofReadiness,
   type Phase3SmokeProofReadinessResult
 } from "./phase3SmokeProofReadiness";
@@ -2462,6 +2468,45 @@ export function App() {
       phase3ProofEvaluationTime
     ]
   );
+  const phase3ProofExportArtifact = useMemo(
+    () =>
+      buildPhase3ProofExportArtifact({
+        currentPanelId: focusedPanelId,
+        evaluatedAt: phase3ProofEvaluationTime,
+        exportedAt: phase3ProofEvaluationTime,
+        handoffEvidenceFingerprint: phase3HandoffEvidenceFingerprint,
+        slashEvidenceByPanel: slashCommandExecutionEvidenceByPanel,
+        sessionControlEvidenceByPanel: sessionControlReadinessEvidenceByPanel,
+        smokeProofBundle: {
+          liveControlSmoke: codexLiveControlSmokeProof,
+          activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
+          activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof
+        },
+        persistedDesktopProofs: phase3PersistedDesktopProofs,
+        commandValidationRecord: phase3CommandValidationRecord,
+        ownerHandoffRecord: phase3OwnerHandoffRecord
+      }),
+    [
+      codexActiveTurnControlSmokeProof,
+      codexActiveTurnSteerSmokeProof,
+      codexLiveControlSmokeProof,
+      focusedPanelId,
+      phase3CommandValidationRecord,
+      phase3HandoffEvidenceFingerprint,
+      phase3OwnerHandoffRecord,
+      phase3PersistedDesktopProofs,
+      phase3ProofEvaluationTime,
+      sessionControlReadinessEvidenceByPanel,
+      slashCommandExecutionEvidenceByPanel
+    ]
+  );
+  const phase3ProofExportVerification = useMemo(
+    () =>
+      verifyPhase3ProofExportArtifact(phase3ProofExportArtifact, {
+        verifiedAt: phase3ProofEvaluationTime
+      }),
+    [phase3ProofExportArtifact, phase3ProofEvaluationTime]
+  );
   const phase3HandoffRecordState = useMemo(
     () =>
       derivePhase3HandoffRecordState(
@@ -2579,6 +2624,51 @@ export function App() {
       setAppNotice
     });
   }, []);
+  const exportPhase3ProofArtifact = useCallback(() => {
+    const now = new Date().toISOString();
+    const artifact = buildPhase3ProofExportArtifact({
+      currentPanelId: focusedPanelId,
+      evaluatedAt: phase3ProofEvaluationTime,
+      exportedAt: now,
+      handoffEvidenceFingerprint: phase3HandoffEvidenceFingerprint,
+      slashEvidenceByPanel: slashCommandExecutionEvidenceByPanel,
+      sessionControlEvidenceByPanel: sessionControlReadinessEvidenceByPanel,
+      smokeProofBundle: {
+        liveControlSmoke: codexLiveControlSmokeProof,
+        activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
+        activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof
+      },
+      persistedDesktopProofs: phase3PersistedDesktopProofs,
+      commandValidationRecord: phase3CommandValidationRecord,
+      ownerHandoffRecord: phase3OwnerHandoffRecord
+    });
+    const serializedArtifact = serializePhase3ProofExportArtifact(artifact);
+    const verification = verifyPhase3ProofExportArtifact(artifact, { verifiedAt: now });
+
+    if (typeof document !== "undefined" && typeof URL !== "undefined" && typeof Blob !== "undefined") {
+      const blob = new Blob([serializedArtifact], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `phase3-proof-export-${now.replace(/[:.]/g, "-")}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+
+    setAppNotice(`Phase 3 proof export ${verification.statusLabel}: ${verification.detail}`);
+  }, [
+    codexActiveTurnControlSmokeProof,
+    codexActiveTurnSteerSmokeProof,
+    codexLiveControlSmokeProof,
+    focusedPanelId,
+    phase3CommandValidationRecord,
+    phase3HandoffEvidenceFingerprint,
+    phase3OwnerHandoffRecord,
+    phase3PersistedDesktopProofs,
+    phase3ProofEvaluationTime,
+    sessionControlReadinessEvidenceByPanel,
+    slashCommandExecutionEvidenceByPanel
+  ]);
   const clearPhase3CommandValidation = useCallback(() => {
     const now = new Date().toISOString();
 
@@ -4312,6 +4402,7 @@ export function App() {
             modeHandoffQa={cockpitModeHandoffQa}
             mockRuns={projectMockRuns}
             onRecordWorkerValidationAttempt={handleWorkerValidationAttempt}
+            onExportPhase3ProofArtifact={exportPhase3ProofArtifact}
             onRecordPhase3OwnerHandoff={recordPhase3OwnerHandoff}
             onClearPhase3OwnerHandoff={clearPhase3OwnerHandoff}
             onRecordPhase3CommandValidation={recordPhase3CommandValidation}
@@ -4355,6 +4446,7 @@ export function App() {
             phase3OwnerHandoffRecord={phase3OwnerHandoffRecord}
             phase3CommandValidationRecord={phase3CommandValidationRecord}
             phase3CommandValidationRecordValidation={phase3CommandValidationRecordValidation}
+            phase3ProofExportVerification={phase3ProofExportVerification}
             phase3OwnerTestingActions={phase3OwnerTestingDisplayActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
             phase11EvidenceEvaluationTime={phase11EvidenceEvaluationTime}
@@ -8474,6 +8566,7 @@ function RightPanel({
   onClearPhase3CommandValidation,
   onClearPhase3OwnerHandoff,
   onClearPhase11EvidenceRecord,
+  onExportPhase3ProofArtifact,
   onImportPhase3CommandValidation,
   onImportPhase3SmokeProofBundle,
   onImportPhase11EvidenceRecords,
@@ -8519,6 +8612,7 @@ function RightPanel({
   phase3CommandValidationRecord,
   phase3CommandValidationRecordValidation,
   phase3OwnerHandoffRecord,
+  phase3ProofExportVerification,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
   phase11EvidenceEvaluationTime,
@@ -8560,6 +8654,7 @@ function RightPanel({
   onClearPhase3CommandValidation: () => void;
   onClearPhase3OwnerHandoff: () => void;
   onClearPhase11EvidenceRecord: (gate: Phase11EvidenceGate) => void;
+  onExportPhase3ProofArtifact: () => void;
   onImportPhase3CommandValidation: (serializedRecord: string) => void;
   onImportPhase3SmokeProofBundle: (serializedBundle: string) => void;
   onImportPhase11EvidenceRecords: (serializedRecords: string) => void;
@@ -8609,6 +8704,7 @@ function RightPanel({
   phase3CommandValidationRecord?: Phase3CommandValidationRecord;
   phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation;
   phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
+  phase3ProofExportVerification: Phase3ProofExportVerification;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   phase11EvidenceEvaluationTime: string;
@@ -9910,8 +10006,10 @@ function RightPanel({
         phase3CommandValidationRecord={phase3CommandValidationRecord}
         phase3CommandValidationRecordValidation={phase3CommandValidationRecordValidation}
         phase3OwnerHandoffRecord={phase3OwnerHandoffRecord}
+        phase3ProofExportVerification={phase3ProofExportVerification}
         phase3OwnerTestingActions={phase3OwnerTestingActions}
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
+        onExportPhase3ProofArtifact={onExportPhase3ProofArtifact}
         onRecordPhase3CommandValidation={onRecordPhase3CommandValidation}
         onImportPhase3CommandValidation={onImportPhase3CommandValidation}
         onImportPhase3SmokeProofBundle={onImportPhase3SmokeProofBundle}
@@ -12314,8 +12412,10 @@ export function OwnerTestingReadinessPanel({
   phase3CommandValidationRecord,
   phase3CommandValidationRecordValidation,
   phase3OwnerHandoffRecord,
+  phase3ProofExportVerification,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
+  onExportPhase3ProofArtifact,
   onRecordPhase3CommandValidation,
   onClearPhase3CommandValidation,
   onImportPhase3CommandValidation,
@@ -12348,8 +12448,10 @@ export function OwnerTestingReadinessPanel({
   phase3CommandValidationRecord?: Phase3CommandValidationRecord;
   phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation;
   phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
+  phase3ProofExportVerification: Phase3ProofExportVerification;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
+  onExportPhase3ProofArtifact: () => void;
   onRecordPhase3CommandValidation: () => void;
   onImportPhase3CommandValidation: (serializedRecord: string) => void;
   onImportPhase3SmokeProofBundle: (serializedBundle: string) => void;
@@ -13223,6 +13325,29 @@ export function OwnerTestingReadinessPanel({
                   ? `Recorded ${formatTimestamp(phase3OwnerHandoffRecord.createdAt)}`
                   : "No handoff record"}
               </span>
+            </div>
+            <div
+              className={`owner-testing-phase3-proof-export owner-testing-phase3-proof-export-${phase3ProofExportVerification.state}`}
+              aria-label={`Phase 3 proof export verifier ${phase3ProofExportVerification.statusLabel}; ${phase3ProofExportVerification.readiness}% ready`}
+              title={phase3ProofExportVerification.detail}
+            >
+              <strong>Phase 3 proof export</strong>
+              <span>{phase3ProofExportVerification.statusLabel}</span>
+              <small>{phase3ProofExportVerification.detail}</small>
+              <small>
+                Panel proof {phase3ProofExportVerification.readyPanelEvidenceCount}/2 | Desktop{" "}
+                {phase3ProofExportVerification.storageAttestedDesktopProofCount}/3 | CLI{" "}
+                {phase3ProofExportVerification.hasCommandValidationRecord ? "attached" : "missing"} | Handoff{" "}
+                {phase3ProofExportVerification.hasOwnerHandoffRecord ? "attached" : "missing"}
+              </small>
+              <button
+                onClick={onExportPhase3ProofArtifact}
+                title="Export a Phase 3 proof package for offline owner review without running live actions."
+                type="button"
+              >
+                <ClipboardList size={12} />
+                <span>Export proof</span>
+              </button>
             </div>
             <ol
               className="owner-testing-phase3-handoff-list"
