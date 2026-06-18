@@ -550,6 +550,11 @@ describe("phase 11 release readiness", () => {
         })
       ])
     );
+    const releaseDecision = result.items.find((item) => item.label === "Release decision");
+    expect(releaseDecision?.detail).toContain("Top prerequisite row: Fresh checkout is review");
+    expect(releaseDecision?.detail).toContain(
+      "Fresh-checkout install, test, build, desktop run, and proof-panel evidence"
+    );
   });
 
   it("does not recommend release without fresh structured release-decision evidence", () => {

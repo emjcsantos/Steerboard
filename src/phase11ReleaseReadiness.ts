@@ -524,12 +524,26 @@ function releaseDecisionItem(
   }
 
   if (prerequisiteState) {
+    const topPrerequisiteItem =
+      prerequisiteItems.find((item) => item.status === "blocked") ??
+      prerequisiteItems.find((item) => item.status === "review") ??
+      prerequisiteItems.find((item) => item.status === "waiting");
+    const topPrerequisiteDetail = topPrerequisiteItem
+      ? ` Top prerequisite row: ${publicText(
+          topPrerequisiteItem.label,
+          "Release readiness prerequisite"
+        )} is ${topPrerequisiteItem.status}; ${publicText(
+          topPrerequisiteItem.detail,
+          topPrerequisiteItem.nextAction
+        )}`
+      : "";
+
     return {
       id: `${SNAPSHOT_ID}:release-decision`,
       label: "Release decision",
       kind: "release-decision",
       status: prerequisiteState,
-      detail: "Release decision is held until all prerequisite evidence rows are ready.",
+      detail: `Release decision is held until all prerequisite evidence rows are ready.${topPrerequisiteDetail}`,
       nextAction:
         prerequisiteState === "waiting"
           ? "Record missing release readiness evidence before making the release decision."
