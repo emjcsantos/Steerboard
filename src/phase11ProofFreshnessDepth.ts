@@ -181,11 +181,19 @@ function desktopSmokeItem(
     label: "Desktop smoke proof",
     kind: "desktop-smoke",
     status: phase3SmokeProofReadiness.state,
-    detail: `${phase3SmokeProofReadiness.counts.ready}/3 desktop smoke rows are ready; ${phase3SmokeProofReadiness.counts.review} review, ${phase3SmokeProofReadiness.counts.blocked} blocked, and ${phase3SmokeProofReadiness.counts.waiting} waiting; ${evaluationDetail}.`,
+    detail:
+      `${phase3SmokeProofReadiness.counts.ready}/3 desktop smoke rows are ready; ` +
+      `${phase3SmokeProofReadiness.counts.review} review, ` +
+      `${phase3SmokeProofReadiness.counts.blocked} blocked, and ` +
+      `${phase3SmokeProofReadiness.counts.waiting} waiting; ` +
+      `${phase3SmokeProofReadiness.storageAttestedCount}/3 storage-proof attested, ` +
+      `${phase3SmokeProofReadiness.storageReviewCount} storage review; ${evaluationDetail}.`,
     nextAction:
       phase3SmokeProofReadiness.state === "ready"
-        ? "Keep desktop smoke proof rows fresh across reload and while the app remains open."
-        : "Use the Phase 3 command plan to refresh only the missing desktop smoke rows."
+        ? "Keep desktop smoke proof rows fresh and storage-proof attested across reload and while the app remains open."
+        : phase3SmokeProofReadiness.storageReviewCount > 0
+          ? "Import or rerun desktop smoke proof rows until each required row is storage-proof attested."
+          : "Use the Phase 3 command plan to refresh only the missing desktop smoke rows."
   };
 }
 

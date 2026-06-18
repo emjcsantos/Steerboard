@@ -167,6 +167,10 @@ describe("phase 11 proof freshness depth", () => {
           detail: expect.stringContaining("freshness evaluated at 2026-06-06T00:01:00.000Z")
         }),
         expect.objectContaining({
+          label: "Desktop smoke proof",
+          detail: expect.stringContaining("3/3 storage-proof attested")
+        }),
+        expect.objectContaining({
           label: "Owner handoff proof",
           nextAction: expect.stringContaining("current active goal/PM traceability")
         })
@@ -214,6 +218,8 @@ describe("phase 11 proof freshness depth", () => {
       phase3SmokeProofReadiness: smoke({
         state: "waiting",
         readiness: 35,
+        storageAttestedCount: 1,
+        storageReviewCount: 2,
         counts: { ready: 1, review: 0, blocked: 0, waiting: 2 }
       }),
       phase3ClearanceCommandPlan: commandPlan({
@@ -228,7 +234,7 @@ describe("phase 11 proof freshness depth", () => {
 
     expect(result.state).toBe("waiting");
     expect(result.canTrustOwnerProof).toBe(false);
-    expect(result.nextAction).toContain("Use the Phase 3 command plan");
+    expect(result.nextAction).toContain("storage-proof attested");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: "Desktop smoke proof", status: "waiting" }),
@@ -236,8 +242,35 @@ describe("phase 11 proof freshness depth", () => {
           label: "Desktop smoke proof",
           detail: expect.stringContaining("freshness evaluated at 2026-06-06T00:01:00.000Z")
         }),
+        expect.objectContaining({
+          label: "Desktop smoke proof",
+          detail: expect.stringContaining("1/3 storage-proof attested, 2 storage review")
+        }),
         expect.objectContaining({ label: "Desktop smoke command plan", status: "waiting" })
       ])
+    );
+  });
+
+  it("keeps release proof in review when desktop smoke rows are not storage-attested", () => {
+    const result = snapshot({
+      phase3SmokeProofReadiness: smoke({
+        state: "review",
+        readiness: 65,
+        storageAttestedCount: 2,
+        storageReviewCount: 1,
+        counts: { ready: 2, review: 1, blocked: 0, waiting: 0 }
+      })
+    });
+    const desktopSmoke = result.items.find((item) => item.label === "Desktop smoke proof");
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerProof).toBe(false);
+    expect(result.nextAction).toBe(
+      "Import or rerun desktop smoke proof rows until each required row is storage-proof attested."
+    );
+    expect(desktopSmoke?.detail).toContain("2/3 storage-proof attested, 1 storage review");
+    expect(desktopSmoke?.nextAction).toBe(
+      "Import or rerun desktop smoke proof rows until each required row is storage-proof attested."
     );
   });
 
