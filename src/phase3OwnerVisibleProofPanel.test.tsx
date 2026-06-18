@@ -632,6 +632,15 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Desktop proof clearance");
     expect(html).toContain("Exact blocker visibility");
     expect(html).toContain("Traceability boundary");
+    expect(html).toContain("goal-phase-3-proof-clearance");
+    expect(html).toContain("PM Rows");
+    expect(html).toContain("11/11");
+    expect(html).toContain(
+      "All required Phase 3 Epic, Parent, and Child rows are linked to the current active goal."
+    );
+    expect(html).toContain(
+      "Keep all required Phase 3 PM rows linked to the current active goal."
+    );
     expect(html).toContain("Owner handoff record");
     expect(html).toContain("Provider boundary");
     expect(html).toContain("Phase 3 proof export");
