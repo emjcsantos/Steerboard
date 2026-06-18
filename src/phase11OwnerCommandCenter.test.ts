@@ -359,6 +359,135 @@ describe("phase 11 owner command center", () => {
     );
   });
 
+  it("keeps release held when Phase 1/2/6 priority proof is blocked despite ready proof freshness", () => {
+    const result = snapshot({
+      phasePriorityEvidence: phasePriority({
+        state: "blocked",
+        readiness: 72,
+        statusLabel: "Blocked",
+        detail: "Priority proof has one blocked row.",
+        counts: { ready: 2, review: 0, blocked: 1, waiting: 0 },
+        items: [
+          {
+            id: "phase-6-pm-board",
+            label: "Phase 6 PM phase board",
+            state: "blocked",
+            readiness: 15,
+            detail: "Project Management board cannot stage a child row.",
+            nextAction: "Repair PM child staging before release readiness."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.canRelease).toBe(false);
+    expect(result.nextAction).toBe("Repair PM child staging before release readiness.");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Phase 1/2/6 priority proof",
+          status: "blocked",
+          detail: expect.stringContaining("Priority proof has one blocked row"),
+          nextAction: "Repair PM child staging before release readiness."
+        }),
+        expect.objectContaining({
+          label: "Proof freshness",
+          status: "ready"
+        })
+      ])
+    );
+  });
+
+  it("keeps release held when Phase 3 clearance is blocked despite ready proof freshness", () => {
+    const result = snapshot({
+      phase3ClearancePackage: phase3Clearance({
+        state: "blocked",
+        statusLabel: "Blocked",
+        readiness: 84,
+        canExit: false,
+        openCount: 1,
+        blockerCount: 1,
+        reviewCount: 0,
+        waitingCount: 0,
+        blockers: [
+          {
+            id: "phase3-exit-gate:slash-execution",
+            label: "Slash execution",
+            state: "blocked",
+            detail: "Provider-routed slash execution evidence is blocked.",
+            nextAction: "Refresh slash execution evidence from the current Arena panel transcript.",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
+          }
+        ],
+        nextAction: "Refresh slash execution evidence from the current Arena panel transcript."
+      })
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.canRelease).toBe(false);
+    expect(result.nextAction).toBe(
+      "Refresh slash execution evidence from the current Arena panel transcript."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Phase 3 clearance",
+          status: "blocked",
+          detail: expect.stringContaining("phase-03-child-slash-ready / phase3.slash-execution"),
+          nextAction: "Refresh slash execution evidence from the current Arena panel transcript."
+        }),
+        expect.objectContaining({
+          label: "Proof freshness",
+          status: "ready"
+        })
+      ])
+    );
+  });
+
+  it("keeps release held when Phase 3 desktop smoke proof is stale despite ready proof freshness", () => {
+    const result = snapshot({
+      phase3SmokeProofReadiness: smokeProof({
+        state: "review",
+        readiness: 65,
+        counts: { ready: 2, review: 1, blocked: 0, waiting: 0 },
+        items: [
+          {
+            proof: "active-turn-steer",
+            label: "Active-turn steer desktop smoke proof",
+            state: "review",
+            source: "desktop",
+            checkedAt: "2026-06-01T00:00:00.000Z",
+            persisted: true,
+            detail: "Active-turn steer desktop smoke proof is stale."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRelease).toBe(false);
+    expect(result.nextAction).toBe(
+      "Refresh Phase 3 desktop smoke proof for Active-turn steer desktop smoke proof before release readiness."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Phase 3 desktop smoke proof",
+          status: "review",
+          detail: expect.stringContaining("Active-turn steer desktop smoke proof is stale"),
+          nextAction:
+            "Refresh Phase 3 desktop smoke proof for Active-turn steer desktop smoke proof before release readiness."
+        }),
+        expect.objectContaining({
+          label: "Proof freshness",
+          status: "ready"
+        })
+      ])
+    );
+  });
+
   it("keeps release held when proof freshness depth is waiting on handoff proof", () => {
     const result = snapshot({
       proofFreshnessDepth: proofFreshnessDepth({

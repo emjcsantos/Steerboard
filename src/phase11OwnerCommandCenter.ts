@@ -14,6 +14,9 @@ export type Phase11OwnerCommandCenterState = "ready" | "review" | "blocked" | "w
 
 export type Phase11OwnerCommandCenterItemKind =
   | "checklist"
+  | "phase-priority-proof"
+  | "phase3-clearance"
+  | "phase3-smoke-proof"
   | "proof-freshness"
   | "blockers"
   | "phase-readiness"
@@ -202,6 +205,67 @@ function checklistItem(checklist: OwnerTestingChecklist): Phase11OwnerCommandCen
   };
 }
 
+function firstPhasePriorityAction(input: PhasePriorityEvidenceResult): string {
+  return (
+    input.items.find((item) => item.state === "blocked")?.nextAction ??
+    input.items.find((item) => item.state === "review")?.nextAction ??
+    input.items.find((item) => item.state === "waiting")?.nextAction ??
+    "Keep Phase 1/2/6 priority proof attached while publishing remains owner-held."
+  );
+}
+
+function phasePriorityItem(input: PhasePriorityEvidenceResult): Phase11OwnerCommandCenterItem {
+  return {
+    id: `${SNAPSHOT_ID}:phase-priority-proof`,
+    label: "Phase 1/2/6 priority proof",
+    kind: "phase-priority-proof",
+    status: input.state,
+    detail: `${input.counts.ready} priority row${input.counts.ready === 1 ? "" : "s"} ready; ${input.counts.review} review, ${input.counts.blocked} blocked, and ${input.counts.waiting} waiting. ${publicText(input.detail, "Phase 1/2/6 priority proof needs review.")}`,
+    nextAction: publicText(firstPhasePriorityAction(input), "Review Phase 1/2/6 priority proof before release readiness.")
+  };
+}
+
+function phase3ClearanceItem(input: Phase3ClearancePackage): Phase11OwnerCommandCenterItem {
+  const topBlocker = input.blockers[0];
+  const blockerDetail = topBlocker
+    ? ` Top blocker: ${publicText(topBlocker.label, "Phase 3 blocker")} (${publicText(topBlocker.pmTaskId, "unknown PM row")} / ${publicText(topBlocker.evidenceKey, "unknown evidence key")}) is ${topBlocker.state}; ${publicText(topBlocker.detail, topBlocker.nextAction)}`
+    : "";
+
+  return {
+    id: `${SNAPSHOT_ID}:phase3-clearance`,
+    label: "Phase 3 clearance",
+    kind: "phase3-clearance",
+    status: input.state,
+    detail: `${input.readyCount} clearance row${input.readyCount === 1 ? "" : "s"} ready; ${input.openCount} open, ${input.reviewCount} review, ${input.blockerCount} blocked, and ${input.waitingCount} waiting.${blockerDetail}`,
+    nextAction: publicText(input.nextAction, "Clear Phase 3 desktop proof before release readiness.")
+  };
+}
+
+function phase3SmokeProofItem(input: Phase3SmokeProofReadinessResult): Phase11OwnerCommandCenterItem {
+  const topProof =
+    input.items.find((item) => item.state === "blocked") ??
+    input.items.find((item) => item.state === "review") ??
+    input.items.find((item) => item.state === "waiting");
+  const proofDetail = topProof
+    ? ` Top proof: ${publicText(topProof.label, "Phase 3 smoke proof")} is ${topProof.state}; source ${publicText(topProof.source, "unknown")}; persisted ${topProof.persisted ? "yes" : "no"}; ${publicText(topProof.detail, "Phase 3 smoke proof needs review.")}`
+    : " All desktop smoke proof rows are ready.";
+  const nextAction =
+    input.state === "ready"
+      ? "Keep Phase 3 desktop smoke proof rows fresh and persisted before release readiness."
+      : topProof
+        ? `Refresh Phase 3 desktop smoke proof for ${publicText(topProof.label, "the top smoke proof row")} before release readiness.`
+        : "Refresh Phase 3 desktop smoke proof before release readiness.";
+
+  return {
+    id: `${SNAPSHOT_ID}:phase3-smoke-proof`,
+    label: "Phase 3 desktop smoke proof",
+    kind: "phase3-smoke-proof",
+    status: input.state,
+    detail: `${input.counts.ready} smoke row${input.counts.ready === 1 ? "" : "s"} ready; ${input.counts.review} review, ${input.counts.blocked} blocked, and ${input.counts.waiting} waiting; evaluated at ${publicText(input.evaluatedAt, "unavailable")}. ${proofDetail}`,
+    nextAction
+  };
+}
+
 function proofFreshnessItem(input: Phase11OwnerCommandCenterInput): Phase11OwnerCommandCenterItem {
   const proofDepth = input.proofFreshnessDepth;
 
@@ -378,6 +442,9 @@ export function buildPhase11OwnerCommandCenterSnapshot(
 ): Phase11OwnerCommandCenterSnapshot {
   const items = [
     checklistItem(input.checklist),
+    phasePriorityItem(input.phasePriorityEvidence),
+    phase3ClearanceItem(input.phase3ClearancePackage),
+    phase3SmokeProofItem(input.phase3SmokeProofReadiness),
     proofFreshnessItem(input),
     blockersItem(input),
     phaseReadinessItem(input.remainingGoalSummary),
