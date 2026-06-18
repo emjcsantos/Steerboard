@@ -292,6 +292,10 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("Desktop terminal read-only probe executed through the approved runner contract");
     expect(html).toContain("Phase 9 remains limited to terminal-readonly-probe");
     expect(html).toContain("broad terminal, Git, MCP, plugin, automation, runtime, profile, and external-service mutation paths stay locked");
+    expect(html).toContain("Owner action");
+    expect(html).toContain(
+      "phase-09-runner-traceability:active-goal / traceability / waiting"
+    );
     expect(html).toContain("Clear");
   });
 
