@@ -927,7 +927,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-11-child-traceability",
             title: "Owner Release Traceability",
             description: "Link Owner Testing command gates, proof freshness depth, current active Phase 3 clearance PM traceability and handoff proof, evidence records, release readiness, final security closure capability, required PM rows, and packaging holds before release review can be trusted.",
-            completionPercent: 35,
+            completionPercent: 40,
             complexity: "high",
             sourceDocument: "Phase 11 owner release traceability"
           },

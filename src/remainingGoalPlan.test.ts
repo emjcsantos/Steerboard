@@ -460,7 +460,7 @@ describe("remaining goal plan", () => {
       target: "Release readiness pass",
       priority: "high",
       status: "next",
-      completionPercent: 35
+      completionPercent: 40
     });
     expect(releaseGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
