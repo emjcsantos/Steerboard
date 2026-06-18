@@ -460,7 +460,7 @@ describe("remaining goal plan", () => {
       target: "Release readiness pass",
       priority: "high",
       status: "next",
-      completionPercent: 45
+      completionPercent: 50
     });
     expect(releaseGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -479,6 +479,7 @@ describe("remaining goal plan", () => {
     expect(releaseGoal?.nextAction).toContain("owner release traceability");
     expect(releaseGoal?.nextAction).toContain("blocker-priority panels");
     expect(releaseGoal?.nextAction).toContain("owner-visible Phase 11 proof");
+    expect(releaseGoal?.nextAction).toContain("visible release-decision top-prerequisite detail");
   });
 
   it("keeps remaining goal text public-safe", () => {
