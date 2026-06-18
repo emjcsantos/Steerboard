@@ -404,6 +404,10 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("CLI smoke validation record");
     expect(html).toContain("Owner handoff proof");
     expect(html).toContain("Phase 11 Evidence Records");
+    expect(html).toContain("<dt>Ready</dt><dd>1</dd>");
+    expect(html).toContain("<dt>Waiting</dt><dd>2</dd>");
+    expect(html).toContain("<dt>Stale</dt><dd>1</dd>");
+    expect(html).toContain("<dt>Malformed</dt><dd>1</dd>");
     expect(html).toContain("Fresh checkout");
     expect(html).toContain("Clean checkout");
     expect(html).toContain("Build and test");
