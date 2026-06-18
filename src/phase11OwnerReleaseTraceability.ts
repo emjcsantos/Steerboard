@@ -339,6 +339,14 @@ function proofFreshnessItem(
 function evidenceRecordsItem(
   snapshot: Phase11EvidenceRecordsSnapshot
 ): Phase11OwnerReleaseTraceabilityItem {
+  const evidenceRecords = Object.values(snapshot.records);
+  const topEvidenceRecord =
+    evidenceRecords.find((record) => record.state === "blocked") ??
+    evidenceRecords.find((record) => record.state === "review") ??
+    evidenceRecords.find((record) => record.state === "waiting");
+  const topEvidenceDetail = topEvidenceRecord
+    ? ` Top evidence row: ${publicText(topEvidenceRecord.label, "Evidence record")} is ${topEvidenceRecord.state}/${topEvidenceRecord.freshness}; ${publicText(topEvidenceRecord.detail, topEvidenceRecord.nextAction)}`
+    : "";
   const status =
     snapshot.blockedCount > 0
       ? "blocked"
@@ -353,11 +361,14 @@ function evidenceRecordsItem(
     label: "Evidence records",
     kind: "evidence-records",
     status,
-    detail: `${snapshot.readyCount} ready, ${snapshot.reviewCount} review, ${snapshot.blockedCount} blocked, ${snapshot.waitingCount} waiting, ${snapshot.staleCount} stale, and ${snapshot.malformedCount} malformed evidence records.`,
+    detail: `${snapshot.readyCount} ready, ${snapshot.reviewCount} review, ${snapshot.blockedCount} blocked, ${snapshot.waitingCount} waiting, ${snapshot.staleCount} stale, and ${snapshot.malformedCount} malformed evidence records.${topEvidenceDetail}`,
     nextAction:
       status === "ready"
         ? "Keep structured Phase 11 evidence records attached to the release gate."
-        : "Repair, refresh, or record Phase 11 evidence records before release readiness."
+        : publicText(
+            topEvidenceRecord?.nextAction,
+            "Repair, refresh, or record Phase 11 evidence records before release readiness."
+          )
   };
 }
 

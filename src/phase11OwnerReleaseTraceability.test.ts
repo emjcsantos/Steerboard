@@ -515,6 +515,85 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
+  it("carries the top blocked evidence record into owner release traceability", () => {
+    const result = trace({
+      evidenceRecords: evidenceSnapshot({
+        records: {
+          ...evidenceSnapshot().records,
+          "docs-known-limits": {
+            ...evidenceSnapshot().records["docs-known-limits"],
+            state: "blocked",
+            freshness: "malformed",
+            source: "owner docs",
+            recordedAt: "malformed",
+            detail: "Docs and known limits evidence is malformed.",
+            nextAction: "Repair docs and known limits evidence metadata before release readiness."
+          }
+        },
+        readyCount: 3,
+        blockedCount: 1,
+        malformedCount: 1
+      })
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.nextAction).toBe(
+      "Repair docs and known limits evidence metadata before release readiness."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "evidence-records",
+          status: "blocked",
+          detail: expect.stringContaining(
+            "Top evidence row: Docs and known limits is blocked/malformed"
+          ),
+          nextAction: "Repair docs and known limits evidence metadata before release readiness."
+        }),
+        expect.objectContaining({
+          kind: "evidence-records",
+          detail: expect.stringContaining("Docs and known limits evidence is malformed")
+        })
+      ])
+    );
+  });
+
+  it("carries stale evidence review detail into owner release traceability", () => {
+    const result = trace({
+      evidenceRecords: evidenceSnapshot({
+        records: {
+          ...evidenceSnapshot().records,
+          "clean-checkout": {
+            ...evidenceSnapshot().records["clean-checkout"],
+            state: "review",
+            freshness: "stale",
+            source: "owner checkout",
+            recordedAt: "2026-06-12T11:00:00.000Z",
+            detail: "Clean checkout evidence is 121 hours old and needs owner review.",
+            nextAction: "Refresh or re-review clean checkout evidence before release readiness."
+          }
+        },
+        readyCount: 3,
+        reviewCount: 1,
+        staleCount: 1
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "evidence-records",
+          status: "review",
+          detail: expect.stringContaining("Top evidence row: Clean checkout is review/stale"),
+          nextAction: "Refresh or re-review clean checkout evidence before release readiness."
+        })
+      ])
+    );
+  });
+
   it("keeps packaging holds from being trusted when release readiness is blocked", () => {
     const result = trace({
       releaseReadiness: releaseSnapshot({
