@@ -457,10 +457,7 @@ export function buildPhase11OwnerCommandCenterSnapshot(
   const reviewCount = items.filter((item) => item.status === "review").length;
   const blockedCount = items.filter((item) => item.status === "blocked").length;
   const waitingCount = items.filter((item) => item.status === "waiting").length;
-  const blockerCount =
-    input.remainingGoalSummary.blocked +
-    input.checklist.summary.blocked +
-    input.failureSummary.blocked;
+  const blockerCount = blockedCount;
   const unresolvedGoalCount =
     input.remainingGoalSummary.blocked +
     input.remainingGoalSummary.active +

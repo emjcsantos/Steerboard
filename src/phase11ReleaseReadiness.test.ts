@@ -500,7 +500,11 @@ describe("phase 11 release readiness", () => {
       expect.arrayContaining([
         expect.objectContaining({ label: "Clean checkout", status: "waiting" }),
         expect.objectContaining({ label: "Build and test", status: "waiting" }),
-        expect.objectContaining({ label: "Owner smoke proof", status: "blocked" }),
+        expect.objectContaining({
+          label: "Owner smoke proof",
+          status: "blocked",
+          detail: expect.stringContaining("with 1 blocker")
+        }),
         expect.objectContaining({ label: "Current Phase 3 trace", status: "ready" }),
         expect.objectContaining({ label: "Packaging lock", status: "ready" }),
         expect.objectContaining({ label: "Docs and known limits", status: "review" }),

@@ -338,6 +338,7 @@ describe("phase 11 owner command center", () => {
 
     expect(blocked.state).toBe("blocked");
     expect(blocked.canRelease).toBe(false);
+    expect(blocked.blockerCount).toBe(1);
     expect(blocked.nextAction).toBe("Phase 1/2/6 proof is blocked.");
     expect(blocked.items).toEqual(
       expect.arrayContaining([
@@ -382,6 +383,8 @@ describe("phase 11 owner command center", () => {
 
     expect(result.state).toBe("blocked");
     expect(result.canRelease).toBe(false);
+    expect(result.blockerCount).toBe(1);
+    expect(result.ariaLabel).toContain("1 blockers");
     expect(result.nextAction).toBe("Repair PM child staging before release readiness.");
     expect(result.items).toEqual(
       expect.arrayContaining([
@@ -427,6 +430,7 @@ describe("phase 11 owner command center", () => {
 
     expect(result.state).toBe("blocked");
     expect(result.canRelease).toBe(false);
+    expect(result.blockerCount).toBe(1);
     expect(result.nextAction).toBe(
       "Refresh slash execution evidence from the current Arena panel transcript."
     );
