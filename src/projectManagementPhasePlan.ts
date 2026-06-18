@@ -211,7 +211,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-smoke-rows",
             title: "Persist Smoke Proof Rows",
-            description: "Confirm each desktop-executed smoke proof row survives reload independently, stale checkedAt timestamps downgrade to review during long-open sessions, and browser fallback rows remain waiting.",
+            description: "Confirm each desktop-executed smoke proof row survives reload independently with storage-attested proof, current-panel storage provenance, stale checkedAt timestamps downgrading to review during long-open sessions, and browser fallback rows remaining waiting.",
             completionPercent: 90,
             complexity: "high",
             sourceDocument: "Phase 3 smoke proof readiness"

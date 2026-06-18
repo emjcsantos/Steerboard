@@ -80,6 +80,8 @@ describe("project management hierarchy", () => {
     const tasks = createDefaultProjectManagementTasks();
     const byId = new Map(tasks.map((task) => [task.id, task]));
 
+    expect(byId.get("phase-03-child-smoke-rows")?.description).toContain("storage-attested proof");
+    expect(byId.get("phase-03-child-smoke-rows")?.description).toContain("current-panel storage provenance");
     expect(byId.get("phase-03-child-handoff-gate")?.description).toContain("clearance snapshot");
     expect(byId.get("phase-03-child-handoff-gate")?.description).toContain("visible handoff record-gate reason");
     expect(byId.get("phase-03-child-command-plan")?.description).toContain("visible CLI validation record actions and provenance");
