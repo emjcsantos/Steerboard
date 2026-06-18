@@ -412,6 +412,15 @@ function packagingHoldItem(
 ): Phase11OwnerReleaseTraceabilityItem {
   const packagingItem = snapshot.items.find((item) => item.kind === "packaging-lock");
   const decisionItem = snapshot.items.find((item) => item.kind === "release-decision");
+  const packagingHoldItems = [packagingItem, decisionItem].filter(Boolean) as NonNullable<
+    typeof packagingItem
+  >[];
+  const topPackagingHoldItem =
+    packagingHoldItems.find((item) => item.status === "blocked") ??
+    packagingHoldItems.find((item) => item.status === "review") ??
+    packagingHoldItems.find((item) => item.status === "waiting") ??
+    packagingItem ??
+    decisionItem;
   const status =
     packagingItem?.status === "blocked" || decisionItem?.status === "blocked"
       ? "blocked"
@@ -426,9 +435,9 @@ function packagingHoldItem(
     label: "Packaging hold",
     kind: "packaging-hold",
     status,
-    detail: packagingItem?.detail ?? "Packaging hold evidence is missing from release readiness.",
+    detail: topPackagingHoldItem?.detail ?? "Packaging hold evidence is missing from release readiness.",
     nextAction: publicText(
-      packagingItem?.nextAction ?? decisionItem?.nextAction,
+      topPackagingHoldItem?.nextAction,
       "Keep packaging locked until the owner explicitly resumes release actions."
     )
   };

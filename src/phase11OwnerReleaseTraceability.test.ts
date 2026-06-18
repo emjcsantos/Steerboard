@@ -712,7 +712,50 @@ describe("phase 11 owner release traceability", () => {
         expect.objectContaining({
           kind: "packaging-hold",
           status: "blocked",
+          detail: "Packaging controls are not locked.",
           nextAction: "Re-lock package and resume controls."
+        })
+      ])
+    );
+  });
+
+  it("uses release-decision detail for packaging hold when packaging is locked but release remains held", () => {
+    const result = trace({
+      releaseReadiness: releaseSnapshot({
+        state: "review",
+        statusLabel: "Review",
+        canRecommendRelease: false,
+        releaseHoldCount: 1,
+        items: [
+          {
+            id: "phase-11-release-readiness:packaging-lock",
+            label: "Packaging lock",
+            kind: "packaging-lock",
+            status: "ready",
+            detail: "Packaging and resume actions remain locked while readiness evidence is reviewed.",
+            nextAction: "Keep packaging locked until the owner explicitly resumes release actions."
+          },
+          {
+            id: "phase-11-release-readiness:release-decision",
+            label: "Release decision",
+            kind: "release-decision",
+            status: "review",
+            detail: "Release decision is held until security closure capability is attached.",
+            nextAction: "Attach final security capability evidence before making the release decision."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.releaseHoldStatus).toBe("review");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "packaging-hold",
+          status: "review",
+          detail: "Release decision is held until security closure capability is attached.",
+          nextAction: "Attach final security capability evidence before making the release decision."
         })
       ])
     );
