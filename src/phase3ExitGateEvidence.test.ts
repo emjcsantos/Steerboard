@@ -260,6 +260,34 @@ describe("phase 3 exit gate evidence", () => {
     expect(result.items[1].nextAction).not.toContain("desktop smoke");
   });
 
+  it("uses the first open diagnostic row for the top-level next action", () => {
+    const result = buildPhase3ExitGateEvidence({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
+      slashEvidence: {
+        state: "review",
+        pass: false,
+        readiness: 40,
+        status: "Review",
+        detail: "Provider route evidence is missing a result.",
+        safety: "none",
+        executable: true,
+        command: "/plan",
+        route: "provider"
+      },
+      sessionControlEvidence: readySessionControlEvidence(),
+      liveControlSmoke: readyLiveControlSmoke(),
+      activeTurnInterruptSmoke: readyInterruptSmoke(),
+      activeTurnSteerSmoke: readySteerSmoke()
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.nextAction).toBe(
+      "Run a provider-routed slash command from an Arena panel and verify provider-route plus live/status transcript evidence."
+    );
+    expect(result.nextAction).not.toContain("desktop smoke");
+  });
+
   it("does not trust ready slash evidence without provider route and result counts", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",

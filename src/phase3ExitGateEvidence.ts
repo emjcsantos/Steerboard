@@ -296,6 +296,21 @@ function resolveNextAction(state: Phase3ExitGateState): string {
   return REVIEW_NEXT_ACTION;
 }
 
+function resolveGateNextAction(
+  state: Phase3ExitGateState,
+  items: readonly Phase3ExitGateDiagnostic[]
+): string {
+  if (state === "ready") {
+    return READY_NEXT_ACTION;
+  }
+
+  if (state === "blocked") {
+    return items.find((item) => item.state === "blocked")?.nextAction ?? BLOCKED_NEXT_ACTION;
+  }
+
+  return items.find((item) => item.state !== "ready")?.nextAction ?? resolveNextAction(state);
+}
+
 function resolveSlashNextAction(state: Phase3ExitGateState): string {
   if (state === "ready") {
     return "Keep provider-routed slash execution evidence attached for Phase 3 handoff.";
@@ -462,7 +477,7 @@ export function buildPhase3ExitGateEvidence(
     statusLabel: STATE_LABELS[state],
     detail: state === "waiting" ? NO_EVIDENCE_REASON : resolveDetail(state),
     safety: SAFETY_STATEMENT,
-    nextAction: resolveNextAction(state),
+    nextAction: resolveGateNextAction(state, items),
     items,
     counts,
     pmTaskLinkCount,
