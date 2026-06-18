@@ -10,6 +10,7 @@ import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import { createPhase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import { buildPhase8PermissionAuditDepth } from "./phase8PermissionAuditDepth";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
+import { currentProjectManagementPhasePlanTaskIds } from "./projectManagementPhasePlan";
 import { remainingGoalPlan } from "./remainingGoalPlan";
 
 function liveSummary(
@@ -223,6 +224,38 @@ describe("phase 8 risk traceability", () => {
         })
       ])
     );
+  });
+
+  it("blocks when the Phase 8 goal misses the blocker-priority PM child link", () => {
+    const goals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-8-permission-audit"
+        ? {
+            ...goal,
+            pmTaskIds: goal.pmTaskIds.filter(
+              (taskId) => taskId !== "phase-08-child-blocker-priority"
+            )
+          }
+        : goal
+    );
+    const summary = traceability({ goals });
+
+    expect(summary.state).toBe("blocked");
+    expect(summary.canTrustPermissionAudit).toBe(false);
+    expect(summary.missingPmTaskIds).toEqual(["phase-08-child-blocker-priority"]);
+  });
+
+  it("blocks when a required Phase 8 PM row is missing from the current board plan", () => {
+    currentProjectManagementPhasePlanTaskIds.delete("phase-08-child-blocker-priority");
+
+    try {
+      const summary = traceability();
+
+      expect(summary.state).toBe("blocked");
+      expect(summary.canTrustPermissionAudit).toBe(false);
+      expect(summary.missingPmTaskIds).toEqual(["phase-08-child-blocker-priority"]);
+    } finally {
+      currentProjectManagementPhasePlanTaskIds.add("phase-08-child-blocker-priority");
+    }
   });
 
   it("trusts permission audit only after depth, exception, PM, key, and disabled-path evidence are ready", () => {

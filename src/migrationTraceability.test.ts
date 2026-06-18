@@ -9,6 +9,7 @@ import {
 } from "./migrationModel";
 import { buildMigrationHardeningReadiness } from "./migrationHardeningReadiness";
 import { buildMigrationTraceabilitySummary } from "./migrationTraceability";
+import { currentProjectManagementPhasePlanTaskIds } from "./projectManagementPhasePlan";
 import { remainingGoalPlan } from "./remainingGoalPlan";
 
 function selectedPreview(source = "codex" as const, categoryId = "projects" as const) {
@@ -82,6 +83,41 @@ describe("migration traceability", () => {
         })
       ])
     );
+  });
+
+  it("blocks when the Phase 5 goal misses the blocker-priority PM child link", () => {
+    const goals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-5-migration-hardening"
+        ? {
+            ...goal,
+            pmTaskIds: goal.pmTaskIds.filter(
+              (taskId) => taskId !== "phase-05-child-blocker-priority"
+            )
+          }
+        : goal
+    );
+    const summary = buildMigrationTraceabilitySummary({
+      readiness: readyReadiness(),
+      goals
+    });
+
+    expect(summary.state).toBe("blocked");
+    expect(summary.canTrustMigrationReview).toBe(false);
+    expect(summary.missingPmTaskIds).toEqual(["phase-05-child-blocker-priority"]);
+  });
+
+  it("blocks when a required Phase 5 PM row is missing from the current board plan", () => {
+    currentProjectManagementPhasePlanTaskIds.delete("phase-05-child-blocker-priority");
+
+    try {
+      const summary = buildMigrationTraceabilitySummary({ readiness: readyReadiness() });
+
+      expect(summary.state).toBe("blocked");
+      expect(summary.canTrustMigrationReview).toBe(false);
+      expect(summary.missingPmTaskIds).toEqual(["phase-05-child-blocker-priority"]);
+    } finally {
+      currentProjectManagementPhasePlanTaskIds.add("phase-05-child-blocker-priority");
+    }
   });
 
   it("holds traceability when sensitive exclusions are incomplete", () => {

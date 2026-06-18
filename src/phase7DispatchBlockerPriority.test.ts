@@ -99,6 +99,16 @@ function priority(options: {
   });
 }
 
+function withCurrentPhase7Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-7-dispatch-loop"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 7 dispatch blocker priority", () => {
   it("ranks role coverage ahead of later dispatch review blockers", () => {
     const record = {
@@ -156,9 +166,22 @@ describe("phase 7 dispatch blocker priority", () => {
     });
   });
 
-  it("reports ready when dispatch review, ownership, and traceability are ready", () => {
+  it("keeps non-current Phase 7 traceability as an open blocker", () => {
     const { record, run } = buildRecordBundle();
     const summary = priority({ record, run });
+
+    expect(summary.state).toBe("waiting");
+    expect(summary.openBlockerCount).toBe(1);
+    expect(summary.topPriorityLabel).toBe("Remaining goal link");
+    expect(summary.items[0]).toMatchObject({
+      kind: "traceability",
+      status: "waiting"
+    });
+  });
+
+  it("reports ready when dispatch review, ownership, traceability, and current goal are ready", () => {
+    const { record, run } = buildRecordBundle();
+    const summary = priority({ record, run, goals: withCurrentPhase7Goal() });
 
     expect(summary.state).toBe("ready");
     expect(summary.openBlockerCount).toBe(0);

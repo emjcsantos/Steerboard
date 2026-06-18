@@ -347,11 +347,14 @@ export function buildPhase4ProviderTraceabilitySummary({
   goals?: readonly RemainingGoalPlanItem[];
 }): Phase4ProviderTraceabilitySummary {
   const goal = phase4Goal(goals);
-  const knownRequiredPmTaskIds = REQUIRED_PM_TASK_IDS.filter((taskId) =>
-    currentProjectManagementPhasePlanTaskIds.has(taskId)
-  );
   const goalPmTaskIds = new Set(goal?.pmTaskIds ?? []);
-  const missingPmTaskIds = knownRequiredPmTaskIds.filter((taskId) => !goalPmTaskIds.has(taskId));
+  const missingPlanPmTaskIds = REQUIRED_PM_TASK_IDS.filter(
+    (taskId) => !currentProjectManagementPhasePlanTaskIds.has(taskId)
+  );
+  const missingGoalPmTaskIds = REQUIRED_PM_TASK_IDS.filter((taskId) => !goalPmTaskIds.has(taskId));
+  const missingPmTaskIds = Array.from(
+    new Set([...missingPlanPmTaskIds, ...missingGoalPmTaskIds])
+  );
   const items = [
     goalItem(goal),
     pmCoverageItem(goal, missingPmTaskIds),

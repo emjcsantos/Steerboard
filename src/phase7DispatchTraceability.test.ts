@@ -111,8 +111,18 @@ function traceability(options: {
   });
 }
 
+function withCurrentPhase7Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-7-dispatch-loop"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 7 dispatch traceability", () => {
-  it("links the Phase 7 goal, PM child rows, review depth, ownership depth, and live-worker lock", () => {
+  it("keeps Phase 7 dispatch traceability waiting while Phase 7 is only next", () => {
     const { record, run } = buildRecordBundle();
     const summary = traceability({ record, run });
 
@@ -126,10 +136,23 @@ describe("phase 7 dispatch traceability", () => {
       "integration-ownership",
       "live-worker-lock"
     ]);
-    expect(summary.state).toBe("ready");
-    expect(summary.canTrustDispatchReview).toBe(true);
+    expect(summary.state).toBe("waiting");
+    expect(summary.canTrustDispatchReview).toBe(false);
     expect(summary.liveWorkerLockCount).toBe(2);
     expect(summary.safety).toContain("evidence-only");
+  });
+
+  it("trusts dispatch traceability when Phase 7 is the current active goal", () => {
+    const { record, run } = buildRecordBundle();
+    const summary = traceability({
+      record,
+      run,
+      goals: withCurrentPhase7Goal()
+    });
+
+    expect(summary.state).toBe("ready");
+    expect(summary.canTrustDispatchReview).toBe(true);
+    expect(summary.readyCount).toBe(5);
   });
 
   it("waits when no dispatch review record exists", () => {
@@ -169,6 +192,25 @@ describe("phase 7 dispatch traceability", () => {
         })
       ])
     );
+  });
+
+  it("blocks when the Phase 7 goal misses the blocker-priority PM child link", () => {
+    const { record, run } = buildRecordBundle();
+    const goals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-7-dispatch-loop"
+        ? {
+            ...goal,
+            pmTaskIds: goal.pmTaskIds.filter(
+              (taskId) => taskId !== "phase-07-child-blocker-priority"
+            )
+          }
+        : goal
+    );
+    const summary = traceability({ record, run, goals });
+
+    expect(summary.state).toBe("blocked");
+    expect(summary.canTrustDispatchReview).toBe(false);
+    expect(summary.missingPmTaskIds).toEqual(["phase-07-child-blocker-priority"]);
   });
 
   it("blocks when review depth or ownership depth breaks the live-worker lock", () => {

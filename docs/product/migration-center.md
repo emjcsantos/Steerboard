@@ -140,7 +140,7 @@ The review-depth records separately show:
 - sensitive exclusions, including secrets, tokens, auth caches/files/state, browser state, source artifacts, source mutation, and raw transcript exclusions,
 - profile activation lock, including the disabled mutation boundary before owner approval.
 
-Each review-depth record also carries a Project Management row link and a unique evidence key. The Migration traceability rows use those links to keep the Phase 5 remaining goal, PM child coverage, review-depth evidence, sensitive exclusion boundary, fingerprint-matched rollback/audit evidence, and profile activation lock visible before apply review can advance.
+Each review-depth record also carries a Project Management row link and a unique evidence key. The Migration traceability rows use those links to keep the Phase 5 remaining goal, PM child coverage, review-depth evidence, sensitive exclusion boundary, fingerprint-matched rollback/audit evidence, and profile activation lock visible before apply review can advance. Required Phase 5 PM rows must exist in both the current board plan and the remaining-goal links; a stale goal link cannot hide a missing board row.
 
 `Stage apply review` records an owner-visible intent notice and a local metadata-only `apply-review-staged` audit history event. It does not change the active profile, mutate the source platform, copy secrets, import raw transcripts, run commands, or enable provider execution.
 

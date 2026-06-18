@@ -202,7 +202,7 @@ function pmCoverageItem(
     label: "PM row coverage",
     kind: "pm-coverage",
     status: "ready",
-    detail: `${goal.pmTaskIds.length} Phase 9 PM task links cover the runner probe, approval flow, depth, and traceability rows.`,
+    detail: `${goal.pmTaskIds.length} Phase 9 PM task links cover the runner probe, approval flow, depth, traceability, and blocker priority rows.`,
     nextAction: "Keep Phase 9 goal links aligned with the Project Management Epic, Parent, and Child rows."
   };
 }
@@ -443,11 +443,14 @@ export function buildPhase9RunnerTraceabilitySummary({
   goals?: readonly RemainingGoalPlanItem[];
 }): Phase9RunnerTraceabilitySummary {
   const goal = phase9Goal(goals);
-  const knownRequiredPmTaskIds = REQUIRED_PM_TASK_IDS.filter((taskId) =>
-    currentProjectManagementPhasePlanTaskIds.has(taskId)
-  );
   const goalPmTaskIds = new Set(goal?.pmTaskIds ?? []);
-  const missingPmTaskIds = knownRequiredPmTaskIds.filter((taskId) => !goalPmTaskIds.has(taskId));
+  const missingPlanPmTaskIds = REQUIRED_PM_TASK_IDS.filter(
+    (taskId) => !currentProjectManagementPhasePlanTaskIds.has(taskId)
+  );
+  const missingGoalPmTaskIds = REQUIRED_PM_TASK_IDS.filter((taskId) => !goalPmTaskIds.has(taskId));
+  const missingPmTaskIds = Array.from(
+    new Set([...missingPlanPmTaskIds, ...missingGoalPmTaskIds])
+  );
   const items = [
     activeGoalItem(goal),
     pmCoverageItem(goal, missingPmTaskIds),

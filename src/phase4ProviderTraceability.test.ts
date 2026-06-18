@@ -13,6 +13,7 @@ import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
 import { buildPhase4ProviderTraceabilitySummary } from "./phase4ProviderTraceability";
 import { buildPhase4RefreshSafetyDepth } from "./phase4RefreshSafetyDepth";
+import { currentProjectManagementPhasePlanTaskIds } from "./projectManagementPhasePlan";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
 import { remainingGoalPlan } from "./remainingGoalPlan";
 
@@ -189,6 +190,20 @@ describe("phase 4 provider traceability", () => {
     expect(summary.state).toBe("blocked");
     expect(summary.canTrustProviderReview).toBe(false);
     expect(summary.missingPmTaskIds).toEqual(["phase-04-child-blocker-priority"]);
+  });
+
+  it("blocks when a required Phase 4 PM row is missing from the current board plan", () => {
+    currentProjectManagementPhasePlanTaskIds.delete("phase-04-child-blocker-priority");
+
+    try {
+      const summary = traceability();
+
+      expect(summary.state).toBe("blocked");
+      expect(summary.canTrustProviderReview).toBe(false);
+      expect(summary.missingPmTaskIds).toEqual(["phase-04-child-blocker-priority"]);
+    } finally {
+      currentProjectManagementPhasePlanTaskIds.add("phase-04-child-blocker-priority");
+    }
   });
 
   it("keeps traceability text public-safe", () => {

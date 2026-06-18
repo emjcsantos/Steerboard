@@ -15,6 +15,7 @@ import {
 import { buildPhase9RunnerApprovalSnapshot } from "./phase9RunnerApproval";
 import { buildPhase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDepth";
 import { buildPhase9RunnerTraceabilitySummary } from "./phase9RunnerTraceability";
+import { currentProjectManagementPhasePlanTaskIds } from "./projectManagementPhasePlan";
 import { remainingGoalPlan } from "./remainingGoalPlan";
 
 const terminalDefinition = LIVE_ACTION_RUNNER_DEFINITIONS[0];
@@ -236,6 +237,38 @@ describe("phase 9 runner traceability", () => {
         })
       ])
     );
+  });
+
+  it("blocks when the Phase 9 goal misses the blocker-priority PM child link", () => {
+    const goals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-9-runner"
+        ? {
+            ...goal,
+            pmTaskIds: goal.pmTaskIds.filter(
+              (taskId) => taskId !== "phase-09-child-blocker-priority"
+            )
+          }
+        : goal
+    );
+    const summary = traceability({ goals });
+
+    expect(summary.state).toBe("blocked");
+    expect(summary.canTrustRunnerApproval).toBe(false);
+    expect(summary.missingPmTaskIds).toEqual(["phase-09-child-blocker-priority"]);
+  });
+
+  it("blocks when a required Phase 9 PM row is missing from the current board plan", () => {
+    currentProjectManagementPhasePlanTaskIds.delete("phase-09-child-blocker-priority");
+
+    try {
+      const summary = traceability();
+
+      expect(summary.state).toBe("blocked");
+      expect(summary.canTrustRunnerApproval).toBe(false);
+      expect(summary.missingPmTaskIds).toEqual(["phase-09-child-blocker-priority"]);
+    } finally {
+      currentProjectManagementPhasePlanTaskIds.add("phase-09-child-blocker-priority");
+    }
   });
 
   it("blocks when Phase 8 permission or audit blockers remain", () => {

@@ -114,6 +114,27 @@ describe("phase 10 Arena polish traceability", () => {
     );
   });
 
+  it("blocks when the Phase 10 goal misses the blocker-priority PM child link", () => {
+    const goals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-10-arena-polish"
+        ? {
+            ...goal,
+            pmTaskIds: goal.pmTaskIds.filter(
+              (taskId) => taskId !== "phase-10-child-blocker-priority"
+            )
+          }
+        : goal
+    );
+    const summary = buildPhase10ArenaPolishTraceability({
+      snapshot: polishSnapshot(),
+      goals
+    });
+
+    expect(summary.state).toBe("blocked");
+    expect(summary.canTrustArenaPolish).toBe(false);
+    expect(summary.missingPmTaskIds).toEqual(["phase-10-child-blocker-priority"]);
+  });
+
   it("carries layout and acceptance blockers from the Arena polish snapshot", () => {
     const summary = buildPhase10ArenaPolishTraceability({
       snapshot: polishSnapshot({

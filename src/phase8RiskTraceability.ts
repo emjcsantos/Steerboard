@@ -203,7 +203,7 @@ function pmCoverageItem(
     label: "PM row coverage",
     kind: "pm-coverage",
     status: "ready",
-    detail: `${goal.pmTaskIds.length} Phase 8 PM task links cover risk gates, exception rows, audit persistence, and traceability.`,
+    detail: `${goal.pmTaskIds.length} Phase 8 PM task links cover risk gates, exception rows, audit persistence, traceability, and blocker priority.`,
     nextAction: "Keep Phase 8 goal links aligned with the Project Management Epic, Parent, and Child rows."
   };
 }
@@ -307,11 +307,14 @@ export function buildPhase8RiskTraceabilitySummary({
   goals?: readonly RemainingGoalPlanItem[];
 }): Phase8RiskTraceabilitySummary {
   const goal = phase8Goal(goals);
-  const knownRequiredPmTaskIds = REQUIRED_PM_TASK_IDS.filter((taskId) =>
-    currentProjectManagementPhasePlanTaskIds.has(taskId)
-  );
   const goalPmTaskIds = new Set(goal?.pmTaskIds ?? []);
-  const missingPmTaskIds = knownRequiredPmTaskIds.filter((taskId) => !goalPmTaskIds.has(taskId));
+  const missingPlanPmTaskIds = REQUIRED_PM_TASK_IDS.filter(
+    (taskId) => !currentProjectManagementPhasePlanTaskIds.has(taskId)
+  );
+  const missingGoalPmTaskIds = REQUIRED_PM_TASK_IDS.filter((taskId) => !goalPmTaskIds.has(taskId));
+  const missingPmTaskIds = Array.from(
+    new Set([...missingPlanPmTaskIds, ...missingGoalPmTaskIds])
+  );
   const evidenceKeyCount = new Set([
     ...snapshot.items.map((item) => item.evidenceKey),
     ...snapshot.exceptions.map((exception) => exception.evidenceKey)
