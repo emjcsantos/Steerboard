@@ -670,6 +670,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Handoff attached");
     expect(html).toContain("Record handoff");
     expect(html).toContain("Clear record");
+    expect(html).toContain(
+      'aria-label="Phase 3 exit gate counts"><div><dt>Ready</dt><dd>5</dd></div><div><dt>Review</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>Waiting</dt><dd>0</dd></div><div><dt>Panel</dt><dd title="panel-phase3-owner-visible">panel-phase3-owner-visible</dd></div><div><dt>PM Links</dt><dd>3</dd></div><div><dt>Evidence Keys</dt><dd>5</dd></div></dl>'
+    );
     expect(html).toContain("phase3-smoke-record:2026-06-18T07:57:30.551Z");
     expect(html).toContain("local_private/phase3-smoke-proof-bundle.json");
   });
