@@ -251,6 +251,7 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("Open");
     expect(html).toContain("Reviewable");
     expect(html).toContain("Status");
+    expect(html).toContain("phase8-live-action-terminal:permission / audit-depth / waiting");
     expect(html).toContain("Audit review");
     expect(html).toContain("permission review record");
     expect(html).toContain("rollback evidence");

@@ -41,6 +41,9 @@ export interface Phase8RiskBlockerPrioritySummary {
   readonly auditReviewAddressableCount: number;
   readonly topPriorityLabel: string;
   readonly topPriorityAction: string;
+  readonly topPrioritySourceId: string;
+  readonly topPriorityKind: Phase8RiskBlockerPriorityKind | "none";
+  readonly topPriorityStatus: Phase8RiskBlockerPriorityState | "ready";
   readonly auditReviewCanAddressTopBlocker: boolean;
   readonly nextAction: string;
   readonly safety: string;
@@ -309,6 +312,7 @@ function buildAriaLabel(
   return (
     `${summary.label}: ${summary.statusLabel}; ${summary.openBlockerCount} open blockers; ` +
     `${summary.auditReviewAddressableCount} audit-review addressable; top priority ${summary.topPriorityLabel}; ` +
+    `source ${summary.topPrioritySourceId}; kind ${summary.topPriorityKind}; status ${summary.topPriorityStatus}; ` +
     `next action: ${summary.nextAction}`
   );
 }
@@ -344,6 +348,9 @@ export function buildPhase8RiskBlockerPriority(
     topPriorityAction:
       topItem?.nextAction ??
       "Keep desktop, terminal, Git, MCP, plugin, automation, runtime, profile, and external-service mutations locked.",
+    topPrioritySourceId: topItem?.sourceId ?? "phase8.risk-blocker.none",
+    topPriorityKind: topItem?.kind ?? "none",
+    topPriorityStatus: topItem?.status ?? "ready",
     auditReviewCanAddressTopBlocker: topItem?.canUseAuditReview === true,
     nextAction:
       topItem?.nextAction ??

@@ -14559,6 +14559,13 @@ export function Phase8PermissionAuditDepthPanel({
             </span>
           </div>
           <p title={blockerPriority.topPriorityAction}>{blockerPriority.topPriorityLabel}</p>
+          <small
+            className="phase8-blocker-priority-source"
+            title={`${blockerPriority.topPrioritySourceId} / ${blockerPriority.topPriorityKind} / ${blockerPriority.topPriorityStatus}`}
+          >
+            {blockerPriority.topPrioritySourceId} / {blockerPriority.topPriorityKind} /{" "}
+            {blockerPriority.topPriorityStatus}
+          </small>
           <dl className="phase8-blocker-priority-grid" aria-label="Phase 8 blocker priority counts">
             <div>
               <dt>Open</dt>
