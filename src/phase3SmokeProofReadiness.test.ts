@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { buildPhase3SmokeProofReadiness } from "./phase3SmokeProofReadiness";
 
+const persistedDesktopProofs = {
+  liveControlSmoke: true,
+  activeTurnInterruptSmoke: true,
+  activeTurnSteerSmoke: true
+};
+
 describe("phase 3 smoke proof readiness", () => {
   it("returns ready when all desktop proofs are successful", () => {
     const result = buildPhase3SmokeProofReadiness({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       liveControlSmoke: {
         source: "desktop",
         checkedAt: "2026-06-06T00:00:00.000Z",
@@ -40,11 +47,17 @@ describe("phase 3 smoke proof readiness", () => {
     });
     expect(result.items.map((item) => item.state)).toEqual(["ready", "ready", "ready"]);
     expect(result.items.every((item) => item.source === "desktop")).toBe(true);
+    expect(result.items.every((item) => item.persisted)).toBe(true);
   });
 
   it("returns waiting for browser fallback or non-executed proofs", () => {
     const result = buildPhase3SmokeProofReadiness({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs: {
+        liveControlSmoke: false,
+        activeTurnInterruptSmoke: true,
+        activeTurnSteerSmoke: false
+      },
       liveControlSmoke: {
         source: "browser",
         checkedAt: "2026-06-06T00:00:00.000Z",
@@ -80,6 +93,8 @@ describe("phase 3 smoke proof readiness", () => {
 
   it("returns review for partial executed proofs", () => {
     const result = buildPhase3SmokeProofReadiness({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       liveControlSmoke: {
         source: "desktop",
         checkedAt: "2026-06-06T00:00:00.000Z",
@@ -119,6 +134,7 @@ describe("phase 3 smoke proof readiness", () => {
     const result = buildPhase3SmokeProofReadiness({
       evaluatedAt: "2026-06-20T00:00:00.000Z",
       maxProofAgeMs: 24 * 60 * 60 * 1000,
+      persistedDesktopProofs,
       liveControlSmoke: {
         source: "desktop",
         checkedAt: "2026-06-18T00:00:00.000Z",
@@ -161,6 +177,7 @@ describe("phase 3 smoke proof readiness", () => {
 
   it("returns review when ready desktop proofs cannot be freshness-checked", () => {
     const result = buildPhase3SmokeProofReadiness({
+      persistedDesktopProofs,
       liveControlSmoke: {
         source: "desktop",
         checkedAt: "2026-06-06T00:00:00.000Z",
@@ -196,9 +213,98 @@ describe("phase 3 smoke proof readiness", () => {
     expect(result.items.every((item) => item.detail.includes("freshness-checked"))).toBe(true);
   });
 
+  it("returns review when otherwise ready desktop proofs are not storage-attested", () => {
+    const result = buildPhase3SmokeProofReadiness({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      liveControlSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.000Z",
+        executed: true,
+        ok: true,
+        completed: true,
+        supportedMethodCount: 3,
+        totalMethodCount: 3
+      },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.001Z",
+        executed: true,
+        completed: true,
+        interruptObserved: true
+      },
+      activeTurnSteerSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.002Z",
+        executed: true,
+        completed: true,
+        steerObserved: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.readiness).toBe(65);
+    expect(result.counts).toEqual({
+      ready: 0,
+      review: 3,
+      blocked: 0,
+      waiting: 0
+    });
+    expect(result.items.every((item) => item.persisted === false)).toBe(true);
+    expect(result.items.every((item) => item.detail.includes("persisted/imported"))).toBe(true);
+  });
+
+  it("returns review when only one otherwise ready desktop proof is not storage-attested", () => {
+    const result = buildPhase3SmokeProofReadiness({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs: {
+        liveControlSmoke: true,
+        activeTurnInterruptSmoke: false,
+        activeTurnSteerSmoke: true
+      },
+      liveControlSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.000Z",
+        executed: true,
+        ok: true,
+        completed: true,
+        supportedMethodCount: 3,
+        totalMethodCount: 3
+      },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.001Z",
+        executed: true,
+        completed: true,
+        interruptObserved: true
+      },
+      activeTurnSteerSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.002Z",
+        executed: true,
+        completed: true,
+        steerObserved: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.counts).toEqual({
+      ready: 2,
+      review: 1,
+      blocked: 0,
+      waiting: 0
+    });
+    expect(result.items[1]).toMatchObject({
+      proof: "active-turn-interrupt",
+      state: "review",
+      persisted: false,
+      detail: expect.stringContaining("persisted/imported")
+    });
+  });
+
   it("returns blocked when executed proof is unsupported-after-execution", () => {
     const result = buildPhase3SmokeProofReadiness({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       liveControlSmoke: {
         source: "desktop",
         checkedAt: "2026-06-06T00:00:00.000Z",
@@ -285,6 +391,8 @@ describe("phase 3 smoke proof readiness", () => {
     const activeTurnSteerSmokeCopy = JSON.parse(JSON.stringify(activeTurnSteerSmoke));
 
     const result = buildPhase3SmokeProofReadiness({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       liveControlSmoke,
       activeTurnInterruptSmoke,
       activeTurnSteerSmoke

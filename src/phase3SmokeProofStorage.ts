@@ -24,6 +24,17 @@ export interface Phase3SmokeProofBundleInput {
   activeTurnSteerSmoke?: unknown;
 }
 
+export interface Phase3PersistedDesktopProofs {
+  readonly liveControlSmoke: boolean;
+  readonly activeTurnInterruptSmoke: boolean;
+  readonly activeTurnSteerSmoke: boolean;
+}
+
+export interface Phase3SmokeProofBundleWithStorageProof {
+  readonly bundle: Phase3SmokeProofBundle;
+  readonly persistedDesktopProofs: Phase3PersistedDesktopProofs;
+}
+
 type MutablePhase3SmokeProofBundle = {
   -readonly [Key in keyof Phase3SmokeProofBundle]?: Phase3SmokeProofBundle[Key];
 };
@@ -46,6 +57,24 @@ function isPersistableDesktopExecutedProof(
   return proof.source === "desktop" && proof.executed === true;
 }
 
+function emptyPersistedDesktopProofs(): Phase3PersistedDesktopProofs {
+  return {
+    liveControlSmoke: false,
+    activeTurnInterruptSmoke: false,
+    activeTurnSteerSmoke: false
+  };
+}
+
+function attestPersistedDesktopProofs(
+  bundle: Phase3SmokeProofBundle
+): Phase3PersistedDesktopProofs {
+  return {
+    liveControlSmoke: isPersistableDesktopExecutedProof(bundle.liveControlSmoke),
+    activeTurnInterruptSmoke: isPersistableDesktopExecutedProof(bundle.activeTurnInterruptSmoke),
+    activeTurnSteerSmoke: isPersistableDesktopExecutedProof(bundle.activeTurnSteerSmoke)
+  };
+}
+
 function readFromLocalStorage(key: string): string | null {
   if (typeof window === "undefined" || !window.localStorage) {
     return null;
@@ -59,15 +88,16 @@ function readFromLocalStorage(key: string): string | null {
   }
 }
 
-function writeToLocalStorage(key: string, value: string): void {
+function writeToLocalStorage(key: string, value: string): boolean {
   if (typeof window === "undefined" || !window.localStorage) {
-    return;
+    return false;
   }
 
   try {
     window.localStorage.setItem?.(key, value);
+    return true;
   } catch {
-    return;
+    return false;
   }
 }
 
@@ -94,11 +124,56 @@ export function parseStoredPhase3SmokeProofBundle(
   }
 }
 
+export function parseStoredPhase3SmokeProofBundleWithStorageProof(
+  serialized: string | null
+): Phase3SmokeProofBundleWithStorageProof {
+  if (!serialized) {
+    return {
+      bundle: getFallbackPhase3SmokeProofBundle(),
+      persistedDesktopProofs: emptyPersistedDesktopProofs()
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(serialized);
+    if (!isRecord(parsed)) {
+      return {
+        bundle: getFallbackPhase3SmokeProofBundle(),
+        persistedDesktopProofs: emptyPersistedDesktopProofs()
+      };
+    }
+
+    const bundle = {
+      liveControlSmoke: normalizeCodexLiveControlSmokeProof(parsed.liveControlSmoke),
+      activeTurnInterruptSmoke: normalizeCodexActiveTurnControlSmokeProof(parsed.activeTurnInterruptSmoke),
+      activeTurnSteerSmoke: normalizeCodexActiveTurnSteerSmokeProof(parsed.activeTurnSteerSmoke)
+    };
+
+    return {
+      bundle,
+      persistedDesktopProofs: attestPersistedDesktopProofs(bundle)
+    };
+  } catch {
+    return {
+      bundle: getFallbackPhase3SmokeProofBundle(),
+      persistedDesktopProofs: emptyPersistedDesktopProofs()
+    };
+  }
+}
+
 export function loadPhase3SmokeProofBundle(): Phase3SmokeProofBundle {
   return parseStoredPhase3SmokeProofBundle(readFromLocalStorage(PHASE3_SMOKE_PROOF_STORAGE_KEY));
 }
 
-export function savePhase3SmokeProofBundle(bundle: Phase3SmokeProofBundleInput): void {
+export function loadPhase3SmokeProofBundleWithStorageProof(): Phase3SmokeProofBundleWithStorageProof {
+  return parseStoredPhase3SmokeProofBundleWithStorageProof(
+    readFromLocalStorage(PHASE3_SMOKE_PROOF_STORAGE_KEY)
+  );
+}
+
+export function savePhase3SmokeProofBundle(
+  bundle: Phase3SmokeProofBundleInput
+): Phase3SmokeProofBundle {
   const storedBundle = parseStoredPhase3SmokeProofBundle(
     readFromLocalStorage(PHASE3_SMOKE_PROOF_STORAGE_KEY)
   );
@@ -106,30 +181,38 @@ export function savePhase3SmokeProofBundle(bundle: Phase3SmokeProofBundleInput):
   const activeTurnInterruptSmoke = normalizeCodexActiveTurnControlSmokeProof(bundle?.activeTurnInterruptSmoke);
   const activeTurnSteerSmoke = normalizeCodexActiveTurnSteerSmokeProof(bundle?.activeTurnSteerSmoke);
   const nextBundle: MutablePhase3SmokeProofBundle = {};
+  let acceptedInputRow = false;
 
   if (isPersistableDesktopExecutedProof(liveControlSmoke)) {
     nextBundle.liveControlSmoke = liveControlSmoke;
+    acceptedInputRow = true;
   } else if (isPersistableDesktopExecutedProof(storedBundle.liveControlSmoke)) {
     nextBundle.liveControlSmoke = storedBundle.liveControlSmoke;
   }
 
   if (isPersistableDesktopExecutedProof(activeTurnInterruptSmoke)) {
     nextBundle.activeTurnInterruptSmoke = activeTurnInterruptSmoke;
+    acceptedInputRow = true;
   } else if (isPersistableDesktopExecutedProof(storedBundle.activeTurnInterruptSmoke)) {
     nextBundle.activeTurnInterruptSmoke = storedBundle.activeTurnInterruptSmoke;
   }
 
   if (isPersistableDesktopExecutedProof(activeTurnSteerSmoke)) {
     nextBundle.activeTurnSteerSmoke = activeTurnSteerSmoke;
+    acceptedInputRow = true;
   } else if (isPersistableDesktopExecutedProof(storedBundle.activeTurnSteerSmoke)) {
     nextBundle.activeTurnSteerSmoke = storedBundle.activeTurnSteerSmoke;
   }
 
-  if (Object.keys(nextBundle).length === 0) {
-    return;
+  if (!acceptedInputRow || Object.keys(nextBundle).length === 0) {
+    return storedBundle;
   }
 
   const serialized = JSON.stringify(nextBundle);
 
-  writeToLocalStorage(PHASE3_SMOKE_PROOF_STORAGE_KEY, serialized);
+  if (!writeToLocalStorage(PHASE3_SMOKE_PROOF_STORAGE_KEY, serialized)) {
+    return storedBundle;
+  }
+
+  return parseStoredPhase3SmokeProofBundle(serialized);
 }

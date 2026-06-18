@@ -13,6 +13,7 @@ export interface Phase3SmokeProofReadinessItem {
   readonly state: Phase3SmokeProofReadinessState;
   readonly source: string;
   readonly checkedAt: string;
+  readonly persisted: boolean;
   readonly detail: string;
 }
 
@@ -27,6 +28,11 @@ export interface Phase3SmokeProofReadinessInput {
   readonly liveControlSmoke?: unknown;
   readonly activeTurnInterruptSmoke?: unknown;
   readonly activeTurnSteerSmoke?: unknown;
+  readonly persistedDesktopProofs?: {
+    readonly liveControlSmoke?: boolean;
+    readonly activeTurnInterruptSmoke?: boolean;
+    readonly activeTurnSteerSmoke?: boolean;
+  };
   readonly evaluatedAt?: string | Date;
   readonly maxProofAgeMs?: number;
 }
@@ -162,6 +168,23 @@ function applyFreshness(
   };
 }
 
+function applyStorageProof(
+  label: string,
+  state: Phase3SmokeProofReadinessState,
+  source: string,
+  persisted: boolean,
+  detail: string
+): { state: Phase3SmokeProofReadinessState; detail: string } {
+  if (state !== "ready" || source !== "desktop" || persisted) {
+    return { state, detail };
+  }
+
+  return {
+    state: "review",
+    detail: `${label} must be loaded from persisted/imported desktop proof storage before Phase 3 handoff.`
+  };
+}
+
 function evaluateLiveControlSmokeState(record: Record<string, unknown>): Phase3SmokeProofReadinessState {
   const source = resolveSource(record);
   const executed = bool(record.executed);
@@ -253,6 +276,7 @@ function buildItem(
   input: unknown,
   label: string,
   evaluate: (record: Record<string, unknown>) => Phase3SmokeProofReadinessState,
+  persisted: boolean,
   evaluatedAt: string | Date | undefined,
   maxProofAgeMs: number
 ): Phase3SmokeProofReadinessItem {
@@ -263,6 +287,7 @@ function buildItem(
       state: "waiting",
       source: UNKNOWN_VALUE,
       checkedAt: "unavailable",
+      persisted: false,
       detail: resolveDetail(label, "waiting")
     };
   }
@@ -278,14 +303,22 @@ function buildItem(
     evaluatedAt,
     maxProofAgeMs
   );
+  const storageProof = applyStorageProof(
+    label,
+    freshness.state,
+    source,
+    persisted,
+    freshness.detail
+  );
 
   return {
     proof,
     label,
-    state: freshness.state,
+    state: storageProof.state,
     source,
     checkedAt,
-    detail: freshness.detail
+    persisted,
+    detail: storageProof.detail
   };
 }
 
@@ -337,6 +370,7 @@ export function buildPhase3SmokeProofReadiness(
       input.liveControlSmoke,
       PROOF_LABELS.liveControl,
       evaluateLiveControlSmokeState,
+      input.persistedDesktopProofs?.liveControlSmoke === true,
       input.evaluatedAt,
       maxProofAgeMs
     ),
@@ -345,6 +379,7 @@ export function buildPhase3SmokeProofReadiness(
       input.activeTurnInterruptSmoke,
       PROOF_LABELS.activeTurnInterrupt,
       evaluateActiveTurnInterruptSmokeState,
+      input.persistedDesktopProofs?.activeTurnInterruptSmoke === true,
       input.evaluatedAt,
       maxProofAgeMs
     ),
@@ -353,6 +388,7 @@ export function buildPhase3SmokeProofReadiness(
       input.activeTurnSteerSmoke,
       PROOF_LABELS.activeTurnSteer,
       evaluateActiveTurnSteerSmokeState,
+      input.persistedDesktopProofs?.activeTurnSteerSmoke === true,
       input.evaluatedAt,
       maxProofAgeMs
     )

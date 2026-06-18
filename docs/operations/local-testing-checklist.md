@@ -77,6 +77,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - After manually running `npm.cmd run smoke:phase3`, use the Phase 3 command validation record to capture the local CLI pass, or import `local_private/phase3-command-validation-record.json` after `npm.cmd run smoke:phase3:record`; then confirm this freshness-reviewed record does not mark persisted desktop UI proof rows ready or unlock handoff by itself.
    - Confirm Phase 3 CLI validation and desktop smoke proof rows fall back to review when they cannot be checked against the current evaluation timestamp.
    - After `npm.cmd run smoke:phase3:record`, import `local_private/phase3-smoke-proof-bundle.json` from the Phase 3 desktop smoke readiness rows and confirm only desktop-executed rows are preserved in persisted proof storage.
+   - Confirm desktop-shaped smoke proof rows that were not loaded from persisted/imported proof storage remain in review and cannot make Phase 3 exit-ready.
    - Confirm slash or session-control blockers stay ahead of unrelated runnable smoke actions, while a matching smoke blocker promotes its smoke action and command-plan guidance.
    - Confirm the Owner Testing Phase 3 handoff gate holds provider integration until desktop proof clearance is ready, exact blocker visibility is clear, and a non-expired owner handoff record matching the compact current evidence fingerprint is attached.
    - Confirm a ready-looking owner handoff record without current fingerprint validation returns to review instead of advancing provider integration.

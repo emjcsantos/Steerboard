@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { buildPhase3ExitGateEvidence } from "./phase3ExitGateEvidence";
 
+const persistedDesktopProofs = {
+  liveControlSmoke: true,
+  activeTurnInterruptSmoke: true,
+  activeTurnSteerSmoke: true
+};
+
 function readySlashEvidence(overrides: Record<string, unknown> = {}) {
   return {
     state: "ready",
@@ -83,6 +89,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns ready only when slash/session evidence and all desktop smokes are satisfied", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: readyLiveControlSmoke(),
@@ -126,6 +133,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns review when desktop proof is incomplete despite good slash/session evidence", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: readyLiveControlSmoke(),
@@ -175,9 +183,43 @@ describe("phase 3 exit gate evidence", () => {
     expect(result.items[3].nextAction).toBe("Run missing desktop smoke proofs until active-turn controls report completion/readiness.");
   });
 
+  it("returns review when desktop-shaped smoke proofs are not storage-attested", () => {
+    const result = buildPhase3ExitGateEvidence({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      slashEvidence: readySlashEvidence(),
+      sessionControlEvidence: readySessionControlEvidence(),
+      liveControlSmoke: readyLiveControlSmoke(),
+      activeTurnInterruptSmoke: readyInterruptSmoke(),
+      activeTurnSteerSmoke: readySteerSmoke()
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.pass).toBe(false);
+    expect(result.items.slice(2)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "phase3-exit-gate:live-control-smoke",
+          state: "review",
+          detail: expect.stringContaining("persisted/imported")
+        }),
+        expect.objectContaining({
+          id: "phase3-exit-gate:active-turn-interrupt-smoke",
+          state: "review",
+          detail: expect.stringContaining("persisted/imported")
+        }),
+        expect.objectContaining({
+          id: "phase3-exit-gate:active-turn-steer-smoke",
+          state: "review",
+          detail: expect.stringContaining("persisted/imported")
+        })
+      ])
+    );
+  });
+
   it("routes slash and session-control review rows to their own proof actions", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       slashEvidence: {
         state: "review",
         pass: false,
@@ -221,6 +263,7 @@ describe("phase 3 exit gate evidence", () => {
   it("does not trust ready slash evidence without provider route and result counts", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       slashEvidence: readySlashEvidence({
         evidence: {
           providerRoute: 0,
@@ -247,6 +290,7 @@ describe("phase 3 exit gate evidence", () => {
   it("does not trust ready session evidence without canonical control states", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence({
         controlStates: undefined
@@ -269,6 +313,7 @@ describe("phase 3 exit gate evidence", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-20T00:00:00.000Z",
       maxProofAgeMs: 24 * 60 * 60 * 1000,
+      persistedDesktopProofs,
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: {
@@ -304,6 +349,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns blocked when any smoke proof is unsupported after execution", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: null,
@@ -338,6 +384,7 @@ describe("phase 3 exit gate evidence", () => {
   it("keeps blocked slash or session evidence above missing smoke proof", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       slashEvidence: {
         state: "blocked",
         pass: false,
@@ -378,6 +425,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns waiting when key evidence is malformed or missing", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       slashEvidence: "not-an-object",
       sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: null,
@@ -426,6 +474,7 @@ describe("phase 3 exit gate evidence", () => {
 
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       slashEvidence,
       sessionControlEvidence,
       liveControlSmoke,
@@ -457,6 +506,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns review diagnostics and item details for mixed evidence states", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
       slashEvidence: {
         state: "ready",
         pass: true,

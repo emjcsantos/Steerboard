@@ -1,13 +1,20 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   loadPhase3SmokeProofBundle,
+  loadPhase3SmokeProofBundleWithStorageProof,
   getFallbackPhase3SmokeProofBundle,
   parseStoredPhase3SmokeProofBundle,
+  parseStoredPhase3SmokeProofBundleWithStorageProof,
   PHASE3_SMOKE_PROOF_STORAGE_KEY,
   savePhase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
 
 const fallbackBundle = getFallbackPhase3SmokeProofBundle();
+const noPersistedDesktopProofs = {
+  liveControlSmoke: false,
+  activeTurnInterruptSmoke: false,
+  activeTurnSteerSmoke: false
+};
 
 const desktopLiveControlSmoke = {
   source: "desktop",
@@ -96,6 +103,10 @@ describe("phase 3 smoke proof storage", () => {
     vi.stubGlobal("window", undefined);
 
     expect(loadPhase3SmokeProofBundle()).toEqual(fallbackBundle);
+    expect(loadPhase3SmokeProofBundleWithStorageProof()).toEqual({
+      bundle: fallbackBundle,
+      persistedDesktopProofs: noPersistedDesktopProofs
+    });
   });
 
   it("falls back to safe defaults on malformed JSON", () => {
@@ -106,6 +117,14 @@ describe("phase 3 smoke proof storage", () => {
     });
 
     expect(loadPhase3SmokeProofBundle()).toEqual(fallbackBundle);
+    expect(loadPhase3SmokeProofBundleWithStorageProof()).toEqual({
+      bundle: fallbackBundle,
+      persistedDesktopProofs: noPersistedDesktopProofs
+    });
+    expect(parseStoredPhase3SmokeProofBundleWithStorageProof("{")).toEqual({
+      bundle: fallbackBundle,
+      persistedDesktopProofs: noPersistedDesktopProofs
+    });
   });
 
   it("repairs valid stored proofs with codex transport normalizers", () => {
@@ -215,13 +234,13 @@ describe("phase 3 smoke proof storage", () => {
     });
 
     expect(loadPhase3SmokeProofBundle()).toEqual(fallbackBundle);
-    expect(() =>
+    expect(
       savePhase3SmokeProofBundle({
         liveControlSmoke: desktopLiveControlSmoke,
         activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
         activeTurnSteerSmoke: desktopActiveTurnSteerSmoke
       })
-    ).not.toThrow();
+    ).toEqual(fallbackBundle);
   });
 
   it("persists only desktop-executed rows from a partial proof bundle", () => {
@@ -237,7 +256,7 @@ describe("phase 3 smoke proof storage", () => {
       }
     });
 
-    savePhase3SmokeProofBundle({
+    const persistedBundle = savePhase3SmokeProofBundle({
       liveControlSmoke: {
         source: "browser",
         checkedAt: "2026-06-06T00:00:00.000Z",
@@ -260,6 +279,14 @@ describe("phase 3 smoke proof storage", () => {
         }
       })
     );
+    expect(persistedBundle).toEqual({
+      ...fallbackBundle,
+      activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
+      activeTurnSteerSmoke: {
+        ...desktopActiveTurnSteerSmoke,
+        checkedAt: "2026-06-05T13:56:40.000Z"
+      }
+    });
     expect(loadPhase3SmokeProofBundle()).toEqual({
       ...fallbackBundle,
       activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
@@ -267,6 +294,78 @@ describe("phase 3 smoke proof storage", () => {
         ...desktopActiveTurnSteerSmoke,
         checkedAt: "2026-06-05T13:56:40.000Z"
       }
+    });
+  });
+
+  it("attests only desktop-executed rows from mixed persisted storage", () => {
+    const result = parseStoredPhase3SmokeProofBundleWithStorageProof(
+      JSON.stringify({
+        liveControlSmoke: desktopLiveControlSmoke,
+        activeTurnInterruptSmoke: {
+          ...desktopActiveTurnInterruptSmoke,
+          source: "browser"
+        },
+        activeTurnSteerSmoke: {
+          ...desktopActiveTurnSteerSmoke,
+          executed: false
+        }
+      })
+    );
+
+    expect(result.bundle.liveControlSmoke).toEqual(desktopLiveControlSmoke);
+    expect(result.persistedDesktopProofs).toEqual({
+      liveControlSmoke: true,
+      activeTurnInterruptSmoke: false,
+      activeTurnSteerSmoke: false
+    });
+  });
+
+  it("returns existing persisted state when no desktop-executed row can be saved", () => {
+    const store: { value: string | null } = {
+      value: JSON.stringify({
+        liveControlSmoke: desktopLiveControlSmoke
+      })
+    };
+    const setItem = vi.fn();
+
+    vi.stubGlobal("window", {
+      localStorage: {
+        setItem,
+        getItem: vi.fn(() => store.value)
+      }
+    });
+
+    const persistedBundle = savePhase3SmokeProofBundle({
+      liveControlSmoke: {
+        source: "browser",
+        checkedAt: "2026-06-06T00:00:00.000Z",
+        executed: false,
+        ok: false,
+        unsupported: true,
+        detail: "browser"
+      },
+      activeTurnInterruptSmoke: {
+        source: "browser",
+        checkedAt: null,
+        executed: false,
+        ok: false,
+        unsupported: true,
+        detail: "browser"
+      },
+      activeTurnSteerSmoke: {
+        source: "browser",
+        checkedAt: null,
+        executed: false,
+        ok: false,
+        unsupported: true,
+        detail: "browser"
+      }
+    });
+
+    expect(setItem).not.toHaveBeenCalled();
+    expect(persistedBundle).toEqual({
+      ...fallbackBundle,
+      liveControlSmoke: desktopLiveControlSmoke
     });
   });
 
@@ -287,7 +386,7 @@ describe("phase 3 smoke proof storage", () => {
       }
     });
 
-    savePhase3SmokeProofBundle({
+    const persistedBundle = savePhase3SmokeProofBundle({
       liveControlSmoke: desktopLiveControlSmoke,
       activeTurnInterruptSmoke: {
         source: "browser",
@@ -314,6 +413,11 @@ describe("phase 3 smoke proof storage", () => {
         activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke
       })
     );
+    expect(persistedBundle).toEqual({
+      ...fallbackBundle,
+      liveControlSmoke: desktopLiveControlSmoke,
+      activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke
+    });
   });
 
   it("drops non-desktop rows from mixed imported proof bundles", () => {
@@ -328,7 +432,7 @@ describe("phase 3 smoke proof storage", () => {
       }
     });
 
-    savePhase3SmokeProofBundle({
+    const persistedBundle = savePhase3SmokeProofBundle({
       liveControlSmoke: desktopLiveControlSmoke,
       activeTurnInterruptSmoke: {
         ...desktopActiveTurnInterruptSmoke,
@@ -341,6 +445,10 @@ describe("phase 3 smoke proof storage", () => {
     });
 
     expect(loadPhase3SmokeProofBundle()).toEqual({
+      ...fallbackBundle,
+      liveControlSmoke: desktopLiveControlSmoke
+    });
+    expect(persistedBundle).toEqual({
       ...fallbackBundle,
       liveControlSmoke: desktopLiveControlSmoke
     });
@@ -360,7 +468,7 @@ describe("phase 3 smoke proof storage", () => {
       }
     });
 
-    savePhase3SmokeProofBundle({
+    const persistedBundle = savePhase3SmokeProofBundle({
       liveControlSmoke: desktopLiveControlSmoke,
       activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
       activeTurnSteerSmoke: desktopActiveTurnSteerSmoke
@@ -377,6 +485,22 @@ describe("phase 3 smoke proof storage", () => {
         }
       })
     );
+    expect(persistedBundle).toEqual({
+      liveControlSmoke: desktopLiveControlSmoke,
+      activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
+      activeTurnSteerSmoke: {
+        ...desktopActiveTurnSteerSmoke,
+        checkedAt: "2026-06-05T13:56:40.000Z"
+      }
+    });
+    expect(loadPhase3SmokeProofBundleWithStorageProof()).toEqual({
+      bundle: persistedBundle,
+      persistedDesktopProofs: {
+        liveControlSmoke: true,
+        activeTurnInterruptSmoke: true,
+        activeTurnSteerSmoke: true
+      }
+    });
 
     store.value = JSON.stringify({
       liveControlSmoke: desktopLiveControlSmoke,
