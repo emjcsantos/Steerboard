@@ -14714,6 +14714,16 @@ textarea {
   padding: 9px;
 }
 
+.phase11-evidence-record-actions {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.phase11-evidence-record-actions input {
+  display: none;
+}
+
 .phase11-evidence-records-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -14764,7 +14774,7 @@ textarea {
 .phase11-evidence-record {
   display: grid;
   min-width: 0;
-  grid-template-columns: 72px minmax(0, 1fr) auto;
+  grid-template-columns: 72px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 6px;
   border-radius: 8px;
@@ -14810,6 +14820,33 @@ textarea {
   display: grid;
   min-width: 0;
   gap: 2px;
+}
+
+.phase11-evidence-record-row-actions {
+  display: flex;
+  min-width: 0;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.phase11-evidence-record-actions button,
+.phase11-evidence-record-row-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid #2f3a46;
+  border-radius: 7px;
+  background: #16202a;
+  color: #d8e1eb;
+  padding: 5px 7px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.phase11-evidence-record-row-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .phase11-evidence-record strong {

@@ -614,8 +614,18 @@ import {
 } from "./phase11OwnerCommandCenter";
 import {
   buildPhase11EvidenceRecords,
+  type Phase11EvidenceGate,
+  type Phase11EvidenceRecordInput,
   type Phase11EvidenceRecordsSnapshot
 } from "./phase11EvidenceRecords";
+import {
+  clearPhase11EvidenceRecordInput,
+  createPhase11EvidenceRecordInput,
+  loadPhase11EvidenceRecordInputs,
+  parsePhase11EvidenceRecordInputs,
+  savePhase11EvidenceRecordInputs,
+  type Phase11EvidenceRecordInputMap
+} from "./phase11EvidenceRecordStorage";
 import {
   buildPhase11ProofFreshnessDepth,
   type Phase11ProofFreshnessDepthSnapshot
@@ -1704,6 +1714,11 @@ export function App() {
   const [phase3ProofEvaluationTime, setPhase3ProofEvaluationTime] = useState(() =>
     new Date().toISOString()
   );
+  const [phase11EvidenceEvaluationTime, setPhase11EvidenceEvaluationTime] = useState(() =>
+    new Date().toISOString()
+  );
+  const [phase11EvidenceRecordInputs, setPhase11EvidenceRecordInputs] =
+    useState<Phase11EvidenceRecordInputMap>(() => loadPhase11EvidenceRecordInputs());
   const [phase3OwnerHandoffRecord, setPhase3OwnerHandoffRecord] =
     useState<Phase3OwnerHandoffRecord | undefined>(() => loadPhase3OwnerHandoffRecord());
   const [phase3CommandValidationRecord, setPhase3CommandValidationRecord] =
@@ -1780,25 +1795,27 @@ export function App() {
       return undefined;
     }
 
-    const refreshPhase3ProofEvaluationTime = () => {
-      setPhase3ProofEvaluationTime(new Date().toISOString());
+    const refreshProofEvaluationTime = () => {
+      const now = new Date().toISOString();
+      setPhase3ProofEvaluationTime(now);
+      setPhase11EvidenceEvaluationTime(now);
     };
     const refreshWhenVisible = () => {
       if (document.visibilityState === "visible") {
-        refreshPhase3ProofEvaluationTime();
+        refreshProofEvaluationTime();
       }
     };
     const intervalId = window.setInterval(
-      refreshPhase3ProofEvaluationTime,
+      refreshProofEvaluationTime,
       PHASE3_PROOF_EVALUATION_REFRESH_MS
     );
 
-    window.addEventListener("focus", refreshPhase3ProofEvaluationTime);
+    window.addEventListener("focus", refreshProofEvaluationTime);
     document.addEventListener("visibilitychange", refreshWhenVisible);
 
     return () => {
       window.clearInterval(intervalId);
-      window.removeEventListener("focus", refreshPhase3ProofEvaluationTime);
+      window.removeEventListener("focus", refreshProofEvaluationTime);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
   }, []);
@@ -2257,6 +2274,50 @@ export function App() {
     clearPhase3CommandValidationRecord();
     setPhase3CommandValidationRecord(undefined);
     setAppNotice("Phase 3 CLI smoke validation record cleared");
+  }, []);
+  const recordPhase11Evidence = useCallback((gate: Phase11EvidenceGate) => {
+    const now = new Date().toISOString();
+    const record = createPhase11EvidenceRecordInput(gate, now);
+
+    setPhase11EvidenceEvaluationTime(now);
+    setPhase11EvidenceRecordInputs((currentInputs) => {
+      const nextInputs = { ...currentInputs, [gate]: record };
+      savePhase11EvidenceRecordInputs(nextInputs);
+      return nextInputs;
+    });
+    setAppNotice("Phase 11 evidence record attached locally");
+  }, []);
+  const importPhase11EvidenceRecords = useCallback((serializedRecords: string) => {
+    const importedInputs = parsePhase11EvidenceRecordInputs(serializedRecords);
+    const importedEntries = Object.entries(importedInputs) as Array<
+      [Phase11EvidenceGate, Phase11EvidenceRecordInput]
+    >;
+
+    if (importedEntries.length === 0) {
+      setAppNotice("Phase 11 evidence record artifact could not be imported");
+      return;
+    }
+
+    setPhase11EvidenceEvaluationTime(new Date().toISOString());
+    setPhase11EvidenceRecordInputs((currentInputs) => {
+      const nextInputs = { ...currentInputs, ...importedInputs };
+      savePhase11EvidenceRecordInputs(nextInputs);
+      return nextInputs;
+    });
+    setAppNotice(
+      `Phase 11 evidence record artifact imported (${importedEntries.length} gate${
+        importedEntries.length === 1 ? "" : "s"
+      })`
+    );
+  }, []);
+  const clearPhase11EvidenceRecord = useCallback((gate: Phase11EvidenceGate) => {
+    setPhase11EvidenceEvaluationTime(new Date().toISOString());
+    setPhase11EvidenceRecordInputs((currentInputs) => {
+      const nextInputs = clearPhase11EvidenceRecordInput(gate, currentInputs);
+      savePhase11EvidenceRecordInputs(nextInputs);
+      return nextInputs;
+    });
+    setAppNotice("Phase 11 evidence record cleared");
   }, []);
 
   useEffect(() => {
@@ -3929,6 +3990,9 @@ export function App() {
             onImportPhase3CommandValidation={importPhase3CommandValidation}
             onImportPhase3SmokeProofBundle={importPhase3SmokeProofBundle}
             onClearPhase3CommandValidation={clearPhase3CommandValidation}
+            onClearPhase11EvidenceRecord={clearPhase11EvidenceRecord}
+            onImportPhase11EvidenceRecords={importPhase11EvidenceRecords}
+            onRecordPhase11Evidence={recordPhase11Evidence}
             onSelectRun={setSelectedRunId}
             onUpdateRunStatus={handleRunStatusChange}
             project={project}
@@ -3957,6 +4021,8 @@ export function App() {
             phase3CommandValidationRecordValidation={phase3CommandValidationRecordValidation}
             phase3OwnerTestingActions={phase3OwnerTestingDisplayActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
+            phase11EvidenceEvaluationTime={phase11EvidenceEvaluationTime}
+            phase11EvidenceRecordInputs={phase11EvidenceRecordInputs}
             sessionControlOwnerTestingState={sessionControlOwnerTestingState}
             sessionControlReadinessEvidence={sessionControlReadinessEvidence}
             slashCommandExecutionEvidence={slashCommandExecutionEvidence}
@@ -7751,10 +7817,13 @@ function RightPanel({
   mockRuns,
   onClearPhase3CommandValidation,
   onClearPhase3OwnerHandoff,
+  onClearPhase11EvidenceRecord,
   onImportPhase3CommandValidation,
   onImportPhase3SmokeProofBundle,
+  onImportPhase11EvidenceRecords,
   onRecordPhase3CommandValidation,
   onRecordPhase3OwnerHandoff,
+  onRecordPhase11Evidence,
   onRecordWorkerValidationAttempt,
   onSelectRun,
   onUpdateRunStatus,
@@ -7784,6 +7853,8 @@ function RightPanel({
   phase3OwnerHandoffRecord,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
+  phase11EvidenceEvaluationTime,
+  phase11EvidenceRecordInputs,
   sessionControlOwnerTestingState,
   sessionControlReadinessEvidence,
   slashCommandExecutionEvidence,
@@ -7815,10 +7886,13 @@ function RightPanel({
   onFocusPanel: (panelId: string | undefined) => void;
   onClearPhase3CommandValidation: () => void;
   onClearPhase3OwnerHandoff: () => void;
+  onClearPhase11EvidenceRecord: (gate: Phase11EvidenceGate) => void;
   onImportPhase3CommandValidation: (serializedRecord: string) => void;
   onImportPhase3SmokeProofBundle: (serializedBundle: string) => void;
+  onImportPhase11EvidenceRecords: (serializedRecords: string) => void;
   onRecordPhase3CommandValidation: () => void;
   onRecordPhase3OwnerHandoff: () => void;
+  onRecordPhase11Evidence: (gate: Phase11EvidenceGate) => void;
   onRecordWorkerValidationAttempt: (
     runId: string,
     taskId: string,
@@ -7852,6 +7926,8 @@ function RightPanel({
   phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
+  phase11EvidenceEvaluationTime: string;
+  phase11EvidenceRecordInputs: Phase11EvidenceRecordInputMap;
   sessionControlOwnerTestingState: OwnerTestingReadinessState;
   sessionControlReadinessEvidence: SessionControlReadinessEvidence;
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
@@ -8268,8 +8344,12 @@ function RightPanel({
     [failureStateFixtures]
   );
   const phase11EvidenceRecords = useMemo(
-    () => buildPhase11EvidenceRecords(),
-    []
+    () =>
+      buildPhase11EvidenceRecords(
+        phase11EvidenceRecordInputs,
+        phase11EvidenceEvaluationTime
+      ),
+    [phase11EvidenceEvaluationTime, phase11EvidenceRecordInputs]
   );
   const phase11ProofFreshnessDepth = useMemo(
     () =>
@@ -9148,7 +9228,12 @@ function RightPanel({
 
       <Phase11ProofFreshnessDepthPanel snapshot={phase11ProofFreshnessDepth} />
 
-      <Phase11EvidenceRecordsPanel snapshot={phase11EvidenceRecords} />
+      <Phase11EvidenceRecordsPanel
+        onClearRecord={onClearPhase11EvidenceRecord}
+        onImportRecords={onImportPhase11EvidenceRecords}
+        onRecord={onRecordPhase11Evidence}
+        snapshot={phase11EvidenceRecords}
+      />
 
       <Phase11ReleaseReadinessPanel snapshot={phase11ReleaseReadiness} />
 
@@ -13850,11 +13935,31 @@ function Phase11ProofFreshnessDepthPanel({
 }
 
 function Phase11EvidenceRecordsPanel({
+  onClearRecord,
+  onImportRecords,
+  onRecord,
   snapshot
 }: {
+  onClearRecord: (gate: Phase11EvidenceGate) => void;
+  onImportRecords: (serializedRecords: string) => void;
+  onRecord: (gate: Phase11EvidenceGate) => void;
   snapshot: Phase11EvidenceRecordsSnapshot;
 }) {
+  const importInputRef = useRef<HTMLInputElement | null>(null);
   const records = Object.values(snapshot.records);
+  const handleImport = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      event.currentTarget.value = "";
+
+      if (!file) {
+        return;
+      }
+
+      onImportRecords(await file.text());
+    },
+    [onImportRecords]
+  );
 
   return (
     <section className="panel-section">
@@ -13863,6 +13968,23 @@ function Phase11EvidenceRecordsPanel({
         className="phase11-evidence-records"
         title="Phase 11 evidence records are metadata-only and do not run release actions."
       >
+        <div className="phase11-evidence-record-actions" aria-label="Phase 11 evidence record actions">
+          <button
+            onClick={() => importInputRef.current?.click()}
+            title="Import a local Phase 11 evidence record JSON artifact."
+            type="button"
+          >
+            <Paperclip size={13} />
+            <span>Import JSON</span>
+          </button>
+          <input
+            accept="application/json,.json"
+            aria-label="Import Phase 11 evidence record artifact"
+            onChange={handleImport}
+            ref={importInputRef}
+            type="file"
+          />
+        </div>
         <dl className="phase11-evidence-records-grid" aria-label="Phase 11 evidence record counts">
           <div>
             <dt>Ready</dt>
@@ -13892,6 +14014,30 @@ function Phase11EvidenceRecordsPanel({
               <div>
                 <strong>{record.label}</strong>
                 <small>{record.source} / {record.recordedAt}</small>
+                <small>{record.nextAction}</small>
+              </div>
+              <div className="phase11-evidence-record-row-actions">
+                <button
+                  onClick={() => onRecord(record.gate)}
+                  title={`Attach owner-local ${record.label.toLowerCase()} evidence metadata.`}
+                  type="button"
+                >
+                  <CheckCircle2 size={13} />
+                  <span>{record.state === "ready" ? "Record again" : "Record"}</span>
+                </button>
+                <button
+                  disabled={record.freshness === "missing"}
+                  onClick={() => onClearRecord(record.gate)}
+                  title={
+                    record.freshness === "missing"
+                      ? "No local Phase 11 evidence record is attached."
+                      : `Clear local ${record.label.toLowerCase()} evidence metadata.`
+                  }
+                  type="button"
+                >
+                  <RotateCcw size={13} />
+                  <span>Clear</span>
+                </button>
               </div>
               <b>{record.state}</b>
             </li>
