@@ -13459,6 +13459,8 @@ export function OwnerTestingReadinessPanel({
                     <strong>{item.priority}. {item.label}</strong>
                     <span>{item.canUseSmokeCommand ? "command" : item.severity}</span>
                     <small>{item.pmTaskId} / {item.evidenceKey}</small>
+                    <small>{item.detail}</small>
+                    <small>{item.nextAction}</small>
                   </li>
                 ))
               ) : (

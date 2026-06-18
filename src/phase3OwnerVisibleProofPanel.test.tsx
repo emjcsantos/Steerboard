@@ -1026,6 +1026,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("storage review");
     expect(html).toContain("must be loaded from persisted/imported desktop proof storage");
     expect(html).toContain("Phase 3 blocker priority");
+    expect(html).toContain("Live control smoke is the next desktop smoke proof blocker in review state.");
+    expect(html).toContain("npm.cmd run smoke:phase3 can refresh this blocker.");
+    expect(html).toContain("Run npm.cmd run smoke:phase3 locally when desktop session start is available.");
     expect(html).toContain("Advance held");
     expect(html).not.toContain("Storage 3/3 attested");
     expect(html).not.toContain("Smoke verified");
