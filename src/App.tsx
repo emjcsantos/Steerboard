@@ -365,15 +365,17 @@ import {
 } from "./phase3HandoffGate";
 import {
   buildPhase3HandoffEvidenceFingerprint,
-  clearPhase3OwnerHandoffRecord,
-  createPhase3OwnerHandoffRecord,
   derivePhase3HandoffRecordValidation,
   derivePhase3HandoffRecordState,
   loadPhase3OwnerHandoffRecord,
-  savePhase3OwnerHandoffRecord,
   type Phase3HandoffRecordValidation,
   type Phase3OwnerHandoffRecord
 } from "./phase3HandoffRecord";
+import {
+  runPhase3OwnerHandoffClearAction,
+  runPhase3OwnerHandoffRecordAction,
+  runPhase3SmokeProofBundleImportAction
+} from "./phase3OwnerProofActionFlow";
 import {
   clearPhase3CommandValidationRecord,
   createPhase3CommandValidationRecord,
@@ -409,7 +411,6 @@ import {
   loadPhase3SmokeProofBundleWithStorageProof,
   savePhase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
-import { importPhase3SmokeProofBundleArtifact } from "./phase3SmokeProofImport";
 import {
   buildPhase3SmokeProofNotice,
   countPersistedPhase3SmokeProofRows
@@ -2175,33 +2176,23 @@ export function App() {
     ]
   );
   const recordPhase3OwnerHandoff = useCallback(() => {
-    if (!phase3ClearancePackage.canExit) {
-      setAppNotice("Phase 3 handoff remains held until clearance is exit-ready");
-      return;
-    }
-    if (!phase3ClearanceTraceabilityPrecondition.canTrustTrace) {
-      setAppNotice(phase3ClearanceTraceabilityPrecondition.nextAction);
-      return;
-    }
-
-    const record = createPhase3OwnerHandoffRecord(
-      phase3ClearancePackage,
-      new Date().toISOString(),
-      phase3HandoffEvidenceFingerprint
-    );
-
-    savePhase3OwnerHandoffRecord(record);
-    setPhase3OwnerHandoffRecord(record);
-    setAppNotice("Phase 3 owner handoff recorded locally");
+    runPhase3OwnerHandoffRecordAction({
+      clearancePackage: phase3ClearancePackage,
+      traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition,
+      evidenceFingerprint: phase3HandoffEvidenceFingerprint,
+      setRecord: setPhase3OwnerHandoffRecord,
+      setAppNotice
+    });
   }, [
     phase3ClearancePackage,
     phase3ClearanceTraceabilityPrecondition,
     phase3HandoffEvidenceFingerprint
   ]);
   const clearPhase3OwnerHandoff = useCallback(() => {
-    clearPhase3OwnerHandoffRecord();
-    setPhase3OwnerHandoffRecord(undefined);
-    setAppNotice("Phase 3 owner handoff record cleared");
+    runPhase3OwnerHandoffClearAction({
+      setRecord: setPhase3OwnerHandoffRecord,
+      setAppNotice
+    });
   }, []);
   const recordPhase3CommandValidation = useCallback(() => {
     const record = createPhase3CommandValidationRecord(
@@ -2230,19 +2221,14 @@ export function App() {
     );
   }, []);
   const importPhase3SmokeProofBundle = useCallback((serializedBundle: string) => {
-    const result = importPhase3SmokeProofBundleArtifact(serializedBundle);
-
-    if (!result.imported || !result.bundle || !result.persistedDesktopProofs) {
-      setAppNotice(result.notice);
-      return;
-    }
-
-    setCodexLiveControlSmokeProof(result.bundle.liveControlSmoke);
-    setCodexActiveTurnControlSmokeProof(result.bundle.activeTurnInterruptSmoke);
-    setCodexActiveTurnSteerSmokeProof(result.bundle.activeTurnSteerSmoke);
-    setPhase3PersistedDesktopProofs(result.persistedDesktopProofs);
-    setPhase3ProofEvaluationTime(result.evaluatedAt ?? new Date().toISOString());
-    setAppNotice(result.notice);
+    runPhase3SmokeProofBundleImportAction(serializedBundle, {
+      setLiveControlSmokeProof: setCodexLiveControlSmokeProof,
+      setActiveTurnInterruptSmokeProof: setCodexActiveTurnControlSmokeProof,
+      setActiveTurnSteerSmokeProof: setCodexActiveTurnSteerSmokeProof,
+      setPersistedDesktopProofs: setPhase3PersistedDesktopProofs,
+      setProofEvaluationTime: setPhase3ProofEvaluationTime,
+      setAppNotice
+    });
   }, []);
   const clearPhase3CommandValidation = useCallback(() => {
     clearPhase3CommandValidationRecord();
