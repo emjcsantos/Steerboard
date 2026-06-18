@@ -14999,6 +14999,7 @@ textarea {
 .phase11-release-item > span,
 .phase11-release-item strong,
 .phase11-release-item small,
+.phase11-release-item em,
 .phase11-release-item b {
   min-width: 0;
   overflow: hidden;
@@ -15030,6 +15031,14 @@ textarea {
 .phase11-release-item small {
   color: #8f99a5;
   font-size: 10px;
+}
+
+.phase11-release-item em {
+  color: #aeb8c4;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .phase11-release-item b {

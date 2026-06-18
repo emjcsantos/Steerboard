@@ -7173,6 +7173,7 @@ function Phase4ProviderSurfaceDepthPanel({
               <span>{item.kind}</span>
               <div>
                 <strong>{item.label}</strong>
+                <em>{item.detail}</em>
                 <small>{item.nextAction}</small>
               </div>
               <b>{item.status}</b>

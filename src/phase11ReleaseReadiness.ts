@@ -203,10 +203,25 @@ function phase3HandoffProofReady(
   );
 }
 
+function phase3HandoffProofDetail(
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
+): string {
+  return (
+    proofFreshnessDepth.items.find((item) => item.kind === "handoff-proof")?.detail ??
+    "Owner handoff proof detail is missing from proof freshness depth."
+  );
+}
+
 function smokeProofItem(
-  ownerCommandCenter: Phase11OwnerCommandCenterSnapshot
+  ownerCommandCenter: Phase11OwnerCommandCenterSnapshot,
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
 ): Phase11ReleaseReadinessItem {
-  const status = ownerCommandCenter.canRelease ? "ready" : ownerCommandCenter.state;
+  const status =
+    ownerCommandCenter.canRelease && proofFreshnessDepth.canTrustOwnerProof
+      ? "ready"
+      : ownerCommandCenter.state === "ready" && !proofFreshnessDepth.canTrustOwnerProof
+        ? proofFreshnessDepth.state
+        : ownerCommandCenter.state;
 
   return {
     id: `${SNAPSHOT_ID}:smoke-proof`,
@@ -214,10 +229,15 @@ function smokeProofItem(
     kind: "smoke-proof",
     status,
     detail:
-      `Owner command center is ${ownerCommandCenter.statusLabel.toLowerCase()} at ${ownerCommandCenter.readiness}% with ${ownerCommandCenter.blockerCount} blocker${ownerCommandCenter.blockerCount === 1 ? "" : "s"}.`,
+      `Owner command center is ${ownerCommandCenter.statusLabel.toLowerCase()} at ${ownerCommandCenter.readiness}% with ${ownerCommandCenter.blockerCount} blocker${ownerCommandCenter.blockerCount === 1 ? "" : "s"}; proof freshness is ${proofFreshnessDepth.statusLabel.toLowerCase()} at ${proofFreshnessDepth.readiness}% with ${proofFreshnessDepth.openProofCount} open proof row${proofFreshnessDepth.openProofCount === 1 ? "" : "s"}.`,
     nextAction:
-      ownerCommandCenter.canRelease
+      status === "ready"
         ? "Keep owner smoke proof fresh across reload and while the app remains open before release packaging resumes."
+        : ownerCommandCenter.canRelease && !proofFreshnessDepth.canTrustOwnerProof
+          ? publicText(
+              proofFreshnessDepth.nextAction,
+              "Resolve Phase 11 proof freshness depth before release readiness."
+            )
         : publicText(
             ownerCommandCenter.nextAction,
             "Resolve Owner Testing command-center holds before release readiness."
@@ -234,6 +254,7 @@ function phase3TraceItem(
     (taskId) => !phase3Trace?.pmTaskIds.includes(taskId)
   );
   const handoffProofReady = phase3HandoffProofReady(proofFreshnessDepth);
+  const handoffProofDetail = phase3HandoffProofDetail(proofFreshnessDepth);
   const traceIsCurrent = phase3Trace?.current === true;
   const traceIsActive = phase3Trace?.status === "active";
   const traceIsTrusted =
@@ -241,7 +262,8 @@ function phase3TraceItem(
     traceIsCurrent &&
     traceIsActive &&
     missingPmTaskIds.length === 0 &&
-    handoffProofReady;
+    handoffProofReady &&
+    proofFreshnessDepth.canTrustOwnerProof;
 
   return {
     id: `${SNAPSHOT_ID}:phase3-trace`,
@@ -249,11 +271,11 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status: traceIsTrusted ? "ready" : "review",
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links; proof freshness ${proofFreshnessDepth.canTrustOwnerProof ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; ${handoffProofDetail}`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction: traceIsTrusted
       ? "Keep current active Phase 3 clearance PM traceability and ready handoff proof attached before release packaging resumes."
-      : `Restore current active Phase 3 clearance PM traceability and ready handoff proof before release readiness can recommend release: ${missingPmTaskIds.join(", ") || (!traceIsCurrent || !traceIsActive ? PHASE3_CLEARANCE_GOAL_ID : "phase-11-proof-freshness-depth:handoff-proof")}.`
+      : `Restore current active Phase 3 clearance PM traceability and trusted handoff proof before release readiness can recommend release: ${missingPmTaskIds.join(", ") || (!traceIsCurrent || !traceIsActive ? PHASE3_CLEARANCE_GOAL_ID : !proofFreshnessDepth.canTrustOwnerProof ? "phase-11-proof-freshness-depth" : "phase-11-proof-freshness-depth:handoff-proof")}.`
   };
 }
 
@@ -519,7 +541,7 @@ export function buildPhase11ReleaseReadinessSnapshot(
   const prerequisiteItems = [
     cleanCheckoutItem(input.cleanCheckoutEvidence, input.cleanCheckoutState),
     buildTestItem(input.buildTestEvidence, input.buildTestState),
-    smokeProofItem(input.ownerCommandCenter),
+    smokeProofItem(input.ownerCommandCenter, input.proofFreshnessDepth),
     phase3TraceItem(input.ownerCommandCenter, input.proofFreshnessDepth),
     packagingLockItem(input.desktopPackaging, input.securityFinalReview),
     docsKnownLimitsItem(input.docsKnownLimitsEvidence, input.docsKnownLimitsState)
@@ -539,6 +561,7 @@ export function buildPhase11ReleaseReadinessSnapshot(
   const canRecommendRelease =
     state === "ready" &&
     input.ownerCommandCenter.canRelease &&
+    input.proofFreshnessDepth.canTrustOwnerProof &&
     input.securityFinalReview.canCloseSecurity &&
     input.desktopPackaging.packagingLocked &&
     !input.desktopPackaging.canPackage &&

@@ -76,7 +76,8 @@ function proofSnapshot(
         label: "Owner handoff proof",
         kind: "handoff-proof",
         status: "ready",
-        detail: "Owner handoff proof is attached.",
+        detail:
+          "4 handoff rows are ready; 0 exact blockers remain; expected fingerprint current, record fingerprint current, current evidence matched, age 600000ms of 86400000ms window, evaluated at 2026-06-11T00:10:00.000Z; clearance snapshot ready at 100% with 5 ready, 0 open, 0 review, 0 blocked, and 0 waiting.",
         nextAction: "Keep the owner handoff record attached."
       }
     ],
@@ -183,6 +184,7 @@ describe("phase 11 release readiness", () => {
     expect(result.canRecommendRelease).toBe(true);
     expect(result.releaseHoldCount).toBe(0);
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
+    const phase3Trace = result.items.find((item) => item.label === "Current Phase 3 trace");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -205,7 +207,49 @@ describe("phase 11 release readiness", () => {
         })
       ])
     );
+    expect(phase3Trace?.detail).toContain("expected fingerprint current");
+    expect(phase3Trace?.detail).toContain("age 600000ms of 86400000ms window");
     expect(result.ariaLabel).toContain("0 holds");
+  });
+
+  it("reviews release readiness when Owner Testing is ready but proof freshness is not trusted", () => {
+    const result = snapshot({
+      proofFreshnessDepth: proofSnapshot({
+        state: "review",
+        statusLabel: "Review",
+        readiness: 84,
+        canTrustOwnerProof: false,
+        readyCount: 5,
+        reviewCount: 1,
+        openProofCount: 1,
+        nextAction: "Refresh Phase 3 CLI validation before release readiness."
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    const phase3Trace = result.items.find((item) => item.label === "Current Phase 3 trace");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner smoke proof",
+          status: "review",
+          detail: expect.stringContaining("proof freshness is review at 84%"),
+          nextAction: "Refresh Phase 3 CLI validation before release readiness."
+        }),
+        expect.objectContaining({
+          label: "Current Phase 3 trace",
+          status: "review",
+          nextAction: expect.stringContaining("phase-11-proof-freshness-depth")
+        }),
+        expect.objectContaining({
+          label: "Release decision",
+          status: "review"
+        })
+      ])
+    );
+    expect(phase3Trace?.detail).toContain("proof freshness not trusted");
+    expect(phase3Trace?.detail).toContain("expected fingerprint current");
   });
 
   it("reviews release readiness when owner proof lacks Phase 3 clearance traceability", () => {
