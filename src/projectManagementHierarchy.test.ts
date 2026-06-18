@@ -82,6 +82,8 @@ describe("project management hierarchy", () => {
 
     expect(byId.get("phase-03-child-smoke-rows")?.description).toContain("storage-attested proof");
     expect(byId.get("phase-03-child-smoke-rows")?.description).toContain("current-panel storage provenance");
+    expect(byId.get("phase-03-child-exit-gate")?.description).toContain("PM link count");
+    expect(byId.get("phase-03-child-exit-gate")?.description).toContain("evidence key count");
     expect(byId.get("phase-03-child-handoff-gate")?.description).toContain("clearance snapshot");
     expect(byId.get("phase-03-child-handoff-gate")?.description).toContain("visible handoff record-gate reason");
     expect(byId.get("phase-03-child-command-plan")?.description).toContain("visible CLI validation record actions and provenance");

@@ -219,7 +219,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-exit-gate",
             title: "Expose Exact Exit Blocker",
-            description: "If Phase 3 cannot exit, show the exact remaining blocker, stale proof, or row-specific slash, session, or smoke next owner action instead of a vague incomplete state.",
+            description: "If Phase 3 cannot exit, show the exact remaining blocker, current panel, PM link count, evidence key count, stale proof, and row-specific slash, session, or smoke next owner action instead of a vague incomplete state.",
             completionPercent: 94,
             sourceDocument: "Phase 3 exit gate evidence"
           },
