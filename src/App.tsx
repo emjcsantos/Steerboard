@@ -11560,7 +11560,7 @@ function ToolEvidenceReadinessPanel({
   );
 }
 
-function OwnerTestingReadinessPanel({
+export function OwnerTestingReadinessPanel({
   catalogRefreshOwnerValidation,
   checklist,
   failureFixtures,
