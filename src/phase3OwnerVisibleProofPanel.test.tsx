@@ -630,7 +630,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Owner handoff current");
     expect(html).toContain("Phase 3 handoff gate");
     expect(html).toContain("PM Links");
+    expect(html).toContain("<dt>PM Links</dt><dd>3</dd>");
     expect(html).toContain("Evidence Keys");
+    expect(html).toContain("<dt>Evidence Keys</dt><dd>5</dd>");
     expect(html).toContain("Desktop proof clearance");
     expect(html).toContain("Exact blocker visibility");
     expect(html).toContain("Traceability boundary");
