@@ -229,6 +229,9 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("Mutation lock");
     expect(html).toContain("Phase 9 runner blocker priority");
     expect(html).toContain("phase-09-desktop-runner-approval:owner-review / approval / waiting");
+    expect(html).toContain("Phase 9 desktop probe gate held");
+    expect(html).toContain("Desktop probe gate");
+    expect(html).toContain("Request owner approval for the fixed terminal read-only probe.");
     expect(html).toContain("Open");
     expect(html).toContain("Reviewable");
     expect(html).toContain("Status");
@@ -279,6 +282,8 @@ describe("phase 9 runner approval owner-visible proof", () => {
       '<dd title="goal-phase-9-runner is next at 58% with 9 PM task links.'
     );
     expect(html).toContain(">Held</dd>");
+    expect(html).toContain("Desktop probe gate");
+    expect(html).toContain("goal-phase-9-runner is next at 58% with 9 PM task links.");
     expect(html).toContain("Records");
     expect(html).toContain("Phase 9 runner review record ready");
     expect(html).toContain(

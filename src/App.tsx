@@ -14863,6 +14863,20 @@ export function Phase9RunnerApprovalPanel({
             <dd>{snapshot.blockedCount}</dd>
           </div>
         </dl>
+        <div
+          aria-label={`Phase 9 desktop probe gate ${desktopProbeGate.canRun ? "ready" : "held"}`}
+          className={classNames(
+            "phase9-desktop-probe-gate",
+            desktopProbeGate.canRun
+              ? "phase9-desktop-probe-gate-ready"
+              : "phase9-desktop-probe-gate-held"
+          )}
+          title={desktopProbeGate.holdReason}
+        >
+          <strong>Desktop probe gate</strong>
+          <span>{desktopProbeGate.canRun ? "Ready" : "Held"}</span>
+          <small>{desktopProbeGate.holdReason}</small>
+        </div>
         <ol className="phase9-runner-items" aria-label="Phase 9 runner approval targets">
           {snapshot.items.map((item) => (
             <li
