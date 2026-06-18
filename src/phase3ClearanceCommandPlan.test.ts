@@ -192,12 +192,55 @@ describe("phase 3 clearance command plan", () => {
     expect(plan.nextAction).toBe("Run slash proof first.");
     expect(plan.readySmokeCount).toBe(2);
     expect(plan.openSmokeCount).toBe(1);
+    expect(plan.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Slash execution evidence",
+          detail: "Slash execution proof is still open before Phase 3 can clear."
+        })
+      ])
+    );
     expect(plan.items.filter((item) => item.kind.endsWith("-smoke"))).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: "Live-control smoke proof", state: "waiting" }),
         expect.objectContaining({ label: "Active-turn interrupt smoke proof", state: "ready" }),
         expect.objectContaining({ label: "Active-turn steer smoke proof", state: "ready" })
       ])
+    );
+  });
+
+  it("preserves focused-panel blocker detail in the command-plan row", () => {
+    const plan = buildPhase3ClearanceCommandPlan({
+      clearancePackage: clearancePackage({
+        state: "review",
+        blockers: [
+          {
+            id: "phase3-exit-gate:slash-execution",
+            label: "Slash execution",
+            state: "review",
+            detail:
+              "Slash execution storage provenance belongs to another panel and must be refreshed from the current Arena panel.",
+            nextAction: "Refresh slash execution evidence from the current Arena panel transcript.",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
+          }
+        ]
+      }),
+      actions: smokeActions
+    });
+
+    expect(plan.canRunCommand).toBe(false);
+    expect(plan.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Slash execution evidence",
+          state: "review",
+          detail: expect.stringContaining("belongs to another panel")
+        })
+      ])
+    );
+    expect(plan.nextAction).toBe(
+      "Refresh slash execution evidence from the current Arena panel transcript."
     );
   });
 
@@ -252,6 +295,39 @@ describe("phase 3 clearance command plan", () => {
     expect(plan.state).toBe("blocked");
     expect(plan.canRunCommand).toBe(true);
     expect(plan.nextAction).toContain("npm.cmd run smoke:phase3");
+  });
+
+  it("keeps command-plan blocker detail public-safe", () => {
+    const plan = buildPhase3ClearanceCommandPlan({
+      clearancePackage: clearancePackage({
+        state: "review",
+        blockers: [
+          {
+            id: "phase3-exit-gate:session-controls",
+            label: "Session controls",
+            state: "review",
+            detail:
+              "Review C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
+            nextAction:
+              "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
+            pmTaskId: "phase-03-child-control-ready",
+            evidenceKey: "phase3.session-controls"
+          }
+        ]
+      }),
+      actions: smokeActions
+    });
+    const combinedText = [
+      plan.nextAction,
+      plan.ariaLabel,
+      ...plan.items.flatMap((item) => [item.detail, item.nextAction])
+    ].join(" ");
+
+    expect(combinedText).not.toMatch(/[A-Za-z]:[\\/]/);
+    expect(combinedText).not.toMatch(/[\\/](Users|Projects|Documents|Desktop)[\\/]/i);
+    expect(combinedText).not.toContain("sk-ABCDEF1234567890");
+    expect(combinedText).not.toContain("<");
+    expect(combinedText).not.toContain(">");
   });
 
   it("stops recommending the command after Phase 3 is exit-ready", () => {

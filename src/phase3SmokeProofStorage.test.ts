@@ -2,10 +2,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   loadPhase3SmokeProofBundle,
   loadPhase3SmokeProofBundleWithStorageProof,
+  createPhase3SmokeProofFingerprint,
   getFallbackPhase3SmokeProofBundle,
   parseStoredPhase3SmokeProofBundle,
   parseStoredPhase3SmokeProofBundleWithStorageProof,
   PHASE3_SMOKE_PROOF_STORAGE_KEY,
+  PHASE3_SMOKE_PROOF_STORAGE_PROOF_SOURCE,
   savePhase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
 
@@ -93,6 +95,19 @@ const desktopActiveTurnSteerSmoke = {
     }
   ]
 };
+
+function expectStorageProof(
+  row: Record<string, unknown>,
+  proof: string,
+  expectedFingerprint: string
+) {
+  expect(row.phase3StorageProof).toMatchObject({
+    source: PHASE3_SMOKE_PROOF_STORAGE_PROOF_SOURCE,
+    proof,
+    proofFingerprint: expectedFingerprint
+  });
+  expect(Date.parse((row.phase3StorageProof as { createdAt: string }).createdAt)).not.toBeNaN();
+}
 
 describe("phase 3 smoke proof storage", () => {
   afterEach(() => {
@@ -269,14 +284,25 @@ describe("phase 3 smoke proof storage", () => {
       activeTurnSteerSmoke: desktopActiveTurnSteerSmoke
     });
 
-    expect(setItem).toHaveBeenCalledWith(
-      PHASE3_SMOKE_PROOF_STORAGE_KEY,
-      JSON.stringify({
-        activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
-        activeTurnSteerSmoke: {
-          ...desktopActiveTurnSteerSmoke,
-          checkedAt: "2026-06-05T13:56:40.000Z"
-        }
+    expect(setItem).toHaveBeenCalledWith(PHASE3_SMOKE_PROOF_STORAGE_KEY, expect.any(String));
+    const stored = JSON.parse(store.value ?? "{}");
+    expect(stored.liveControlSmoke).toBeUndefined();
+    expect(stored.activeTurnInterruptSmoke).toMatchObject(desktopActiveTurnInterruptSmoke);
+    expect(stored.activeTurnSteerSmoke).toMatchObject({
+      ...desktopActiveTurnSteerSmoke,
+      checkedAt: "2026-06-05T13:56:40.000Z"
+    });
+    expectStorageProof(
+      stored.activeTurnInterruptSmoke,
+      "activeTurnInterruptSmoke",
+      createPhase3SmokeProofFingerprint(desktopActiveTurnInterruptSmoke)
+    );
+    expectStorageProof(
+      stored.activeTurnSteerSmoke,
+      "activeTurnSteerSmoke",
+      createPhase3SmokeProofFingerprint({
+        ...desktopActiveTurnSteerSmoke,
+        checkedAt: "2026-06-05T13:56:40.000Z"
       })
     );
     expect(persistedBundle).toEqual({
@@ -297,7 +323,7 @@ describe("phase 3 smoke proof storage", () => {
     });
   });
 
-  it("attests only desktop-executed rows from mixed persisted storage", () => {
+  it("does not attest desktop-executed rows that lack storage proof", () => {
     const result = parseStoredPhase3SmokeProofBundleWithStorageProof(
       JSON.stringify({
         liveControlSmoke: desktopLiveControlSmoke,
@@ -314,10 +340,83 @@ describe("phase 3 smoke proof storage", () => {
 
     expect(result.bundle.liveControlSmoke).toEqual(desktopLiveControlSmoke);
     expect(result.persistedDesktopProofs).toEqual({
+      liveControlSmoke: false,
+      activeTurnInterruptSmoke: false,
+      activeTurnSteerSmoke: false
+    });
+  });
+
+  it("attests only desktop-executed rows with matching storage proof", () => {
+    const storedLiveControlSmoke = {
+      ...desktopLiveControlSmoke,
+      phase3StorageProof: {
+        source: PHASE3_SMOKE_PROOF_STORAGE_PROOF_SOURCE,
+        proof: "liveControlSmoke",
+        createdAt: "2026-06-06T00:02:00.000Z",
+        proofFingerprint: createPhase3SmokeProofFingerprint(desktopLiveControlSmoke)
+      }
+    };
+    const result = parseStoredPhase3SmokeProofBundleWithStorageProof(
+      JSON.stringify({
+        liveControlSmoke: storedLiveControlSmoke,
+        activeTurnInterruptSmoke: {
+          ...desktopActiveTurnInterruptSmoke,
+          source: "browser",
+          phase3StorageProof: {
+            source: PHASE3_SMOKE_PROOF_STORAGE_PROOF_SOURCE,
+            proof: "activeTurnInterruptSmoke",
+            createdAt: "2026-06-06T00:02:00.000Z",
+            proofFingerprint: createPhase3SmokeProofFingerprint({
+              ...desktopActiveTurnInterruptSmoke,
+              source: "browser"
+            })
+          }
+        },
+        activeTurnSteerSmoke: {
+          ...desktopActiveTurnSteerSmoke,
+          executed: false,
+          phase3StorageProof: {
+            source: PHASE3_SMOKE_PROOF_STORAGE_PROOF_SOURCE,
+            proof: "activeTurnSteerSmoke",
+            createdAt: "2026-06-06T00:02:00.000Z",
+            proofFingerprint: createPhase3SmokeProofFingerprint({
+              ...desktopActiveTurnSteerSmoke,
+              checkedAt: "2026-06-05T13:56:40.000Z",
+              executed: false
+            })
+          }
+        }
+      })
+    );
+
+    expect(result.bundle.liveControlSmoke).toEqual(desktopLiveControlSmoke);
+    expect(result.persistedDesktopProofs).toEqual({
       liveControlSmoke: true,
       activeTurnInterruptSmoke: false,
       activeTurnSteerSmoke: false
     });
+  });
+
+  it("rejects storage proof when the fingerprint no longer matches the normalized row", () => {
+    const result = parseStoredPhase3SmokeProofBundleWithStorageProof(
+      JSON.stringify({
+        liveControlSmoke: {
+          ...desktopLiveControlSmoke,
+          detail: "Edited after storage proof was recorded.",
+          phase3StorageProof: {
+            source: PHASE3_SMOKE_PROOF_STORAGE_PROOF_SOURCE,
+            proof: "liveControlSmoke",
+            createdAt: "2026-06-06T00:02:00.000Z",
+            proofFingerprint: createPhase3SmokeProofFingerprint(desktopLiveControlSmoke)
+          }
+        }
+      })
+    );
+
+    expect(result.bundle.liveControlSmoke.detail).toBe(
+      "Edited after storage proof was recorded."
+    );
+    expect(result.persistedDesktopProofs.liveControlSmoke).toBe(false);
   });
 
   it("returns existing persisted state when no desktop-executed row can be saved", () => {
@@ -369,7 +468,7 @@ describe("phase 3 smoke proof storage", () => {
     });
   });
 
-  it("merges later desktop proof rows with already stored partial rows", () => {
+  it("does not merge already stored partial rows unless storage proof matches", () => {
     const store: { value: string | null } = {
       value: JSON.stringify({
         activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke
@@ -406,17 +505,18 @@ describe("phase 3 smoke proof storage", () => {
       }
     });
 
-    expect(setItem).toHaveBeenCalledWith(
-      PHASE3_SMOKE_PROOF_STORAGE_KEY,
-      JSON.stringify({
-        liveControlSmoke: desktopLiveControlSmoke,
-        activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke
-      })
+    expect(setItem).toHaveBeenCalledWith(PHASE3_SMOKE_PROOF_STORAGE_KEY, expect.any(String));
+    const stored = JSON.parse(store.value ?? "{}");
+    expect(stored.liveControlSmoke).toMatchObject(desktopLiveControlSmoke);
+    expect(stored.activeTurnInterruptSmoke).toBeUndefined();
+    expectStorageProof(
+      stored.liveControlSmoke,
+      "liveControlSmoke",
+      createPhase3SmokeProofFingerprint(desktopLiveControlSmoke)
     );
     expect(persistedBundle).toEqual({
       ...fallbackBundle,
-      liveControlSmoke: desktopLiveControlSmoke,
-      activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke
+      liveControlSmoke: desktopLiveControlSmoke
     });
   });
 
@@ -474,15 +574,30 @@ describe("phase 3 smoke proof storage", () => {
       activeTurnSteerSmoke: desktopActiveTurnSteerSmoke
     });
 
-    expect(setItem).toHaveBeenCalledWith(
-      PHASE3_SMOKE_PROOF_STORAGE_KEY,
-      JSON.stringify({
-        liveControlSmoke: desktopLiveControlSmoke,
-        activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
-        activeTurnSteerSmoke: {
-          ...desktopActiveTurnSteerSmoke,
-          checkedAt: "2026-06-05T13:56:40.000Z"
-        }
+    expect(setItem).toHaveBeenCalledWith(PHASE3_SMOKE_PROOF_STORAGE_KEY, expect.any(String));
+    const stored = JSON.parse(store.value ?? "{}");
+    expect(stored.liveControlSmoke).toMatchObject(desktopLiveControlSmoke);
+    expect(stored.activeTurnInterruptSmoke).toMatchObject(desktopActiveTurnInterruptSmoke);
+    expect(stored.activeTurnSteerSmoke).toMatchObject({
+      ...desktopActiveTurnSteerSmoke,
+      checkedAt: "2026-06-05T13:56:40.000Z"
+    });
+    expectStorageProof(
+      stored.liveControlSmoke,
+      "liveControlSmoke",
+      createPhase3SmokeProofFingerprint(desktopLiveControlSmoke)
+    );
+    expectStorageProof(
+      stored.activeTurnInterruptSmoke,
+      "activeTurnInterruptSmoke",
+      createPhase3SmokeProofFingerprint(desktopActiveTurnInterruptSmoke)
+    );
+    expectStorageProof(
+      stored.activeTurnSteerSmoke,
+      "activeTurnSteerSmoke",
+      createPhase3SmokeProofFingerprint({
+        ...desktopActiveTurnSteerSmoke,
+        checkedAt: "2026-06-05T13:56:40.000Z"
       })
     );
     expect(persistedBundle).toEqual({
@@ -499,15 +614,6 @@ describe("phase 3 smoke proof storage", () => {
         liveControlSmoke: true,
         activeTurnInterruptSmoke: true,
         activeTurnSteerSmoke: true
-      }
-    });
-
-    store.value = JSON.stringify({
-      liveControlSmoke: desktopLiveControlSmoke,
-      activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
-      activeTurnSteerSmoke: {
-        ...desktopActiveTurnSteerSmoke,
-        checkedAt: "2026-06-05T13:56:40.000Z"
       }
     });
 

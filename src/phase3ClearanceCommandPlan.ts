@@ -115,17 +115,44 @@ function firstNextAction(
     return `Run ${PHASE3_SMOKE_COMMAND} locally to refresh live-control, active-turn interrupt, and active-turn steer proofs.`;
   }
 
+  const sanitizedBlockerNextAction = publicText(blockerNextAction, "");
+
   return (
-    blockerNextAction ??
-    items.find((item) => item.state === "blocked")?.nextAction ??
-    items.find((item) => item.state === "review")?.nextAction ??
-    items.find((item) => item.state === "waiting")?.nextAction ??
+    sanitizedBlockerNextAction ||
+    items.find((item) => item.state === "blocked")?.nextAction ||
+    items.find((item) => item.state === "review")?.nextAction ||
+    items.find((item) => item.state === "waiting")?.nextAction ||
     "Desktop smoke command is no longer needed; record Phase 3 handoff after owner review."
   );
 }
 
 function isSmokeBlocker(blockerId: string | undefined): boolean {
   return SMOKE_PROOF_ROWS.some((proofRow) => proofRow.blockerId === blockerId);
+}
+
+function publicText(value: string | undefined, fallback: string): string {
+  if (!value || value.trim().length === 0) {
+    return fallback;
+  }
+
+  const sanitized = value
+    .replace(/[A-Za-z]:[\\/][^\s]+/g, "local path")
+    .replace(/[\\/](Users|Projects|Documents|Desktop)[\\/][^\s]+/gi, "local path")
+    .replace(/sk-[A-Za-z0-9_-]+/g, "redacted token")
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return sanitized.length > 0 ? sanitized : fallback;
+}
+
+function blockerDetail(
+  fallback: string,
+  detail: string | undefined
+): string {
+  const sanitizedDetail = publicText(detail, "");
+
+  return sanitizedDetail ? `${fallback} Detail: ${sanitizedDetail}` : fallback;
 }
 
 function buildItems(
@@ -141,9 +168,14 @@ function buildItems(
     kind: "slash-evidence",
     state: slashBlocker?.state ?? "ready",
     detail: slashBlocker
-      ? "Slash execution proof is still open before Phase 3 can clear."
+      ? blockerDetail(
+          "Slash execution proof is still open before Phase 3 can clear.",
+          slashBlocker.detail
+        )
       : "Slash execution proof is ready or not the active blocker.",
-    nextAction: slashBlocker?.nextAction ?? "Keep provider-routed slash proof attached."
+    nextAction: slashBlocker
+      ? publicText(slashBlocker.nextAction, "Refresh slash execution proof before Phase 3 can clear.")
+      : "Keep provider-routed slash proof attached."
   };
   const sessionItem: Phase3ClearanceCommandPlanItem = {
     id: `${PLAN_ID}:session-control`,
@@ -151,9 +183,14 @@ function buildItems(
     kind: "session-control",
     state: sessionBlocker?.state ?? "ready",
     detail: sessionBlocker
-      ? "Session-control proof is still open before Phase 3 can clear."
+      ? blockerDetail(
+          "Session-control proof is still open before Phase 3 can clear.",
+          sessionBlocker.detail
+        )
       : "Session-control proof is ready or not the active blocker.",
-    nextAction: sessionBlocker?.nextAction ?? "Keep session-control proof attached."
+    nextAction: sessionBlocker
+      ? publicText(sessionBlocker.nextAction, "Refresh session-control proof before Phase 3 can clear.")
+      : "Keep session-control proof attached."
   };
   const smokeItems = SMOKE_PROOF_ROWS.map((row): Phase3ClearanceCommandPlanItem => {
       const blocker = blockerById.get(row.blockerId);
@@ -165,12 +202,17 @@ function buildItems(
         label: row.label,
         kind: row.kind,
         state,
-        detail: `${PHASE3_SMOKE_COMMAND} covers this ${row.label.toLowerCase()} row.`,
+        detail: blockerDetail(
+          `${PHASE3_SMOKE_COMMAND} covers this ${row.label.toLowerCase()} row.`,
+          blocker?.detail
+        ),
         nextAction:
           state === "ready"
             ? `Keep ${row.label.toLowerCase()} attached and move to owner handoff review.`
-            : blocker?.nextAction ??
+            : publicText(
+              blocker?.nextAction,
               `Run ${PHASE3_SMOKE_COMMAND} from the Steerboard workspace when desktop session start is available.`
+            )
       };
     });
 
