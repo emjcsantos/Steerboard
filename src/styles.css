@@ -8591,6 +8591,45 @@ textarea {
   font-weight: 900;
 }
 
+.owner-testing-phase3-handoff-evidence {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+}
+
+.owner-testing-phase3-handoff-evidence div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #2d3945;
+  border-radius: 7px;
+  background: #101820;
+  padding: 5px;
+}
+
+.owner-testing-phase3-handoff-evidence dt,
+.owner-testing-phase3-handoff-evidence dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-testing-phase3-handoff-evidence dt {
+  color: #90a0ad;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.owner-testing-phase3-handoff-evidence dd {
+  color: #edf3f8;
+  font-size: 10px;
+  font-weight: 900;
+}
+
 .owner-testing-phase3-handoff-actions {
   display: grid;
   min-width: 0;
@@ -14617,6 +14656,7 @@ textarea {
 .phase11-proof-depth-item > span,
 .phase11-proof-depth-item strong,
 .phase11-proof-depth-item small,
+.phase11-proof-depth-item em,
 .phase11-proof-depth-item b {
   min-width: 0;
   overflow: hidden;
@@ -14648,6 +14688,14 @@ textarea {
 .phase11-proof-depth-item small {
   color: #8f99a5;
   font-size: 10px;
+}
+
+.phase11-proof-depth-item em {
+  color: #aeb8c4;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .phase11-proof-depth-item b {

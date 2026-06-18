@@ -157,6 +157,7 @@ describe("phase 11 proof freshness depth", () => {
     expect(result.readiness).toBe(100);
     expect(result.openProofCount).toBe(0);
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
+    const handoffProof = result.items.find((item) => item.label === "Owner handoff proof");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -169,6 +170,10 @@ describe("phase 11 proof freshness depth", () => {
         })
       ])
     );
+    expect(handoffProof?.detail).toContain("expected fingerprint current");
+    expect(handoffProof?.detail).toContain("record fingerprint current");
+    expect(handoffProof?.detail).toContain("age 600000ms of 86400000ms window");
+    expect(handoffProof?.detail).toContain("clearance snapshot ready at 100%");
     expect(result.ariaLabel).toContain("0 open proof rows");
   });
 
@@ -344,6 +349,7 @@ describe("phase 11 proof freshness depth", () => {
 
     expect(result.state).toBe("waiting");
     expect(result.openProofCount).toBe(1);
+    const handoffProof = result.items.find((item) => item.label === "Owner handoff proof");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -353,5 +359,7 @@ describe("phase 11 proof freshness depth", () => {
         })
       ])
     );
+    expect(handoffProof?.detail).toContain("expected fingerprint current");
+    expect(handoffProof?.detail).toContain("current evidence matched");
   });
 });

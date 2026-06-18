@@ -194,6 +194,48 @@ function commandValidationItem(
   };
 }
 
+function formatHandoffFingerprint(value: string | undefined): string {
+  return value && value.trim().length > 0 ? value : "missing";
+}
+
+function formatHandoffAge(valueMs: number | undefined): string {
+  if (valueMs === undefined) {
+    return "age unchecked";
+  }
+
+  if (valueMs < 0) {
+    return `age future by ${Math.abs(valueMs)}ms`;
+  }
+
+  return `age ${valueMs}ms`;
+}
+
+function handoffReviewDetail(phase3HandoffGate: Phase3HandoffGate): string {
+  const review = phase3HandoffGate.handoffEvidenceReview;
+  const ageWindow =
+    review.maxRecordAgeMs === undefined
+      ? formatHandoffAge(review.recordAgeMs)
+      : `${formatHandoffAge(review.recordAgeMs)} of ${review.maxRecordAgeMs}ms window`;
+  const evaluatedAt = review.evaluatedAt
+    ? `evaluated at ${review.evaluatedAt}`
+    : "evaluation timestamp missing";
+
+  return (
+    `${phase3HandoffGate.readyCount} handoff rows are ready; ` +
+    `${phase3HandoffGate.exactBlockerCount} exact blocker${phase3HandoffGate.exactBlockerCount === 1 ? "" : "s"} remain; ` +
+    `expected fingerprint ${formatHandoffFingerprint(review.expectedFingerprint)}, ` +
+    `record fingerprint ${formatHandoffFingerprint(review.recordFingerprint)}, ` +
+    `current evidence ${review.matchesCurrentEvidence ? "matched" : "not matched"}, ` +
+    `${ageWindow}, ${evaluatedAt}; clearance snapshot ` +
+    `${review.clearanceSnapshot.state} at ${review.clearanceSnapshot.readiness}% ` +
+    `with ${review.clearanceSnapshot.readyCount} ready, ` +
+    `${review.clearanceSnapshot.exactBlockerCount} open, ` +
+    `${review.clearanceSnapshot.reviewCount} review, ` +
+    `${review.clearanceSnapshot.blockedCount} blocked, and ` +
+    `${review.clearanceSnapshot.waitingCount} waiting.`
+  );
+}
+
 function handoffProofItem(
   phase3HandoffGate: Phase3HandoffGate
 ): Phase11ProofFreshnessDepthItem {
@@ -204,7 +246,7 @@ function handoffProofItem(
     label: "Owner handoff proof",
     kind: "handoff-proof",
     status,
-    detail: `${phase3HandoffGate.readyCount} handoff rows are ready; ${phase3HandoffGate.exactBlockerCount} exact blocker${phase3HandoffGate.exactBlockerCount === 1 ? "" : "s"} remain.`,
+    detail: handoffReviewDetail(phase3HandoffGate),
     nextAction:
       status === "ready"
         ? "Keep the owner handoff record attached, matching current evidence, and backed by trusted current active goal/PM traceability before provider or release readiness advances."

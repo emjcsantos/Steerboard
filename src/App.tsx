@@ -1247,6 +1247,18 @@ function formatProofFreshnessWindow(valueMs: number): string {
   return `${Math.round(valueMs / (60 * 60 * 1000))}h`;
 }
 
+function formatPhase3HandoffAge(valueMs: number | undefined): string {
+  if (valueMs === undefined) {
+    return "Unchecked";
+  }
+
+  if (valueMs < 0) {
+    return `Future ${Math.abs(valueMs)}ms`;
+  }
+
+  return `${valueMs}ms`;
+}
+
 function codexNotice(decision: CodexTransportDecision): string {
   if (decision.state === "live") {
     return "Codex live transport enabled";
@@ -7226,6 +7238,7 @@ function Phase4ProviderTraceabilityPanel({
               <span>{item.status}</span>
               <div>
                 <strong>{item.label}</strong>
+                <em>{item.detail}</em>
                 <small>{item.nextAction}</small>
               </div>
               <b>{item.kind}</b>
@@ -12316,6 +12329,52 @@ function OwnerTestingReadinessPanel({
               <div>
                 <dt>State</dt>
                 <dd>{phase3HandoffGate.statusLabel}</dd>
+              </div>
+            </dl>
+            <dl
+              className="owner-testing-phase3-handoff-evidence"
+              aria-label="Phase 3 handoff evidence review"
+            >
+              <div>
+                <dt>Expected</dt>
+                <dd title={phase3HandoffGate.handoffEvidenceReview.expectedFingerprint ?? "No expected fingerprint attached"}>
+                  {phase3HandoffGate.handoffEvidenceReview.expectedFingerprint ?? "Missing"}
+                </dd>
+              </div>
+              <div>
+                <dt>Record</dt>
+                <dd title={phase3HandoffGate.handoffEvidenceReview.recordFingerprint ?? "No record fingerprint attached"}>
+                  {phase3HandoffGate.handoffEvidenceReview.recordFingerprint ?? "Missing"}
+                </dd>
+              </div>
+              <div>
+                <dt>Age</dt>
+                <dd
+                  title={
+                    phase3HandoffGate.handoffEvidenceReview.maxRecordAgeMs === undefined
+                      ? "No handoff age window attached"
+                      : `${formatPhase3HandoffAge(
+                          phase3HandoffGate.handoffEvidenceReview.recordAgeMs
+                        )} of ${phase3HandoffGate.handoffEvidenceReview.maxRecordAgeMs}ms window`
+                  }
+                >
+                  {phase3HandoffGate.handoffEvidenceReview.hasFreshAgeMetadata
+                    ? "Fresh"
+                    : formatPhase3HandoffAge(
+                        phase3HandoffGate.handoffEvidenceReview.recordAgeMs
+                      )}
+                </dd>
+              </div>
+              <div>
+                <dt>Snapshot</dt>
+                <dd
+                  title={`${phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.readyCount} ready, ${phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.exactBlockerCount} open, ${phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.reviewCount} review, ${phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.blockedCount} blocked, ${phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.waitingCount} waiting`}
+                >
+                  {phase3HandoffGate.handoffEvidenceReview.matchesCurrentEvidence
+                    ? "Match"
+                    : "Review"}{" "}
+                  {phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.readiness}%
+                </dd>
               </div>
             </dl>
             <div
