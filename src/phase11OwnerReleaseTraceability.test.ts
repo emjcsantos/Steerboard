@@ -884,6 +884,45 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
+  it("carries fresh-checkout release readiness detail into owner release traceability", () => {
+    const result = trace({
+      releaseReadiness: releaseSnapshot({
+        state: "review",
+        statusLabel: "Review",
+        canRecommendRelease: false,
+        releaseHoldCount: 1,
+        items: [
+          {
+            id: "phase-11-release-readiness:fresh-checkout",
+            label: "Fresh checkout",
+            kind: "fresh-checkout",
+            status: "review",
+            detail:
+              "Fresh-checkout install, test, build, desktop run, and proof-panel evidence need a structured evidence record.",
+            nextAction: "Attach fresh-checkout evidence metadata before release readiness can proceed."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "release-readiness",
+          status: "review",
+          detail: expect.stringContaining("Top release row: Fresh checkout is review"),
+          nextAction: "Attach fresh-checkout evidence metadata before release readiness can proceed."
+        }),
+        expect.objectContaining({
+          kind: "release-readiness",
+          detail: expect.stringContaining("proof-panel evidence need a structured evidence record")
+        })
+      ])
+    );
+  });
+
   it("keeps traceability text public-safe", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
