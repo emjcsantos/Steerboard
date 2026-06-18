@@ -45,6 +45,7 @@ import { buildSlashCommandExecutionEvidence } from "./slashCommandExecutionEvide
 const evaluatedAt = "2026-06-18T07:58:00.000Z";
 const panelProofCreatedAt = "2026-06-18T07:57:40.000Z";
 const currentPanelId = "panel-phase3-owner-visible";
+const otherPanelId = "panel-phase3-other";
 
 const liveControlSmoke = {
   source: "desktop",
@@ -165,7 +166,7 @@ function smokeBundleProvenance() {
   } as const;
 }
 
-function saveReadyPanelEvidence() {
+function saveReadyPanelEvidence(panelId = currentPanelId) {
   const slashEvidence = buildSlashCommandExecutionEvidence({
     submittedMessage: "/plan Phase 3 owner visible proof",
     liveTransportAvailable: true,
@@ -185,11 +186,11 @@ function saveReadyPanelEvidence() {
   });
 
   savePhase3SlashEvidenceByPanel(
-    { [currentPanelId]: slashEvidence },
+    { [panelId]: slashEvidence },
     { createdAt: panelProofCreatedAt }
   );
   savePhase3SessionControlEvidenceByPanel(
-    { [currentPanelId]: sessionControlEvidence },
+    { [panelId]: sessionControlEvidence },
     { createdAt: panelProofCreatedAt }
   );
 
@@ -199,9 +200,19 @@ function saveReadyPanelEvidence() {
   };
 }
 
-function buildReadyPhase3Props() {
+function buildReadyPhase3Props(input: {
+  readonly evidencePanelId?: string;
+  readonly focusedPanelId?: string;
+} = {}) {
   createStore();
-  const { slashEvidence, sessionControlEvidence } = saveReadyPanelEvidence();
+  const focusedPanelId = input.focusedPanelId ?? currentPanelId;
+  const { slashEvidence, sessionControlEvidence } = saveReadyPanelEvidence(
+    input.evidencePanelId ?? focusedPanelId
+  );
+  const loadedSlashEvidenceByPanel = loadPhase3SlashEvidenceByPanel();
+  const loadedSessionControlEvidenceByPanel = loadPhase3SessionControlEvidenceByPanel();
+  const focusedSlashEvidence = loadedSlashEvidenceByPanel[focusedPanelId];
+  const focusedSessionControlEvidence = loadedSessionControlEvidenceByPanel[focusedPanelId];
   const bundle = rawBundle();
   const persistedDesktopProofs = {
     liveControlSmoke: true,
@@ -216,14 +227,14 @@ function buildReadyPhase3Props() {
     evaluatedAt
   });
   const phase3ExitGateEvidence = buildPhase3ExitGateEvidence({
-    slashEvidence: loadPhase3SlashEvidenceByPanel()[currentPanelId],
-    sessionControlEvidence: loadPhase3SessionControlEvidenceByPanel()[currentPanelId],
+    slashEvidence: focusedSlashEvidence,
+    sessionControlEvidence: focusedSessionControlEvidence,
     liveControlSmoke: bundle.liveControlSmoke,
     activeTurnInterruptSmoke: bundle.activeTurnInterruptSmoke,
     activeTurnSteerSmoke: bundle.activeTurnSteerSmoke,
     persistedDesktopProofs,
     evaluatedAt,
-    currentPanelId
+    currentPanelId: focusedPanelId
   });
   const phase3OwnerTestingActions = buildPhase3OwnerTestingActions({
     canStartSession: true,
@@ -316,8 +327,9 @@ function buildReadyPhase3Props() {
     phase3OwnerHandoffRecord,
     phase3OwnerTestingActions: phase3OwnerTestingDisplayActions,
     phase3SmokeProofReadiness,
-    sessionControlReadinessEvidence: sessionControlEvidence,
-    slashCommandExecutionEvidence: slashEvidence
+    sessionControlReadinessEvidence:
+      focusedSessionControlEvidence ?? sessionControlEvidence,
+    slashCommandExecutionEvidence: focusedSlashEvidence ?? slashEvidence
   };
 }
 
@@ -445,6 +457,89 @@ function buildPhase3PropsWithSmokeProofs(input: {
   };
 }
 
+function buildPhase3PropsWithForeignPanelProvenance() {
+  const props = buildReadyPhase3Props({
+    evidencePanelId: otherPanelId,
+    focusedPanelId: otherPanelId
+  });
+  const bundle = rawBundle();
+  const persistedDesktopProofs = {
+    liveControlSmoke: true,
+    activeTurnInterruptSmoke: true,
+    activeTurnSteerSmoke: true
+  };
+  const phase3ExitGateEvidence = buildPhase3ExitGateEvidence({
+    slashEvidence: props.slashCommandExecutionEvidence,
+    sessionControlEvidence: props.sessionControlReadinessEvidence,
+    liveControlSmoke: bundle.liveControlSmoke,
+    activeTurnInterruptSmoke: bundle.activeTurnInterruptSmoke,
+    activeTurnSteerSmoke: bundle.activeTurnSteerSmoke,
+    persistedDesktopProofs,
+    evaluatedAt,
+    currentPanelId
+  });
+  const phase3OwnerTestingActions = buildPhase3OwnerTestingActions({
+    canStartSession: true,
+    liveControlSmokeGate: phase3ExitGateEvidence.items.find(
+      (item) => item.id === "phase3-exit-gate:live-control-smoke"
+    ),
+    activeTurnInterruptSmokeGate: phase3ExitGateEvidence.items.find(
+      (item) => item.id === "phase3-exit-gate:active-turn-interrupt-smoke"
+    ),
+    activeTurnSteerSmokeGate: phase3ExitGateEvidence.items.find(
+      (item) => item.id === "phase3-exit-gate:active-turn-steer-smoke"
+    )
+  });
+  const phase3ClearancePackage = buildPhase3ClearancePackage({
+    exitGate: phase3ExitGateEvidence,
+    actions: phase3OwnerTestingActions
+  });
+  const phase3OwnerTestingDisplayActions = gatePhase3OwnerTestingActionsToPrimary({
+    actions: phase3OwnerTestingActions,
+    primaryActionId: phase3ClearancePackage.primaryActionId,
+    holdDetail: phase3ClearancePackage.nextAction
+  });
+  const phase3ClearanceCommandPlan = buildPhase3ClearanceCommandPlan({
+    clearancePackage: phase3ClearancePackage,
+    actions: phase3OwnerTestingDisplayActions
+  });
+  const phase3ClearanceBlockerPriority = buildPhase3ClearanceBlockerPriority({
+    clearancePackage: phase3ClearancePackage,
+    commandPlan: phase3ClearanceCommandPlan
+  });
+  const phase3ClearanceTraceabilityPrecondition =
+    buildPhase3ClearanceTraceabilityPrecondition();
+  const phase3HandoffGate = buildPhase3HandoffGate({
+    clearancePackage: phase3ClearancePackage,
+    traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition
+  });
+  const phase3CommandValidationRecordValidation =
+    derivePhase3CommandValidationRecordValidation(props.phase3CommandValidationRecord, {
+      evaluatedAt,
+      expectedCommand: phase3ClearanceCommandPlan.command
+    });
+  const phase3ClearanceTraceability = buildPhase3ClearanceTraceability({
+    clearancePackage: phase3ClearancePackage,
+    commandPlan: phase3ClearanceCommandPlan,
+    commandValidation: phase3CommandValidationRecordValidation,
+    blockerPriority: phase3ClearanceBlockerPriority,
+    handoffGate: phase3HandoffGate
+  });
+
+  return {
+    ...props,
+    phase3ClearanceBlockerPriority,
+    phase3ClearanceTraceability,
+    phase3ClearanceTraceabilityPrecondition,
+    phase3ClearanceCommandPlan,
+    phase3ClearancePackage,
+    phase3ExitGateEvidence,
+    phase3HandoffGate,
+    phase3OwnerHandoffRecord: undefined,
+    phase3OwnerTestingActions: phase3OwnerTestingDisplayActions
+  };
+}
+
 function buildPhase3PropsWithCommandValidationRecord(input: {
   readonly createdAt?: string;
   readonly command?: string;
@@ -513,6 +608,43 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Clear record");
     expect(html).toContain("phase3-smoke-record:2026-06-18T07:57:30.551Z");
     expect(html).toContain("local_private/phase3-smoke-proof-bundle.json");
+  });
+
+  it("does not borrow another panel's slash or session-control proof for Phase 3 exit", () => {
+    const props = buildReadyPhase3Props({
+      evidencePanelId: otherPanelId,
+      focusedPanelId: currentPanelId
+    });
+    const html = renderOwnerTestingReadinessPanel(props);
+
+    expect(html).toContain("Phase 3 gate");
+    expect(html).toContain(currentPanelId);
+    expect(html).toContain("Phase 3 clearance package Waiting");
+    expect(html).toContain("Slash execution");
+    expect(html).toContain("Session controls");
+    expect(html).toContain("Submit a provider-routed slash command from an Arena panel");
+    expect(html).toContain("Collect Arena session-control evidence");
+    expect(html).toContain("Advance held");
+    expect(html).not.toContain("Current evidence match 100%");
+    expect(html).not.toContain(`panel ${otherPanelId}`);
+  });
+
+  it("shows foreign-panel slash and session-control provenance as owner review", () => {
+    const props = buildPhase3PropsWithForeignPanelProvenance();
+    const html = renderOwnerTestingReadinessPanel(props);
+
+    expect(html).toContain("Phase 3 gate");
+    expect(html).toContain("Needs review");
+    expect(html).toContain("Exit held");
+    expect(html).toContain("storage provenance belongs to another panel");
+    expect(html).toContain(
+      "Refresh slash execution evidence from the current Arena panel transcript"
+    );
+    expect(html).toContain(
+      "Refresh session-control evidence from the current Arena panel/session"
+    );
+    expect(html).toContain("Advance held");
+    expect(html).not.toContain("Current evidence match 100%");
   });
 
   it("holds handoff recording when desktop proof is ready but Phase 3 traceability is untrusted", () => {
