@@ -9933,6 +9933,7 @@ function RightPanel({
       <Phase11OwnerCommandCenterPanel
         evidenceRecords={phase11EvidenceRecords}
         proofFreshnessDepth={phase11ProofFreshnessDepth}
+        projectManagementTasks={projectManagementTasks}
         releaseReadiness={phase11ReleaseReadiness}
         snapshot={phase11OwnerCommandCenter}
       />
@@ -14398,11 +14399,13 @@ function Phase10ArenaPolishPanel({
 export function Phase11OwnerCommandCenterPanel({
   evidenceRecords,
   proofFreshnessDepth,
+  projectManagementTasks,
   releaseReadiness,
   snapshot
 }: {
   evidenceRecords: Phase11EvidenceRecordsSnapshot;
   proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot;
+  projectManagementTasks: readonly ProjectManagementTask[];
   releaseReadiness: Phase11ReleaseReadinessSnapshot;
   snapshot: Phase11OwnerCommandCenterSnapshot;
 }) {
@@ -14410,7 +14413,8 @@ export function Phase11OwnerCommandCenterPanel({
     ownerCommandCenter: snapshot,
     proofFreshnessDepth,
     evidenceRecords,
-    releaseReadiness
+    releaseReadiness,
+    projectManagementTasks
   });
   const blockerPriority = buildPhase11OwnerReleaseBlockerPriority({
     ownerCommandCenter: snapshot,

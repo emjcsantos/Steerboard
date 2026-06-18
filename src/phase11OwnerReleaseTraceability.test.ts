@@ -4,6 +4,7 @@ import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCen
 import { buildPhase11OwnerReleaseTraceability } from "./phase11OwnerReleaseTraceability";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { Phase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
+import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import {
   buildRemainingGoalPriorityTraces,
   remainingGoalPlan,
@@ -581,6 +582,30 @@ describe("phase 11 owner release traceability", () => {
         expect.objectContaining({
           kind: "phase3-trace",
           nextAction: expect.stringContaining("phase-03-child-command-plan")
+        })
+      ])
+    );
+  });
+
+  it("reviews when required Phase 3 PM rows remain below owner release completion", () => {
+    const result = trace({
+      projectManagementTasks: createDefaultProjectManagementPhasePlan()
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.nextAction).toContain("phase-03-child-handoff-gate");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "phase3-trace",
+          status: "review",
+          detail: expect.stringContaining("incomplete PM rows below 85%"),
+          nextAction: expect.stringContaining("required PM row completion")
+        }),
+        expect.objectContaining({
+          kind: "phase3-trace",
+          nextAction: expect.stringContaining("phase-03-child-blocker-priority")
         })
       ])
     );

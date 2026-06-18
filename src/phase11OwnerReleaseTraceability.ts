@@ -4,6 +4,7 @@ import type { Phase11EvidenceRecordsSnapshot } from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { Phase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
+import type { ProjectManagementTask } from "./projectManagementHierarchy";
 import { remainingGoalPlan, type RemainingGoalPlanItem } from "./remainingGoalPlan";
 
 export type Phase11OwnerReleaseTraceabilityState = "ready" | "review" | "blocked" | "waiting";
@@ -55,6 +56,7 @@ export interface Phase11OwnerReleaseTraceabilityInput {
   readonly evidenceRecords: Phase11EvidenceRecordsSnapshot;
   readonly releaseReadiness: Phase11ReleaseReadinessSnapshot;
   readonly goals?: readonly RemainingGoalPlanItem[];
+  readonly projectManagementTasks?: readonly ProjectManagementTask[];
 }
 
 const TRACE_ID = "phase-11-owner-release-traceability";
@@ -64,6 +66,7 @@ const RELEASE_GOAL_ID = "goal-phase-11-release-readiness";
 const PHASE3_CLEARANCE_GOAL_ID = "goal-phase-3-proof-clearance";
 const PHASE11_PHASE_ID = "phase-11-owner-packaging";
 const REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS = REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS;
+const MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION = 85;
 const REQUIRED_PM_TASK_IDS = [
   "phase-11-owner-packaging",
   "phase-11-parent-owner-testing",
@@ -282,15 +285,41 @@ function ownerCommandItem(
   };
 }
 
+function incompletePhase3PmTaskIds(
+  projectManagementTasks: readonly ProjectManagementTask[] | undefined,
+  requiredTaskIds: readonly string[]
+): string[] {
+  if (!projectManagementTasks) {
+    return [];
+  }
+
+  const completionById = new Map(
+    projectManagementTasks.map((task) => [task.id, task.completionPercent])
+  );
+
+  return requiredTaskIds.filter((taskId) => {
+    const completion = completionById.get(taskId);
+    return (
+      typeof completion === "number" &&
+      completion < MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION
+    );
+  });
+}
+
 function phase3TraceItem(
   snapshot: Phase11OwnerCommandCenterSnapshot,
-  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot,
+  projectManagementTasks?: readonly ProjectManagementTask[]
 ): Phase11OwnerReleaseTraceabilityItem {
   const phase3Trace = snapshot.priorityGoalTraces.find(
     (trace) => trace.goalId === PHASE3_CLEARANCE_GOAL_ID
   );
   const missingPmTaskIds = REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS.filter(
     (taskId) => !phase3Trace?.pmTaskIds.includes(taskId)
+  );
+  const incompletePmTaskIds = incompletePhase3PmTaskIds(
+    projectManagementTasks,
+    REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS
   );
   const handoffProofReady = proofFreshnessDepth.items.some(
     (item) => item.kind === "handoff-proof" && item.status === "ready"
@@ -304,9 +333,22 @@ function phase3TraceItem(
     !traceIsActive ||
     !proofFreshnessTrusted ||
     !handoffProofReady ||
-    missingPmTaskIds.length > 0
+    missingPmTaskIds.length > 0 ||
+    incompletePmTaskIds.length > 0
       ? "review"
       : "ready";
+  const incompletePmDetail =
+    incompletePmTaskIds.length > 0
+      ? `; incomplete PM rows below ${MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION}%: ${incompletePmTaskIds.join(", ")}`
+      : "";
+  const traceRestoreTarget =
+    missingPmTaskIds.join(", ") ||
+    incompletePmTaskIds.join(", ") ||
+    (!traceIsCurrent || !traceIsActive
+      ? PHASE3_CLEARANCE_GOAL_ID
+      : !proofFreshnessTrusted
+        ? "phase-11-proof-freshness-depth"
+        : "phase-11-proof-freshness-depth:handoff-proof");
 
   return {
     id: `${TRACE_ID}:phase3-trace`,
@@ -314,12 +356,12 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status,
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links; proof freshness ${proofFreshnessTrusted ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links${incompletePmDetail}; proof freshness ${proofFreshnessTrusted ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction:
       status === "ready"
         ? "Keep current active Phase 3 clearance PM traceability and ready handoff proof visible before release readiness is trusted."
-        : `Restore current active Phase 3 clearance PM traceability and trusted handoff proof before Phase 11 owner release review can be trusted: ${missingPmTaskIds.join(", ") || (!traceIsCurrent || !traceIsActive ? PHASE3_CLEARANCE_GOAL_ID : !proofFreshnessTrusted ? "phase-11-proof-freshness-depth" : "phase-11-proof-freshness-depth:handoff-proof")}.`
+        : `Restore current active Phase 3 clearance PM traceability, required PM row completion, and trusted handoff proof before Phase 11 owner release review can be trusted: ${traceRestoreTarget}.`
   };
 }
 
@@ -473,7 +515,11 @@ export function buildPhase11OwnerReleaseTraceability(
     goalItem(releaseGoal, RELEASE_GOAL_ID, "Release readiness goal", "release-goal"),
     pmCoverageItem(ownerGoal, releaseGoal, missingPmTaskIds),
     ownerCommandItem(input.ownerCommandCenter),
-    phase3TraceItem(input.ownerCommandCenter, input.proofFreshnessDepth),
+    phase3TraceItem(
+      input.ownerCommandCenter,
+      input.proofFreshnessDepth,
+      input.projectManagementTasks
+    ),
     proofFreshnessItem(input.proofFreshnessDepth),
     evidenceRecordsItem(input.evidenceRecords),
     releaseReadinessItem(input.releaseReadiness),

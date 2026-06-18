@@ -10,6 +10,7 @@ import type { Phase11EvidenceRecordsSnapshot } from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { Phase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
+import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import { buildRemainingGoalPriorityTraces } from "./remainingGoalPlan";
 
 function ownerCommandSnapshot(
@@ -350,6 +351,7 @@ function renderPhase11Proof(options: {
       <Phase11OwnerCommandCenterPanel
         evidenceRecords={evidence}
         proofFreshnessDepth={proof}
+        projectManagementTasks={createDefaultProjectManagementPhasePlan()}
         releaseReadiness={release}
         snapshot={owner}
       />
@@ -522,7 +524,8 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Decision");
     expect(html).toContain("Owner can decide whether to resume release");
     expect(html).toContain("Keep packaging locked until owner resumes release");
-    expect(html).toContain("2 open blockers");
+    expect(html).toContain("3 open blockers");
+    expect(html).toContain("required PM row completion");
     expect(html).toContain("Owner command goal");
     expect(html).toContain("Phase 11 release readiness is evidence-only");
   });
