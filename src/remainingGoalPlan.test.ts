@@ -271,9 +271,29 @@ describe("remaining goal plan", () => {
     );
     expect(phase9Goal?.nextAction).toContain("terminal-readonly-probe");
     expect(phase9Goal?.nextAction).toContain("Phase 9 request gate");
+    expect(phase9Goal?.goal).toContain("trusted Phase 9 traceability/current active goal proof");
+    expect(phase9Goal?.nextAction).toContain("trusted Phase 9 traceability/current active goal proof");
     expect(phase9Goal?.nextAction).toContain("current runner evidence fingerprint");
     expect(phase9Goal?.nextAction).toContain("blocker-priority queue");
     expect(phase9Goal?.nextAction).toContain("owner-visible Phase 9 runner proof");
+
+    const phase9Parent = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-09-desktop-runner"
+    );
+    const reversibleChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-09-child-reversible-action"
+    );
+    const traceabilityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-09-child-traceability"
+    );
+
+    expect(phase9Parent?.description).toContain(
+      "trusted Phase 9 traceability/current active goal gates"
+    );
+    expect(reversibleChild?.description).toContain(
+      "trusted Phase 9 traceability/current active goal proof"
+    );
+    expect(traceabilityChild?.description).toContain("current active goal trust");
   });
 
   it("keeps the Phase 5 migration hardening target linked to traceability and review depth", () => {

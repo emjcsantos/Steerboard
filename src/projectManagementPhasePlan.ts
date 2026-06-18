@@ -717,7 +717,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-09-desktop-runner",
     title: "Phase 9: Desktop-Backed Runner",
-    description: "Enable the fixed terminal read-only desktop probe after permission, preview, audit, validation, persisted runner-review, current runner evidence fingerprint, Phase 8 owner-review, rollback, and Phase 9 request gates pass.",
+    description: "Enable the fixed terminal read-only desktop probe after permission, preview, audit, validation, persisted runner-review, current runner evidence fingerprint, complete Phase 8 owner-review proof, rollback, Phase 9 request gate, and trusted Phase 9 traceability/current active goal gates pass.",
     completionPercent: 58,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
@@ -733,7 +733,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-09-child-reversible-action",
             title: "Choose One Reversible Action",
-            description: "Use terminal-readonly-probe as the single selected read-only action, with the visible Probe control disabled until the Phase 9 request gate is ready.",
+            description: "Use terminal-readonly-probe as the single selected read-only action, with the visible Probe control disabled until the Phase 9 request gate and trusted Phase 9 traceability/current active goal proof are ready.",
             completionPercent: 54,
             complexity: "high",
             sourceDocument: "Runner approval plan"
@@ -749,7 +749,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-09-child-traceability",
             title: "Runner Traceability",
-            description: "Link Phase 9 remaining-goal status, PM child rows, Phase 8 owner audit review, runner approval depth, local runner-review records, current runner evidence fingerprints, Phase 9 request gate evidence, evidence keys, and mutation locks before the desktop runner can advance.",
+            description: "Link Phase 9 remaining-goal status, current active goal trust, PM child rows, complete Phase 8 owner audit review proof, runner approval depth, local runner-review records, current runner evidence fingerprints, Phase 9 request gate evidence, evidence keys, and mutation locks before the desktop runner can advance.",
             completionPercent: 56,
             complexity: "high",
             sourceDocument: "Phase 9 runner traceability"
