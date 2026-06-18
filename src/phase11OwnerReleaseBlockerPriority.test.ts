@@ -252,6 +252,82 @@ describe("phase 11 owner release blocker priority", () => {
     });
   });
 
+  it("ranks open packaging holds above proof and evidence blockers", () => {
+    const result = priority({
+      proofFreshnessDepth: proofSnapshot({
+        state: "blocked",
+        canTrustOwnerProof: false,
+        items: [
+          {
+            id: "phase-11-proof-freshness-depth:command-validation",
+            label: "CLI smoke validation record",
+            kind: "command-validation",
+            status: "blocked",
+            detail: "CLI validation is blocked.",
+            nextAction: "Record a fresh CLI validation."
+          }
+        ]
+      }),
+      evidenceRecords: evidenceSnapshot({
+        records: {
+          ...evidenceSnapshot().records,
+          "build-test": {
+            ...evidenceSnapshot().records["build-test"],
+            state: "blocked",
+            freshness: "fresh",
+            detail: "Build and test evidence is blocked.",
+            nextAction: "Record build and test evidence."
+          },
+          "docs-known-limits": {
+            ...evidenceSnapshot().records["docs-known-limits"],
+            state: "review",
+            freshness: "fresh",
+            detail: "Docs need review.",
+            nextAction: "Review docs and known limits."
+          }
+        },
+        readyCount: 2,
+        reviewCount: 1,
+        blockedCount: 1
+      }),
+      releaseReadiness: releaseSnapshot({
+        state: "blocked",
+        canRecommendRelease: false,
+        items: [
+          {
+            id: "phase-11-release-readiness:packaging-lock",
+            label: "Packaging lock",
+            kind: "packaging-lock",
+            status: "blocked",
+            detail: "Packaging is not fully locked.",
+            nextAction: "Restore the packaging lock before reviewing release readiness."
+          },
+          {
+            id: "phase-11-release-readiness:release-decision",
+            label: "Release decision",
+            kind: "release-decision",
+            status: "review",
+            detail: "Release decision needs review.",
+            nextAction: "Review release readiness evidence."
+          }
+        ]
+      })
+    });
+    const priorityByLabel = new Map(result.items.map((item) => [item.label, item.priority]));
+
+    expect(result.state).toBe("blocked");
+    expect(result.topPriorityLabel).toBe("Packaging lock");
+    expect(priorityByLabel.get("Packaging lock")).toBeLessThan(
+      priorityByLabel.get("CLI smoke validation record") ?? Number.POSITIVE_INFINITY
+    );
+    expect(priorityByLabel.get("Packaging lock")).toBeLessThan(
+      priorityByLabel.get("Build and test") ?? Number.POSITIVE_INFINITY
+    );
+    expect(priorityByLabel.get("Packaging lock")).toBeLessThan(
+      priorityByLabel.get("Docs and known limits") ?? Number.POSITIVE_INFINITY
+    );
+  });
+
   it("keeps blocker priority text public-safe", () => {
     const result = priority({
       releaseReadiness: releaseSnapshot({

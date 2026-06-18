@@ -104,25 +104,25 @@ function sourceRank(sourceId: string): number {
   if (normalized.includes("owner-goal") || normalized.includes("phase-readiness")) {
     return 0;
   }
-  if (normalized.includes("owner-command") || normalized.includes("checklist")) {
+  if (normalized.includes("packaging") || normalized.includes("release-decision")) {
     return 1;
   }
-  if (normalized.includes("proof")) {
+  if (normalized.includes("owner-command") || normalized.includes("checklist")) {
     return 2;
   }
-  if (normalized.includes("fresh-checkout")) {
+  if (normalized.includes("proof")) {
     return 3;
   }
-  if (normalized.includes("clean-checkout")) {
+  if (normalized.includes("fresh-checkout")) {
     return 4;
   }
-  if (normalized.includes("build-test")) {
+  if (normalized.includes("clean-checkout")) {
     return 5;
   }
-  if (normalized.includes("docs-known-limits")) {
+  if (normalized.includes("build-test")) {
     return 6;
   }
-  if (normalized.includes("packaging") || normalized.includes("release-decision")) {
+  if (normalized.includes("docs-known-limits")) {
     return 7;
   }
   if (normalized.includes("pm-coverage") || normalized.includes("traceability")) {
