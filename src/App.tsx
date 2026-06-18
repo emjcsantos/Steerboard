@@ -8216,27 +8216,6 @@ function RightPanel({
     () => buildPhase11EvidenceRecords(),
     []
   );
-  const phase11OwnerCommandCenter = useMemo(
-    () =>
-      buildPhase11OwnerCommandCenterSnapshot({
-        checklist: ownerTestingChecklist,
-        phasePriorityEvidence,
-        phase3ClearancePackage,
-        phase3SmokeProofReadiness,
-        failureSummary: failureStateFixtureSummary,
-        remainingGoalSummary,
-        freshCheckoutEvidence: phase11EvidenceRecords.records["fresh-checkout"]
-      }),
-    [
-      failureStateFixtureSummary,
-      ownerTestingChecklist,
-      phase3ClearancePackage,
-      phase3SmokeProofReadiness,
-      phase11EvidenceRecords,
-      phasePriorityEvidence,
-      remainingGoalSummary
-    ]
-  );
   const phase11ProofFreshnessDepth = useMemo(
     () =>
       buildPhase11ProofFreshnessDepth({
@@ -8254,6 +8233,29 @@ function RightPanel({
       phase3HandoffGate,
       phase3SmokeProofReadiness,
       phasePriorityEvidence
+    ]
+  );
+  const phase11OwnerCommandCenter = useMemo(
+    () =>
+      buildPhase11OwnerCommandCenterSnapshot({
+        checklist: ownerTestingChecklist,
+        phasePriorityEvidence,
+        phase3ClearancePackage,
+        phase3SmokeProofReadiness,
+        proofFreshnessDepth: phase11ProofFreshnessDepth,
+        failureSummary: failureStateFixtureSummary,
+        remainingGoalSummary,
+        freshCheckoutEvidence: phase11EvidenceRecords.records["fresh-checkout"]
+      }),
+    [
+      failureStateFixtureSummary,
+      ownerTestingChecklist,
+      phase3ClearancePackage,
+      phase3SmokeProofReadiness,
+      phase11EvidenceRecords,
+      phase11ProofFreshnessDepth,
+      phasePriorityEvidence,
+      remainingGoalSummary
     ]
   );
   const liveActionAuditMarkdown = useMemo(

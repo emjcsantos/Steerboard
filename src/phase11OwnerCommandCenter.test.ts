@@ -4,6 +4,7 @@ import { buildOwnerTestingChecklist } from "./ownerTestingChecklist";
 import { evaluatePhase11EvidenceRecord } from "./phase11EvidenceRecords";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
+import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
 import {
   buildRemainingGoalPriorityTraces,
@@ -82,6 +83,29 @@ function smokeProof(
   };
 }
 
+function proofFreshnessDepth(
+  overrides: Partial<Phase11ProofFreshnessDepthSnapshot> = {}
+): Phase11ProofFreshnessDepthSnapshot {
+  return {
+    id: "phase-11-proof-freshness-depth",
+    label: "Phase 11 proof freshness depth",
+    state: "ready",
+    statusLabel: "Ready",
+    readiness: 100,
+    canTrustOwnerProof: true,
+    readyCount: 6,
+    reviewCount: 0,
+    blockedCount: 0,
+    waitingCount: 0,
+    openProofCount: 0,
+    nextAction: "Keep owner proof attached and fresh.",
+    safety: "Evidence only.",
+    ariaLabel: "Proof depth ready.",
+    items: [],
+    ...overrides
+  };
+}
+
 function remainingSummary(
   overrides: Partial<RemainingGoalPlanSummary> = {}
 ): RemainingGoalPlanSummary {
@@ -126,6 +150,7 @@ function snapshot(
     phasePriorityEvidence: phasePriority(),
     phase3ClearancePackage: phase3Clearance(),
     phase3SmokeProofReadiness: smokeProof(),
+    proofFreshnessDepth: proofFreshnessDepth(),
     failureSummary: readyFailureSummary(),
     remainingGoalSummary: remainingSummary(),
     freshCheckoutState: "ready",
@@ -252,30 +277,76 @@ describe("phase 11 owner command center", () => {
     );
   });
 
-  it("tracks proof freshness blockers and review rows", () => {
+  it("tracks proof freshness depth blockers and review rows", () => {
     const blocked = snapshot({
-      phasePriorityEvidence: phasePriority({
+      proofFreshnessDepth: proofFreshnessDepth({
         state: "blocked",
-        counts: { ready: 2, review: 0, blocked: 1, waiting: 0 }
+        statusLabel: "Blocked",
+        canTrustOwnerProof: false,
+        readyCount: 5,
+        blockedCount: 1,
+        openProofCount: 1,
+        nextAction: "Phase 1/2/6 proof is blocked."
       })
     });
     const review = snapshot({
-      phase3SmokeProofReadiness: smokeProof({
+      proofFreshnessDepth: proofFreshnessDepth({
         state: "review",
-        counts: { ready: 2, review: 1, blocked: 0, waiting: 0 }
+        statusLabel: "Review",
+        canTrustOwnerProof: false,
+        readyCount: 5,
+        reviewCount: 1,
+        openProofCount: 1,
+        nextAction:
+          "Rerun npm.cmd run smoke:phase3 manually, then record a fresh local CLI pass."
       })
     });
 
     expect(blocked.state).toBe("blocked");
+    expect(blocked.canRelease).toBe(false);
+    expect(blocked.nextAction).toBe("Phase 1/2/6 proof is blocked.");
     expect(blocked.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: "Proof freshness", status: "blocked" })
       ])
     );
     expect(review.state).toBe("review");
+    expect(review.canRelease).toBe(false);
+    expect(review.nextAction).toContain("fresh local CLI pass");
     expect(review.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ label: "Proof freshness", status: "review" })
+        expect.objectContaining({
+          label: "Proof freshness",
+          status: "review",
+          nextAction:
+            "Rerun npm.cmd run smoke:phase3 manually, then record a fresh local CLI pass."
+        })
+      ])
+    );
+  });
+
+  it("keeps release held when proof freshness depth is waiting on handoff proof", () => {
+    const result = snapshot({
+      proofFreshnessDepth: proofFreshnessDepth({
+        state: "waiting",
+        statusLabel: "Waiting",
+        canTrustOwnerProof: false,
+        readyCount: 5,
+        waitingCount: 1,
+        openProofCount: 1,
+        nextAction: "Record the owner-reviewed Phase 3 handoff."
+      })
+    });
+
+    expect(result.state).toBe("waiting");
+    expect(result.canRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Proof freshness",
+          status: "waiting",
+          nextAction: "Record the owner-reviewed Phase 3 handoff."
+        })
       ])
     );
   });

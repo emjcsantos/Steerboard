@@ -3,6 +3,7 @@ import type { OwnerTestingChecklist, OwnerTestingReadinessState } from "./ownerT
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
 import type { Phase11EvidenceRecordSnapshot } from "./phase11EvidenceRecords";
+import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
 import type {
   RemainingGoalPlanSummary,
@@ -67,6 +68,7 @@ export interface Phase11OwnerCommandCenterInput {
   phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot;
   failureSummary: FailureStateFixtureSummary;
   remainingGoalSummary: RemainingGoalPlanSummary;
   freshCheckoutEvidence?: Phase11EvidenceRecordSnapshot;
@@ -201,59 +203,18 @@ function checklistItem(checklist: OwnerTestingChecklist): Phase11OwnerCommandCen
 }
 
 function proofFreshnessItem(input: Phase11OwnerCommandCenterInput): Phase11OwnerCommandCenterItem {
-  const blocked =
-    input.phasePriorityEvidence.counts.blocked +
-    input.phase3ClearancePackage.blockerCount +
-    input.phase3SmokeProofReadiness.counts.blocked;
-  const waiting =
-    input.phasePriorityEvidence.counts.waiting +
-    input.phase3ClearancePackage.waitingCount +
-    input.phase3SmokeProofReadiness.counts.waiting;
-  const review =
-    input.phasePriorityEvidence.counts.review +
-    input.phase3ClearancePackage.reviewCount +
-    input.phase3SmokeProofReadiness.counts.review;
-
-  if (blocked > 0) {
-    return {
-      id: `${SNAPSHOT_ID}:proof-freshness`,
-      label: "Proof freshness",
-      kind: "proof-freshness",
-      status: "blocked",
-      detail: `${blocked} proof row${blocked === 1 ? "" : "s"} are blocked.`,
-      nextAction: "Clear blocked Phase 1/2/6 or Phase 3 proof rows before Owner Testing can pass."
-    };
-  }
-
-  if (waiting > 0) {
-    return {
-      id: `${SNAPSHOT_ID}:proof-freshness`,
-      label: "Proof freshness",
-      kind: "proof-freshness",
-      status: "waiting",
-      detail: `${waiting} proof row${waiting === 1 ? "" : "s"} are waiting for desktop evidence.`,
-      nextAction: "Run the explicit owner smoke actions and reload checks before release readiness."
-    };
-  }
-
-  if (review > 0) {
-    return {
-      id: `${SNAPSHOT_ID}:proof-freshness`,
-      label: "Proof freshness",
-      kind: "proof-freshness",
-      status: "review",
-      detail: `${review} proof row${review === 1 ? "" : "s"} need owner review.`,
-      nextAction: "Review incomplete proof rows and rerun desktop smoke only after choosing the action."
-    };
-  }
+  const proofDepth = input.proofFreshnessDepth;
 
   return {
     id: `${SNAPSHOT_ID}:proof-freshness`,
     label: "Proof freshness",
     kind: "proof-freshness",
-    status: "ready",
-    detail: "Phase 1/2/6 priority proof and Phase 3 proof rows are current.",
-    nextAction: "Keep proof rows fresh across reload and while the app remains open before packaging resumes."
+    status: proofDepth.state,
+    detail: `${proofDepth.readyCount} proof-depth row${proofDepth.readyCount === 1 ? "" : "s"} ready; ${proofDepth.reviewCount} review, ${proofDepth.blockedCount} blocked, and ${proofDepth.waitingCount} waiting.`,
+    nextAction: publicText(
+      proofDepth.nextAction,
+      "Review Phase 11 proof freshness depth before Owner Testing can pass."
+    )
   };
 }
 
