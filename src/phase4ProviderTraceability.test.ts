@@ -133,7 +133,7 @@ describe("phase 4 provider traceability", () => {
     expect(summary.canTrustProviderReview).toBe(false);
     expect(summary.linkedGoalId).toBe("goal-phase-4-provider-surfaces");
     expect(summary.missingPmTaskIds).toEqual([]);
-    expect(summary.linkedPmTaskCount).toBe(13);
+    expect(summary.linkedPmTaskCount).toBe(14);
     expect(summary.catalogDepthRecordCount).toBe(6);
     expect(summary.refreshSafetyRecordCount).toBe(7);
     expect(summary.surfaceDepthItemCount).toBe(9);

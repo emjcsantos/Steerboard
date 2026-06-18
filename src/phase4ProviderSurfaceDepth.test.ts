@@ -13,6 +13,10 @@ import {
   createPhase4ProviderAuditRecord,
   derivePhase4ProviderAuditRecordValidation
 } from "./phase4ProviderAuditRecord";
+import {
+  createPhase4ProviderRollbackRecord,
+  derivePhase4ProviderRollbackRecordValidation
+} from "./phase4ProviderRollbackRecord";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
 import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
@@ -203,6 +207,76 @@ describe("phase 4 provider surface depth", () => {
           detail: expect.stringContaining("matches the current approval record")
         }),
         expect.objectContaining({ label: "Rollback gate", status: "preview" }),
+        expect.objectContaining({ label: "Permission gate", status: "preview" }),
+        expect.objectContaining({ label: "Execution lock", status: "ready" })
+      ])
+    );
+  });
+
+  it("marks approval, audit, and rollback ready while permission and execution stay held", () => {
+    const readiness = buildProviderIntegrationReadiness(validationFixture());
+    const approvalRecord = createPhase4ProviderApprovalRecord({
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:00:00.000Z"
+    });
+    const approvalValidation = derivePhase4ProviderApprovalRecordValidation({
+      record: approvalRecord,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      refreshSafety: readyRefreshSafety,
+      options: { evaluatedAt: "2026-06-18T10:05:00.000Z" }
+    });
+    const auditRecord = createPhase4ProviderAuditRecord({
+      approvalRecord,
+      auditEvidenceFingerprint: "phase4-provider-audit-current",
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:10:00.000Z"
+    });
+    const auditValidation = derivePhase4ProviderAuditRecordValidation({
+      record: auditRecord,
+      approvalRecord,
+      approvalValidation,
+      expectedAuditEvidenceFingerprint: "phase4-provider-audit-current",
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      options: { evaluatedAt: "2026-06-18T10:15:00.000Z" }
+    });
+    const rollbackRecord = createPhase4ProviderRollbackRecord({
+      approvalRecord,
+      auditRecord,
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:20:00.000Z",
+      surfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current"
+    });
+    const rollbackValidation = derivePhase4ProviderRollbackRecordValidation({
+      record: rollbackRecord,
+      approvalRecord,
+      auditRecord,
+      auditValidation,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
+      options: { evaluatedAt: "2026-06-18T10:25:00.000Z" }
+    });
+    const depth = buildPhase4ProviderSurfaceDepth(
+      readiness,
+      approvalValidation,
+      auditValidation,
+      rollbackValidation
+    );
+
+    expect(depth.state).toBe("preview");
+    expect(depth.readiness).toBe(97);
+    expect(depth.canEnableExecution).toBe(false);
+    expect(depth.previewCount).toBe(1);
+    expect(depth.nextSurfaceLabel).toBe("Permission gate");
+    expect(depth.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Approval gate", status: "ready" }),
+        expect.objectContaining({ label: "Audit gate", status: "ready" }),
+        expect.objectContaining({
+          label: "Rollback gate",
+          status: "ready",
+          evidenceKey: "phase-04-surface-depth:rollback-gate",
+          detail: expect.stringContaining("matches the current approval record")
+        }),
         expect.objectContaining({ label: "Permission gate", status: "preview" }),
         expect.objectContaining({ label: "Execution lock", status: "ready" })
       ])

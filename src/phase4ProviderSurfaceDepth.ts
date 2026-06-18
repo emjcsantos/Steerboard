@@ -4,6 +4,7 @@ import type {
 } from "./providerIntegrationReadiness";
 import type { Phase4ProviderApprovalRecordValidation } from "./phase4ProviderApprovalRecord";
 import type { Phase4ProviderAuditRecordValidation } from "./phase4ProviderAuditRecord";
+import type { Phase4ProviderRollbackRecordValidation } from "./phase4ProviderRollbackRecord";
 
 export type Phase4ProviderSurfaceDepthState = ProviderIntegrationReadinessState;
 
@@ -69,6 +70,7 @@ function phase4StateFromRecordValidation(
   state:
     | Phase4ProviderApprovalRecordValidation["state"]
     | Phase4ProviderAuditRecordValidation["state"]
+    | Phase4ProviderRollbackRecordValidation["state"]
 ): Phase4ProviderSurfaceDepthState {
   return state === "ready" ? "ready" : state === "blocked" ? "blocked" : "preview";
 }
@@ -336,7 +338,25 @@ function auditGateItem(
   };
 }
 
-function rollbackGateItem(): Phase4ProviderSurfaceDepthItem {
+function rollbackGateItem(
+  rollbackValidation: Phase4ProviderRollbackRecordValidation | undefined
+): Phase4ProviderSurfaceDepthItem {
+  if (rollbackValidation) {
+    const status = phase4StateFromRecordValidation(rollbackValidation.state);
+
+    return {
+      id: `${SNAPSHOT_ID}:rollback-gate`,
+      label: "Rollback gate",
+      kind: "rollback-gate",
+      status,
+      evidenceKey: surfaceEvidenceKey("rollback-gate"),
+      detail:
+        `${rollbackValidation.detail} Expected surface ${rollbackValidation.expectedSurfaceDepthEvidenceFingerprint ?? "missing"}, ` +
+        `record surface ${rollbackValidation.recordSurfaceDepthEvidenceFingerprint ?? "missing"}.`,
+      nextAction: rollbackValidation.nextAction
+    };
+  }
+
   return {
     id: `${SNAPSHOT_ID}:rollback-gate`,
     label: "Rollback gate",
@@ -384,7 +404,8 @@ function buildAriaLabel(
 export function buildPhase4ProviderSurfaceDepth(
   readiness: ProviderIntegrationReadiness,
   approvalValidation?: Phase4ProviderApprovalRecordValidation,
-  auditValidation?: Phase4ProviderAuditRecordValidation
+  auditValidation?: Phase4ProviderAuditRecordValidation,
+  rollbackValidation?: Phase4ProviderRollbackRecordValidation
 ): Phase4ProviderSurfaceDepthSnapshot {
   const items = [
     surfaceCoverageItem(readiness),
@@ -393,7 +414,7 @@ export function buildPhase4ProviderSurfaceDepth(
     previewReviewItem(readiness),
     approvalGateItem(approvalValidation),
     auditGateItem(auditValidation),
-    rollbackGateItem(),
+    rollbackGateItem(rollbackValidation),
     permissionGateItem(),
     executionLockItem()
   ];

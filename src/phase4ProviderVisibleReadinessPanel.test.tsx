@@ -18,6 +18,10 @@ import {
   createPhase4ProviderAuditRecord,
   derivePhase4ProviderAuditRecordValidation
 } from "./phase4ProviderAuditRecord";
+import {
+  createPhase4ProviderRollbackRecord,
+  derivePhase4ProviderRollbackRecordValidation
+} from "./phase4ProviderRollbackRecord";
 import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
 import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
@@ -139,10 +143,27 @@ describe("phase 4 provider visible readiness panel", () => {
       expectedCatalogFingerprint: "phase4-catalog-current",
       options: { evaluatedAt: "2026-06-18T10:15:00.000Z" }
     });
+    const rollbackRecord = createPhase4ProviderRollbackRecord({
+      approvalRecord: record,
+      auditRecord,
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:20:00.000Z",
+      surfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current"
+    });
+    const rollbackValidation = derivePhase4ProviderRollbackRecordValidation({
+      record: rollbackRecord,
+      approvalRecord: record,
+      auditRecord,
+      auditValidation,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
+      options: { evaluatedAt: "2026-06-18T10:25:00.000Z" }
+    });
     const surfaceDepth = buildPhase4ProviderSurfaceDepth(
       readiness,
       approvalValidation,
-      auditValidation
+      auditValidation,
+      rollbackValidation
     );
     const html = renderToStaticMarkup(
       <Phase4ProviderSurfaceDepthPanel
@@ -151,9 +172,13 @@ describe("phase 4 provider visible readiness panel", () => {
         auditValidation={auditValidation}
         onClearApproval={() => undefined}
         onClearAudit={() => undefined}
+        onClearRollback={() => undefined}
         onRecordApproval={() => undefined}
         onRecordAudit={() => undefined}
+        onRecordRollback={() => undefined}
         record={record}
+        rollbackRecord={rollbackRecord}
+        rollbackValidation={rollbackValidation}
         snapshot={surfaceDepth}
       />
     );
@@ -161,13 +186,17 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("Phase 4 Surface Depth");
     expect(html).toContain("Approval record");
     expect(html).toContain("Audit record");
+    expect(html).toContain("Rollback record");
     expect(html).toContain("Record approval");
     expect(html).toContain("Clear approval");
     expect(html).toContain("Record audit");
     expect(html).toContain("Clear audit");
+    expect(html).toContain("Record rollback");
+    expect(html).toContain("Clear rollback");
     expect(html).toContain("phase-04-surface-depth:approval-gate");
     expect(html).toContain("phase-04-surface-depth:audit-gate");
-    expect(html).toContain("Rollback gate");
+    expect(html).toContain("phase-04-surface-depth:rollback-gate");
+    expect(html).toContain("Permission gate");
     expect(html).toContain("Execution lock");
     expect(html).toContain("does not execute commands");
   });

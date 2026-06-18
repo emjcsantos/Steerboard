@@ -59,6 +59,7 @@ describe("remaining goal plan", () => {
             "phase-04-child-surface-depth",
             "phase-04-child-approval-record",
             "phase-04-child-audit-record",
+            "phase-04-child-rollback-record",
             "phase-04-child-traceability",
             "phase-04-child-blocker-priority"
           ])
@@ -314,13 +315,14 @@ describe("remaining goal plan", () => {
         "phase-04-child-surface-depth",
         "phase-04-child-approval-record",
         "phase-04-child-audit-record",
+        "phase-04-child-rollback-record",
         "phase-04-child-traceability",
         "phase-04-child-blocker-priority",
         "phase-04-child-refresh-safety-depth"
       ])
     );
     expect(phase4Goal?.nextAction).toContain("blocker-priority panels");
-    expect(phase4Goal?.nextAction).toContain("local approval and audit record validation");
+    expect(phase4Goal?.nextAction).toContain("local approval, audit, and rollback record validation");
     expect(phase4Goal?.nextAction).toContain("owner-visible provider readiness check");
     expect(phase4Goal?.nextAction).toContain("approval, audit, rollback, permission");
   });
