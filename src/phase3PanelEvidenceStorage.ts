@@ -17,6 +17,11 @@ export interface Phase3PanelEvidenceSaveOptions {
   readonly createdAt?: string | Date;
 }
 
+export interface Phase3PanelEvidenceFreshnessOptions {
+  readonly evaluatedAt?: string | Date;
+  readonly maxAgeMs?: number;
+}
+
 const SLASH_STATES = new Set(["ready", "review", "blocked", "waiting"]);
 const SLASH_ROUTES = new Set(["provider", "local-preview", "blocked", "none"]);
 const CONTROL_STATES = new Set(["ready", "review", "blocked", "waiting"]);
@@ -69,6 +74,15 @@ function normalizedIsoTimestamp(value: string | Date | undefined): string {
   return new Date().toISOString();
 }
 
+function toTimestamp(value: string | Date | undefined): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const timestamp = value instanceof Date ? value.getTime() : Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : undefined;
+}
+
 function stableValue(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(stableValue);
@@ -95,6 +109,60 @@ export function createPhase3PanelEvidenceFingerprint(value: unknown): string {
   }
 
   return `phase3-panel-${hash.toString(16).padStart(8, "0")}`;
+}
+
+export function hasFreshPhase3PanelEvidenceStorageProof(
+  panelId: string,
+  evidence: SlashCommandExecutionEvidence | SessionControlReadinessEvidence | undefined,
+  options: Phase3PanelEvidenceFreshnessOptions = {}
+): boolean {
+  if (!evidence?.phase3StorageProof) {
+    return false;
+  }
+
+  const proof = evidence.phase3StorageProof;
+  if (
+    proof.source !== PHASE3_PANEL_EVIDENCE_STORAGE_PROOF_SOURCE ||
+    proof.panelId !== panelId ||
+    proof.evidenceFingerprint !== createPhase3PanelEvidenceFingerprint(evidence)
+  ) {
+    return false;
+  }
+
+  const createdAtMs = toTimestamp(proof.createdAt);
+  if (createdAtMs === undefined) {
+    return false;
+  }
+
+  const evaluatedAtMs = options.evaluatedAt
+    ? toTimestamp(options.evaluatedAt)
+    : Date.now();
+  if (evaluatedAtMs === undefined) {
+    return false;
+  }
+
+  const ageMs = evaluatedAtMs - createdAtMs;
+  const maxAgeMs = options.maxAgeMs ?? DEFAULT_PHASE3_PANEL_EVIDENCE_MAX_AGE_MS;
+
+  return ageMs >= 0 && ageMs <= maxAgeMs;
+}
+
+export function shouldSavePhase3PanelEvidence(
+  panelId: string,
+  current: SlashCommandExecutionEvidence | SessionControlReadinessEvidence | undefined,
+  next: SlashCommandExecutionEvidence | SessionControlReadinessEvidence,
+  evidenceEqual: boolean,
+  options: Phase3PanelEvidenceFreshnessOptions = {}
+): boolean {
+  if (!evidenceEqual) {
+    return true;
+  }
+
+  if (next.state !== "ready" || !next.pass) {
+    return false;
+  }
+
+  return !hasFreshPhase3PanelEvidenceStorageProof(panelId, current, options);
 }
 
 function normalizeStorageProof(

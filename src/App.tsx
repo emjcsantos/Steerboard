@@ -434,7 +434,8 @@ import {
   loadPhase3SessionControlEvidenceByPanel,
   loadPhase3SlashEvidenceByPanel,
   savePhase3SessionControlEvidenceByPanel,
-  savePhase3SlashEvidenceByPanel
+  savePhase3SlashEvidenceByPanel,
+  shouldSavePhase3PanelEvidence
 } from "./phase3PanelEvidenceStorage";
 import {
   buildPhase3SmokeProofReadiness,
@@ -3821,7 +3822,13 @@ export function App() {
   const recordSlashCommandExecutionEvidence = useCallback(
     (panelId: string, evidence: SlashCommandExecutionEvidence) => {
       setSlashCommandExecutionEvidenceByPanel((currentEvidenceByPanel) => {
-        if (slashCommandExecutionEvidenceEqual(currentEvidenceByPanel[panelId], evidence)) {
+        const currentEvidence = currentEvidenceByPanel[panelId];
+        if (!shouldSavePhase3PanelEvidence(
+          panelId,
+          currentEvidence,
+          evidence,
+          slashCommandExecutionEvidenceEqual(currentEvidence, evidence)
+        )) {
           return currentEvidenceByPanel;
         }
 
@@ -3839,7 +3846,13 @@ export function App() {
   const recordSessionControlReadinessEvidence = useCallback(
     (panelId: string, evidence: SessionControlReadinessEvidence) => {
       setSessionControlReadinessEvidenceByPanel((currentEvidenceByPanel) => {
-        if (sessionControlReadinessEvidenceEqual(currentEvidenceByPanel[panelId], evidence)) {
+        const currentEvidence = currentEvidenceByPanel[panelId];
+        if (!shouldSavePhase3PanelEvidence(
+          panelId,
+          currentEvidence,
+          evidence,
+          sessionControlReadinessEvidenceEqual(currentEvidence, evidence)
+        )) {
           return currentEvidenceByPanel;
         }
 

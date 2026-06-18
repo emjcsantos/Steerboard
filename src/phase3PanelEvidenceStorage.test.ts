@@ -10,6 +10,7 @@ import {
   PHASE3_SLASH_EVIDENCE_STORAGE_KEY,
   savePhase3SessionControlEvidenceByPanel,
   savePhase3SlashEvidenceByPanel,
+  shouldSavePhase3PanelEvidence,
   type Phase3SessionControlEvidenceByPanel,
   type Phase3SlashEvidenceByPanel
 } from "./phase3PanelEvidenceStorage";
@@ -279,6 +280,56 @@ describe("phase 3 panel evidence storage", () => {
 
     expect(store.get(PHASE3_SLASH_EVIDENCE_STORAGE_KEY)).toBe("{}");
     expect(store.get(PHASE3_SESSION_CONTROL_EVIDENCE_STORAGE_KEY)).toBe("{}");
+  });
+
+  it("refreshes unchanged ready evidence when its Phase 3 storage proof is missing or stale", () => {
+    const readySlash = slashEvidence["panel-1"];
+    const stampedSlash = withStorageProof(
+      "panel-1",
+      readySlash,
+      "2026-06-06T00:00:30.000Z"
+    );
+    const freshOptions = {
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      maxAgeMs: 24 * 60 * 60 * 1000
+    };
+    const staleOptions = {
+      evaluatedAt: "2026-06-07T00:00:31.000Z",
+      maxAgeMs: 24 * 60 * 60 * 1000
+    };
+
+    expect(
+      shouldSavePhase3PanelEvidence("panel-1", readySlash, readySlash, true, freshOptions)
+    ).toBe(true);
+    expect(
+      shouldSavePhase3PanelEvidence("panel-1", stampedSlash, readySlash, true, freshOptions)
+    ).toBe(false);
+    expect(
+      shouldSavePhase3PanelEvidence("panel-1", stampedSlash, readySlash, true, staleOptions)
+    ).toBe(true);
+    expect(
+      shouldSavePhase3PanelEvidence("panel-2", stampedSlash, readySlash, true, freshOptions)
+    ).toBe(true);
+  });
+
+  it("does not refresh unchanged non-ready evidence only to create storage proof", () => {
+    const reviewSlash = {
+      ...slashEvidence["panel-1"],
+      state: "review" as const,
+      pass: false,
+      readiness: 40
+    };
+
+    expect(
+      shouldSavePhase3PanelEvidence("panel-1", reviewSlash, reviewSlash, true, {
+        evaluatedAt: "2026-06-06T00:01:00.000Z"
+      })
+    ).toBe(false);
+    expect(
+      shouldSavePhase3PanelEvidence("panel-1", reviewSlash, slashEvidence["panel-1"], false, {
+        evaluatedAt: "2026-06-06T00:01:00.000Z"
+      })
+    ).toBe(true);
   });
 
   it("handles missing or failing localStorage without throwing", () => {
