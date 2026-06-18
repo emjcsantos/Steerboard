@@ -8533,6 +8533,7 @@ function RightPanel({
     () =>
       buildPhase11ReleaseReadinessSnapshot({
         ownerCommandCenter: phase11OwnerCommandCenter,
+        proofFreshnessDepth: phase11ProofFreshnessDepth,
         desktopPackaging: desktopPackagingReadinessSnapshot,
         securityFinalReview: securityFinalReviewSnapshot,
         remainingGoalSummary,
@@ -8543,6 +8544,7 @@ function RightPanel({
     [
       desktopPackagingReadinessSnapshot,
       phase11OwnerCommandCenter,
+      phase11ProofFreshnessDepth,
       phase11EvidenceRecords,
       remainingGoalSummary,
       securityFinalReviewSnapshot

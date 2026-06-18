@@ -150,9 +150,31 @@ describe("phase 1/2/6 publish hold traceability", () => {
     });
 
     expect(result.state).toBe("blocked");
+    expect(result.canTrustLocalHold).toBe(false);
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "phase-6-board", status: "waiting" }),
+        expect.objectContaining({ kind: "publish-hold", status: "blocked" })
+      ])
+    );
+  });
+
+  it("does not trust the local hold when a required priority proof row is missing", () => {
+    const result = trace({
+      phasePriorityEvidence: priorityEvidence({
+        items: priorityEvidence().items.filter((item) => item.id !== "phase-2-panel-isolation")
+      })
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.canTrustLocalHold).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "phase-2-proof",
+          status: "blocked",
+          detail: expect.stringContaining("missing")
+        }),
         expect.objectContaining({ kind: "publish-hold", status: "blocked" })
       ])
     );

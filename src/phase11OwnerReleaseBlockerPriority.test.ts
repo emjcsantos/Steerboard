@@ -254,7 +254,7 @@ describe("phase 11 owner release blocker priority", () => {
     expect(result.state).toBe("review");
     expect(result.openBlockerCount).toBe(3);
     expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
-    expect(result.topPriorityAction).toContain("current Phase 3 goal/PM traceability");
+    expect(result.topPriorityAction).toContain("Phase 3 clearance PM traceability");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

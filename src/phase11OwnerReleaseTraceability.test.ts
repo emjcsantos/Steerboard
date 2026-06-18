@@ -49,7 +49,7 @@ function proofSnapshot(
     statusLabel: "Ready",
     readiness: 100,
     canTrustOwnerProof: true,
-    readyCount: 5,
+    readyCount: 6,
     reviewCount: 0,
     blockedCount: 0,
     waitingCount: 0,
@@ -57,7 +57,16 @@ function proofSnapshot(
     nextAction: "Keep proof fresh.",
     safety: "Evidence only.",
     ariaLabel: "Proof ready.",
-    items: [],
+    items: [
+      {
+        id: "phase-11-proof-freshness-depth:handoff-proof",
+        label: "Owner handoff proof",
+        kind: "handoff-proof",
+        status: "ready",
+        detail: "Owner handoff proof is attached.",
+        nextAction: "Keep the owner handoff record attached."
+      }
+    ],
     ...overrides
   };
 }
@@ -239,12 +248,13 @@ describe("phase 11 owner release traceability", () => {
         expect.objectContaining({ kind: "owner-goal", status: "review" }),
         expect.objectContaining({ kind: "release-goal", status: "review" }),
         expect.objectContaining({ kind: "pm-coverage", status: "ready" }),
+        expect.objectContaining({ kind: "phase3-trace", status: "ready" }),
         expect.objectContaining({ kind: "packaging-hold", status: "ready" })
       ])
     );
   });
 
-  it("reviews when current Phase 3 goal traceability is missing from owner proof", () => {
+  it("reviews when Phase 3 clearance traceability is missing from owner proof", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraceCount: 0,
@@ -254,7 +264,7 @@ describe("phase 11 owner release traceability", () => {
 
     expect(result.state).toBe("review");
     expect(result.canTrustOwnerReleaseGate).toBe(false);
-    expect(result.nextAction).toContain("current Phase 3 goal/PM traceability");
+    expect(result.nextAction).toContain("Phase 3 clearance PM traceability");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -266,7 +276,7 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
-  it("reviews when the Phase 3 goal trace is current but not active", () => {
+  it("keeps the Phase 3 release trace ready when handoff proof is ready after active work", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
@@ -283,8 +293,9 @@ describe("phase 11 owner release traceability", () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: "phase3-trace",
-          status: "review",
-          detail: expect.stringContaining("is next")
+          status: "ready",
+          detail: expect.stringContaining("is next"),
+          nextAction: expect.stringContaining("Phase 3 clearance PM traceability")
         })
       ])
     );

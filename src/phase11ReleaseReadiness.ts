@@ -2,6 +2,7 @@ import type { DesktopPackagingReadinessSnapshot } from "./desktopPackagingReadin
 import { REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS } from "./phase3ClearanceTraceability";
 import type { Phase11EvidenceRecordSnapshot } from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
+import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { RemainingGoalPlanSummary } from "./remainingGoalPlan";
 import type { SecurityFinalReviewSnapshot } from "./securityFinalReview";
 
@@ -48,6 +49,7 @@ export interface Phase11ReleaseReadinessSnapshot {
 
 export interface Phase11ReleaseReadinessInput {
   ownerCommandCenter: Phase11OwnerCommandCenterSnapshot;
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot;
   desktopPackaging: DesktopPackagingReadinessSnapshot;
   securityFinalReview: SecurityFinalReviewSnapshot;
   remainingGoalSummary: RemainingGoalPlanSummary;
@@ -186,11 +188,17 @@ function buildTestItem(
   };
 }
 
-function currentPhase3ReleaseTrace(
+function phase3ReleaseTrace(
   ownerCommandCenter: Phase11OwnerCommandCenterSnapshot
 ): Phase11OwnerCommandCenterSnapshot["priorityGoalTraces"][number] | undefined {
-  return ownerCommandCenter.priorityGoalTraces.find(
-    (trace) => trace.goalId === PHASE3_CLEARANCE_GOAL_ID && trace.current === true
+  return ownerCommandCenter.priorityGoalTraces.find((trace) => trace.goalId === PHASE3_CLEARANCE_GOAL_ID);
+}
+
+function phase3HandoffProofReady(
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
+): boolean {
+  return proofFreshnessDepth.items.some(
+    (item) => item.kind === "handoff-proof" && item.status === "ready"
   );
 }
 
@@ -217,16 +225,16 @@ function smokeProofItem(
 }
 
 function phase3TraceItem(
-  ownerCommandCenter: Phase11OwnerCommandCenterSnapshot
+  ownerCommandCenter: Phase11OwnerCommandCenterSnapshot,
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
 ): Phase11ReleaseReadinessItem {
-  const phase3Trace = currentPhase3ReleaseTrace(ownerCommandCenter);
+  const phase3Trace = phase3ReleaseTrace(ownerCommandCenter);
   const missingPmTaskIds = REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS.filter(
     (taskId) => !phase3Trace?.pmTaskIds.includes(taskId)
   );
+  const handoffProofReady = phase3HandoffProofReady(proofFreshnessDepth);
   const traceIsTrusted =
-    phase3Trace?.current === true &&
-    phase3Trace.status === "active" &&
-    missingPmTaskIds.length === 0;
+    Boolean(phase3Trace) && missingPmTaskIds.length === 0 && handoffProofReady;
 
   return {
     id: `${SNAPSHOT_ID}:phase3-trace`,
@@ -234,11 +242,11 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status: traceIsTrusted ? "ready" : "review",
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links.`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction: traceIsTrusted
-      ? "Keep current active Phase 3 goal/PM traceability attached before release packaging resumes."
-      : `Restore current active Phase 3 goal/PM traceability before release readiness can recommend release: ${missingPmTaskIds.join(", ") || PHASE3_CLEARANCE_GOAL_ID}.`
+      ? "Keep Phase 3 clearance PM traceability and ready handoff proof attached before release packaging resumes."
+      : `Restore Phase 3 clearance PM traceability and ready handoff proof before release readiness can recommend release: ${missingPmTaskIds.join(", ") || (phase3Trace ? "phase-11-proof-freshness-depth:handoff-proof" : PHASE3_CLEARANCE_GOAL_ID)}.`
   };
 }
 
@@ -466,7 +474,7 @@ export function buildPhase11ReleaseReadinessSnapshot(
     cleanCheckoutItem(input.cleanCheckoutEvidence, input.cleanCheckoutState),
     buildTestItem(input.buildTestEvidence, input.buildTestState),
     smokeProofItem(input.ownerCommandCenter),
-    phase3TraceItem(input.ownerCommandCenter),
+    phase3TraceItem(input.ownerCommandCenter, input.proofFreshnessDepth),
     packagingLockItem(input.desktopPackaging, input.securityFinalReview),
     docsKnownLimitsItem(input.docsKnownLimitsEvidence, input.docsKnownLimitsState)
   ];

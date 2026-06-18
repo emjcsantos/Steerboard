@@ -400,10 +400,10 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(releaseGoal?.goal).toContain("structured evidence records");
-    expect(releaseGoal?.goal).toContain("current active Phase 3 goal/PM traceability");
+    expect(releaseGoal?.goal).toContain("Phase 3 clearance PM traceability and handoff proof");
     expect(releaseGoal?.nextAction).toContain("Evidence Records");
     expect(releaseGoal?.nextAction).toContain("structured clean-checkout");
-    expect(releaseGoal?.nextAction).toContain("current active Phase 3 goal/PM traceability");
+    expect(releaseGoal?.nextAction).toContain("Phase 3 clearance PM traceability with handoff proof");
     expect(releaseGoal?.nextAction).toContain("owner release traceability");
     expect(releaseGoal?.nextAction).toContain("blocker-priority panels");
   });

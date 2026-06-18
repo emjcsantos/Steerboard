@@ -275,18 +275,20 @@ function ownerCommandItem(
 }
 
 function phase3TraceItem(
-  snapshot: Phase11OwnerCommandCenterSnapshot
+  snapshot: Phase11OwnerCommandCenterSnapshot,
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
 ): Phase11OwnerReleaseTraceabilityItem {
   const phase3Trace = snapshot.priorityGoalTraces.find(
-    (trace) => trace.goalId === PHASE3_CLEARANCE_GOAL_ID && trace.current
+    (trace) => trace.goalId === PHASE3_CLEARANCE_GOAL_ID
   );
   const missingPmTaskIds = REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS.filter(
     (taskId) => !phase3Trace?.pmTaskIds.includes(taskId)
   );
-  const isCurrentActivePhase3Trace =
-    phase3Trace?.current === true && phase3Trace.status === "active";
+  const handoffProofReady = proofFreshnessDepth.items.some(
+    (item) => item.kind === "handoff-proof" && item.status === "ready"
+  );
   const status: Phase11OwnerReleaseTraceabilityState =
-    !phase3Trace || !isCurrentActivePhase3Trace || missingPmTaskIds.length > 0
+    !phase3Trace || !handoffProofReady || missingPmTaskIds.length > 0
       ? "review"
       : "ready";
 
@@ -296,12 +298,12 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status,
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links.`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction:
       status === "ready"
-        ? "Keep current Phase 3 goal/PM traceability visible before release readiness is trusted."
-        : `Restore current Phase 3 goal/PM traceability before Phase 11 owner release review can be trusted: ${missingPmTaskIds.join(", ") || PHASE3_CLEARANCE_GOAL_ID}.`
+        ? "Keep Phase 3 clearance PM traceability and ready handoff proof visible before release readiness is trusted."
+        : `Restore Phase 3 clearance PM traceability and ready handoff proof before Phase 11 owner release review can be trusted: ${missingPmTaskIds.join(", ") || (phase3Trace ? "phase-11-proof-freshness-depth:handoff-proof" : PHASE3_CLEARANCE_GOAL_ID)}.`
   };
 }
 
@@ -413,7 +415,7 @@ export function buildPhase11OwnerReleaseTraceability(
     goalItem(releaseGoal, RELEASE_GOAL_ID, "Release readiness goal", "release-goal"),
     pmCoverageItem(ownerGoal, releaseGoal, missingPmTaskIds),
     ownerCommandItem(input.ownerCommandCenter),
-    phase3TraceItem(input.ownerCommandCenter),
+    phase3TraceItem(input.ownerCommandCenter, input.proofFreshnessDepth),
     proofFreshnessItem(input.proofFreshnessDepth),
     evidenceRecordsItem(input.evidenceRecords),
     releaseReadinessItem(input.releaseReadiness),

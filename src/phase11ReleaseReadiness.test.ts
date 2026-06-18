@@ -5,6 +5,7 @@ import {
   type Phase11EvidenceGate
 } from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
+import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import { buildPhase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
 import {
   buildRemainingGoalPriorityTraces,
@@ -15,7 +16,17 @@ import type { SecurityFinalReviewSnapshot } from "./securityFinalReview";
 function ownerSnapshot(
   overrides: Partial<Phase11OwnerCommandCenterSnapshot> = {}
 ): Phase11OwnerCommandCenterSnapshot {
-  const priorityGoalTraces = buildRemainingGoalPriorityTraces();
+  const priorityGoalTraces = buildRemainingGoalPriorityTraces().map((trace) =>
+    trace.goalId === "goal-phase-3-proof-clearance"
+      ? {
+          ...trace,
+          status: "next" as const,
+          completionPercent: 100,
+          current: false,
+          nextAction: "Keep the completed Phase 3 handoff proof attached."
+        }
+      : trace
+  );
 
   return {
     id: "phase-11-owner-command-center",
@@ -37,6 +48,38 @@ function ownerSnapshot(
     items: [],
     priorityGoalTraceCount: priorityGoalTraces.length,
     priorityGoalTraces,
+    ...overrides
+  };
+}
+
+function proofSnapshot(
+  overrides: Partial<Phase11ProofFreshnessDepthSnapshot> = {}
+): Phase11ProofFreshnessDepthSnapshot {
+  return {
+    id: "phase-11-proof-freshness-depth",
+    label: "Phase 11 proof freshness depth",
+    state: "ready",
+    statusLabel: "Ready",
+    readiness: 100,
+    canTrustOwnerProof: true,
+    readyCount: 1,
+    reviewCount: 0,
+    blockedCount: 0,
+    waitingCount: 0,
+    openProofCount: 0,
+    nextAction: "Keep owner proof attached.",
+    safety: "Evidence only.",
+    ariaLabel: "Proof ready.",
+    items: [
+      {
+        id: "phase-11-proof-freshness-depth:handoff-proof",
+        label: "Owner handoff proof",
+        kind: "handoff-proof",
+        status: "ready",
+        detail: "Owner handoff proof is attached.",
+        nextAction: "Keep the owner handoff record attached."
+      }
+    ],
     ...overrides
   };
 }
@@ -120,6 +163,7 @@ function snapshot(
 ) {
   return buildPhase11ReleaseReadinessSnapshot({
     ownerCommandCenter: ownerSnapshot(),
+    proofFreshnessDepth: proofSnapshot(),
     desktopPackaging: packagingSnapshot(),
     securityFinalReview: securitySnapshot(),
     remainingGoalSummary: remainingSummary(),
@@ -148,7 +192,7 @@ describe("phase 11 release readiness", () => {
         expect.objectContaining({
           label: "Current Phase 3 trace",
           status: "ready",
-          nextAction: expect.stringContaining("current active Phase 3 goal/PM traceability")
+          nextAction: expect.stringContaining("Phase 3 clearance PM traceability")
         }),
         expect.objectContaining({
           label: "Release decision",
@@ -159,7 +203,7 @@ describe("phase 11 release readiness", () => {
     expect(result.ariaLabel).toContain("0 holds");
   });
 
-  it("reviews release readiness when owner proof lacks current Phase 3 traceability", () => {
+  it("reviews release readiness when owner proof lacks Phase 3 clearance traceability", () => {
     const result = snapshot({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraceCount: 0,
@@ -179,7 +223,7 @@ describe("phase 11 release readiness", () => {
           label: "Current Phase 3 trace",
           status: "review",
           detail: expect.stringContaining("not visible"),
-          nextAction: expect.stringContaining("current active Phase 3 goal/PM traceability")
+          nextAction: expect.stringContaining("Phase 3 clearance PM traceability")
         }),
         expect.objectContaining({
           label: "Release decision",
@@ -189,14 +233,19 @@ describe("phase 11 release readiness", () => {
     );
   });
 
-  it("reviews release readiness when the Phase 3 trace is current but not active", () => {
+  it("keeps release held for a coherent current active Phase 3 summary", () => {
     const result = snapshot({
       ownerCommandCenter: ownerSnapshot({
-        priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
-          trace.goalId === "goal-phase-3-proof-clearance"
-            ? { ...trace, status: "next" }
-            : trace
-        )
+        canRelease: false,
+        state: "review",
+        statusLabel: "Review",
+        nextAction: "Clear the current Phase 3 proof blocker before release readiness.",
+        priorityGoalTraces: buildRemainingGoalPriorityTraces()
+      }),
+      remainingGoalSummary: remainingSummary({
+        active: 1,
+        currentTarget: "Phase 3 desktop proof clearance",
+        currentNextAction: "Clear the current Phase 3 proof blocker before release readiness."
       })
     });
 
@@ -206,13 +255,18 @@ describe("phase 11 release readiness", () => {
       expect.arrayContaining([
         expect.objectContaining({
           label: "Current Phase 3 trace",
+          status: "ready",
+          detail: expect.stringContaining("handoff proof ready")
+        }),
+        expect.objectContaining({
+          label: "Owner smoke proof",
           status: "review",
-          detail: expect.stringContaining("is next"),
-          nextAction: expect.stringContaining("current active Phase 3 goal/PM traceability")
+          nextAction: "Clear the current Phase 3 proof blocker before release readiness."
         }),
         expect.objectContaining({
           label: "Release decision",
-          status: "review"
+          status: "review",
+          detail: expect.stringContaining("held until all prerequisite evidence rows are ready")
         })
       ])
     );

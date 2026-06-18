@@ -60,6 +60,11 @@ const REQUIRED_PHASE_IDS = [
   "phase-02-multi-panel",
   "phase-06-planning-lane"
 ];
+const REQUIRED_PRIORITY_EVIDENCE_IDS = [
+  "phase-1-live-panel",
+  "phase-2-panel-isolation",
+  "phase-6-pm-board"
+] as const;
 const REQUIRED_PM_TASK_IDS = [
   "phase-01-live-chat",
   "phase-01-parent-single-panel",
@@ -280,6 +285,12 @@ function publishHoldItem(goal: RemainingGoalPlanItem | undefined): Phase126Publi
   };
 }
 
+function hasReadyPriorityEvidence(items: readonly PhasePriorityEvidenceItem[]): boolean {
+  return REQUIRED_PRIORITY_EVIDENCE_IDS.every((id) =>
+    items.some((item) => item.id === id && item.state === "ready")
+  );
+}
+
 function buildAriaLabel(
   summary: Omit<Phase126PublishHoldTraceabilitySummary, "ariaLabel">
 ): string {
@@ -322,7 +333,7 @@ export function buildPhase126PublishHoldTraceability(
     canTrustLocalHold:
       Boolean(goal) &&
       missingPmTaskIds.length === 0 &&
-      input.phasePriorityEvidence.items.length === 3 &&
+      hasReadyPriorityEvidence(input.phasePriorityEvidence.items) &&
       publishHoldStatus === "blocked",
     readyCount: items.filter((item) => item.status === "ready").length,
     reviewCount: items.filter((item) => item.status === "review").length,
