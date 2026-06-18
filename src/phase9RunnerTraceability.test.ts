@@ -196,6 +196,16 @@ function traceability(options: {
   });
 }
 
+function withCurrentPhase9Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-9-runner"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 9 runner traceability", () => {
   it("links the Phase 9 goal, PM child rows, Phase 8 gate, approval depth, and mutation lock", () => {
     const summary = traceability();
@@ -300,7 +310,7 @@ describe("phase 9 runner traceability", () => {
       }),
       auditRecords: [terminalAuditRecord("approved"), terminalAuditRecord("executed")]
     });
-    const summary = traceability({ approval });
+    const summary = traceability({ approval, goals: withCurrentPhase9Goal() });
 
     expect(summary.state).toBe("ready");
     expect(summary.canTrustRunnerApproval).toBe(true);

@@ -183,9 +183,19 @@ function goalItem(goal: RemainingGoalPlanItem | undefined): Phase4ProviderTracea
     id: `${TRACE_ID}:active-goal`,
     label: "Remaining goal link",
     kind: "active-goal",
-    status: goal.status === "blocked" ? "blocked" : goal.status === "active" ? "preview" : "ready",
+    status:
+      goal.status === "blocked"
+        ? "blocked"
+        : goal.current && goal.status === "active"
+          ? "ready"
+          : goal.status === "active"
+            ? "preview"
+            : "preview",
     detail: `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links.`,
-    nextAction: publicText(goal.nextAction, "Review the Phase 4 provider surfaces goal.")
+    nextAction: publicText(
+      goal.nextAction,
+      "Make Phase 4 the current active goal before provider review can be trusted."
+    )
   };
 }
 
@@ -380,6 +390,8 @@ export function buildPhase4ProviderTraceabilitySummary({
     readiness: scoreItems(items),
     canTrustProviderReview:
       state === "ready" &&
+      goal?.current === true &&
+      goal.status === "active" &&
       missingPmTaskIds.length === 0 &&
       catalogDepth.executionLockCount >= 6 &&
       !surfaceDepth.canEnableExecution,

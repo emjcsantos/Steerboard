@@ -76,6 +76,16 @@ function priority(options: {
   return buildPhase10ArenaPolishBlockerPriority({ snapshot, traceability });
 }
 
+function withCurrentPhase10Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-10-arena-polish"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 10 Arena polish blocker priority", () => {
   it("ranks layout regression ahead of later Arena polish blockers", () => {
     const summary = priority({
@@ -118,7 +128,7 @@ describe("phase 10 Arena polish blocker priority", () => {
   });
 
   it("reports ready when polish and traceability are ready", () => {
-    const summary = priority();
+    const summary = priority({ goals: withCurrentPhase10Goal() });
 
     expect(summary.state).toBe("ready");
     expect(summary.openBlockerCount).toBe(0);

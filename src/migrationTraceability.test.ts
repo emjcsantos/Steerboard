@@ -38,12 +38,22 @@ function readyReadiness() {
   });
 }
 
+function withCurrentPhase5Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-5-migration-hardening"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("migration traceability", () => {
-  it("links the Phase 5 goal, PM child rows, review-depth rows, sensitive boundary, and profile lock", () => {
+  it("keeps Phase 5 migration traceability waiting while Phase 5 is only next", () => {
     const summary = buildMigrationTraceabilitySummary({ readiness: readyReadiness() });
 
-    expect(summary.state).toBe("ready");
-    expect(summary.canTrustMigrationReview).toBe(true);
+    expect(summary.state).toBe("waiting");
+    expect(summary.canTrustMigrationReview).toBe(false);
     expect(summary.linkedGoalId).toBe("goal-phase-5-migration-hardening");
     expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(9);
     expect(summary.missingPmTaskIds).toEqual([]);
@@ -56,6 +66,17 @@ describe("migration traceability", () => {
       "sensitive-boundary",
       "profile-lock"
     ]);
+  });
+
+  it("trusts Phase 5 migration review when Phase 5 is the current active goal", () => {
+    const summary = buildMigrationTraceabilitySummary({
+      readiness: readyReadiness(),
+      goals: withCurrentPhase5Goal()
+    });
+
+    expect(summary.state).toBe("ready");
+    expect(summary.canTrustMigrationReview).toBe(true);
+    expect(summary.readyCount).toBe(5);
   });
 
   it("blocks when the Phase 5 goal misses the traceability PM child link", () => {
@@ -126,7 +147,10 @@ describe("migration traceability", () => {
       draftHistory: historyForAcceptedDraft(),
       excludedSecretsSummary: ["Credentials excluded"]
     });
-    const summary = buildMigrationTraceabilitySummary({ readiness });
+    const summary = buildMigrationTraceabilitySummary({
+      readiness,
+      goals: withCurrentPhase5Goal()
+    });
 
     expect(summary.state).toBe("review");
     expect(summary.canTrustMigrationReview).toBe(false);

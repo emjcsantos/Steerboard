@@ -54,6 +54,16 @@ function priority({
   return buildMigrationBlockerPriority({ readiness, traceability });
 }
 
+function withCurrentPhase5Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-5-migration-hardening"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("migration blocker priority", () => {
   it("ranks apply-intent review-depth blockers ahead of related waiting evidence", () => {
     const snapshot = priority();
@@ -134,7 +144,8 @@ describe("migration blocker priority", () => {
     const snapshot = priority({
       preview: selectedPreview(),
       draftHistory: historyForAcceptedDraft(),
-      excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded", "Source mutation excluded"]
+      excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded", "Source mutation excluded"],
+      goals: withCurrentPhase5Goal()
     });
 
     expect(snapshot.state).toBe("ready");

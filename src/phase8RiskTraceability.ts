@@ -166,9 +166,19 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase8RiskTrac
     id: `${TRACE_ID}:active-goal`,
     label: "Remaining goal link",
     kind: "active-goal",
-    status: goal.status === "blocked" ? "blocked" : goal.status === "active" ? "review" : "ready",
+    status:
+      goal.status === "blocked"
+        ? "blocked"
+        : goal.current && goal.status === "active"
+          ? "ready"
+          : goal.status === "active"
+            ? "review"
+            : "waiting",
     detail: `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links.`,
-    nextAction: publicText(goal.nextAction, "Review the Phase 8 permission and audit goal.")
+    nextAction: publicText(
+      goal.nextAction,
+      "Make Phase 8 the current active goal before permission audit can be trusted."
+    )
   };
 }
 
@@ -340,6 +350,8 @@ export function buildPhase8RiskTraceabilitySummary({
     readiness,
     canTrustPermissionAudit:
       state === "ready" &&
+      goal?.current === true &&
+      goal.status === "active" &&
       missingPmTaskIds.length === 0 &&
       snapshot.openExceptionCount === 0 &&
       evidenceKeyCount === snapshot.items.length + snapshot.exceptions.length,

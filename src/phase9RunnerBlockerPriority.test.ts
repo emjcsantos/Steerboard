@@ -209,6 +209,16 @@ function priority({
   });
 }
 
+function withCurrentPhase9Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-9-runner"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 9 runner blocker priority", () => {
   it("keeps Phase 8 audit gate blockers ahead of runner approval rows", () => {
     const summary = priority({
@@ -319,7 +329,8 @@ describe("phase 9 runner blocker priority", () => {
           detail: "Executed fixed terminal read-only probe command for audit trail."
         }),
         auditRecords: [terminalAuditRecord("approved"), terminalAuditRecord("executed")]
-      })
+      }),
+      goals: withCurrentPhase9Goal()
     });
 
     expect(summary.state).toBe("ready");

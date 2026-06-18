@@ -165,9 +165,19 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase9RunnerTr
     id: `${TRACE_ID}:active-goal`,
     label: "Remaining goal link",
     kind: "active-goal",
-    status: goal.status === "blocked" ? "blocked" : goal.status === "active" ? "review" : "ready",
+    status:
+      goal.status === "blocked"
+        ? "blocked"
+        : goal.current && goal.status === "active"
+          ? "ready"
+          : goal.status === "active"
+            ? "review"
+            : "waiting",
     detail: `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links.`,
-    nextAction: publicText(goal.nextAction, "Review the Phase 9 runner approval goal.")
+    nextAction: publicText(
+      goal.nextAction,
+      "Make Phase 9 the current active goal before runner approval can be trusted."
+    )
   };
 }
 
@@ -476,6 +486,8 @@ export function buildPhase9RunnerTraceabilitySummary({
     readiness,
     canTrustRunnerApproval:
       state === "ready" &&
+      goal?.current === true &&
+      goal.status === "active" &&
       missingPmTaskIds.length === 0 &&
       phase8.openExceptionCount === 0 &&
       phase8.blockedCount === 0 &&

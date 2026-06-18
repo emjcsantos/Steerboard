@@ -68,8 +68,18 @@ function polishSnapshot(
   });
 }
 
+function withCurrentPhase10Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-10-arena-polish"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 10 Arena polish traceability", () => {
-  it("links the Phase 10 goal, PM rows, polish readiness, layout evidence, and acceptance gate", () => {
+  it("keeps Phase 10 Arena polish traceability waiting while Phase 10 is only next", () => {
     const summary = buildPhase10ArenaPolishTraceability({ snapshot: polishSnapshot() });
 
     expect(summary.linkedGoalId).toBe("goal-phase-10-arena-polish");
@@ -82,10 +92,22 @@ describe("phase 10 Arena polish traceability", () => {
       "layout-evidence",
       "acceptance-gate"
     ]);
-    expect(summary.state).toBe("ready");
-    expect(summary.canTrustArenaPolish).toBe(true);
+    expect(summary.state).toBe("waiting");
+    expect(summary.canTrustArenaPolish).toBe(false);
     expect(summary.acceptanceGateStatus).toBe("ready");
     expect(summary.safety).toContain("evidence-only");
+  });
+
+  it("trusts Arena polish when Phase 10 is the current active goal", () => {
+    const summary = buildPhase10ArenaPolishTraceability({
+      snapshot: polishSnapshot(),
+      goals: withCurrentPhase10Goal()
+    });
+
+    expect(summary.state).toBe("ready");
+    expect(summary.canTrustArenaPolish).toBe(true);
+    expect(summary.readyCount).toBe(5);
+    expect(summary.acceptanceGateStatus).toBe("ready");
   });
 
   it("blocks when the Phase 10 goal misses a required PM child link", () => {

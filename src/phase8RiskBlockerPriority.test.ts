@@ -207,6 +207,16 @@ function priority({
   return buildPhase8RiskBlockerPriority({ snapshot: depth, traceability });
 }
 
+function withCurrentPhase8Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-8-permission-audit"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 8 risk blocker priority", () => {
   it("ranks waiting permission blockers with audit-review actions", () => {
     const summary = priority();
@@ -234,7 +244,8 @@ describe("phase 8 risk blocker priority", () => {
       depth: snapshot({
         summaries: [liveSummary("terminal", "denied")],
         runtimeExecutionAudit: blockedRuntimeExecutionAudit
-      })
+      }),
+      goals: withCurrentPhase8Goal()
     });
 
     expect(summary.state).toBe("blocked");
@@ -314,7 +325,8 @@ describe("phase 8 risk blocker priority", () => {
           runtimeExecutionAuditHistory: [readyAuditRecord],
           runtimeProfilePermissionRequestHistory: [readyProfileRequest]
         })
-      })
+      }),
+      goals: withCurrentPhase8Goal()
     });
 
     expect(summary.state).toBe("ready");

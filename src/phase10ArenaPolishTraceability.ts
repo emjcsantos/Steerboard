@@ -165,9 +165,19 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase10ArenaPo
     id: `${TRACE_ID}:active-goal`,
     label: "Remaining goal link",
     kind: "active-goal",
-    status: goal.status === "blocked" ? "blocked" : goal.status === "active" ? "review" : "ready",
+    status:
+      goal.status === "blocked"
+        ? "blocked"
+        : goal.current && goal.status === "active"
+          ? "ready"
+          : goal.status === "active"
+            ? "review"
+            : "waiting",
     detail: `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links.`,
-    nextAction: publicText(goal.nextAction, "Review the Phase 10 Arena polish goal.")
+    nextAction: publicText(
+      goal.nextAction,
+      "Make Phase 10 the current active goal before Arena polish can be trusted."
+    )
   };
 }
 
@@ -300,7 +310,12 @@ export function buildPhase10ArenaPolishTraceability(
     state,
     statusLabel: STATUS_LABELS[state],
     readiness: scoreItems(items),
-    canTrustArenaPolish: state === "ready" && input.snapshot.state === "ready" && missingPmTaskIds.length === 0,
+    canTrustArenaPolish:
+      state === "ready" &&
+      goal?.current === true &&
+      goal.status === "active" &&
+      input.snapshot.state === "ready" &&
+      missingPmTaskIds.length === 0,
     readyCount: items.filter((item) => item.status === "ready").length,
     reviewCount: items.filter((item) => item.status === "review").length,
     blockedCount: items.filter((item) => item.status === "blocked").length,

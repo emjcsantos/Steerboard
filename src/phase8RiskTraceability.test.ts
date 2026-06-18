@@ -184,6 +184,16 @@ function traceability(options: {
   });
 }
 
+function withCurrentPhase8Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-8-permission-audit"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 8 risk traceability", () => {
   it("links the Phase 8 goal, PM child rows, audit-depth evidence, exceptions, and disabled paths", () => {
     const summary = traceability();
@@ -281,7 +291,8 @@ describe("phase 8 risk traceability", () => {
           runtimeExecutionAuditHistory: [executionRecord],
           runtimeProfilePermissionRequestHistory: [profileRequest]
         })
-      })
+      }),
+      goals: withCurrentPhase8Goal()
     });
 
     expect(summary.state).toBe("ready");
