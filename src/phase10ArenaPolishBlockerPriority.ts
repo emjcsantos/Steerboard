@@ -148,6 +148,17 @@ function canUseArenaReview(status: Phase10ArenaPolishBlockerPriorityState): bool
   return status !== "ready";
 }
 
+function canUseArenaReviewForTraceability(item: Phase10ArenaPolishTraceabilityItem): boolean {
+  return (
+    item.status !== "ready" &&
+    (
+      item.kind === "polish-readiness" ||
+      item.kind === "layout-evidence" ||
+      item.kind === "acceptance-gate"
+    )
+  );
+}
+
 function polishItems(
   snapshot: Phase10ArenaPolishSnapshot
 ): readonly Phase10ArenaPolishBlockerPriorityItem[] {
@@ -184,6 +195,8 @@ function traceabilityItems(
 function buildItemFromTraceability(
   item: Phase10ArenaPolishTraceabilityItem
 ): Phase10ArenaPolishBlockerPriorityItem {
+  const arenaReviewAddressable = canUseArenaReviewForTraceability(item);
+
   return {
     id: `${SNAPSHOT_ID}:traceability:${item.kind}`,
     sourceId: item.id,
@@ -192,9 +205,14 @@ function buildItemFromTraceability(
     status: item.status,
     severity: severityForState(item.status),
     priority: 0,
-    canUseArenaReview: canUseArenaReview(item.status),
+    canUseArenaReview: arenaReviewAddressable,
     detail: `${item.label} trace is ${STATUS_LABELS[item.status]}; ${publicText(item.detail, "Phase 10 Arena polish traceability is incomplete.")}`,
-    nextAction: `${ARENA_REVIEW_ACTION}, then re-check Phase 10 Arena polish traceability.`
+    nextAction: arenaReviewAddressable
+      ? `${ARENA_REVIEW_ACTION}, then re-check Phase 10 Arena polish traceability.`
+      : publicText(
+          item.nextAction,
+          "Repair Phase 10 remaining-goal or Project Management links before Arena polish can be trusted."
+        )
   };
 }
 

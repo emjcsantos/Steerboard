@@ -55,7 +55,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm corrupted saved panel metadata with duplicate live identities shows a conflict warning and does not send live chat through the duplicated identity.
    - Switch to Adaptive Arena and confirm the Phase 10 Arena Polish panel reports layout regression, density/readability, keyboard controls, focus state, terminology, and acceptance gates separately.
    - Confirm the Phase 10 Arena polish traceability rows link the remaining goal, PM child coverage, Arena polish readiness, layout/density evidence, and acceptance gate before packaging can resume.
-   - Confirm the Phase 10 Arena polish blocker-priority queue ranks layout, density, keyboard, focus, terminology, acceptance, PM coverage, and traceability blockers and shows whether Arena review can address the top blocker.
+   - Confirm the Phase 10 Arena polish blocker-priority queue ranks layout, density, keyboard, focus, terminology, acceptance, PM coverage, and traceability blockers and shows whether Arena review can address the top blocker, with PM or remaining-goal link blockers treated as planning metadata repair instead of Arena-review addressable.
    - Use drag, keyboard arrow movement, shift-arrow resize, hide, reveal, and reset paths on adaptive panels, then confirm no source session or project data is mutated.
 5. `Controls`
    - Exercise stop, retry, pause, and route controls.
@@ -123,7 +123,7 @@ Do not proceed to the next section until the current item is at least `review`.
     - Dispatch a staged pipeline item through the standard lane.
     - Confirm role-panel plan generation, route details, and log records are consistent.
     - Confirm the selected local run shows a dispatch review record with role counts, max attempt limit, handoff task count, handoff packet count, validation gate count, and a no-runtime-execution note.
-    - Confirm the dispatch review depth checks show role coverage, attempt limits, handoff tasks, handoff packet integrity, evidence freshness, validation gates, and the live worker lock as separate rows.
+    - Confirm the dispatch review depth checks show role coverage, attempt limits, handoff tasks, handoff packet integrity, evidence freshness, validation gates, and the live worker lock as separate rows, and that the newest review record is selected when no explicit record is chosen.
     - Confirm the integration ownership rows show Main Codex as the final integration, validation, commit, push approval, reporting, traceability, and closure-boundary owner.
     - Confirm the Phase 7 dispatch traceability rows link the remaining goal, PM child coverage, dispatch review depth, evidence freshness, integration ownership depth, and live-worker lock before dispatch review can be trusted.
     - Confirm the Phase 7 dispatch blocker-priority queue ranks role coverage, attempt limits, handoff tasks, handoff packet integrity, evidence freshness, validation gates, integration ownership, traceability, closure boundary, and live-worker lock blockers and shows whether dispatch review can address the top blocker.

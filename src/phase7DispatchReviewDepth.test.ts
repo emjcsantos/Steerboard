@@ -186,6 +186,29 @@ describe("phase 7 dispatch review depth", () => {
     );
   });
 
+  it("uses the newest review record when no record is explicitly selected", () => {
+    const { record: oldReady, run } = buildRecordBundle("2026-06-12T00:01:00.000Z");
+    const newerBlocked = {
+      ...buildRecord("2026-06-12T00:02:00.000Z"),
+      noRuntimeExecutionNote: "Live worker sessions may launch now."
+    };
+    const snapshot = buildPhase7DispatchReviewDepth({
+      records: [oldReady, newerBlocked],
+      currentEvidenceFingerprint: currentFingerprint(oldReady, run)
+    });
+
+    expect(snapshot.latestRecordId).toBe(newerBlocked.id);
+    expect(snapshot.state).toBe("blocked");
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Live worker lock",
+          status: "blocked"
+        })
+      ])
+    );
+  });
+
   it("reviews legacy records without persisted handoff packet summaries", () => {
     const { record, run } = buildRecordBundle();
     const legacyRecord = {

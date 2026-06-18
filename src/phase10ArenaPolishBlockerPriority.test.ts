@@ -110,8 +110,11 @@ describe("phase 10 Arena polish blocker priority", () => {
     expect(summary.topPriorityLabel).toBe("PM row coverage");
     expect(summary.items[0]).toMatchObject({
       kind: "traceability",
-      status: "blocked"
+      status: "blocked",
+      canUseArenaReview: false,
+      nextAction: expect.stringContaining("missing Phase 10 PM")
     });
+    expect(summary.arenaReviewCanAddressTopBlocker).toBe(false);
   });
 
   it("reports ready when polish and traceability are ready", () => {

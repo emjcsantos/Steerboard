@@ -454,10 +454,19 @@ function buildAriaLabel(snapshot: Omit<Phase7DispatchReviewDepthSnapshot, "ariaL
   );
 }
 
+function recordTimestamp(record: DispatchReviewRecord): number {
+  const timestamp = Date.parse(record.createdAt);
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function newestRecord(records: readonly DispatchReviewRecord[]): DispatchReviewRecord | undefined {
+  return [...records].sort((left, right) => recordTimestamp(right) - recordTimestamp(left))[0];
+}
+
 export function buildPhase7DispatchReviewDepth(
   input: Phase7DispatchReviewDepthInput
 ): Phase7DispatchReviewDepthSnapshot {
-  const record = input.selectedRecord ?? input.records[0];
+  const record = input.selectedRecord ?? newestRecord(input.records);
   const items = buildItems(record, input.currentEvidenceFingerprint);
   const state = resolveState(items);
   const readiness = calculateReadiness(items);
