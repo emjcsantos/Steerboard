@@ -254,6 +254,25 @@ function storageProofReviewDetail(
   return undefined;
 }
 
+function storageProofReadyDetail(
+  label: string,
+  record: Record<string, unknown>
+): string | undefined {
+  const proof = safeRecord(record.phase3StorageProof);
+  const panelId = typeof proof?.panelId === "string" ? proof.panelId : undefined;
+  const createdAt = typeof proof?.createdAt === "string" ? proof.createdAt : undefined;
+  const evidenceFingerprint =
+    typeof proof?.evidenceFingerprint === "string"
+      ? proof.evidenceFingerprint
+      : undefined;
+
+  if (!panelId || !createdAt || !evidenceFingerprint) {
+    return undefined;
+  }
+
+  return `${label} is ready with current-panel storage provenance: panel ${panelId}, saved ${createdAt}, fingerprint ${evidenceFingerprint}.`;
+}
+
 function normalizeControlState(value: unknown): string {
   return typeof value === "string" ? value.toLowerCase() : "waiting";
 }
@@ -308,6 +327,7 @@ function evaluateSlashEvidence(
   malformed: boolean;
   provenanceIssue?: string;
   provenanceNextAction?: string;
+  provenanceReadyDetail?: string;
   storageReady: boolean;
 } {
   const record = safeRecord(input);
@@ -340,6 +360,9 @@ function evaluateSlashEvidence(
       malformed: false,
       provenanceIssue,
       provenanceNextAction: provenanceIssue ? SLASH_PROVENANCE_NEXT_ACTION : undefined,
+      provenanceReadyDetail: provenanceIssue
+        ? undefined
+        : storageProofReadyDetail(PHASE3_GATE_LABELS.slash, record),
       storageReady: !provenanceIssue
     };
   }
@@ -358,6 +381,7 @@ function evaluateSessionControlEvidence(
   malformed: boolean;
   provenanceIssue?: string;
   provenanceNextAction?: string;
+  provenanceReadyDetail?: string;
   storageReady: boolean;
 } {
   const record = safeRecord(input);
@@ -390,6 +414,9 @@ function evaluateSessionControlEvidence(
       malformed: false,
       provenanceIssue,
       provenanceNextAction: provenanceIssue ? SESSION_PROVENANCE_NEXT_ACTION : undefined,
+      provenanceReadyDetail: provenanceIssue
+        ? undefined
+        : storageProofReadyDetail(PHASE3_GATE_LABELS.session, record),
       storageReady: !provenanceIssue
     };
   }
@@ -603,6 +630,7 @@ export function buildPhase3ExitGateEvidence(
       state: slashEvidence.state,
       detail:
         slashEvidence.provenanceIssue ??
+        slashEvidence.provenanceReadyDetail ??
         resolveItemDetail(PHASE3_GATE_LABELS.slash, slashEvidence.state, slashEvidence.malformed),
       nextAction: slashEvidence.provenanceNextAction ?? resolveSlashNextAction(slashEvidence.state),
       ...PHASE3_GATE_TRACE.slash
@@ -613,6 +641,7 @@ export function buildPhase3ExitGateEvidence(
       state: sessionControlEvidence.state,
       detail:
         sessionControlEvidence.provenanceIssue ??
+        sessionControlEvidence.provenanceReadyDetail ??
         resolveItemDetail(PHASE3_GATE_LABELS.session, sessionControlEvidence.state, sessionControlEvidence.malformed),
       nextAction:
         sessionControlEvidence.provenanceNextAction ??

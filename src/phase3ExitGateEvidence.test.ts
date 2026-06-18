@@ -153,6 +153,18 @@ describe("phase 3 exit gate evidence", () => {
     ]);
     expect(result.items.every((item) => item.state === "ready")).toBe(true);
     expect(result.items.every((item) => item.nextAction)).toBe(true);
+    expect(result.items[0]).toMatchObject({
+      id: "phase3-exit-gate:slash-execution",
+      detail: expect.stringContaining("current-panel storage provenance")
+    });
+    expect(result.items[0].detail).toContain("panel panel-1");
+    expect(result.items[0].detail).toContain("fingerprint phase3-panel-");
+    expect(result.items[1]).toMatchObject({
+      id: "phase3-exit-gate:session-controls",
+      detail: expect.stringContaining("current-panel storage provenance")
+    });
+    expect(result.items[1].detail).toContain("panel panel-1");
+    expect(result.items[1].detail).toContain("fingerprint phase3-panel-");
     expect(result.pmTaskLinkCount).toBe(3);
     expect(result.evidenceKeyCount).toBe(5);
     expect(result.items.map((item) => [item.pmTaskId, item.evidenceKey])).toEqual([
