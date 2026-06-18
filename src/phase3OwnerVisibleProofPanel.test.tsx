@@ -20,7 +20,8 @@ import { buildPhase3HandoffGate } from "./phase3HandoffGate";
 import {
   buildPhase3HandoffEvidenceFingerprint,
   createPhase3OwnerHandoffRecord,
-  derivePhase3HandoffRecordValidation
+  derivePhase3HandoffRecordValidation,
+  type Phase3OwnerHandoffRecord
 } from "./phase3HandoffRecord";
 import {
   loadPhase3SessionControlEvidenceByPanel,
@@ -320,6 +321,130 @@ function buildReadyPhase3Props() {
   };
 }
 
+type OwnerVisiblePhase3Props = Omit<
+  ReturnType<typeof buildReadyPhase3Props>,
+  "phase3OwnerHandoffRecord"
+> & {
+  readonly phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
+};
+
+function renderOwnerTestingReadinessPanel(props: OwnerVisiblePhase3Props) {
+  return renderToStaticMarkup(
+    <OwnerTestingReadinessPanel
+      {...props}
+      codexCanStartSession={true}
+      codexLiveSmokeLoading={false}
+      codexTwoPanelSmokeLoading={false}
+      onClearPhase3CommandValidation={() => undefined}
+      onClearPhase3OwnerHandoff={() => undefined}
+      onImportPhase3CommandValidation={() => undefined}
+      onImportPhase3SmokeProofBundle={() => undefined}
+      onRecordPhase3CommandValidation={() => undefined}
+      onRecordPhase3OwnerHandoff={() => undefined}
+      onRunCodexActiveTurnControlSmokeProof={() => undefined}
+      onRunCodexActiveTurnSteerSmokeProof={() => undefined}
+      onRunCodexLiveControlSmokeProof={() => undefined}
+      onRunCodexLiveSmokeProof={() => undefined}
+      onRunCodexTwoPanelSmokeProof={() => undefined}
+    />
+  );
+}
+
+function buildPhase3PropsWithSmokeProofs(input: {
+  readonly liveControlSmoke?: unknown;
+  readonly activeTurnInterruptSmoke?: unknown;
+  readonly activeTurnSteerSmoke?: unknown;
+  readonly persistedDesktopProofs?: {
+    readonly liveControlSmoke?: boolean;
+    readonly activeTurnInterruptSmoke?: boolean;
+    readonly activeTurnSteerSmoke?: boolean;
+  };
+  readonly evaluatedAt?: string;
+  readonly maxProofAgeMs?: number;
+}) {
+  const props = buildReadyPhase3Props();
+  const phase3SmokeProofReadiness = buildPhase3SmokeProofReadiness({
+    liveControlSmoke: input.liveControlSmoke,
+    activeTurnInterruptSmoke: input.activeTurnInterruptSmoke,
+    activeTurnSteerSmoke: input.activeTurnSteerSmoke,
+    persistedDesktopProofs: input.persistedDesktopProofs,
+    evaluatedAt: input.evaluatedAt ?? evaluatedAt,
+    maxProofAgeMs: input.maxProofAgeMs
+  });
+  const phase3ExitGateEvidence = buildPhase3ExitGateEvidence({
+    slashEvidence: props.slashCommandExecutionEvidence,
+    sessionControlEvidence: props.sessionControlReadinessEvidence,
+    liveControlSmoke: input.liveControlSmoke,
+    activeTurnInterruptSmoke: input.activeTurnInterruptSmoke,
+    activeTurnSteerSmoke: input.activeTurnSteerSmoke,
+    persistedDesktopProofs: input.persistedDesktopProofs,
+    evaluatedAt: input.evaluatedAt ?? evaluatedAt,
+    maxProofAgeMs: input.maxProofAgeMs,
+    currentPanelId
+  });
+  const phase3OwnerTestingActions = buildPhase3OwnerTestingActions({
+    canStartSession: true,
+    liveControlSmokeGate: phase3ExitGateEvidence.items.find(
+      (item) => item.id === "phase3-exit-gate:live-control-smoke"
+    ),
+    activeTurnInterruptSmokeGate: phase3ExitGateEvidence.items.find(
+      (item) => item.id === "phase3-exit-gate:active-turn-interrupt-smoke"
+    ),
+    activeTurnSteerSmokeGate: phase3ExitGateEvidence.items.find(
+      (item) => item.id === "phase3-exit-gate:active-turn-steer-smoke"
+    )
+  });
+  const phase3ClearancePackage = buildPhase3ClearancePackage({
+    exitGate: phase3ExitGateEvidence,
+    actions: phase3OwnerTestingActions
+  });
+  const phase3OwnerTestingDisplayActions = gatePhase3OwnerTestingActionsToPrimary({
+    actions: phase3OwnerTestingActions,
+    primaryActionId: phase3ClearancePackage.primaryActionId,
+    holdDetail: phase3ClearancePackage.nextAction
+  });
+  const phase3ClearanceCommandPlan = buildPhase3ClearanceCommandPlan({
+    clearancePackage: phase3ClearancePackage,
+    actions: phase3OwnerTestingDisplayActions
+  });
+  const phase3ClearanceBlockerPriority = buildPhase3ClearanceBlockerPriority({
+    clearancePackage: phase3ClearancePackage,
+    commandPlan: phase3ClearanceCommandPlan
+  });
+  const phase3ClearanceTraceabilityPrecondition =
+    buildPhase3ClearanceTraceabilityPrecondition();
+  const phase3HandoffGate = buildPhase3HandoffGate({
+    clearancePackage: phase3ClearancePackage,
+    traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition
+  });
+  const phase3CommandValidationRecordValidation =
+    derivePhase3CommandValidationRecordValidation(props.phase3CommandValidationRecord, {
+      evaluatedAt: input.evaluatedAt ?? evaluatedAt,
+      expectedCommand: phase3ClearanceCommandPlan.command
+    });
+  const phase3ClearanceTraceability = buildPhase3ClearanceTraceability({
+    clearancePackage: phase3ClearancePackage,
+    commandPlan: phase3ClearanceCommandPlan,
+    commandValidation: phase3CommandValidationRecordValidation,
+    blockerPriority: phase3ClearanceBlockerPriority,
+    handoffGate: phase3HandoffGate
+  });
+
+  return {
+    ...props,
+    phase3ClearanceBlockerPriority,
+    phase3ClearanceTraceability,
+    phase3ClearanceTraceabilityPrecondition,
+    phase3ClearanceCommandPlan,
+    phase3ClearancePackage,
+    phase3ExitGateEvidence,
+    phase3HandoffGate,
+    phase3OwnerHandoffRecord: undefined,
+    phase3OwnerTestingActions: phase3OwnerTestingDisplayActions,
+    phase3SmokeProofReadiness
+  };
+}
+
 describe("phase 3 owner-visible proof panel", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -327,25 +452,7 @@ describe("phase 3 owner-visible proof panel", () => {
 
   it("renders imported desktop proof, panel provenance, and fresh handoff details for owner review", () => {
     const props = buildReadyPhase3Props();
-    const html = renderToStaticMarkup(
-      <OwnerTestingReadinessPanel
-        {...props}
-        codexCanStartSession={true}
-        codexLiveSmokeLoading={false}
-        codexTwoPanelSmokeLoading={false}
-        onClearPhase3CommandValidation={() => undefined}
-        onClearPhase3OwnerHandoff={() => undefined}
-        onImportPhase3CommandValidation={() => undefined}
-        onImportPhase3SmokeProofBundle={() => undefined}
-        onRecordPhase3CommandValidation={() => undefined}
-        onRecordPhase3OwnerHandoff={() => undefined}
-        onRunCodexActiveTurnControlSmokeProof={() => undefined}
-        onRunCodexActiveTurnSteerSmokeProof={() => undefined}
-        onRunCodexLiveControlSmokeProof={() => undefined}
-        onRunCodexLiveSmokeProof={() => undefined}
-        onRunCodexTwoPanelSmokeProof={() => undefined}
-      />
-    );
+    const html = renderOwnerTestingReadinessPanel(props);
 
     expect(html).toContain("Phase 3 gate");
     expect(html).toContain("Clearance package");
@@ -359,7 +466,130 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Fresh 25000ms");
     expect(html).toContain("Current evidence match 100%");
     expect(html).toContain("Advance ready");
+    expect(html).toContain("Phase 3 handoff gate");
+    expect(html).toContain("Desktop proof clearance");
+    expect(html).toContain("Exact blocker visibility");
+    expect(html).toContain("Traceability boundary");
+    expect(html).toContain("Owner handoff record");
+    expect(html).toContain("Provider boundary");
+    expect(html).toContain("Record handoff");
+    expect(html).toContain("Clear record");
     expect(html).toContain("phase3-smoke-record:2026-06-18T07:57:30.551Z");
     expect(html).toContain("local_private/phase3-smoke-proof-bundle.json");
+  });
+
+  it("keeps stale Phase 3 handoff records visibly in review", () => {
+    const props = buildReadyPhase3Props();
+    const staleRecord = createPhase3OwnerHandoffRecord(
+      props.phase3ClearancePackage,
+      "2026-06-18T07:58:05.000Z",
+      "phase3-handoff-stale"
+    );
+    const expectedFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: props.phase3ClearancePackage,
+      exitGate: props.phase3ExitGateEvidence,
+      commandPlanId: props.phase3ClearanceCommandPlan.id
+    });
+    const staleValidation = derivePhase3HandoffRecordValidation(
+      staleRecord,
+      props.phase3ClearancePackage,
+      expectedFingerprint,
+      { evaluatedAt: "2026-06-18T07:58:30.000Z" }
+    );
+    const staleGate = buildPhase3HandoffGate({
+      clearancePackage: props.phase3ClearancePackage,
+      traceabilityPrecondition: props.phase3ClearanceTraceabilityPrecondition,
+      handoffRecordValidation: staleValidation
+    });
+    const html = renderOwnerTestingReadinessPanel({
+      ...props,
+      phase3HandoffGate: staleGate,
+      phase3OwnerHandoffRecord: staleRecord
+    });
+
+    expect(html).toContain("Advance held");
+    expect(html).toContain("Current evidence review 100%");
+    expect(html).toContain(expectedFingerprint);
+    expect(html).toContain("phase3-handoff-stale");
+    expect(html).toContain("Owner handoff record no longer matches");
+    expect(html).toContain("Clear and record the Phase 3 handoff again");
+    expect(html).toContain("Provider integration remains held");
+    expect(html).toContain("Recorded");
+  });
+
+  it("renders stale, waiting, and storage-review smoke proof rows for owner review", () => {
+    const props = buildPhase3PropsWithSmokeProofs({
+      evaluatedAt: "2026-06-18T07:58:00.000Z",
+      maxProofAgeMs: 60_000,
+      persistedDesktopProofs: {
+        liveControlSmoke: true,
+        activeTurnInterruptSmoke: false,
+        activeTurnSteerSmoke: false
+      },
+      liveControlSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-18T07:50:00.000Z",
+        executed: true,
+        ok: true,
+        completed: true,
+        supportedMethodCount: 1,
+        totalMethodCount: 1
+      },
+      activeTurnInterruptSmoke: {
+        source: "browser",
+        checkedAt: "2026-06-18T07:57:00.000Z",
+        executed: false,
+        unsupported: true
+      },
+      activeTurnSteerSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-18T07:57:30.000Z",
+        executed: true,
+        ok: true,
+        completed: true,
+        steerObserved: true
+      }
+    });
+    const html = renderOwnerTestingReadinessPanel(props);
+
+    expect(html).toContain("Desktop smoke bundle");
+    expect(html).toContain("Storage 1/");
+    expect(html).toContain("Live-control desktop smoke proof");
+    expect(html).toContain("stale; rerun the desktop smoke proof");
+    expect(html).toContain("Active-turn interrupt desktop smoke proof");
+    expect(html).toContain("browser | 2026-06-18T07:57:00.000Z | storage review");
+    expect(html).toContain("Active-turn steer desktop smoke proof");
+    expect(html).toContain("must be loaded from persisted/imported desktop proof storage");
+    expect(html).toContain("Advance held");
+    expect(html).toContain("Phase 3 clearance must be exit-ready before recording handoff");
+    expect(html).toContain("Record handoff");
+  });
+
+  it("keeps future-dated desktop smoke proof visibly in review", () => {
+    const props = buildPhase3PropsWithSmokeProofs({
+      evaluatedAt: "2026-06-18T07:58:00.000Z",
+      persistedDesktopProofs: {
+        liveControlSmoke: true,
+        activeTurnInterruptSmoke: true,
+        activeTurnSteerSmoke: true
+      },
+      liveControlSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-18T07:59:00.000Z",
+        executed: true,
+        ok: true,
+        completed: true,
+        supportedMethodCount: 1,
+        totalMethodCount: 1
+      },
+      activeTurnInterruptSmoke,
+      activeTurnSteerSmoke
+    });
+    const html = renderOwnerTestingReadinessPanel(props);
+
+    expect(html).toContain("Live-control desktop smoke proof");
+    expect(html).toContain("dated after the current evaluation timestamp");
+    expect(html).toContain("Current evidence review");
+    expect(html).toContain("Advance held");
   });
 });
