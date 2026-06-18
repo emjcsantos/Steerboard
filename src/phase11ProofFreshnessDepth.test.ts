@@ -166,6 +166,7 @@ describe("phase 11 proof freshness depth", () => {
     expect(result.canTrustOwnerProof).toBe(true);
     expect(result.readiness).toBe(100);
     expect(result.openProofCount).toBe(0);
+    expect(result.nextAction).toContain("npm.cmd run test:phase3:owner-visible");
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
     const handoffProof = result.items.find((item) => item.label === "Owner handoff proof");
     expect(result.items).toEqual(
@@ -177,6 +178,10 @@ describe("phase 11 proof freshness depth", () => {
         expect.objectContaining({
           label: "Desktop smoke proof",
           detail: expect.stringContaining("3/3 storage-proof attested")
+        }),
+        expect.objectContaining({
+          label: "Owner handoff proof",
+          nextAction: expect.stringContaining("npm.cmd run test:phase3:owner-visible")
         }),
         expect.objectContaining({
           label: "Owner handoff proof",

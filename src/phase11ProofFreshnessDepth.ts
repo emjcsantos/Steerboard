@@ -53,6 +53,7 @@ export interface Phase11ProofFreshnessDepthInput {
 
 const SNAPSHOT_ID = "phase-11-proof-freshness-depth";
 const SNAPSHOT_LABEL = "Phase 11 proof freshness depth";
+const OWNER_VISIBLE_PHASE3_PROOF_COMMAND = "npm.cmd run test:phase3:owner-visible";
 const SAFETY =
   "Phase 11 proof freshness depth is evidence-only. It does not run smoke commands, mutate runtime state, record handoff, install dependencies, build packages, push branches, or resume release actions.";
 
@@ -109,7 +110,7 @@ function firstNextAction(
     items.find((item) => item.status === "blocked")?.nextAction ??
     items.find((item) => item.status === "review")?.nextAction ??
     items.find((item) => item.status === "waiting")?.nextAction ??
-    "Keep owner proof attached and fresh across reload and while the app remains open before release readiness is resumed."
+    `Run ${OWNER_VISIBLE_PHASE3_PROOF_COMMAND} to verify imported desktop proof, current-panel provenance, and fresh handoff text remain owner-visible before release readiness is resumed.`
   );
 }
 
@@ -285,7 +286,7 @@ function handoffProofItem(
     detail: handoffReviewDetail(phase3HandoffGate),
     nextAction:
       status === "ready"
-        ? "Keep the owner handoff record attached, matching current evidence, and backed by trusted current active goal/PM traceability before provider or release readiness advances."
+        ? `Run ${OWNER_VISIBLE_PHASE3_PROOF_COMMAND} and keep the owner handoff record attached, matching current evidence, and backed by trusted current active goal/PM traceability before provider or release readiness advances.`
         : phase3HandoffGate.nextAction
   };
 }
