@@ -65,6 +65,8 @@ function desktopResult(
 function terminalAuditRecord(
   action: LiveActionAuditRecord["action"] = "executed"
 ): LiveActionAuditRecord {
+  const needsRollback = action === "executed" || action === "failed";
+
   return {
     id: `terminal:local:${action}:2026-06-11T00:00:00.000Z`,
     action,
@@ -73,7 +75,9 @@ function terminalAuditRecord(
     provider: "terminal",
     workspace: "current workspace",
     service: "local shell",
-    resultSummary: "Terminal read-only probe audit record.",
+    resultSummary: needsRollback
+      ? "Terminal read-only probe audit record. Rollback: fixed no-mutation contract remains attached."
+      : "Terminal read-only probe audit record.",
     timestamp: "2026-06-11T00:00:00.000Z",
     risk: "high"
   };
@@ -231,7 +235,7 @@ describe("phase 9 runner approval depth", () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: "rollback-evidence",
-          evidence: expect.stringContaining("read-only")
+          evidence: expect.stringContaining("record-specific rollback")
         }),
         expect.objectContaining({
           kind: "validation-output",

@@ -73,6 +73,8 @@ function desktopResult(
 function terminalAuditRecord(
   action: LiveActionAuditRecord["action"] = "requested"
 ): LiveActionAuditRecord {
+  const needsRollback = action === "executed" || action === "failed";
+
   return {
     id: `terminal:local:${action}:2026-06-11T00:00:00.000Z`,
     action,
@@ -81,7 +83,9 @@ function terminalAuditRecord(
     provider: "terminal",
     workspace: "current workspace",
     service: "local shell",
-    resultSummary: "Terminal read-only probe audit record.",
+    resultSummary: needsRollback
+      ? "Terminal read-only probe audit record. Rollback: fixed no-mutation contract remains attached."
+      : "Terminal read-only probe audit record.",
     timestamp: "2026-06-11T00:00:00.000Z",
     risk: "high"
   };
@@ -422,6 +426,38 @@ describe("phase 9 runner approval", () => {
     expect(approval.readiness).toBe(100);
     expect(approval.auditRecordCount).toBe(2);
     expect(approval.items.every((item) => item.status === "ready")).toBe(true);
+  });
+
+  it("reviews executed probe records that lack record-specific rollback proof", () => {
+    const executedWithoutRollback = {
+      ...terminalAuditRecord("executed"),
+      resultSummary: "Terminal read-only probe audit record."
+    };
+    const approval = snapshot({
+      request: permissionRequest({ state: "approved" }),
+      result: desktopResult({
+        requestId: "terminal-permission-1",
+        status: "executed",
+        code: "ok",
+        canExecute: true,
+        summary: "Desktop terminal read-only probe executed through the approved runner contract.",
+        detail: "Executed fixed terminal read-only probe command for audit trail."
+      }),
+      auditRecords: [terminalAuditRecord("approved"), executedWithoutRollback]
+    });
+
+    expect(approval.state).toBe("review");
+    expect(approval.canRequestDesktopProbe).toBe(false);
+    expect(approval.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Rollback evidence",
+          kind: "rollback",
+          status: "review",
+          detail: expect.stringContaining("record-specific rollback")
+        })
+      ])
+    );
   });
 
   it("blocks denied and expired approvals", () => {

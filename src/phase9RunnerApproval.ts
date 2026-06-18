@@ -394,6 +394,22 @@ function auditItem(records: readonly LiveActionAuditRecord[]): Phase9RunnerAppro
   };
 }
 
+function terminalProbeNeedsRollback(record: LiveActionAuditRecord): boolean {
+  return isTerminalAuditRecord(record) && (record.action === "executed" || record.action === "failed");
+}
+
+function hasRecordSpecificRollbackEvidence(record: LiveActionAuditRecord): boolean {
+  const summary = record.resultSummary.toLowerCase();
+
+  return (
+    summary.includes("rollback") &&
+    (summary.includes("no-mutation") ||
+      summary.includes("no mutation") ||
+      summary.includes("mutation lock") ||
+      summary.includes("mutation paths stay locked"))
+  );
+}
+
 function ownerReviewItem(
   phase8Record: Phase8AuditReviewRecord | undefined,
   record: Phase9RunnerApprovalRecord | undefined,
@@ -530,14 +546,33 @@ function ownerReviewItem(
   };
 }
 
-function rollbackItem(): Phase9RunnerApprovalItem {
+function rollbackItem(records: readonly LiveActionAuditRecord[]): Phase9RunnerApprovalItem {
+  const recordsNeedingRollback = records.filter(terminalProbeNeedsRollback);
+  const recordsMissingRollback = recordsNeedingRollback.filter(
+    (record) => !hasRecordSpecificRollbackEvidence(record)
+  );
+
+  if (recordsMissingRollback.length > 0) {
+    return {
+      id: `${SNAPSHOT_ID}:rollback`,
+      label: "Rollback evidence",
+      kind: "rollback",
+      status: "review",
+      detail: `${recordsMissingRollback.length}/${recordsNeedingRollback.length} executed or failed terminal probe audit record${recordsNeedingRollback.length === 1 ? "" : "s"} need record-specific rollback and no-mutation evidence.`,
+      nextAction:
+        "Attach rollback and no-mutation proof to each executed or failed terminal-readonly-probe audit record before runner approval advances."
+    };
+  }
+
   return {
     id: `${SNAPSHOT_ID}:rollback`,
     label: "Rollback evidence",
     kind: "rollback",
     status: "ready",
     detail:
-      "The selected probe is read-only; rollback evidence is the fixed no-mutation contract and unchanged broader mutation locks.",
+      recordsNeedingRollback.length > 0
+        ? `${recordsNeedingRollback.length} executed or failed terminal probe audit record${recordsNeedingRollback.length === 1 ? "" : "s"} include record-specific rollback and no-mutation evidence.`
+        : "The selected probe is read-only; rollback evidence is the fixed no-mutation contract and unchanged broader mutation locks.",
     nextAction:
       "Do not add write-capable runner actions until rollback evidence is action-specific and owner-visible."
   };
@@ -570,7 +605,7 @@ export function buildPhase9RunnerApprovalSnapshot(
     previewItem(buildResult),
     validationItem(input.desktopRunnerResult),
     auditItem(input.auditRecords),
-    rollbackItem()
+    rollbackItem(input.auditRecords)
   ];
   const baseDraft = {
     id: SNAPSHOT_ID,
@@ -607,9 +642,11 @@ export function buildPhase9RunnerApprovalSnapshot(
   const blockedCount = items.filter((item) => item.status === "blocked").length;
   const waitingCount = items.filter((item) => item.status === "waiting").length;
   const auditRecordCount = input.auditRecords.filter(isTerminalAuditRecord).length;
+  const rollbackReady = items.find((item) => item.kind === "rollback")?.status === "ready";
   const canRequestDesktopProbe =
     Boolean(buildResult?.ok) &&
     blockedCount === 0 &&
+    rollbackReady &&
     input.phase8AuditReviewRecord?.state === "ready" &&
     input.runnerApprovalRecord?.state === "ready" &&
     input.runnerApprovalRecord.phase8ReviewRecordId === input.phase8AuditReviewRecord.id &&
