@@ -149,6 +149,17 @@ function isRecordFresh(
   return recordAgeMs >= 0 && recordAgeMs <= maxRecordAgeMs;
 }
 
+function recordMatchesCurrentClearanceSnapshot(
+  record: Phase3OwnerHandoffRecord,
+  clearancePackage: Phase3ClearancePackage
+): boolean {
+  return (
+    record.clearanceReadiness === clearancePackage.readiness &&
+    record.exactBlockerCount === clearancePackage.openCount &&
+    record.canExit === clearancePackage.canExit
+  );
+}
+
 export function buildPhase3HandoffEvidenceFingerprint(input: {
   readonly clearancePackage: Phase3ClearancePackage;
   readonly exitGate?: Pick<Phase3ExitGateEvidence, "items">;
@@ -341,6 +352,22 @@ export function derivePhase3HandoffRecordValidation(
       detail: "Owner-reviewed Phase 3 handoff record is not attached yet.",
       nextAction: "Record the owner-reviewed Phase 3 handoff before advancing provider integration.",
       expectedFingerprint,
+      matchesCurrentEvidence: false
+    };
+  }
+
+  if (
+    expectedFingerprint &&
+    record.evidenceFingerprint === expectedFingerprint &&
+    !recordMatchesCurrentClearanceSnapshot(record, clearancePackage)
+  ) {
+    return {
+      state: "review",
+      detail:
+        "Owner handoff record snapshot no longer matches current Phase 3 clearance readiness or blocker evidence.",
+      nextAction: "Clear and record the Phase 3 handoff again from the current clearance snapshot.",
+      expectedFingerprint,
+      recordFingerprint: record.evidenceFingerprint,
       matchesCurrentEvidence: false
     };
   }

@@ -208,6 +208,63 @@ describe("phase 3 handoff record", () => {
     });
   });
 
+  it("reviews current-matching handoff records when the stored readiness snapshot is stale", () => {
+    const currentClearance = clearancePackage();
+    const expectedFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: currentClearance
+    });
+    const record = {
+      ...createPhase3OwnerHandoffRecord(
+        currentClearance,
+        "2026-06-11T00:00:00.000Z",
+        expectedFingerprint
+      ),
+      clearanceReadiness: 35
+    };
+
+    expect(
+      derivePhase3HandoffRecordValidation(
+        record,
+        currentClearance,
+        expectedFingerprint
+      )
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("snapshot no longer matches"),
+      nextAction: expect.stringContaining("current clearance snapshot"),
+      matchesCurrentEvidence: false
+    });
+  });
+
+  it("reviews current-matching handoff records when blocker or exit snapshots differ", () => {
+    const currentClearance = clearancePackage();
+    const expectedFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: currentClearance
+    });
+    const baseRecord = createPhase3OwnerHandoffRecord(
+      currentClearance,
+      "2026-06-11T00:00:00.000Z",
+      expectedFingerprint
+    );
+
+    for (const record of [
+      { ...baseRecord, exactBlockerCount: 1 },
+      { ...baseRecord, canExit: false }
+    ]) {
+      expect(
+        derivePhase3HandoffRecordValidation(
+          record,
+          currentClearance,
+          expectedFingerprint
+        )
+      ).toMatchObject({
+        state: "review",
+        detail: expect.stringContaining("snapshot no longer matches"),
+        matchesCurrentEvidence: false
+      });
+    }
+  });
+
   it("reviews current-matching handoff records with malformed review timestamps", () => {
     const currentClearance = clearancePackage();
     const expectedFingerprint = buildPhase3HandoffEvidenceFingerprint({
