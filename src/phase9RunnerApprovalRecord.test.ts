@@ -171,6 +171,32 @@ describe("phase 9 runner approval record", () => {
     expect(record.readiness).toBe(100);
   });
 
+  it("keeps ready runner records in review when Phase 8 reviewed-blocker proof is incomplete", () => {
+    const record = createPhase9RunnerApprovalRecord(
+      runnerApprovalSnapshot({
+        state: "ready",
+        readiness: 100,
+        canRequestDesktopProbe: true,
+        readyCount: 8,
+        reviewCount: 0,
+        blockedCount: 0,
+        waitingCount: 0
+      }),
+      {
+        ...phase8ReviewRecord,
+        topBlockerSourceId: undefined
+      },
+      "2026-06-18T01:10:00.000Z"
+    );
+
+    expect(record.state).toBe("review");
+    expect(record.readiness).toBe(99);
+    expect(record.canRequestDesktopProbe).toBe(false);
+    expect(record.phase8ReviewState).toBe("ready");
+    expect(record.phase8ReviewFingerprint).toBe("phase8-audit:abcdef12");
+    expect(record.phase8ReviewedBlockerSourceId).toBeUndefined();
+  });
+
   it("parses a stored review record with clamped counts and sanitized text", () => {
     const parsed = parseStoredPhase9RunnerApprovalRecord(
       JSON.stringify({

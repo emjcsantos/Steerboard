@@ -121,8 +121,19 @@ function firstNextAction(items: readonly Phase9RunnerApprovalItem[]): string {
   );
 }
 
-function optionalFieldMatches(recorded: string | undefined, current: string | undefined): boolean {
-  return !recorded || recorded === current;
+function fieldMatches(recorded: string | undefined, current: string | undefined): boolean {
+  return recorded === current;
+}
+
+function hasPhase8ReviewedBlockerProof(record: Phase8AuditReviewRecord): boolean {
+  return [
+    record.auditEvidenceFingerprint,
+    record.topBlockerSourceId,
+    record.topBlockerKind,
+    record.topBlockerStatus,
+    record.topBlockerLabel,
+    record.topBlockerAction
+  ].every((value) => typeof value === "string" && value.trim().length > 0);
 }
 
 function phase8DependencyProofMatches(
@@ -130,12 +141,13 @@ function phase8DependencyProofMatches(
   phase8Record: Phase8AuditReviewRecord
 ): boolean {
   return (
-    optionalFieldMatches(record.phase8ReviewFingerprint, phase8Record.auditEvidenceFingerprint) &&
-    optionalFieldMatches(record.phase8ReviewedBlockerSourceId, phase8Record.topBlockerSourceId) &&
-    optionalFieldMatches(record.phase8ReviewedBlockerKind, phase8Record.topBlockerKind) &&
-    optionalFieldMatches(record.phase8ReviewedBlockerStatus, phase8Record.topBlockerStatus) &&
-    optionalFieldMatches(record.phase8ReviewedBlockerLabel, phase8Record.topBlockerLabel) &&
-    optionalFieldMatches(record.phase8ReviewedBlockerAction, phase8Record.topBlockerAction)
+    hasPhase8ReviewedBlockerProof(phase8Record) &&
+    fieldMatches(record.phase8ReviewFingerprint, phase8Record.auditEvidenceFingerprint) &&
+    fieldMatches(record.phase8ReviewedBlockerSourceId, phase8Record.topBlockerSourceId) &&
+    fieldMatches(record.phase8ReviewedBlockerKind, phase8Record.topBlockerKind) &&
+    fieldMatches(record.phase8ReviewedBlockerStatus, phase8Record.topBlockerStatus) &&
+    fieldMatches(record.phase8ReviewedBlockerLabel, phase8Record.topBlockerLabel) &&
+    fieldMatches(record.phase8ReviewedBlockerAction, phase8Record.topBlockerAction)
   );
 }
 
@@ -438,6 +450,19 @@ function ownerReviewItem(
         "The persisted Phase 8 owner audit review is not ready or does not preserve the mutation lock.",
       nextAction:
         "Resolve Phase 8 owner audit review blockers before recording Phase 9 runner approval."
+    };
+  }
+
+  if (!hasPhase8ReviewedBlockerProof(phase8Record)) {
+    return {
+      id: `${SNAPSHOT_ID}:owner-review`,
+      label: "Owner runner review",
+      kind: "owner-review",
+      status: "review",
+      detail:
+        "The current Phase 8 owner audit review is missing audited reviewed-blocker proof required by Phase 9.",
+      nextAction:
+        "Re-record the Phase 8 owner audit review with top-blocker source, kind, status, label, action, and audit fingerprint before recording Phase 9 runner approval."
     };
   }
 

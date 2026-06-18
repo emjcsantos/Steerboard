@@ -87,6 +87,21 @@ function publicText(value: string | undefined, fallback: string): string {
   return sanitized.length > 0 ? sanitized : fallback;
 }
 
+function hasPhase8ReviewDependencyProof(record: Phase8AuditReviewRecord | undefined): boolean {
+  if (!record || record.state !== "ready" || !record.mutationLocked) {
+    return false;
+  }
+
+  return [
+    record.auditEvidenceFingerprint,
+    record.topBlockerLabel,
+    record.topBlockerSourceId,
+    record.topBlockerKind,
+    record.topBlockerStatus,
+    record.topBlockerAction
+  ].every((value) => typeof value === "string" && value.trim().length > 0);
+}
+
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) {
     return `[${value.map((entry) => stableJson(entry)).join(",")}]`;
@@ -279,16 +294,20 @@ export function createPhase9RunnerApprovalRecord(
   const state = ownerReviewMissingOnly ? "ready" : snapshot.state;
   const readiness = ownerReviewMissingOnly ? 100 : snapshot.readiness;
   const phase8ReviewState = phase8ReviewRecord?.state ?? "blocked";
+  const phase8DependencyReady = hasPhase8ReviewDependencyProof(phase8ReviewRecord);
+  const recordState = state === "ready" && !phase8DependencyReady ? "review" : state;
+  const recordReadiness =
+    state === "ready" && !phase8DependencyReady ? Math.min(readiness, 99) : readiness;
   const canRequestDesktopProbe =
     snapshot.canRequestDesktopProbe &&
-    state === "ready" &&
-    phase8ReviewRecord?.state === "ready";
+    recordState === "ready" &&
+    phase8DependencyReady;
 
   return {
     id: `phase9-runner-approval:${createdAt}`,
     createdAt,
-    state,
-    readiness,
+    state: recordState,
+    readiness: recordReadiness,
     selectedAction: "terminal-readonly-probe",
     auditRecordCount: snapshot.auditRecordCount,
     phase8ReviewRecordId: phase8ReviewRecord?.id ?? "missing-phase8-review-record",
@@ -305,7 +324,7 @@ export function createPhase9RunnerApprovalRecord(
     rollbackEvidence:
       "Phase 9 remains limited to terminal-readonly-probe; broad terminal, Git, MCP, plugin, automation, runtime, profile, and external-service mutation paths stay locked before runner expansion.",
     detail: publicText(
-      `Owner-reviewed Phase 9 runner approval recorded locally at ${readiness}% readiness with ${snapshot.auditRecordCount} terminal audit records; selected action remains terminal-readonly-probe.`,
+      `Owner-reviewed Phase 9 runner approval recorded locally at ${recordReadiness}% readiness with ${snapshot.auditRecordCount} terminal audit records; selected action remains terminal-readonly-probe.`,
       "Phase 9 runner approval review record is available."
     )
   };

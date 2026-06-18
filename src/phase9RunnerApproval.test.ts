@@ -267,6 +267,60 @@ describe("phase 9 runner approval", () => {
     );
   });
 
+  it("reviews runner approval records that predate Phase 8 reviewed-blocker proof", () => {
+    const request = permissionRequest({ state: "approved" });
+    const result = desktopResult({
+      requestId: "terminal-permission-1",
+      status: "executed",
+      code: "ok",
+      canExecute: true,
+      summary: "Desktop terminal read-only probe executed through the approved runner contract.",
+      detail: "Executed fixed terminal read-only probe command for audit trail."
+    });
+    const auditRecords = [terminalAuditRecord("approved"), terminalAuditRecord("executed")];
+    const oldRecord = readyRunnerApprovalRecordFor({
+      request,
+      evaluation: evaluateLiveActionRunnerExecution(
+        terminalDefinition,
+        request,
+        "2026-06-11T00:05:00.000Z",
+        "2026-06-11T00:05:00.000Z"
+      ),
+      result,
+      auditRecords,
+      phase8AuditReviewRecord: readyPhase8ReviewRecord,
+      now: "2026-06-11T00:05:00.000Z",
+      overrides: {
+        phase8ReviewFingerprint: undefined,
+        phase8ReviewedBlockerLabel: undefined,
+        phase8ReviewedBlockerSourceId: undefined,
+        phase8ReviewedBlockerKind: undefined,
+        phase8ReviewedBlockerStatus: undefined,
+        phase8ReviewedBlockerAction: undefined
+      }
+    });
+    const approval = snapshot({
+      request,
+      result,
+      auditRecords,
+      runnerApprovalRecord: oldRecord,
+      now: "2026-06-11T00:05:00.000Z"
+    });
+
+    expect(approval.state).toBe("review");
+    expect(approval.canRequestDesktopProbe).toBe(false);
+    expect(approval.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner runner review",
+          kind: "owner-review",
+          status: "review",
+          detail: expect.stringContaining("reviewed-blocker proof")
+        })
+      ])
+    );
+  });
+
   it("allows a desktop probe request once approval and preview gates are ready", () => {
     const approval = snapshot({
       request: permissionRequest({ state: "approved" })
