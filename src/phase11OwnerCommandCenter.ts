@@ -343,7 +343,7 @@ function freshCheckoutItem(
   evidence: Phase11EvidenceRecordSnapshot | undefined,
   state: Phase11OwnerCommandCenterState | undefined
 ): Phase11OwnerCommandCenterItem {
-  const status = evidence?.state ?? state ?? "waiting";
+  const status = evidence?.state ?? (state === "ready" ? "review" : state) ?? "waiting";
 
   return {
     id: `${SNAPSHOT_ID}:fresh-checkout`,
@@ -352,12 +352,12 @@ function freshCheckoutItem(
     status,
     detail: evidence
       ? `${evidence.detail} Source: ${evidence.source}; recorded: ${evidence.recordedAt}; freshness: ${evidence.freshness}.`
-      : status === "ready"
-        ? "Fresh checkout install, test, build, desktop run, and proof panel checks are recorded."
+      : state === "ready"
+        ? "Fresh checkout install, test, build, desktop run, and proof panel checks need a structured evidence record."
         : "Fresh checkout install, test, build, desktop run, and proof panel checks still need owner evidence.",
     nextAction: evidence?.nextAction ?? (
-      status === "ready"
-        ? "Keep fresh-checkout evidence attached to the release gate."
+      state === "ready"
+        ? "Attach fresh-checkout evidence metadata before the Owner Testing command center can release."
         : "Run the fresh-checkout checklist once live workflow blockers are cleared."
     )
   };

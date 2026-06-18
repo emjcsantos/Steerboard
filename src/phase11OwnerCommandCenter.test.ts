@@ -154,6 +154,17 @@ function snapshot(
     failureSummary: readyFailureSummary(),
     remainingGoalSummary: remainingSummary(),
     freshCheckoutState: "ready",
+    freshCheckoutEvidence: evaluatePhase11EvidenceRecord(
+      "fresh-checkout",
+      {
+        gate: "fresh-checkout",
+        state: "ready",
+        source: "owner checkout",
+        recordedAt: "2026-06-17T10:00:00.000Z",
+        detail: "Fresh checkout install, test, build, and desktop run passed."
+      },
+      "2026-06-17T12:00:00.000Z"
+    ),
     ...overrides
   });
 }
@@ -207,7 +218,10 @@ describe("phase 11 owner command center", () => {
   });
 
   it("waits for fresh-checkout evidence even when other release-gate signals are ready", () => {
-    const result = snapshot({ freshCheckoutState: "waiting" });
+    const result = snapshot({
+      freshCheckoutState: "waiting",
+      freshCheckoutEvidence: undefined
+    });
 
     expect(result.state).toBe("waiting");
     expect(result.canRelease).toBe(false);
@@ -218,6 +232,24 @@ describe("phase 11 owner command center", () => {
           label: "Fresh checkout",
           status: "waiting",
           nextAction: "Run the fresh-checkout checklist once live workflow blockers are cleared."
+        })
+      ])
+    );
+  });
+
+  it("reviews state-only ready fresh checkout without structured evidence", () => {
+    const result = snapshot({ freshCheckoutEvidence: undefined });
+
+    expect(result.state).toBe("review");
+    expect(result.canRelease).toBe(false);
+    expect(result.reviewCount).toBe(1);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Fresh checkout",
+          status: "review",
+          detail: expect.stringContaining("structured evidence record"),
+          nextAction: "Attach fresh-checkout evidence metadata before the Owner Testing command center can release."
         })
       ])
     );

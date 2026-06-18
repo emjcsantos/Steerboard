@@ -83,6 +83,48 @@ describe("phase 11 evidence records", () => {
     expect(record.nextAction).toContain("Repair docs and known limits evidence metadata");
   });
 
+  it("blocks evidence recorded for a different gate", () => {
+    const record = evaluatePhase11EvidenceRecord(
+      "clean-checkout",
+      {
+        gate: "build-test",
+        state: "ready",
+        source: "owner run",
+        recordedAt: "2026-06-17T11:00:00.000Z",
+        detail: "Build and test passed."
+      },
+      NOW
+    );
+
+    expect(record).toMatchObject({
+      gate: "clean-checkout",
+      label: "Clean checkout",
+      state: "blocked",
+      freshness: "malformed"
+    });
+    expect(record.detail).toContain("recorded for Build and test");
+    expect(record.nextAction).toContain("Repair clean checkout evidence metadata");
+  });
+
+  it("blocks future-dated evidence records", () => {
+    const record = evaluatePhase11EvidenceRecord(
+      "build-test",
+      {
+        gate: "build-test",
+        state: "ready",
+        source: "owner run",
+        recordedAt: "2026-06-17T12:05:00.000Z",
+        detail: "Build and test passed."
+      },
+      NOW
+    );
+
+    expect(record.state).toBe("blocked");
+    expect(record.freshness).toBe("malformed");
+    expect(record.detail).toContain("future-dated");
+    expect(record.nextAction).toContain("Repair build and test evidence timestamp");
+  });
+
   it("summarizes all release evidence records", () => {
     const summary = buildPhase11EvidenceRecords(
       {

@@ -136,8 +136,9 @@ export function evaluatePhase11EvidenceRecord(
 
   const state = normalizeState(input.state);
   const recordedAtDate = validDate(input.recordedAt);
+  const inputGateMatches = input.gate === gate;
 
-  if (!state || !recordedAtDate) {
+  if (!state || !recordedAtDate || !inputGateMatches) {
     return {
       gate,
       label,
@@ -145,8 +146,24 @@ export function evaluatePhase11EvidenceRecord(
       freshness: "malformed",
       source: publicText(input.source, "malformed"),
       recordedAt: publicText(input.recordedAt, "malformed"),
-      detail: `${label} evidence is malformed or missing required state/timestamp metadata.`,
+      detail: inputGateMatches
+        ? `${label} evidence is malformed or missing required state/timestamp metadata.`
+        : `${label} evidence is malformed because it was recorded for ${GATE_LABELS[input.gate]}.`,
       nextAction: `Repair ${label.toLowerCase()} evidence metadata before release readiness.`,
+      safety: SAFETY
+    };
+  }
+
+  if (recordedAtDate.getTime() > now.getTime()) {
+    return {
+      gate,
+      label,
+      state: "blocked",
+      freshness: "malformed",
+      source: publicText(input.source, "local evidence"),
+      recordedAt: recordedAtDate.toISOString(),
+      detail: `${label} evidence is future-dated and cannot be trusted for release readiness.`,
+      nextAction: `Repair ${label.toLowerCase()} evidence timestamp before release readiness.`,
       safety: SAFETY
     };
   }
