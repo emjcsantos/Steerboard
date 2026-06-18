@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  createPhase3PanelEvidenceFingerprint,
   loadPhase3SessionControlEvidenceByPanel,
   loadPhase3SlashEvidenceByPanel,
   parseStoredPhase3SessionControlEvidenceByPanel,
   parseStoredPhase3SlashEvidenceByPanel,
   PHASE3_SESSION_CONTROL_EVIDENCE_STORAGE_KEY,
+  PHASE3_PANEL_EVIDENCE_STORAGE_PROOF_SOURCE,
   PHASE3_SLASH_EVIDENCE_STORAGE_KEY,
   savePhase3SessionControlEvidenceByPanel,
   savePhase3SlashEvidenceByPanel,
@@ -57,6 +59,29 @@ const sessionEvidence: Phase3SessionControlEvidenceByPanel = {
   }
 };
 
+function withStorageProof<T extends object>(
+  panelId: string,
+  evidence: T,
+  createdAt = "2026-06-06T00:00:30.000Z"
+): T & {
+  phase3StorageProof: {
+    source: string;
+    panelId: string;
+    createdAt: string;
+    evidenceFingerprint: string;
+  };
+} {
+  return {
+    ...evidence,
+    phase3StorageProof: {
+      source: PHASE3_PANEL_EVIDENCE_STORAGE_PROOF_SOURCE,
+      panelId,
+      createdAt,
+      evidenceFingerprint: createPhase3PanelEvidenceFingerprint(evidence)
+    }
+  };
+}
+
 describe("phase 3 panel evidence storage", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -65,6 +90,28 @@ describe("phase 3 panel evidence storage", () => {
   it("parses stored slash and session-control evidence by panel", () => {
     expect(parseStoredPhase3SlashEvidenceByPanel(JSON.stringify(slashEvidence))).toEqual(slashEvidence);
     expect(parseStoredPhase3SessionControlEvidenceByPanel(JSON.stringify(sessionEvidence))).toEqual(sessionEvidence);
+  });
+
+  it("preserves matching Phase 3 storage proof and drops mismatched proof", () => {
+    const stampedSlash = withStorageProof("panel-1", slashEvidence["panel-1"]);
+    const stampedSession = withStorageProof("panel-1", sessionEvidence["panel-1"]);
+    const mismatchedSlash = {
+      ...stampedSlash,
+      phase3StorageProof: {
+        ...stampedSlash.phase3StorageProof,
+        evidenceFingerprint: "phase3-panel-bad"
+      }
+    };
+
+    expect(
+      parseStoredPhase3SlashEvidenceByPanel(JSON.stringify({ "panel-1": stampedSlash }))
+    ).toEqual({ "panel-1": stampedSlash });
+    expect(
+      parseStoredPhase3SessionControlEvidenceByPanel(JSON.stringify({ "panel-1": stampedSession }))
+    ).toEqual({ "panel-1": stampedSession });
+    expect(
+      parseStoredPhase3SlashEvidenceByPanel(JSON.stringify({ "panel-1": mismatchedSlash }))
+    ).toEqual({ "panel-1": slashEvidence["panel-1"] });
   });
 
   it("drops malformed panel evidence and normalizes derived fields", () => {
@@ -178,13 +225,25 @@ describe("phase 3 panel evidence storage", () => {
       }
     });
 
-    savePhase3SlashEvidenceByPanel(slashEvidence);
-    savePhase3SessionControlEvidenceByPanel(sessionEvidence);
+    const savedSlashEvidence = savePhase3SlashEvidenceByPanel(slashEvidence, {
+      createdAt: "2026-06-06T00:00:30.000Z"
+    });
+    const savedSessionEvidence = savePhase3SessionControlEvidenceByPanel(sessionEvidence, {
+      createdAt: "2026-06-06T00:00:30.000Z"
+    });
+    const stampedSlashEvidence = {
+      "panel-1": withStorageProof("panel-1", slashEvidence["panel-1"])
+    };
+    const stampedSessionEvidence = {
+      "panel-1": withStorageProof("panel-1", sessionEvidence["panel-1"])
+    };
 
-    expect(store.get(PHASE3_SLASH_EVIDENCE_STORAGE_KEY)).toBe(JSON.stringify(slashEvidence));
-    expect(store.get(PHASE3_SESSION_CONTROL_EVIDENCE_STORAGE_KEY)).toBe(JSON.stringify(sessionEvidence));
-    expect(loadPhase3SlashEvidenceByPanel()).toEqual(slashEvidence);
-    expect(loadPhase3SessionControlEvidenceByPanel()).toEqual(sessionEvidence);
+    expect(store.get(PHASE3_SLASH_EVIDENCE_STORAGE_KEY)).toBe(JSON.stringify(stampedSlashEvidence));
+    expect(store.get(PHASE3_SESSION_CONTROL_EVIDENCE_STORAGE_KEY)).toBe(JSON.stringify(stampedSessionEvidence));
+    expect(savedSlashEvidence).toEqual(stampedSlashEvidence);
+    expect(savedSessionEvidence).toEqual(stampedSessionEvidence);
+    expect(loadPhase3SlashEvidenceByPanel()).toEqual(stampedSlashEvidence);
+    expect(loadPhase3SessionControlEvidenceByPanel()).toEqual(stampedSessionEvidence);
   });
 
   it("persists only ready slash and session-control evidence", () => {

@@ -2,6 +2,11 @@ import {
   buildPhase3SmokeProofReadiness,
   type Phase3SmokeProofReadinessItem
 } from "./phase3SmokeProofReadiness";
+import {
+  createPhase3PanelEvidenceFingerprint,
+  DEFAULT_PHASE3_PANEL_EVIDENCE_MAX_AGE_MS,
+  PHASE3_PANEL_EVIDENCE_STORAGE_PROOF_SOURCE
+} from "./phase3PanelEvidenceStorage";
 
 export type Phase3ExitGateState = "ready" | "review" | "blocked" | "waiting";
 
@@ -49,6 +54,7 @@ export interface Phase3ExitGateEvidenceInput {
   };
   readonly evaluatedAt?: string | Date;
   readonly maxProofAgeMs?: number;
+  readonly maxPanelEvidenceAgeMs?: number;
 }
 
 const STATE_LABELS: Record<Phase3ExitGateState, string> = {
@@ -92,6 +98,10 @@ const SESSION_BLOCKED_NEXT_ACTION =
   "Resolve the blocked session control before retrying Phase 3 session-control evidence.";
 const SESSION_WAITING_NEXT_ACTION =
   "Collect Arena session-control evidence for interrupt, retry, steer, fork, resume, and archive states.";
+const SLASH_PROVENANCE_NEXT_ACTION =
+  "Refresh slash execution evidence from the current Arena panel transcript before Phase 3 can exit.";
+const SESSION_PROVENANCE_NEXT_ACTION =
+  "Refresh session-control evidence from the current Arena panel/session before Phase 3 can exit.";
 
 const PHASE3_GATE_IDS = {
   slash: "phase3-exit-gate:slash-execution",
@@ -171,6 +181,67 @@ function slashEvidenceSupportsReady(record: Record<string, unknown>): boolean {
   );
 }
 
+function toTimestamp(value: string | Date | undefined): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const timestamp = value instanceof Date ? value.getTime() : Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : undefined;
+}
+
+function evidenceWithoutStorageProof(record: Record<string, unknown>): Record<string, unknown> {
+  const copy = { ...record };
+  delete copy.phase3StorageProof;
+  return copy;
+}
+
+function storageProofReviewDetail(
+  label: string,
+  record: Record<string, unknown>,
+  evaluatedAt: string | Date | undefined,
+  maxAgeMs: number
+): string | undefined {
+  const proof = safeRecord(record.phase3StorageProof);
+  if (!proof) {
+    return `${label} must be refreshed from the current panel and saved with Phase 3 storage provenance before exit can pass.`;
+  }
+
+  if (proof.source !== PHASE3_PANEL_EVIDENCE_STORAGE_PROOF_SOURCE) {
+    return `${label} storage provenance source is not recognized and must be refreshed from the current panel.`;
+  }
+
+  const evidenceFingerprint = createPhase3PanelEvidenceFingerprint(evidenceWithoutStorageProof(record));
+  if (proof.evidenceFingerprint !== evidenceFingerprint) {
+    return `${label} storage provenance fingerprint does not match the current evidence payload and must be refreshed from the current panel.`;
+  }
+
+  const evaluatedAtMs = toTimestamp(evaluatedAt);
+  if (evaluatedAtMs === undefined) {
+    return `${label} storage provenance cannot be freshness-checked without the current Phase 3 evaluation timestamp.`;
+  }
+
+  const createdAt =
+    typeof proof.createdAt === "string" && proof.createdAt.trim().length > 0
+      ? proof.createdAt
+      : undefined;
+  const createdAtMs = toTimestamp(createdAt);
+  if (createdAtMs === undefined) {
+    return `${label} storage provenance has no valid createdAt timestamp and must be refreshed from the current panel.`;
+  }
+
+  const ageMs = evaluatedAtMs - createdAtMs;
+  if (ageMs < 0) {
+    return `${label} storage provenance is dated after the current Phase 3 evaluation timestamp and must be refreshed from the current panel.`;
+  }
+
+  if (ageMs > maxAgeMs) {
+    return `${label} storage provenance is stale and must be refreshed from the current panel before Phase 3 can exit.`;
+  }
+
+  return undefined;
+}
+
 function normalizeControlState(value: unknown): string {
   return typeof value === "string" ? value.toLowerCase() : "waiting";
 }
@@ -214,50 +285,100 @@ function countStates(states: readonly Phase3ExitGateState[]): Phase3ExitGateEvid
   return counts;
 }
 
-function evaluateSlashEvidence(input: unknown): {
+function evaluateSlashEvidence(
+  input: unknown,
+  evaluatedAt: string | Date | undefined,
+  maxAgeMs: number
+): {
   state: Phase3ExitGateState;
   pass: boolean;
   malformed: boolean;
+  provenanceIssue?: string;
+  provenanceNextAction?: string;
+  storageReady: boolean;
 } {
   const record = safeRecord(input);
   if (!record) {
-    return { state: "waiting", pass: false, malformed: true };
+    return { state: "waiting", pass: false, malformed: true, storageReady: false };
   }
 
   const state = normalizeState(record.state);
   if (!state) {
-    return { state: "waiting", pass: false, malformed: true };
+    return { state: "waiting", pass: false, malformed: true, storageReady: false };
   }
 
   if (state === "ready") {
     const pass = safeBoolean(record.pass) && slashEvidenceSupportsReady(record);
-    return { state: pass ? "ready" : "review", pass, malformed: false };
+    if (!pass) {
+      return { state: "review", pass: false, malformed: false, storageReady: false };
+    }
+
+    const provenanceIssue = storageProofReviewDetail(
+      PHASE3_GATE_LABELS.slash,
+      record,
+      evaluatedAt,
+      maxAgeMs
+    );
+
+    return {
+      state: provenanceIssue ? "review" : "ready",
+      pass: !provenanceIssue,
+      malformed: false,
+      provenanceIssue,
+      provenanceNextAction: provenanceIssue ? SLASH_PROVENANCE_NEXT_ACTION : undefined,
+      storageReady: !provenanceIssue
+    };
   }
 
-  return { state, pass: false, malformed: false };
+  return { state, pass: false, malformed: false, storageReady: false };
 }
 
-function evaluateSessionControlEvidence(input: unknown): {
+function evaluateSessionControlEvidence(
+  input: unknown,
+  evaluatedAt: string | Date | undefined,
+  maxAgeMs: number
+): {
   state: Phase3ExitGateState;
   pass: boolean;
   malformed: boolean;
+  provenanceIssue?: string;
+  provenanceNextAction?: string;
+  storageReady: boolean;
 } {
   const record = safeRecord(input);
   if (!record) {
-    return { state: "waiting", pass: false, malformed: true };
+    return { state: "waiting", pass: false, malformed: true, storageReady: false };
   }
 
   const state = normalizeState(record.state);
   if (!state) {
-    return { state: "waiting", pass: false, malformed: true };
+    return { state: "waiting", pass: false, malformed: true, storageReady: false };
   }
 
   if (state === "ready") {
     const pass = safeBoolean(record.pass) && sessionControlsSupportReady(record);
-    return { state: pass ? "ready" : "review", pass, malformed: false };
+    if (!pass) {
+      return { state: "review", pass: false, malformed: false, storageReady: false };
+    }
+
+    const provenanceIssue = storageProofReviewDetail(
+      PHASE3_GATE_LABELS.session,
+      record,
+      evaluatedAt,
+      maxAgeMs
+    );
+
+    return {
+      state: provenanceIssue ? "review" : "ready",
+      pass: !provenanceIssue,
+      malformed: false,
+      provenanceIssue,
+      provenanceNextAction: provenanceIssue ? SESSION_PROVENANCE_NEXT_ACTION : undefined,
+      storageReady: !provenanceIssue
+    };
   }
 
-  return { state, pass: false, malformed: false };
+  return { state, pass: false, malformed: false, storageReady: false };
 }
 
 function resolveReadiness(state: Phase3ExitGateState): number {
@@ -424,8 +545,20 @@ function resolveSmokeItemDetail(item: Phase3SmokeProofReadinessItem): string {
 export function buildPhase3ExitGateEvidence(
   input: Phase3ExitGateEvidenceInput = {}
 ): Phase3ExitGateEvidence {
-  const slashEvidence = evaluateSlashEvidence(input.slashEvidence);
-  const sessionControlEvidence = evaluateSessionControlEvidence(input.sessionControlEvidence);
+  const maxPanelEvidenceAgeMs =
+    typeof input.maxPanelEvidenceAgeMs === "number" && input.maxPanelEvidenceAgeMs > 0
+      ? input.maxPanelEvidenceAgeMs
+      : DEFAULT_PHASE3_PANEL_EVIDENCE_MAX_AGE_MS;
+  const slashEvidence = evaluateSlashEvidence(
+    input.slashEvidence,
+    input.evaluatedAt,
+    maxPanelEvidenceAgeMs
+  );
+  const sessionControlEvidence = evaluateSessionControlEvidence(
+    input.sessionControlEvidence,
+    input.evaluatedAt,
+    maxPanelEvidenceAgeMs
+  );
   const smokeReadiness = buildPhase3SmokeProofReadiness({
     liveControlSmoke: input.liveControlSmoke,
     activeTurnInterruptSmoke: input.activeTurnInterruptSmoke,
@@ -446,16 +579,22 @@ export function buildPhase3ExitGateEvidence(
       id: PHASE3_GATE_IDS.slash,
       label: PHASE3_GATE_LABELS.slash,
       state: slashEvidence.state,
-      detail: resolveItemDetail(PHASE3_GATE_LABELS.slash, slashEvidence.state, slashEvidence.malformed),
-      nextAction: resolveSlashNextAction(slashEvidence.state),
+      detail:
+        slashEvidence.provenanceIssue ??
+        resolveItemDetail(PHASE3_GATE_LABELS.slash, slashEvidence.state, slashEvidence.malformed),
+      nextAction: slashEvidence.provenanceNextAction ?? resolveSlashNextAction(slashEvidence.state),
       ...PHASE3_GATE_TRACE.slash
     },
     {
       id: PHASE3_GATE_IDS.session,
       label: PHASE3_GATE_LABELS.session,
       state: sessionControlEvidence.state,
-      detail: resolveItemDetail(PHASE3_GATE_LABELS.session, sessionControlEvidence.state, sessionControlEvidence.malformed),
-      nextAction: resolveSessionNextAction(sessionControlEvidence.state),
+      detail:
+        sessionControlEvidence.provenanceIssue ??
+        resolveItemDetail(PHASE3_GATE_LABELS.session, sessionControlEvidence.state, sessionControlEvidence.malformed),
+      nextAction:
+        sessionControlEvidence.provenanceNextAction ??
+        resolveSessionNextAction(sessionControlEvidence.state),
       ...PHASE3_GATE_TRACE.session
     },
     {

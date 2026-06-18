@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { buildPhase3ExitGateEvidence } from "./phase3ExitGateEvidence";
+import {
+  createPhase3PanelEvidenceFingerprint,
+  PHASE3_PANEL_EVIDENCE_STORAGE_PROOF_SOURCE
+} from "./phase3PanelEvidenceStorage";
 
 const persistedDesktopProofs = {
   liveControlSmoke: true,
@@ -7,8 +11,31 @@ const persistedDesktopProofs = {
   activeTurnSteerSmoke: true
 };
 
-function readySlashEvidence(overrides: Record<string, unknown> = {}) {
+function withStorageProof<T extends object>(
+  panelId: string,
+  evidence: T,
+  createdAt = "2026-06-06T00:00:30.000Z"
+): T & {
+  phase3StorageProof: {
+    source: string;
+    panelId: string;
+    createdAt: string;
+    evidenceFingerprint: string;
+  };
+} {
   return {
+    ...evidence,
+    phase3StorageProof: {
+      source: PHASE3_PANEL_EVIDENCE_STORAGE_PROOF_SOURCE,
+      panelId,
+      createdAt,
+      evidenceFingerprint: createPhase3PanelEvidenceFingerprint(evidence)
+    }
+  };
+}
+
+function readySlashEvidence(overrides: Record<string, unknown> = {}) {
+  const evidence = {
     state: "ready",
     pass: true,
     readiness: 100,
@@ -26,10 +53,12 @@ function readySlashEvidence(overrides: Record<string, unknown> = {}) {
     },
     ...overrides
   };
+
+  return withStorageProof("panel-1", evidence);
 }
 
 function readySessionControlEvidence(overrides: Record<string, unknown> = {}) {
-  return {
+  const evidence = {
     state: "ready",
     readiness: 100,
     pass: true,
@@ -52,6 +81,8 @@ function readySessionControlEvidence(overrides: Record<string, unknown> = {}) {
     },
     ...overrides
   };
+
+  return withStorageProof("panel-1", evidence);
 }
 
 function readyLiveControlSmoke(overrides: Record<string, unknown> = {}) {
@@ -347,6 +378,67 @@ describe("phase 3 exit gate evidence", () => {
       id: "phase3-exit-gate:slash-execution",
       state: "review",
       detail: expect.stringContaining("needs additional evidence")
+    });
+  });
+
+  it("does not trust reload-ready slash or session evidence without Phase 3 storage provenance", () => {
+    const { phase3StorageProof: _slashProof, ...legacySlashEvidence } = readySlashEvidence();
+    const { phase3StorageProof: _sessionProof, ...legacySessionEvidence } =
+      readySessionControlEvidence();
+    const result = buildPhase3ExitGateEvidence({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
+      slashEvidence: legacySlashEvidence,
+      sessionControlEvidence: legacySessionEvidence,
+      liveControlSmoke: readyLiveControlSmoke(),
+      activeTurnInterruptSmoke: readyInterruptSmoke(),
+      activeTurnSteerSmoke: readySteerSmoke()
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.pass).toBe(false);
+    expect(result.nextAction).toBe(
+      "Refresh slash execution evidence from the current Arena panel transcript before Phase 3 can exit."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "phase3-exit-gate:slash-execution",
+          state: "review",
+          detail: expect.stringContaining("storage provenance")
+        }),
+        expect.objectContaining({
+          id: "phase3-exit-gate:session-controls",
+          state: "review",
+          detail: expect.stringContaining("storage provenance")
+        })
+      ])
+    );
+  });
+
+  it("does not trust stale slash or session storage provenance", () => {
+    const result = buildPhase3ExitGateEvidence({
+      evaluatedAt: "2026-06-08T00:01:00.000Z",
+      maxPanelEvidenceAgeMs: 24 * 60 * 60 * 1000,
+      persistedDesktopProofs,
+      slashEvidence: readySlashEvidence(),
+      sessionControlEvidence: readySessionControlEvidence(),
+      liveControlSmoke: readyLiveControlSmoke(),
+      activeTurnInterruptSmoke: readyInterruptSmoke(),
+      activeTurnSteerSmoke: readySteerSmoke()
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.pass).toBe(false);
+    expect(result.items[0]).toMatchObject({
+      id: "phase3-exit-gate:slash-execution",
+      state: "review",
+      detail: expect.stringContaining("stale")
+    });
+    expect(result.items[1]).toMatchObject({
+      id: "phase3-exit-gate:session-controls",
+      state: "review",
+      detail: expect.stringContaining("stale")
     });
   });
 

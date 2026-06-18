@@ -7,6 +7,13 @@ export interface SessionControlReadinessEvidenceCounts {
   blocked: number;
 }
 
+export interface SessionControlReadinessStorageProof {
+  readonly source: string;
+  readonly panelId: string;
+  readonly createdAt: string;
+  readonly evidenceFingerprint: string;
+}
+
 export interface SessionControlReadinessEvidence {
   state: SessionControlReadinessState;
   readiness: number;
@@ -16,6 +23,7 @@ export interface SessionControlReadinessEvidence {
   safety: string;
   counts: SessionControlReadinessEvidenceCounts;
   controlStates: Record<CanonicalControl, CanonicalControlState>;
+  phase3StorageProof?: SessionControlReadinessStorageProof;
 }
 
 export interface SessionControlEvidenceInput {

@@ -18,6 +18,13 @@ export interface SlashCommandExecutionEvidenceCounts {
   readonly error: number;
 }
 
+export interface SlashCommandExecutionStorageProof {
+  readonly source: string;
+  readonly panelId: string;
+  readonly createdAt: string;
+  readonly evidenceFingerprint: string;
+}
+
 export interface SlashCommandExecutionEvidence {
   readonly route: PanelSlashCommandDecision["route"];
   readonly state: "ready" | "review" | "blocked" | "waiting";
@@ -29,6 +36,7 @@ export interface SlashCommandExecutionEvidence {
   readonly detail: string;
   readonly safety: string;
   readonly evidence: SlashCommandExecutionEvidenceCounts;
+  readonly phase3StorageProof?: SlashCommandExecutionStorageProof;
 }
 
 const NO_EXECUTION_SAFETY =
