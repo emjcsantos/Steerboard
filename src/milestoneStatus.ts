@@ -133,7 +133,7 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Owner testing hardening",
     completion: "In progress",
     plan: "Make live-functionality checks repeatable through a local checklist, failure fixtures, and docs consistency checks.",
-    completionPercent: 48,
+    completionPercent: 50,
     latestNote:
       "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, per-control session-control state evidence, opt-in Phase 3 desktop smoke harnessing, reload-safe owner-visible Phase 3 smoke proof readiness rows, the non-live `npm.cmd run test:phase3:owner-visible` proof-panel check, an actionable diagnostic Phase 3 exit gate, and the non-live `npm.cmd run test:phase11:owner-visible` owner/release proof without automatic execution.",
     nextStep:

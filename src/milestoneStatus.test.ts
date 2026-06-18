@@ -357,7 +357,7 @@ describe("milestone status model", () => {
 
     expect(ownerTesting?.completion).toBe("In progress");
     expect(ownerTesting?.tone).toBe("active");
-    expect(ownerTesting?.completionPercent).toBe(48);
+    expect(ownerTesting?.completionPercent).toBe(50);
     expect(ownerTesting?.current).toBeUndefined();
     expect(ownerTesting?.latestNote).toBe(
       "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, per-control session-control state evidence, opt-in Phase 3 desktop smoke harnessing, reload-safe owner-visible Phase 3 smoke proof readiness rows, the non-live `npm.cmd run test:phase3:owner-visible` proof-panel check, an actionable diagnostic Phase 3 exit gate, and the non-live `npm.cmd run test:phase11:owner-visible` owner/release proof without automatic execution."
