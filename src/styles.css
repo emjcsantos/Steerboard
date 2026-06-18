@@ -13293,6 +13293,14 @@ textarea {
   .phase9-runner-review-record-actions {
     justify-content: flex-start;
   }
+
+  .phase9-desktop-probe-gate {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .phase9-desktop-probe-gate small {
+    grid-column: 1 / -1;
+  }
 }
 
 .phase9-runner-grid {
@@ -13332,6 +13340,64 @@ textarea {
   color: #ffffff;
   font-size: 13px;
   font-weight: 900;
+}
+
+.phase9-desktop-probe-gate {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 0.7fr) auto minmax(0, 1.8fr);
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #27303a;
+  border-radius: 7px;
+  background: #10161d;
+  padding: 7px;
+}
+
+.phase9-desktop-probe-gate strong,
+.phase9-desktop-probe-gate span,
+.phase9-desktop-probe-gate small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase9-desktop-probe-gate strong {
+  color: #f4f7fb;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.phase9-desktop-probe-gate span {
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase9-desktop-probe-gate small {
+  color: #b7c2cf;
+  font-size: 10px;
+}
+
+.phase9-desktop-probe-gate-ready {
+  border-color: rgba(52, 211, 153, 0.55);
+}
+
+.phase9-desktop-probe-gate-ready span {
+  background: rgba(52, 211, 153, 0.14);
+  color: #7dd3a7;
+}
+
+.phase9-desktop-probe-gate-held {
+  border-color: rgba(245, 158, 11, 0.55);
+}
+
+.phase9-desktop-probe-gate-held span {
+  background: rgba(245, 158, 11, 0.14);
+  color: #f8c36a;
 }
 
 .phase9-runner-items {
