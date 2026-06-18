@@ -33,6 +33,7 @@ export interface Phase3SmokeProofBundleImportActionEffects {
 export interface Phase3OwnerHandoffRecordActionEffects {
   readonly saveRecord?: (record: Phase3OwnerHandoffRecord) => void;
   readonly setRecord: (record: Phase3OwnerHandoffRecord) => void;
+  readonly setProofEvaluationTime?: (evaluatedAt: string) => void;
   readonly setAppNotice: (notice: string) => void;
 }
 
@@ -102,6 +103,7 @@ export function runPhase3OwnerHandoffRecordAction(
 
   saveRecord(record);
   input.setRecord(record);
+  input.setProofEvaluationTime?.(record.createdAt);
   input.setAppNotice("Phase 3 owner handoff recorded locally");
 
   return {

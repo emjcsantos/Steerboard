@@ -254,6 +254,7 @@ describe("phase 3 owner proof action flow", () => {
     const effects = {
       saveRecord: vi.fn(),
       setRecord: vi.fn(),
+      setProofEvaluationTime: vi.fn(),
       setAppNotice: vi.fn()
     };
 
@@ -268,6 +269,7 @@ describe("phase 3 owner proof action flow", () => {
     expect(result.recorded).toBe(false);
     expect(effects.saveRecord).not.toHaveBeenCalled();
     expect(effects.setRecord).not.toHaveBeenCalled();
+    expect(effects.setProofEvaluationTime).not.toHaveBeenCalled();
     expect(effects.setAppNotice).toHaveBeenCalledWith(
       "Phase 3 handoff remains held until clearance is exit-ready"
     );
@@ -277,6 +279,7 @@ describe("phase 3 owner proof action flow", () => {
     const effects = {
       saveRecord: vi.fn(),
       setRecord: vi.fn(),
+      setProofEvaluationTime: vi.fn(),
       setAppNotice: vi.fn()
     };
 
@@ -295,6 +298,7 @@ describe("phase 3 owner proof action flow", () => {
     expect(result.recorded).toBe(false);
     expect(effects.saveRecord).not.toHaveBeenCalled();
     expect(effects.setRecord).not.toHaveBeenCalled();
+    expect(effects.setProofEvaluationTime).not.toHaveBeenCalled();
     expect(effects.setAppNotice).toHaveBeenCalledWith(
       "Attach Phase 3 PM child rows before handoff."
     );
@@ -308,6 +312,7 @@ describe("phase 3 owner proof action flow", () => {
     const effects = {
       saveRecord: vi.fn(),
       setRecord: vi.fn(),
+      setProofEvaluationTime: vi.fn(),
       setAppNotice: vi.fn()
     };
 
@@ -328,6 +333,9 @@ describe("phase 3 owner proof action flow", () => {
     });
     expect(effects.saveRecord).toHaveBeenCalledWith(result.record);
     expect(effects.setRecord).toHaveBeenCalledWith(result.record);
+    expect(effects.setProofEvaluationTime).toHaveBeenCalledWith(
+      "2026-06-18T08:00:00.000Z"
+    );
     expect(effects.setAppNotice).toHaveBeenCalledWith(
       "Phase 3 owner handoff recorded locally"
     );

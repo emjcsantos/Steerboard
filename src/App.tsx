@@ -2524,6 +2524,7 @@ export function App() {
       traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition,
       evidenceFingerprint: phase3HandoffEvidenceFingerprint,
       setRecord: setPhase3OwnerHandoffRecord,
+      setProofEvaluationTime: setPhase3ProofEvaluationTime,
       setAppNotice
     });
   }, [
