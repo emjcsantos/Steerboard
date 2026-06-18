@@ -14750,6 +14750,7 @@ export function Phase9RunnerApprovalPanel({
     phase8: phase8PermissionAuditDepth,
     runnerReviewRecord: reviewRecord
   });
+  const desktopProbeGate = buildPhase9DesktopProbeGate(snapshot, traceability);
   const blockerPriority = buildPhase9RunnerBlockerPriority({
     approval: snapshot,
     depth,
@@ -14845,7 +14846,9 @@ export function Phase9RunnerApprovalPanel({
         <dl className="phase9-runner-grid" aria-label="Phase 9 desktop runner approval counts">
           <div>
             <dt>Request</dt>
-            <dd>{snapshot.canRequestDesktopProbe ? "Ready" : "Held"}</dd>
+            <dd title={desktopProbeGate.holdReason}>
+              {desktopProbeGate.canRun ? "Ready" : "Held"}
+            </dd>
           </div>
           <div>
             <dt>Records</dt>
