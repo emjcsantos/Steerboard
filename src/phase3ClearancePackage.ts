@@ -177,10 +177,7 @@ export function buildPhase3ClearancePackage(
   const blockerAction =
     actions.find((action) => isRunningAction(action) && actionMatchesBlocker(action, firstBlocker)) ??
     actions.find((action) => isActionRunnable(action) && actionMatchesBlocker(action, firstBlocker));
-  const fallbackAction =
-    firstBlocker && !firstBlocker.id.includes("-smoke")
-      ? undefined
-      : runningAction ?? actions.find(isActionRunnable);
+  const fallbackAction = firstBlocker ? undefined : runningAction ?? actions.find(isActionRunnable);
   const primaryAction = blockerAction ?? fallbackAction;
   const state = exitGate.state;
   const counts = exitGate.counts;

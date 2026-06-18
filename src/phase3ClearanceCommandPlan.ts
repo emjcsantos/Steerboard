@@ -113,13 +113,15 @@ function resolveState(
 
 function firstNextAction(
   items: readonly Phase3ClearanceCommandPlanItem[],
-  canRunCommand: boolean
+  canRunCommand: boolean,
+  blockerNextAction: string | undefined
 ): string {
   if (canRunCommand) {
     return `Run ${PHASE3_SMOKE_COMMAND} locally to refresh live-control, active-turn interrupt, and active-turn steer proofs.`;
   }
 
   return (
+    blockerNextAction ??
     items.find((item) => item.state === "blocked")?.nextAction ??
     items.find((item) => item.state === "review")?.nextAction ??
     items.find((item) => item.state === "waiting")?.nextAction ??
@@ -131,6 +133,26 @@ function smokeActions(
   actions: readonly Phase3OwnerTestingAction[]
 ): readonly Phase3OwnerTestingAction[] {
   return actions.filter((action) => SMOKE_ACTION_IDS.has(action.id));
+}
+
+function smokeActionIdForBlocker(blockerId: string | undefined): string | undefined {
+  const row = SMOKE_PROOF_ROWS.find((proofRow) => proofRow.blockerId === blockerId);
+  return row?.actionId;
+}
+
+function runnableCommandAction(
+  clearancePackage: Phase3ClearancePackage,
+  actions: readonly Phase3OwnerTestingAction[]
+): Phase3OwnerTestingAction | undefined {
+  const firstBlocker = clearancePackage.blockers[0];
+  const actionId = smokeActionIdForBlocker(firstBlocker?.id);
+  if (!actionId) {
+    return undefined;
+  }
+
+  return actions.find(
+    (action) => action.id === actionId && action.state === "recommended" && !action.disabled
+  );
 }
 
 function buildItems(
@@ -211,10 +233,11 @@ export function buildPhase3ClearanceCommandPlan(
   const openSmokeCount = Math.max(0, 3 - readySmokeCount);
   const items = buildItems(input.clearancePackage, actions);
   const state = resolveState(items);
+  const commandAction = runnableCommandAction(input.clearancePackage, actions);
   const canRunCommand =
     state !== "blocked" &&
     !input.clearancePackage.canExit &&
-    smokes.some((action) => action.state === "recommended" && !action.disabled);
+    commandAction !== undefined;
   const draft = {
     id: PLAN_ID,
     label: PLAN_LABEL,
@@ -225,7 +248,7 @@ export function buildPhase3ClearanceCommandPlan(
     coveredSmokeCount: 3,
     readySmokeCount,
     openSmokeCount,
-    nextAction: firstNextAction(items, canRunCommand),
+    nextAction: firstNextAction(items, canRunCommand, input.clearancePackage.blockers[0]?.nextAction),
     safety: SAFETY,
     items
   };

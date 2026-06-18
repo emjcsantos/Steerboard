@@ -346,4 +346,44 @@ describe("phase 3 clearance package", () => {
     expect(result.primaryActionLabel).toBe("Active-turn steer smoke");
     expect(result.nextAction).toBe("Run Active-turn steer smoke from Owner Testing.");
   });
+
+  it("does not fall back to an unrelated runnable smoke action for the first smoke blocker", () => {
+    const result = buildPhase3ClearancePackage({
+      exitGate: buildExitGate({
+        state: "waiting",
+        readiness: 35,
+        pass: false,
+        counts: {
+          ready: 2,
+          review: 0,
+          blocked: 0,
+          waiting: 3
+        },
+        items: [
+          {
+            id: "phase3-exit-gate:active-turn-steer-smoke",
+            label: "Active-turn steer smoke",
+            state: "waiting",
+            detail: "Steer missing.",
+            nextAction: "Run steer smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.active-turn-steer-smoke"
+          }
+        ]
+      }),
+      actions: [
+        smokeAction({
+          id: "phase3-owner-testing:live-control-smoke",
+          label: "Live-control smoke",
+          state: "running",
+          disabled: true,
+          buttonLabel: "Running smoke..."
+        })
+      ]
+    });
+
+    expect(result.primaryActionId).toBeUndefined();
+    expect(result.primaryActionLabel).toBeUndefined();
+    expect(result.nextAction).toBe("Run steer smoke.");
+  });
 });

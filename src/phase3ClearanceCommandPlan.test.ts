@@ -133,6 +133,60 @@ describe("phase 3 clearance command plan", () => {
     );
   });
 
+  it("keeps slash blockers ahead of unrelated runnable smoke commands", () => {
+    const plan = buildPhase3ClearanceCommandPlan({
+      clearancePackage: clearancePackage({
+        blockers: [
+          {
+            id: "phase3-exit-gate:slash-execution",
+            label: "Slash execution",
+            state: "waiting",
+            nextAction: "Run slash proof first.",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
+          },
+          {
+            id: "phase3-exit-gate:live-control-smoke",
+            label: "Live control smoke",
+            state: "waiting",
+            nextAction: "Run live-control smoke.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.live-control-smoke"
+          }
+        ]
+      }),
+      actions: smokeActions
+    });
+
+    expect(plan.canRunCommand).toBe(false);
+    expect(plan.nextAction).toBe("Run slash proof first.");
+  });
+
+  it("holds the command when the runnable smoke action does not match the first smoke blocker", () => {
+    const plan = buildPhase3ClearanceCommandPlan({
+      clearancePackage: clearancePackage({
+        blockers: [
+          {
+            id: "phase3-exit-gate:active-turn-steer-smoke",
+            label: "Active-turn steer smoke",
+            state: "waiting",
+            nextAction: "Run steer smoke first.",
+            pmTaskId: "phase-03-child-smoke-rows",
+            evidenceKey: "phase3.active-turn-steer-smoke"
+          }
+        ]
+      }),
+      actions: [
+        smokeAction("phase3-owner-testing:live-control-smoke", {
+          label: "Live-control smoke"
+        })
+      ]
+    });
+
+    expect(plan.canRunCommand).toBe(false);
+    expect(plan.nextAction).toBe("Run steer smoke first.");
+  });
+
   it("stops recommending the command after Phase 3 is exit-ready", () => {
     const plan = buildPhase3ClearanceCommandPlan({
       clearancePackage: clearancePackage({
