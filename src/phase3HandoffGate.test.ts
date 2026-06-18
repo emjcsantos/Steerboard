@@ -73,6 +73,39 @@ describe("phase 3 handoff gate", () => {
     );
   });
 
+  it("reviews ready handoff validation that does not prove a current fingerprint match", () => {
+    const result = buildPhase3HandoffGate({
+      clearancePackage: clearancePackage(),
+      handoffRecordState: "ready",
+      handoffRecordValidation: {
+        state: "ready",
+        detail: "Owner-reviewed Phase 3 handoff record is attached.",
+        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+        recordFingerprint: "phase3-handoff-existing",
+        matchesCurrentEvidence: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canAdvanceProviderIntegration).toBe(false);
+    expect(result.nextAction).toBe(
+      "Attach current fingerprint-matched handoff validation before advancing provider integration."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner handoff record",
+          status: "review"
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          status: "review",
+          detail: expect.stringContaining("current evidence fingerprint match")
+        })
+      ])
+    );
+  });
+
   it("holds provider integration when clearance is ready but owner handoff is not recorded", () => {
     const result = buildPhase3HandoffGate({
       clearancePackage: clearancePackage()

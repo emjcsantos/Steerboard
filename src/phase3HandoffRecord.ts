@@ -347,11 +347,12 @@ export function derivePhase3HandoffRecordValidation(
   if (record.state === "ready" && record.canExit && record.exactBlockerCount === 0) {
     if (!expectedFingerprint) {
       return {
-        state: "ready",
-        detail: "Owner-reviewed Phase 3 handoff record is attached.",
-        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+        state: "review",
+        detail:
+          "Owner handoff record cannot be validated because the current Phase 3 evidence fingerprint is missing.",
+        nextAction: "Attach the current Phase 3 evidence fingerprint before advancing provider integration.",
         recordFingerprint: record.evidenceFingerprint,
-        matchesCurrentEvidence: Boolean(record.evidenceFingerprint)
+        matchesCurrentEvidence: false
       };
     }
 

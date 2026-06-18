@@ -113,6 +113,24 @@ describe("phase 3 command validation record", () => {
     });
   });
 
+  it("reviews passed CLI smoke validation when freshness cannot be evaluated", () => {
+    const record = createPhase3CommandValidationRecord(
+      "npm.cmd run smoke:phase3",
+      "2026-06-18T00:00:00.000Z"
+    );
+
+    expect(
+      derivePhase3CommandValidationRecordValidation(record, {
+        expectedCommand: "npm.cmd run smoke:phase3"
+      })
+    ).toMatchObject({
+      state: "review",
+      statusLabel: "Review",
+      detail: expect.stringContaining("cannot be freshness-checked"),
+      isFresh: false
+    });
+  });
+
   it("classifies stale or malformed passed CLI smoke validation as review", () => {
     const record = createPhase3CommandValidationRecord(
       "npm.cmd run smoke:phase3",

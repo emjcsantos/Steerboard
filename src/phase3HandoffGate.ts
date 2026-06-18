@@ -170,6 +170,14 @@ function resolveHandoffRecordStatus(
   handoffRecordValidation: Phase3HandoffRecordValidation | undefined
 ): Phase3HandoffGateState {
   if (handoffRecordValidation) {
+    if (
+      handoffRecordValidation.state === "ready" &&
+      (handoffRecordValidation.matchesCurrentEvidence !== true ||
+        !handoffRecordValidation.expectedFingerprint)
+    ) {
+      return "review";
+    }
+
     return handoffRecordValidation.state;
   }
 
@@ -191,6 +199,11 @@ function handoffRecordItem(
     handoffRecordValidation
   );
   const missingValidation = !handoffRecordValidation && handoffRecordState === "ready";
+  const invalidReadyValidation =
+    handoffRecordValidation?.state === "ready" &&
+    status === "review" &&
+    (handoffRecordValidation.matchesCurrentEvidence !== true ||
+      !handoffRecordValidation.expectedFingerprint);
 
   return {
     id: `${GATE_ID}:handoff-record`,
@@ -198,6 +211,9 @@ function handoffRecordItem(
     kind: "handoff-record",
     status,
     detail:
+      (invalidReadyValidation
+        ? "Owner handoff record validation is ready, but it does not prove a current evidence fingerprint match."
+        : undefined) ??
       handoffRecordValidation?.detail ??
       (missingValidation
         ? "Owner handoff record state is ready, but current evidence fingerprint validation is not attached."
@@ -206,6 +222,9 @@ function handoffRecordItem(
         ? "Owner-reviewed Phase 3 handoff record is attached."
         : "Owner-reviewed Phase 3 handoff record is not attached yet."),
     nextAction:
+      (invalidReadyValidation
+        ? "Attach current fingerprint-matched handoff validation before advancing provider integration."
+        : undefined) ??
       handoffRecordValidation?.nextAction ??
       (missingValidation
         ? "Attach current handoff validation before advancing provider integration."
@@ -266,12 +285,20 @@ function providerBoundaryItem(
       detail:
         handoffRecordValidation?.state === "review"
           ? `Provider integration remains held because ${handoffRecordValidation.detail}`
+          : handoffRecordValidation?.state === "ready" &&
+              (handoffRecordValidation.matchesCurrentEvidence !== true ||
+                !handoffRecordValidation.expectedFingerprint)
+            ? "Provider integration remains held until the owner handoff record proves a current evidence fingerprint match."
           : !handoffRecordValidation && handoffRecordState === "ready"
             ? "Provider integration remains held until the owner handoff record is validated against current evidence."
-          : "Provider integration remains held until the owner handoff record is attached.",
+            : "Provider integration remains held until the owner handoff record is attached.",
       nextAction:
         handoffRecordValidation?.state === "review"
           ? handoffRecordValidation.nextAction
+          : handoffRecordValidation?.state === "ready" &&
+              (handoffRecordValidation.matchesCurrentEvidence !== true ||
+                !handoffRecordValidation.expectedFingerprint)
+            ? "Attach current fingerprint-matched handoff validation before advancing provider integration."
           : !handoffRecordValidation && handoffRecordState === "ready"
             ? "Attach current handoff validation before advancing provider integration."
           : "Attach the owner-reviewed Phase 3 handoff before advancing provider integration."

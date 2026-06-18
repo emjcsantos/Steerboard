@@ -4,6 +4,7 @@ import { buildPhase3SmokeProofReadiness } from "./phase3SmokeProofReadiness";
 describe("phase 3 smoke proof readiness", () => {
   it("returns ready when all desktop proofs are successful", () => {
     const result = buildPhase3SmokeProofReadiness({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
       liveControlSmoke: {
         source: "desktop",
         checkedAt: "2026-06-06T00:00:00.000Z",
@@ -43,6 +44,7 @@ describe("phase 3 smoke proof readiness", () => {
 
   it("returns waiting for browser fallback or non-executed proofs", () => {
     const result = buildPhase3SmokeProofReadiness({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
       liveControlSmoke: {
         source: "browser",
         checkedAt: "2026-06-06T00:00:00.000Z",
@@ -157,8 +159,46 @@ describe("phase 3 smoke proof readiness", () => {
     expect(result.items[0].detail).toContain("rerun");
   });
 
+  it("returns review when ready desktop proofs cannot be freshness-checked", () => {
+    const result = buildPhase3SmokeProofReadiness({
+      liveControlSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.000Z",
+        executed: true,
+        ok: true,
+        completed: true,
+        supportedMethodCount: 3,
+        totalMethodCount: 3
+      },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.001Z",
+        executed: true,
+        completed: true,
+        interruptObserved: true
+      },
+      activeTurnSteerSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.002Z",
+        executed: true,
+        completed: true,
+        steerObserved: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.counts).toEqual({
+      ready: 0,
+      review: 3,
+      blocked: 0,
+      waiting: 0
+    });
+    expect(result.items.every((item) => item.detail.includes("freshness-checked"))).toBe(true);
+  });
+
   it("returns blocked when executed proof is unsupported-after-execution", () => {
     const result = buildPhase3SmokeProofReadiness({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
       liveControlSmoke: {
         source: "desktop",
         checkedAt: "2026-06-06T00:00:00.000Z",

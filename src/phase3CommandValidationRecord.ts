@@ -259,6 +259,18 @@ export function derivePhase3CommandValidationRecordValidation(
   }
 
   const isFresh = resolveFreshness(record, options);
+  if (isFresh === undefined) {
+    return {
+      state: "review",
+      statusLabel: STATUS_LABELS.review,
+      detail:
+        "Phase 3 CLI smoke validation record cannot be freshness-checked without an evaluation timestamp.",
+      nextAction:
+        "Review the Phase 3 CLI smoke validation with the current evaluation time before owner handoff.",
+      isFresh: false
+    };
+  }
+
   if (isFresh === false) {
     return {
       state: "review",

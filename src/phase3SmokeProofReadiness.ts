@@ -117,7 +117,7 @@ function resolveFreshnessDetail(
 
   const evaluatedAtMs = toTimestamp(evaluatedAt);
   if (evaluatedAtMs === undefined) {
-    return baseDetail;
+    return `${label} cannot be freshness-checked without an evaluation timestamp and must be reviewed before Phase 3 handoff.`;
   }
 
   const checkedAtMs = toTimestamp(checkedAt);

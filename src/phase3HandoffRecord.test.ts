@@ -54,7 +54,7 @@ describe("phase 3 handoff record", () => {
       canExit: true,
       detail: "Owner-reviewed Phase 3 handoff is recorded from exit-ready clearance evidence."
     });
-    expect(derivePhase3HandoffRecordState(record, clearancePackage())).toBe("ready");
+    expect(derivePhase3HandoffRecordState(record, clearancePackage())).toBe("review");
   });
 
   it("does not derive ready when clearance later regresses", () => {
@@ -119,6 +119,25 @@ describe("phase 3 handoff record", () => {
     ).toMatchObject({
       state: "review",
       detail: expect.stringContaining("no longer matches"),
+      matchesCurrentEvidence: false
+    });
+  });
+
+  it("reviews stored handoff when no current evidence fingerprint is supplied", () => {
+    const currentClearance = clearancePackage();
+    const record = createPhase3OwnerHandoffRecord(
+      currentClearance,
+      "2026-06-11T00:00:00.000Z",
+      "phase3-handoff-existing"
+    );
+
+    expect(
+      derivePhase3HandoffRecordValidation(record, currentClearance)
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("current Phase 3 evidence fingerprint is missing"),
+      nextAction: expect.stringContaining("current Phase 3 evidence fingerprint"),
+      recordFingerprint: "phase3-handoff-existing",
       matchesCurrentEvidence: false
     });
   });
