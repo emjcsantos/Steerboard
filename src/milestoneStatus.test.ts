@@ -295,10 +295,10 @@ describe("milestone status model", () => {
 
     expect(migrationCenter?.completion).toBe("In progress");
     expect(migrationCenter?.tone).toBe("active");
-    expect(migrationCenter?.completionPercent).toBe(30);
+    expect(migrationCenter?.completionPercent).toBe(58);
     expect(migrationCenter?.current).toBeUndefined();
     expect(migrationCenter?.latestNote).toBe(
-      "Reviewed profile-draft persistence, local apply-review-staged audit proof, rollback/audit summaries, and owner-visible Phase 5 review-depth checks are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded."
+      "Reviewed profile-draft persistence, local apply-review-staged audit proof, rollback/audit summaries, persisted apply-review staging, and owner-visible Phase 5 review-depth checks are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded."
     );
     expect(migrationCenter?.nextStep).toBe(
       "Run `npm.cmd run test:phase5:owner-visible`, keep migration metadata checks owner-reviewed, verify local apply-review-staged audit proof plus rollback audit coverage, and require explicit apply before changing active profile state."
@@ -325,7 +325,7 @@ describe("milestone status model", () => {
       active: 10,
       planned: 0,
       paused: 1,
-      averageCompletionPercent: 46,
+      averageCompletionPercent: 51,
       nextTarget: "Platform capabilities",
       nextStep:
         "Clear Phase 3 desktop proof clearance by running live provider-routed slash and session-control checks in desktop mode and verifying Owner Testing evidence moves from review to ready; then advance Phase 4 provider integration while keeping the connection dialog catalog smoke as the recurring provider-refresh regression check and arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
@@ -472,7 +472,7 @@ describe("milestone status model", () => {
 
     expect(pmLane?.completion).toBe("In progress");
     expect(pmLane?.tone).toBe("active");
-    expect(pmLane?.completionPercent).toBe(32);
+    expect(pmLane?.completionPercent).toBe(57);
     expect(pmLane?.latestNote.toLowerCase()).toContain("owner-visible phase 7 dispatch proof");
     expect(pmLane?.nextStep.toLowerCase()).toContain("test:phase7:owner-visible");
   });

@@ -108,9 +108,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Migration Center",
     completion: "In progress",
     plan: "Implement safe migration metadata review and safe-to-apply profile transitions.",
-    completionPercent: 30,
+    completionPercent: 58,
     latestNote:
-      "Reviewed profile-draft persistence, local apply-review-staged audit proof, rollback/audit summaries, and owner-visible Phase 5 review-depth checks are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded.",
+      "Reviewed profile-draft persistence, local apply-review-staged audit proof, rollback/audit summaries, persisted apply-review staging, and owner-visible Phase 5 review-depth checks are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded.",
     nextStep:
       "Run `npm.cmd run test:phase5:owner-visible`, keep migration metadata checks owner-reviewed, verify local apply-review-staged audit proof plus rollback audit coverage, and require explicit apply before changing active profile state.",
     tone: "active",
@@ -157,9 +157,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Optional project management lane",
     completion: "In progress",
     plan: "Define the optional lane scope while keeping Arena chat primary.",
-    completionPercent: 32,
+    completionPercent: 57,
     latestNote:
-      "Pipeline visibility, explicit orchestrator/implementer/validator/integration role-panel plan previews, dispatch previews, linked local runs, and owner-visible Phase 7 dispatch proof are added for Arena review.",
+      "Pipeline visibility, explicit orchestrator/implementer/validator/integration role-panel plan previews, dispatch previews, linked local runs, handoff packet integrity, integration ownership rows, traceability, blocker priority, and owner-visible Phase 7 dispatch proof are added for Arena review.",
     nextStep:
       "Keep secondary, run `npm.cmd run test:phase7:owner-visible`, and keep staged dispatch review proof local before live worker session spawning.",
     tone: "active",
