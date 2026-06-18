@@ -234,8 +234,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-blocker-priority",
             title: "Clearance Blocker Priority",
-            description: "Rank exact Phase 3 blockers by slash/session priority, severity, proof category, and command-addressable status before owner handoff.",
-            completionPercent: 85,
+            description: "Rank exact Phase 3 blockers by slash/session priority, severity, proof category, command-addressable status, and visible row-specific detail plus exit action before owner handoff.",
+            completionPercent: 90,
             complexity: "medium",
             sourceDocument: "Phase 3 blocker priority"
           },

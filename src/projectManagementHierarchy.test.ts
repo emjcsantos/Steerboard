@@ -81,6 +81,7 @@ describe("project management hierarchy", () => {
     const byId = new Map(tasks.map((task) => [task.id, task]));
 
     expect(byId.get("phase-03-child-handoff-gate")?.description).toContain("clearance snapshot");
+    expect(byId.get("phase-03-child-blocker-priority")?.description).toContain("visible row-specific detail plus exit action");
     expect(byId.get("phase-03-child-traceability")?.description).toContain("handoff-review details");
     expect(byId.get("phase-11-parent-owner-testing")?.description).toContain("proof freshness depth");
     expect(byId.get("phase-11-parent-release-packaging")?.description).toContain("current active Phase 3 clearance PM traceability and handoff proof");
