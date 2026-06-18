@@ -360,7 +360,8 @@ function packagingLockItem(
     label: "Packaging lock",
     kind: "packaging-lock",
     status: "ready",
-    detail: "Packaging and resume actions remain locked while readiness evidence is reviewed.",
+    detail:
+      "Packaging, resume, local storage repair, and safety-disabled live-action release paths remain locked while readiness evidence is reviewed.",
     nextAction: "Keep packaging locked until the owner explicitly resumes release actions."
   };
 }

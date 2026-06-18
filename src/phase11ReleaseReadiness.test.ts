@@ -218,6 +218,15 @@ describe("phase 11 release readiness", () => {
           nextAction: expect.stringContaining("current active Phase 3 clearance PM traceability")
         }),
         expect.objectContaining({
+          label: "Packaging lock",
+          status: "ready",
+          detail: expect.stringContaining("local storage repair")
+        }),
+        expect.objectContaining({
+          label: "Packaging lock",
+          detail: expect.stringContaining("safety-disabled live-action")
+        }),
+        expect.objectContaining({
           label: "Security closure",
           status: "ready",
           detail: expect.stringContaining("closure capability")

@@ -292,7 +292,8 @@ function releaseReadinessSnapshot(
         label: "Packaging lock",
         kind: "packaging-lock",
         status: "ready",
-        detail: "Packaging remains paused and locked.",
+        detail:
+          "Packaging, resume, local storage repair, and safety-disabled live-action release paths remain locked while readiness evidence is reviewed.",
         nextAction: "Keep packaging paused until owner release decision."
       },
       {
@@ -416,6 +417,8 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("storage-proof attested");
     expect(html).toContain("current active Phase 3 clearance PM traceability");
     expect(html).toContain("packaging paused");
+    expect(html).toContain("local storage repair");
+    expect(html).toContain("safety-disabled live-action");
     expect(html).toContain("does not install dependencies");
     expect(html).toContain("does not run smoke commands");
     expect(html).toContain("running tests");
