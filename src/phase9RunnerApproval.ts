@@ -121,6 +121,24 @@ function firstNextAction(items: readonly Phase9RunnerApprovalItem[]): string {
   );
 }
 
+function optionalFieldMatches(recorded: string | undefined, current: string | undefined): boolean {
+  return !recorded || recorded === current;
+}
+
+function phase8DependencyProofMatches(
+  record: Phase9RunnerApprovalRecord,
+  phase8Record: Phase8AuditReviewRecord
+): boolean {
+  return (
+    optionalFieldMatches(record.phase8ReviewFingerprint, phase8Record.auditEvidenceFingerprint) &&
+    optionalFieldMatches(record.phase8ReviewedBlockerSourceId, phase8Record.topBlockerSourceId) &&
+    optionalFieldMatches(record.phase8ReviewedBlockerKind, phase8Record.topBlockerKind) &&
+    optionalFieldMatches(record.phase8ReviewedBlockerStatus, phase8Record.topBlockerStatus) &&
+    optionalFieldMatches(record.phase8ReviewedBlockerLabel, phase8Record.topBlockerLabel) &&
+    optionalFieldMatches(record.phase8ReviewedBlockerAction, phase8Record.topBlockerAction)
+  );
+}
+
 function isTerminalAuditRecord(record: LiveActionAuditRecord): boolean {
   return (
     record.provider === "terminal" ||
@@ -423,7 +441,8 @@ function ownerReviewItem(
   if (
     record.selectedAction !== SELECTED_ACTION ||
     record.phase8ReviewRecordId !== phase8Record.id ||
-    record.phase8ReviewState !== "ready"
+    record.phase8ReviewState !== "ready" ||
+    !phase8DependencyProofMatches(record, phase8Record)
   ) {
     return {
       id: `${SNAPSHOT_ID}:owner-review`,
@@ -431,9 +450,9 @@ function ownerReviewItem(
       kind: "owner-review",
       status: "review",
       detail:
-        "The persisted Phase 9 runner review is stale against the current fixed probe or Phase 8 owner audit review record.",
+        "The persisted Phase 9 runner review is stale against the current fixed probe, Phase 8 owner audit review record, or reviewed-blocker proof.",
       nextAction:
-        "Record a fresh Phase 9 runner approval review for the current Phase 8 audit record."
+        "Record a fresh Phase 9 runner approval review for the current Phase 8 audit record and reviewed-blocker proof."
     };
   }
 
@@ -594,6 +613,7 @@ export function buildPhase9RunnerApprovalSnapshot(
     input.phase8AuditReviewRecord?.state === "ready" &&
     input.runnerApprovalRecord?.state === "ready" &&
     input.runnerApprovalRecord.phase8ReviewRecordId === input.phase8AuditReviewRecord.id &&
+    phase8DependencyProofMatches(input.runnerApprovalRecord, input.phase8AuditReviewRecord) &&
     input.runnerApprovalRecord.runnerEvidenceFingerprint === currentRunnerEvidenceFingerprint &&
     input.runnerApprovalRecord.mutationLocked;
   const draft = {

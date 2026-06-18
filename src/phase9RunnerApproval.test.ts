@@ -27,6 +27,12 @@ const readyPhase8ReviewRecord: Phase8AuditReviewRecord = {
   openExceptionCount: 0,
   disabledPathCount: 8,
   mutationLocked: true,
+  auditEvidenceFingerprint: "phase8-audit:abcdef12",
+  topBlockerLabel: "Owner audit review",
+  topBlockerSourceId: "phase-08-permission-audit-depth:owner-audit-review",
+  topBlockerKind: "audit-depth",
+  topBlockerStatus: "waiting",
+  topBlockerAction: "Record Phase 8 owner audit review.",
   rollbackEvidence: "Phase 8 rollback evidence is attached.",
   detail: "Phase 8 owner audit review is ready."
 };
@@ -166,6 +172,12 @@ function readyRunnerApprovalRecordFor({
     phase8ReviewRecordId:
       phase8AuditReviewRecord?.id ?? "missing-phase8-review-record",
     phase8ReviewState: phase8AuditReviewRecord?.state ?? "blocked",
+    phase8ReviewFingerprint: phase8AuditReviewRecord?.auditEvidenceFingerprint,
+    phase8ReviewedBlockerLabel: phase8AuditReviewRecord?.topBlockerLabel,
+    phase8ReviewedBlockerSourceId: phase8AuditReviewRecord?.topBlockerSourceId,
+    phase8ReviewedBlockerKind: phase8AuditReviewRecord?.topBlockerKind,
+    phase8ReviewedBlockerStatus: phase8AuditReviewRecord?.topBlockerStatus,
+    phase8ReviewedBlockerAction: phase8AuditReviewRecord?.topBlockerAction,
     canRequestDesktopProbe: true,
     mutationLocked: true,
     runnerEvidenceFingerprint: buildPhase9RunnerEvidenceFingerprint(baseSnapshot),
@@ -196,6 +208,59 @@ describe("phase 9 runner approval", () => {
       ])
     );
     expect(approval.safety).toContain("no broad terminal");
+  });
+
+  it("reviews runner approval records when Phase 8 dependency proof changes", () => {
+    const request = permissionRequest({ state: "approved" });
+    const evaluation = evaluateLiveActionRunnerExecution(
+      terminalDefinition,
+      request,
+      "2026-06-11T00:05:00.000Z",
+      "2026-06-11T00:05:00.000Z"
+    );
+    const result = desktopResult({
+      requestId: "terminal-permission-1",
+      status: "executed",
+      code: "ok",
+      canExecute: true,
+      summary: "Desktop terminal read-only probe executed through the approved runner contract.",
+      detail: "Executed fixed terminal read-only probe command for audit trail."
+    });
+    const auditRecords = [terminalAuditRecord("approved"), terminalAuditRecord("executed")];
+    const staleRecord = readyRunnerApprovalRecordFor({
+      request,
+      evaluation,
+      result,
+      auditRecords,
+      phase8AuditReviewRecord: readyPhase8ReviewRecord,
+      now: "2026-06-11T00:05:00.000Z"
+    });
+    const changedPhase8Record: Phase8AuditReviewRecord = {
+      ...readyPhase8ReviewRecord,
+      auditEvidenceFingerprint: "phase8-audit:changed",
+      topBlockerSourceId: "phase-08-risk-traceability:active-goal"
+    };
+    const approval = snapshot({
+      request,
+      result,
+      auditRecords,
+      phase8ReviewRecord: changedPhase8Record,
+      runnerApprovalRecord: staleRecord,
+      now: "2026-06-11T00:05:00.000Z"
+    });
+
+    expect(approval.state).toBe("review");
+    expect(approval.canRequestDesktopProbe).toBe(false);
+    expect(approval.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner runner review",
+          kind: "owner-review",
+          status: "review",
+          detail: expect.stringContaining("reviewed-blocker proof")
+        })
+      ])
+    );
   });
 
   it("allows a desktop probe request once approval and preview gates are ready", () => {
