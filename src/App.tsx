@@ -2535,17 +2535,20 @@ export function App() {
   const clearPhase3OwnerHandoff = useCallback(() => {
     runPhase3OwnerHandoffClearAction({
       setRecord: setPhase3OwnerHandoffRecord,
+      setProofEvaluationTime: setPhase3ProofEvaluationTime,
       setAppNotice
     });
   }, []);
   const recordPhase3CommandValidation = useCallback(() => {
+    const now = new Date().toISOString();
     const record = createPhase3CommandValidationRecord(
       phase3ClearanceCommandPlan.command,
-      new Date().toISOString()
+      now
     );
 
     savePhase3CommandValidationRecord(record);
     setPhase3CommandValidationRecord(record);
+    setPhase3ProofEvaluationTime(now);
     setAppNotice("Phase 3 CLI smoke validation recorded locally");
   }, [phase3ClearanceCommandPlan.command]);
   const importPhase3CommandValidation = useCallback((serializedRecord: string) => {
@@ -2556,8 +2559,10 @@ export function App() {
       return;
     }
 
+    const now = new Date().toISOString();
     savePhase3CommandValidationRecord(record);
     setPhase3CommandValidationRecord(record);
+    setPhase3ProofEvaluationTime(now);
     setAppNotice(
       record.status === "passed"
         ? "Phase 3 CLI smoke validation artifact imported"
@@ -2575,8 +2580,11 @@ export function App() {
     });
   }, []);
   const clearPhase3CommandValidation = useCallback(() => {
+    const now = new Date().toISOString();
+
     clearPhase3CommandValidationRecord();
     setPhase3CommandValidationRecord(undefined);
+    setPhase3ProofEvaluationTime(now);
     setAppNotice("Phase 3 CLI smoke validation record cleared");
   }, []);
   const recordPhase11Evidence = useCallback((gate: Phase11EvidenceGate) => {

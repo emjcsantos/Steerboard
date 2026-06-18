@@ -40,6 +40,7 @@ export interface Phase3OwnerHandoffRecordActionEffects {
 export interface Phase3OwnerHandoffClearActionEffects {
   readonly clearRecord?: () => void;
   readonly setRecord: (record: Phase3OwnerHandoffRecord | undefined) => void;
+  readonly setProofEvaluationTime?: (evaluatedAt: string) => void;
   readonly setAppNotice: (notice: string) => void;
 }
 
@@ -114,11 +115,13 @@ export function runPhase3OwnerHandoffRecordAction(
 }
 
 export function runPhase3OwnerHandoffClearAction(
-  effects: Phase3OwnerHandoffClearActionEffects
+  effects: Phase3OwnerHandoffClearActionEffects,
+  evaluatedAt = new Date().toISOString()
 ): void {
   const clearRecord = effects.clearRecord ?? clearPhase3OwnerHandoffRecord;
 
   clearRecord();
   effects.setRecord(undefined);
+  effects.setProofEvaluationTime?.(evaluatedAt);
   effects.setAppNotice("Phase 3 owner handoff record cleared");
 }

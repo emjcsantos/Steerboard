@@ -357,16 +357,20 @@ describe("phase 3 owner proof action flow", () => {
     const { store } = createStore();
     const effects = {
       setRecord: vi.fn(),
+      setProofEvaluationTime: vi.fn(),
       setAppNotice: vi.fn()
     };
     store.set(PHASE3_HANDOFF_RECORD_STORAGE_KEY, "handoff");
     store.set(PHASE3_SMOKE_PROOF_STORAGE_KEY, "smoke-proof");
 
-    runPhase3OwnerHandoffClearAction(effects);
+    runPhase3OwnerHandoffClearAction(effects, "2026-06-18T08:03:00.000Z");
 
     expect(store.has(PHASE3_HANDOFF_RECORD_STORAGE_KEY)).toBe(false);
     expect(store.get(PHASE3_SMOKE_PROOF_STORAGE_KEY)).toBe("smoke-proof");
     expect(effects.setRecord).toHaveBeenCalledWith(undefined);
+    expect(effects.setProofEvaluationTime).toHaveBeenCalledWith(
+      "2026-06-18T08:03:00.000Z"
+    );
     expect(effects.setAppNotice).toHaveBeenCalledWith(
       "Phase 3 owner handoff record cleared"
     );
