@@ -102,26 +102,30 @@ function resolveDetail(label: string, state: Phase3SmokeProofReadinessState): st
   return `${label} has not been executed on desktop yet.`;
 }
 
-function toTimestamp(value: string | Date | undefined): number | undefined {
+function parseTimestamp(value: string | Date | undefined): number | undefined {
   if (!value) {
     return undefined;
   }
 
-  const timestamp = value instanceof Date ? value.getTime() : Date.parse(value);
+  if (value instanceof Date) {
+    const timestamp = value.getTime();
+    return Number.isFinite(timestamp) ? timestamp : undefined;
+  }
+
+  const numericTimestamp = Number(value);
+  if (Number.isFinite(numericTimestamp) && numericTimestamp > 0) {
+    return numericTimestamp < 100_000_000_000
+      ? numericTimestamp * 1000
+      : numericTimestamp;
+  }
+
+  const timestamp = Date.parse(value);
   return Number.isFinite(timestamp) ? timestamp : undefined;
 }
 
 function normalizeEvaluatedAt(value: string | Date | undefined): string {
-  if (!value) {
-    return "unavailable";
-  }
-
-  if (value instanceof Date) {
-    return Number.isFinite(value.getTime()) ? value.toISOString() : "unavailable";
-  }
-
-  const timestamp = Date.parse(value);
-  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : "unavailable";
+  const timestamp = parseTimestamp(value);
+  return timestamp === undefined ? "unavailable" : new Date(timestamp).toISOString();
 }
 
 function resolveFreshnessDetail(
@@ -138,12 +142,12 @@ function resolveFreshnessDetail(
     return baseDetail;
   }
 
-  const evaluatedAtMs = toTimestamp(evaluatedAt);
+  const evaluatedAtMs = parseTimestamp(evaluatedAt);
   if (evaluatedAtMs === undefined) {
     return `${label} cannot be freshness-checked without an evaluation timestamp and must be reviewed before Phase 3 handoff.`;
   }
 
-  const checkedAtMs = toTimestamp(checkedAt);
+  const checkedAtMs = parseTimestamp(checkedAt);
   if (checkedAtMs === undefined) {
     return `${label} has no valid checkedAt timestamp and must be rerun on desktop.`;
   }

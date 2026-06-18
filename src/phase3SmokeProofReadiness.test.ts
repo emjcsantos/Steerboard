@@ -54,6 +54,89 @@ describe("phase 3 smoke proof readiness", () => {
     expect(result.maxProofAgeMs).toBe(7 * 24 * 60 * 60 * 1000);
   });
 
+  it("accepts generated smoke bundle millisecond timestamps for freshness checks", () => {
+    const result = buildPhase3SmokeProofReadiness({
+      evaluatedAt: "1781738710000",
+      persistedDesktopProofs,
+      liveControlSmoke: {
+        source: "desktop",
+        checkedAt: "1781738707152",
+        executed: true,
+        ok: true,
+        completed: true,
+        supportedMethodCount: 5,
+        totalMethodCount: 5
+      },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        checkedAt: "1781738685583",
+        executed: true,
+        ok: true,
+        completed: true,
+        interruptObserved: false
+      },
+      activeTurnSteerSmoke: {
+        source: "desktop",
+        checkedAt: "1781738694732",
+        executed: true,
+        ok: true,
+        completed: false,
+        steerObserved: false
+      }
+    });
+
+    expect(result.state).toBe("ready");
+    expect(result.evaluatedAt).toBe("2026-06-17T23:25:10.000Z");
+    expect(result.counts).toEqual({
+      ready: 3,
+      review: 0,
+      blocked: 0,
+      waiting: 0
+    });
+    expect(result.items.every((item) => item.detail.endsWith("is ready."))).toBe(true);
+  });
+
+  it("accepts second-based timestamps while preserving stale-proof review", () => {
+    const result = buildPhase3SmokeProofReadiness({
+      evaluatedAt: "1781825100",
+      maxProofAgeMs: 60 * 60 * 1000,
+      persistedDesktopProofs,
+      liveControlSmoke: {
+        source: "desktop",
+        checkedAt: "1781738707",
+        executed: true,
+        ok: true,
+        completed: true,
+        supportedMethodCount: 5,
+        totalMethodCount: 5
+      },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        checkedAt: "1781825000",
+        executed: true,
+        ok: true,
+        completed: true,
+        interruptObserved: true
+      },
+      activeTurnSteerSmoke: {
+        source: "desktop",
+        checkedAt: "1781825001",
+        executed: true,
+        ok: true,
+        completed: true,
+        steerObserved: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.items[0]).toMatchObject({
+      proof: "live-control",
+      state: "review",
+      detail: expect.stringContaining("stale")
+    });
+    expect(result.items.slice(1).every((item) => item.state === "ready")).toBe(true);
+  });
+
   it("returns waiting for browser fallback or non-executed proofs", () => {
     const result = buildPhase3SmokeProofReadiness({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
