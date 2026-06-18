@@ -910,16 +910,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-11-parent-release-packaging",
         title: "Release Readiness Gate",
-        description: "Keep clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability and handoff proof, packaging lock, docs, known limits, evidence records, final security closure capability, and release decision visible while packaging stays paused.",
-        completionPercent: 40,
+        description: "Keep fresh checkout, clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability and handoff proof, packaging lock, docs, known limits, evidence records, final security closure capability, and release decision visible while packaging stays paused.",
+        completionPercent: 45,
         complexity: "high",
         sourceDocument: "Phase 11 release readiness",
         children: [
           {
             id: "phase-11-child-package-validation",
             title: "Package Lock Validation",
-            description: "Validate packaged-app prerequisites, proof persistence, current active Phase 3 clearance PM traceability and handoff proof, evidence-record inputs, final security closure capability, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
-            completionPercent: 40,
+            description: "Validate packaged-app prerequisites, fresh-checkout proof, proof persistence, current active Phase 3 clearance PM traceability and handoff proof, evidence-record inputs, final security closure capability, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
+            completionPercent: 45,
             complexity: "high",
             sourceDocument: "Release validation"
           },
@@ -934,8 +934,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-blocker-priority",
             title: "Owner Release Blocker Priority",
-            description: "Rank exact Phase 11 blockers across owner proof, evidence freshness, release readiness, final security closure capability, PM coverage, and packaging hold state before packaging resumes.",
-            completionPercent: 35,
+            description: "Rank exact Phase 11 blockers across owner proof, evidence freshness, fresh-checkout release readiness, final security closure capability, PM coverage, and packaging hold state before packaging resumes.",
+            completionPercent: 40,
             complexity: "medium",
             sourceDocument: "Phase 11 owner release blocker priority"
           }

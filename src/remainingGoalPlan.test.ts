@@ -28,7 +28,7 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 63,
+      averageCompletionPercent: 64,
       currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
         "Use the Phase 3 command plan, freshness-reviewed CLI validation trace, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, live freshness-aware smoke proof rows, and compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready and current active goal/PM traceability is trusted, and keep Phase 4 held behind the provider boundary.",
@@ -460,7 +460,7 @@ describe("remaining goal plan", () => {
       target: "Release readiness pass",
       priority: "high",
       status: "next",
-      completionPercent: 40
+      completionPercent: 45
     });
     expect(releaseGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -470,8 +470,10 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(releaseGoal?.goal).toContain("structured evidence records");
+    expect(releaseGoal?.goal).toContain("fresh-checkout");
     expect(releaseGoal?.goal).toContain("current active Phase 3 clearance PM traceability and handoff proof");
     expect(releaseGoal?.nextAction).toContain("Evidence Records");
+    expect(releaseGoal?.nextAction).toContain("structured fresh-checkout");
     expect(releaseGoal?.nextAction).toContain("structured clean-checkout");
     expect(releaseGoal?.nextAction).toContain("current active Phase 3 clearance PM traceability with handoff proof");
     expect(releaseGoal?.nextAction).toContain("owner release traceability");
