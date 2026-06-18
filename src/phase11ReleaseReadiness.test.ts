@@ -489,6 +489,28 @@ describe("phase 11 release readiness", () => {
     );
   });
 
+  it("reviews release readiness when final security closure capability is held", () => {
+    const result = snapshot({
+      securityFinalReview: securitySnapshot({
+        canCloseSecurity: false,
+        detail: "Security review is ready, but closure capability is held."
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Release decision",
+          status: "review",
+          detail: expect.stringContaining("final security closure capability"),
+          nextAction: expect.stringContaining("final security capability evidence")
+        })
+      ])
+    );
+  });
+
   it("keeps docs and known limits in review when every other release input is ready", () => {
     const result = snapshot({
       docsKnownLimitsEvidence: undefined,

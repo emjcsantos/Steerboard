@@ -415,6 +415,17 @@ function releaseDecisionItem(
     };
   }
 
+  if (!input.securityFinalReview.canCloseSecurity) {
+    return {
+      id: `${SNAPSHOT_ID}:release-decision`,
+      label: "Release decision",
+      kind: "release-decision",
+      status: "review",
+      detail: "Security final review is ready, but final security closure capability is still held.",
+      nextAction: "Attach final security capability evidence before making the release decision."
+    };
+  }
+
   if (!input.ownerCommandCenter.canRelease) {
     const status = input.ownerCommandCenter.state === "waiting" ? "waiting" : "review";
 
