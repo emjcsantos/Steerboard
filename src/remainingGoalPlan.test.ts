@@ -265,6 +265,8 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase5Goal?.nextAction).toContain("blocker-priority queue");
+    expect(phase5Goal?.nextAction).toContain("owner-visible Phase 5 check");
+    expect(phase5Goal?.nextAction).toContain("apply-review-staged audit record");
   });
 
   it("keeps the Phase 8 permission audit target linked to traceability and audit persistence", () => {

@@ -4217,6 +4217,175 @@ function AppMenuBar({
   );
 }
 
+export function MigrationReviewGatePanel({
+  migrationHardeningReadiness
+}: {
+  migrationHardeningReadiness: MigrationHardeningReadiness;
+}) {
+  const migrationTraceability = buildMigrationTraceabilitySummary({
+    readiness: migrationHardeningReadiness
+  });
+  const migrationBlockerPriority = buildMigrationBlockerPriority({
+    readiness: migrationHardeningReadiness,
+    traceability: migrationTraceability
+  });
+
+  return (
+    <div
+      aria-label={`Migration hardening gate ${migrationHardeningReadiness.statusLabel}; ${migrationHardeningReadiness.readiness}% ready. ${migrationHardeningReadiness.nextAction}`}
+      className={classNames(
+        "migration-review-gate",
+        `migration-review-gate-${migrationHardeningReadiness.state}`
+      )}
+      title={migrationHardeningReadiness.safety}
+    >
+      <div className="migration-review-gate-header">
+        <strong>Migration review gate</strong>
+        <span>{migrationHardeningReadiness.statusLabel}</span>
+      </div>
+      <div className="migration-review-gate-summary">
+        <span>
+          <strong>{migrationHardeningReadiness.readiness}%</strong>
+          Ready
+        </span>
+        <span>
+          <strong>{migrationHardeningReadiness.applyIntentLabel}</strong>
+          Apply intent
+        </span>
+        <span>
+          <strong>{migrationHardeningReadiness.canRollback ? "Ready" : "Waiting"}</strong>
+          Rollback
+        </span>
+        <span>
+          <strong>{migrationHardeningReadiness.openReviewRecordCount}</strong>
+          Open review
+        </span>
+      </div>
+      <p>{migrationHardeningReadiness.nextAction}</p>
+      <ol className="migration-review-depth-list" aria-label="Migration review depth records">
+        {migrationHardeningReadiness.reviewDepthItems.map((item) => (
+          <li className={`migration-review-depth-${item.status}`} key={item.id} title={`${item.detail} ${item.evidence} ${item.nextAction}`}>
+            <span>{item.kind}</span>
+            <div>
+              <strong>{item.label}</strong>
+              <small>{item.pmTaskId} / {item.evidenceKey}</small>
+              <em>{item.evidence}</em>
+              <small>{item.nextAction}</small>
+            </div>
+            <b>{item.status}</b>
+          </li>
+        ))}
+      </ol>
+      <div className="migration-traceability" aria-label={migrationTraceability.ariaLabel}>
+        <div className="migration-traceability-header">
+          <strong>{migrationTraceability.label}</strong>
+          <span>
+            {migrationTraceability.statusLabel} / {migrationTraceability.readiness}%
+          </span>
+        </div>
+        <ol className="migration-traceability-list" aria-label="Migration traceability records">
+          {migrationTraceability.items.map((item) => (
+            <li
+              className={`migration-traceability-${item.status}`}
+              key={item.id}
+              title={`${item.detail} ${item.nextAction}`}
+            >
+              <span>{item.status}</span>
+              <div>
+                <strong>{item.label}</strong>
+                <small>{item.nextAction}</small>
+              </div>
+              <b>{item.kind}</b>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div
+        aria-label={migrationBlockerPriority.ariaLabel}
+        className={classNames(
+          "migration-blocker-priority",
+          `migration-blocker-priority-${migrationBlockerPriority.state}`
+        )}
+        title={migrationBlockerPriority.safety}
+      >
+        <div className="migration-blocker-priority-header">
+          <strong>{migrationBlockerPriority.label}</strong>
+          <span>
+            {migrationBlockerPriority.metadataReviewCanAddressTopBlocker
+              ? "Metadata review"
+              : migrationBlockerPriority.openBlockerCount > 0
+                ? "Owner action"
+                : "Ready"}
+          </span>
+        </div>
+        <p title={migrationBlockerPriority.topPriorityAction}>
+          {migrationBlockerPriority.topPriorityLabel}
+        </p>
+        <dl
+          aria-label="Migration blocker priority counts"
+          className="migration-blocker-priority-grid"
+        >
+          <div>
+            <dt>Open</dt>
+            <dd>{migrationBlockerPriority.openBlockerCount}</dd>
+          </div>
+          <div>
+            <dt>Reviewable</dt>
+            <dd>{migrationBlockerPriority.metadataReviewAddressableCount}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{migrationBlockerPriority.statusLabel}</dd>
+          </div>
+          <div>
+            <dt>Ready</dt>
+            <dd>{migrationBlockerPriority.readiness}%</dd>
+          </div>
+        </dl>
+        <ol
+          aria-label="Migration blocker priority rows"
+          className="migration-blocker-priority-list"
+        >
+          {migrationBlockerPriority.items.length > 0 ? (
+            migrationBlockerPriority.items.map((item) => (
+              <li
+                className={`migration-blocker-priority-item-${item.status}`}
+                key={item.id}
+                title={`${item.detail} ${item.nextAction}`}
+              >
+                <span>#{item.priority}</span>
+                <div>
+                  <strong>{item.label}</strong>
+                  <small>{item.nextAction}</small>
+                </div>
+                <b>{item.kind}</b>
+              </li>
+            ))
+          ) : (
+            <li className="migration-blocker-priority-item-ready">
+              <span>OK</span>
+              <div>
+                <strong>No open migration blocker</strong>
+                <small>{migrationBlockerPriority.nextAction}</small>
+              </div>
+              <b>ready</b>
+            </li>
+          )}
+        </ol>
+      </div>
+      <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
+        {migrationHardeningReadiness.items.map((item) => (
+          <li className={`migration-review-item-${item.status}`} key={item.id} title={item.detail}>
+            <strong>{item.label}</strong>
+            <span>{item.status}</span>
+            <small>{item.detail}</small>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function AppDialogSurface({
   commandCatalogSnapshot,
   automationCatalogLoading,
@@ -4738,6 +4907,8 @@ function AppDialogSurface({
                     <div>
                       <strong>{item.label}</strong>
                       <small>{item.pmTaskId} / {item.evidenceKey}</small>
+                      <em>{item.evidence}</em>
+                      <small>{item.nextAction}</small>
                     </div>
                     <b>{item.status}</b>
                   </li>

@@ -71,7 +71,7 @@ The migration dialog should present these categories as checkboxes. Unsupported 
 10. User confirms the import.
 11. Steerboard writes imported data into a named, reviewable Steerboard profile draft.
 12. Steerboard records a local migration audit summary for the draft, including import mode, selected categories, evidence fingerprint, acceptance decisions, excluded fields, and safe metadata diffs.
-13. Steerboard shows a migration review gate for preview selection, apply intent, rollback evidence, fingerprint-matched audit consistency, and sensitive exclusions.
+13. Steerboard shows a migration review gate for preview selection, apply intent, local apply-review-staged audit proof, rollback evidence, fingerprint-matched audit consistency, and sensitive exclusions.
 14. User can review the draft, stage apply review, refresh from source, or roll it back safely. Profile activation remains locked until explicit approval and future apply support exist.
 
 ## Desktop Menu Requirement
@@ -109,7 +109,7 @@ The `File > Migrate...` dialog should include:
 - preview table grouped by category,
 - confirmation step,
 - rollback summary after import.
-- review gate showing apply-intent lock, rollback evidence, audit consistency, sensitive-exclusion status, and profile activation lock as separate owner-review records.
+- review gate showing apply-intent lock, local apply-review-staged audit proof, rollback evidence, audit consistency, sensitive-exclusion status, and profile activation lock as separate owner-review records.
 
 The goal is that a user can end with the same practical working condition as the source application: projects visible, usable chat/session context where safely exportable, matching plugins and skills, matching MCP server definitions, matching personalization posture, and matching relevant settings.
 
@@ -127,6 +127,7 @@ The migration dialog includes a review gate before any profile activation path. 
 - whether unsupported categories remain excluded,
 - whether a reviewed draft exists,
 - whether apply intent is ready, held for review, waiting, or blocked,
+- whether local apply-review-staged audit proof exists before migration review can be trusted,
 - whether rollback evidence exists for the local draft history,
 - whether the latest audit matches the latest draft and draft evidence fingerprint,
 - whether sensitive exclusions are complete,
@@ -135,6 +136,7 @@ The migration dialog includes a review gate before any profile activation path. 
 The review-depth records separately show:
 
 - apply-intent lock evidence, including draft id, import state, audit fingerprint match, and owner-visible apply-intent notice,
+- apply-review staging evidence, including local `apply-review-staged` audit action, draft id, timestamp, evidence fingerprint, source-data lock, and active-profile lock,
 - rollback evidence, including latest draft id, prior active-profile pointer, rollback audit note, checksumable manifest references, and no-source-mutation boundary,
 - audit consistency, including draft/audit id match, selected category count, review-required count, unsupported count, and draft evidence fingerprint,
 - sensitive exclusions, including secrets, tokens, auth caches/files/state, browser state, source artifacts, source mutation, and raw transcript exclusions,
@@ -142,7 +144,7 @@ The review-depth records separately show:
 
 Each review-depth record also carries a Project Management row link and a unique evidence key. The Migration traceability rows use those links to keep the Phase 5 remaining goal, PM child coverage, review-depth evidence, sensitive exclusion boundary, fingerprint-matched rollback/audit evidence, and profile activation lock visible before apply review can advance. Required Phase 5 PM rows must exist in both the current board plan and the remaining-goal links; a stale goal link cannot hide a missing board row. The review stays untrusted until Phase 5 is the current active remaining goal.
 
-`Stage apply review` records an owner-visible intent notice and a local metadata-only `apply-review-staged` audit history event. It does not change the active profile, mutate the source platform, copy secrets, import raw transcripts, run commands, or enable provider execution.
+`Stage apply review` records an owner-visible intent notice and a local metadata-only `apply-review-staged` audit history event, then surfaces that proof as its own review-depth row. It does not change the active profile, mutate the source platform, copy secrets, import raw transcripts, run commands, or enable provider execution. `npm.cmd run test:phase5:owner-visible` verifies this proof remains visible without applying a migration.
 
 ## Safety Rules
 

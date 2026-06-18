@@ -115,22 +115,25 @@ function sourceRank(item: MigrationBlockerPriorityItem): number {
   if (normalized.includes("apply-intent")) {
     return item.status === "blocked" ? 1 : 0;
   }
-  if (normalized.includes("audit")) {
-    return 1;
+  if (normalized.includes("apply-review-staging")) {
+    return item.status === "blocked" ? 1 : 1;
   }
-  if (normalized.includes("rollback")) {
+  if (normalized.includes("audit")) {
     return 2;
   }
-  if (normalized.includes("sensitive") || normalized.includes("exclusion")) {
+  if (normalized.includes("rollback")) {
     return 3;
   }
-  if (normalized.includes("profile")) {
+  if (normalized.includes("sensitive") || normalized.includes("exclusion")) {
     return 4;
   }
-  if (normalized.includes("pm") || normalized.includes("traceability")) {
+  if (normalized.includes("profile")) {
     return 5;
   }
-  return 6;
+  if (normalized.includes("pm") || normalized.includes("traceability")) {
+    return 6;
+  }
+  return 7;
 }
 
 function severityForState(state: MigrationBlockerPriorityState): MigrationBlockerPrioritySeverity {

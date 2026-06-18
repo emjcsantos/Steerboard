@@ -30,6 +30,20 @@ function historyForAcceptedDraft(): MigrationProfileDraftHistoryRecord[] {
   );
 }
 
+function historyForStagedAcceptedDraft(): MigrationProfileDraftHistoryRecord[] {
+  const draft = createMigrationProfileDraft(selectedPreview(), {
+    createdAt: "2026-02-01T00:00:00.000Z"
+  });
+
+  return appendMigrationProfileDraftHistory(
+    [],
+    draft,
+    "apply-review-staged",
+    8,
+    "2026-02-01T00:05:00.000Z"
+  );
+}
+
 describe("migration hardening readiness", () => {
   it("waits for a selected preview and reviewed draft before apply intent", () => {
     const readiness = buildMigrationHardeningReadiness({
@@ -43,7 +57,7 @@ describe("migration hardening readiness", () => {
     expect(readiness.canRollback).toBe(false);
     expect(readiness.canStageApplyIntent).toBe(false);
     expect(readiness.applyIntentState).toBe("waiting");
-    expect(readiness.reviewRecordCount).toBe(5);
+    expect(readiness.reviewRecordCount).toBe(6);
     expect(readiness.openReviewRecordCount).toBeGreaterThan(0);
     expect(readiness.nextAction).toContain("Select safe metadata categories");
     expect(readiness.reviewDepthItems).toEqual(
@@ -76,10 +90,43 @@ describe("migration hardening readiness", () => {
     expect(readiness.items.find((item) => item.id === "draft-created")?.status).toBe("waiting");
   });
 
-  it("marks a ready draft as apply-review ready without applying the profile", () => {
+  it("keeps a ready draft stageable until apply-review staging is recorded", () => {
     const readiness = buildMigrationHardeningReadiness({
       preview: selectedPreview(),
       draftHistory: historyForAcceptedDraft(),
+      excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded", "Source mutation excluded"]
+    });
+
+    expect(readiness.state).toBe("review");
+    expect(readiness.canRollback).toBe(true);
+    expect(readiness.canStageApplyIntent).toBe(true);
+    expect(readiness.openReviewRecordCount).toBe(1);
+    expect(readiness.applyIntentLabel).toBe("Apply review ready");
+    expect(readiness.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "apply-review-staging",
+          status: "review",
+          detail: expect.stringContaining("local audit record")
+        })
+      ])
+    );
+    expect(readiness.reviewDepthItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "migration-review-depth:apply-review-staging",
+          status: "review",
+          evidence: expect.stringContaining("apply-review-staged")
+        })
+      ])
+    );
+    expect(createMigrationApplyIntentNotice(readiness)).toContain("Active profile and source data remain unchanged");
+  });
+
+  it("marks a staged apply-review draft ready without applying the profile", () => {
+    const readiness = buildMigrationHardeningReadiness({
+      preview: selectedPreview(),
+      draftHistory: historyForStagedAcceptedDraft(),
       excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded", "Source mutation excluded"]
     });
 
@@ -88,13 +135,13 @@ describe("migration hardening readiness", () => {
     expect(readiness.canRollback).toBe(true);
     expect(readiness.canStageApplyIntent).toBe(true);
     expect(readiness.openReviewRecordCount).toBe(0);
-    expect(readiness.applyIntentLabel).toBe("Apply review ready");
     expect(readiness.reviewDepthItems.every((item) => item.status === "ready")).toBe(true);
     expect(new Set(readiness.reviewDepthItems.map((item) => item.evidenceKey)).size).toBe(
       readiness.reviewDepthItems.length
     );
     expect(readiness.reviewDepthItems.map((item) => [item.kind, item.pmTaskId, item.evidenceKey])).toEqual([
       ["apply-intent", "phase-05-parent-draft-workflow", "phase5.apply-intent-lock"],
+      ["apply-review-staging", "phase-05-child-profile-drafts", "phase5.apply-review-staged-audit"],
       ["rollback", "phase-05-parent-rollback-audit", "phase5.rollback-evidence"],
       ["audit", "phase-05-child-audit-summary", "phase5.audit-consistency"],
       ["exclusion", "phase-05-child-preview-metadata", "phase5.sensitive-exclusions"],
@@ -106,7 +153,7 @@ describe("migration hardening readiness", () => {
   it("keeps existing reviewed draft evidence ready after the preview checklist reloads", () => {
     const readiness = buildMigrationHardeningReadiness({
       preview: buildDefaultMigrationPreview("codex"),
-      draftHistory: historyForAcceptedDraft(),
+      draftHistory: historyForStagedAcceptedDraft(),
       excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded", "Source mutation excluded"]
     });
 
@@ -235,7 +282,7 @@ describe("migration hardening readiness", () => {
 
     expect(readiness.state).toBe("review");
     expect(readiness.canStageApplyIntent).toBe(false);
-    expect(readiness.openReviewRecordCount).toBe(1);
+    expect(readiness.openReviewRecordCount).toBe(2);
     expect(readiness.reviewDepthItems).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

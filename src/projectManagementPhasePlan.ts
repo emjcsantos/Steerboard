@@ -427,7 +427,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-05-child-review-depth",
             title: "Migration Review Depth",
-            description: "Show apply-intent lock, rollback evidence, fingerprint-matched audit consistency, sensitive exclusions, and profile activation lock as separate owner-review records.",
+            description: "Show apply-intent lock, local apply-review-staged audit proof, rollback evidence, fingerprint-matched audit consistency, sensitive exclusions, and profile activation lock as separate owner-review records.",
             completionPercent: 54,
             complexity: "high",
             sourceDocument: "Migration review gate"

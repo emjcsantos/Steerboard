@@ -2,6 +2,7 @@ import {
   buildMigrationPreviewCounts,
   type MigrationPreview,
   type MigrationProfileDraft,
+  type MigrationProfileDraftAuditAction,
   type MigrationProfileDraftHistoryRecord,
   type MigrationProfileDraftImportState
 } from "./migrationModel";
@@ -24,6 +25,7 @@ export interface MigrationHardeningReadinessItem {
 
 export type MigrationReviewDepthKind =
   | "apply-intent"
+  | "apply-review-staging"
   | "rollback"
   | "audit"
   | "exclusion"
@@ -98,6 +100,10 @@ const migrationReviewTraceByKind: Record<
   "apply-intent": {
     pmTaskId: "phase-05-parent-draft-workflow",
     evidenceKey: "phase5.apply-intent-lock"
+  },
+  "apply-review-staging": {
+    pmTaskId: "phase-05-child-profile-drafts",
+    evidenceKey: "phase5.apply-review-staged-audit"
   },
   rollback: {
     pmTaskId: "phase-05-parent-rollback-audit",
@@ -255,6 +261,7 @@ function sensitiveExclusionStatus(
 
 function buildMigrationReviewDepthItems(input: {
   latestDraft?: MigrationProfileDraft;
+  latestAuditAction?: MigrationProfileDraftAuditAction;
   auditReady: boolean;
   applyIntentState: MigrationApplyIntentState;
   applyStatus: MigrationHardeningReadinessState;
@@ -263,6 +270,7 @@ function buildMigrationReviewDepthItems(input: {
 }): MigrationReviewDepthItem[] {
   const hasDraft = Boolean(input.latestDraft);
   const sensitiveStatus = sensitiveExclusionStatus(input.excludedSecretsSummary);
+  const stagedApplyReview = input.latestAuditAction === "apply-review-staged";
 
   return [
     {
@@ -279,6 +287,23 @@ function buildMigrationReviewDepthItems(input: {
       nextAction: hasDraft
         ? "Stage owner review only after audit consistency and rollback evidence are visible."
         : "Create a reviewed local profile draft before staging apply intent."
+    },
+    {
+      id: "migration-review-depth:apply-review-staging",
+      label: "Apply review staging",
+      kind: "apply-review-staging",
+      pmTaskId: migrationReviewTraceByKind["apply-review-staging"].pmTaskId,
+      evidenceKey: migrationReviewTraceByKind["apply-review-staging"].evidenceKey,
+      status: hasDraft ? stagedApplyReview && input.auditReady ? "ready" : "review" : "waiting",
+      detail: hasDraft
+        ? stagedApplyReview
+          ? `Latest draft ${input.latestDraft?.id} has a local apply-review-staged audit record; active profile and source data remain unchanged.`
+          : `Latest draft ${input.latestDraft?.id} has not recorded a local apply-review-staged audit action yet.`
+        : "Apply review staging is waiting for a reviewed draft.",
+      evidence: "Local apply-review-staged audit action, draft id, timestamp, evidence fingerprint, source-data lock, and active-profile lock.",
+      nextAction: hasDraft
+        ? "Stage apply review as a local audit record only after audit consistency, rollback evidence, and exclusions are visible."
+        : "Create a reviewed draft before recording apply-review staging evidence."
     },
     {
       id: "migration-review-depth:rollback-evidence",
@@ -342,6 +367,7 @@ export function buildMigrationHardeningReadiness(
   const counts = buildMigrationPreviewCounts(input.preview);
   const latest = input.draftHistory[0];
   const latestDraft = latest?.draft;
+  const latestAuditAction = latest?.audit.action;
   const effectiveSelectedCategoryCount = selected.length > 0
     ? selected.length
     : latestDraft?.selectedCategories.length ?? 0;
@@ -391,6 +417,16 @@ export function buildMigrationHardeningReadiness(
         : "Apply intent is unavailable until a reviewed draft exists."
     },
     {
+      id: "apply-review-staging",
+      label: "Apply review staging",
+      status: latestDraft ? latestAuditAction === "apply-review-staged" && auditReady ? "ready" : "review" : "waiting",
+      detail: latestDraft
+        ? latestAuditAction === "apply-review-staged"
+          ? `Latest audit is apply-review-staged for ${latestDraft.id}; active profile and source data remain unchanged.`
+          : "Stage apply review to create a local audit record before migration review can be trusted."
+        : "Apply review staging is unavailable until a reviewed draft exists."
+    },
+    {
       id: "rollback-evidence",
       label: "Rollback evidence",
       status: canRollback ? "ready" : "waiting",
@@ -428,6 +464,7 @@ export function buildMigrationHardeningReadiness(
     (applyIntentState === "ready-for-review" || applyIntentState === "needs-review");
   const reviewDepthItems = buildMigrationReviewDepthItems({
     latestDraft,
+    latestAuditAction,
     auditReady,
     applyIntentState,
     applyStatus,

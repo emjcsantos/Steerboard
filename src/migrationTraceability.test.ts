@@ -30,10 +30,24 @@ function historyForAcceptedDraft(): MigrationProfileDraftHistoryRecord[] {
   );
 }
 
+function historyForStagedAcceptedDraft(): MigrationProfileDraftHistoryRecord[] {
+  const draft = createMigrationProfileDraft(selectedPreview(), {
+    createdAt: "2026-02-01T00:00:00.000Z"
+  });
+
+  return appendMigrationProfileDraftHistory(
+    [],
+    draft,
+    "apply-review-staged",
+    8,
+    "2026-02-01T00:05:00.000Z"
+  );
+}
+
 function readyReadiness() {
   return buildMigrationHardeningReadiness({
     preview: selectedPreview(),
-    draftHistory: historyForAcceptedDraft(),
+    draftHistory: historyForStagedAcceptedDraft(),
     excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded", "Source mutation excluded"]
   });
 }
@@ -67,8 +81,8 @@ describe("migration traceability", () => {
     expect(summary.linkedGoalId).toBe("goal-phase-5-migration-hardening");
     expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(9);
     expect(summary.missingPmTaskIds).toEqual([]);
-    expect(summary.reviewDepthCount).toBe(5);
-    expect(summary.evidenceKeyCount).toBe(5);
+    expect(summary.reviewDepthCount).toBe(6);
+    expect(summary.evidenceKeyCount).toBe(6);
     expect(summary.items.map((item) => item.kind)).toEqual([
       "active-goal",
       "pm-coverage",
@@ -179,7 +193,7 @@ describe("migration traceability", () => {
 
     expect(summary.state).toBe("review");
     expect(summary.canTrustMigrationReview).toBe(false);
-    expect(summary.openReviewRecordCount).toBe(1);
+    expect(summary.openReviewRecordCount).toBe(2);
     expect(summary.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

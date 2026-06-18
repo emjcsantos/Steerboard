@@ -30,6 +30,20 @@ function historyForAcceptedDraft(): MigrationProfileDraftHistoryRecord[] {
   );
 }
 
+function historyForStagedAcceptedDraft(): MigrationProfileDraftHistoryRecord[] {
+  const draft = createMigrationProfileDraft(selectedPreview(), {
+    createdAt: "2026-02-01T00:00:00.000Z"
+  });
+
+  return appendMigrationProfileDraftHistory(
+    [],
+    draft,
+    "apply-review-staged",
+    8,
+    "2026-02-01T00:05:00.000Z"
+  );
+}
+
 function priority({
   preview = buildDefaultMigrationPreview("codex"),
   draftHistory = [],
@@ -126,7 +140,7 @@ describe("migration blocker priority", () => {
     );
     const snapshot = priority({
       preview: selectedPreview(),
-      draftHistory: historyForAcceptedDraft(),
+      draftHistory: historyForStagedAcceptedDraft(),
       excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded", "Source mutation excluded"],
       goals
     });
@@ -140,10 +154,32 @@ describe("migration blocker priority", () => {
     });
   });
 
-  it("reports ready when migration review and traceability are fully ready", () => {
+  it("ranks missing apply-review staging proof ahead of later review-only migration blockers", () => {
     const snapshot = priority({
       preview: selectedPreview(),
       draftHistory: historyForAcceptedDraft(),
+      excludedSecretsSummary: [
+        "Credentials excluded",
+        "Raw transcripts excluded",
+        "Source mutation excluded"
+      ],
+      goals: withCurrentPhase5Goal()
+    });
+
+    expect(snapshot.state).toBe("review");
+    expect(snapshot.topPriorityLabel).toBe("Apply review staging");
+    expect(snapshot.items[0]).toMatchObject({
+      kind: "review-depth",
+      status: "review",
+      severity: "medium"
+    });
+    expect(snapshot.topPriorityAction).toContain("phase5.apply-review-staged-audit");
+  });
+
+  it("reports ready when migration review and traceability are fully ready", () => {
+    const snapshot = priority({
+      preview: selectedPreview(),
+      draftHistory: historyForStagedAcceptedDraft(),
       excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded", "Source mutation excluded"],
       goals: withCurrentPhase5Goal()
     });

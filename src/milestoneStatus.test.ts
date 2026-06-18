@@ -298,10 +298,10 @@ describe("milestone status model", () => {
     expect(migrationCenter?.completionPercent).toBe(30);
     expect(migrationCenter?.current).toBeUndefined();
     expect(migrationCenter?.latestNote).toBe(
-      "Reviewed profile-draft persistence and rollback/audit summaries are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded."
+      "Reviewed profile-draft persistence, local apply-review-staged audit proof, rollback/audit summaries, and owner-visible Phase 5 review-depth checks are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded."
     );
     expect(migrationCenter?.nextStep).toBe(
-      "Keep migration metadata checks owner-reviewed, verify rollback audit coverage, and require explicit apply before changing active profile state."
+      "Run `npm.cmd run test:phase5:owner-visible`, keep migration metadata checks owner-reviewed, verify local apply-review-staged audit proof plus rollback audit coverage, and require explicit apply before changing active profile state."
     );
   });
 
