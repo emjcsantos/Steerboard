@@ -131,7 +131,12 @@ function resolveFreshnessDetail(
     return `${label} has no valid checkedAt timestamp and must be rerun on desktop.`;
   }
 
-  if (evaluatedAtMs - checkedAtMs > maxProofAgeMs) {
+  const proofAgeMs = evaluatedAtMs - checkedAtMs;
+  if (proofAgeMs < 0) {
+    return `${label} proof is dated after the current evaluation timestamp and must be rerun on desktop.`;
+  }
+
+  if (proofAgeMs > maxProofAgeMs) {
     return `${label} proof is stale; rerun the desktop smoke proof before Phase 3 handoff.`;
   }
 
