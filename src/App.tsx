@@ -1311,6 +1311,37 @@ function formatTimestamp(value: string): string {
   });
 }
 
+function phase9RunnerReviewAction(snapshot: Phase9RunnerApprovalSnapshot): {
+  readonly canRecord: boolean;
+  readonly title: string;
+} {
+  const ownerReviewItem = snapshot.items.find(
+    (item) => item.id === "phase-09-desktop-runner-approval:owner-review"
+  );
+  const ownerReviewNextAction = ownerReviewItem?.nextAction.toLowerCase() ?? "";
+  const ownerReviewCanBeRecorded =
+    ownerReviewNextAction.includes("local owner review") ||
+    ownerReviewNextAction.includes("phase 9 runner approval review");
+  const ownerReviewOnlyRemaining =
+    ownerReviewItem !== undefined &&
+    ownerReviewCanBeRecorded &&
+    (ownerReviewItem.status === "waiting" || ownerReviewItem.status === "review") &&
+    snapshot.blockedCount === 0 &&
+    snapshot.reviewCount + snapshot.waitingCount === 1;
+
+  if (ownerReviewOnlyRemaining) {
+    return {
+      canRecord: true,
+      title: "Record a local owner review of the current Phase 9 runner approval evidence."
+    };
+  }
+
+  return {
+    canRecord: false,
+    title: `Phase 9 runner review recording is held: ${snapshot.nextAction}`
+  };
+}
+
 function formatProofFreshnessWindow(valueMs: number): string {
   const dayMs = 24 * 60 * 60 * 1000;
   const days = valueMs / dayMs;
@@ -9513,6 +9544,10 @@ function RightPanel({
     ]
   );
   const recordPhase9RunnerApprovalReview = useCallback(() => {
+    if (!phase9RunnerReviewAction(phase9RunnerApproval).canRecord) {
+      return;
+    }
+
     const record = createPhase9RunnerApprovalRecord(
       phase9RunnerApproval,
       phase8AuditReviewRecord,
@@ -14681,6 +14716,7 @@ export function Phase9RunnerApprovalPanel({
   reviewRecord?: Phase9RunnerApprovalRecord;
   snapshot: Phase9RunnerApprovalSnapshot;
 }) {
+  const runnerReviewAction = phase9RunnerReviewAction(snapshot);
   const depth = buildPhase9RunnerApprovalDepthSummary(snapshot);
   const traceability = buildPhase9RunnerTraceabilitySummary({
     approval: snapshot,
@@ -14757,8 +14793,9 @@ export function Phase9RunnerApprovalPanel({
             aria-label="Phase 9 runner review record actions"
           >
             <button
+              disabled={!runnerReviewAction.canRecord}
               onClick={onRecordRunnerReview}
-              title="Record a local owner review of the current Phase 9 runner approval evidence."
+              title={runnerReviewAction.title}
               type="button"
             >
               <ClipboardList size={13} />

@@ -166,6 +166,24 @@ function readyRunnerApprovalFixture() {
   };
 }
 
+function recordableRunnerApprovalSnapshot(options: {
+  phase8ReviewRecord?: Phase8AuditReviewRecord;
+} = {}) {
+  return runnerApprovalSnapshot({
+    request: permissionRequest({ state: "approved" }),
+    result: desktopResult({
+      requestId: "terminal-permission-1",
+      status: "executed",
+      code: "ok",
+      canExecute: true,
+      summary: "Desktop terminal read-only probe executed through the approved runner contract.",
+      detail: "Executed fixed terminal read-only probe command for audit trail."
+    }),
+    auditRecords: [terminalAuditRecord("approved"), terminalAuditRecord("executed")],
+    phase8ReviewRecord: options.phase8ReviewRecord
+  });
+}
+
 function renderPhase9Proof(options: {
   reviewRecord?: Phase9RunnerApprovalRecord;
   snapshot?: ReturnType<typeof runnerApprovalSnapshot>;
@@ -215,7 +233,37 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("Reviewable");
     expect(html).toContain("Status");
     expect(html).toContain("Runner review");
+    expect(html).toContain(
+      "Phase 9 runner review recording is held: Request owner approval for the fixed terminal read-only probe."
+    );
     expect(html).toContain("no broad terminal, Git, MCP, plugin, automation, runtime, or profile mutation is unlocked");
+  });
+
+  it("enables runner review recording only when owner review is the final held gate", () => {
+    const html = renderPhase9Proof({
+      snapshot: recordableRunnerApprovalSnapshot()
+    });
+
+    expect(html).toContain(
+      '<button title="Record a local owner review of the current Phase 9 runner approval evidence." type="button">'
+    );
+    expect(html).toContain("Owner runner review");
+  });
+
+  it("holds runner review recording when Phase 8 reviewed-blocker proof is incomplete", () => {
+    const html = renderPhase9Proof({
+      snapshot: recordableRunnerApprovalSnapshot({
+        phase8ReviewRecord: {
+          ...readyPhase8ReviewRecord,
+          topBlockerSourceId: undefined
+        }
+      })
+    });
+
+    expect(html).toContain(
+      "Phase 9 runner review recording is held: Re-record the Phase 8 owner audit review with top-blocker source, kind, status, label, action, and audit fingerprint before recording Phase 9 runner approval."
+    );
+    expect(html).toContain("<button disabled=\"\"");
   });
 
   it("renders ready local runner-review state with Phase 8 linkage and rollback evidence", () => {
