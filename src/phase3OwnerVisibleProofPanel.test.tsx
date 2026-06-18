@@ -643,6 +643,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("goal-phase-3-proof-clearance");
     expect(html).toContain("PM Rows");
     expect(html).toContain("11/11");
+    expect(html).toContain("npm.cmd run smoke:phase3");
+    expect(html).toContain("<dt>Covers</dt><dd>3</dd>");
+    expect(html).toContain("<dt>State</dt><dd>Ready</dd>");
     expect(html).toContain(
       "All required Phase 3 Epic, Parent, and Child rows are linked to the current active goal."
     );
