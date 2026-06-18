@@ -15,6 +15,7 @@ export type Phase11ReleaseReadinessItemKind =
   | "phase3-trace"
   | "packaging-lock"
   | "docs-known-limits"
+  | "security-closure"
   | "release-decision";
 
 export interface Phase11ReleaseReadinessItem {
@@ -310,6 +311,34 @@ function docsKnownLimitsItem(
   };
 }
 
+function securityClosureItem(
+  securityFinalReview: SecurityFinalReviewSnapshot
+): Phase11ReleaseReadinessItem {
+  const status =
+    securityFinalReview.state === "blocked"
+      ? "blocked"
+      : securityFinalReview.state === "waiting"
+        ? "waiting"
+        : securityFinalReview.state === "ready" && securityFinalReview.canCloseSecurity
+          ? "ready"
+          : "review";
+
+  return {
+    id: `${SNAPSHOT_ID}:security-closure`,
+    label: "Security closure",
+    kind: "security-closure",
+    status,
+    detail:
+      status === "ready"
+        ? "Final security review is ready and exposes closure capability."
+        : `Security final review is ${securityFinalReview.statusLabel.toLowerCase()}; closure capability is ${securityFinalReview.canCloseSecurity ? "available" : "held"}.`,
+    nextAction:
+      status === "ready"
+        ? "Keep final security closure capability attached before release packaging resumes."
+        : "Attach final security capability evidence before making the release decision."
+  };
+}
+
 function nonReadyState(
   items: readonly Phase11ReleaseReadinessItem[]
 ): Phase11ReleaseReadinessState | undefined {
@@ -497,6 +526,7 @@ export function buildPhase11ReleaseReadinessSnapshot(
   ];
   const items = [
     ...prerequisiteItems,
+    securityClosureItem(input.securityFinalReview),
     releaseDecisionItem(input, prerequisiteItems)
   ];
   const state = resolveState(items);

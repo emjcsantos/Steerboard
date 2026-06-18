@@ -830,7 +830,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-11-owner-packaging",
     title: "Phase 11: Owner Testing and Release Readiness",
-    description: "Prepare owner-facing pass/fail command gates, proof-freshness depth, structured evidence records, fresh checkout instructions, packaging locks, known-limit review, and release-decision proof.",
+    description: "Prepare owner-facing pass/fail command gates, proof-freshness depth, structured evidence records, fresh checkout instructions, packaging locks, known-limit review, final security closure capability, and release-decision proof.",
     completionPercent: 55,
     complexity: "high",
     sourceDocument: "Phase completion map",
@@ -878,7 +878,7 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-11-parent-release-packaging",
         title: "Release Readiness Gate",
-        description: "Keep clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability and handoff proof, packaging lock, docs, known limits, evidence records, and release decision visible while packaging stays paused.",
+        description: "Keep clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability and handoff proof, packaging lock, docs, known limits, evidence records, final security closure capability, and release decision visible while packaging stays paused.",
         completionPercent: 40,
         complexity: "high",
         sourceDocument: "Phase 11 release readiness",
@@ -886,7 +886,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-package-validation",
             title: "Package Lock Validation",
-            description: "Validate packaged-app prerequisites, proof persistence, current active Phase 3 clearance PM traceability and handoff proof, evidence-record inputs, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
+            description: "Validate packaged-app prerequisites, proof persistence, current active Phase 3 clearance PM traceability and handoff proof, evidence-record inputs, final security closure capability, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
             completionPercent: 40,
             complexity: "high",
             sourceDocument: "Release validation"
@@ -894,7 +894,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-traceability",
             title: "Owner Release Traceability",
-            description: "Link Owner Testing command gates, proof freshness depth, current active Phase 3 clearance PM traceability and handoff proof, evidence records, release readiness, required PM rows, and packaging holds before release review can be trusted.",
+            description: "Link Owner Testing command gates, proof freshness depth, current active Phase 3 clearance PM traceability and handoff proof, evidence records, release readiness, final security closure capability, required PM rows, and packaging holds before release review can be trusted.",
             completionPercent: 35,
             complexity: "high",
             sourceDocument: "Phase 11 owner release traceability"
@@ -902,7 +902,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-blocker-priority",
             title: "Owner Release Blocker Priority",
-            description: "Rank exact Phase 11 blockers across owner proof, evidence freshness, release readiness, PM coverage, and packaging hold state before packaging resumes.",
+            description: "Rank exact Phase 11 blockers across owner proof, evidence freshness, release readiness, final security closure capability, PM coverage, and packaging hold state before packaging resumes.",
             completionPercent: 35,
             complexity: "medium",
             sourceDocument: "Phase 11 owner release blocker priority"

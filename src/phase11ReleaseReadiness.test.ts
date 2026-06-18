@@ -195,6 +195,11 @@ describe("phase 11 release readiness", () => {
           nextAction: expect.stringContaining("current active Phase 3 clearance PM traceability")
         }),
         expect.objectContaining({
+          label: "Security closure",
+          status: "ready",
+          detail: expect.stringContaining("closure capability")
+        }),
+        expect.objectContaining({
           label: "Release decision",
           nextAction: expect.stringContaining("current active Phase 3 clearance PM traceability with handoff proof")
         })
@@ -499,8 +504,15 @@ describe("phase 11 release readiness", () => {
 
     expect(result.state).toBe("review");
     expect(result.canRecommendRelease).toBe(false);
+    expect(result.releaseHoldCount).toBe(2);
     expect(result.items).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({
+          label: "Security closure",
+          status: "review",
+          detail: expect.stringContaining("closure capability is held"),
+          nextAction: expect.stringContaining("final security capability evidence")
+        }),
         expect.objectContaining({
           label: "Release decision",
           status: "review",

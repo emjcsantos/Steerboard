@@ -451,6 +451,52 @@ describe("phase 11 owner release blocker priority", () => {
     );
   });
 
+  it("surfaces final security closure as the top release-decision blocker", () => {
+    const result = priority({
+      releaseReadiness: releaseSnapshot({
+        state: "review",
+        canRecommendRelease: false,
+        releaseHoldCount: 1,
+        items: [
+          {
+            id: "phase-11-release-readiness:security-closure",
+            label: "Security closure",
+            kind: "security-closure",
+            status: "review",
+            detail: "Security final review is ready; closure capability is held.",
+            nextAction: "Attach final security capability evidence before making the release decision."
+          },
+          {
+            id: "phase-11-release-readiness:release-decision",
+            label: "Release decision",
+            kind: "release-decision",
+            status: "review",
+            detail: "Security final review is ready, but final security closure capability is still held.",
+            nextAction: "Attach final security capability evidence before making the release decision."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.openBlockerCount).toBe(2);
+    expect(result.topPriorityLabel).toBe("Release decision");
+    expect(result.topPriorityAction).toContain("final security capability evidence");
+    expect(result.ownerReviewCanAddressTopBlocker).toBe(true);
+    expect(result.items[0]).toMatchObject({
+      kind: "release-readiness",
+      label: "Release decision",
+      status: "review",
+      detail: expect.stringContaining("final security closure capability")
+    });
+    expect(result.items[1]).toMatchObject({
+      kind: "release-readiness",
+      label: "Security closure",
+      status: "review",
+      detail: expect.stringContaining("closure capability")
+    });
+  });
+
   it("keeps blocker priority text public-safe", () => {
     const result = priority({
       releaseReadiness: releaseSnapshot({

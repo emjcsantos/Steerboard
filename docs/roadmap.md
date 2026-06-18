@@ -4,7 +4,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 ## Current Pipeline
 
-The current development lane is Phase 3 desktop proof clearance: run the explicit desktop smoke actions, persist their proof rows across reload, continuously reevaluate proof freshness while the app remains open, and verify slash-command plus session-control evidence before advancing broader provider, dispatch, or release work. Phase 4 now includes Provider Readiness catalog-depth rows, Connection Dialog Refresh Safety depth rows, and the Phase 4 Surface Depth panel for metadata-only source coverage, catalog evidence expectations, fresh fingerprint-matched metadata-only refresh proof, surface coverage, setup blockers, capability gaps, preview review, and execution lock tracking. Phase 11 tracks release-readiness decision support for clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability with handoff proof, packaging lock, docs/known limits, and owner release decision while packaging remains paused. The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md).
+The current development lane is Phase 3 desktop proof clearance: run the explicit desktop smoke actions, persist their proof rows across reload, continuously reevaluate proof freshness while the app remains open, and verify slash-command plus session-control evidence before advancing broader provider, dispatch, or release work. Phase 4 now includes Provider Readiness catalog-depth rows, Connection Dialog Refresh Safety depth rows, and the Phase 4 Surface Depth panel for metadata-only source coverage, catalog evidence expectations, fresh fingerprint-matched metadata-only refresh proof, surface coverage, setup blockers, capability gaps, preview review, and execution lock tracking. Phase 11 tracks release-readiness decision support for clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability with handoff proof, packaging lock, docs/known limits, final security closure capability, and owner release decision while packaging remains paused. The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md).
 
 ## Milestone Tracking
 
@@ -130,7 +130,7 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 
 ## Phase 8: Local Execution And Packaging
 
-- Phase 11 release-readiness tracking for clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability with handoff proof, packaging lock, docs/known limits, and final owner release decision while packaging stays paused.
+- Phase 11 release-readiness tracking for clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability with handoff proof, packaging lock, docs/known limits, final security closure capability, and final owner release decision while packaging stays paused.
 - Real session ownership through configured runtimes.
 - Approved launch handoff from local preview into configured runtimes.
 - Desktop bridge permission flow for approved process and workspace access.
