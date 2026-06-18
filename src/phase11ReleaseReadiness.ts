@@ -80,6 +80,8 @@ const STATUS_LABELS: Record<Phase11ReleaseReadinessState, string> = {
 const PHASE3_CLEARANCE_GOAL_ID = "goal-phase-3-proof-clearance";
 const REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS = REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS;
 const MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION = 85;
+const REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS =
+  REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS.join(", ");
 
 function publicText(value: string | undefined, fallback: string): string {
   if (!value || value.trim().length === 0) {
@@ -325,7 +327,7 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status: traceIsTrusted ? "ready" : "review",
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links${incompletePmDetail}; proof freshness ${proofFreshnessDepth.canTrustOwnerProof ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; ${handoffProofDetail}`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}; proof freshness ${proofFreshnessDepth.canTrustOwnerProof ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; ${handoffProofDetail}`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction: traceIsTrusted
       ? "Keep current active Phase 3 clearance PM traceability and ready handoff proof attached before release packaging resumes."

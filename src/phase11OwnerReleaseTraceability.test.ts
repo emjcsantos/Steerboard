@@ -320,6 +320,10 @@ describe("phase 11 owner release traceability", () => {
         })
       ])
     );
+    const phase3Trace = result.items.find((item) => item.kind === "phase3-trace");
+    expect(phase3Trace?.detail).toContain("phase-03-child-blocker-priority");
+    expect(phase3Trace?.detail).toContain("phase-03-child-traceability");
+    expect(phase3Trace?.detail).toContain("phase-03-child-handoff-gate");
   });
 
   it("carries the top blocked owner command row into release traceability", () => {

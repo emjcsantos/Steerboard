@@ -229,6 +229,9 @@ describe("phase 11 release readiness", () => {
       ])
     );
     expect(phase3Trace?.detail).toContain("expected fingerprint current");
+    expect(phase3Trace?.detail).toContain("phase-03-child-blocker-priority");
+    expect(phase3Trace?.detail).toContain("phase-03-child-traceability");
+    expect(phase3Trace?.detail).toContain("phase-03-child-handoff-gate");
     expect(phase3Trace?.detail).toContain("age 600000ms of 86400000ms window");
     expect(result.ariaLabel).toContain("0 holds");
   });

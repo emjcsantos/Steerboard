@@ -68,6 +68,8 @@ const PHASE3_CLEARANCE_GOAL_ID = "goal-phase-3-proof-clearance";
 const PHASE11_PHASE_ID = "phase-11-owner-packaging";
 const REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS = REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS;
 const MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION = 85;
+const REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS =
+  REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS.join(", ");
 const REQUIRED_PM_TASK_IDS = [
   "phase-11-owner-packaging",
   "phase-11-parent-owner-testing",
@@ -385,7 +387,7 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status,
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links${incompletePmDetail}; proof freshness ${proofFreshnessTrusted ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}; proof freshness ${proofFreshnessTrusted ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction:
       status === "ready"
