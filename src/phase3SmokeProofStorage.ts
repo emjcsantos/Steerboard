@@ -13,6 +13,8 @@ import {
 export const PHASE3_SMOKE_PROOF_STORAGE_KEY = "steerboard.phase3.smoke.proofs.v1";
 export const PHASE3_SMOKE_PROOF_STORAGE_PROOF_SOURCE =
   "steerboard.phase3.smoke-proof-storage.v1";
+export const PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE =
+  "steerboard.phase3.smoke-record.v1";
 
 export interface Phase3SmokeProofBundle {
   readonly liveControlSmoke: CodexLiveControlSmokeProof;
@@ -24,6 +26,10 @@ export interface Phase3SmokeProofBundleInput {
   liveControlSmoke?: unknown;
   activeTurnInterruptSmoke?: unknown;
   activeTurnSteerSmoke?: unknown;
+}
+
+export interface Phase3SmokeProofBundleSaveOptions {
+  readonly requireBundleProvenance?: boolean;
 }
 
 export interface Phase3PersistedDesktopProofs {
@@ -118,6 +124,61 @@ export function createPhase3SmokeProofFingerprint(value: unknown): string {
 
 function validCreatedAt(value: unknown): value is string {
   return typeof value === "string" && Number.isFinite(Date.parse(value));
+}
+
+function normalizeCount(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.floor(value)
+    : 0;
+}
+
+function bundleInputRecord(value: unknown): Record<string, unknown> {
+  const record = isRecord(value) ? value : {};
+  return isRecord(record.bundle) ? record.bundle : record;
+}
+
+function rowFingerprintMatches(
+  expected: unknown,
+  rawValue: unknown,
+  normalizedValue: Phase3SmokeProofBundle[keyof Phase3SmokeProofBundle]
+): boolean {
+  return (
+    typeof expected === "string" &&
+    (expected === createPhase3SmokeProofFingerprint(rawValue) ||
+      expected === createPhase3SmokeProofFingerprint(normalizedValue))
+  );
+}
+
+function hasValidBundleProvenance(
+  input: unknown,
+  bundle: Phase3SmokeProofBundle
+): boolean {
+  const record = isRecord(input) ? input : undefined;
+  const rows = bundleInputRecord(input);
+  const rowFingerprints = isRecord(record?.rowFingerprints)
+    ? record.rowFingerprints
+    : undefined;
+
+  return (
+    record?.source === PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE &&
+    typeof record.command === "string" &&
+    record.command.trim().length > 0 &&
+    validCreatedAt(record.createdAt) &&
+    normalizeCount(record.passedTestCount) >= 3 &&
+    normalizeCount(record.failedTestCount) === 0 &&
+    rowFingerprints !== undefined &&
+    rowFingerprintMatches(rowFingerprints.liveControlSmoke, rows.liveControlSmoke, bundle.liveControlSmoke) &&
+    rowFingerprintMatches(
+      rowFingerprints.activeTurnInterruptSmoke,
+      rows.activeTurnInterruptSmoke,
+      bundle.activeTurnInterruptSmoke
+    ) &&
+    rowFingerprintMatches(
+      rowFingerprints.activeTurnSteerSmoke,
+      rows.activeTurnSteerSmoke,
+      bundle.activeTurnSteerSmoke
+    )
+  );
 }
 
 function createPhase3StorageProof(
@@ -254,10 +315,12 @@ export function parseStoredPhase3SmokeProofBundle(
       return getFallbackPhase3SmokeProofBundle();
     }
 
+    const bundle = bundleInputRecord(parsed);
+
     return {
-      liveControlSmoke: normalizeCodexLiveControlSmokeProof(parsed.liveControlSmoke),
-      activeTurnInterruptSmoke: normalizeCodexActiveTurnControlSmokeProof(parsed.activeTurnInterruptSmoke),
-      activeTurnSteerSmoke: normalizeCodexActiveTurnSteerSmokeProof(parsed.activeTurnSteerSmoke)
+      liveControlSmoke: normalizeCodexLiveControlSmokeProof(bundle.liveControlSmoke),
+      activeTurnInterruptSmoke: normalizeCodexActiveTurnControlSmokeProof(bundle.activeTurnInterruptSmoke),
+      activeTurnSteerSmoke: normalizeCodexActiveTurnSteerSmokeProof(bundle.activeTurnSteerSmoke)
     };
   } catch {
     return getFallbackPhase3SmokeProofBundle();
@@ -283,10 +346,11 @@ export function parseStoredPhase3SmokeProofBundleWithStorageProof(
       };
     }
 
+    const bundleInput = bundleInputRecord(parsed);
     const bundle = {
-      liveControlSmoke: normalizeCodexLiveControlSmokeProof(parsed.liveControlSmoke),
-      activeTurnInterruptSmoke: normalizeCodexActiveTurnControlSmokeProof(parsed.activeTurnInterruptSmoke),
-      activeTurnSteerSmoke: normalizeCodexActiveTurnSteerSmokeProof(parsed.activeTurnSteerSmoke)
+      liveControlSmoke: normalizeCodexLiveControlSmokeProof(bundleInput.liveControlSmoke),
+      activeTurnInterruptSmoke: normalizeCodexActiveTurnControlSmokeProof(bundleInput.activeTurnInterruptSmoke),
+      activeTurnSteerSmoke: normalizeCodexActiveTurnSteerSmokeProof(bundleInput.activeTurnSteerSmoke)
     };
 
     return {
@@ -312,7 +376,8 @@ export function loadPhase3SmokeProofBundleWithStorageProof(): Phase3SmokeProofBu
 }
 
 export function savePhase3SmokeProofBundle(
-  bundle: Phase3SmokeProofBundleInput
+  input: unknown,
+  options: Phase3SmokeProofBundleSaveOptions = {}
 ): Phase3SmokeProofBundle {
   const storedSerialized = readFromLocalStorage(PHASE3_SMOKE_PROOF_STORAGE_KEY);
   const storedRaw = (() => {
@@ -325,14 +390,22 @@ export function savePhase3SmokeProofBundle(
   })();
   const storedWithProof = parseStoredPhase3SmokeProofBundleWithStorageProof(storedSerialized);
   const storedBundle = storedWithProof.bundle;
-  const liveControlSmoke = normalizeCodexLiveControlSmokeProof(bundle?.liveControlSmoke);
-  const activeTurnInterruptSmoke = normalizeCodexActiveTurnControlSmokeProof(bundle?.activeTurnInterruptSmoke);
-  const activeTurnSteerSmoke = normalizeCodexActiveTurnSteerSmokeProof(bundle?.activeTurnSteerSmoke);
+  const bundle = bundleInputRecord(input);
+  const liveControlSmoke = normalizeCodexLiveControlSmokeProof(bundle.liveControlSmoke);
+  const activeTurnInterruptSmoke = normalizeCodexActiveTurnControlSmokeProof(bundle.activeTurnInterruptSmoke);
+  const activeTurnSteerSmoke = normalizeCodexActiveTurnSteerSmokeProof(bundle.activeTurnSteerSmoke);
+  const hasTrustedInputProvenance = hasValidBundleProvenance(input, {
+    liveControlSmoke,
+    activeTurnInterruptSmoke,
+    activeTurnSteerSmoke
+  });
+  const canAcceptInputRows =
+    options.requireBundleProvenance !== true || hasTrustedInputProvenance;
   const nextBundle: MutablePhase3SmokeProofBundle = {};
   let acceptedInputRow = false;
   const createdAt = new Date().toISOString();
 
-  if (isPersistableDesktopExecutedProof(liveControlSmoke)) {
+  if (canAcceptInputRows && isPersistableDesktopExecutedProof(liveControlSmoke)) {
     nextBundle.liveControlSmoke = stampStorageProof("liveControlSmoke", liveControlSmoke, createdAt);
     acceptedInputRow = true;
   } else if (storedWithProof.persistedDesktopProofs.liveControlSmoke) {
@@ -343,7 +416,7 @@ export function savePhase3SmokeProofBundle(
     );
   }
 
-  if (isPersistableDesktopExecutedProof(activeTurnInterruptSmoke)) {
+  if (canAcceptInputRows && isPersistableDesktopExecutedProof(activeTurnInterruptSmoke)) {
     nextBundle.activeTurnInterruptSmoke = stampStorageProof(
       "activeTurnInterruptSmoke",
       activeTurnInterruptSmoke,
@@ -358,7 +431,7 @@ export function savePhase3SmokeProofBundle(
     );
   }
 
-  if (isPersistableDesktopExecutedProof(activeTurnSteerSmoke)) {
+  if (canAcceptInputRows && isPersistableDesktopExecutedProof(activeTurnSteerSmoke)) {
     nextBundle.activeTurnSteerSmoke = stampStorageProof(
       "activeTurnSteerSmoke",
       activeTurnSteerSmoke,

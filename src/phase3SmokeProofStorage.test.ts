@@ -6,6 +6,7 @@ import {
   getFallbackPhase3SmokeProofBundle,
   parseStoredPhase3SmokeProofBundle,
   parseStoredPhase3SmokeProofBundleWithStorageProof,
+  PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE,
   PHASE3_SMOKE_PROOF_STORAGE_KEY,
   PHASE3_SMOKE_PROOF_STORAGE_PROOF_SOURCE,
   savePhase3SmokeProofBundle
@@ -107,6 +108,27 @@ function expectStorageProof(
     proofFingerprint: expectedFingerprint
   });
   expect(Date.parse((row.phase3StorageProof as { createdAt: string }).createdAt)).not.toBeNaN();
+}
+
+function createSmokeRecordEnvelope() {
+  return {
+    source: PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE,
+    command: "npm.cmd run smoke:phase3",
+    createdAt: "2026-06-18T07:53:31.684Z",
+    runId: "phase3-smoke-record:2026-06-18T07:53:31.684Z",
+    passedTestCount: 3,
+    failedTestCount: 0,
+    rowFingerprints: {
+      liveControlSmoke: createPhase3SmokeProofFingerprint(desktopLiveControlSmoke),
+      activeTurnInterruptSmoke: createPhase3SmokeProofFingerprint(desktopActiveTurnInterruptSmoke),
+      activeTurnSteerSmoke: createPhase3SmokeProofFingerprint(desktopActiveTurnSteerSmoke)
+    },
+    bundle: {
+      liveControlSmoke: desktopLiveControlSmoke,
+      activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
+      activeTurnSteerSmoke: desktopActiveTurnSteerSmoke
+    }
+  };
 }
 
 describe("phase 3 smoke proof storage", () => {
@@ -320,6 +342,104 @@ describe("phase 3 smoke proof storage", () => {
         ...desktopActiveTurnSteerSmoke,
         checkedAt: "2026-06-05T13:56:40.000Z"
       }
+    });
+  });
+
+  it("storage-attests imported smoke bundles only when smoke-record provenance matches", () => {
+    const store: { value: string | null } = { value: null };
+    const setItem = vi.fn((_key: string, value: string) => {
+      store.value = value;
+    });
+    vi.stubGlobal("window", {
+      localStorage: {
+        setItem,
+        getItem: vi.fn(() => store.value)
+      }
+    });
+
+    const envelope = createSmokeRecordEnvelope();
+    const persistedBundle = savePhase3SmokeProofBundle(envelope, {
+      requireBundleProvenance: true
+    });
+    const loaded = loadPhase3SmokeProofBundleWithStorageProof();
+
+    expect(setItem).toHaveBeenCalledWith(PHASE3_SMOKE_PROOF_STORAGE_KEY, expect.any(String));
+    expect(persistedBundle).toEqual({
+      liveControlSmoke: desktopLiveControlSmoke,
+      activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
+      activeTurnSteerSmoke: {
+        ...desktopActiveTurnSteerSmoke,
+        checkedAt: "2026-06-05T13:56:40.000Z"
+      }
+    });
+    expect(loaded.persistedDesktopProofs).toEqual({
+      liveControlSmoke: true,
+      activeTurnInterruptSmoke: true,
+      activeTurnSteerSmoke: true
+    });
+    expect(parseStoredPhase3SmokeProofBundle(JSON.stringify(envelope))).toEqual({
+      liveControlSmoke: desktopLiveControlSmoke,
+      activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
+      activeTurnSteerSmoke: {
+        ...desktopActiveTurnSteerSmoke,
+        checkedAt: "2026-06-05T13:56:40.000Z"
+      }
+    });
+  });
+
+  it("does not storage-attest raw desktop-shaped imports when provenance is required", () => {
+    const store: { value: string | null } = { value: null };
+    const setItem = vi.fn((_key: string, value: string) => {
+      store.value = value;
+    });
+    vi.stubGlobal("window", {
+      localStorage: {
+        setItem,
+        getItem: vi.fn(() => store.value)
+      }
+    });
+
+    const persistedBundle = savePhase3SmokeProofBundle(
+      {
+        liveControlSmoke: desktopLiveControlSmoke,
+        activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
+        activeTurnSteerSmoke: desktopActiveTurnSteerSmoke
+      },
+      { requireBundleProvenance: true }
+    );
+
+    expect(setItem).not.toHaveBeenCalled();
+    expect(persistedBundle).toEqual(fallbackBundle);
+    expect(loadPhase3SmokeProofBundleWithStorageProof()).toEqual({
+      bundle: fallbackBundle,
+      persistedDesktopProofs: noPersistedDesktopProofs
+    });
+  });
+
+  it("still allows direct in-app desktop smoke saves without import provenance", () => {
+    const store: { value: string | null } = { value: null };
+    const setItem = vi.fn((_key: string, value: string) => {
+      store.value = value;
+    });
+    vi.stubGlobal("window", {
+      localStorage: {
+        setItem,
+        getItem: vi.fn(() => store.value)
+      }
+    });
+
+    const persistedBundle = savePhase3SmokeProofBundle({
+      liveControlSmoke: desktopLiveControlSmoke,
+      activeTurnInterruptSmoke: desktopActiveTurnInterruptSmoke,
+      activeTurnSteerSmoke: desktopActiveTurnSteerSmoke
+    });
+
+    expect(setItem).toHaveBeenCalledWith(PHASE3_SMOKE_PROOF_STORAGE_KEY, expect.any(String));
+    expect(persistedBundle.liveControlSmoke).toEqual(desktopLiveControlSmoke);
+    expect(loadPhase3SmokeProofBundleWithStorageProof().persistedDesktopProofs).toEqual({
+      liveControlSmoke: true,
+      activeTurnInterruptSmoke: true,
+      activeTurnSteerSmoke: true
     });
   });
 

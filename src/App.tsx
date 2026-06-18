@@ -2231,6 +2231,15 @@ export function App() {
     );
   }, []);
   const importPhase3SmokeProofBundle = useCallback((serializedBundle: string) => {
+    let rawBundle: unknown;
+
+    try {
+      rawBundle = JSON.parse(serializedBundle);
+    } catch {
+      setAppNotice("Phase 3 desktop smoke proof artifact could not be imported");
+      return;
+    }
+
     const bundle = parseStoredPhase3SmokeProofBundle(serializedBundle);
     const desktopExecutedRowCount = [
       bundle.liveControlSmoke,
@@ -2243,9 +2252,19 @@ export function App() {
       return;
     }
 
-    savePhase3SmokeProofBundle(bundle);
+    savePhase3SmokeProofBundle(rawBundle, { requireBundleProvenance: true });
     const persistedLoad = loadPhase3SmokeProofBundleWithStorageProof();
     const persistedBundle = persistedLoad.bundle;
+    const persistedRowCount = countPersistedPhase3SmokeProofRows(
+      persistedLoad.persistedDesktopProofs
+    );
+
+    if (persistedRowCount === 0) {
+      setAppNotice(
+        "Phase 3 desktop smoke proof artifact needs smoke-record provenance before storage attestation"
+      );
+      return;
+    }
 
     setCodexLiveControlSmokeProof(persistedBundle.liveControlSmoke);
     setCodexActiveTurnControlSmokeProof(persistedBundle.activeTurnInterruptSmoke);
@@ -2253,9 +2272,6 @@ export function App() {
     setPhase3PersistedDesktopProofs(persistedLoad.persistedDesktopProofs);
     const evaluatedAt = new Date().toISOString();
     setPhase3ProofEvaluationTime(evaluatedAt);
-    const persistedRowCount = countPersistedPhase3SmokeProofRows(
-      persistedLoad.persistedDesktopProofs
-    );
     const importedReadiness = buildPhase3SmokeProofReadiness({
       liveControlSmoke: persistedBundle.liveControlSmoke,
       activeTurnInterruptSmoke: persistedBundle.activeTurnInterruptSmoke,
