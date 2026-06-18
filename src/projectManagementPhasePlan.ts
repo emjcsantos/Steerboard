@@ -581,7 +581,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-07-child-review-depth",
             title: "Dispatch Review Depth",
-            description: "Audit role counts, max attempt limits, handoff task depth, per-role handoff packet integrity, current evidence fingerprint freshness, validation gate depth, and the no-live-worker execution lock for staged PM Run outputs.",
+            description: "Audit visible role counts, max attempt limits, handoff task depth, per-role handoff packet integrity, current evidence fingerprint freshness, validation gate depth, and the no-live-worker execution lock for staged PM Run outputs.",
             completionPercent: 58,
             complexity: "high",
             sourceDocument: "Dispatch review records"

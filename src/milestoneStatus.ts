@@ -55,11 +55,11 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Orchestration model",
     completion: "In progress",
     plan: "Define a consistent model for sequencing cross-cutting tasks and status propagation.",
-    completionPercent: 53,
+    completionPercent: 55,
     latestNote:
-      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for Arena review, with handoff and retry state visible before external dispatch.",
+      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for Arena review, with handoff, retry state, dispatch review records, and owner-visible Phase 7 proof before external dispatch.",
     nextStep:
-      "Connect the role-panel plan preview loop to staged dispatch records while preserving local-first review before live worker session spawning.",
+      "Run `npm.cmd run test:phase7:owner-visible`, keep the dispatch review rows owner-visible, and preserve local-first review before live worker session spawning.",
     tone: "active",
     note:
       "Local runs, task state, role-plan visibility, validation gates, handoff previews, and retry state are modeled before live runtime execution."
@@ -157,14 +157,14 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     target: "Optional project management lane",
     completion: "In progress",
     plan: "Define the optional lane scope while keeping Arena chat primary.",
-    completionPercent: 30,
+    completionPercent: 32,
     latestNote:
-      "Pipeline visibility, explicit orchestrator/implementer/validator/integration role-panel plan previews, dispatch previews, and linked local runs for Arena review are added.",
+      "Pipeline visibility, explicit orchestrator/implementer/validator/integration role-panel plan previews, dispatch previews, linked local runs, and owner-visible Phase 7 dispatch proof are added for Arena review.",
     nextStep:
-      "Keep secondary and connect staged role-panel plan previews to dispatch history, then continue provider readiness work after live chat hardening.",
+      "Keep secondary, run `npm.cmd run test:phase7:owner-visible`, and keep staged dispatch review proof local before live worker session spawning.",
     tone: "active",
     note:
-      "Optional pipeline visibility, role-panel plan previews, dispatch previews, and linked local run state are scaffolded; it remains secondary to Arena chat."
+      "Optional pipeline visibility, role-panel plan previews, dispatch previews, linked local run state, and owner-visible dispatch proof are scaffolded; it remains secondary to Arena chat."
   }
 ];
 

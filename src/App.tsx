@@ -6214,7 +6214,7 @@ function FocusedPanelStatusChip({
   );
 }
 
-function DispatchReviewRecordCard({
+export function DispatchReviewRecordCard({
   record,
   run
 }: {
@@ -6305,7 +6305,11 @@ function DispatchReviewRecordCard({
               title={`${item.detail} ${item.nextAction}`}
             >
               <span>{item.kind}</span>
-              <strong>{item.label}</strong>
+              <div>
+                <strong>{item.label}</strong>
+                <em>{item.detail}</em>
+                <small>{item.nextAction}</small>
+              </div>
               <b>{item.status}</b>
             </li>
           ))}
@@ -6346,7 +6350,11 @@ function DispatchReviewRecordCard({
               title={`${item.detail} ${item.nextAction}`}
             >
               <span>{item.kind}</span>
-              <strong>{item.label}</strong>
+              <div>
+                <strong>{item.label}</strong>
+                <em>{item.detail}</em>
+                <small>{item.nextAction}</small>
+              </div>
               <b>{item.status}</b>
             </li>
           ))}
@@ -6395,7 +6403,11 @@ function DispatchReviewRecordCard({
                 title={`${item.detail} ${item.nextAction}`}
               >
                 <span>#{item.priority}</span>
-                <strong>{item.label}</strong>
+                <div>
+                  <strong>{item.label}</strong>
+                  <em>{item.detail}</em>
+                  <small>{item.nextAction}</small>
+                </div>
                 <b>{item.kind}</b>
               </li>
             ))
@@ -6418,8 +6430,6 @@ function DispatchReviewDepthSummary({
 }: {
   snapshot: Phase7DispatchReviewDepthSnapshot;
 }) {
-  const visibleItems = snapshot.items.slice(0, 5);
-
   return (
     <div
       aria-label={snapshot.ariaLabel}
@@ -6453,14 +6463,18 @@ function DispatchReviewDepthSummary({
         </div>
       </dl>
       <ol className="dispatch-review-depth-list" aria-label="Phase 7 dispatch review depth checks">
-        {visibleItems.map((item) => (
+        {snapshot.items.map((item) => (
           <li
             className={`dispatch-review-depth-item-${item.status}`}
             key={item.id}
             title={`${item.detail} ${item.nextAction}`}
           >
             <span>{item.kind}</span>
-            <strong>{item.label}</strong>
+            <div>
+              <strong>{item.label}</strong>
+              <em>{item.detail}</em>
+              <small>{item.nextAction}</small>
+            </div>
             <b>{item.status}</b>
           </li>
         ))}

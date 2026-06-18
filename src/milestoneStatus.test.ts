@@ -208,13 +208,13 @@ describe("milestone status model", () => {
 
     expect(orchestration?.completion).toBe("In progress");
     expect(orchestration?.tone).toBe("active");
-    expect(orchestration?.completionPercent).toBe(53);
+    expect(orchestration?.completionPercent).toBe(55);
     expect(orchestration?.current).toBeUndefined();
     expect(orchestration?.latestNote).toBe(
-      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for Arena review, with handoff and retry state visible before external dispatch."
+      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for Arena review, with handoff, retry state, dispatch review records, and owner-visible Phase 7 proof before external dispatch."
     );
     expect(orchestration?.nextStep).toBe(
-      "Connect the role-panel plan preview loop to staged dispatch records while preserving local-first review before live worker session spawning."
+      "Run `npm.cmd run test:phase7:owner-visible`, keep the dispatch review rows owner-visible, and preserve local-first review before live worker session spawning."
     );
   });
 
@@ -472,8 +472,9 @@ describe("milestone status model", () => {
 
     expect(pmLane?.completion).toBe("In progress");
     expect(pmLane?.tone).toBe("active");
-    expect(pmLane?.completionPercent).toBe(30);
-    expect(pmLane?.nextStep.toLowerCase()).toContain("staged role-panel plan previews");
+    expect(pmLane?.completionPercent).toBe(32);
+    expect(pmLane?.latestNote.toLowerCase()).toContain("owner-visible phase 7 dispatch proof");
+    expect(pmLane?.nextStep.toLowerCase()).toContain("test:phase7:owner-visible");
   });
 
   it("keeps the public security and privacy architecture doc current and public-safe", () => {

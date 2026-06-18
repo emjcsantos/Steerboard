@@ -212,7 +212,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-07-child-blocker-priority"
     ],
     nextAction:
-      "Use dispatch review records, review-depth checks, per-role handoff packet integrity, current evidence fingerprint matching, integration ownership rows, traceability rows, and the blocker-priority queue to audit role counts, attempt limits, handoff tasks, validation dependencies, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, and live-worker execution locks before any live worker session spawning."
+      "Use dispatch review records, review-depth checks, per-role handoff packet integrity, current evidence fingerprint matching, integration ownership rows, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof to audit role counts, attempt limits, handoff tasks, validation dependencies, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, and live-worker execution locks before any live worker session spawning."
   },
   {
     id: "goal-phase-8-permission-audit",

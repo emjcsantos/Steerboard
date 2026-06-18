@@ -342,6 +342,7 @@ describe("remaining goal plan", () => {
     expect(phase7Goal?.nextAction).toContain("handoff packet integrity");
     expect(phase7Goal?.nextAction).toContain("current evidence fingerprint");
     expect(phase7Goal?.nextAction).toContain("blocker-priority queue");
+    expect(phase7Goal?.nextAction).toContain("owner-visible Phase 7 dispatch proof");
   });
 
   it("keeps the Phase 10 Arena polish target linked to traceability and blocker priority", () => {

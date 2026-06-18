@@ -56,7 +56,7 @@ The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk e
 - Track pipeline state: idea, planned, ready, dispatched, running, validating, blocked, accepted, shipped.
 - Select an Epic, Parent, or Child and stage a structured Arena review package.
 - Show which pipeline item created each staged role-panel plan and which worker tasks would be spawned.
-- Show dispatch review depth, traceability, and blocker-priority records for role coverage, attempt limits, handoff tasks, handoff packet integrity, newest-record evidence freshness, validation gates, integration ownership, exact top blocker, closure boundaries, and the no-live-worker execution lock.
+- Show dispatch review depth, traceability, and blocker-priority records for role coverage, attempt limits, handoff tasks, handoff packet integrity, newest-record evidence freshness, validation gates, integration ownership, exact top blocker, closure boundaries, and the no-live-worker execution lock, with `npm.cmd run test:phase7:owner-visible` covering the visible owner-review proof.
 - Preserve the Arena chat as the source of planning intent when the user does not need structured pipeline management.
 
 ## User Flow
@@ -86,7 +86,7 @@ The Environment panel also includes a Phase 8 Audit Depth panel. It shows risk e
 - Remaining Goals summary for all open targets across Phase 1 through Phase 11.
 - Phase 4 Provider Readiness catalog depth, Connection Dialog Refresh Safety depth, Phase 4 Surface Depth, provider traceability, and provider blocker-priority panels for source coverage, catalog evidence expectations, reload-safe metadata-only refresh proof freshness, current catalog fingerprint match, surface coverage, setup blockers, capability gaps, preview review, PM links, exact top blocker, catalog-smoke relevance, and execution locks before execution is considered.
 - Phase 5 Migration review depth, traceability, and blocker-priority records for apply-intent lock, rollback evidence, draft/audit evidence fingerprints, persisted apply-review staging, fingerprint-matched audit consistency, sensitive exclusions, profile activation lock, exact top blocker, PM child links, and evidence keys.
-- Phase 7 Dispatch review depth, integration ownership, traceability, and blocker-priority checks for role counts, max attempt limits, handoff task depth, per-role handoff packet integrity, current evidence fingerprint matching, validation gate depth, main integration ownership, PM child links, exact top blocker, closure boundaries, no-live-worker lock, and the current-active Phase 7 goal boundary.
+- Phase 7 Dispatch review depth, integration ownership, traceability, and blocker-priority checks for role counts, max attempt limits, handoff task depth, per-role handoff packet integrity, current evidence fingerprint matching, validation gate depth, main integration ownership, PM child links, exact top blocker, closure boundaries, no-live-worker lock, owner-visible `test:phase7:owner-visible` proof, and the current-active Phase 7 goal boundary.
 - Phase 8 Audit Depth, local owner audit-review records, current audit evidence fingerprint checks, risk traceability, and blocker-priority records with disabled-path explanations, evidence requirements, record-specific rollback review, rollback expectations, audit sources, exact top blocker, PM child links, and unique evidence keys before mutation paths grow.
 - Phase 9 Runner Approval depth, local runner-review, traceability, and blocker-priority records for fixed probe selection, owner approval, request preview, validation output, audit record, rollback evidence, unique evidence keys, PM child links, Phase 8 owner-review linkage, exact top blocker, runner-review addressability, and the desktop execution lock.
 - Phase 10 Arena Polish traceability and blocker-priority records for adaptive layout regression, density/readability, keyboard controls, focus state, Arena terminology, acceptance gates, PM child links, exact top blocker, Arena-review addressability, current-active Phase 10 goal state, and the packaging hold.
@@ -161,7 +161,7 @@ Deploying to a configured runtime creates:
 
 - a staged dispatch package,
 - a local mock orchestrator role-panel projection,
-- local dispatch review depth and integration ownership checks,
+- local dispatch review depth and integration ownership checks with visible owner-review proof,
 - a persisted local run-history entry,
 - a traceable link from the selected pipeline item back to matching local run-history entries,
 - a compact linked-run status summary for the selected pipeline item,
