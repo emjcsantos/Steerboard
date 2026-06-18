@@ -860,6 +860,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Provider integration remains held because");
     expect(html).toContain("Owner handoff held");
     expect(html).toContain("Record handoff");
+    expect(html).toContain(
+      "Record gate: Keep exactly one current active remaining goal before Phase 3 handoff can advance."
+    );
     expect(html).not.toContain("Advance ready");
   });
 
@@ -1002,7 +1005,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Active-turn steer desktop smoke proof");
     expect(html).toContain("must be loaded from persisted/imported desktop proof storage");
     expect(html).toContain("Advance held");
-    expect(html).toContain("Phase 3 clearance must be exit-ready before recording handoff");
+    expect(html).toContain("Record gate: Run Live-control smoke from Owner Testing.");
     expect(html).toContain("Record handoff");
   });
 
@@ -1029,6 +1032,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Live control smoke is the next desktop smoke proof blocker in review state.");
     expect(html).toContain("npm.cmd run smoke:phase3 can refresh this blocker.");
     expect(html).toContain("Run npm.cmd run smoke:phase3 locally when desktop session start is available.");
+    expect(html).toContain("Record gate: Run Live-control smoke from Owner Testing.");
     expect(html).toContain("Advance held");
     expect(html).not.toContain("Storage 3/3 attested");
     expect(html).not.toContain("Smoke verified");

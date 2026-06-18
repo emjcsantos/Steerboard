@@ -12930,6 +12930,13 @@ export function OwnerTestingReadinessPanel({
   const visibleChecklistItems = checklist.items.slice(0, 6);
   const catalogRefreshItems = checklist.items.filter((item) => item.id.startsWith("catalog-"));
   const visibleFailureFixtures = failureFixtures.slice(0, 4);
+  const phase3OwnerHandoffRecordGateMessage =
+    phase3ClearancePackage.canExit &&
+    phase3ClearanceTraceabilityPrecondition.canTrustTrace
+      ? "Record owner-reviewed Phase 3 handoff locally."
+      : phase3ClearancePackage.canExit
+        ? phase3ClearanceTraceabilityPrecondition.nextAction
+        : phase3ClearancePackage.nextAction;
   const handlePhase3CommandValidationImport = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.currentTarget.files?.[0];
@@ -13780,14 +13787,7 @@ export function OwnerTestingReadinessPanel({
                   !phase3ClearanceTraceabilityPrecondition.canTrustTrace
                 }
                 onClick={onRecordPhase3OwnerHandoff}
-                title={
-                  phase3ClearancePackage.canExit &&
-                  phase3ClearanceTraceabilityPrecondition.canTrustTrace
-                    ? "Record owner-reviewed Phase 3 handoff locally."
-                    : phase3ClearancePackage.canExit
-                      ? phase3ClearanceTraceabilityPrecondition.nextAction
-                      : "Phase 3 clearance must be exit-ready before recording handoff."
-                }
+                title={phase3OwnerHandoffRecordGateMessage}
                 type="button"
               >
                 Record handoff
@@ -13809,6 +13809,9 @@ export function OwnerTestingReadinessPanel({
                   ? `Recorded ${formatTimestamp(phase3OwnerHandoffRecord.createdAt)}`
                   : "No handoff record"}
               </span>
+              <small title={phase3OwnerHandoffRecordGateMessage}>
+                Record gate: {phase3OwnerHandoffRecordGateMessage}
+              </small>
             </div>
             <div
               className={`owner-testing-phase3-proof-export owner-testing-phase3-proof-export-${phase3ProofExportVerification.state}`}
