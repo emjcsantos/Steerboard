@@ -301,6 +301,46 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
+  it("reviews current Phase 3 trace when handoff is ready but proof freshness is not trusted", () => {
+    const result = trace({
+      ownerCommandCenter: ownerSnapshot({
+        priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
+          trace.goalId === "goal-phase-3-proof-clearance"
+            ? { ...trace, status: "active" }
+            : trace
+        )
+      }),
+      proofFreshnessDepth: proofSnapshot({
+        state: "review",
+        statusLabel: "Review",
+        readiness: 84,
+        canTrustOwnerProof: false,
+        readyCount: 5,
+        reviewCount: 1,
+        openProofCount: 1,
+        nextAction: "Refresh Phase 3 CLI validation before release readiness."
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "phase3-trace",
+          status: "review",
+          detail: expect.stringContaining("proof freshness not trusted"),
+          nextAction: expect.stringContaining("phase-11-proof-freshness-depth")
+        }),
+        expect.objectContaining({
+          kind: "proof-freshness",
+          status: "review",
+          nextAction: "Refresh Phase 3 CLI validation before release readiness."
+        })
+      ])
+    );
+  });
+
   it("reviews when Phase 3 traceability is not current", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({

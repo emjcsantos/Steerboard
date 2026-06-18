@@ -173,6 +173,11 @@ describe("phase 3 clearance package", () => {
       "phase3-exit-gate:slash-execution",
       "phase3-exit-gate:live-control-smoke"
     ]);
+    expect(result.blockers[0]).toMatchObject({
+      detail: "Provider route unavailable.",
+      pmTaskId: "phase-03-child-slash-ready",
+      evidenceKey: "phase3.slash-execution"
+    });
   });
 
   it("promotes the first runnable smoke action as the next owner action", () => {

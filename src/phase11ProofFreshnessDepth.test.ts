@@ -313,6 +313,19 @@ describe("phase 11 proof freshness depth", () => {
         readiness: 15,
         openCount: 1,
         blockerCount: 1,
+        blockers: [
+          {
+            id: "phase3-exit-gate:slash-execution",
+            label: "Slash execution",
+            state: "blocked",
+            detail:
+              "Slash execution storage provenance fingerprint does not match the current evidence payload and must be refreshed from the current panel.",
+            nextAction:
+              "Refresh slash execution evidence from the current Arena panel transcript before Phase 3 can exit.",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
+          }
+        ],
         nextAction:
           "Submit a provider-routed slash command from an Arena panel before Phase 3 can exit."
       })
@@ -322,6 +335,10 @@ describe("phase 11 proof freshness depth", () => {
     expect(result.nextAction).toBe(
       "Submit a provider-routed slash command from an Arena panel before Phase 3 can exit."
     );
+    const clearanceProof = result.items.find((item) => item.label === "Phase 3 clearance proof");
+
+    expect(clearanceProof?.detail).toContain("phase-03-child-slash-ready / phase3.slash-execution");
+    expect(clearanceProof?.detail).toContain("storage provenance fingerprint");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -332,6 +349,45 @@ describe("phase 11 proof freshness depth", () => {
         })
       ])
     );
+  });
+
+  it("keeps Phase 3 clearance proof detail public-safe", () => {
+    const result = snapshot({
+      phase3ClearancePackage: clearance({
+        state: "review",
+        statusLabel: "Needs review",
+        canExit: false,
+        readiness: 65,
+        openCount: 1,
+        reviewCount: 1,
+        blockers: [
+          {
+            id: "phase3-exit-gate:slash-execution",
+            label: "Slash execution",
+            state: "review",
+            detail:
+              "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
+            nextAction:
+              "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
+          }
+        ],
+        nextAction:
+          "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>"
+      })
+    });
+    const clearanceProof = result.items.find((item) => item.label === "Phase 3 clearance proof");
+    const combinedText = [
+      clearanceProof?.detail,
+      clearanceProof?.nextAction
+    ].join(" ");
+
+    expect(combinedText).not.toMatch(/[A-Za-z]:[\\/]/);
+    expect(combinedText).not.toMatch(/[\\/](Users|Projects|Documents|Desktop)[\\/]/i);
+    expect(combinedText).not.toContain("sk-ABCDEF1234567890");
+    expect(combinedText).not.toContain("<");
+    expect(combinedText).not.toContain(">");
   });
 
   it("keeps owner proof waiting until the handoff gate can advance provider integration", () => {

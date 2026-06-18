@@ -13,6 +13,7 @@ export interface Phase3ClearanceBlocker {
   readonly id: string;
   readonly label: string;
   readonly state: Phase3ClearancePackageState;
+  readonly detail?: string;
   readonly nextAction: string;
   readonly pmTaskId: string;
   readonly evidenceKey: string;
@@ -89,6 +90,7 @@ function toBlocker(item: Phase3ExitGateDiagnostic): Phase3ClearanceBlocker {
     id: item.id,
     label: item.label,
     state: item.state,
+    detail: item.detail,
     nextAction: item.nextAction,
     pmTaskId: item.pmTaskId,
     evidenceKey: item.evidenceKey

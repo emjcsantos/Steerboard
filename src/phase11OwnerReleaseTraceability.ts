@@ -287,12 +287,14 @@ function phase3TraceItem(
   const handoffProofReady = proofFreshnessDepth.items.some(
     (item) => item.kind === "handoff-proof" && item.status === "ready"
   );
+  const proofFreshnessTrusted = proofFreshnessDepth.canTrustOwnerProof;
   const traceIsCurrent = phase3Trace?.current === true;
   const traceIsActive = phase3Trace?.status === "active";
   const status: Phase11OwnerReleaseTraceabilityState =
     !phase3Trace ||
     !traceIsCurrent ||
     !traceIsActive ||
+    !proofFreshnessTrusted ||
     !handoffProofReady ||
     missingPmTaskIds.length > 0
       ? "review"
@@ -304,12 +306,12 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status,
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links; proof freshness ${proofFreshnessTrusted ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction:
       status === "ready"
         ? "Keep current active Phase 3 clearance PM traceability and ready handoff proof visible before release readiness is trusted."
-        : `Restore current active Phase 3 clearance PM traceability and ready handoff proof before Phase 11 owner release review can be trusted: ${missingPmTaskIds.join(", ") || (!traceIsCurrent || !traceIsActive ? PHASE3_CLEARANCE_GOAL_ID : "phase-11-proof-freshness-depth:handoff-proof")}.`
+        : `Restore current active Phase 3 clearance PM traceability and trusted handoff proof before Phase 11 owner release review can be trusted: ${missingPmTaskIds.join(", ") || (!traceIsCurrent || !traceIsActive ? PHASE3_CLEARANCE_GOAL_ID : !proofFreshnessTrusted ? "phase-11-proof-freshness-depth" : "phase-11-proof-freshness-depth:handoff-proof")}.`
   };
 }
 

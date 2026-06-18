@@ -129,21 +129,42 @@ function priorityProofItem(
   };
 }
 
+function publicText(value: string | undefined, fallback: string): string {
+  if (!value || value.trim().length === 0) {
+    return fallback;
+  }
+
+  const sanitized = value
+    .replace(/[A-Za-z]:[\\/][^\s]+/g, "local path")
+    .replace(/[\\/](Users|Projects|Documents|Desktop)[\\/][^\s]+/gi, "local path")
+    .replace(/sk-[A-Za-z0-9_-]{12,}/g, "redacted token")
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return sanitized.length > 0 ? sanitized : fallback;
+}
+
 function phase3ClearanceItem(
   phase3ClearancePackage: Phase3ClearancePackage
 ): Phase11ProofFreshnessDepthItem {
   const status = phase3ClearancePackage.canExit ? "ready" : phase3ClearancePackage.state;
+  const topBlocker = phase3ClearancePackage.blockers[0];
+  const blockerDetail = topBlocker
+    ? ` Top blocker: ${publicText(topBlocker.label, "Phase 3 blocker")} (${topBlocker.pmTaskId} / ${topBlocker.evidenceKey}) is ${topBlocker.state}; ${publicText(topBlocker.detail, topBlocker.nextAction)}`
+    : "";
 
   return {
     id: `${SNAPSHOT_ID}:phase3-clearance`,
     label: "Phase 3 clearance proof",
     kind: "phase3-clearance",
     status,
-    detail: `${phase3ClearancePackage.readyCount} ready and ${phase3ClearancePackage.openCount} open Phase 3 clearance rows.`,
+    detail:
+      `${phase3ClearancePackage.readyCount} ready and ${phase3ClearancePackage.openCount} open Phase 3 clearance rows; ${phase3ClearancePackage.reviewCount} review, ${phase3ClearancePackage.blockerCount} blocked, and ${phase3ClearancePackage.waitingCount} waiting.${blockerDetail}`,
     nextAction:
       status === "ready"
         ? "Keep Phase 3 clearance proof attached before owner handoff."
-        : phase3ClearancePackage.nextAction
+        : publicText(phase3ClearancePackage.nextAction, "Resolve Phase 3 clearance proof.")
   };
 }
 
