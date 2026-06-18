@@ -12465,7 +12465,7 @@ function OwnerTestingReadinessPanel({
           </dl>
           <ol
             className="owner-testing-phase3-smoke-readiness"
-            aria-label={`Phase 3 desktop smoke proof readiness ${phase3SmokeProofReadiness.readiness}% ready`}
+            aria-label={`Phase 3 desktop smoke proof readiness ${phase3SmokeProofReadiness.readiness}% ready; ${phase3SmokeProofReadiness.storageAttestedCount} storage-proof attested; ${phase3SmokeProofReadiness.storageReviewCount} storage review`}
           >
             <li className={`owner-testing-phase3-smoke-${phase3SmokeProofReadiness.state}`}>
               <strong>Desktop smoke bundle</strong>
@@ -12473,6 +12473,10 @@ function OwnerTestingReadinessPanel({
               <small title="Current evaluation timestamp and maximum accepted desktop proof age">
                 Evaluated {formatTimestamp(phase3SmokeProofReadiness.evaluatedAt)} | window{" "}
                 {formatProofFreshnessWindow(phase3SmokeProofReadiness.maxProofAgeMs)}
+              </small>
+              <small title="Only storage-proof-attested desktop rows can satisfy Phase 3 exit readiness">
+                Storage {phase3SmokeProofReadiness.storageAttestedCount}/
+                {phase3SmokeProofReadiness.items.length} attested
               </small>
               <small>
                 <button
@@ -12501,7 +12505,8 @@ function OwnerTestingReadinessPanel({
                 <strong>{item.label}</strong>
                 <span>{item.state}</span>
                 <small>
-                  {item.source} | {item.checkedAt}
+                  {item.source} | {item.checkedAt} |{" "}
+                  {item.persisted ? "storage attested" : "storage review"}
                 </small>
               </li>
             ))}

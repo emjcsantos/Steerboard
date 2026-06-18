@@ -48,6 +48,8 @@ describe("phase 3 smoke proof readiness", () => {
     expect(result.items.map((item) => item.state)).toEqual(["ready", "ready", "ready"]);
     expect(result.items.every((item) => item.source === "desktop")).toBe(true);
     expect(result.items.every((item) => item.persisted)).toBe(true);
+    expect(result.storageAttestedCount).toBe(3);
+    expect(result.storageReviewCount).toBe(0);
     expect(result.evaluatedAt).toBe("2026-06-06T00:01:00.000Z");
     expect(result.maxProofAgeMs).toBe(7 * 24 * 60 * 60 * 1000);
   });
@@ -91,6 +93,8 @@ describe("phase 3 smoke proof readiness", () => {
     });
     expect(result.items[0].state).toBe("waiting");
     expect(result.items[2].state).toBe("waiting");
+    expect(result.storageAttestedCount).toBe(1);
+    expect(result.storageReviewCount).toBe(2);
   });
 
   it("returns review for partial executed proofs", () => {
@@ -301,6 +305,8 @@ describe("phase 3 smoke proof readiness", () => {
     });
     expect(result.items.every((item) => item.persisted === false)).toBe(true);
     expect(result.items.every((item) => item.detail.includes("persisted/imported"))).toBe(true);
+    expect(result.storageAttestedCount).toBe(0);
+    expect(result.storageReviewCount).toBe(3);
   });
 
   it("returns review when only one otherwise ready desktop proof is not storage-attested", () => {
@@ -349,6 +355,8 @@ describe("phase 3 smoke proof readiness", () => {
       persisted: false,
       detail: expect.stringContaining("persisted/imported")
     });
+    expect(result.storageAttestedCount).toBe(2);
+    expect(result.storageReviewCount).toBe(1);
   });
 
   it("returns blocked when executed proof is unsupported-after-execution", () => {

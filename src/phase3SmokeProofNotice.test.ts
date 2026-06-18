@@ -57,7 +57,7 @@ describe("phase 3 smoke proof notices", () => {
         ]
       })
     ).toBe(
-      "Phase 3 persisted smoke proof storage has 2 desktop proof rows for review: 1 ready, 1 review, 0 blocked"
+      "Phase 3 persisted smoke proof storage has 2 storage-proof-attested desktop proof rows for review: 1 ready, 1 review, 0 blocked"
     );
   });
 
@@ -68,7 +68,7 @@ describe("phase 3 smoke proof notices", () => {
         readinessItems: [{ persisted: true, state: "review" }]
       })
     ).toBe(
-      "Phase 3 persisted smoke proof storage has 1 desktop proof row for review: 0 ready, 1 review, 0 blocked"
+      "Phase 3 persisted smoke proof storage has 1 storage-proof-attested desktop proof row for review: 0 ready, 1 review, 0 blocked"
     );
   });
 

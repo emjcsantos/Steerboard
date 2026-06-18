@@ -22,6 +22,8 @@ export interface Phase3SmokeProofReadinessResult {
   readonly readiness: number;
   readonly evaluatedAt: string;
   readonly maxProofAgeMs: number;
+  readonly storageAttestedCount: number;
+  readonly storageReviewCount: number;
   readonly items: readonly Phase3SmokeProofReadinessItem[];
   readonly counts: Phase3SmokeProofReadinessCounts;
 }
@@ -422,6 +424,8 @@ export function buildPhase3SmokeProofReadiness(
     readiness: READINESS_BY_STATE[state],
     evaluatedAt: normalizeEvaluatedAt(input.evaluatedAt),
     maxProofAgeMs,
+    storageAttestedCount: items.filter((item) => item.persisted).length,
+    storageReviewCount: items.filter((item) => !item.persisted).length,
     items,
     counts
   };

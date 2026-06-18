@@ -40,10 +40,10 @@ export function buildPhase3PersistedSmokeProofStorageNotice(
   const persistedRowLabel = `desktop proof row${input.persistedRowCount === 1 ? "" : "s"}`;
 
   if (persistedItems.length === 0) {
-    return `Phase 3 persisted smoke proof storage has ${input.persistedRowCount} ${persistedRowLabel} for review`;
+    return `Phase 3 persisted smoke proof storage has ${input.persistedRowCount} storage-proof-attested ${persistedRowLabel} for review`;
   }
 
-  return `Phase 3 persisted smoke proof storage has ${input.persistedRowCount} ${persistedRowLabel} for review: ${readyCount} ready, ${reviewCount} review, ${blockedCount} blocked`;
+  return `Phase 3 persisted smoke proof storage has ${input.persistedRowCount} storage-proof-attested ${persistedRowLabel} for review: ${readyCount} ready, ${reviewCount} review, ${blockedCount} blocked`;
 }
 
 export function countPersistedPhase3SmokeProofRows(input: {
