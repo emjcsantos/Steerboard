@@ -445,6 +445,42 @@ function buildPhase3PropsWithSmokeProofs(input: {
   };
 }
 
+function buildPhase3PropsWithCommandValidationRecord(input: {
+  readonly createdAt?: string;
+  readonly command?: string;
+  readonly evaluatedAt?: string;
+  readonly maxRecordAgeMs?: number;
+}) {
+  const props = buildReadyPhase3Props();
+  const phase3CommandValidationRecord = {
+    ...createPhase3CommandValidationRecord(
+      input.command ?? props.phase3ClearanceCommandPlan.command,
+      input.createdAt ?? "2026-06-18T07:57:30.551Z"
+    ),
+    smokeBundle: smokeBundleProvenance()
+  };
+  const phase3CommandValidationRecordValidation =
+    derivePhase3CommandValidationRecordValidation(phase3CommandValidationRecord, {
+      evaluatedAt: input.evaluatedAt ?? evaluatedAt,
+      expectedCommand: props.phase3ClearanceCommandPlan.command,
+      maxRecordAgeMs: input.maxRecordAgeMs
+    });
+  const phase3ClearanceTraceability = buildPhase3ClearanceTraceability({
+    clearancePackage: props.phase3ClearancePackage,
+    commandPlan: props.phase3ClearanceCommandPlan,
+    commandValidation: phase3CommandValidationRecordValidation,
+    blockerPriority: props.phase3ClearanceBlockerPriority,
+    handoffGate: props.phase3HandoffGate
+  });
+
+  return {
+    ...props,
+    phase3ClearanceTraceability,
+    phase3CommandValidationRecord,
+    phase3CommandValidationRecordValidation
+  };
+}
+
 describe("phase 3 owner-visible proof panel", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -520,6 +556,59 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Owner handoff held");
     expect(html).toContain("Record handoff");
     expect(html).not.toContain("Advance ready");
+  });
+
+  it("keeps stale CLI smoke validation visible without replacing desktop proof or handoff evidence", () => {
+    const props = buildPhase3PropsWithCommandValidationRecord({
+      createdAt: "2026-06-17T07:57:30.551Z",
+      evaluatedAt,
+      maxRecordAgeMs: 60_000
+    });
+    const html = renderOwnerTestingReadinessPanel(props);
+
+    expect(html).toContain("CLI smoke validation recorded");
+    expect(html).toContain("Review; Jun 17");
+    expect(html).toContain("Phase 3 CLI smoke validation record is stale");
+    expect(html).toContain("Rerun npm.cmd run smoke:phase3 manually");
+    expect(html).toContain("Smoke bundle provenance is linked");
+    expect(html).toContain("local_private/phase3-smoke-proof-bundle.json");
+    expect(html).toContain("CLI validation trace");
+    expect(html).toContain("Storage 3/3 attested");
+    expect(html).toContain("Advance ready");
+    expect(html).toContain("Owner handoff current");
+  });
+
+  it("keeps future-dated CLI smoke validation visible as review-only provenance", () => {
+    const props = buildPhase3PropsWithCommandValidationRecord({
+      createdAt: "2026-06-18T08:30:00.000Z",
+      evaluatedAt
+    });
+    const html = renderOwnerTestingReadinessPanel(props);
+
+    expect(html).toContain("CLI smoke validation recorded");
+    expect(html).toContain("Review; Jun 18");
+    expect(html).toContain("Phase 3 CLI smoke validation record is stale");
+    expect(html).toContain("Rerun npm.cmd run smoke:phase3 manually");
+    expect(html).toContain("CLI validation trace");
+    expect(html).toContain("Storage 3/3 attested");
+    expect(html).toContain("Advance ready");
+  });
+
+  it("keeps mismatched CLI smoke validation in review with current command-plan text", () => {
+    const props = buildPhase3PropsWithCommandValidationRecord({
+      command: "npm.cmd run smoke:phase3 --old",
+      evaluatedAt
+    });
+    const html = renderOwnerTestingReadinessPanel(props);
+
+    expect(html).toContain("CLI smoke validation recorded");
+    expect(html).toContain("Phase 3 CLI smoke validation record was captured for a different command");
+    expect(html).toContain(
+      "Clear and record the Phase 3 CLI smoke validation again with the current command plan."
+    );
+    expect(html).toContain("npm.cmd run smoke:phase3");
+    expect(html).toContain("CLI validation trace");
+    expect(html).toContain("Advance ready");
   });
 
   it("keeps stale Phase 3 handoff records visibly in review", () => {
