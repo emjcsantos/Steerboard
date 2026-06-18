@@ -55,6 +55,7 @@ export interface Phase3ExitGateEvidenceInput {
   readonly evaluatedAt?: string | Date;
   readonly maxProofAgeMs?: number;
   readonly maxPanelEvidenceAgeMs?: number;
+  readonly currentPanelId?: string;
 }
 
 const STATE_LABELS: Record<Phase3ExitGateState, string> = {
@@ -200,7 +201,8 @@ function storageProofReviewDetail(
   label: string,
   record: Record<string, unknown>,
   evaluatedAt: string | Date | undefined,
-  maxAgeMs: number
+  maxAgeMs: number,
+  currentPanelId?: string
 ): string | undefined {
   const proof = safeRecord(record.phase3StorageProof);
   if (!proof) {
@@ -209,6 +211,10 @@ function storageProofReviewDetail(
 
   if (proof.source !== PHASE3_PANEL_EVIDENCE_STORAGE_PROOF_SOURCE) {
     return `${label} storage provenance source is not recognized and must be refreshed from the current panel.`;
+  }
+
+  if (currentPanelId && proof.panelId !== currentPanelId) {
+    return `${label} storage provenance belongs to another panel and must be refreshed from the current Arena panel.`;
   }
 
   const evidenceFingerprint = createPhase3PanelEvidenceFingerprint(evidenceWithoutStorageProof(record));
@@ -288,7 +294,8 @@ function countStates(states: readonly Phase3ExitGateState[]): Phase3ExitGateEvid
 function evaluateSlashEvidence(
   input: unknown,
   evaluatedAt: string | Date | undefined,
-  maxAgeMs: number
+  maxAgeMs: number,
+  currentPanelId?: string
 ): {
   state: Phase3ExitGateState;
   pass: boolean;
@@ -317,7 +324,8 @@ function evaluateSlashEvidence(
       PHASE3_GATE_LABELS.slash,
       record,
       evaluatedAt,
-      maxAgeMs
+      maxAgeMs,
+      currentPanelId
     );
 
     return {
@@ -336,7 +344,8 @@ function evaluateSlashEvidence(
 function evaluateSessionControlEvidence(
   input: unknown,
   evaluatedAt: string | Date | undefined,
-  maxAgeMs: number
+  maxAgeMs: number,
+  currentPanelId?: string
 ): {
   state: Phase3ExitGateState;
   pass: boolean;
@@ -365,7 +374,8 @@ function evaluateSessionControlEvidence(
       PHASE3_GATE_LABELS.session,
       record,
       evaluatedAt,
-      maxAgeMs
+      maxAgeMs,
+      currentPanelId
     );
 
     return {
@@ -552,12 +562,14 @@ export function buildPhase3ExitGateEvidence(
   const slashEvidence = evaluateSlashEvidence(
     input.slashEvidence,
     input.evaluatedAt,
-    maxPanelEvidenceAgeMs
+    maxPanelEvidenceAgeMs,
+    input.currentPanelId
   );
   const sessionControlEvidence = evaluateSessionControlEvidence(
     input.sessionControlEvidence,
     input.evaluatedAt,
-    maxPanelEvidenceAgeMs
+    maxPanelEvidenceAgeMs,
+    input.currentPanelId
   );
   const smokeReadiness = buildPhase3SmokeProofReadiness({
     liveControlSmoke: input.liveControlSmoke,

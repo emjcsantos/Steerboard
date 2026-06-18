@@ -120,6 +120,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns ready only when slash/session evidence and all desktop smokes are satisfied", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence(),
@@ -439,6 +440,35 @@ describe("phase 3 exit gate evidence", () => {
       id: "phase3-exit-gate:session-controls",
       state: "review",
       detail: expect.stringContaining("stale")
+    });
+  });
+
+  it("does not trust ready slash or session storage provenance from another panel", () => {
+    const result = buildPhase3ExitGateEvidence({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-2",
+      persistedDesktopProofs,
+      slashEvidence: readySlashEvidence(),
+      sessionControlEvidence: readySessionControlEvidence(),
+      liveControlSmoke: readyLiveControlSmoke(),
+      activeTurnInterruptSmoke: readyInterruptSmoke(),
+      activeTurnSteerSmoke: readySteerSmoke()
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.pass).toBe(false);
+    expect(result.nextAction).toBe(
+      "Refresh slash execution evidence from the current Arena panel transcript before Phase 3 can exit."
+    );
+    expect(result.items[0]).toMatchObject({
+      id: "phase3-exit-gate:slash-execution",
+      state: "review",
+      detail: expect.stringContaining("belongs to another panel")
+    });
+    expect(result.items[1]).toMatchObject({
+      id: "phase3-exit-gate:session-controls",
+      state: "review",
+      detail: expect.stringContaining("belongs to another panel")
     });
   });
 

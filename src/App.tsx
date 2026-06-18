@@ -1993,7 +1993,8 @@ export function App() {
         activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
         activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof,
         persistedDesktopProofs: phase3PersistedDesktopProofs,
-        evaluatedAt: phase3ProofEvaluationTime
+        evaluatedAt: phase3ProofEvaluationTime,
+        currentPanelId: focusedPanelId
       }),
     [
       slashCommandExecutionEvidence,
@@ -2002,7 +2003,8 @@ export function App() {
       codexActiveTurnControlSmokeProof,
       codexActiveTurnSteerSmokeProof,
       phase3PersistedDesktopProofs,
-      phase3ProofEvaluationTime
+      phase3ProofEvaluationTime,
+      focusedPanelId
     ]
   );
   const phase3OwnerTestingActions = useMemo(() => {
