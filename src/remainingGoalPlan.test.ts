@@ -244,6 +244,7 @@ describe("remaining goal plan", () => {
     expect(phase9Goal?.nextAction).toContain("Phase 9 request gate");
     expect(phase9Goal?.nextAction).toContain("current runner evidence fingerprint");
     expect(phase9Goal?.nextAction).toContain("blocker-priority queue");
+    expect(phase9Goal?.nextAction).toContain("owner-visible Phase 9 runner proof");
   });
 
   it("keeps the Phase 5 migration hardening target linked to traceability and review depth", () => {

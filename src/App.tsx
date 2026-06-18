@@ -13404,7 +13404,7 @@ export function Phase8PermissionAuditDepthPanel({
   );
 }
 
-function Phase9RunnerApprovalPanel({
+export function Phase9RunnerApprovalPanel({
   onClearRunnerReview,
   onRecordRunnerReview,
   phase8PermissionAuditDepth,
