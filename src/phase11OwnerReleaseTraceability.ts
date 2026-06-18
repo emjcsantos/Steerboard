@@ -130,6 +130,7 @@ function resolveState(
 function firstNextAction(items: readonly Phase11OwnerReleaseTraceabilityItem[]): string {
   const prioritizedItem = (state: Phase11OwnerReleaseTraceabilityState) =>
     items.find((item) => item.kind === "packaging-hold" && item.status === state) ??
+    items.find((item) => item.kind === "phase3-trace" && item.status === state) ??
     items.find((item) => item.status === state);
 
   return (
@@ -178,7 +179,7 @@ function goalStatus(
   if (goal.status === "paused" || goal.status === "planned") {
     return "waiting";
   }
-  if (goal.status === "active") {
+  if (goal.status === "active" || goal.status === "next") {
     return "review";
   }
   if (!goal.nextAction.trim()) {

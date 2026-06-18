@@ -168,7 +168,7 @@ function releaseSnapshot(
   };
 }
 
-function withReadyPhase11Goals(): RemainingGoalPlanItem[] {
+function withLinkedPhase11Goals(): RemainingGoalPlanItem[] {
   return remainingGoalPlan.map((goal) =>
     goal.id === "goal-phase-11-owner-command-center"
       ? {
@@ -207,17 +207,17 @@ function trace(overrides: Partial<Parameters<typeof buildPhase11OwnerReleaseTrac
     proofFreshnessDepth: proofSnapshot(),
     evidenceRecords: evidenceSnapshot(),
     releaseReadiness: releaseSnapshot(),
-    goals: withReadyPhase11Goals(),
+    goals: withLinkedPhase11Goals(),
     ...overrides
   });
 }
 
 describe("phase 11 owner release traceability", () => {
-  it("trusts the owner release gate when goals, PM rows, proof, evidence, release readiness, and packaging hold are ready", () => {
+  it("holds owner release traceability while Phase 11 goals are still next", () => {
     const result = trace();
 
-    expect(result.state).toBe("ready");
-    expect(result.canTrustOwnerReleaseGate).toBe(true);
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
     expect(result.missingPmTaskIds).toEqual([]);
     expect(result.linkedGoalIds).toEqual([
       "goal-phase-11-owner-command-center",
@@ -234,6 +234,14 @@ describe("phase 11 owner release traceability", () => {
       "release-readiness",
       "packaging-hold"
     ]);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "owner-goal", status: "review" }),
+        expect.objectContaining({ kind: "release-goal", status: "review" }),
+        expect.objectContaining({ kind: "pm-coverage", status: "ready" }),
+        expect.objectContaining({ kind: "packaging-hold", status: "ready" })
+      ])
+    );
   });
 
   it("reviews when current Phase 3 goal traceability is missing from owner proof", () => {
@@ -283,7 +291,7 @@ describe("phase 11 owner release traceability", () => {
   });
 
   it("reports missing traceability and blocker-priority PM coverage", () => {
-    const goals = withReadyPhase11Goals().map((goal) =>
+    const goals = withLinkedPhase11Goals().map((goal) =>
       goal.phaseIds.includes("phase-11-owner-packaging")
         ? {
             ...goal,

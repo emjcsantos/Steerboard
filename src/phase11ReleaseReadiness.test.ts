@@ -143,7 +143,12 @@ describe("phase 11 release readiness", () => {
       expect.arrayContaining([
         expect.objectContaining({
           label: "Owner smoke proof",
-          nextAction: expect.stringContaining("current active goal/PM traceability")
+          status: "ready"
+        }),
+        expect.objectContaining({
+          label: "Current Phase 3 trace",
+          status: "ready",
+          nextAction: expect.stringContaining("current active Phase 3 goal/PM traceability")
         }),
         expect.objectContaining({
           label: "Release decision",
@@ -168,9 +173,42 @@ describe("phase 11 release readiness", () => {
       expect.arrayContaining([
         expect.objectContaining({
           label: "Owner smoke proof",
+          status: "ready"
+        }),
+        expect.objectContaining({
+          label: "Current Phase 3 trace",
           status: "review",
           detail: expect.stringContaining("not visible"),
-          nextAction: expect.stringContaining("current Phase 3 goal/PM traceability")
+          nextAction: expect.stringContaining("current active Phase 3 goal/PM traceability")
+        }),
+        expect.objectContaining({
+          label: "Release decision",
+          status: "review"
+        })
+      ])
+    );
+  });
+
+  it("reviews release readiness when the Phase 3 trace is current but not active", () => {
+    const result = snapshot({
+      ownerCommandCenter: ownerSnapshot({
+        priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
+          trace.goalId === "goal-phase-3-proof-clearance"
+            ? { ...trace, status: "next" }
+            : trace
+        )
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Current Phase 3 trace",
+          status: "review",
+          detail: expect.stringContaining("is next"),
+          nextAction: expect.stringContaining("current active Phase 3 goal/PM traceability")
         }),
         expect.objectContaining({
           label: "Release decision",
@@ -255,6 +293,7 @@ describe("phase 11 release readiness", () => {
         expect.objectContaining({ label: "Clean checkout", status: "waiting" }),
         expect.objectContaining({ label: "Build and test", status: "waiting" }),
         expect.objectContaining({ label: "Owner smoke proof", status: "blocked" }),
+        expect.objectContaining({ label: "Current Phase 3 trace", status: "ready" }),
         expect.objectContaining({ label: "Packaging lock", status: "ready" }),
         expect.objectContaining({ label: "Docs and known limits", status: "review" }),
         expect.objectContaining({ label: "Release decision", status: "blocked" })

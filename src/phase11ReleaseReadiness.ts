@@ -10,6 +10,7 @@ export type Phase11ReleaseReadinessItemKind =
   | "clean-checkout"
   | "build-test"
   | "smoke-proof"
+  | "phase3-trace"
   | "packaging-lock"
   | "docs-known-limits"
   | "release-decision";
@@ -187,28 +188,18 @@ function buildTestItem(
   };
 }
 
-function hasCurrentPhase3ReleaseTrace(
+function currentPhase3ReleaseTrace(
   ownerCommandCenter: Phase11OwnerCommandCenterSnapshot
-): boolean {
-  return ownerCommandCenter.priorityGoalTraces.some(
-    (trace) =>
-      trace.goalId === PHASE3_CLEARANCE_GOAL_ID &&
-      trace.current === true &&
-      REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS.every((taskId) =>
-        trace.pmTaskIds.includes(taskId)
-      )
+): Phase11OwnerCommandCenterSnapshot["priorityGoalTraces"][number] | undefined {
+  return ownerCommandCenter.priorityGoalTraces.find(
+    (trace) => trace.goalId === PHASE3_CLEARANCE_GOAL_ID && trace.current === true
   );
 }
 
 function smokeProofItem(
   ownerCommandCenter: Phase11OwnerCommandCenterSnapshot
 ): Phase11ReleaseReadinessItem {
-  const hasPhase3Trace = hasCurrentPhase3ReleaseTrace(ownerCommandCenter);
-  const status = ownerCommandCenter.canRelease
-    ? hasPhase3Trace
-      ? "ready"
-      : "review"
-    : ownerCommandCenter.state;
+  const status = ownerCommandCenter.canRelease ? "ready" : ownerCommandCenter.state;
 
   return {
     id: `${SNAPSHOT_ID}:smoke-proof`,
@@ -216,19 +207,40 @@ function smokeProofItem(
     kind: "smoke-proof",
     status,
     detail:
-      `Owner command center is ${ownerCommandCenter.statusLabel.toLowerCase()} at ${ownerCommandCenter.readiness}% with ${ownerCommandCenter.blockerCount} blocker${ownerCommandCenter.blockerCount === 1 ? "" : "s"}.` +
-      (hasPhase3Trace
-        ? " Current Phase 3 goal/PM traceability is visible."
-        : " Current Phase 3 goal/PM traceability is not visible."),
+      `Owner command center is ${ownerCommandCenter.statusLabel.toLowerCase()} at ${ownerCommandCenter.readiness}% with ${ownerCommandCenter.blockerCount} blocker${ownerCommandCenter.blockerCount === 1 ? "" : "s"}.`,
     nextAction:
-      ownerCommandCenter.canRelease && !hasPhase3Trace
-        ? "Restore current Phase 3 goal/PM traceability in Owner Testing before release packaging resumes."
-        : ownerCommandCenter.canRelease
-          ? "Keep owner smoke proof fresh with current active goal/PM traceability across reload and while the app remains open before release packaging resumes."
-          : publicText(
-              ownerCommandCenter.nextAction,
-              "Resolve Owner Testing command-center holds before release readiness."
-            )
+      ownerCommandCenter.canRelease
+        ? "Keep owner smoke proof fresh across reload and while the app remains open before release packaging resumes."
+        : publicText(
+            ownerCommandCenter.nextAction,
+            "Resolve Owner Testing command-center holds before release readiness."
+          )
+  };
+}
+
+function phase3TraceItem(
+  ownerCommandCenter: Phase11OwnerCommandCenterSnapshot
+): Phase11ReleaseReadinessItem {
+  const phase3Trace = currentPhase3ReleaseTrace(ownerCommandCenter);
+  const missingPmTaskIds = REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS.filter(
+    (taskId) => !phase3Trace?.pmTaskIds.includes(taskId)
+  );
+  const traceIsTrusted =
+    phase3Trace?.current === true &&
+    phase3Trace.status === "active" &&
+    missingPmTaskIds.length === 0;
+
+  return {
+    id: `${SNAPSHOT_ID}:phase3-trace`,
+    label: "Current Phase 3 trace",
+    kind: "phase3-trace",
+    status: traceIsTrusted ? "ready" : "review",
+    detail: phase3Trace
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links.`
+      : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
+    nextAction: traceIsTrusted
+      ? "Keep current active Phase 3 goal/PM traceability attached before release packaging resumes."
+      : `Restore current active Phase 3 goal/PM traceability before release readiness can recommend release: ${missingPmTaskIds.join(", ") || PHASE3_CLEARANCE_GOAL_ID}.`
   };
 }
 
@@ -456,6 +468,7 @@ export function buildPhase11ReleaseReadinessSnapshot(
     cleanCheckoutItem(input.cleanCheckoutEvidence, input.cleanCheckoutState),
     buildTestItem(input.buildTestEvidence, input.buildTestState),
     smokeProofItem(input.ownerCommandCenter),
+    phase3TraceItem(input.ownerCommandCenter),
     packagingLockItem(input.desktopPackaging, input.securityFinalReview),
     docsKnownLimitsItem(input.docsKnownLimitsEvidence, input.docsKnownLimitsState)
   ];
