@@ -5,6 +5,8 @@ import type { Phase3OwnerTestingAction } from "./phase3OwnerTestingActions";
 
 function buildExitGate(overrides: Partial<Phase3ExitGateEvidence> = {}): Phase3ExitGateEvidence {
   return {
+    currentPanelId: "panel-1",
+    currentPanelLabel: "panel-1",
     state: "ready",
     readiness: 100,
     pass: true,

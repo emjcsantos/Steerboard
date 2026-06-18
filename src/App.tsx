@@ -11946,7 +11946,7 @@ function OwnerTestingReadinessPanel({
           </dl>
         </div>
         <div
-          aria-label={`Phase 3 exit gate ${phase3ExitGateEvidence.statusLabel}; ${phase3ExitGateEvidence.readiness}% ready; ${phase3ExitGateEvidence.pmTaskLinkCount} PM links; ${phase3ExitGateEvidence.evidenceKeyCount} evidence keys`}
+          aria-label={`Phase 3 exit gate ${phase3ExitGateEvidence.statusLabel}; ${phase3ExitGateEvidence.readiness}% ready; current panel ${phase3ExitGateEvidence.currentPanelLabel}; ${phase3ExitGateEvidence.pmTaskLinkCount} PM links; ${phase3ExitGateEvidence.evidenceKeyCount} evidence keys`}
           className={classNames(
             "owner-testing-phase3-gate",
             `owner-testing-phase3-${phase3ExitGateEvidence.state}`
@@ -12455,6 +12455,12 @@ function OwnerTestingReadinessPanel({
             <div>
               <dt>Waiting</dt>
               <dd>{phase3ExitGateEvidence.counts.waiting}</dd>
+            </div>
+            <div>
+              <dt>Panel</dt>
+              <dd title={phase3ExitGateEvidence.currentPanelLabel}>
+                {phase3ExitGateEvidence.currentPanelLabel}
+              </dd>
             </div>
           </dl>
           <ol

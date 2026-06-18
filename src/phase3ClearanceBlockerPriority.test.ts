@@ -248,6 +248,36 @@ describe("phase 3 clearance blocker priority", () => {
     expect(snapshot.topPriorityEvidenceKey).toBe("phase3.active-turn-steer-smoke");
   });
 
+  it("preserves focused-panel blocker detail in the prioritized queue", () => {
+    const snapshot = buildPhase3ClearanceBlockerPriority({
+      clearancePackage: clearancePackage({
+        state: "review",
+        readiness: 65,
+        blockers: [
+          {
+            id: "phase3-exit-gate:slash-execution",
+            label: "Slash execution",
+            state: "review",
+            detail:
+              "Slash execution storage provenance cannot be tied to a current Arena panel and must be refreshed from the focused panel.",
+            nextAction: "Refresh slash execution evidence from the current Arena panel transcript.",
+            pmTaskId: "phase-03-child-slash-ready",
+            evidenceKey: "phase3.slash-execution"
+          }
+        ]
+      }),
+      commandPlan: commandPlan({ canRunCommand: false })
+    });
+
+    expect(snapshot.items[0]).toMatchObject({
+      label: "Slash execution",
+      kind: "slash-evidence",
+      status: "review"
+    });
+    expect(snapshot.items[0].detail).toContain("cannot be tied to a current Arena panel");
+    expect(snapshot.items[0].detail).toContain("focused panel");
+  });
+
   it("returns ready when no Phase 3 blockers remain", () => {
     const snapshot = buildPhase3ClearanceBlockerPriority({
       clearancePackage: clearancePackage({
@@ -279,6 +309,8 @@ describe("phase 3 clearance blocker priority", () => {
             id: "phase3-exit-gate:slash-execution",
             label: "Slash execution",
             state: "blocked",
+            detail:
+              "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
             nextAction:
               "Open C:\\Users\\MJ\\Projects\\ProjectAtlas\\secret.md with token sk-ABCDEF1234567890 <unsafe>",
             pmTaskId: "phase-03-child-slash-ready",

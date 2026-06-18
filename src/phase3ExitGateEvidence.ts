@@ -28,6 +28,8 @@ export interface Phase3ExitGateDiagnostic {
 }
 
 export interface Phase3ExitGateEvidence {
+  readonly currentPanelId?: string;
+  readonly currentPanelLabel: string;
   readonly state: Phase3ExitGateState;
   readonly readiness: number;
   readonly pass: boolean;
@@ -431,6 +433,10 @@ function resolveNextAction(state: Phase3ExitGateState): string {
   return REVIEW_NEXT_ACTION;
 }
 
+function resolveCurrentPanelLabel(currentPanelId: string | undefined): string {
+  return currentPanelId ? currentPanelId : "No focused panel";
+}
+
 function diagnosticLaneRank(item: Phase3ExitGateDiagnostic): number {
   if (item.id === PHASE3_GATE_IDS.slash || item.id === PHASE3_GATE_IDS.session) {
     return 0;
@@ -682,6 +688,8 @@ export function buildPhase3ExitGateEvidence(
   const evidenceKeyCount = new Set(items.map((item) => item.evidenceKey)).size;
 
   return {
+    currentPanelId: input.currentPanelId,
+    currentPanelLabel: resolveCurrentPanelLabel(input.currentPanelId),
     state,
     pass: state === "ready",
     readiness: resolveReadiness(state),

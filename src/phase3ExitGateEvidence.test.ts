@@ -130,6 +130,8 @@ describe("phase 3 exit gate evidence", () => {
     });
 
     expect(result.state).toBe("ready");
+    expect(result.currentPanelId).toBe("panel-1");
+    expect(result.currentPanelLabel).toBe("panel-1");
     expect(result.pass).toBe(true);
     expect(result.readiness).toBe(100);
     expect(result.statusLabel).toBe("Ready");
@@ -438,6 +440,8 @@ describe("phase 3 exit gate evidence", () => {
     });
 
     expect(result.state).toBe("review");
+    expect(result.currentPanelId).toBe("panel-1");
+    expect(result.currentPanelLabel).toBe("panel-1");
     expect(result.pass).toBe(false);
     expect(result.items[0]).toMatchObject({
       id: "phase3-exit-gate:slash-execution",
@@ -464,6 +468,8 @@ describe("phase 3 exit gate evidence", () => {
     });
 
     expect(result.state).toBe("review");
+    expect(result.currentPanelId).toBe("panel-2");
+    expect(result.currentPanelLabel).toBe("panel-2");
     expect(result.pass).toBe(false);
     expect(result.nextAction).toBe(
       "Refresh slash execution evidence from the current Arena panel transcript before Phase 3 can exit."
@@ -492,6 +498,8 @@ describe("phase 3 exit gate evidence", () => {
     });
 
     expect(result.state).toBe("review");
+    expect(result.currentPanelId).toBeUndefined();
+    expect(result.currentPanelLabel).toBe("No focused panel");
     expect(result.pass).toBe(false);
     expect(result.nextAction).toBe(
       "Refresh slash execution evidence from the current Arena panel transcript before Phase 3 can exit."

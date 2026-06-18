@@ -148,7 +148,11 @@ function smokeOrder(blockerId: string): number {
   return 3;
 }
 
-function publicText(value: string, fallback: string): string {
+function publicText(value: string | undefined, fallback: string): string {
+  if (!value || value.trim().length === 0) {
+    return fallback;
+  }
+
   const sanitized = value
     .replace(/[A-Za-z]:[\\/][^\s]+/g, "local path")
     .replace(/[\\/](Users|Projects|Documents|Desktop)[\\/][^\s]+/gi, "local path")
@@ -183,8 +187,10 @@ function buildDetail(
   const commandText = commandAddressable
     ? ` ${SMOKE_COMMAND} can refresh this blocker.`
     : "";
+  const blockerDetail = publicText(blocker.detail, "");
+  const blockerDetailText = blockerDetail ? ` Detail: ${blockerDetail}` : "";
 
-  return `${blocker.label} is the next ${category} blocker in ${blocker.state} state.${commandText}`;
+  return `${blocker.label} is the next ${category} blocker in ${blocker.state} state.${blockerDetailText}${commandText}`;
 }
 
 function resolveState(
