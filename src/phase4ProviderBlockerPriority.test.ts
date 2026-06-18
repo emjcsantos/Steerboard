@@ -24,6 +24,12 @@ import {
   derivePhase4ProviderRollbackRecordValidation,
   type Phase4ProviderRollbackRecordValidation
 } from "./phase4ProviderRollbackRecord";
+import {
+  createPhase4ProviderPermissionRecord,
+  derivePhase4ProviderPermissionRecordValidation,
+  EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES,
+  type Phase4ProviderPermissionRecordValidation
+} from "./phase4ProviderPermissionRecord";
 import { buildPhase4ProviderBlockerPriority } from "./phase4ProviderBlockerPriority";
 import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
@@ -33,6 +39,7 @@ import {
   type Phase4RefreshSafetyDepthSummary
 } from "./phase4RefreshSafetyDepth";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
+import { remainingGoalPlan } from "./remainingGoalPlan";
 
 const surfaces: readonly CatalogSurface[] = [
   "command",
@@ -118,13 +125,17 @@ function priority({
   smoke = CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW,
   approvalValidation,
   auditValidation,
-  rollbackValidation
+  permissionValidation,
+  rollbackValidation,
+  goals
 }: {
   approvalValidation?: Phase4ProviderApprovalRecordValidation;
   auditValidation?: Phase4ProviderAuditRecordValidation;
+  permissionValidation?: Phase4ProviderPermissionRecordValidation;
   rollbackValidation?: Phase4ProviderRollbackRecordValidation;
   validation?: CatalogRefreshOwnerValidationResult;
   smoke?: ReturnType<typeof buildCatalogRefreshProviderSmoke>;
+  goals?: typeof remainingGoalPlan;
 } = {}) {
   const readiness = buildProviderIntegrationReadiness(validation);
   const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
@@ -133,12 +144,14 @@ function priority({
     readiness,
     approvalValidation,
     auditValidation,
-    rollbackValidation
+    rollbackValidation,
+    permissionValidation
   );
   const traceability = buildPhase4ProviderTraceabilitySummary({
     catalogDepth,
     refreshSafety,
-    surfaceDepth
+    surfaceDepth,
+    goals
   });
 
   return buildPhase4ProviderBlockerPriority({
@@ -219,6 +232,55 @@ function readyRollbackValidation(
     expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
     options: { evaluatedAt: "2026-06-18T10:25:00.000Z" }
   });
+}
+
+function readyRollbackRecord() {
+  return createPhase4ProviderRollbackRecord({
+    approvalRecord: readyApprovalRecord,
+    auditRecord: readyAuditRecord(),
+    catalogFingerprint: "phase4-catalog-current",
+    createdAt: "2026-06-18T10:20:00.000Z",
+    surfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current"
+  });
+}
+
+function readyPermissionValidation(
+  rollbackValidation = readyRollbackValidation()
+): Phase4ProviderPermissionRecordValidation {
+  const auditRecord = readyAuditRecord();
+  const rollbackRecord = readyRollbackRecord();
+  const record = createPhase4ProviderPermissionRecord({
+    approvalRecord: readyApprovalRecord,
+    auditRecord,
+    rollbackRecord,
+    catalogFingerprint: "phase4-catalog-current",
+    createdAt: "2026-06-18T10:30:00.000Z",
+    surfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
+    permissionEvidenceFingerprint: "phase4-provider-permission-current",
+    providerSurfaceScopes: EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
+  });
+
+  return derivePhase4ProviderPermissionRecordValidation({
+    record,
+    auditRecord,
+    approvalRecord: readyApprovalRecord,
+    rollbackRecord,
+    rollbackValidation,
+    expectedCatalogFingerprint: "phase4-catalog-current",
+    expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
+    expectedPermissionEvidenceFingerprint: "phase4-provider-permission-current",
+    options: { evaluatedAt: "2026-06-18T10:35:00.000Z" }
+  });
+}
+
+function withCurrentActivePhase4Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-4-provider-surfaces"
+      ? { ...goal, current: true, status: "active" as const }
+      : goal.current
+        ? { ...goal, current: false, status: "next" as const }
+        : goal
+  );
 }
 
 describe("phase 4 provider blocker priority", () => {
@@ -389,6 +451,34 @@ describe("phase 4 provider blocker priority", () => {
       expect.arrayContaining([
         expect.objectContaining({
           label: "Rollback gate",
+          status: "preview"
+        })
+      ])
+    );
+  });
+
+  it("clears open provider blockers after current permission evidence is attached and Phase 4 is active", () => {
+    const approvalValidation = readyApprovalValidation();
+    const auditValidation = readyAuditValidation(approvalValidation);
+    const rollbackValidation = readyRollbackValidation(auditValidation);
+    const snapshot = priority({
+      approvalValidation,
+      auditValidation,
+      rollbackValidation,
+      permissionValidation: readyPermissionValidation(rollbackValidation),
+      validation: validationFixture(),
+      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads),
+      goals: withCurrentActivePhase4Goal()
+    });
+
+    expect(snapshot.state).toBe("ready");
+    expect(snapshot.openBlockerCount).toBe(0);
+    expect(snapshot.topPriorityLabel).toBe("No open Phase 4 provider blocker");
+    expect(snapshot.catalogSmokeCanAddressTopBlocker).toBe(false);
+    expect(snapshot.items).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Permission gate",
           status: "preview"
         })
       ])

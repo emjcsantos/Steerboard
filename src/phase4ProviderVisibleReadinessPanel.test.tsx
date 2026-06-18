@@ -22,6 +22,11 @@ import {
   createPhase4ProviderRollbackRecord,
   derivePhase4ProviderRollbackRecordValidation
 } from "./phase4ProviderRollbackRecord";
+import {
+  createPhase4ProviderPermissionRecord,
+  derivePhase4ProviderPermissionRecordValidation,
+  EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
+} from "./phase4ProviderPermissionRecord";
 import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
 import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
@@ -159,11 +164,33 @@ describe("phase 4 provider visible readiness panel", () => {
       expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
       options: { evaluatedAt: "2026-06-18T10:25:00.000Z" }
     });
+    const permissionRecord = createPhase4ProviderPermissionRecord({
+      approvalRecord: record,
+      auditRecord,
+      rollbackRecord,
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:30:00.000Z",
+      surfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
+      permissionEvidenceFingerprint: "phase4-provider-permission-current",
+      providerSurfaceScopes: EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
+    });
+    const permissionValidation = derivePhase4ProviderPermissionRecordValidation({
+      record: permissionRecord,
+      approvalRecord: record,
+      auditRecord,
+      rollbackRecord,
+      rollbackValidation,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
+      expectedPermissionEvidenceFingerprint: "phase4-provider-permission-current",
+      options: { evaluatedAt: "2026-06-18T10:35:00.000Z" }
+    });
     const surfaceDepth = buildPhase4ProviderSurfaceDepth(
       readiness,
       approvalValidation,
       auditValidation,
-      rollbackValidation
+      rollbackValidation,
+      permissionValidation
     );
     const html = renderToStaticMarkup(
       <Phase4ProviderSurfaceDepthPanel
@@ -172,10 +199,14 @@ describe("phase 4 provider visible readiness panel", () => {
         auditValidation={auditValidation}
         onClearApproval={() => undefined}
         onClearAudit={() => undefined}
+        onClearPermission={() => undefined}
         onClearRollback={() => undefined}
         onRecordApproval={() => undefined}
         onRecordAudit={() => undefined}
+        onRecordPermission={() => undefined}
         onRecordRollback={() => undefined}
+        permissionRecord={permissionRecord}
+        permissionValidation={permissionValidation}
         record={record}
         rollbackRecord={rollbackRecord}
         rollbackValidation={rollbackValidation}
@@ -187,15 +218,20 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("Approval record");
     expect(html).toContain("Audit record");
     expect(html).toContain("Rollback record");
+    expect(html).toContain("Permission record");
     expect(html).toContain("Record approval");
     expect(html).toContain("Clear approval");
     expect(html).toContain("Record audit");
     expect(html).toContain("Clear audit");
     expect(html).toContain("Record rollback");
     expect(html).toContain("Clear rollback");
+    expect(html).toContain("Record permission");
+    expect(html).toContain("Clear permission");
     expect(html).toContain("phase-04-surface-depth:approval-gate");
     expect(html).toContain("phase-04-surface-depth:audit-gate");
     expect(html).toContain("phase-04-surface-depth:rollback-gate");
+    expect(html).toContain("phase-04-surface-depth:permission-gate");
+    expect(html).toContain("phase4-provider-permission-current");
     expect(html).toContain("Permission gate");
     expect(html).toContain("Execution lock");
     expect(html).toContain("does not execute commands");

@@ -17,6 +17,11 @@ import {
   createPhase4ProviderRollbackRecord,
   derivePhase4ProviderRollbackRecordValidation
 } from "./phase4ProviderRollbackRecord";
+import {
+  createPhase4ProviderPermissionRecord,
+  derivePhase4ProviderPermissionRecordValidation,
+  EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
+} from "./phase4ProviderPermissionRecord";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
 import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
@@ -278,6 +283,92 @@ describe("phase 4 provider surface depth", () => {
           detail: expect.stringContaining("matches the current approval record")
         }),
         expect.objectContaining({ label: "Permission gate", status: "preview" }),
+        expect.objectContaining({ label: "Execution lock", status: "ready" })
+      ])
+    );
+  });
+
+  it("marks permission ready while provider execution remains explicitly locked", () => {
+    const readiness = buildProviderIntegrationReadiness(validationFixture());
+    const approvalRecord = createPhase4ProviderApprovalRecord({
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:00:00.000Z"
+    });
+    const approvalValidation = derivePhase4ProviderApprovalRecordValidation({
+      record: approvalRecord,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      refreshSafety: readyRefreshSafety,
+      options: { evaluatedAt: "2026-06-18T10:05:00.000Z" }
+    });
+    const auditRecord = createPhase4ProviderAuditRecord({
+      approvalRecord,
+      auditEvidenceFingerprint: "phase4-provider-audit-current",
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:10:00.000Z"
+    });
+    const auditValidation = derivePhase4ProviderAuditRecordValidation({
+      record: auditRecord,
+      approvalRecord,
+      approvalValidation,
+      expectedAuditEvidenceFingerprint: "phase4-provider-audit-current",
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      options: { evaluatedAt: "2026-06-18T10:15:00.000Z" }
+    });
+    const rollbackRecord = createPhase4ProviderRollbackRecord({
+      approvalRecord,
+      auditRecord,
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:20:00.000Z",
+      surfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current"
+    });
+    const rollbackValidation = derivePhase4ProviderRollbackRecordValidation({
+      record: rollbackRecord,
+      approvalRecord,
+      auditRecord,
+      auditValidation,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
+      options: { evaluatedAt: "2026-06-18T10:25:00.000Z" }
+    });
+    const permissionRecord = createPhase4ProviderPermissionRecord({
+      approvalRecord,
+      auditRecord,
+      rollbackRecord,
+      catalogFingerprint: "phase4-catalog-current",
+      createdAt: "2026-06-18T10:30:00.000Z",
+      surfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
+      permissionEvidenceFingerprint: "phase4-provider-permission-current",
+      providerSurfaceScopes: EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
+    });
+    const permissionValidation = derivePhase4ProviderPermissionRecordValidation({
+      record: permissionRecord,
+      approvalRecord,
+      auditRecord,
+      rollbackRecord,
+      rollbackValidation,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
+      expectedPermissionEvidenceFingerprint: "phase4-provider-permission-current",
+      options: { evaluatedAt: "2026-06-18T10:35:00.000Z" }
+    });
+    const depth = buildPhase4ProviderSurfaceDepth(
+      readiness,
+      approvalValidation,
+      auditValidation,
+      rollbackValidation,
+      permissionValidation
+    );
+
+    expect(depth.state).toBe("ready");
+    expect(depth.readiness).toBe(100);
+    expect(depth.canEnableExecution).toBe(false);
+    expect(depth.previewCount).toBe(0);
+    expect(depth.attentionCount).toBe(0);
+    expect(depth.nextSurfaceLabel).toBe("Execution lock");
+    expect(depth.nextAction).toContain("provider execution locked");
+    expect(depth.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Permission gate", status: "ready" }),
         expect.objectContaining({ label: "Execution lock", status: "ready" })
       ])
     );

@@ -120,6 +120,16 @@ import {
   type Phase4ProviderRollbackRecordValidation
 } from "./phase4ProviderRollbackRecord";
 import {
+  buildPhase4ProviderPermissionEvidenceFingerprint,
+  clearPhase4ProviderPermissionRecord,
+  createPhase4ProviderPermissionRecord,
+  derivePhase4ProviderPermissionRecordValidation,
+  loadPhase4ProviderPermissionRecord,
+  savePhase4ProviderPermissionRecord,
+  type Phase4ProviderPermissionRecord,
+  type Phase4ProviderPermissionRecordValidation
+} from "./phase4ProviderPermissionRecord";
+import {
   buildPhase4ProviderCatalogDepth,
   type Phase4ProviderCatalogDepthSummary
 } from "./phase4ProviderCatalogDepth";
@@ -1781,6 +1791,10 @@ export function App() {
     useState<Phase4ProviderRollbackRecord | undefined>(() =>
       loadPhase4ProviderRollbackRecord()
     );
+  const [phase4ProviderPermissionRecord, setPhase4ProviderPermissionRecord] =
+    useState<Phase4ProviderPermissionRecord | undefined>(() =>
+      loadPhase4ProviderPermissionRecord()
+    );
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
@@ -2042,7 +2056,7 @@ export function App() {
       phase4ProviderRollbackRecord
     ]
   );
-  const phase4ProviderSurfaceDepth = useMemo(
+  const phase4ProviderRollbackSurfaceDepth = useMemo(
     () =>
       buildPhase4ProviderSurfaceDepth(
         providerIntegrationReadiness,
@@ -2053,6 +2067,57 @@ export function App() {
     [
       phase4ProviderApprovalValidation,
       phase4ProviderAuditValidation,
+      phase4ProviderRollbackValidation,
+      providerIntegrationReadiness
+    ]
+  );
+  const phase4ProviderPermissionEvidenceFingerprint = useMemo(
+    () =>
+      buildPhase4ProviderPermissionEvidenceFingerprint(
+        phase4ProviderRollbackSurfaceDepth
+      ),
+    [phase4ProviderRollbackSurfaceDepth]
+  );
+  const phase4ProviderPermissionValidation = useMemo(
+    () =>
+      derivePhase4ProviderPermissionRecordValidation({
+        record: phase4ProviderPermissionRecord,
+        approvalRecord: phase4ProviderApprovalRecord,
+        auditRecord: phase4ProviderAuditRecord,
+        rollbackRecord: phase4ProviderRollbackRecord,
+        rollbackValidation: phase4ProviderRollbackValidation,
+        expectedCatalogFingerprint: phase4CurrentCatalogFingerprint,
+        expectedSurfaceDepthEvidenceFingerprint:
+          phase4ProviderRollbackEvidenceFingerprint,
+        expectedPermissionEvidenceFingerprint:
+          phase4ProviderPermissionEvidenceFingerprint,
+        options: { evaluatedAt: phase4CatalogProofEvaluationTime }
+      }),
+    [
+      phase4CatalogProofEvaluationTime,
+      phase4CurrentCatalogFingerprint,
+      phase4ProviderApprovalRecord,
+      phase4ProviderAuditRecord,
+      phase4ProviderPermissionEvidenceFingerprint,
+      phase4ProviderPermissionRecord,
+      phase4ProviderRollbackEvidenceFingerprint,
+      phase4ProviderRollbackRecord,
+      phase4ProviderRollbackValidation
+    ]
+  );
+  const phase4ProviderSurfaceDepth = useMemo(
+    () =>
+      buildPhase4ProviderSurfaceDepth(
+        providerIntegrationReadiness,
+        phase4ProviderApprovalValidation,
+        phase4ProviderAuditValidation,
+        phase4ProviderRollbackValidation,
+        phase4ProviderPermissionValidation
+      ),
+    [
+      phase4ProviderApprovalValidation,
+      phase4ProviderAuditValidation,
+      phase4ProviderPermissionValidation,
       phase4ProviderRollbackValidation,
       providerIntegrationReadiness
     ]
@@ -2102,9 +2167,11 @@ export function App() {
     clearPhase4ProviderApprovalRecord();
     clearPhase4ProviderAuditRecord();
     clearPhase4ProviderRollbackRecord();
+    clearPhase4ProviderPermissionRecord();
     setPhase4ProviderApprovalRecord(undefined);
     setPhase4ProviderAuditRecord(undefined);
     setPhase4ProviderRollbackRecord(undefined);
+    setPhase4ProviderPermissionRecord(undefined);
     setAppNotice("Phase 4 provider approval record cleared");
   }, []);
   const recordPhase4ProviderAudit = useCallback(() => {
@@ -2134,8 +2201,10 @@ export function App() {
   const clearPhase4ProviderAudit = useCallback(() => {
     clearPhase4ProviderAuditRecord();
     clearPhase4ProviderRollbackRecord();
+    clearPhase4ProviderPermissionRecord();
     setPhase4ProviderAuditRecord(undefined);
     setPhase4ProviderRollbackRecord(undefined);
+    setPhase4ProviderPermissionRecord(undefined);
     setAppNotice("Phase 4 provider audit record cleared");
   }, []);
   const recordPhase4ProviderRollback = useCallback(() => {
@@ -2170,8 +2239,54 @@ export function App() {
   ]);
   const clearPhase4ProviderRollback = useCallback(() => {
     clearPhase4ProviderRollbackRecord();
+    clearPhase4ProviderPermissionRecord();
     setPhase4ProviderRollbackRecord(undefined);
+    setPhase4ProviderPermissionRecord(undefined);
     setAppNotice("Phase 4 provider rollback record cleared");
+  }, []);
+  const recordPhase4ProviderPermission = useCallback(() => {
+    if (
+      phase4ProviderRollbackValidation.state !== "ready" ||
+      !phase4ProviderRollbackRecord ||
+      !phase4ProviderAuditRecord ||
+      !phase4ProviderApprovalRecord
+    ) {
+      setAppNotice(phase4ProviderRollbackValidation.nextAction);
+      return;
+    }
+
+    const createdAt = new Date().toISOString();
+    const record = createPhase4ProviderPermissionRecord({
+      approvalRecord: phase4ProviderApprovalRecord,
+      auditRecord: phase4ProviderAuditRecord,
+      rollbackRecord: phase4ProviderRollbackRecord,
+      catalogFingerprint: phase4CurrentCatalogFingerprint,
+      createdAt,
+      surfaceDepthEvidenceFingerprint: phase4ProviderRollbackEvidenceFingerprint,
+      permissionEvidenceFingerprint: phase4ProviderPermissionEvidenceFingerprint,
+      providerSurfaceScopes: providerIntegrationReadiness.surfaces.map(
+        (surface) => surface.surface
+      )
+    });
+
+    setPhase4CatalogProofEvaluationTime(createdAt);
+    savePhase4ProviderPermissionRecord(record);
+    setPhase4ProviderPermissionRecord(record);
+    setAppNotice("Phase 4 provider permission review recorded locally");
+  }, [
+    phase4CurrentCatalogFingerprint,
+    phase4ProviderApprovalRecord,
+    phase4ProviderAuditRecord,
+    phase4ProviderPermissionEvidenceFingerprint,
+    phase4ProviderRollbackEvidenceFingerprint,
+    phase4ProviderRollbackRecord,
+    phase4ProviderRollbackValidation,
+    providerIntegrationReadiness.surfaces
+  ]);
+  const clearPhase4ProviderPermission = useCallback(() => {
+    clearPhase4ProviderPermissionRecord();
+    setPhase4ProviderPermissionRecord(undefined);
+    setAppNotice("Phase 4 provider permission record cleared");
   }, []);
   const slashCommandExecutionEvidence = useMemo(() => {
     return selectPhase3SlashCommandEvidence(
@@ -4191,6 +4306,8 @@ export function App() {
             phase4ProviderAuditValidation={phase4ProviderAuditValidation}
             phase4ProviderRollbackRecord={phase4ProviderRollbackRecord}
             phase4ProviderRollbackValidation={phase4ProviderRollbackValidation}
+            phase4ProviderPermissionRecord={phase4ProviderPermissionRecord}
+            phase4ProviderPermissionValidation={phase4ProviderPermissionValidation}
             phase4ProviderTraceability={phase4ProviderTraceability}
             phase4ProviderSurfaceDepth={phase4ProviderSurfaceDepth}
             providerIntegrationReadiness={providerIntegrationReadiness}
@@ -4233,6 +4350,8 @@ export function App() {
             onClearPhase4ProviderAudit={clearPhase4ProviderAudit}
             onRecordPhase4ProviderRollback={recordPhase4ProviderRollback}
             onClearPhase4ProviderRollback={clearPhase4ProviderRollback}
+            onRecordPhase4ProviderPermission={recordPhase4ProviderPermission}
+            onClearPhase4ProviderPermission={clearPhase4ProviderPermission}
             codexCanStartSession={codexTransportDecision.canStartSession}
             codexLiveSmokeLoading={codexLiveSmokeLoading}
             codexTwoPanelSmokeLoading={codexTwoPanelSmokeLoading}
@@ -7578,10 +7697,14 @@ export function Phase4ProviderSurfaceDepthPanel({
   auditValidation,
   onClearApproval,
   onClearAudit,
+  onClearPermission,
   onClearRollback,
   onRecordApproval,
   onRecordAudit,
+  onRecordPermission,
   onRecordRollback,
+  permissionRecord,
+  permissionValidation,
   record,
   rollbackRecord,
   rollbackValidation,
@@ -7592,10 +7715,14 @@ export function Phase4ProviderSurfaceDepthPanel({
   auditValidation?: Phase4ProviderAuditRecordValidation;
   onClearApproval?: () => void;
   onClearAudit?: () => void;
+  onClearPermission?: () => void;
   onClearRollback?: () => void;
   onRecordApproval?: () => void;
   onRecordAudit?: () => void;
+  onRecordPermission?: () => void;
   onRecordRollback?: () => void;
+  permissionRecord?: Phase4ProviderPermissionRecord;
+  permissionValidation?: Phase4ProviderPermissionRecordValidation;
   record?: Phase4ProviderApprovalRecord;
   rollbackRecord?: Phase4ProviderRollbackRecord;
   rollbackValidation?: Phase4ProviderRollbackRecordValidation;
@@ -7683,6 +7810,29 @@ export function Phase4ProviderSurfaceDepthPanel({
           </button>
           <button type="button" disabled={!rollbackRecord} onClick={onClearRollback}>
             Clear rollback
+          </button>
+        </div>
+        <div
+          aria-label="Phase 4 provider permission actions"
+          className="phase4-provider-depth-actions"
+        >
+          <div>
+            <strong>Permission record</strong>
+            <small>
+              {permissionValidation?.state ?? "preview"} /{" "}
+              {permissionRecord?.createdAt ?? "not recorded"}
+            </small>
+            <small>
+              Permission {permissionValidation?.recordPermissionEvidenceFingerprint ?? "missing"} /
+              expected{" "}
+              {permissionValidation?.expectedPermissionEvidenceFingerprint ?? "missing"}
+            </small>
+          </div>
+          <button type="button" onClick={onRecordPermission}>
+            Record permission
+          </button>
+          <button type="button" disabled={!permissionRecord} onClick={onClearPermission}>
+            Clear permission
           </button>
         </div>
         <dl className="phase4-provider-depth-grid" aria-label="Phase 4 provider surface depth counts">
@@ -8305,6 +8455,7 @@ function RightPanel({
   onRecordPhase11Evidence,
   onRecordPhase4ProviderApproval,
   onRecordPhase4ProviderAudit,
+  onRecordPhase4ProviderPermission,
   onRecordPhase4ProviderRollback,
   onRecordWorkerValidationAttempt,
   onSelectRun,
@@ -8316,6 +8467,8 @@ function RightPanel({
   phase4ProviderApprovalValidation,
   phase4ProviderAuditRecord,
   phase4ProviderAuditValidation,
+  phase4ProviderPermissionRecord,
+  phase4ProviderPermissionValidation,
   phase4ProviderRollbackRecord,
   phase4ProviderRollbackValidation,
   phase4ProviderTraceability,
@@ -8356,6 +8509,7 @@ function RightPanel({
   onRunCodexTwoPanelSmokeProof,
   onClearPhase4ProviderApproval,
   onClearPhase4ProviderAudit,
+  onClearPhase4ProviderPermission,
   onClearPhase4ProviderRollback,
   codexCanStartSession,
   codexLiveSmokeLoading,
@@ -8386,6 +8540,7 @@ function RightPanel({
   onRecordPhase11Evidence: (gate: Phase11EvidenceGate) => void;
   onRecordPhase4ProviderApproval: () => void;
   onRecordPhase4ProviderAudit: () => void;
+  onRecordPhase4ProviderPermission: () => void;
   onRecordPhase4ProviderRollback: () => void;
   onRecordWorkerValidationAttempt: (
     runId: string,
@@ -8401,6 +8556,8 @@ function RightPanel({
   phase4ProviderApprovalValidation: Phase4ProviderApprovalRecordValidation;
   phase4ProviderAuditRecord?: Phase4ProviderAuditRecord;
   phase4ProviderAuditValidation: Phase4ProviderAuditRecordValidation;
+  phase4ProviderPermissionRecord?: Phase4ProviderPermissionRecord;
+  phase4ProviderPermissionValidation: Phase4ProviderPermissionRecordValidation;
   phase4ProviderRollbackRecord?: Phase4ProviderRollbackRecord;
   phase4ProviderRollbackValidation: Phase4ProviderRollbackRecordValidation;
   phase4ProviderTraceability: Phase4ProviderTraceabilitySummary;
@@ -8441,6 +8598,7 @@ function RightPanel({
   onRunCodexTwoPanelSmokeProof: () => void;
   onClearPhase4ProviderApproval: () => void;
   onClearPhase4ProviderAudit: () => void;
+  onClearPhase4ProviderPermission: () => void;
   onClearPhase4ProviderRollback: () => void;
   codexCanStartSession: boolean;
   codexLiveSmokeLoading: boolean;
@@ -9687,10 +9845,14 @@ function RightPanel({
         auditValidation={phase4ProviderAuditValidation}
         onClearApproval={onClearPhase4ProviderApproval}
         onClearAudit={onClearPhase4ProviderAudit}
+        onClearPermission={onClearPhase4ProviderPermission}
         onClearRollback={onClearPhase4ProviderRollback}
         onRecordApproval={onRecordPhase4ProviderApproval}
         onRecordAudit={onRecordPhase4ProviderAudit}
+        onRecordPermission={onRecordPhase4ProviderPermission}
         onRecordRollback={onRecordPhase4ProviderRollback}
+        permissionRecord={phase4ProviderPermissionRecord}
+        permissionValidation={phase4ProviderPermissionValidation}
         record={phase4ProviderApprovalRecord}
         rollbackRecord={phase4ProviderRollbackRecord}
         rollbackValidation={phase4ProviderRollbackValidation}
