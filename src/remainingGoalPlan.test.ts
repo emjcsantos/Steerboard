@@ -197,9 +197,9 @@ describe("remaining goal plan", () => {
     expect(incompleteTaskIds).toEqual([]);
     expect(taskCompletionById.get("phase-03-child-blocker-priority")).toBe(90);
     expect(taskCompletionById.get("phase-03-child-handoff-gate")).toBe(90);
-    expect(taskCompletionById.get("phase-03-parent-slash-controls")).toBe(85);
-    expect(taskCompletionById.get("phase-03-child-slash-ready")).toBe(85);
-    expect(taskCompletionById.get("phase-03-child-control-ready")).toBe(85);
+    expect(taskCompletionById.get("phase-03-parent-slash-controls")).toBe(90);
+    expect(taskCompletionById.get("phase-03-child-slash-ready")).toBe(90);
+    expect(taskCompletionById.get("phase-03-child-control-ready")).toBe(90);
   });
 
   it("separates the blocked owner hold from the active implementation target", () => {

@@ -260,24 +260,24 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-03-parent-slash-controls",
         title: "Slash and Session Control Readiness",
-        description: "Verify slash execution plus interrupt, retry, steer, fork, resume, and archive readiness evidence.",
+        description: "Verify current-panel slash execution plus interrupt, retry, steer, fork, resume, and archive readiness evidence with storage provenance and honest unsupported lifecycle states.",
         status: "ongoing",
-        completionPercent: 85,
+        completionPercent: 90,
         complexity: "high",
         sourceDocument: "Owner testing panel",
         children: [
           {
             id: "phase-03-child-slash-ready",
             title: "Slash Evidence Reaches Ready",
-            description: "Run panel-scoped slash command evidence and persist ready or blocked states honestly.",
-            completionPercent: 85,
+            description: "Run panel-scoped slash command evidence and persist current-panel storage provenance, ready route state, or blocked states honestly.",
+            completionPercent: 90,
             sourceDocument: "Slash execution evidence"
           },
           {
             id: "phase-03-child-control-ready",
             title: "Session Controls Reach Ready",
-            description: "Validate interrupt, retry, steer, fork, resume, and archive control evidence before Phase 3 exits.",
-            completionPercent: 85,
+            description: "Validate interrupt, retry, and steer as ready while fork, resume, and archive stay honestly unsupported before Phase 3 exits.",
+            completionPercent: 90,
             complexity: "high",
             sourceDocument: "Session control readiness"
           }

@@ -84,6 +84,8 @@ describe("project management hierarchy", () => {
     expect(byId.get("phase-03-child-handoff-gate")?.description).toContain("visible handoff record-gate reason");
     expect(byId.get("phase-03-child-blocker-priority")?.description).toContain("visible row-specific detail plus exit action");
     expect(byId.get("phase-03-child-traceability")?.description).toContain("handoff-review details");
+    expect(byId.get("phase-03-child-slash-ready")?.description).toContain("current-panel storage provenance");
+    expect(byId.get("phase-03-child-control-ready")?.description).toContain("honestly unsupported");
     expect(byId.get("phase-11-parent-owner-testing")?.description).toContain("proof freshness depth");
     expect(byId.get("phase-11-parent-release-packaging")?.description).toContain("current active Phase 3 clearance PM traceability and handoff proof");
     expect(byId.get("phase-11-parent-release-packaging")?.description).toContain("release-decision top-prerequisite detail");
