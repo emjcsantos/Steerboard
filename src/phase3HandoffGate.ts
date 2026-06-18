@@ -2,6 +2,7 @@ import type {
   Phase3ClearancePackage,
   Phase3ClearancePackageState
 } from "./phase3ClearancePackage";
+import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
 import type { Phase3HandoffRecordValidation } from "./phase3HandoffRecord";
 
 export type Phase3HandoffGateState = Phase3ClearancePackageState;
@@ -9,6 +10,7 @@ export type Phase3HandoffGateState = Phase3ClearancePackageState;
 export type Phase3HandoffGateItemKind =
   | "desktop-proof"
   | "blocker-visibility"
+  | "traceability-boundary"
   | "handoff-record"
   | "provider-boundary";
 
@@ -41,6 +43,7 @@ export interface Phase3HandoffGate {
 
 export interface Phase3HandoffGateInput {
   readonly clearancePackage: Phase3ClearancePackage;
+  readonly traceabilityPrecondition?: Phase3ClearanceTraceabilityPrecondition;
   readonly handoffRecordState?: Phase3HandoffGateState;
   readonly handoffRecordValidation?: Phase3HandoffRecordValidation;
 }
@@ -164,6 +167,40 @@ function blockerVisibilityItem(
   };
 }
 
+function traceabilityBoundaryItem(
+  traceabilityPrecondition: Phase3ClearanceTraceabilityPrecondition | undefined
+): Phase3HandoffGateItem {
+  if (!traceabilityPrecondition) {
+    return {
+      id: `${GATE_ID}:traceability-boundary`,
+      label: "Traceability boundary",
+      kind: "traceability-boundary",
+      status: "review",
+      detail: "Phase 3 current-goal and PM traceability precondition is not attached.",
+      nextAction: "Attach Phase 3 traceability precondition before advancing provider integration."
+    };
+  }
+
+  return {
+    id: `${GATE_ID}:traceability-boundary`,
+    label: "Traceability boundary",
+    kind: "traceability-boundary",
+    status: traceabilityPrecondition.canTrustTrace
+      ? "ready"
+      : traceabilityPrecondition.state,
+    detail: traceabilityPrecondition.detail,
+    nextAction: traceabilityPrecondition.canTrustTrace
+      ? "Keep Phase 3 traceability trusted before advancing provider integration."
+      : traceabilityPrecondition.nextAction
+  };
+}
+
+function canTrustTraceability(
+  traceabilityPrecondition: Phase3ClearanceTraceabilityPrecondition | undefined
+): boolean {
+  return traceabilityPrecondition?.canTrustTrace === true;
+}
+
 function resolveHandoffRecordStatus(
   clearancePackage: Phase3ClearancePackage,
   handoffRecordState: Phase3HandoffGateState | undefined,
@@ -239,6 +276,7 @@ function handoffRecordItem(
 
 function providerBoundaryItem(
   clearancePackage: Phase3ClearancePackage,
+  traceabilityPrecondition: Phase3ClearanceTraceabilityPrecondition | undefined,
   handoffRecordState: Phase3HandoffGateState | undefined,
   handoffRecordValidation: Phase3HandoffRecordValidation | undefined
 ): Phase3HandoffGateItem {
@@ -273,6 +311,21 @@ function providerBoundaryItem(
         clearancePackage.nextAction,
         "Complete Phase 3 clearance before advancing provider integration."
       )
+    };
+  }
+
+  if (!canTrustTraceability(traceabilityPrecondition)) {
+    return {
+      id: `${GATE_ID}:provider-boundary`,
+      label: "Provider boundary",
+      kind: "provider-boundary",
+      status: traceabilityPrecondition?.state ?? "review",
+      detail: traceabilityPrecondition
+        ? `Provider integration remains held because ${traceabilityPrecondition.detail}`
+        : "Provider integration remains held until Phase 3 traceability precondition is attached.",
+      nextAction:
+        traceabilityPrecondition?.nextAction ??
+        "Attach Phase 3 traceability precondition before advancing provider integration."
     };
   }
 
@@ -330,6 +383,7 @@ export function buildPhase3HandoffGate(
   const items = [
     desktopProofItem(input.clearancePackage),
     blockerVisibilityItem(input.clearancePackage),
+    traceabilityBoundaryItem(input.traceabilityPrecondition),
     handoffRecordItem(
       input.clearancePackage,
       input.handoffRecordState,
@@ -337,6 +391,7 @@ export function buildPhase3HandoffGate(
     ),
     providerBoundaryItem(
       input.clearancePackage,
+      input.traceabilityPrecondition,
       input.handoffRecordState,
       input.handoffRecordValidation
     )
@@ -355,6 +410,7 @@ export function buildPhase3HandoffGate(
     canAdvanceProviderIntegration:
       state === "ready" &&
       input.clearancePackage.canExit &&
+      canTrustTraceability(input.traceabilityPrecondition) &&
       input.handoffRecordValidation?.state === "ready" &&
       input.handoffRecordValidation.matchesCurrentEvidence === true,
     readyCount,

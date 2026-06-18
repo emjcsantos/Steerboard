@@ -6,6 +6,7 @@ import type { Phase3CommandValidationRecordValidation } from "./phase3CommandVal
 import type { Phase3HandoffGate } from "./phase3HandoffGate";
 import {
   buildPhase3ClearanceTraceability,
+  buildPhase3ClearanceTraceabilityPrecondition,
   PHASE3_CLEARANCE_GOAL_ID,
   PHASE3_CLEARANCE_PHASE_ID,
   REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS
@@ -233,6 +234,51 @@ describe("phase 3 clearance traceability", () => {
         })
       ])
     );
+  });
+
+  it("builds a handoff precondition from current-active goal and PM coverage", () => {
+    const ready = buildPhase3ClearanceTraceabilityPrecondition({
+      goals: [phase3Goal()],
+      pmTasks: createDefaultProjectManagementPhasePlan()
+    });
+    const missingGoalLink = buildPhase3ClearanceTraceabilityPrecondition({
+      goals: [
+        phase3Goal({
+          pmTaskIds: REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS.filter(
+            (taskId) => taskId !== "phase-03-child-handoff-gate"
+          )
+        })
+      ],
+      pmTasks: createDefaultProjectManagementPhasePlan()
+    });
+    const duplicateCurrent = buildPhase3ClearanceTraceabilityPrecondition({
+      goals: [
+        phase3Goal(),
+        {
+          ...remainingGoalPlan.find(
+            (goal) => goal.id === "goal-phase-4-provider-surfaces"
+          )!,
+          status: "active",
+          current: true
+        }
+      ],
+      pmTasks: createDefaultProjectManagementPhasePlan()
+    });
+
+    expect(ready).toMatchObject({
+      state: "ready",
+      canTrustTrace: true
+    });
+    expect(missingGoalLink).toMatchObject({
+      state: "review",
+      canTrustTrace: false,
+      nextAction: expect.stringContaining("phase-03-child-handoff-gate")
+    });
+    expect(duplicateCurrent).toMatchObject({
+      state: "review",
+      canTrustTrace: false,
+      detail: expect.stringContaining("2 current active")
+    });
   });
 
   it("blocks when the required Phase 3 goal is missing or no longer active critical", () => {

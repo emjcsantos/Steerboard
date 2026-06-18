@@ -350,7 +350,9 @@ import {
   type Phase3ClearanceBlockerPrioritySnapshot
 } from "./phase3ClearanceBlockerPriority";
 import {
+  buildPhase3ClearanceTraceabilityPrecondition,
   buildPhase3ClearanceTraceability,
+  type Phase3ClearanceTraceabilityPrecondition,
   type Phase3ClearanceTraceabilitySnapshot
 } from "./phase3ClearanceTraceability";
 import {
@@ -2084,14 +2086,20 @@ export function App() {
       phase3ProofEvaluationTime
     ]
   );
+  const phase3ClearanceTraceabilityPrecondition = useMemo(
+    () => buildPhase3ClearanceTraceabilityPrecondition(),
+    []
+  );
   const phase3HandoffGate = useMemo(
     () =>
       buildPhase3HandoffGate({
         clearancePackage: phase3ClearancePackage,
+        traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition,
         handoffRecordState: phase3HandoffRecordState,
         handoffRecordValidation: phase3HandoffRecordValidation
       }),
     [
+      phase3ClearanceTraceabilityPrecondition,
       phase3ClearancePackage,
       phase3HandoffRecordState,
       phase3HandoffRecordValidation
@@ -2119,6 +2127,10 @@ export function App() {
       setAppNotice("Phase 3 handoff remains held until clearance is exit-ready");
       return;
     }
+    if (!phase3ClearanceTraceabilityPrecondition.canTrustTrace) {
+      setAppNotice(phase3ClearanceTraceabilityPrecondition.nextAction);
+      return;
+    }
 
     const record = createPhase3OwnerHandoffRecord(
       phase3ClearancePackage,
@@ -2129,7 +2141,11 @@ export function App() {
     savePhase3OwnerHandoffRecord(record);
     setPhase3OwnerHandoffRecord(record);
     setAppNotice("Phase 3 owner handoff recorded locally");
-  }, [phase3ClearancePackage, phase3HandoffEvidenceFingerprint]);
+  }, [
+    phase3ClearancePackage,
+    phase3ClearanceTraceabilityPrecondition,
+    phase3HandoffEvidenceFingerprint
+  ]);
   const clearPhase3OwnerHandoff = useCallback(() => {
     clearPhase3OwnerHandoffRecord();
     setPhase3OwnerHandoffRecord(undefined);
@@ -3897,6 +3913,7 @@ export function App() {
             phasePriorityEvidence={phasePriorityEvidence}
             phase3ClearanceBlockerPriority={phase3ClearanceBlockerPriority}
             phase3ClearanceTraceability={phase3ClearanceTraceability}
+            phase3ClearanceTraceabilityPrecondition={phase3ClearanceTraceabilityPrecondition}
             phase3ClearanceCommandPlan={phase3ClearanceCommandPlan}
             phase3ClearancePackage={phase3ClearancePackage}
             phase3ExitGateEvidence={phase3ExitGateEvidence}
@@ -7721,6 +7738,7 @@ function RightPanel({
   phasePriorityEvidence,
   phase3ClearanceBlockerPriority,
   phase3ClearanceTraceability,
+  phase3ClearanceTraceabilityPrecondition,
   phase3ClearanceCommandPlan,
   phase3ClearancePackage,
   phase3ExitGateEvidence,
@@ -7788,6 +7806,7 @@ function RightPanel({
   phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ClearanceBlockerPriority: Phase3ClearanceBlockerPrioritySnapshot;
   phase3ClearanceTraceability: Phase3ClearanceTraceabilitySnapshot;
+  phase3ClearanceTraceabilityPrecondition: Phase3ClearanceTraceabilityPrecondition;
   phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
@@ -9054,6 +9073,7 @@ function RightPanel({
         phasePriorityEvidence={phasePriorityEvidence}
         phase3ClearanceBlockerPriority={phase3ClearanceBlockerPriority}
         phase3ClearanceTraceability={phase3ClearanceTraceability}
+        phase3ClearanceTraceabilityPrecondition={phase3ClearanceTraceabilityPrecondition}
         phase3ClearanceCommandPlan={phase3ClearanceCommandPlan}
         phase3ClearancePackage={phase3ClearancePackage}
         phase3ExitGateEvidence={phase3ExitGateEvidence}
@@ -11451,6 +11471,7 @@ function OwnerTestingReadinessPanel({
   phasePriorityEvidence,
   phase3ClearanceBlockerPriority,
   phase3ClearanceTraceability,
+  phase3ClearanceTraceabilityPrecondition,
   phase3ClearanceCommandPlan,
   phase3ClearancePackage,
   phase3ExitGateEvidence,
@@ -11484,6 +11505,7 @@ function OwnerTestingReadinessPanel({
   phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ClearanceBlockerPriority: Phase3ClearanceBlockerPrioritySnapshot;
   phase3ClearanceTraceability: Phase3ClearanceTraceabilitySnapshot;
+  phase3ClearanceTraceabilityPrecondition: Phase3ClearanceTraceabilityPrecondition;
   phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
   phase3ClearancePackage: Phase3ClearancePackage;
   phase3ExitGateEvidence: Phase3ExitGateEvidence;
@@ -12276,12 +12298,18 @@ function OwnerTestingReadinessPanel({
               aria-label="Phase 3 owner handoff record actions"
             >
               <button
-                disabled={!phase3ClearancePackage.canExit}
+                disabled={
+                  !phase3ClearancePackage.canExit ||
+                  !phase3ClearanceTraceabilityPrecondition.canTrustTrace
+                }
                 onClick={onRecordPhase3OwnerHandoff}
                 title={
-                  phase3ClearancePackage.canExit
+                  phase3ClearancePackage.canExit &&
+                  phase3ClearanceTraceabilityPrecondition.canTrustTrace
                     ? "Record owner-reviewed Phase 3 handoff locally."
-                    : "Phase 3 clearance must be exit-ready before recording handoff."
+                    : phase3ClearancePackage.canExit
+                      ? phase3ClearanceTraceabilityPrecondition.nextAction
+                      : "Phase 3 clearance must be exit-ready before recording handoff."
                 }
                 type="button"
               >

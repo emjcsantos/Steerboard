@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
+import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
 import { buildPhase3HandoffGate } from "./phase3HandoffGate";
 
 function clearancePackage(
@@ -23,10 +24,23 @@ function clearancePackage(
   };
 }
 
+function trustedTraceability(
+  overrides: Partial<Phase3ClearanceTraceabilityPrecondition> = {}
+): Phase3ClearanceTraceabilityPrecondition {
+  return {
+    state: "ready",
+    canTrustTrace: true,
+    detail: "The current active Phase 3 goal and required PM rows are linked.",
+    nextAction: "Keep the current active Phase 3 goal and required PM rows linked through handoff.",
+    ...overrides
+  };
+}
+
 describe("phase 3 handoff gate", () => {
   it("advances provider integration only after clearance and owner handoff are ready", () => {
     const result = buildPhase3HandoffGate({
       clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "ready",
       handoffRecordValidation: {
         state: "ready",
@@ -46,9 +60,49 @@ describe("phase 3 handoff gate", () => {
     expect(result.ariaLabel).toContain("0 exact blockers");
   });
 
+  it("holds provider integration when Phase 3 traceability is not trusted", () => {
+    const result = buildPhase3HandoffGate({
+      clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability({
+        state: "review",
+        canTrustTrace: false,
+        detail: "2 current active remaining goals are set.",
+        nextAction: "Keep exactly one current active remaining goal before Phase 3 handoff can advance."
+      }),
+      handoffRecordState: "ready",
+      handoffRecordValidation: {
+        state: "ready",
+        detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
+        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+        expectedFingerprint: "current",
+        recordFingerprint: "current",
+        matchesCurrentEvidence: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canAdvanceProviderIntegration).toBe(false);
+    expect(result.nextAction).toContain("exactly one current active remaining goal");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Traceability boundary",
+          status: "review",
+          detail: expect.stringContaining("2 current active")
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          status: "review",
+          detail: expect.stringContaining("Provider integration remains held")
+        })
+      ])
+    );
+  });
+
   it("holds provider integration when raw ready state is not fingerprint validated", () => {
     const result = buildPhase3HandoffGate({
       clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "ready"
     });
 
@@ -76,6 +130,7 @@ describe("phase 3 handoff gate", () => {
   it("reviews ready handoff validation that does not prove a current fingerprint match", () => {
     const result = buildPhase3HandoffGate({
       clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "ready",
       handoffRecordValidation: {
         state: "ready",
@@ -108,12 +163,13 @@ describe("phase 3 handoff gate", () => {
 
   it("holds provider integration when clearance is ready but owner handoff is not recorded", () => {
     const result = buildPhase3HandoffGate({
-      clearancePackage: clearancePackage()
+      clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability()
     });
 
     expect(result.state).toBe("waiting");
     expect(result.canAdvanceProviderIntegration).toBe(false);
-    expect(result.readyCount).toBe(2);
+    expect(result.readyCount).toBe(3);
     expect(result.waitingCount).toBe(2);
     expect(result.items).toEqual(
       expect.arrayContaining([
@@ -131,6 +187,7 @@ describe("phase 3 handoff gate", () => {
   it("blocks provider advance when the owner handoff record fingerprint is stale", () => {
     const result = buildPhase3HandoffGate({
       clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "review",
       handoffRecordValidation: {
         state: "review",
@@ -167,6 +224,7 @@ describe("phase 3 handoff gate", () => {
   it("blocks provider advance when the owner handoff record age is stale", () => {
     const result = buildPhase3HandoffGate({
       clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "review",
       handoffRecordValidation: {
         state: "review",
@@ -203,6 +261,7 @@ describe("phase 3 handoff gate", () => {
   it("blocks provider advance when the owner handoff snapshot no longer matches", () => {
     const result = buildPhase3HandoffGate({
       clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "review",
       handoffRecordValidation: {
         state: "review",
@@ -267,7 +326,8 @@ describe("phase 3 handoff gate", () => {
             evidenceKey: "phase3.live-control-smoke"
           }
         ]
-      })
+      }),
+      traceabilityPrecondition: trustedTraceability()
     });
 
     expect(result.state).toBe("blocked");

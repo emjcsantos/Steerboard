@@ -56,6 +56,13 @@ export interface Phase3ClearanceTraceabilitySnapshot {
   readonly items: readonly Phase3ClearanceTraceabilityItem[];
 }
 
+export interface Phase3ClearanceTraceabilityPrecondition {
+  readonly state: Phase3ClearanceTraceabilityState;
+  readonly canTrustTrace: boolean;
+  readonly detail: string;
+  readonly nextAction: string;
+}
+
 export interface Phase3ClearanceTraceabilityInput {
   readonly goals?: readonly RemainingGoalPlanItem[];
   readonly pmTasks?: readonly ProjectManagementTask[];
@@ -64,6 +71,11 @@ export interface Phase3ClearanceTraceabilityInput {
   readonly commandValidation?: Phase3CommandValidationRecordValidation;
   readonly blockerPriority: Phase3ClearanceBlockerPrioritySnapshot;
   readonly handoffGate: Phase3HandoffGate;
+}
+
+export interface Phase3ClearanceTraceabilityPreconditionInput {
+  readonly goals?: readonly RemainingGoalPlanItem[];
+  readonly pmTasks?: readonly ProjectManagementTask[];
 }
 
 export const PHASE3_CLEARANCE_GOAL_ID = "goal-phase-3-proof-clearance";
@@ -140,7 +152,7 @@ function firstNextAction(
     items.find((item) => item.status === "blocked")?.nextAction ??
     items.find((item) => item.status === "review")?.nextAction ??
     items.find((item) => item.status === "waiting")?.nextAction ??
-    "Keep the active Phase 3 goal, PM rows, clearance evidence, and owner handoff trace linked until Phase 3 exits."
+    "Keep the current active Phase 3 goal, PM rows, clearance evidence, and owner handoff trace linked until Phase 3 exits."
   );
 }
 
@@ -198,6 +210,82 @@ function goalItem(
         : isLinked
           ? "Keep Phase 3 as the current active critical clearance goal until handoff is recorded."
           : "Restore Phase 3 to the current active critical goal linked to phase-03-controls-slash."
+  };
+}
+
+export function buildPhase3ClearanceTraceabilityPrecondition(
+  input: Phase3ClearanceTraceabilityPreconditionInput = {}
+): Phase3ClearanceTraceabilityPrecondition {
+  const goals = input.goals ?? remainingGoalPlan;
+  const pmTasks = input.pmTasks ?? createDefaultProjectManagementPhasePlan();
+  const goal = goals.find((item) => item.id === PHASE3_CLEARANCE_GOAL_ID);
+  const currentActiveGoalIds = findCurrentActiveRemainingGoals(goals).map(
+    (item) => item.id
+  );
+  const pmTaskIds = new Set(pmTasks.map((task) => task.id));
+  const goalPmTaskIds = new Set(goal?.pmTaskIds ?? []);
+  const missingPmTaskIds = REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS.filter(
+    (taskId) => !pmTaskIds.has(taskId)
+  );
+  const missingGoalPmTaskIds = REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS.filter(
+    (taskId) => !goalPmTaskIds.has(taskId)
+  );
+  const isGoalReady =
+    isCurrentActiveRemainingGoal(goal) &&
+    currentActiveGoalIds.length === 1 &&
+    goal.priority === "critical" &&
+    goal.phaseIds.includes(PHASE3_CLEARANCE_PHASE_ID);
+
+  if (!goal) {
+    return {
+      state: "blocked",
+      canTrustTrace: false,
+      detail: "The active Phase 3 clearance goal is missing.",
+      nextAction: "Restore goal-phase-3-proof-clearance before Phase 3 handoff can advance."
+    };
+  }
+
+  if (currentActiveGoalIds.length > 1) {
+    return {
+      state: "review",
+      canTrustTrace: false,
+      detail: `${currentActiveGoalIds.length} current active remaining goals are set: ${currentActiveGoalIds.join(", ")}.`,
+      nextAction: `Keep exactly one current active remaining goal before Phase 3 handoff can advance: ${currentActiveGoalIds.join(", ")}.`
+    };
+  }
+
+  if (!isGoalReady) {
+    return {
+      state: goal.status === "active" ? "review" : "blocked",
+      canTrustTrace: false,
+      detail: `${goal.id} is ${goal.status}, ${goal.priority}, current ${goal.current === true ? "yes" : "no"}, and linked to ${goal.phaseIds.includes(PHASE3_CLEARANCE_PHASE_ID) ? "Phase 3" : "another phase"}.`,
+      nextAction: "Restore Phase 3 to the current active critical goal linked to phase-03-controls-slash before handoff can advance."
+    };
+  }
+
+  if (missingPmTaskIds.length > 0) {
+    return {
+      state: "blocked",
+      canTrustTrace: false,
+      detail: `${missingPmTaskIds.length} required Phase 3 PM rows are missing from the board plan.`,
+      nextAction: `Restore missing Phase 3 PM rows before handoff can advance: ${missingPmTaskIds.join(", ")}.`
+    };
+  }
+
+  if (missingGoalPmTaskIds.length > 0) {
+    return {
+      state: "review",
+      canTrustTrace: false,
+      detail: `${missingGoalPmTaskIds.length} required Phase 3 PM rows are not linked from the current active goal.`,
+      nextAction: `Link missing Phase 3 PM rows from the current active goal before handoff can advance: ${missingGoalPmTaskIds.join(", ")}.`
+    };
+  }
+
+  return {
+    state: "ready",
+    canTrustTrace: true,
+    detail: "The current active Phase 3 goal and required PM rows are linked.",
+    nextAction: "Keep the current active Phase 3 goal and required PM rows linked through handoff."
   };
 }
 
