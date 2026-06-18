@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildPhase3PersistedSmokeProofStorageNotice,
   buildPhase3SmokeProofNotice,
   countPersistedPhase3SmokeProofRows
 } from "./phase3SmokeProofNotice";
@@ -12,7 +13,7 @@ describe("phase 3 smoke proof notices", () => {
         passed: true,
         persisted: true
       })
-    ).toBe("Active-turn interrupt smoke passed and was persisted for Phase 3 handoff.");
+    ).toBe("Active-turn interrupt smoke passed and was persisted for Phase 3 handoff review.");
   });
 
   it("does not claim handoff-ready persistence from a transient pass", () => {
@@ -22,7 +23,7 @@ describe("phase 3 smoke proof notices", () => {
         passed: true,
         persisted: false
       })
-    ).toBe("Active-turn steer smoke passed, but it was not persisted for Phase 3 handoff.");
+    ).toBe("Active-turn steer smoke passed, but it was not persisted for Phase 3 handoff review.");
   });
 
   it("reports failed proof without implying persistence", () => {
@@ -43,5 +44,40 @@ describe("phase 3 smoke proof notices", () => {
         activeTurnSteerSmoke: true
       })
     ).toBe(2);
+  });
+
+  it("qualifies imported persisted rows with readiness counts", () => {
+    expect(
+      buildPhase3PersistedSmokeProofStorageNotice({
+        persistedRowCount: 2,
+        readinessItems: [
+          { persisted: true, state: "ready" },
+          { persisted: true, state: "review" },
+          { persisted: false, state: "waiting" }
+        ]
+      })
+    ).toBe(
+      "Phase 3 persisted smoke proof storage has 2 desktop proof rows for review: 1 ready, 1 review, 0 blocked"
+    );
+  });
+
+  it("keeps stale or future persisted rows in review wording instead of implying readiness", () => {
+    expect(
+      buildPhase3PersistedSmokeProofStorageNotice({
+        persistedRowCount: 1,
+        readinessItems: [{ persisted: true, state: "review" }]
+      })
+    ).toBe(
+      "Phase 3 persisted smoke proof storage has 1 desktop proof row for review: 0 ready, 1 review, 0 blocked"
+    );
+  });
+
+  it("reports failed imported persistence without row-count wording", () => {
+    expect(
+      buildPhase3PersistedSmokeProofStorageNotice({
+        persistedRowCount: 0,
+        readinessItems: [{ persisted: false, state: "waiting" }]
+      })
+    ).toBe("Phase 3 desktop smoke proof artifact could not be persisted");
   });
 });

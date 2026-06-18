@@ -405,6 +405,7 @@ import {
 } from "./phase3SmokeProofStorage";
 import {
   buildPhase3SmokeProofNotice,
+  buildPhase3PersistedSmokeProofStorageNotice,
   countPersistedPhase3SmokeProofRows
 } from "./phase3SmokeProofNotice";
 import {
@@ -2181,14 +2182,23 @@ export function App() {
     setCodexActiveTurnControlSmokeProof(persistedBundle.activeTurnInterruptSmoke);
     setCodexActiveTurnSteerSmokeProof(persistedBundle.activeTurnSteerSmoke);
     setPhase3PersistedDesktopProofs(persistedLoad.persistedDesktopProofs);
-    setPhase3ProofEvaluationTime(new Date().toISOString());
+    const evaluatedAt = new Date().toISOString();
+    setPhase3ProofEvaluationTime(evaluatedAt);
     const persistedRowCount = countPersistedPhase3SmokeProofRows(
       persistedLoad.persistedDesktopProofs
     );
+    const importedReadiness = buildPhase3SmokeProofReadiness({
+      liveControlSmoke: persistedBundle.liveControlSmoke,
+      activeTurnInterruptSmoke: persistedBundle.activeTurnInterruptSmoke,
+      activeTurnSteerSmoke: persistedBundle.activeTurnSteerSmoke,
+      persistedDesktopProofs: persistedLoad.persistedDesktopProofs,
+      evaluatedAt
+    });
     setAppNotice(
-      persistedRowCount > 0
-        ? `Phase 3 persisted smoke proof storage has ${persistedRowCount} desktop proof row${persistedRowCount === 1 ? "" : "s"}`
-        : "Phase 3 desktop smoke proof artifact could not be persisted"
+      buildPhase3PersistedSmokeProofStorageNotice({
+        persistedRowCount,
+        readinessItems: importedReadiness.items
+      })
     );
   }, []);
   const clearPhase3CommandValidation = useCallback(() => {
