@@ -364,13 +364,24 @@ function evidenceRecordsItem(
 function releaseReadinessItem(
   snapshot: Phase11ReleaseReadinessSnapshot
 ): Phase11OwnerReleaseTraceabilityItem {
+  const topReleaseReadinessItem =
+    snapshot.items.find((item) => item.status === "blocked") ??
+    snapshot.items.find((item) => item.status === "review") ??
+    snapshot.items.find((item) => item.status === "waiting");
+  const topReleaseReadinessDetail = topReleaseReadinessItem
+    ? ` Top release row: ${publicText(topReleaseReadinessItem.label, "Release readiness row")} is ${topReleaseReadinessItem.status}; ${publicText(topReleaseReadinessItem.detail, topReleaseReadinessItem.nextAction)}`
+    : "";
+
   return {
     id: `${TRACE_ID}:release-readiness`,
     label: "Release readiness gate",
     kind: "release-readiness",
     status: snapshot.state,
-    detail: `${snapshot.releaseHoldCount} release hold${snapshot.releaseHoldCount === 1 ? "" : "s"} remain; owner ${snapshot.ownerReadiness}%, security ${snapshot.securityReadiness}%, packaging ${snapshot.packagingReadiness}%.`,
-    nextAction: publicText(snapshot.nextAction, "Resolve Phase 11 release-readiness blockers.")
+    detail: `${snapshot.releaseHoldCount} release hold${snapshot.releaseHoldCount === 1 ? "" : "s"} remain; owner ${snapshot.ownerReadiness}%, security ${snapshot.securityReadiness}%, packaging ${snapshot.packagingReadiness}%.${topReleaseReadinessDetail}`,
+    nextAction: publicText(
+      topReleaseReadinessItem?.nextAction ?? snapshot.nextAction,
+      "Resolve Phase 11 release-readiness blockers."
+    )
   };
 }
 

@@ -550,6 +550,53 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
+  it("carries the top release readiness row into owner release traceability", () => {
+    const result = trace({
+      releaseReadiness: releaseSnapshot({
+        state: "review",
+        statusLabel: "Review",
+        canRecommendRelease: false,
+        releaseHoldCount: 2,
+        securityReadiness: 92,
+        items: [
+          {
+            id: "phase-11-release-readiness:security-closure",
+            label: "Security closure",
+            kind: "security-closure",
+            status: "review",
+            detail: "Security final review is ready; closure capability is held.",
+            nextAction: "Attach final security capability evidence before making the release decision."
+          },
+          {
+            id: "phase-11-release-readiness:release-decision",
+            label: "Release decision",
+            kind: "release-decision",
+            status: "review",
+            detail: "Release decision is held until security closure capability is attached.",
+            nextAction: "Attach final security capability evidence before making the release decision."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "release-readiness",
+          status: "review",
+          detail: expect.stringContaining("Top release row: Security closure is review"),
+          nextAction: "Attach final security capability evidence before making the release decision."
+        }),
+        expect.objectContaining({
+          kind: "release-readiness",
+          detail: expect.stringContaining("closure capability is held")
+        })
+      ])
+    );
+  });
+
   it("keeps traceability text public-safe", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
