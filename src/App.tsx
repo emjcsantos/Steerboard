@@ -4621,6 +4621,7 @@ export function App() {
             phase3ProofExportVerification={phase3ProofExportVerification}
             phase3OwnerTestingActions={phase3OwnerTestingDisplayActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
+            phase3RecordedArtifactLoadAvailable={hasDesktopRuntime()}
             phase11EvidenceEvaluationTime={phase11EvidenceEvaluationTime}
             phase11EvidenceRecordInputs={phase11EvidenceRecordInputs}
             projectManagementTasks={projectManagementTasks}
@@ -8891,6 +8892,7 @@ function RightPanel({
   phase3ProofExportVerification,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
+  phase3RecordedArtifactLoadAvailable,
   phase11EvidenceEvaluationTime,
   phase11EvidenceRecordInputs,
   projectManagementTasks,
@@ -8992,6 +8994,7 @@ function RightPanel({
   phase3ProofExportVerification: Phase3ProofExportVerification;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
+  phase3RecordedArtifactLoadAvailable: boolean;
   phase11EvidenceEvaluationTime: string;
   phase11EvidenceRecordInputs: Phase11EvidenceRecordInputMap;
   projectManagementTasks: ProjectManagementTask[];
@@ -10378,6 +10381,7 @@ function RightPanel({
         phase3ProofExportVerification={phase3ProofExportVerification}
         phase3OwnerTestingActions={phase3OwnerTestingActions}
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
+        phase3RecordedArtifactLoadAvailable={phase3RecordedArtifactLoadAvailable}
         onExportPhase3ProofArtifact={onExportPhase3ProofArtifact}
         onVerifyImportedPhase3ProofArtifact={onVerifyImportedPhase3ProofArtifact}
         onRecordPhase3CommandValidation={onRecordPhase3CommandValidation}
@@ -12792,6 +12796,7 @@ export function OwnerTestingReadinessPanel({
   phase3ProofExportVerification,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
+  phase3RecordedArtifactLoadAvailable,
   onExportPhase3ProofArtifact,
   onVerifyImportedPhase3ProofArtifact,
   onRecordPhase3CommandValidation,
@@ -12832,6 +12837,7 @@ export function OwnerTestingReadinessPanel({
   phase3ProofExportVerification: Phase3ProofExportVerification;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
+  phase3RecordedArtifactLoadAvailable: boolean;
   onExportPhase3ProofArtifact: () => void;
   onVerifyImportedPhase3ProofArtifact: (serializedArtifact: string) => void;
   onRecordPhase3CommandValidation: () => void;
@@ -13574,8 +13580,13 @@ export function OwnerTestingReadinessPanel({
                   <span>Import</span>
                 </button>
                 <button
+                  disabled={!phase3RecordedArtifactLoadAvailable}
                   onClick={onLoadRecordedPhase3CommandValidation}
-                  title="Load local_private/phase3-command-validation-record.json from the desktop workspace."
+                  title={
+                    phase3RecordedArtifactLoadAvailable
+                      ? "Load local_private/phase3-command-validation-record.json from the desktop workspace."
+                      : "Open Steerboard in desktop mode or use Import to attach this local artifact."
+                  }
                   type="button"
                 >
                   <Paperclip size={13} />
@@ -13864,8 +13875,13 @@ export function OwnerTestingReadinessPanel({
                   <span>Import desktop proof</span>
                 </button>
                 <button
+                  disabled={!phase3RecordedArtifactLoadAvailable}
                   onClick={onLoadRecordedPhase3SmokeProofBundle}
-                  title="Load local_private/phase3-smoke-proof-bundle.json from the desktop workspace."
+                  title={
+                    phase3RecordedArtifactLoadAvailable
+                      ? "Load local_private/phase3-smoke-proof-bundle.json from the desktop workspace."
+                      : "Open Steerboard in desktop mode or use Import to attach this local artifact."
+                  }
                   type="button"
                 >
                   <Paperclip size={12} />

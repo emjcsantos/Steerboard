@@ -372,6 +372,7 @@ function renderOwnerTestingReadinessPanel(props: OwnerVisiblePhase3Props) {
       codexCanStartSession={true}
       codexLiveSmokeLoading={false}
       codexTwoPanelSmokeLoading={false}
+      phase3RecordedArtifactLoadAvailable={true}
       onClearPhase3CommandValidation={() => undefined}
       onClearPhase3OwnerHandoff={() => undefined}
       onExportPhase3ProofArtifact={() => undefined}
@@ -730,6 +731,7 @@ describe("phase 3 owner-visible proof panel", () => {
         codexCanStartSession={true}
         codexLiveSmokeLoading={false}
         codexTwoPanelSmokeLoading={false}
+        phase3RecordedArtifactLoadAvailable={true}
         {...callbacks}
       />
     );
@@ -737,6 +739,39 @@ describe("phase 3 owner-visible proof panel", () => {
     for (const callback of Object.values(callbacks)) {
       expect(callback).not.toHaveBeenCalled();
     }
+  });
+
+  it("keeps recorded proof loading desktop-gated while file imports remain visible", () => {
+    const props = buildReadyPhase3Props();
+    const html = renderToStaticMarkup(
+      <OwnerTestingReadinessPanel
+        {...props}
+        codexCanStartSession={true}
+        codexLiveSmokeLoading={false}
+        codexTwoPanelSmokeLoading={false}
+        phase3RecordedArtifactLoadAvailable={false}
+        onClearPhase3CommandValidation={() => undefined}
+        onClearPhase3OwnerHandoff={() => undefined}
+        onExportPhase3ProofArtifact={() => undefined}
+        onImportPhase3CommandValidation={() => undefined}
+        onImportPhase3SmokeProofBundle={() => undefined}
+        onLoadRecordedPhase3CommandValidation={() => undefined}
+        onLoadRecordedPhase3SmokeProofBundle={() => undefined}
+        onVerifyImportedPhase3ProofArtifact={() => undefined}
+        onRecordPhase3CommandValidation={() => undefined}
+        onRecordPhase3OwnerHandoff={() => undefined}
+        onRunCodexActiveTurnControlSmokeProof={() => undefined}
+        onRunCodexActiveTurnSteerSmokeProof={() => undefined}
+        onRunCodexLiveControlSmokeProof={() => undefined}
+        onRunCodexLiveSmokeProof={() => undefined}
+        onRunCodexTwoPanelSmokeProof={() => undefined}
+      />
+    );
+
+    expect(html).toContain("Import desktop proof");
+    expect(html).toContain("Load recorded");
+    expect(html).toContain("Open Steerboard in desktop mode or use Import");
+    expect(html).toContain("disabled");
   });
 
   it("does not borrow another panel's slash or session-control proof for Phase 3 exit", () => {
