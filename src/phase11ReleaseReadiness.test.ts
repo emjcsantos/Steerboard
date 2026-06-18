@@ -180,6 +180,7 @@ function snapshot(
     cleanCheckoutEvidence: readyEvidence("clean-checkout"),
     buildTestEvidence: readyEvidence("build-test"),
     docsKnownLimitsEvidence: readyEvidence("docs-known-limits"),
+    releaseDecisionEvidence: readyEvidence("release-decision"),
     ...overrides
   });
 }
@@ -465,6 +466,7 @@ describe("phase 11 release readiness", () => {
       cleanCheckoutEvidence: undefined,
       buildTestEvidence: undefined,
       docsKnownLimitsEvidence: undefined,
+      releaseDecisionEvidence: undefined,
       cleanCheckoutState: "ready",
       buildTestState: "ready",
       docsKnownLimitsState: "ready"
@@ -492,6 +494,48 @@ describe("phase 11 release readiness", () => {
         expect.objectContaining({
           label: "Release decision",
           status: "review"
+        })
+      ])
+    );
+  });
+
+  it("does not recommend release without fresh structured release-decision evidence", () => {
+    const missing = snapshot({
+      releaseDecisionEvidence: undefined
+    });
+    const stale = snapshot({
+      releaseDecisionEvidence: evaluatePhase11EvidenceRecord(
+        "release-decision",
+        {
+          gate: "release-decision",
+          state: "ready",
+          source: "owner release review",
+          recordedAt: "2026-06-12T10:00:00.000Z",
+          detail: "Owner approved release."
+        },
+        "2026-06-17T12:00:00.000Z"
+      )
+    });
+
+    expect(missing.state).toBe("waiting");
+    expect(missing.canRecommendRelease).toBe(false);
+    expect(missing.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Release decision",
+          status: "waiting",
+          detail: expect.stringContaining("structured Phase 11 evidence record")
+        })
+      ])
+    );
+    expect(stale.state).toBe("review");
+    expect(stale.canRecommendRelease).toBe(false);
+    expect(stale.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Release decision",
+          status: "review",
+          detail: expect.stringContaining("stale")
         })
       ])
     );

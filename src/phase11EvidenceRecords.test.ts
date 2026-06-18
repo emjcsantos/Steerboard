@@ -125,6 +125,30 @@ describe("phase 11 evidence records", () => {
     expect(record.nextAction).toContain("Repair build and test evidence timestamp");
   });
 
+  it("treats release-decision as structured owner evidence", () => {
+    const record = evaluatePhase11EvidenceRecord(
+      "release-decision",
+      {
+        gate: "release-decision",
+        state: "ready",
+        source: "owner release review",
+        recordedAt: "2026-06-17T11:30:00.000Z",
+        detail: "Owner approved the release decision while packaging stayed locked."
+      },
+      NOW
+    );
+
+    expect(record).toMatchObject({
+      gate: "release-decision",
+      label: "Release decision evidence",
+      state: "ready",
+      freshness: "fresh",
+      source: "owner release review",
+      ageHours: 0.5
+    });
+    expect(record.nextAction).toContain("current active Phase 3 clearance PM traceability");
+  });
+
   it("summarizes all release evidence records", () => {
     const summary = buildPhase11EvidenceRecords(
       {
@@ -148,12 +172,19 @@ describe("phase 11 evidence records", () => {
           source: "owner",
           recordedAt: "bad-date",
           detail: "Docs reviewed."
+        },
+        "release-decision": {
+          gate: "release-decision",
+          state: "ready",
+          source: "owner",
+          recordedAt: "2026-06-17T11:00:00.000Z",
+          detail: "Release decision recorded."
         }
       },
       NOW
     );
 
-    expect(summary.readyCount).toBe(1);
+    expect(summary.readyCount).toBe(2);
     expect(summary.reviewCount).toBe(1);
     expect(summary.blockedCount).toBe(1);
     expect(summary.waitingCount).toBe(1);

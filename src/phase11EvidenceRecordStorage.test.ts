@@ -19,6 +19,22 @@ describe("phase 11 evidence record storage", () => {
     });
   });
 
+  it("creates owner-local release-decision evidence metadata", () => {
+    expect(
+      createPhase11EvidenceRecordInput(
+        "release-decision",
+        "2026-06-18T00:00:00.000Z"
+      )
+    ).toEqual({
+      gate: "release-decision",
+      state: "ready",
+      source: "owner local evidence record",
+      recordedAt: "2026-06-18T00:00:00.000Z",
+      detail:
+        "Owner attached release-decision evidence metadata for Phase 11 release review."
+    });
+  });
+
   it("parses a single imported evidence record", () => {
     const inputs = parsePhase11EvidenceRecordInputs(
       JSON.stringify({
@@ -54,6 +70,13 @@ describe("phase 11 evidence record storage", () => {
             source: "owner",
             recordedAt: "bad-date",
             detail: "Wrong gate and bad date."
+          },
+          "release-decision": {
+            gate: "release-decision",
+            state: "ready",
+            source: "owner",
+            recordedAt: "2026-06-18T00:01:00.000Z",
+            detail: "Release decision recorded."
           }
         }
       })
@@ -63,6 +86,10 @@ describe("phase 11 evidence record storage", () => {
     expect(inputs["docs-known-limits"]).toMatchObject({
       gate: "build-test",
       recordedAt: "bad-date"
+    });
+    expect(inputs["release-decision"]).toMatchObject({
+      gate: "release-decision",
+      detail: "Release decision recorded."
     });
   });
 

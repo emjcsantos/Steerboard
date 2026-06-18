@@ -14,7 +14,8 @@ const PHASE11_EVIDENCE_GATES: Phase11EvidenceGate[] = [
   "fresh-checkout",
   "clean-checkout",
   "build-test",
-  "docs-known-limits"
+  "docs-known-limits",
+  "release-decision"
 ];
 
 const DEFAULT_RECORD_DETAILS: Record<Phase11EvidenceGate, string> = {
@@ -25,7 +26,9 @@ const DEFAULT_RECORD_DETAILS: Record<Phase11EvidenceGate, string> = {
   "build-test":
     "Owner attached build/test evidence metadata for Phase 11 release review.",
   "docs-known-limits":
-    "Owner attached docs and known-limits evidence metadata for Phase 11 release review."
+    "Owner attached docs and known-limits evidence metadata for Phase 11 release review.",
+  "release-decision":
+    "Owner attached release-decision evidence metadata for Phase 11 release review."
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

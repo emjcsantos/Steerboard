@@ -542,10 +542,10 @@ describe("milestone status model", () => {
     expect(packagingMilestone?.tone).toBe("paused");
     expect(packagingMilestone?.completionPercent).toBe(20);
     expect(packagingMilestone?.latestNote).toBe(
-      "The Phase 11 Release Readiness gate now tracks clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability with handoff proof, packaging lock, docs/known limits, final security closure capability, and release decision while packaging remains paused."
+      "The Phase 11 Release Readiness gate now tracks clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability with handoff proof, packaging lock, docs/known limits, final security closure capability, and structured release-decision evidence while packaging remains paused."
     );
     expect(packagingMilestone?.nextStep).toBe(
-      "Use the Phase 11 Release Readiness panel to record the final release proof after live workflow, provider, migration, audit, Phase 3 traceability, final security closure, and owner proof holds are clear; do not package, sign, create installers, or push from this gate."
+      "Use the Phase 11 Release Readiness panel to record the final release proof after live workflow, provider, migration, audit, Phase 3 traceability, final security closure, owner proof, and release-decision evidence holds are clear; do not package, sign, create installers, or push from this gate."
     );
   });
 

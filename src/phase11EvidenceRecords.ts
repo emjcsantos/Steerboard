@@ -2,7 +2,8 @@ export type Phase11EvidenceGate =
   | "fresh-checkout"
   | "clean-checkout"
   | "build-test"
-  | "docs-known-limits";
+  | "docs-known-limits"
+  | "release-decision";
 
 export type Phase11EvidenceRecordState = "ready" | "review" | "blocked" | "waiting";
 export type Phase11EvidenceRecordFreshness = "fresh" | "stale" | "missing" | "malformed";
@@ -51,21 +52,24 @@ const GATE_LABELS: Record<Phase11EvidenceGate, string> = {
   "fresh-checkout": "Fresh checkout",
   "clean-checkout": "Clean checkout",
   "build-test": "Build and test",
-  "docs-known-limits": "Docs and known limits"
+  "docs-known-limits": "Docs and known limits",
+  "release-decision": "Release decision evidence"
 };
 
 const DEFAULT_NEXT_ACTIONS: Record<Phase11EvidenceGate, string> = {
   "fresh-checkout": "Record fresh-checkout install, test, build, desktop run, and proof-panel evidence after live workflow blockers clear.",
   "clean-checkout": "Record clean-checkout install, dependency verification, and startup proof before release readiness.",
   "build-test": "Record the final test and build pass before release packaging is reconsidered.",
-  "docs-known-limits": "Record release docs, owner checklist, packaging limits, and known limits review before release."
+  "docs-known-limits": "Record release docs, owner checklist, packaging limits, and known limits review before release.",
+  "release-decision": "Record release-decision evidence metadata before release readiness can recommend release."
 };
 
 const READY_NEXT_ACTIONS: Record<Phase11EvidenceGate, string> = {
   "fresh-checkout": "Keep fresh-checkout evidence attached to the owner command center.",
   "clean-checkout": "Keep clean-checkout proof attached to the release record.",
   "build-test": "Keep the final test and build output attached to the release record.",
-  "docs-known-limits": "Keep release docs and known limits attached to the readiness record."
+  "docs-known-limits": "Keep release docs and known limits attached to the readiness record.",
+  "release-decision": "Keep owner release-decision evidence attached while current active Phase 3 clearance PM traceability with handoff proof stays attached and packaging remains locked for explicit owner resume."
 };
 
 function normalizeState(value: unknown): Phase11EvidenceRecordState | undefined {
@@ -216,7 +220,8 @@ export function buildPhase11EvidenceRecords(
     "fresh-checkout": evaluatePhase11EvidenceRecord("fresh-checkout", inputs["fresh-checkout"], nowIso),
     "clean-checkout": evaluatePhase11EvidenceRecord("clean-checkout", inputs["clean-checkout"], nowIso),
     "build-test": evaluatePhase11EvidenceRecord("build-test", inputs["build-test"], nowIso),
-    "docs-known-limits": evaluatePhase11EvidenceRecord("docs-known-limits", inputs["docs-known-limits"], nowIso)
+    "docs-known-limits": evaluatePhase11EvidenceRecord("docs-known-limits", inputs["docs-known-limits"], nowIso),
+    "release-decision": evaluatePhase11EvidenceRecord("release-decision", inputs["release-decision"], nowIso)
   };
   const values = Object.values(records);
 

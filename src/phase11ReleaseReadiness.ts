@@ -57,6 +57,7 @@ export interface Phase11ReleaseReadinessInput {
   cleanCheckoutEvidence?: Phase11EvidenceRecordSnapshot;
   buildTestEvidence?: Phase11EvidenceRecordSnapshot;
   docsKnownLimitsEvidence?: Phase11EvidenceRecordSnapshot;
+  releaseDecisionEvidence?: Phase11EvidenceRecordSnapshot;
   cleanCheckoutState?: Phase11ReleaseReadinessState;
   buildTestState?: Phase11ReleaseReadinessState;
   docsKnownLimitsState?: Phase11ReleaseReadinessState;
@@ -526,14 +527,42 @@ function releaseDecisionItem(
     };
   }
 
+  if (!input.releaseDecisionEvidence) {
+    return {
+      id: `${SNAPSHOT_ID}:release-decision`,
+      label: "Release decision",
+      kind: "release-decision",
+      status: "waiting",
+      detail:
+        "Release decision evidence has not been recorded as a structured Phase 11 evidence record.",
+      nextAction:
+        "Record owner release-decision evidence after every release readiness prerequisite is ready and packaging remains locked."
+    };
+  }
+
+  if (input.releaseDecisionEvidence.state !== "ready") {
+    return {
+      id: `${SNAPSHOT_ID}:release-decision`,
+      label: "Release decision",
+      kind: "release-decision",
+      status: input.releaseDecisionEvidence.state,
+      detail:
+        `${input.releaseDecisionEvidence.detail} Source: ${input.releaseDecisionEvidence.source}; ` +
+        `recorded: ${input.releaseDecisionEvidence.recordedAt}; freshness: ${input.releaseDecisionEvidence.freshness}.`,
+      nextAction: input.releaseDecisionEvidence.nextAction
+    };
+  }
+
   return {
     id: `${SNAPSHOT_ID}:release-decision`,
     label: "Release decision",
     kind: "release-decision",
     status: "ready",
-    detail: "Release readiness evidence is complete and packaging remains locked for explicit owner resume.",
-    nextAction:
-      "Owner can decide whether to resume release packaging from this recorded gate while current active Phase 3 clearance PM traceability with handoff proof stays attached."
+    detail:
+      `${input.releaseDecisionEvidence.detail} Source: ${input.releaseDecisionEvidence.source}; ` +
+      `recorded: ${input.releaseDecisionEvidence.recordedAt}; freshness: ${input.releaseDecisionEvidence.freshness}; ` +
+      "packaging remains locked for explicit owner resume.",
+    nextAction: input.releaseDecisionEvidence.nextAction
   };
 }
 
@@ -577,6 +606,8 @@ export function buildPhase11ReleaseReadinessSnapshot(
     input.desktopPackaging.packagingLocked &&
     !input.desktopPackaging.canPackage &&
     !input.securityFinalReview.canResumePackaging &&
+    input.releaseDecisionEvidence?.state === "ready" &&
+    input.releaseDecisionEvidence.freshness === "fresh" &&
     input.remainingGoalSummary.blocked === 0 &&
     input.remainingGoalSummary.active === 0 &&
     input.remainingGoalSummary.next === 0 &&

@@ -164,9 +164,9 @@ function evidenceRecordsSnapshot(
     readyCount: 1,
     reviewCount: 1,
     blockedCount: 1,
-    waitingCount: 1,
+    waitingCount: 2,
     staleCount: 1,
-    missingCount: 1,
+    missingCount: 2,
     malformedCount: 1,
     records: {
       "fresh-checkout": {
@@ -217,6 +217,19 @@ function evidenceRecordsSnapshot(
         recordedAt: "malformed",
         detail: "Docs and known limits evidence is malformed.",
         nextAction: "Repair docs and known limits evidence metadata before release readiness.",
+        safety:
+          "Phase 11 evidence records are metadata-only. They do not run tests, install dependencies, build packages, execute smoke flows, write files, push branches, call networks, or resume release actions."
+      },
+      "release-decision": {
+        gate: "release-decision",
+        label: "Release decision evidence",
+        state: "waiting",
+        freshness: "missing",
+        source: "missing",
+        recordedAt: "missing",
+        detail: "Release decision evidence has not been recorded.",
+        nextAction:
+          "Record release-decision evidence metadata before release readiness can recommend release.",
         safety:
           "Phase 11 evidence records are metadata-only. They do not run tests, install dependencies, build packages, execute smoke flows, write files, push branches, call networks, or resume release actions."
       }
@@ -382,6 +395,10 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Clean checkout");
     expect(html).toContain("Build and test");
     expect(html).toContain("Docs and known limits");
+    expect(html).toContain("Release decision evidence");
+    expect(html).toContain(
+      "Record release-decision evidence metadata before release readiness can recommend release"
+    );
     expect(html).toContain("Import JSON");
     expect(html).toContain("Record");
     expect(html).toContain("Clear");
@@ -458,7 +475,7 @@ describe("phase 11 owner-visible proof", () => {
       }))
     });
     const evidence = evidenceRecordsSnapshot({
-      readyCount: 4,
+      readyCount: 5,
       reviewCount: 0,
       blockedCount: 0,
       waitingCount: 0,
