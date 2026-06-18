@@ -155,6 +155,13 @@ import {
   type Phase4ProviderBlockerPrioritySummary
 } from "./phase4ProviderBlockerPriority";
 import {
+  buildPhase4ProviderReviewArtifact,
+  serializePhase4ProviderReviewArtifact,
+  verifyPhase4ProviderReviewArtifact,
+  verifySerializedPhase4ProviderReviewArtifact,
+  type Phase4ProviderReviewArtifactVerification
+} from "./phase4ProviderReviewArtifact";
+import {
   buildSlashCommandExecutionEvidence,
   type SlashCommandExecutionEvidence
 } from "./slashCommandExecutionEvidence";
@@ -1805,6 +1812,10 @@ export function App() {
     useState<Phase4ProviderPermissionRecord | undefined>(() =>
       loadPhase4ProviderPermissionRecord()
     );
+  const [
+    importedPhase4ProviderReviewArtifactVerification,
+    setImportedPhase4ProviderReviewArtifactVerification
+  ] = useState<Phase4ProviderReviewArtifactVerification | undefined>();
   const [commandCatalogSnapshot, setCommandCatalogSnapshot] = useState<CommandCatalogSnapshot>(() =>
     buildCommandCatalogSnapshot(panelSlashCommands, "default-fallback", panelSlashCommands)
   );
@@ -2156,6 +2167,46 @@ export function App() {
       phase4RefreshSafetyDepth
     ]
   );
+  const phase4ProviderReviewArtifactVerification = useMemo(() => {
+    const artifact = buildPhase4ProviderReviewArtifact({
+      evaluatedAt: phase4CatalogProofEvaluationTime,
+      exportedAt: phase4CatalogProofEvaluationTime,
+      currentCatalogFingerprint: phase4CurrentCatalogFingerprint,
+      catalogDepth: phase4ProviderCatalogDepth,
+      refreshSafety: phase4RefreshSafetyDepth,
+      surfaceDepth: phase4ProviderSurfaceDepth,
+      traceability: phase4ProviderTraceability,
+      blockerPriority: phase4ProviderBlockerPriority,
+      approvalRecord: phase4ProviderApprovalRecord,
+      approvalValidation: phase4ProviderApprovalValidation,
+      auditRecord: phase4ProviderAuditRecord,
+      auditValidation: phase4ProviderAuditValidation,
+      rollbackRecord: phase4ProviderRollbackRecord,
+      rollbackValidation: phase4ProviderRollbackValidation,
+      permissionRecord: phase4ProviderPermissionRecord,
+      permissionValidation: phase4ProviderPermissionValidation
+    });
+
+    return verifyPhase4ProviderReviewArtifact(artifact, {
+      verifiedAt: phase4CatalogProofEvaluationTime
+    });
+  }, [
+    phase4CatalogProofEvaluationTime,
+    phase4CurrentCatalogFingerprint,
+    phase4ProviderApprovalRecord,
+    phase4ProviderApprovalValidation,
+    phase4ProviderAuditRecord,
+    phase4ProviderAuditValidation,
+    phase4ProviderBlockerPriority,
+    phase4ProviderCatalogDepth,
+    phase4ProviderPermissionRecord,
+    phase4ProviderPermissionValidation,
+    phase4ProviderRollbackRecord,
+    phase4ProviderRollbackValidation,
+    phase4ProviderSurfaceDepth,
+    phase4ProviderTraceability,
+    phase4RefreshSafetyDepth
+  ]);
   const recordPhase4ProviderApproval = useCallback(() => {
     if (phase4RefreshSafetyDepth.blockedCount > 0 || phase4RefreshSafetyDepth.previewCount > 0) {
       setAppNotice(phase4RefreshSafetyDepth.nextAction);
@@ -2681,6 +2732,75 @@ export function App() {
     setImportedPhase3ProofExportVerification(verification);
     setAppNotice(`Imported Phase 3 proof ${verification.statusLabel}: ${verification.detail}`);
   }, []);
+  const exportPhase4ProviderReviewArtifact = useCallback(() => {
+    const now = new Date().toISOString();
+    const artifact = buildPhase4ProviderReviewArtifact({
+      exportedAt: now,
+      evaluatedAt: phase4CatalogProofEvaluationTime,
+      currentCatalogFingerprint: phase4CurrentCatalogFingerprint,
+      catalogDepth: phase4ProviderCatalogDepth,
+      refreshSafety: phase4RefreshSafetyDepth,
+      surfaceDepth: phase4ProviderSurfaceDepth,
+      traceability: phase4ProviderTraceability,
+      blockerPriority: phase4ProviderBlockerPriority,
+      approvalRecord: phase4ProviderApprovalRecord,
+      approvalValidation: phase4ProviderApprovalValidation,
+      auditRecord: phase4ProviderAuditRecord,
+      auditValidation: phase4ProviderAuditValidation,
+      rollbackRecord: phase4ProviderRollbackRecord,
+      rollbackValidation: phase4ProviderRollbackValidation,
+      permissionRecord: phase4ProviderPermissionRecord,
+      permissionValidation: phase4ProviderPermissionValidation
+    });
+    const serializedArtifact = serializePhase4ProviderReviewArtifact(artifact);
+    const verification = verifyPhase4ProviderReviewArtifact(artifact, {
+      verifiedAt: now
+    });
+
+    if (typeof document !== "undefined" && typeof URL !== "undefined" && typeof Blob !== "undefined") {
+      const blob = new Blob([serializedArtifact], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `phase4-provider-review-${now.replace(/[:.]/g, "-")}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+
+    setAppNotice(
+      `Phase 4 provider review export ${verification.statusLabel}: ${verification.detail}`
+    );
+  }, [
+    phase4CatalogProofEvaluationTime,
+    phase4CurrentCatalogFingerprint,
+    phase4ProviderApprovalRecord,
+    phase4ProviderApprovalValidation,
+    phase4ProviderAuditRecord,
+    phase4ProviderAuditValidation,
+    phase4ProviderBlockerPriority,
+    phase4ProviderCatalogDepth,
+    phase4ProviderPermissionRecord,
+    phase4ProviderPermissionValidation,
+    phase4ProviderRollbackRecord,
+    phase4ProviderRollbackValidation,
+    phase4ProviderSurfaceDepth,
+    phase4ProviderTraceability,
+    phase4RefreshSafetyDepth
+  ]);
+  const verifyImportedPhase4ProviderReviewArtifact = useCallback(
+    (serializedArtifact: string) => {
+      const now = new Date().toISOString();
+      const verification = verifySerializedPhase4ProviderReviewArtifact(serializedArtifact, {
+        verifiedAt: now
+      });
+
+      setImportedPhase4ProviderReviewArtifactVerification(verification);
+      setAppNotice(
+        `Imported Phase 4 provider review ${verification.statusLabel}: ${verification.detail}`
+      );
+    },
+    []
+  );
   const clearPhase3CommandValidation = useCallback(() => {
     const now = new Date().toISOString();
 
@@ -4438,8 +4558,12 @@ export function App() {
             phase4ProviderRollbackValidation={phase4ProviderRollbackValidation}
             phase4ProviderPermissionRecord={phase4ProviderPermissionRecord}
             phase4ProviderPermissionValidation={phase4ProviderPermissionValidation}
+            phase4ProviderReviewArtifactVerification={phase4ProviderReviewArtifactVerification}
             phase4ProviderTraceability={phase4ProviderTraceability}
             phase4ProviderSurfaceDepth={phase4ProviderSurfaceDepth}
+            importedPhase4ProviderReviewArtifactVerification={
+              importedPhase4ProviderReviewArtifactVerification
+            }
             providerIntegrationReadiness={providerIntegrationReadiness}
             registryEntry={registryEntry}
             registrySummary={registrySummary}
@@ -4485,6 +4609,10 @@ export function App() {
             onClearPhase4ProviderRollback={clearPhase4ProviderRollback}
             onRecordPhase4ProviderPermission={recordPhase4ProviderPermission}
             onClearPhase4ProviderPermission={clearPhase4ProviderPermission}
+            onExportPhase4ProviderReviewArtifact={exportPhase4ProviderReviewArtifact}
+            onVerifyImportedPhase4ProviderReviewArtifact={
+              verifyImportedPhase4ProviderReviewArtifact
+            }
             codexCanStartSession={codexTransportDecision.canStartSession}
             codexLiveSmokeLoading={codexLiveSmokeLoading}
             codexTwoPanelSmokeLoading={codexTwoPanelSmokeLoading}
@@ -7832,13 +7960,17 @@ export function Phase4ProviderSurfaceDepthPanel({
   onClearAudit,
   onClearPermission,
   onClearRollback,
+  onExportReviewArtifact,
   onRecordApproval,
   onRecordAudit,
   onRecordPermission,
   onRecordRollback,
+  onVerifyImportedReviewArtifact,
+  importedReviewArtifactVerification,
   permissionRecord,
   permissionValidation,
   record,
+  reviewArtifactVerification,
   rollbackRecord,
   rollbackValidation,
   snapshot
@@ -7850,17 +7982,36 @@ export function Phase4ProviderSurfaceDepthPanel({
   onClearAudit?: () => void;
   onClearPermission?: () => void;
   onClearRollback?: () => void;
+  onExportReviewArtifact?: () => void;
   onRecordApproval?: () => void;
   onRecordAudit?: () => void;
   onRecordPermission?: () => void;
   onRecordRollback?: () => void;
+  onVerifyImportedReviewArtifact?: (serializedArtifact: string) => void;
+  importedReviewArtifactVerification?: Phase4ProviderReviewArtifactVerification;
   permissionRecord?: Phase4ProviderPermissionRecord;
   permissionValidation?: Phase4ProviderPermissionRecordValidation;
   record?: Phase4ProviderApprovalRecord;
+  reviewArtifactVerification?: Phase4ProviderReviewArtifactVerification;
   rollbackRecord?: Phase4ProviderRollbackRecord;
   rollbackValidation?: Phase4ProviderRollbackRecordValidation;
   snapshot: Phase4ProviderSurfaceDepthSnapshot;
 }) {
+  const reviewArtifactImportInputRef = useRef<HTMLInputElement | null>(null);
+  const handleReviewArtifactImport = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      event.currentTarget.value = "";
+
+      if (!file) {
+        return;
+      }
+
+      onVerifyImportedReviewArtifact?.(await file.text());
+    },
+    [onVerifyImportedReviewArtifact]
+  );
+
   return (
     <section className="panel-section">
       <h4>Phase 4 Surface Depth</h4>
@@ -7968,6 +8119,74 @@ export function Phase4ProviderSurfaceDepthPanel({
             Clear permission
           </button>
         </div>
+        {reviewArtifactVerification ? (
+          <div
+            aria-label={`Phase 4 provider review artifact verifier ${reviewArtifactVerification.statusLabel}; ${reviewArtifactVerification.readiness}% ready`}
+            className={classNames(
+              "phase4-provider-depth-actions",
+              `phase4-provider-depth-artifact-${reviewArtifactVerification.state}`
+            )}
+            title={reviewArtifactVerification.detail}
+          >
+            <div>
+              <strong>Provider review artifact</strong>
+              <small>
+                {reviewArtifactVerification.statusLabel} / blockers{" "}
+                {reviewArtifactVerification.openBlockerCount}
+              </small>
+              <small>
+                Catalog {reviewArtifactVerification.catalogDepthRecordCount} | Refresh{" "}
+                {reviewArtifactVerification.refreshSafetyRecordCount} | Surface{" "}
+                {reviewArtifactVerification.surfaceDepthItemCount} | Trace{" "}
+                {reviewArtifactVerification.traceabilityItemCount} | Execution{" "}
+                {reviewArtifactVerification.executionLocked ? "locked" : "unlocked"}
+              </small>
+            </div>
+            <button
+              onClick={onExportReviewArtifact}
+              title="Export Phase 4 provider review evidence for offline owner review without running provider actions."
+              type="button"
+            >
+              Export review
+            </button>
+            <button
+              onClick={() => reviewArtifactImportInputRef.current?.click()}
+              title="Verify a Phase 4 provider review artifact without changing local provider records."
+              type="button"
+            >
+              Import review
+            </button>
+            <input
+              accept="application/json,.json"
+              aria-label="Import Phase 4 provider review artifact for verification"
+              onChange={handleReviewArtifactImport}
+              ref={reviewArtifactImportInputRef}
+              type="file"
+            />
+          </div>
+        ) : null}
+        {importedReviewArtifactVerification ? (
+          <div
+            aria-label={`Imported Phase 4 provider review artifact verifier ${importedReviewArtifactVerification.statusLabel}; ${importedReviewArtifactVerification.readiness}% ready`}
+            className={classNames(
+              "phase4-provider-depth-actions",
+              `phase4-provider-depth-artifact-${importedReviewArtifactVerification.state}`
+            )}
+            title={importedReviewArtifactVerification.detail}
+          >
+            <div>
+              <strong>Imported provider review</strong>
+              <small>{importedReviewArtifactVerification.detail}</small>
+              <small>{importedReviewArtifactVerification.nextAction}</small>
+              <small>
+                Approval {importedReviewArtifactVerification.hasApprovalRecord ? "attached" : "missing"} |
+                Audit {importedReviewArtifactVerification.hasAuditRecord ? "attached" : "missing"} |
+                Rollback {importedReviewArtifactVerification.hasRollbackRecord ? "attached" : "missing"} |
+                Permission {importedReviewArtifactVerification.hasPermissionRecord ? "attached" : "missing"}
+              </small>
+            </div>
+          </div>
+        ) : null}
         <dl className="phase4-provider-depth-grid" aria-label="Phase 4 provider surface depth counts">
           <div>
             <dt>Execution</dt>
@@ -8011,7 +8230,7 @@ export function Phase4ProviderSurfaceDepthPanel({
   );
 }
 
-function Phase4ProviderTraceabilityPanel({
+export function Phase4ProviderTraceabilityPanel({
   summary
 }: {
   summary: Phase4ProviderTraceabilitySummary;
@@ -8077,7 +8296,7 @@ function Phase4ProviderTraceabilityPanel({
   );
 }
 
-function Phase4ProviderBlockerPriorityPanel({
+export function Phase4ProviderBlockerPriorityPanel({
   summary
 }: {
   summary: Phase4ProviderBlockerPrioritySummary;
@@ -8581,6 +8800,7 @@ function RightPanel({
   onClearPhase3OwnerHandoff,
   onClearPhase11EvidenceRecord,
   onExportPhase3ProofArtifact,
+  onExportPhase4ProviderReviewArtifact,
   onImportPhase3CommandValidation,
   onImportPhase3SmokeProofBundle,
   onImportPhase11EvidenceRecords,
@@ -8593,6 +8813,7 @@ function RightPanel({
   onRecordPhase4ProviderRollback,
   onRecordWorkerValidationAttempt,
   onVerifyImportedPhase3ProofArtifact,
+  onVerifyImportedPhase4ProviderReviewArtifact,
   onSelectRun,
   onUpdateRunStatus,
   project,
@@ -8604,10 +8825,12 @@ function RightPanel({
   phase4ProviderAuditValidation,
   phase4ProviderPermissionRecord,
   phase4ProviderPermissionValidation,
+  phase4ProviderReviewArtifactVerification,
   phase4ProviderRollbackRecord,
   phase4ProviderRollbackValidation,
   phase4ProviderTraceability,
   phase4ProviderSurfaceDepth,
+  importedPhase4ProviderReviewArtifactVerification,
   providerIntegrationReadiness,
   registryEntry,
   registrySummary,
@@ -8671,6 +8894,7 @@ function RightPanel({
   onClearPhase3OwnerHandoff: () => void;
   onClearPhase11EvidenceRecord: (gate: Phase11EvidenceGate) => void;
   onExportPhase3ProofArtifact: () => void;
+  onExportPhase4ProviderReviewArtifact: () => void;
   onImportPhase3CommandValidation: (serializedRecord: string) => void;
   onImportPhase3SmokeProofBundle: (serializedBundle: string) => void;
   onImportPhase11EvidenceRecords: (serializedRecords: string) => void;
@@ -8687,6 +8911,7 @@ function RightPanel({
     outcome: "pass" | "fail"
   ) => void;
   onVerifyImportedPhase3ProofArtifact: (serializedArtifact: string) => void;
+  onVerifyImportedPhase4ProviderReviewArtifact: (serializedArtifact: string) => void;
   onSelectRun: (runId: string) => void;
   onUpdateRunStatus: (runId: string, nextStatus: MockRunStatus) => void;
   project: ProjectSummary;
@@ -8698,10 +8923,12 @@ function RightPanel({
   phase4ProviderAuditValidation: Phase4ProviderAuditRecordValidation;
   phase4ProviderPermissionRecord?: Phase4ProviderPermissionRecord;
   phase4ProviderPermissionValidation: Phase4ProviderPermissionRecordValidation;
+  phase4ProviderReviewArtifactVerification: Phase4ProviderReviewArtifactVerification;
   phase4ProviderRollbackRecord?: Phase4ProviderRollbackRecord;
   phase4ProviderRollbackValidation: Phase4ProviderRollbackRecordValidation;
   phase4ProviderTraceability: Phase4ProviderTraceabilitySummary;
   phase4ProviderSurfaceDepth: Phase4ProviderSurfaceDepthSnapshot;
+  importedPhase4ProviderReviewArtifactVerification?: Phase4ProviderReviewArtifactVerification;
   providerIntegrationReadiness: ProviderIntegrationReadiness;
   registryEntry?: RegistryEntry;
   registrySummary: ReturnType<typeof summarizeRegistry>;
@@ -9992,13 +10219,17 @@ function RightPanel({
         onClearAudit={onClearPhase4ProviderAudit}
         onClearPermission={onClearPhase4ProviderPermission}
         onClearRollback={onClearPhase4ProviderRollback}
+        onExportReviewArtifact={onExportPhase4ProviderReviewArtifact}
         onRecordApproval={onRecordPhase4ProviderApproval}
         onRecordAudit={onRecordPhase4ProviderAudit}
         onRecordPermission={onRecordPhase4ProviderPermission}
         onRecordRollback={onRecordPhase4ProviderRollback}
+        onVerifyImportedReviewArtifact={onVerifyImportedPhase4ProviderReviewArtifact}
+        importedReviewArtifactVerification={importedPhase4ProviderReviewArtifactVerification}
         permissionRecord={phase4ProviderPermissionRecord}
         permissionValidation={phase4ProviderPermissionValidation}
         record={phase4ProviderApprovalRecord}
+        reviewArtifactVerification={phase4ProviderReviewArtifactVerification}
         rollbackRecord={phase4ProviderRollbackRecord}
         rollbackValidation={phase4ProviderRollbackValidation}
         snapshot={phase4ProviderSurfaceDepth}

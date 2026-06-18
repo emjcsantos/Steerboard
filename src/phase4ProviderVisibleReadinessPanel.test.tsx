@@ -1,7 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
+  Phase4ProviderBlockerPriorityPanel,
   Phase4ProviderSurfaceDepthPanel,
+  Phase4ProviderTraceabilityPanel,
   ProviderIntegrationReadinessPanel
 } from "./App";
 import {
@@ -28,7 +30,13 @@ import {
   EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
 } from "./phase4ProviderPermissionRecord";
 import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
+import { buildPhase4ProviderBlockerPriority } from "./phase4ProviderBlockerPriority";
+import {
+  buildPhase4ProviderReviewArtifact,
+  verifyPhase4ProviderReviewArtifact
+} from "./phase4ProviderReviewArtifact";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
+import { buildPhase4ProviderTraceabilitySummary } from "./phase4ProviderTraceability";
 import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
 
@@ -192,33 +200,83 @@ describe("phase 4 provider visible readiness panel", () => {
       rollbackValidation,
       permissionValidation
     );
+    const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
+    const traceability = buildPhase4ProviderTraceabilitySummary({
+      catalogDepth,
+      refreshSafety: readyRefreshSafety,
+      surfaceDepth
+    });
+    const blockerPriority = buildPhase4ProviderBlockerPriority({
+      catalogDepth,
+      refreshSafety: readyRefreshSafety,
+      surfaceDepth,
+      traceability
+    });
+    const reviewArtifactVerification = verifyPhase4ProviderReviewArtifact(
+      buildPhase4ProviderReviewArtifact({
+        exportedAt: "2026-06-18T10:35:00.000Z",
+        evaluatedAt: "2026-06-18T10:35:00.000Z",
+        currentCatalogFingerprint: "phase4-catalog-current",
+        catalogDepth,
+        refreshSafety: readyRefreshSafety,
+        surfaceDepth,
+        traceability,
+        blockerPriority,
+        approvalRecord: record,
+        approvalValidation,
+        auditRecord,
+        auditValidation,
+        rollbackRecord,
+        rollbackValidation,
+        permissionRecord,
+        permissionValidation
+      }),
+      { verifiedAt: "2026-06-18T10:35:00.000Z" }
+    );
     const html = renderToStaticMarkup(
-      <Phase4ProviderSurfaceDepthPanel
-        approvalValidation={approvalValidation}
-        auditRecord={auditRecord}
-        auditValidation={auditValidation}
-        onClearApproval={() => undefined}
-        onClearAudit={() => undefined}
-        onClearPermission={() => undefined}
-        onClearRollback={() => undefined}
-        onRecordApproval={() => undefined}
-        onRecordAudit={() => undefined}
-        onRecordPermission={() => undefined}
-        onRecordRollback={() => undefined}
-        permissionRecord={permissionRecord}
-        permissionValidation={permissionValidation}
-        record={record}
-        rollbackRecord={rollbackRecord}
-        rollbackValidation={rollbackValidation}
-        snapshot={surfaceDepth}
-      />
+      <>
+        <Phase4ProviderSurfaceDepthPanel
+          approvalValidation={approvalValidation}
+          auditRecord={auditRecord}
+          auditValidation={auditValidation}
+          importedReviewArtifactVerification={{
+            ...reviewArtifactVerification,
+            detail: "Imported Phase 4 provider review artifact is held for owner review."
+          }}
+          onClearApproval={() => undefined}
+          onClearAudit={() => undefined}
+          onClearPermission={() => undefined}
+          onClearRollback={() => undefined}
+          onExportReviewArtifact={() => undefined}
+          onRecordApproval={() => undefined}
+          onRecordAudit={() => undefined}
+          onRecordPermission={() => undefined}
+          onRecordRollback={() => undefined}
+          onVerifyImportedReviewArtifact={() => undefined}
+          permissionRecord={permissionRecord}
+          permissionValidation={permissionValidation}
+          record={record}
+          reviewArtifactVerification={reviewArtifactVerification}
+          rollbackRecord={rollbackRecord}
+          rollbackValidation={rollbackValidation}
+          snapshot={surfaceDepth}
+        />
+        <Phase4ProviderTraceabilityPanel summary={traceability} />
+        <Phase4ProviderBlockerPriorityPanel summary={blockerPriority} />
+      </>
     );
 
     expect(html).toContain("Phase 4 Surface Depth");
+    expect(html).toContain("Phase 4 Traceability");
+    expect(html).toContain("Phase 4 Blocker Priority");
     expect(html).toContain("Approval record");
     expect(html).toContain("Audit record");
     expect(html).toContain("Rollback record");
     expect(html).toContain("Permission record");
+    expect(html).toContain("Provider review artifact");
+    expect(html).toContain("Imported provider review");
+    expect(html).toContain("Export review");
+    expect(html).toContain("Import review");
     expect(html).toContain("Record approval");
     expect(html).toContain("Clear approval");
     expect(html).toContain("Record audit");
@@ -231,9 +289,27 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("phase-04-surface-depth:audit-gate");
     expect(html).toContain("phase-04-surface-depth:rollback-gate");
     expect(html).toContain("phase-04-surface-depth:permission-gate");
+    expect(html).toContain("phase-04-traceability:active-goal");
+    expect(html).toContain("Phase 4 provider blocker priority");
+    expect(html).toContain("Remaining goal link");
     expect(html).toContain("phase4-provider-permission-current");
+    expect(html).toContain("PM Links");
+    expect(html).toContain("Smoke");
     expect(html).toContain("Permission gate");
     expect(html).toContain("Execution lock");
     expect(html).toContain("does not execute commands");
+    expect(html).toContain("without running provider actions");
+    expect(html).toContain("metadata-only");
+    expect(traceability.canTrustProviderReview).toBe(false);
+    expect(traceability.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "active-goal", status: "preview" })
+      ])
+    );
+    expect(blockerPriority.state).toBe("preview");
+    expect(reviewArtifactVerification).toMatchObject({
+      state: "review",
+      executionLocked: true
+    });
   });
 });
