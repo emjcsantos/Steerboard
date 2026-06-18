@@ -15638,6 +15638,7 @@ export function Phase11ReleaseReadinessPanel({
               <span>{item.kind}</span>
               <div>
                 <strong>{item.label}</strong>
+                <small>{item.detail}</small>
                 <small>{item.nextAction}</small>
               </div>
               <b>{item.status}</b>

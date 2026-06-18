@@ -249,9 +249,9 @@ function releaseReadinessSnapshot(
     statusLabel: "Review",
     readiness: 75,
     canRecommendRelease: false,
-    releaseHoldCount: 4,
-    readyCount: 5,
-    reviewCount: 4,
+    releaseHoldCount: 5,
+    readyCount: 4,
+    reviewCount: 5,
     blockedCount: 0,
     waitingCount: 0,
     ownerReadiness: 82,
@@ -267,9 +267,10 @@ function releaseReadinessSnapshot(
         id: "phase-11-release-readiness:fresh-checkout",
         label: "Fresh checkout",
         kind: "fresh-checkout",
-        status: "ready",
-        detail: "Fresh checkout install, test, build, desktop run, and proof-panel evidence is attached.",
-        nextAction: "Keep fresh-checkout evidence attached to release readiness."
+        status: "review",
+        detail:
+          "Fresh-checkout install, test, build, desktop run, and proof-panel evidence need a structured evidence record.",
+        nextAction: "Attach fresh-checkout evidence metadata before release readiness can proceed."
       },
       {
         id: "phase-11-release-readiness:clean-checkout",
@@ -335,7 +336,8 @@ function releaseReadinessSnapshot(
         label: "Release decision",
         kind: "release-decision",
         status: "review",
-        detail: "Release decision is held while proof and evidence rows remain open.",
+        detail:
+          "Release decision is held until all prerequisite evidence rows are ready. Top prerequisite row: Fresh checkout is review; Fresh-checkout install, test, build, desktop run, and proof-panel evidence need a structured evidence record.",
         nextAction:
           "Owner can decide whether to resume release only after all evidence is ready."
       }
@@ -424,6 +426,10 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Release decision");
     expect(html).toContain("storage-proof attested");
     expect(html).toContain("current active Phase 3 clearance PM traceability");
+    expect(html).toContain("Top prerequisite row: Fresh checkout is review");
+    expect(html).toContain(
+      "Fresh-checkout install, test, build, desktop run, and proof-panel evidence need a structured evidence record"
+    );
     expect(html).toContain("packaging paused");
     expect(html).toContain("local storage repair");
     expect(html).toContain("safety-disabled live-action");
