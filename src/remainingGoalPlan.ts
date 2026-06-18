@@ -137,7 +137,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-03-child-control-ready"
     ],
     nextAction:
-      "Use the Phase 3 command plan, freshness-reviewed CLI validation trace, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, live freshness-aware smoke proof rows, and compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary."
+      "Use the Phase 3 command plan, freshness-reviewed CLI validation trace, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, live freshness-aware smoke proof rows, and compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready and current active goal/PM traceability is trusted, and keep Phase 4 held behind the provider boundary."
   },
   {
     id: "goal-phase-4-provider-surfaces",

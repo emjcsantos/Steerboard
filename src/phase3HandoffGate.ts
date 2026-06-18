@@ -363,8 +363,10 @@ function providerBoundaryItem(
     label: "Provider boundary",
     kind: "provider-boundary",
     status: "ready",
-    detail: "Provider integration can be advanced after owner review.",
-    nextAction: "Advance Phase 4 provider integration from the reviewed handoff."
+    detail:
+      "Provider integration can be advanced after owner review with current active goal and PM traceability trusted.",
+    nextAction:
+      "Advance Phase 4 provider integration from the reviewed handoff while keeping current active goal and PM traceability trusted."
   };
 }
 

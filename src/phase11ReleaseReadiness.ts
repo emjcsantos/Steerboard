@@ -69,6 +69,12 @@ const STATUS_LABELS: Record<Phase11ReleaseReadinessState, string> = {
   waiting: "Waiting"
 };
 
+const PHASE3_CLEARANCE_GOAL_ID = "goal-phase-3-proof-clearance";
+const REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS = [
+  "phase-03-child-traceability",
+  "phase-03-child-handoff-gate"
+] as const;
+
 function publicText(value: string | undefined, fallback: string): string {
   if (!value || value.trim().length === 0) {
     return fallback;
@@ -181,23 +187,48 @@ function buildTestItem(
   };
 }
 
+function hasCurrentPhase3ReleaseTrace(
+  ownerCommandCenter: Phase11OwnerCommandCenterSnapshot
+): boolean {
+  return ownerCommandCenter.priorityGoalTraces.some(
+    (trace) =>
+      trace.goalId === PHASE3_CLEARANCE_GOAL_ID &&
+      trace.current === true &&
+      REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS.every((taskId) =>
+        trace.pmTaskIds.includes(taskId)
+      )
+  );
+}
+
 function smokeProofItem(
   ownerCommandCenter: Phase11OwnerCommandCenterSnapshot
 ): Phase11ReleaseReadinessItem {
-  const status = ownerCommandCenter.canRelease ? "ready" : ownerCommandCenter.state;
+  const hasPhase3Trace = hasCurrentPhase3ReleaseTrace(ownerCommandCenter);
+  const status = ownerCommandCenter.canRelease
+    ? hasPhase3Trace
+      ? "ready"
+      : "review"
+    : ownerCommandCenter.state;
 
   return {
     id: `${SNAPSHOT_ID}:smoke-proof`,
     label: "Owner smoke proof",
     kind: "smoke-proof",
     status,
-    detail: `Owner command center is ${ownerCommandCenter.statusLabel.toLowerCase()} at ${ownerCommandCenter.readiness}% with ${ownerCommandCenter.blockerCount} blocker${ownerCommandCenter.blockerCount === 1 ? "" : "s"}.`,
-    nextAction: ownerCommandCenter.canRelease
-      ? "Keep owner smoke proof fresh across reload and while the app remains open before release packaging resumes."
-      : publicText(
-          ownerCommandCenter.nextAction,
-          "Resolve Owner Testing command-center holds before release readiness."
-        )
+    detail:
+      `Owner command center is ${ownerCommandCenter.statusLabel.toLowerCase()} at ${ownerCommandCenter.readiness}% with ${ownerCommandCenter.blockerCount} blocker${ownerCommandCenter.blockerCount === 1 ? "" : "s"}.` +
+      (hasPhase3Trace
+        ? " Current Phase 3 goal/PM traceability is visible."
+        : " Current Phase 3 goal/PM traceability is not visible."),
+    nextAction:
+      ownerCommandCenter.canRelease && !hasPhase3Trace
+        ? "Restore current Phase 3 goal/PM traceability in Owner Testing before release packaging resumes."
+        : ownerCommandCenter.canRelease
+          ? "Keep owner smoke proof fresh with current active goal/PM traceability across reload and while the app remains open before release packaging resumes."
+          : publicText(
+              ownerCommandCenter.nextAction,
+              "Resolve Owner Testing command-center holds before release readiness."
+            )
   };
 }
 
@@ -404,7 +435,8 @@ function releaseDecisionItem(
     kind: "release-decision",
     status: "ready",
     detail: "Release readiness evidence is complete and packaging remains locked for explicit owner resume.",
-    nextAction: "Owner can decide whether to resume release packaging from this recorded gate."
+    nextAction:
+      "Owner can decide whether to resume release packaging from this recorded gate while current active goal/PM traceability stays attached."
   };
 }
 

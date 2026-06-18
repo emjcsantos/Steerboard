@@ -15,6 +15,8 @@ import type { SecurityFinalReviewSnapshot } from "./securityFinalReview";
 function ownerSnapshot(
   overrides: Partial<Phase11OwnerCommandCenterSnapshot> = {}
 ): Phase11OwnerCommandCenterSnapshot {
+  const priorityGoalTraces = buildRemainingGoalPriorityTraces();
+
   return {
     id: "phase-11-owner-command-center",
     label: "Phase 11 Owner Testing command center",
@@ -33,8 +35,8 @@ function ownerSnapshot(
     safety: "Evidence only.",
     ariaLabel: "Owner command ready.",
     items: [],
-    priorityGoalTraceCount: 0,
-    priorityGoalTraces: [],
+    priorityGoalTraceCount: priorityGoalTraces.length,
+    priorityGoalTraces,
     ...overrides
   };
 }
@@ -137,7 +139,45 @@ describe("phase 11 release readiness", () => {
     expect(result.canRecommendRelease).toBe(true);
     expect(result.releaseHoldCount).toBe(0);
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner smoke proof",
+          nextAction: expect.stringContaining("current active goal/PM traceability")
+        }),
+        expect.objectContaining({
+          label: "Release decision",
+          nextAction: expect.stringContaining("current active goal/PM traceability")
+        })
+      ])
+    );
     expect(result.ariaLabel).toContain("0 holds");
+  });
+
+  it("reviews release readiness when owner proof lacks current Phase 3 traceability", () => {
+    const result = snapshot({
+      ownerCommandCenter: ownerSnapshot({
+        priorityGoalTraceCount: 0,
+        priorityGoalTraces: []
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner smoke proof",
+          status: "review",
+          detail: expect.stringContaining("not visible"),
+          nextAction: expect.stringContaining("current Phase 3 goal/PM traceability")
+        }),
+        expect.objectContaining({
+          label: "Release decision",
+          status: "review"
+        })
+      ])
+    );
   });
 
   it("does not recommend release from state-only ready flags without evidence records", () => {

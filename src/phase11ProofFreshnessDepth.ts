@@ -202,7 +202,7 @@ function handoffProofItem(
     detail: `${phase3HandoffGate.readyCount} handoff rows are ready; ${phase3HandoffGate.exactBlockerCount} exact blocker${phase3HandoffGate.exactBlockerCount === 1 ? "" : "s"} remain.`,
     nextAction:
       status === "ready"
-        ? "Keep the owner handoff record attached and matching current evidence before provider or release readiness advances."
+        ? "Keep the owner handoff record attached, matching current evidence, and backed by trusted current active goal/PM traceability before provider or release readiness advances."
         : phase3HandoffGate.nextAction
   };
 }

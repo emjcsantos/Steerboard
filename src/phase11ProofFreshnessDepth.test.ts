@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Phase3ClearanceCommandPlan } from "./phase3ClearanceCommandPlan";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
-import type { Phase3HandoffGate } from "./phase3HandoffGate";
+import { buildPhase3HandoffGate, type Phase3HandoffGate } from "./phase3HandoffGate";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
 import { buildPhase11ProofFreshnessDepth } from "./phase11ProofFreshnessDepth";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
@@ -136,7 +136,45 @@ describe("phase 11 proof freshness depth", () => {
     expect(result.readiness).toBe(100);
     expect(result.openProofCount).toBe(0);
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner handoff proof",
+          nextAction: expect.stringContaining("current active goal/PM traceability")
+        })
+      ])
+    );
     expect(result.ariaLabel).toContain("0 open proof rows");
+  });
+
+  it("reviews owner proof when the handoff gate lacks Phase 3 traceability precondition", () => {
+    const result = snapshot({
+      phase3HandoffGate: buildPhase3HandoffGate({
+        clearancePackage: clearance(),
+        handoffRecordState: "ready",
+        handoffRecordValidation: {
+          state: "ready",
+          detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
+          nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+          expectedFingerprint: "current",
+          recordFingerprint: "current",
+          matchesCurrentEvidence: true
+        }
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerProof).toBe(false);
+    expect(result.nextAction).toContain("Phase 3 traceability precondition");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner handoff proof",
+          status: "review",
+          nextAction: expect.stringContaining("Phase 3 traceability precondition")
+        })
+      ])
+    );
   });
 
   it("holds on a waiting command plan and desktop smoke rows", () => {
