@@ -74,7 +74,7 @@ const STATUS_LABELS: Record<ProviderIntegrationReadinessState, string> = {
 };
 
 const NEXT_ACTIONS: Record<ProviderIntegrationReadinessState, string> = {
-  ready: "Keep provider execution locked until explicit approval, audit, and rollback gates are implemented.",
+  ready: "Keep provider execution locked until explicit approval, audit, rollback, and permission gates are implemented.",
   preview: "Run catalog smoke and compare preview rows before treating this surface as execution-ready.",
   "setup-required": "Resolve setup-required or disconnected rows before enabling provider execution.",
   blocked: "Fix catalog validation inconsistencies before refreshing again or enabling provider execution.",

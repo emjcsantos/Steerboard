@@ -10,6 +10,7 @@
     "test": "vitest run",
     "check": "npm run test && npm run build",
     "test:phase3:owner-visible": "vitest run src/phase3OwnerVisibleProofPanel.test.tsx",
+    "test:phase4:owner-visible": "vitest run src/phase4ProviderVisibleReadinessPanel.test.tsx",
     "smoke:phase1-2": "cargo test phase1_phase2_live_desktop_smoke --manifest-path src-tauri/Cargo.toml -- --ignored --test-threads=1",
     "smoke:phase3": "cargo test phase3_live_desktop_smoke --manifest-path src-tauri/Cargo.toml -- --ignored --test-threads=1",
     "smoke:phase3:record": "node scripts/record-phase3-smoke-validation.mjs",

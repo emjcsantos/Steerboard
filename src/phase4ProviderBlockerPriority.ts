@@ -266,7 +266,11 @@ function buildItemFromSurfaceDepth(
   item: Phase4ProviderSurfaceDepthItem
 ): Phase4ProviderBlockerPriorityItem {
   const smokeAddressable =
-    item.kind === "execution-lock"
+    item.kind === "execution-lock" ||
+    item.kind === "approval-gate" ||
+    item.kind === "audit-gate" ||
+    item.kind === "rollback-gate" ||
+    item.kind === "permission-gate"
       ? false
       : canUseCatalogSmoke("surface-depth", item.status);
 

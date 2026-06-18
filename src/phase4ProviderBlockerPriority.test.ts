@@ -179,12 +179,12 @@ describe("phase 4 provider blocker priority", () => {
     expect(snapshot.state).toBe("preview");
     expect(snapshot.openBlockerCount).toBeGreaterThan(0);
     expect(snapshot.readiness).toBe(70);
-    expect(snapshot.topPriorityLabel).toBe("Execution lock");
-    expect(snapshot.topPriorityAction).toContain("metadata review separate from execution readiness");
+    expect(snapshot.topPriorityLabel).toBe("Approval gate");
+    expect(snapshot.topPriorityAction).toContain("owner approval gate");
     expect(snapshot.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: "Execution lock",
+          label: "Approval gate",
           kind: "surface-depth",
           status: "preview",
           severity: "medium"

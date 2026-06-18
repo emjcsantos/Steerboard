@@ -7069,7 +7069,7 @@ function RemainingGoalsPanel({
   );
 }
 
-function ProviderIntegrationReadinessPanel({
+export function ProviderIntegrationReadinessPanel({
   catalogDepth,
   readiness
 }: {
@@ -7129,6 +7129,8 @@ function ProviderIntegrationReadinessPanel({
               <div>
                 <strong>{record.label}</strong>
                 <small>{record.sourceLabel}</small>
+                <em>{record.evidence}</em>
+                <small>{record.nextAction}</small>
               </div>
               <b>{record.total}</b>
             </li>
@@ -7152,6 +7154,7 @@ function ProviderIntegrationReadinessPanel({
             </div>
             <span>{surface.statusLabel}</span>
             <p>{surface.detail}</p>
+            <small>{surface.nextAction}</small>
           </li>
         ))}
       </ol>

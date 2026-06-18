@@ -312,6 +312,8 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase4Goal?.nextAction).toContain("blocker-priority panels");
+    expect(phase4Goal?.nextAction).toContain("owner-visible provider readiness check");
+    expect(phase4Goal?.nextAction).toContain("approval, audit, rollback, permission");
   });
 
   it("keeps the Phase 7 dispatch loop target linked to traceability and blocker priority", () => {

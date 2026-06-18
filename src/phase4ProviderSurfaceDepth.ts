@@ -10,6 +10,10 @@ export type Phase4ProviderSurfaceDepthItemKind =
   | "setup-blockers"
   | "capability-gaps"
   | "preview-review"
+  | "approval-gate"
+  | "audit-gate"
+  | "rollback-gate"
+  | "permission-gate"
   | "execution-lock";
 
 export interface Phase4ProviderSurfaceDepthItem {
@@ -109,7 +113,7 @@ function firstNextAction(items: readonly Phase4ProviderSurfaceDepthItem[]): stri
     items.find((item) => item.status === "unavailable")?.nextAction ??
     items.find((item) => item.status === "unsupported")?.nextAction ??
     items.find((item) => item.status === "preview")?.nextAction ??
-    "Keep provider execution locked until approval, audit, rollback, and explicit execution gates are implemented."
+    "Keep provider execution locked until approval, audit, rollback, permission, and explicit execution gates are implemented."
   );
 }
 
@@ -239,16 +243,64 @@ function executionLockItem(): Phase4ProviderSurfaceDepthItem {
     id: `${SNAPSHOT_ID}:execution-lock`,
     label: "Execution lock",
     kind: "execution-lock",
-    status: "preview",
-    detail: "Provider execution remains locked behind future approval, audit, rollback, and permission gates.",
+    status: "ready",
+    detail: "Provider execution is disabled while approval, audit, rollback, and permission gates are still separate preview holds.",
     nextAction:
       "Keep provider metadata review separate from execution readiness until approval, audit, rollback, and permission gates exist."
   };
 }
 
-function nextSurfaceLabel(readiness: ProviderIntegrationReadiness): string {
+function approvalGateItem(): Phase4ProviderSurfaceDepthItem {
+  return {
+    id: `${SNAPSHOT_ID}:approval-gate`,
+    label: "Approval gate",
+    kind: "approval-gate",
+    status: "preview",
+    detail: "No explicit owner approval gate exists yet for promoting provider metadata review into provider execution.",
+    nextAction: "Add an explicit owner approval gate before provider execution can leave preview."
+  };
+}
+
+function auditGateItem(): Phase4ProviderSurfaceDepthItem {
+  return {
+    id: `${SNAPSHOT_ID}:audit-gate`,
+    label: "Audit gate",
+    kind: "audit-gate",
+    status: "preview",
+    detail: "Provider execution has no persisted audit-review evidence for command, skill, plugin, MCP, automation, or personalization actions.",
+    nextAction: "Add provider execution audit persistence before any provider action can run."
+  };
+}
+
+function rollbackGateItem(): Phase4ProviderSurfaceDepthItem {
+  return {
+    id: `${SNAPSHOT_ID}:rollback-gate`,
+    label: "Rollback gate",
+    kind: "rollback-gate",
+    status: "preview",
+    detail: "Rollback ownership and recovery evidence are not defined for provider execution failures.",
+    nextAction: "Define provider rollback owner, recovery action, and evidence capture before execution is considered."
+  };
+}
+
+function permissionGateItem(): Phase4ProviderSurfaceDepthItem {
+  return {
+    id: `${SNAPSHOT_ID}:permission-gate`,
+    label: "Permission gate",
+    kind: "permission-gate",
+    status: "preview",
+    detail: "Provider execution permissions remain unavailable for command, skill, plugin, MCP, automation, and personalization surfaces.",
+    nextAction: "Add provider permission checks that keep each surface locked until explicit approval is recorded."
+  };
+}
+
+function nextSurfaceLabel(
+  readiness: ProviderIntegrationReadiness,
+  items: readonly Phase4ProviderSurfaceDepthItem[]
+): string {
   return (
     readiness.surfaces.find((surface) => surface.state !== "ready")?.label ??
+    items.find((item) => item.status !== "ready")?.label ??
     "Execution lock"
   );
 }
@@ -271,6 +323,10 @@ export function buildPhase4ProviderSurfaceDepth(
     setupBlockersItem(readiness),
     capabilityGapsItem(readiness),
     previewReviewItem(readiness),
+    approvalGateItem(),
+    auditGateItem(),
+    rollbackGateItem(),
+    permissionGateItem(),
     executionLockItem()
   ];
   const state = resolveState(items);
@@ -294,7 +350,7 @@ export function buildPhase4ProviderSurfaceDepth(
     previewCount,
     setupRequiredCount,
     heldCount,
-    nextSurfaceLabel: nextSurfaceLabel(readiness),
+    nextSurfaceLabel: nextSurfaceLabel(readiness, items),
     nextAction: firstNextAction(items),
     safety: SAFETY,
     items

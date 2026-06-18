@@ -76,7 +76,11 @@ describe("phase 4 provider surface depth", () => {
     expect(depth.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: "Setup blockers", status: "setup-required" }),
-        expect.objectContaining({ label: "Execution lock", status: "preview" })
+        expect.objectContaining({ label: "Approval gate", status: "preview" }),
+        expect.objectContaining({ label: "Audit gate", status: "preview" }),
+        expect.objectContaining({ label: "Rollback gate", status: "preview" }),
+        expect.objectContaining({ label: "Permission gate", status: "preview" }),
+        expect.objectContaining({ label: "Execution lock", status: "ready" })
       ])
     );
   });
@@ -85,15 +89,19 @@ describe("phase 4 provider surface depth", () => {
     const depth = depthFromValidation(validationFixture());
 
     expect(depth.state).toBe("preview");
-    expect(depth.readiness).toBe(94);
+    expect(depth.readiness).toBe(87);
     expect(depth.canEnableExecution).toBe(false);
-    expect(depth.attentionCount).toBe(1);
-    expect(depth.previewCount).toBe(1);
-    expect(depth.nextSurfaceLabel).toBe("Execution lock");
-    expect(depth.nextAction).toContain("metadata review separate from execution readiness");
+    expect(depth.attentionCount).toBe(4);
+    expect(depth.previewCount).toBe(4);
+    expect(depth.nextSurfaceLabel).toBe("Approval gate");
+    expect(depth.nextAction).toContain("owner approval gate");
     expect(depth.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ label: "Execution lock", status: "preview" })
+        expect.objectContaining({ label: "Approval gate", status: "preview" }),
+        expect.objectContaining({ label: "Audit gate", status: "preview" }),
+        expect.objectContaining({ label: "Rollback gate", status: "preview" }),
+        expect.objectContaining({ label: "Permission gate", status: "preview" }),
+        expect.objectContaining({ label: "Execution lock", status: "ready" })
       ])
     );
   });
@@ -119,7 +127,7 @@ describe("phase 4 provider surface depth", () => {
     );
 
     expect(depth.state).toBe("preview");
-    expect(depth.previewCount).toBe(2);
+    expect(depth.previewCount).toBe(5);
     expect(depth.nextSurfaceLabel).toBe("MCP");
     expect(depth.items).toEqual(
       expect.arrayContaining([

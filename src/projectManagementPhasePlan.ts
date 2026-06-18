@@ -319,7 +319,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-catalog-depth",
             title: "Provider Catalog Detail Depth",
-            description: "Show command, skill, plugin, MCP, automation, and personalization catalog records with source, totals, readiness state, evidence expectations, and execution locks.",
+            description: "Show command, skill, plugin, MCP, automation, and personalization catalog records with visible source, totals, readiness state, evidence expectations, next actions, and execution locks.",
             completionPercent: 40,
             complexity: "high",
             sourceDocument: "Phase 4 provider catalog depth"
@@ -327,7 +327,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-surface-depth",
             title: "Provider Surface Depth",
-            description: "Show surface coverage, setup blockers, capability gaps, preview review, and execution lock before provider execution is considered.",
+            description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, and execution lock before provider execution is considered.",
             completionPercent: 40,
             complexity: "high",
             sourceDocument: "Phase 4 provider surface depth"
