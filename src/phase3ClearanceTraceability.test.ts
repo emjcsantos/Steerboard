@@ -148,7 +148,7 @@ function snapshot(
 }
 
 describe("phase 3 clearance traceability", () => {
-  it("links the active critical Phase 3 goal to every required PM row and ready evidence", () => {
+  it("links the current active critical Phase 3 goal to every required PM row and ready evidence", () => {
     const result = snapshot();
 
     expect(result.state).toBe("ready");
@@ -160,6 +160,45 @@ describe("phase 3 clearance traceability", () => {
     expect(result.missingPmTaskIds).toEqual([]);
     expect(result.missingGoalPmTaskIds).toEqual([]);
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
+  });
+
+  it("keeps trace untrusted when Phase 3 is active but no longer current", () => {
+    for (const current of [false, undefined]) {
+      const result = snapshot({
+        goals: [phase3Goal({ current })]
+      });
+
+      expect(result.state).toBe("review");
+      expect(result.canTrustTrace).toBe(false);
+      expect(result.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            kind: "active-goal",
+            status: "review",
+            detail: expect.stringContaining("current no")
+          })
+        ])
+      );
+      expect(result.nextAction).toContain("current active critical goal");
+    }
+  });
+
+  it("keeps trace blocked when Phase 3 is current but not active", () => {
+    const result = snapshot({
+      goals: [phase3Goal({ current: true, status: "next" })]
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.canTrustTrace).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "active-goal",
+          status: "blocked",
+          detail: expect.stringContaining("current yes")
+        })
+      ])
+    );
   });
 
   it("blocks when the required Phase 3 goal is missing or no longer active critical", () => {
