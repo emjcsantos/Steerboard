@@ -10099,8 +10099,8 @@ function RightPanel({
       buildLiveActionAuditInput(
         definition,
         evaluation.canExecute
-          ? `Dry-run completed with no live side effects. ${evaluation.reason}`
-          : `Dry-run blocked. ${evaluation.reason}`
+          ? `Dry-run completed with no live side effects. Rollback: fixed no-mutation contract remains attached. ${evaluation.reason}`
+          : `Dry-run blocked. Rollback: fixed no-mutation contract remains attached. ${evaluation.reason}`
       ),
       evaluation.canExecute ? "executed" : "failed",
       timestamp
@@ -10135,7 +10135,7 @@ function RightPanel({
       const record = createLiveActionAuditRecord(
         buildLiveActionAuditInput(
           definition,
-          `${resultSummary.statusLabel}: ${resultSummary.auditText}. ${resultSummary.detail}`
+          `${resultSummary.statusLabel}: ${resultSummary.auditText}. ${resultSummary.detail} Rollback: fixed no-mutation contract remains attached.`
         ),
         "failed",
         timestamp
@@ -10193,7 +10193,7 @@ function RightPanel({
       const record = createLiveActionAuditRecord(
         buildLiveActionAuditInput(
           definition,
-          `${resultSummary.statusLabel}: ${resultSummary.auditText}. ${resultSummary.detail}`
+          `${resultSummary.statusLabel}: ${resultSummary.auditText}. ${resultSummary.detail} Rollback: fixed no-mutation contract remains attached.`
         ),
         result.status === "executed" ? "executed" : "failed",
         timestamp
