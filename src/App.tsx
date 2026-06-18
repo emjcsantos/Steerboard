@@ -13837,7 +13837,7 @@ function Phase10ArenaPolishPanel({
   );
 }
 
-function Phase11OwnerCommandCenterPanel({
+export function Phase11OwnerCommandCenterPanel({
   evidenceRecords,
   proofFreshnessDepth,
   releaseReadiness,
@@ -14039,7 +14039,7 @@ function Phase11OwnerCommandCenterPanel({
   );
 }
 
-function Phase11ProofFreshnessDepthPanel({
+export function Phase11ProofFreshnessDepthPanel({
   snapshot
 }: {
   snapshot: Phase11ProofFreshnessDepthSnapshot;
@@ -14104,7 +14104,7 @@ function Phase11ProofFreshnessDepthPanel({
   );
 }
 
-function Phase11EvidenceRecordsPanel({
+export function Phase11EvidenceRecordsPanel({
   onClearRecord,
   onImportRecords,
   onRecord,
@@ -14219,7 +14219,7 @@ function Phase11EvidenceRecordsPanel({
   );
 }
 
-function Phase11ReleaseReadinessPanel({
+export function Phase11ReleaseReadinessPanel({
   snapshot
 }: {
   snapshot: Phase11ReleaseReadinessSnapshot;

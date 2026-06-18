@@ -306,7 +306,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 11 Owner Command, Proof Freshness Depth, Evidence Records, owner release traceability, and blocker-priority panels to review checklist coverage, command-plan freshness, CLI-validation freshness, handoff proof depth, blockers, phase readiness, PM coverage, packaging holds, exact top blocker, next action, and fresh-checkout evidence."
+      "Use the Phase 11 Owner Command, Proof Freshness Depth, Evidence Records, owner release traceability, blocker-priority panels, and owner-visible Phase 11 proof to review checklist coverage, command-plan freshness, CLI-validation freshness, handoff proof depth, blockers, phase readiness, PM coverage, packaging holds, exact top blocker, next action, and fresh-checkout evidence."
   },
   {
     id: "goal-phase-11-release-readiness",
@@ -326,7 +326,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 11 Release Readiness, Evidence Records, owner release traceability, and blocker-priority panels to require structured clean-checkout, build/test, current active Phase 3 clearance PM traceability with handoff proof, docs-known-limits evidence, and final security closure capability before any ready state can recommend release while packaging stays paused."
+      "Use the Phase 11 Release Readiness, Evidence Records, owner release traceability, blocker-priority panels, and owner-visible Phase 11 proof to require structured clean-checkout, build/test, current active Phase 3 clearance PM traceability with handoff proof, docs-known-limits evidence, and final security closure capability before any ready state can recommend release while packaging stays paused."
   }
 ];
 
