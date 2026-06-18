@@ -326,13 +326,24 @@ function phase3TraceItem(
 function proofFreshnessItem(
   snapshot: Phase11ProofFreshnessDepthSnapshot
 ): Phase11OwnerReleaseTraceabilityItem {
+  const topProofFreshnessItem =
+    snapshot.items.find((item) => item.status === "blocked") ??
+    snapshot.items.find((item) => item.status === "review") ??
+    snapshot.items.find((item) => item.status === "waiting");
+  const topProofFreshnessDetail = topProofFreshnessItem
+    ? ` Top proof row: ${publicText(topProofFreshnessItem.label, "Proof freshness row")} is ${topProofFreshnessItem.status}; ${publicText(topProofFreshnessItem.detail, topProofFreshnessItem.nextAction)}`
+    : "";
+
   return {
     id: `${TRACE_ID}:proof-freshness`,
     label: "Proof freshness depth",
     kind: "proof-freshness",
     status: snapshot.state,
-    detail: `${snapshot.readyCount} ready proof rows and ${snapshot.openProofCount} open proof rows are visible.`,
-    nextAction: publicText(snapshot.nextAction, "Resolve Phase 11 proof freshness blockers.")
+    detail: `${snapshot.readyCount} ready proof rows and ${snapshot.openProofCount} open proof rows are visible.${topProofFreshnessDetail}`,
+    nextAction: publicText(
+      topProofFreshnessItem?.nextAction ?? snapshot.nextAction,
+      "Resolve Phase 11 proof freshness blockers."
+    )
   };
 }
 

@@ -387,6 +387,95 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
+  it("carries the top blocked proof freshness row into owner release traceability", () => {
+    const result = trace({
+      proofFreshnessDepth: proofSnapshot({
+        state: "blocked",
+        statusLabel: "Blocked",
+        readiness: 78,
+        canTrustOwnerProof: false,
+        readyCount: 5,
+        blockedCount: 1,
+        openProofCount: 1,
+        nextAction: "Record a fresh CLI validation.",
+        items: [
+          {
+            id: "phase-11-proof-freshness-depth:command-validation",
+            label: "CLI smoke validation record",
+            kind: "command-validation",
+            status: "blocked",
+            detail: "CLI validation is blocked by stale command output.",
+            nextAction: "Record a fresh CLI validation."
+          },
+          {
+            id: "phase-11-proof-freshness-depth:handoff-proof",
+            label: "Owner handoff proof",
+            kind: "handoff-proof",
+            status: "ready",
+            detail: "Owner handoff proof is attached.",
+            nextAction: "Keep the owner handoff record attached."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.nextAction).toBe("Record a fresh CLI validation.");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "proof-freshness",
+          status: "blocked",
+          detail: expect.stringContaining("Top proof row: CLI smoke validation record is blocked"),
+          nextAction: "Record a fresh CLI validation."
+        }),
+        expect.objectContaining({
+          kind: "proof-freshness",
+          detail: expect.stringContaining("stale command output")
+        })
+      ])
+    );
+  });
+
+  it("carries waiting handoff proof detail into owner release traceability", () => {
+    const result = trace({
+      proofFreshnessDepth: proofSnapshot({
+        state: "waiting",
+        statusLabel: "Waiting",
+        readiness: 82,
+        canTrustOwnerProof: false,
+        readyCount: 5,
+        waitingCount: 1,
+        openProofCount: 1,
+        nextAction: "Record the owner-reviewed Phase 3 handoff.",
+        items: [
+          {
+            id: "phase-11-proof-freshness-depth:handoff-proof",
+            label: "Owner handoff proof",
+            kind: "handoff-proof",
+            status: "waiting",
+            detail: "Owner handoff proof has not been recorded.",
+            nextAction: "Record the owner-reviewed Phase 3 handoff."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "proof-freshness",
+          status: "waiting",
+          detail: expect.stringContaining("Top proof row: Owner handoff proof is waiting"),
+          nextAction: "Record the owner-reviewed Phase 3 handoff."
+        })
+      ])
+    );
+  });
+
   it("reviews when Phase 3 traceability is not current", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
