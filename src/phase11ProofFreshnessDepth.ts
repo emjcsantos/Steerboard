@@ -213,12 +213,19 @@ function commandPlanItem(
 function commandValidationItem(
   phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation
 ): Phase11ProofFreshnessDepthItem {
+  const provenance = phase3CommandValidationRecordValidation.smokeBundleProvenance;
+  const provenanceDetail = provenance
+    ? ` Smoke bundle provenance is attached: ${provenance.command}; ${provenance.runId}; ${provenance.artifactPath}; ${provenance.rowFingerprintCount}/3 row fingerprints.`
+    : phase3CommandValidationRecordValidation.hasSmokeBundleProvenance === true
+      ? " Smoke bundle provenance is attached."
+      : " Smoke bundle provenance is not attached.";
+
   return {
     id: `${SNAPSHOT_ID}:command-validation`,
     label: "CLI smoke validation record",
     kind: "command-validation",
     status: phase3CommandValidationRecordValidation.state,
-    detail: phase3CommandValidationRecordValidation.detail,
+    detail: `${phase3CommandValidationRecordValidation.detail}${provenanceDetail}`,
     nextAction: phase3CommandValidationRecordValidation.nextAction
   };
 }

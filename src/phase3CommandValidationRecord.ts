@@ -18,6 +18,14 @@ export interface Phase3CommandValidationSmokeBundleMetadata {
   };
 }
 
+export interface Phase3CommandValidationSmokeBundleProvenance {
+  readonly source: typeof PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE;
+  readonly command: string;
+  readonly runId: string;
+  readonly artifactPath: string;
+  readonly rowFingerprintCount: number;
+}
+
 export interface Phase3CommandValidationRecord {
   readonly id: string;
   readonly createdAt: string;
@@ -36,6 +44,7 @@ export interface Phase3CommandValidationRecordValidation {
   readonly nextAction: string;
   readonly isFresh: boolean;
   readonly hasSmokeBundleProvenance?: boolean;
+  readonly smokeBundleProvenance?: Phase3CommandValidationSmokeBundleProvenance;
 }
 
 export interface Phase3CommandValidationRecordValidationOptions {
@@ -165,6 +174,28 @@ function parseSmokeBundleMetadata(
       activeTurnInterruptSmoke,
       activeTurnSteerSmoke
     }
+  };
+}
+
+function summarizeSmokeBundleProvenance(
+  record: Phase3CommandValidationRecord
+): Phase3CommandValidationSmokeBundleProvenance | undefined {
+  if (!record.smokeBundle) {
+    return undefined;
+  }
+
+  const rowFingerprintCount = [
+    record.smokeBundle.rowFingerprints.liveControlSmoke,
+    record.smokeBundle.rowFingerprints.activeTurnInterruptSmoke,
+    record.smokeBundle.rowFingerprints.activeTurnSteerSmoke
+  ].filter((value) => value.trim().length > 0).length;
+
+  return {
+    source: PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE,
+    command: record.command,
+    runId: record.smokeBundle.runId,
+    artifactPath: record.smokeBundle.artifactPath,
+    rowFingerprintCount
   };
 }
 
@@ -323,6 +354,9 @@ export function derivePhase3CommandValidationRecordValidation(
     };
   }
 
+  const smokeBundleProvenance = summarizeSmokeBundleProvenance(record);
+  const hasSmokeBundleProvenance = smokeBundleProvenance !== undefined;
+
   if (options?.expectedCommand && record.command !== options.expectedCommand) {
     return {
       state: "review",
@@ -332,7 +366,8 @@ export function derivePhase3CommandValidationRecordValidation(
       nextAction:
         "Clear and record the Phase 3 CLI smoke validation again with the current command plan.",
       isFresh: false,
-      hasSmokeBundleProvenance: Boolean(record.smokeBundle)
+      hasSmokeBundleProvenance,
+      ...(smokeBundleProvenance ? { smokeBundleProvenance } : {})
     };
   }
 
@@ -344,7 +379,8 @@ export function derivePhase3CommandValidationRecordValidation(
       nextAction:
         "Rerun npm.cmd run smoke:phase3 after resolving the failed local CLI validation.",
       isFresh: false,
-      hasSmokeBundleProvenance: Boolean(record.smokeBundle)
+      hasSmokeBundleProvenance,
+      ...(smokeBundleProvenance ? { smokeBundleProvenance } : {})
     };
   }
 
@@ -358,7 +394,8 @@ export function derivePhase3CommandValidationRecordValidation(
       nextAction:
         "Review the Phase 3 CLI smoke validation with the current evaluation time before owner handoff.",
       isFresh: false,
-      hasSmokeBundleProvenance: Boolean(record.smokeBundle)
+      hasSmokeBundleProvenance,
+      ...(smokeBundleProvenance ? { smokeBundleProvenance } : {})
     };
   }
 
@@ -371,11 +408,12 @@ export function derivePhase3CommandValidationRecordValidation(
       nextAction:
         "Rerun npm.cmd run smoke:phase3 manually, then record a fresh local CLI pass.",
       isFresh: false,
-      hasSmokeBundleProvenance: Boolean(record.smokeBundle)
+      hasSmokeBundleProvenance,
+      ...(smokeBundleProvenance ? { smokeBundleProvenance } : {})
     };
   }
 
-  const bundleSuffix = record.smokeBundle
+  const bundleSuffix = hasSmokeBundleProvenance
     ? " Smoke bundle provenance is attached for local_private/phase3-smoke-proof-bundle.json."
     : "";
 
@@ -387,7 +425,8 @@ export function derivePhase3CommandValidationRecordValidation(
     nextAction:
       "Keep the CLI smoke validation attached for owner review without using it to unlock handoff.",
     isFresh: true,
-    hasSmokeBundleProvenance: Boolean(record.smokeBundle)
+    hasSmokeBundleProvenance,
+    ...(smokeBundleProvenance ? { smokeBundleProvenance } : {})
   };
 }
 

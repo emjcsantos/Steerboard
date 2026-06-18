@@ -384,15 +384,22 @@ function commandValidationItem(
     };
   }
 
+  const provenance = commandValidation.smokeBundleProvenance;
+  const provenanceDetail = provenance
+    ? ` Smoke bundle provenance is linked: ${provenance.command}; ${provenance.runId}; ${provenance.artifactPath}; ${provenance.rowFingerprintCount}/3 row fingerprints.`
+    : commandValidation.hasSmokeBundleProvenance === true
+      ? " Smoke bundle provenance is linked."
+      : " Smoke bundle provenance is not linked.";
+
   return {
     id: `${SNAPSHOT_ID}:command-validation`,
     label: "CLI validation trace",
     kind: "command-validation",
     status: commandValidation.state,
-    detail: publicText(
+    detail: `${publicText(
       commandValidation.detail,
       "Phase 3 CLI smoke validation freshness must be reviewed."
-    ),
+    )}${provenanceDetail}`,
     nextAction: publicText(
       commandValidation.nextAction,
       "Review the Phase 3 CLI smoke validation record without using it to unlock desktop proof or handoff."

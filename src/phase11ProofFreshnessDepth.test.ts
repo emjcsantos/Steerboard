@@ -132,6 +132,14 @@ function commandValidation(
     nextAction:
       "Keep the CLI smoke validation attached for owner review without using it to unlock handoff.",
     isFresh: true,
+    hasSmokeBundleProvenance: true,
+    smokeBundleProvenance: {
+      source: "steerboard.phase3.smoke-record.v1",
+      command: "npm.cmd run smoke:phase3",
+      runId: "phase3-smoke-record:2026-06-18T07:57:30.551Z",
+      artifactPath: "local_private/phase3-smoke-proof-bundle.json",
+      rowFingerprintCount: 3
+    },
     ...overrides
   };
 }
@@ -173,6 +181,14 @@ describe("phase 11 proof freshness depth", () => {
         expect.objectContaining({
           label: "Owner handoff proof",
           nextAction: expect.stringContaining("current active goal/PM traceability")
+        }),
+        expect.objectContaining({
+          label: "CLI smoke validation record",
+          detail: expect.stringContaining("phase3-smoke-record:2026-06-18T07:57:30.551Z")
+        }),
+        expect.objectContaining({
+          label: "CLI smoke validation record",
+          detail: expect.stringContaining("3/3 row fingerprints")
         })
       ])
     );
@@ -318,6 +334,26 @@ describe("phase 11 proof freshness depth", () => {
           label: "CLI smoke validation record",
           status: "review",
           detail: expect.stringContaining("stale")
+        })
+      ])
+    );
+  });
+
+  it("keeps missing CLI smoke bundle provenance visible in release proof", () => {
+    const result = snapshot({
+      phase3CommandValidationRecordValidation: commandValidation({
+        hasSmokeBundleProvenance: false,
+        smokeBundleProvenance: undefined
+      })
+    });
+
+    expect(result.state).toBe("ready");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "CLI smoke validation record",
+          status: "ready",
+          detail: expect.stringContaining("Smoke bundle provenance is not attached")
         })
       ])
     );

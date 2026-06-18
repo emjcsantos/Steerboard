@@ -105,6 +105,13 @@ describe("phase 3 command validation record", () => {
       state: "ready",
       isFresh: true,
       hasSmokeBundleProvenance: true,
+      smokeBundleProvenance: {
+        source: PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE,
+        command: "npm.cmd run smoke:phase3",
+        runId: smokeBundle.runId,
+        artifactPath: "local_private/phase3-smoke-proof-bundle.json",
+        rowFingerprintCount: 3
+      },
       detail: expect.stringContaining("Smoke bundle provenance is attached"),
       nextAction: expect.stringContaining("without using it to unlock handoff")
     });
