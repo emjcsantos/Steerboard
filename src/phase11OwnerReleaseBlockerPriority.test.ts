@@ -2,13 +2,23 @@ import { describe, expect, it } from "vitest";
 import type { Phase11EvidenceRecordsSnapshot } from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import { buildPhase11OwnerReleaseBlockerPriority } from "./phase11OwnerReleaseBlockerPriority";
-import type { Phase11OwnerReleaseTraceabilitySummary } from "./phase11OwnerReleaseTraceability";
+import {
+  buildPhase11OwnerReleaseTraceability,
+  type Phase11OwnerReleaseTraceabilitySummary
+} from "./phase11OwnerReleaseTraceability";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { Phase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
+import {
+  buildRemainingGoalPriorityTraces,
+  remainingGoalPlan,
+  type RemainingGoalPlanItem
+} from "./remainingGoalPlan";
 
 function ownerSnapshot(
   overrides: Partial<Phase11OwnerCommandCenterSnapshot> = {}
 ): Phase11OwnerCommandCenterSnapshot {
+  const priorityGoalTraces = buildRemainingGoalPriorityTraces();
+
   return {
     id: "phase-11-owner-command-center",
     label: "Phase 11 Owner Testing command center",
@@ -27,8 +37,8 @@ function ownerSnapshot(
     safety: "Evidence only.",
     ariaLabel: "Owner ready.",
     items: [],
-    priorityGoalTraceCount: 0,
-    priorityGoalTraces: [],
+    priorityGoalTraceCount: priorityGoalTraces.length,
+    priorityGoalTraces,
     ...overrides
   };
 }
@@ -171,6 +181,39 @@ function traceabilitySnapshot(
   };
 }
 
+function withReadyPhase11Goals(): RemainingGoalPlanItem[] {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-11-owner-command-center"
+      ? {
+          ...goal,
+          status: "next",
+          pmTaskIds: Array.from(new Set([
+            ...goal.pmTaskIds,
+            "phase-11-parent-release-packaging",
+            "phase-11-child-package-validation",
+            "phase-11-child-traceability",
+            "phase-11-child-blocker-priority"
+          ]))
+        }
+      : goal.id === "goal-phase-11-release-readiness"
+        ? {
+            ...goal,
+            status: "next",
+            pmTaskIds: Array.from(new Set([
+              ...goal.pmTaskIds,
+              "phase-11-parent-owner-testing",
+              "phase-11-child-owner-checklist",
+              "phase-11-child-proof-freshness-depth",
+              "phase-11-child-evidence-records",
+              "phase-11-child-fresh-checkout",
+              "phase-11-child-traceability",
+              "phase-11-child-blocker-priority"
+            ]))
+          }
+        : goal
+  );
+}
+
 function priority(
   overrides: Partial<Parameters<typeof buildPhase11OwnerReleaseBlockerPriority>[0]> = {}
 ) {
@@ -192,6 +235,35 @@ describe("phase 11 owner release blocker priority", () => {
     expect(result.openBlockerCount).toBe(0);
     expect(result.ownerReviewCanAddressTopBlocker).toBe(false);
     expect(result.topPriorityLabel).toBe("No open Phase 11 owner release blocker");
+  });
+
+  it("surfaces missing current Phase 3 traceability from the real traceability summary", () => {
+    const ownerCommandCenter = ownerSnapshot({
+      priorityGoalTraceCount: 0,
+      priorityGoalTraces: []
+    });
+    const traceability = buildPhase11OwnerReleaseTraceability({
+      ownerCommandCenter,
+      proofFreshnessDepth: proofSnapshot(),
+      evidenceRecords: evidenceSnapshot(),
+      releaseReadiness: releaseSnapshot(),
+      goals: withReadyPhase11Goals()
+    });
+    const result = priority({ ownerCommandCenter, traceability });
+
+    expect(result.state).toBe("review");
+    expect(result.openBlockerCount).toBe(1);
+    expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
+    expect(result.topPriorityAction).toContain("current Phase 3 goal/PM traceability");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "traceability",
+          status: "review",
+          detail: expect.stringContaining("not visible")
+        })
+      ])
+    );
   });
 
   it("ranks blocked owner and release rows before waiting evidence rows", () => {

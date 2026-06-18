@@ -12,6 +12,7 @@ export type Phase11OwnerReleaseTraceabilityKind =
   | "release-goal"
   | "pm-coverage"
   | "owner-command"
+  | "phase3-trace"
   | "proof-freshness"
   | "evidence-records"
   | "release-readiness"
@@ -59,7 +60,12 @@ const TRACE_ID = "phase-11-owner-release-traceability";
 const TRACE_LABEL = "Phase 11 owner release traceability";
 const OWNER_GOAL_ID = "goal-phase-11-owner-command-center";
 const RELEASE_GOAL_ID = "goal-phase-11-release-readiness";
+const PHASE3_CLEARANCE_GOAL_ID = "goal-phase-3-proof-clearance";
 const PHASE11_PHASE_ID = "phase-11-owner-packaging";
+const REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS = [
+  "phase-03-child-traceability",
+  "phase-03-child-handoff-gate"
+] as const;
 const REQUIRED_PM_TASK_IDS = [
   "phase-11-owner-packaging",
   "phase-11-parent-owner-testing",
@@ -269,6 +275,37 @@ function ownerCommandItem(
   };
 }
 
+function phase3TraceItem(
+  snapshot: Phase11OwnerCommandCenterSnapshot
+): Phase11OwnerReleaseTraceabilityItem {
+  const phase3Trace = snapshot.priorityGoalTraces.find(
+    (trace) => trace.goalId === PHASE3_CLEARANCE_GOAL_ID && trace.current
+  );
+  const missingPmTaskIds = REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS.filter(
+    (taskId) => !phase3Trace?.pmTaskIds.includes(taskId)
+  );
+  const isCurrentActivePhase3Trace =
+    phase3Trace?.current === true && phase3Trace.status === "active";
+  const status: Phase11OwnerReleaseTraceabilityState =
+    !phase3Trace || !isCurrentActivePhase3Trace || missingPmTaskIds.length > 0
+      ? "review"
+      : "ready";
+
+  return {
+    id: `${TRACE_ID}:phase3-trace`,
+    label: "Current Phase 3 trace",
+    kind: "phase3-trace",
+    status,
+    detail: phase3Trace
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links.`
+      : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
+    nextAction:
+      status === "ready"
+        ? "Keep current Phase 3 goal/PM traceability visible before release readiness is trusted."
+        : `Restore current Phase 3 goal/PM traceability before Phase 11 owner release review can be trusted: ${missingPmTaskIds.join(", ") || PHASE3_CLEARANCE_GOAL_ID}.`
+  };
+}
+
 function proofFreshnessItem(
   snapshot: Phase11ProofFreshnessDepthSnapshot
 ): Phase11OwnerReleaseTraceabilityItem {
@@ -377,6 +414,7 @@ export function buildPhase11OwnerReleaseTraceability(
     goalItem(releaseGoal, RELEASE_GOAL_ID, "Release readiness goal", "release-goal"),
     pmCoverageItem(ownerGoal, releaseGoal, missingPmTaskIds),
     ownerCommandItem(input.ownerCommandCenter),
+    phase3TraceItem(input.ownerCommandCenter),
     proofFreshnessItem(input.proofFreshnessDepth),
     evidenceRecordsItem(input.evidenceRecords),
     releaseReadinessItem(input.releaseReadiness),

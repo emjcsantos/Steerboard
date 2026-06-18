@@ -4,11 +4,17 @@ import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCen
 import { buildPhase11OwnerReleaseTraceability } from "./phase11OwnerReleaseTraceability";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { Phase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
-import { remainingGoalPlan, type RemainingGoalPlanItem } from "./remainingGoalPlan";
+import {
+  buildRemainingGoalPriorityTraces,
+  remainingGoalPlan,
+  type RemainingGoalPlanItem
+} from "./remainingGoalPlan";
 
 function ownerSnapshot(
   overrides: Partial<Phase11OwnerCommandCenterSnapshot> = {}
 ): Phase11OwnerCommandCenterSnapshot {
+  const priorityGoalTraces = buildRemainingGoalPriorityTraces();
+
   return {
     id: "phase-11-owner-command-center",
     label: "Phase 11 Owner Testing command center",
@@ -27,8 +33,8 @@ function ownerSnapshot(
     safety: "Evidence only.",
     ariaLabel: "Owner command ready.",
     items: [],
-    priorityGoalTraceCount: 0,
-    priorityGoalTraces: [],
+    priorityGoalTraceCount: priorityGoalTraces.length,
+    priorityGoalTraces,
     ...overrides
   };
 }
@@ -222,11 +228,58 @@ describe("phase 11 owner release traceability", () => {
       "release-goal",
       "pm-coverage",
       "owner-command",
+      "phase3-trace",
       "proof-freshness",
       "evidence-records",
       "release-readiness",
       "packaging-hold"
     ]);
+  });
+
+  it("reviews when current Phase 3 goal traceability is missing from owner proof", () => {
+    const result = trace({
+      ownerCommandCenter: ownerSnapshot({
+        priorityGoalTraceCount: 0,
+        priorityGoalTraces: []
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.nextAction).toContain("current Phase 3 goal/PM traceability");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "phase3-trace",
+          status: "review",
+          detail: expect.stringContaining("not visible")
+        })
+      ])
+    );
+  });
+
+  it("reviews when the Phase 3 goal trace is current but not active", () => {
+    const result = trace({
+      ownerCommandCenter: ownerSnapshot({
+        priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
+          trace.goalId === "goal-phase-3-proof-clearance"
+            ? { ...trace, status: "next" }
+            : trace
+        )
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "phase3-trace",
+          status: "review",
+          detail: expect.stringContaining("is next")
+        })
+      ])
+    );
   });
 
   it("reports missing traceability and blocker-priority PM coverage", () => {
