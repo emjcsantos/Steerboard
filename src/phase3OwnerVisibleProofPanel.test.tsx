@@ -618,10 +618,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Phase 3 gate");
     expect(html).toContain("Clearance package");
     expect(html).toContain("Exit ready");
-    expect(html).toContain("<dt>Ready</dt><dd>5</dd>");
-    expect(html).toContain("<dt>Open</dt><dd>0</dd>");
-    expect(html).toContain("<dt>Blocked</dt><dd>0</dd>");
-    expect(html).toContain("<dt>Action</dt><dd>Review</dd>");
+    expect(html).toContain(
+      'aria-label="Phase 3 clearance package counts"><div><dt>Ready</dt><dd>5</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>Action</dt><dd>Review</dd></div></dl>'
+    );
     expect(html).toContain("Storage 3/");
     expect(html).toContain("storage attested");
     expect(html).toContain("current-panel storage provenance");
