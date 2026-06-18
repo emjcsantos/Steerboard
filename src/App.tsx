@@ -407,12 +407,11 @@ import { buildPhase126PublishHoldTraceability } from "./phase126PublishHoldTrace
 import { buildPhase126PublishHoldBlockerPriority } from "./phase126PublishHoldBlockerPriority";
 import {
   loadPhase3SmokeProofBundleWithStorageProof,
-  parseStoredPhase3SmokeProofBundle,
   savePhase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
+import { importPhase3SmokeProofBundleArtifact } from "./phase3SmokeProofImport";
 import {
   buildPhase3SmokeProofNotice,
-  buildPhase3PersistedSmokeProofStorageNotice,
   countPersistedPhase3SmokeProofRows
 } from "./phase3SmokeProofNotice";
 import {
@@ -2231,60 +2230,19 @@ export function App() {
     );
   }, []);
   const importPhase3SmokeProofBundle = useCallback((serializedBundle: string) => {
-    let rawBundle: unknown;
+    const result = importPhase3SmokeProofBundleArtifact(serializedBundle);
 
-    try {
-      rawBundle = JSON.parse(serializedBundle);
-    } catch {
-      setAppNotice("Phase 3 desktop smoke proof artifact could not be imported");
+    if (!result.imported || !result.bundle || !result.persistedDesktopProofs) {
+      setAppNotice(result.notice);
       return;
     }
 
-    const bundle = parseStoredPhase3SmokeProofBundle(serializedBundle);
-    const desktopExecutedRowCount = [
-      bundle.liveControlSmoke,
-      bundle.activeTurnInterruptSmoke,
-      bundle.activeTurnSteerSmoke
-    ].filter((proof) => proof.source === "desktop" && proof.executed === true).length;
-
-    if (desktopExecutedRowCount === 0) {
-      setAppNotice("Phase 3 desktop smoke proof artifact could not be imported");
-      return;
-    }
-
-    savePhase3SmokeProofBundle(rawBundle, { requireBundleProvenance: true });
-    const persistedLoad = loadPhase3SmokeProofBundleWithStorageProof();
-    const persistedBundle = persistedLoad.bundle;
-    const persistedRowCount = countPersistedPhase3SmokeProofRows(
-      persistedLoad.persistedDesktopProofs
-    );
-
-    if (persistedRowCount === 0) {
-      setAppNotice(
-        "Phase 3 desktop smoke proof artifact needs smoke-record provenance before storage attestation"
-      );
-      return;
-    }
-
-    setCodexLiveControlSmokeProof(persistedBundle.liveControlSmoke);
-    setCodexActiveTurnControlSmokeProof(persistedBundle.activeTurnInterruptSmoke);
-    setCodexActiveTurnSteerSmokeProof(persistedBundle.activeTurnSteerSmoke);
-    setPhase3PersistedDesktopProofs(persistedLoad.persistedDesktopProofs);
-    const evaluatedAt = new Date().toISOString();
-    setPhase3ProofEvaluationTime(evaluatedAt);
-    const importedReadiness = buildPhase3SmokeProofReadiness({
-      liveControlSmoke: persistedBundle.liveControlSmoke,
-      activeTurnInterruptSmoke: persistedBundle.activeTurnInterruptSmoke,
-      activeTurnSteerSmoke: persistedBundle.activeTurnSteerSmoke,
-      persistedDesktopProofs: persistedLoad.persistedDesktopProofs,
-      evaluatedAt
-    });
-    setAppNotice(
-      buildPhase3PersistedSmokeProofStorageNotice({
-        persistedRowCount,
-        readinessItems: importedReadiness.items
-      })
-    );
+    setCodexLiveControlSmokeProof(result.bundle.liveControlSmoke);
+    setCodexActiveTurnControlSmokeProof(result.bundle.activeTurnInterruptSmoke);
+    setCodexActiveTurnSteerSmokeProof(result.bundle.activeTurnSteerSmoke);
+    setPhase3PersistedDesktopProofs(result.persistedDesktopProofs);
+    setPhase3ProofEvaluationTime(result.evaluatedAt ?? new Date().toISOString());
+    setAppNotice(result.notice);
   }, []);
   const clearPhase3CommandValidation = useCallback(() => {
     clearPhase3CommandValidationRecord();

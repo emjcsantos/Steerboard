@@ -1,9 +1,22 @@
+import { PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE } from "./phase3SmokeProofStorage";
+
 export type Phase3CommandValidationStatus = "passed" | "failed";
 export type Phase3CommandValidationReadinessState =
   | "ready"
   | "review"
   | "blocked"
   | "waiting";
+
+export interface Phase3CommandValidationSmokeBundleMetadata {
+  readonly source: typeof PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE;
+  readonly runId: string;
+  readonly artifactPath: string;
+  readonly rowFingerprints: {
+    readonly liveControlSmoke: string;
+    readonly activeTurnInterruptSmoke: string;
+    readonly activeTurnSteerSmoke: string;
+  };
+}
 
 export interface Phase3CommandValidationRecord {
   readonly id: string;
@@ -12,6 +25,7 @@ export interface Phase3CommandValidationRecord {
   readonly status: Phase3CommandValidationStatus;
   readonly passedTestCount: number;
   readonly failedTestCount: number;
+  readonly smokeBundle?: Phase3CommandValidationSmokeBundleMetadata;
   readonly detail: string;
 }
 
@@ -21,6 +35,7 @@ export interface Phase3CommandValidationRecordValidation {
   readonly detail: string;
   readonly nextAction: string;
   readonly isFresh: boolean;
+  readonly hasSmokeBundleProvenance?: boolean;
 }
 
 export interface Phase3CommandValidationRecordValidationOptions {
@@ -86,6 +101,71 @@ function publicText(value: string | undefined, fallback: string): string {
     .trim();
 
   return sanitized.length > 0 ? sanitized : fallback;
+}
+
+function safeToken(value: string | undefined): string | undefined {
+  if (!value || value.trim().length === 0) {
+    return undefined;
+  }
+
+  const sanitized = value
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return sanitized.length > 0 ? sanitized : undefined;
+}
+
+function parseSmokeBundleMetadata(
+  value: unknown
+): Phase3CommandValidationSmokeBundleMetadata | undefined {
+  const metadata = isRecord(value) ? value : undefined;
+  const rowFingerprints = isRecord(metadata?.rowFingerprints)
+    ? metadata.rowFingerprints
+    : undefined;
+
+  const runId = safeToken(typeof metadata?.runId === "string" ? metadata.runId : undefined);
+  const artifactPath = publicText(
+    typeof metadata?.artifactPath === "string" ? metadata.artifactPath : undefined,
+    ""
+  );
+  const liveControlSmoke = safeToken(
+    typeof rowFingerprints?.liveControlSmoke === "string"
+      ? rowFingerprints.liveControlSmoke
+      : undefined
+  );
+  const activeTurnInterruptSmoke = safeToken(
+    typeof rowFingerprints?.activeTurnInterruptSmoke === "string"
+      ? rowFingerprints.activeTurnInterruptSmoke
+      : undefined
+  );
+  const activeTurnSteerSmoke = safeToken(
+    typeof rowFingerprints?.activeTurnSteerSmoke === "string"
+      ? rowFingerprints.activeTurnSteerSmoke
+      : undefined
+  );
+
+  if (
+    metadata?.source !== PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE ||
+    !runId ||
+    !artifactPath ||
+    !liveControlSmoke ||
+    !activeTurnInterruptSmoke ||
+    !activeTurnSteerSmoke
+  ) {
+    return undefined;
+  }
+
+  return {
+    source: PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE,
+    runId,
+    artifactPath,
+    rowFingerprints: {
+      liveControlSmoke,
+      activeTurnInterruptSmoke,
+      activeTurnSteerSmoke
+    }
+  };
 }
 
 function toTimestamp(value: string | Date | undefined): number | undefined {
@@ -172,6 +252,7 @@ export function parseStoredPhase3CommandValidationRecord(
     }
 
     const status = normalizeStatus(parsed.status);
+    const smokeBundle = parseSmokeBundleMetadata(parsed.smokeBundle);
 
     if (
       !nonEmptyString(parsed.id) ||
@@ -182,6 +263,10 @@ export function parseStoredPhase3CommandValidationRecord(
       return undefined;
     }
 
+    if (parsed.smokeBundle !== undefined && !smokeBundle) {
+      return undefined;
+    }
+
     return {
       id: parsed.id.trim(),
       createdAt: parsed.createdAt.trim(),
@@ -189,6 +274,7 @@ export function parseStoredPhase3CommandValidationRecord(
       status,
       passedTestCount: normalizeCount(parsed.passedTestCount, status === "passed" ? DEFAULT_PASSED_TEST_COUNT : 0),
       failedTestCount: normalizeCount(parsed.failedTestCount, status === "failed" ? 1 : DEFAULT_FAILED_TEST_COUNT),
+      ...(smokeBundle ? { smokeBundle } : {}),
       detail: publicText(
         nonEmptyString(parsed.detail) ? parsed.detail : undefined,
         status === "passed" ? DEFAULT_PASS_DETAIL : "Phase 3 CLI smoke validation needs review."
@@ -232,7 +318,8 @@ export function derivePhase3CommandValidationRecordValidation(
       detail: "No Phase 3 CLI smoke validation record is attached.",
       nextAction:
         "Run npm.cmd run smoke:phase3 manually, then record the local CLI pass without changing desktop proof rows.",
-      isFresh: false
+      isFresh: false,
+      hasSmokeBundleProvenance: false
     };
   }
 
@@ -244,7 +331,8 @@ export function derivePhase3CommandValidationRecordValidation(
         "Phase 3 CLI smoke validation record was captured for a different command.",
       nextAction:
         "Clear and record the Phase 3 CLI smoke validation again with the current command plan.",
-      isFresh: false
+      isFresh: false,
+      hasSmokeBundleProvenance: Boolean(record.smokeBundle)
     };
   }
 
@@ -255,7 +343,8 @@ export function derivePhase3CommandValidationRecordValidation(
       detail: publicText(record.detail, "Phase 3 CLI smoke validation failed locally."),
       nextAction:
         "Rerun npm.cmd run smoke:phase3 after resolving the failed local CLI validation.",
-      isFresh: false
+      isFresh: false,
+      hasSmokeBundleProvenance: Boolean(record.smokeBundle)
     };
   }
 
@@ -268,7 +357,8 @@ export function derivePhase3CommandValidationRecordValidation(
         "Phase 3 CLI smoke validation record cannot be freshness-checked without an evaluation timestamp.",
       nextAction:
         "Review the Phase 3 CLI smoke validation with the current evaluation time before owner handoff.",
-      isFresh: false
+      isFresh: false,
+      hasSmokeBundleProvenance: Boolean(record.smokeBundle)
     };
   }
 
@@ -280,18 +370,24 @@ export function derivePhase3CommandValidationRecordValidation(
         "Phase 3 CLI smoke validation record is stale and must be recorded again.",
       nextAction:
         "Rerun npm.cmd run smoke:phase3 manually, then record a fresh local CLI pass.",
-      isFresh: false
+      isFresh: false,
+      hasSmokeBundleProvenance: Boolean(record.smokeBundle)
     };
   }
+
+  const bundleSuffix = record.smokeBundle
+    ? " Smoke bundle provenance is attached for local_private/phase3-smoke-proof-bundle.json."
+    : "";
 
   return {
     state: "ready",
     statusLabel: STATUS_LABELS.ready,
     detail:
-      "Phase 3 CLI smoke validation is fresh, but persisted desktop UI proof rows remain the exit-readiness source.",
+      `Phase 3 CLI smoke validation is fresh, but persisted desktop UI proof rows remain the exit-readiness source.${bundleSuffix}`,
     nextAction:
       "Keep the CLI smoke validation attached for owner review without using it to unlock handoff.",
-    isFresh: true
+    isFresh: true,
+    hasSmokeBundleProvenance: Boolean(record.smokeBundle)
   };
 }
 
