@@ -13916,6 +13916,14 @@ export function OwnerTestingReadinessPanel({
                 {phase3ExitGateEvidence.currentPanelLabel}
               </dd>
             </div>
+            <div>
+              <dt>PM Links</dt>
+              <dd>{phase3ExitGateEvidence.pmTaskLinkCount}</dd>
+            </div>
+            <div>
+              <dt>Evidence Keys</dt>
+              <dd>{phase3ExitGateEvidence.evidenceKeyCount}</dd>
+            </div>
           </dl>
           <ol
             className="owner-testing-phase3-smoke-readiness"
