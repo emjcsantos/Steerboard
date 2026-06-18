@@ -12214,6 +12214,8 @@ function OwnerTestingReadinessPanel({
                 >
                   <strong>{item.label}</strong>
                   <span>{item.status}</span>
+                  <small>{item.detail}</small>
+                  <small>{item.nextAction}</small>
                 </li>
               ))}
             </ol>
@@ -12418,7 +12420,9 @@ function OwnerTestingReadinessPanel({
                   }
                 >
                   {phase3HandoffGate.handoffEvidenceReview.hasFreshAgeMetadata
-                    ? "Fresh"
+                    ? `Fresh ${formatPhase3HandoffAge(
+                        phase3HandoffGate.handoffEvidenceReview.recordAgeMs
+                      )}`
                     : formatPhase3HandoffAge(
                         phase3HandoffGate.handoffEvidenceReview.recordAgeMs
                       )}
@@ -12430,8 +12434,8 @@ function OwnerTestingReadinessPanel({
                   title={`${phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.readyCount} ready, ${phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.exactBlockerCount} open, ${phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.reviewCount} review, ${phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.blockedCount} blocked, ${phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.waitingCount} waiting`}
                 >
                   {phase3HandoffGate.handoffEvidenceReview.matchesCurrentEvidence
-                    ? "Match"
-                    : "Review"}{" "}
+                    ? "Current evidence match"
+                    : "Current evidence review"}{" "}
                   {phase3HandoffGate.handoffEvidenceReview.clearanceSnapshot.readiness}%
                 </dd>
               </div>
@@ -12488,6 +12492,8 @@ function OwnerTestingReadinessPanel({
                 >
                   <strong>{item.label}</strong>
                   <span>{item.status}</span>
+                  <small>{item.detail}</small>
+                  <small>{item.nextAction}</small>
                 </li>
               ))}
             </ol>
@@ -12583,6 +12589,8 @@ function OwnerTestingReadinessPanel({
                 <strong>{item.label}</strong>
                 <span>{item.state}</span>
                 <small>{item.pmTaskId} / {item.evidenceKey}</small>
+                <small>{item.detail}</small>
+                <small>{item.nextAction}</small>
               </li>
             ))}
           </ol>
