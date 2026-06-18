@@ -58,6 +58,20 @@ const readyPhase8PermissionAuditDepth: Phase8PermissionAuditDepthSnapshot = {
   exceptions: []
 };
 
+const blockedPhase8PermissionAuditDepth: Phase8PermissionAuditDepthSnapshot = {
+  ...readyPhase8PermissionAuditDepth,
+  state: "blocked",
+  statusLabel: "Blocked",
+  readiness: 0,
+  auditRecordCount: 0,
+  disabledPathCount: 1,
+  openExceptionCount: 1,
+  readyCount: 0,
+  blockedCount: 1,
+  nextAction: "Resolve Phase 8 blocker before Phase 9 runner review.",
+  ariaLabel: "Phase 8 permission audit blocked."
+};
+
 function permissionRequest(
   overrides: Partial<LiveActionPermissionRequest> = {}
 ): LiveActionPermissionRequest {
@@ -297,6 +311,21 @@ describe("phase 9 runner approval owner-visible proof", () => {
       "phase-09-runner-traceability:active-goal / traceability / waiting"
     );
     expect(html).toContain("Clear");
+  });
+
+  it("shows Phase 8 gate blockers as owner actions in blocker priority", () => {
+    const { reviewRecord, snapshot } = readyRunnerApprovalFixture();
+    const html = renderPhase9Proof({
+      reviewRecord,
+      snapshot,
+      phase8: blockedPhase8PermissionAuditDepth
+    });
+
+    expect(html).toContain("Phase 8 audit gate");
+    expect(html).toContain("Owner action");
+    expect(html).toContain(
+      "phase-09-runner-traceability:phase8-gate / phase8-gate / blocked"
+    );
   });
 
   it("shows stale runner-review records as visible review blockers", () => {
