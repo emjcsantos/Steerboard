@@ -195,6 +195,7 @@ describe("remaining goal plan", () => {
       completionPercent: 98
     });
     expect(incompleteTaskIds).toEqual([]);
+    expect(taskCompletionById.get("phase-03-child-command-plan")).toBe(90);
     expect(taskCompletionById.get("phase-03-child-blocker-priority")).toBe(90);
     expect(taskCompletionById.get("phase-03-child-handoff-gate")).toBe(90);
     expect(taskCompletionById.get("phase-03-parent-slash-controls")).toBe(90);

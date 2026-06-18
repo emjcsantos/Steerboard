@@ -226,8 +226,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-command-plan",
             title: "Desktop Smoke Command Plan",
-            description: "Show the exact local Phase 3 smoke command, covered proof rows, command-held state, freshness-reviewed CLI validation record, and blocker-correlated next action without running commands automatically.",
-            completionPercent: 88,
+            description: "Show the exact local Phase 3 smoke command, covered proof rows, command-held state, visible CLI validation record actions and provenance, and blocker-correlated next action without running commands automatically.",
+            completionPercent: 90,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance command plan"
           },
