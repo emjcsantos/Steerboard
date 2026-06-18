@@ -193,7 +193,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-03-controls-slash",
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
-    description: "Clear the current blocker by proving slash execution, session controls, live-refreshed desktop proof freshness, command-plan clarity, freshness-reviewed CLI validation traceability, slash/session-first blocker review, goal/PM traceability, and owner-reviewed handoff readiness tied to compact current non-expired evidence.",
+    description: "Clear the current blocker by proving slash execution, session controls, live-refreshed desktop proof freshness, command-plan clarity, freshness-reviewed CLI validation traceability, slash/session-first blocker review, goal/PM traceability, and owner-reviewed handoff readiness tied to compact current non-expired evidence, clearance snapshot, and age matching.",
     status: "ongoing",
     completionPercent: 98,
     complexity: "extra_high",
@@ -202,7 +202,7 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-03-parent-proof-clearance",
         title: "Desktop Proof Clearance",
-        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan and CLI validation freshness visible in traceability, prioritize slash/session blockers before desktop smoke, link goal/PM traceability, and keep the handoff boundary matched to compact current non-expired evidence.",
+        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan and CLI validation freshness visible in traceability, prioritize slash/session blockers before desktop smoke, link goal/PM traceability, and keep the handoff boundary matched to compact current non-expired evidence, clearance snapshot, and age.",
         status: "ongoing",
         completionPercent: 98,
         complexity: "extra_high",
@@ -242,7 +242,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-traceability",
             title: "Clearance Traceability",
-            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, CLI validation freshness, blocker priority, and compact current non-expired evidence handoff boundary in one owner-review trace.",
+            description: "Link the active Phase 3 goal, required PM rows, clearance evidence, command plan, CLI validation freshness, blocker priority, and exact handoff-review details for current fingerprint, clearance snapshot, and age matching in one owner-review trace.",
             completionPercent: 90,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance traceability"
@@ -250,7 +250,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-handoff-gate",
             title: "Owner Handoff Gate",
-            description: "Show desktop proof clearance, exact blocker visibility, local owner handoff record actions, compact current-evidence fingerprint and age matching, and the provider-integration boundary before Phase 4 advances.",
+            description: "Show desktop proof clearance, exact blocker visibility, local owner handoff record actions, compact current-evidence fingerprint, clearance snapshot, and age matching, and the provider-integration boundary before Phase 4 advances.",
             completionPercent: 82,
             complexity: "high",
             sourceDocument: "Phase 3 handoff gate"
@@ -838,14 +838,14 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-11-parent-owner-testing",
         title: "Owner Testing Flow",
-        description: "Turn owner testing actions into one command-center pass/fail path for proof freshness, blockers, phase readiness, evidence records, and next action.",
+        description: "Turn owner testing actions into one command-center pass/fail path for proof freshness depth, blockers, phase readiness, evidence records, and next action.",
         completionPercent: 60,
         sourceDocument: "Owner testing panel",
         children: [
           {
             id: "phase-11-child-owner-checklist",
             title: "Owner Checklist",
-            description: "Show checklist coverage, proof freshness, blockers, phase readiness, next action, and safety boundaries in the Phase 11 command center.",
+            description: "Show checklist coverage, proof freshness depth, blockers, phase readiness, next action, and safety boundaries in the Phase 11 command center.",
             completionPercent: 55,
             sourceDocument: "Owner testing docs"
           },
@@ -894,7 +894,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-traceability",
             title: "Owner Release Traceability",
-            description: "Link Owner Testing command gates, proof freshness, evidence records, release readiness, required PM rows, and packaging holds before release review can be trusted.",
+            description: "Link Owner Testing command gates, proof freshness depth, evidence records, release readiness, required PM rows, and packaging holds before release review can be trusted.",
             completionPercent: 35,
             complexity: "high",
             sourceDocument: "Phase 11 owner release traceability"

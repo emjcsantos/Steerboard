@@ -125,7 +125,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-03-child-control-ready"
     ],
     nextAction:
-      "Use the Phase 3 command plan, freshness-reviewed CLI validation trace, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, live freshness-aware smoke proof rows, and compact fingerprint-plus-age matched handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary."
+      "Use the Phase 3 command plan, freshness-reviewed CLI validation trace, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, live freshness-aware smoke proof rows, and compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, and keep Phase 4 held behind the provider boundary."
   },
   {
     id: "goal-phase-4-provider-surfaces",
@@ -279,7 +279,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 11"],
     phaseIds: ["phase-11-owner-packaging"],
     goal:
-      "Make Owner Testing the single pass-fail release gate for proof freshness, blockers, phase readiness, owner release traceability, blocker priority, and next actions.",
+      "Make Owner Testing the single pass-fail release gate for proof freshness depth, blockers, phase readiness, owner release traceability, blocker priority, and next actions.",
     status: "next",
     priority: "high",
     completionPercent: 55,
@@ -294,7 +294,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 11 Owner Command, Proof Freshness, Evidence Records, owner release traceability, and blocker-priority panels to review checklist coverage, proof freshness depth, blockers, phase readiness, PM coverage, packaging holds, exact top blocker, next action, and fresh-checkout evidence."
+      "Use the Phase 11 Owner Command, Proof Freshness Depth, Evidence Records, owner release traceability, and blocker-priority panels to review checklist coverage, command-plan freshness, CLI-validation freshness, handoff proof depth, blockers, phase readiness, PM coverage, packaging holds, exact top blocker, next action, and fresh-checkout evidence."
   },
   {
     id: "goal-phase-11-release-readiness",

@@ -76,6 +76,16 @@ describe("project management hierarchy", () => {
     ]);
   });
 
+  it("keeps current Phase 3 and Phase 11 PM descriptions aligned to clearance snapshot and proof depth gates", () => {
+    const tasks = createDefaultProjectManagementTasks();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+
+    expect(byId.get("phase-03-child-handoff-gate")?.description).toContain("clearance snapshot");
+    expect(byId.get("phase-03-child-traceability")?.description).toContain("handoff-review details");
+    expect(byId.get("phase-11-parent-owner-testing")?.description).toContain("proof freshness depth");
+    expect(byId.get("phase-11-child-traceability")?.description).toContain("proof freshness depth");
+  });
+
   it("builds a staged Arena dispatch package with hierarchy context", () => {
     const result = buildProjectManagementArenaDispatch(
       createDefaultProjectManagementTasks(),
