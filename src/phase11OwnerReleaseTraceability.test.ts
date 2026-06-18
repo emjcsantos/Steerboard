@@ -281,7 +281,16 @@ describe("phase 11 owner release traceability", () => {
     expect(result.state).toBe("blocked");
     expect(result.canTrustOwnerReleaseGate).toBe(false);
     expect(result.releaseHoldStatus).toBe("blocked");
-    expect(result.nextAction).toContain("Release readiness");
+    expect(result.nextAction).toBe("Re-lock package and resume controls.");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "packaging-hold",
+          status: "blocked",
+          nextAction: "Re-lock package and resume controls."
+        })
+      ])
+    );
   });
 
   it("keeps traceability text public-safe", () => {

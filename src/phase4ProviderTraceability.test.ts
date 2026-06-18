@@ -173,6 +173,24 @@ describe("phase 4 provider traceability", () => {
     expect(summary.missingPmTaskIds).toEqual(["phase-04-child-traceability"]);
   });
 
+  it("blocks when the Phase 4 goal misses the blocker-priority PM child link", () => {
+    const goals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-4-provider-surfaces"
+        ? {
+            ...goal,
+            pmTaskIds: goal.pmTaskIds.filter(
+              (taskId) => taskId !== "phase-04-child-blocker-priority"
+            )
+          }
+        : goal
+    );
+    const summary = traceability({ goals });
+
+    expect(summary.state).toBe("blocked");
+    expect(summary.canTrustProviderReview).toBe(false);
+    expect(summary.missingPmTaskIds).toEqual(["phase-04-child-blocker-priority"]);
+  });
+
   it("keeps traceability text public-safe", () => {
     const summary = buildPhase4ProviderTraceabilitySummary({
       catalogDepth: buildPhase4ProviderCatalogDepth(

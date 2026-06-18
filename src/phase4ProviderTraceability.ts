@@ -62,6 +62,7 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-04-child-catalog-depth",
   "phase-04-child-surface-depth",
   "phase-04-child-traceability",
+  "phase-04-child-blocker-priority",
   "phase-04-parent-refresh-safety",
   "phase-04-child-refresh-smoke",
   "phase-04-child-refresh-safety-depth"
@@ -219,7 +220,7 @@ function pmCoverageItem(
     label: "PM row coverage",
     kind: "pm-coverage",
     status: "ready",
-    detail: `${goal.pmTaskIds.length} Phase 4 PM task links cover provider catalogs, surface depth, refresh safety, and traceability.`,
+    detail: `${goal.pmTaskIds.length} Phase 4 PM task links cover provider catalogs, surface depth, refresh safety, traceability, and blocker priority.`,
     nextAction: "Keep Phase 4 goal links aligned with the Project Management Epic, Parent, and Child rows."
   };
 }

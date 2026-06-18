@@ -122,10 +122,14 @@ function resolveState(
 }
 
 function firstNextAction(items: readonly Phase11OwnerReleaseTraceabilityItem[]): string {
+  const prioritizedItem = (state: Phase11OwnerReleaseTraceabilityState) =>
+    items.find((item) => item.kind === "packaging-hold" && item.status === state) ??
+    items.find((item) => item.status === state);
+
   return (
-    items.find((item) => item.status === "blocked")?.nextAction ??
-    items.find((item) => item.status === "review")?.nextAction ??
-    items.find((item) => item.status === "waiting")?.nextAction ??
+    prioritizedItem("blocked")?.nextAction ??
+    prioritizedItem("review")?.nextAction ??
+    prioritizedItem("waiting")?.nextAction ??
     "Keep Phase 11 owner release traceability attached until the owner explicitly resumes release actions."
   );
 }
