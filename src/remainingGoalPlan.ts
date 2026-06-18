@@ -321,7 +321,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Coordinate the final fresh-checkout, clean-checkout, build, smoke, current active Phase 3 clearance PM traceability and handoff proof, packaging-lock, docs, known-limits, owner release traceability, blocker-priority review, structured evidence records, final security closure capability, and release-decision pass before release.",
     status: "next",
     priority: "high",
-    completionPercent: 50,
+    completionPercent: 52,
     pmTaskIds: [
       "phase-11-owner-packaging",
       "phase-11-parent-release-packaging",
@@ -330,7 +330,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 11 Release Readiness, Evidence Records, owner release traceability, blocker-priority panels, and owner-visible Phase 11 proof to require structured fresh-checkout, structured clean-checkout, build/test, current active Phase 3 clearance PM traceability with handoff proof, docs-known-limits evidence, final security closure capability, and visible release-decision top-prerequisite detail before any ready state can recommend release while packaging stays paused."
+      "Use the Phase 11 Release Readiness, Evidence Records, owner release traceability, blocker-priority panels, and owner-visible Phase 11 proof to require structured fresh-checkout, structured clean-checkout, build/test, current active Phase 3 clearance PM traceability with handoff proof, docs-known-limits evidence, visible Security 100% final closure guidance, and visible release-decision top-prerequisite detail before any ready state can recommend release while packaging stays paused."
   }
 ];
 

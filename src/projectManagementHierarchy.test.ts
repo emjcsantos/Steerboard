@@ -97,11 +97,14 @@ describe("project management hierarchy", () => {
     expect(byId.get("phase-03-child-control-ready")?.description).toContain("honestly unsupported");
     expect(byId.get("phase-11-parent-owner-testing")?.description).toContain("proof freshness depth");
     expect(byId.get("phase-11-parent-release-packaging")?.description).toContain("current active Phase 3 clearance PM traceability and handoff proof");
+    expect(byId.get("phase-11-parent-release-packaging")?.description).toContain("visible Security 100% final closure guidance");
     expect(byId.get("phase-11-parent-release-packaging")?.description).toContain("release-decision top-prerequisite detail");
     expect(byId.get("phase-11-child-package-validation")?.description).toContain("current active Phase 3 clearance PM traceability and handoff proof");
+    expect(byId.get("phase-11-child-package-validation")?.description).toContain("visible Security 100% final closure guidance");
     expect(byId.get("phase-11-child-traceability")?.description).toContain("proof freshness depth");
     expect(byId.get("phase-11-child-traceability")?.description).toContain("current active Phase 3 clearance PM traceability and handoff proof");
     expect(byId.get("phase-11-child-blocker-priority")?.description).toContain("fresh-checkout release readiness");
+    expect(byId.get("phase-11-child-blocker-priority")?.description).toContain("visible Security 100% final closure guidance");
   });
 
   it("keeps Phase 1/2/6 PM rows locally ongoing while surfacing the owner publish hold", () => {
