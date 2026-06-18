@@ -524,10 +524,10 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Decision");
     expect(html).toContain("Owner can decide whether to resume release");
     expect(html).toContain("Keep packaging locked until owner resumes release");
-    expect(html).toContain("5 open blockers");
-    expect(html).toContain("phase-03-child-blocker-priority: Clearance Blocker Priority");
-    expect(html).toContain("phase-03-child-handoff-gate: Owner Handoff Gate");
-    expect(html).toContain("82% complete");
+    expect(html).toContain("2 open blockers");
+    expect(html).not.toContain("phase-03-child-blocker-priority: Clearance Blocker Priority");
+    expect(html).not.toContain("phase-03-child-handoff-gate: Owner Handoff Gate");
+    expect(html).not.toContain("82% complete");
     expect(html).toContain("Phase 11 release readiness is evidence-only");
   });
 });

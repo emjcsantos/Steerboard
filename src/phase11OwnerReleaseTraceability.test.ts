@@ -233,6 +233,15 @@ function trace(overrides: Partial<Parameters<typeof buildPhase11OwnerReleaseTrac
   });
 }
 
+function underThresholdPhase3ProjectManagementPlan() {
+  return createDefaultProjectManagementPhasePlan().map((task) =>
+    task.id === "phase-03-child-blocker-priority" ||
+    task.id === "phase-03-child-handoff-gate"
+      ? { ...task, completionPercent: 82 }
+      : task
+  );
+}
+
 describe("phase 11 owner release traceability", () => {
   it("holds owner release traceability while Phase 11 goals are still next", () => {
     const result = trace();
@@ -589,7 +598,7 @@ describe("phase 11 owner release traceability", () => {
 
   it("reviews when required Phase 3 PM rows remain below owner release completion", () => {
     const result = trace({
-      projectManagementTasks: createDefaultProjectManagementPhasePlan()
+      projectManagementTasks: underThresholdPhase3ProjectManagementPlan()
     });
 
     expect(result.state).toBe("review");
@@ -613,6 +622,26 @@ describe("phase 11 owner release traceability", () => {
         expect.objectContaining({
           kind: "phase3-trace",
           detail: expect.stringContaining("incomplete PM rows below 85%")
+        })
+      ])
+    );
+  });
+
+  it("trusts the default Phase 3 PM rows once they meet the owner release completion threshold", () => {
+    const result = trace({
+      projectManagementTasks: createDefaultProjectManagementPhasePlan()
+    });
+
+    expect(result.items).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "phase3-pm-completion" })
+      ])
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "phase3-trace",
+          detail: expect.not.stringContaining("incomplete PM rows below 85%")
         })
       ])
     );

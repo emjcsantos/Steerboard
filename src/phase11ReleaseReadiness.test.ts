@@ -186,6 +186,15 @@ function snapshot(
   });
 }
 
+function underThresholdPhase3ProjectManagementPlan() {
+  return createDefaultProjectManagementPhasePlan().map((task) =>
+    task.id === "phase-03-child-blocker-priority" ||
+    task.id === "phase-03-child-handoff-gate"
+      ? { ...task, completionPercent: 82 }
+      : task
+  );
+}
+
 describe("phase 11 release readiness", () => {
   it("can recommend release only when every evidence row is ready and packaging remains locked", () => {
     const result = snapshot();
@@ -464,7 +473,7 @@ describe("phase 11 release readiness", () => {
 
   it("reviews release readiness when required Phase 3 PM rows remain below clearance completion", () => {
     const result = snapshot({
-      projectManagementTasks: createDefaultProjectManagementPhasePlan()
+      projectManagementTasks: underThresholdPhase3ProjectManagementPlan()
     });
 
     expect(result.state).toBe("review");

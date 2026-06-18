@@ -239,6 +239,15 @@ function priority(
   });
 }
 
+function underThresholdPhase3ProjectManagementPlan() {
+  return createDefaultProjectManagementPhasePlan().map((task) =>
+    task.id === "phase-03-child-blocker-priority" ||
+    task.id === "phase-03-child-handoff-gate"
+      ? { ...task, completionPercent: 82 }
+      : task
+  );
+}
+
 describe("phase 11 owner release blocker priority", () => {
   it("is ready when no Phase 11 blocker rows remain", () => {
     const result = priority();
@@ -285,7 +294,7 @@ describe("phase 11 owner release blocker priority", () => {
       evidenceRecords: evidenceSnapshot(),
       releaseReadiness: releaseSnapshot(),
       goals: withReadyPhase11Goals(),
-      projectManagementTasks: createDefaultProjectManagementPhasePlan()
+      projectManagementTasks: underThresholdPhase3ProjectManagementPlan()
     });
     const result = priority({ traceability });
 

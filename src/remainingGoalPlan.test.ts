@@ -177,10 +177,13 @@ describe("remaining goal plan", () => {
     expect(traceabilityChild?.description).toContain("handoff-review details");
   });
 
-  it("keeps incomplete Phase 3 PM rows visible while the active goal remains near clearance", () => {
+  it("keeps only under-threshold Phase 3 PM rows visible while the active goal remains near clearance", () => {
     const phase3Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-3-proof-clearance");
     const phase3Tasks = createDefaultProjectManagementPhasePlan().filter((task) =>
       phase3Goal?.pmTaskIds.includes(task.id)
+    );
+    const taskCompletionById = new Map(
+      phase3Tasks.map((task) => [task.id, task.completionPercent])
     );
     const incompleteTaskIds = phase3Tasks
       .filter((task) => task.completionPercent < 85)
@@ -193,13 +196,19 @@ describe("remaining goal plan", () => {
     });
     expect(incompleteTaskIds).toEqual(
       expect.arrayContaining([
-        "phase-03-child-blocker-priority",
-        "phase-03-child-handoff-gate",
         "phase-03-parent-slash-controls",
         "phase-03-child-slash-ready",
         "phase-03-child-control-ready"
       ])
     );
+    expect(incompleteTaskIds).not.toEqual(
+      expect.arrayContaining([
+        "phase-03-child-blocker-priority",
+        "phase-03-child-handoff-gate"
+      ])
+    );
+    expect(taskCompletionById.get("phase-03-child-blocker-priority")).toBe(85);
+    expect(taskCompletionById.get("phase-03-child-handoff-gate")).toBe(85);
   });
 
   it("separates the blocked owner hold from the active implementation target", () => {
