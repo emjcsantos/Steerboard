@@ -292,6 +292,7 @@ describe("remaining goal plan", () => {
     expect(phase8Goal?.nextAction).toContain("local owner audit-review record");
     expect(phase8Goal?.nextAction).toContain("current audit evidence fingerprint");
     expect(phase8Goal?.nextAction).toContain("record-specific rollback review");
+    expect(phase8Goal?.nextAction).toContain("owner-visible Phase 8 audit proof");
   });
 
   it("keeps the Phase 4 provider surfaces target linked to traceability and surface depth", () => {

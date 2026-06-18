@@ -13148,7 +13148,7 @@ function toSecurityAcceptanceEvidenceState(
   return status;
 }
 
-function Phase8PermissionAuditDepthPanel({
+export function Phase8PermissionAuditDepthPanel({
   onClearAuditReview,
   onRecordAuditReview,
   reviewRecord,
