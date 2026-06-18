@@ -417,11 +417,15 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Clear");
     expect(html).toContain("Phase 11 Release Readiness");
     expect(html).toContain("Decision");
+    expect(html).toContain("<dt>Decision</dt><dd>Held</dd>");
     expect(html).toContain("Owner");
+    expect(html).toContain("<dt>Owner</dt><dd>82%</dd>");
     expect(html).toContain("Security");
     expect(html).toContain("<dt>Security</dt><dd>100%</dd>");
     expect(html).toContain("Package");
+    expect(html).toContain("<dt>Package</dt><dd>80%</dd>");
     expect(html).toContain("Holds");
+    expect(html).toContain("<dt>Holds</dt><dd>5</dd>");
     expect(html).toContain("Owner smoke proof");
     expect(html).toContain("Security closure");
     expect(html).toContain("Security closure capability is available.");
