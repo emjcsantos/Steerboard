@@ -2051,9 +2051,9 @@ export function App() {
     () =>
       buildPhase3ClearanceCommandPlan({
         clearancePackage: phase3ClearancePackage,
-        actions: phase3OwnerTestingActions
+        actions: phase3OwnerTestingDisplayActions
       }),
-    [phase3ClearancePackage, phase3OwnerTestingActions]
+    [phase3ClearancePackage, phase3OwnerTestingDisplayActions]
   );
   const phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation = useMemo(
     () =>
