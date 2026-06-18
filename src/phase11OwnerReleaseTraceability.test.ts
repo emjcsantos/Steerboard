@@ -594,18 +594,25 @@ describe("phase 11 owner release traceability", () => {
 
     expect(result.state).toBe("review");
     expect(result.canTrustOwnerReleaseGate).toBe(false);
-    expect(result.nextAction).toContain("phase-03-child-handoff-gate");
+    expect(result.nextAction).toContain("phase-03-child-blocker-priority");
+    expect(result.nextAction).toContain("at least 85%");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          kind: "phase3-trace",
+          kind: "phase3-pm-completion",
+          label: expect.stringContaining("phase-03-child-blocker-priority"),
           status: "review",
-          detail: expect.stringContaining("incomplete PM rows below 85%"),
-          nextAction: expect.stringContaining("required PM row completion")
+          detail: expect.stringContaining("82% complete"),
+          nextAction: expect.stringContaining("phase-03-child-blocker-priority")
+        }),
+        expect.objectContaining({
+          kind: "phase3-pm-completion",
+          label: expect.stringContaining("phase-03-child-handoff-gate"),
+          detail: expect.stringContaining("82% complete")
         }),
         expect.objectContaining({
           kind: "phase3-trace",
-          nextAction: expect.stringContaining("phase-03-child-blocker-priority")
+          detail: expect.stringContaining("incomplete PM rows below 85%")
         })
       ])
     );

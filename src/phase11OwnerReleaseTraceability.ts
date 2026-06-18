@@ -13,6 +13,7 @@ export type Phase11OwnerReleaseTraceabilityKind =
   | "owner-goal"
   | "release-goal"
   | "pm-coverage"
+  | "phase3-pm-completion"
   | "owner-command"
   | "phase3-trace"
   | "proof-freshness"
@@ -131,6 +132,7 @@ function resolveState(
 function firstNextAction(items: readonly Phase11OwnerReleaseTraceabilityItem[]): string {
   const prioritizedItem = (state: Phase11OwnerReleaseTraceabilityState) =>
     items.find((item) => item.kind === "packaging-hold" && item.status === state) ??
+    items.find((item) => item.kind === "phase3-pm-completion" && item.status === state) ??
     items.find((item) => item.kind === "phase3-trace" && item.status === state) ??
     items.find((item) => item.status === state);
 
@@ -303,6 +305,33 @@ function incompletePhase3PmTaskIds(
       typeof completion === "number" &&
       completion < MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION
     );
+  });
+}
+
+function incompletePhase3PmCompletionItems(
+  projectManagementTasks: readonly ProjectManagementTask[] | undefined,
+  incompletePmTaskIds: readonly string[]
+): readonly Phase11OwnerReleaseTraceabilityItem[] {
+  if (!projectManagementTasks || incompletePmTaskIds.length === 0) {
+    return [];
+  }
+
+  const taskById = new Map(projectManagementTasks.map((task) => [task.id, task]));
+
+  return incompletePmTaskIds.map((taskId) => {
+    const task = taskById.get(taskId);
+    const title = task?.title ?? taskId;
+    const label = `${taskId}: ${title}`;
+    const completion = task?.completionPercent ?? 0;
+
+    return {
+      id: `${TRACE_ID}:phase3-pm-completion:${taskId}`,
+      label,
+      kind: "phase3-pm-completion",
+      status: "review",
+      detail: `${taskId} is ${completion}% complete; release trace requires at least ${MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION}% before Phase 11 can trust current Phase 3 PM completion.`,
+      nextAction: `Advance ${taskId} to at least ${MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION}% completion before Phase 11 owner release review can trust Phase 3 traceability.`
+    };
   });
 }
 
@@ -510,11 +539,19 @@ export function buildPhase11OwnerReleaseTraceability(
   const missingPmTaskIds = REQUIRED_PM_TASK_IDS.filter(
     (taskId) => !linkedPmTaskIds.has(taskId) || !planTaskIds.has(taskId)
   );
+  const incompletePhase3PmTaskIdsForTrace = incompletePhase3PmTaskIds(
+    input.projectManagementTasks,
+    REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS
+  );
   const items = [
     goalItem(ownerGoal, OWNER_GOAL_ID, "Owner command goal", "owner-goal"),
     goalItem(releaseGoal, RELEASE_GOAL_ID, "Release readiness goal", "release-goal"),
     pmCoverageItem(ownerGoal, releaseGoal, missingPmTaskIds),
     ownerCommandItem(input.ownerCommandCenter),
+    ...incompletePhase3PmCompletionItems(
+      input.projectManagementTasks,
+      incompletePhase3PmTaskIdsForTrace
+    ),
     phase3TraceItem(
       input.ownerCommandCenter,
       input.proofFreshnessDepth,

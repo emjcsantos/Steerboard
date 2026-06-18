@@ -8,6 +8,7 @@ import {
 } from "./phase11OwnerReleaseTraceability";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { Phase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
+import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import {
   buildRemainingGoalPriorityTraces,
   remainingGoalPlan,
@@ -275,6 +276,28 @@ describe("phase 11 owner release blocker priority", () => {
         })
       ])
     );
+  });
+
+  it("ranks incomplete Phase 3 PM completion rows above the generic Phase 3 trace", () => {
+    const traceability = buildPhase11OwnerReleaseTraceability({
+      ownerCommandCenter: ownerSnapshot(),
+      proofFreshnessDepth: proofSnapshot(),
+      evidenceRecords: evidenceSnapshot(),
+      releaseReadiness: releaseSnapshot(),
+      goals: withReadyPhase11Goals(),
+      projectManagementTasks: createDefaultProjectManagementPhasePlan()
+    });
+    const result = priority({ traceability });
+
+    expect(result.state).toBe("review");
+    expect(result.topPriorityLabel).toContain("phase-03-child-blocker-priority");
+    expect(result.topPriorityAction).toContain("Advance phase-03-child-blocker-priority");
+    expect(result.topPriorityAction).toContain("at least 85%");
+    expect(result.items[0]).toMatchObject({
+      kind: "traceability",
+      label: expect.stringContaining("phase-03-child-blocker-priority"),
+      status: "review"
+    });
   });
 
   it("ranks handoff-proof review as the current Phase 3 trace release blocker", () => {

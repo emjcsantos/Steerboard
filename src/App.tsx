@@ -14533,7 +14533,10 @@ export function Phase11OwnerCommandCenterPanel({
                 title={`${item.detail} ${item.nextAction}`}
               >
                 <span>{item.kind}</span>
-                <strong>{item.label}</strong>
+                <div>
+                  <strong>{item.label}</strong>
+                  <small>{item.detail}</small>
+                </div>
                 <b>{item.status}</b>
               </li>
             ))}

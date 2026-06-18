@@ -101,47 +101,50 @@ function stateRank(state: Phase11OwnerReleaseBlockerPriorityState): number {
 function sourceRank(sourceId: string): number {
   const normalized = sourceId.toLowerCase();
 
-  if (normalized.includes("phase3-trace")) {
+  if (normalized.includes("phase3-pm-completion")) {
     return 0;
   }
-  if (normalized.includes("packaging") || normalized.includes("release-decision")) {
+  if (normalized.includes("phase3-trace")) {
     return 1;
+  }
+  if (normalized.includes("packaging") || normalized.includes("release-decision")) {
+    return 2;
   }
   if (
     normalized.includes("phase3-clearance") ||
     normalized.includes("phase3-smoke-proof") ||
     normalized.includes("desktop-smoke")
   ) {
-    return 2;
-  }
-  if (normalized.includes("phase-priority-proof")) {
     return 3;
   }
-  if (normalized.includes("owner-goal") || normalized.includes("phase-readiness")) {
+  if (normalized.includes("phase-priority-proof")) {
     return 4;
   }
-  if (normalized.includes("owner-command") || normalized.includes("checklist")) {
+  if (normalized.includes("owner-goal") || normalized.includes("phase-readiness")) {
     return 5;
   }
-  if (normalized.includes("proof")) {
+  if (normalized.includes("owner-command") || normalized.includes("checklist")) {
     return 6;
   }
-  if (normalized.includes("fresh-checkout")) {
+  if (normalized.includes("proof")) {
     return 7;
   }
-  if (normalized.includes("clean-checkout")) {
+  if (normalized.includes("fresh-checkout")) {
     return 8;
   }
-  if (normalized.includes("build-test")) {
+  if (normalized.includes("clean-checkout")) {
     return 9;
   }
-  if (normalized.includes("docs-known-limits")) {
+  if (normalized.includes("build-test")) {
     return 10;
   }
-  if (normalized.includes("pm-coverage") || normalized.includes("traceability")) {
+  if (normalized.includes("docs-known-limits")) {
     return 11;
   }
-  return 12;
+  if (normalized.includes("pm-coverage") || normalized.includes("traceability")) {
+    return 12;
+  }
+  return 13;
 }
 
 function severityForState(
