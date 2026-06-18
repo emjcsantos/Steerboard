@@ -301,8 +301,28 @@ function approvalDepthItem(
 }
 
 function runnerReviewRecordItem(
+  approval: Phase9RunnerApprovalSnapshot,
   record: Phase9RunnerApprovalRecord | undefined
 ): Phase9RunnerTraceabilityItem {
+  const ownerReview = approval.items.find((item) => item.kind === "owner-review");
+
+  if (ownerReview && ownerReview.status !== "ready") {
+    return {
+      id: `${TRACE_ID}:runner-review-record`,
+      label: "Runner review record",
+      kind: "runner-review-record",
+      status: ownerReview.status,
+      detail: publicText(
+        ownerReview.detail,
+        "The current Phase 9 owner review evidence is not ready."
+      ),
+      nextAction: publicText(
+        ownerReview.nextAction,
+        "Review or refresh the persisted Phase 9 runner approval record before the fixed probe can be trusted."
+      )
+    };
+  }
+
   if (!record) {
     return {
       id: `${TRACE_ID}:runner-review-record`,
@@ -433,7 +453,7 @@ export function buildPhase9RunnerTraceabilitySummary({
     pmCoverageItem(goal, missingPmTaskIds),
     phase8GateItem(phase8),
     approvalDepthItem(approval, depth),
-    runnerReviewRecordItem(runnerReviewRecord),
+    runnerReviewRecordItem(approval, runnerReviewRecord),
     mutationLockItem(approval, depth, runnerReviewRecord)
   ];
   const state = resolveState(items);
@@ -442,6 +462,9 @@ export function buildPhase9RunnerTraceabilitySummary({
   const reviewCount = items.filter((item) => item.status === "review").length;
   const blockedCount = items.filter((item) => item.status === "blocked").length;
   const waitingCount = items.filter((item) => item.status === "waiting").length;
+  const runnerReviewItem = items.find((item) => item.kind === "runner-review-record");
+  const runnerReviewRecordReady =
+    runnerReviewItem?.status === "ready" && runnerReviewRecord?.state === "ready";
   const draft = {
     id: TRACE_ID,
     label: TRACE_LABEL,
@@ -453,7 +476,7 @@ export function buildPhase9RunnerTraceabilitySummary({
       missingPmTaskIds.length === 0 &&
       phase8.openExceptionCount === 0 &&
       phase8.blockedCount === 0 &&
-      runnerReviewRecord?.state === "ready" &&
+      runnerReviewRecordReady &&
       runnerReviewRecord.mutationLocked,
     readyCount,
     reviewCount,
@@ -464,7 +487,7 @@ export function buildPhase9RunnerTraceabilitySummary({
     linkedPmTaskCount: goal?.pmTaskIds.length ?? 0,
     phase8OpenExceptionCount: phase8.openExceptionCount,
     mutationLockCount: depth.mutationLockCount,
-    runnerReviewRecordReady: runnerReviewRecord?.state === "ready",
+    runnerReviewRecordReady,
     nextAction: firstNextAction(items),
     safety: SAFETY,
     items

@@ -305,6 +305,48 @@ describe("phase 9 runner traceability", () => {
     );
   });
 
+  it("does not mark a stale persisted runner review record ready", () => {
+    const approvedInputs = {
+      request: permissionRequest({ state: "approved" }),
+      result: desktopResult({
+        requestId: "terminal-permission-1",
+        status: "executed" as const,
+        code: "ok",
+        canExecute: true,
+        summary: "Desktop terminal read-only probe executed through the approved runner contract.",
+        detail: "Executed fixed terminal read-only probe command for audit trail."
+      }),
+      auditRecords: [terminalAuditRecord("approved"), terminalAuditRecord("executed")]
+    };
+    const currentApproval = approvalSnapshot(approvedInputs);
+    const staleRecord: Phase9RunnerApprovalRecord = {
+      ...readyRunnerApprovalRecordForApproval(currentApproval),
+      runnerEvidenceFingerprint: "phase-9-runner-evidence:stale"
+    };
+    const staleApproval = approvalSnapshot({
+      ...approvedInputs,
+      runnerApprovalRecord: staleRecord
+    });
+    const summary = traceability({
+      approval: staleApproval,
+      runnerApprovalRecord: staleRecord
+    });
+
+    expect(staleApproval.state).toBe("review");
+    expect(summary.state).toBe("review");
+    expect(summary.canTrustRunnerApproval).toBe(false);
+    expect(summary.runnerReviewRecordReady).toBe(false);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "runner-review-record",
+          status: "review",
+          detail: expect.stringContaining("does not match current runner evidence")
+        })
+      ])
+    );
+  });
+
   it("keeps traceability text public-safe", () => {
     const summary = traceability({
       goals: remainingGoalPlan.map((goal) =>

@@ -424,6 +424,7 @@ export function buildMigrationHardeningReadiness(
   const canStageApplyIntent =
     Boolean(latestDraft) &&
     auditReady &&
+    sensitiveStatus === "ready" &&
     (applyIntentState === "ready-for-review" || applyIntentState === "needs-review");
   const reviewDepthItems = buildMigrationReviewDepthItems({
     latestDraft,

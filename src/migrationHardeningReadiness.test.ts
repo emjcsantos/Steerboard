@@ -134,7 +134,11 @@ describe("migration hardening readiness", () => {
     const readiness = buildMigrationHardeningReadiness({
       preview: toggleMigrationCategory(buildDefaultMigrationPreview("codex"), "commands", true),
       draftHistory: history,
-      excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded"]
+      excludedSecretsSummary: [
+        "Credentials excluded",
+        "Raw transcripts excluded",
+        "Source mutation excluded"
+      ]
     });
 
     expect(readiness.state).toBe("review");
@@ -230,6 +234,7 @@ describe("migration hardening readiness", () => {
     });
 
     expect(readiness.state).toBe("review");
+    expect(readiness.canStageApplyIntent).toBe(false);
     expect(readiness.openReviewRecordCount).toBe(1);
     expect(readiness.reviewDepthItems).toEqual(
       expect.arrayContaining([
