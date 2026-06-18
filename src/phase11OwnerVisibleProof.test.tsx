@@ -385,9 +385,13 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Phase 11 Owner Command");
     expect(html).toContain("Phase 11 Owner Testing command center");
     expect(html).toContain("Release");
+    expect(html).toContain("<dt>Release</dt><dd>Held</dd>");
     expect(html).toContain("Checklist");
+    expect(html).toContain("<dt>Checklist</dt><dd>92%</dd>");
     expect(html).toContain("Phases");
+    expect(html).toContain("<dt>Phases</dt><dd>63%</dd>");
     expect(html).toContain("Blockers");
+    expect(html).toContain("<dt>Blockers</dt><dd>3</dd>");
     expect(html).toContain("Owner checklist");
     expect(html).toContain("Proof freshness depth");
     expect(html).toContain("Phase readiness");
