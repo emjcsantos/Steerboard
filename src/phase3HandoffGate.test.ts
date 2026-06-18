@@ -36,27 +36,58 @@ function trustedTraceability(
   };
 }
 
+function readyHandoffValidation() {
+  return {
+    state: "ready" as const,
+    detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
+    nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+    expectedFingerprint: "current",
+    recordFingerprint: "current",
+    evaluatedAt: "2026-06-11T00:10:00.000Z",
+    recordAgeMs: 600_000,
+    maxRecordAgeMs: 86_400_000,
+    matchesCurrentEvidence: true
+  };
+}
+
 describe("phase 3 handoff gate", () => {
   it("advances provider integration only after clearance and owner handoff are ready", () => {
     const result = buildPhase3HandoffGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "ready",
-      handoffRecordValidation: {
-        state: "ready",
-        detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
-        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
-        expectedFingerprint: "current",
-        recordFingerprint: "current",
-        matchesCurrentEvidence: true
-      }
+      handoffRecordValidation: readyHandoffValidation()
     });
 
     expect(result.state).toBe("ready");
     expect(result.readiness).toBe(100);
     expect(result.canAdvanceProviderIntegration).toBe(true);
     expect(result.exactBlockerCount).toBe(0);
+    expect(result.handoffEvidenceReview).toMatchObject({
+      expectedFingerprint: "current",
+      recordFingerprint: "current",
+      matchesCurrentEvidence: true,
+      evaluatedAt: "2026-06-11T00:10:00.000Z",
+      recordAgeMs: 600_000,
+      maxRecordAgeMs: 86_400_000,
+      hasFreshAgeMetadata: true,
+      clearanceSnapshot: {
+        state: "ready",
+        readiness: 100,
+        canExit: true,
+        readyCount: 5,
+        exactBlockerCount: 0
+      }
+    });
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner handoff record",
+          detail: expect.stringContaining("age 600000ms of 86400000ms window")
+        })
+      ])
+    );
     expect(result.ariaLabel).toContain("0 exact blockers");
   });
 
@@ -70,14 +101,7 @@ describe("phase 3 handoff gate", () => {
         nextAction: "Keep exactly one current active remaining goal before Phase 3 handoff can advance."
       }),
       handoffRecordState: "ready",
-      handoffRecordValidation: {
-        state: "ready",
-        detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
-        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
-        expectedFingerprint: "current",
-        recordFingerprint: "current",
-        matchesCurrentEvidence: true
-      }
+      handoffRecordValidation: readyHandoffValidation()
     });
 
     expect(result.state).toBe("review");
@@ -94,6 +118,48 @@ describe("phase 3 handoff gate", () => {
           label: "Provider boundary",
           status: "review",
           detail: expect.stringContaining("Provider integration remains held")
+        })
+      ])
+    );
+  });
+
+  it("holds provider integration when fingerprint-matched handoff lacks age metadata", () => {
+    const result = buildPhase3HandoffGate({
+      clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
+      handoffRecordState: "ready",
+      handoffRecordValidation: {
+        state: "ready",
+        detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
+        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+        expectedFingerprint: "current",
+        recordFingerprint: "current",
+        matchesCurrentEvidence: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canAdvanceProviderIntegration).toBe(false);
+    expect(result.handoffEvidenceReview).toMatchObject({
+      expectedFingerprint: "current",
+      recordFingerprint: "current",
+      matchesCurrentEvidence: true,
+      hasFreshAgeMetadata: false
+    });
+    expect(result.nextAction).toBe(
+      "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner handoff record",
+          status: "review",
+          detail: expect.stringContaining("fresh age metadata")
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          status: "review",
+          detail: expect.stringContaining("fresh age metadata")
         })
       ])
     );
@@ -144,7 +210,7 @@ describe("phase 3 handoff gate", () => {
     expect(result.state).toBe("review");
     expect(result.canAdvanceProviderIntegration).toBe(false);
     expect(result.nextAction).toBe(
-      "Attach current fingerprint-matched handoff validation before advancing provider integration."
+      "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
     );
     expect(result.items).toEqual(
       expect.arrayContaining([

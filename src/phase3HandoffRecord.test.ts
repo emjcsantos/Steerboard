@@ -188,7 +188,10 @@ describe("phase 3 handoff record", () => {
       )
     ).toMatchObject({
       state: "ready",
-      matchesCurrentEvidence: true
+      matchesCurrentEvidence: true,
+      evaluatedAt: "2026-06-11T23:59:00.000Z",
+      recordAgeMs: 86_340_000,
+      maxRecordAgeMs: DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS
     });
     expect(
       derivePhase3HandoffRecordValidation(
@@ -204,7 +207,10 @@ describe("phase 3 handoff record", () => {
       state: "review",
       detail: expect.stringContaining("stale"),
       nextAction: expect.stringContaining("fresh exit-ready evidence"),
-      matchesCurrentEvidence: true
+      matchesCurrentEvidence: true,
+      evaluatedAt: "2026-06-12T00:01:00.000Z",
+      recordAgeMs: 86_460_000,
+      maxRecordAgeMs: DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS
     });
   });
 

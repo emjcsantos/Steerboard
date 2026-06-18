@@ -21,6 +21,9 @@ export interface Phase3HandoffRecordValidation {
   readonly nextAction: string;
   readonly expectedFingerprint?: string;
   readonly recordFingerprint?: string;
+  readonly evaluatedAt?: string;
+  readonly recordAgeMs?: number;
+  readonly maxRecordAgeMs?: number;
   readonly matchesCurrentEvidence: boolean;
 }
 
@@ -126,6 +129,42 @@ function toTimestamp(value: string | Date | undefined): number | undefined {
 
   const timestamp = value instanceof Date ? value.getTime() : Date.parse(value);
   return Number.isFinite(timestamp) ? timestamp : undefined;
+}
+
+function normalizeEvaluatedAt(value: string | Date | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  if (value instanceof Date) {
+    return Number.isFinite(value.getTime()) ? value.toISOString() : undefined;
+  }
+
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : undefined;
+}
+
+function recordFreshnessMetadata(
+  record: Phase3OwnerHandoffRecord | undefined,
+  options: Phase3HandoffRecordValidationOptions | undefined
+): Pick<Phase3HandoffRecordValidation, "evaluatedAt" | "recordAgeMs" | "maxRecordAgeMs"> {
+  if (!record) {
+    return {};
+  }
+
+  const evaluatedAt = normalizeEvaluatedAt(options?.evaluatedAt);
+  const evaluatedAtMs = toTimestamp(options?.evaluatedAt);
+  const createdAtMs = toTimestamp(record.createdAt);
+  const maxRecordAgeMs =
+    options?.maxRecordAgeMs ?? DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS;
+
+  return {
+    ...(evaluatedAt ? { evaluatedAt } : {}),
+    ...(evaluatedAtMs !== undefined && createdAtMs !== undefined
+      ? { recordAgeMs: evaluatedAtMs - createdAtMs }
+      : {}),
+    maxRecordAgeMs
+  };
 }
 
 function isRecordFresh(
@@ -342,6 +381,7 @@ export function derivePhase3HandoffRecordValidation(
       ),
       expectedFingerprint,
       recordFingerprint: record?.evidenceFingerprint,
+      ...recordFreshnessMetadata(record, options),
       matchesCurrentEvidence: false
     };
   }
@@ -368,6 +408,7 @@ export function derivePhase3HandoffRecordValidation(
       nextAction: "Clear and record the Phase 3 handoff again from the current clearance snapshot.",
       expectedFingerprint,
       recordFingerprint: record.evidenceFingerprint,
+      ...recordFreshnessMetadata(record, options),
       matchesCurrentEvidence: false
     };
   }
@@ -380,6 +421,7 @@ export function derivePhase3HandoffRecordValidation(
           "Owner handoff record cannot be validated because the current Phase 3 evidence fingerprint is missing.",
         nextAction: "Attach the current Phase 3 evidence fingerprint before advancing provider integration.",
         recordFingerprint: record.evidenceFingerprint,
+        ...recordFreshnessMetadata(record, options),
         matchesCurrentEvidence: false
       };
     }
@@ -391,6 +433,7 @@ export function derivePhase3HandoffRecordValidation(
           "Owner handoff record predates the Phase 3 evidence fingerprint and must be refreshed.",
         nextAction: "Clear and record the Phase 3 handoff again from the current exit-ready evidence.",
         expectedFingerprint,
+        ...recordFreshnessMetadata(record, options),
         matchesCurrentEvidence: false
       };
     }
@@ -403,11 +446,13 @@ export function derivePhase3HandoffRecordValidation(
         nextAction: "Clear and record the Phase 3 handoff again from the current exit-ready evidence.",
         expectedFingerprint,
         recordFingerprint: record.evidenceFingerprint,
+        ...recordFreshnessMetadata(record, options),
         matchesCurrentEvidence: false
       };
     }
 
     const freshRecord = isRecordFresh(record, options);
+    const freshnessMetadata = recordFreshnessMetadata(record, options);
     if (freshRecord === false) {
       return {
         state: "review",
@@ -416,6 +461,7 @@ export function derivePhase3HandoffRecordValidation(
         nextAction: "Clear and record the Phase 3 handoff again from fresh exit-ready evidence.",
         expectedFingerprint,
         recordFingerprint: record.evidenceFingerprint,
+        ...freshnessMetadata,
         matchesCurrentEvidence: true
       };
     }
@@ -426,6 +472,7 @@ export function derivePhase3HandoffRecordValidation(
       nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
       expectedFingerprint,
       recordFingerprint: record.evidenceFingerprint,
+      ...freshnessMetadata,
       matchesCurrentEvidence: true
     };
   }
@@ -436,6 +483,7 @@ export function derivePhase3HandoffRecordValidation(
     nextAction: "Clear and record the Phase 3 handoff again from exit-ready evidence.",
     expectedFingerprint,
     recordFingerprint: record.evidenceFingerprint,
+    ...recordFreshnessMetadata(record, options),
     matchesCurrentEvidence: false
   };
 }

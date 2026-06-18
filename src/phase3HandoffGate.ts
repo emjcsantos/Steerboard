@@ -23,6 +23,26 @@ export interface Phase3HandoffGateItem {
   readonly nextAction: string;
 }
 
+export interface Phase3HandoffEvidenceReview {
+  readonly expectedFingerprint?: string;
+  readonly recordFingerprint?: string;
+  readonly matchesCurrentEvidence: boolean;
+  readonly evaluatedAt?: string;
+  readonly recordAgeMs?: number;
+  readonly maxRecordAgeMs?: number;
+  readonly hasFreshAgeMetadata: boolean;
+  readonly clearanceSnapshot: {
+    readonly state: Phase3HandoffGateState;
+    readonly readiness: number;
+    readonly canExit: boolean;
+    readonly readyCount: number;
+    readonly exactBlockerCount: number;
+    readonly reviewCount: number;
+    readonly blockedCount: number;
+    readonly waitingCount: number;
+  };
+}
+
 export interface Phase3HandoffGate {
   readonly id: string;
   readonly label: string;
@@ -38,6 +58,7 @@ export interface Phase3HandoffGate {
   readonly nextAction: string;
   readonly safety: string;
   readonly ariaLabel: string;
+  readonly handoffEvidenceReview: Phase3HandoffEvidenceReview;
   readonly items: readonly Phase3HandoffGateItem[];
 }
 
@@ -201,6 +222,99 @@ function canTrustTraceability(
   return traceabilityPrecondition?.canTrustTrace === true;
 }
 
+function formatFingerprint(value: string | undefined): string {
+  return value ? publicText(value, "attached") : "missing";
+}
+
+function formatRecordAge(validation: Phase3HandoffRecordValidation | undefined): string {
+  if (!validation) {
+    return "age unchecked";
+  }
+
+  if (validation.recordAgeMs === undefined) {
+    return validation.evaluatedAt
+      ? "age unavailable"
+      : "age unchecked";
+  }
+
+  if (validation.recordAgeMs < 0) {
+    return `age future by ${Math.abs(validation.recordAgeMs)}ms`;
+  }
+
+  return `age ${validation.recordAgeMs}ms`;
+}
+
+function handoffValidationMetadata(
+  validation: Phase3HandoffRecordValidation | undefined
+): string {
+  if (!validation) {
+    return "";
+  }
+
+  const ageWindow =
+    validation.maxRecordAgeMs === undefined
+      ? formatRecordAge(validation)
+      : `${formatRecordAge(validation)} of ${validation.maxRecordAgeMs}ms window`;
+
+  return ` Fingerprint expected ${formatFingerprint(validation.expectedFingerprint)}, record ${formatFingerprint(validation.recordFingerprint)}; ${ageWindow}.`;
+}
+
+function hasCurrentFingerprintMatch(
+  validation: Phase3HandoffRecordValidation | undefined
+): boolean {
+  return (
+    validation?.state === "ready" &&
+    validation.matchesCurrentEvidence === true &&
+    Boolean(validation.expectedFingerprint)
+  );
+}
+
+function hasFreshAgeMetadata(
+  validation: Phase3HandoffRecordValidation | undefined
+): boolean {
+  if (!validation || !validation.evaluatedAt) {
+    return false;
+  }
+
+  return (
+    typeof validation.recordAgeMs === "number" &&
+    typeof validation.maxRecordAgeMs === "number" &&
+    validation.recordAgeMs >= 0 &&
+    validation.recordAgeMs <= validation.maxRecordAgeMs
+  );
+}
+
+function hasReadyHandoffValidation(
+  validation: Phase3HandoffRecordValidation | undefined
+): boolean {
+  return hasCurrentFingerprintMatch(validation) && hasFreshAgeMetadata(validation);
+}
+
+function buildHandoffEvidenceReview(
+  clearancePackage: Phase3ClearancePackage,
+  handoffRecordValidation: Phase3HandoffRecordValidation | undefined
+): Phase3HandoffEvidenceReview {
+  return {
+    expectedFingerprint: handoffRecordValidation?.expectedFingerprint,
+    recordFingerprint: handoffRecordValidation?.recordFingerprint,
+    matchesCurrentEvidence: handoffRecordValidation?.matchesCurrentEvidence === true,
+    evaluatedAt: handoffRecordValidation?.evaluatedAt,
+    recordAgeMs: handoffRecordValidation?.recordAgeMs,
+    maxRecordAgeMs: handoffRecordValidation?.maxRecordAgeMs,
+    hasFreshAgeMetadata: hasFreshAgeMetadata(handoffRecordValidation),
+    clearanceSnapshot: {
+      state: clearancePackage.state,
+      readiness: clearancePackage.readiness,
+      canExit: clearancePackage.canExit,
+      readyCount: clearancePackage.readyCount,
+      exactBlockerCount: clearancePackage.openCount,
+      reviewCount: clearancePackage.reviewCount,
+      blockedCount: clearancePackage.blockerCount,
+      waitingCount: clearancePackage.waitingCount
+    }
+  };
+}
+
 function resolveHandoffRecordStatus(
   clearancePackage: Phase3ClearancePackage,
   handoffRecordState: Phase3HandoffGateState | undefined,
@@ -209,8 +323,7 @@ function resolveHandoffRecordStatus(
   if (handoffRecordValidation) {
     if (
       handoffRecordValidation.state === "ready" &&
-      (handoffRecordValidation.matchesCurrentEvidence !== true ||
-        !handoffRecordValidation.expectedFingerprint)
+      !hasReadyHandoffValidation(handoffRecordValidation)
     ) {
       return "review";
     }
@@ -239,8 +352,7 @@ function handoffRecordItem(
   const invalidReadyValidation =
     handoffRecordValidation?.state === "ready" &&
     status === "review" &&
-    (handoffRecordValidation.matchesCurrentEvidence !== true ||
-      !handoffRecordValidation.expectedFingerprint);
+    !hasReadyHandoffValidation(handoffRecordValidation);
 
   return {
     id: `${GATE_ID}:handoff-record`,
@@ -248,8 +360,8 @@ function handoffRecordItem(
     kind: "handoff-record",
     status,
     detail:
-      (invalidReadyValidation
-        ? "Owner handoff record validation is ready, but it does not prove a current evidence fingerprint match."
+      ((invalidReadyValidation
+        ? "Owner handoff record validation is ready, but it does not prove a current evidence fingerprint match with fresh age metadata."
         : undefined) ??
       handoffRecordValidation?.detail ??
       (missingValidation
@@ -257,10 +369,11 @@ function handoffRecordItem(
         : undefined) ??
       (status === "ready"
         ? "Owner-reviewed Phase 3 handoff record is attached."
-        : "Owner-reviewed Phase 3 handoff record is not attached yet."),
+        : "Owner-reviewed Phase 3 handoff record is not attached yet.")) +
+      handoffValidationMetadata(handoffRecordValidation),
     nextAction:
       (invalidReadyValidation
-        ? "Attach current fingerprint-matched handoff validation before advancing provider integration."
+        ? "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
         : undefined) ??
       handoffRecordValidation?.nextAction ??
       (missingValidation
@@ -339,9 +452,8 @@ function providerBoundaryItem(
         handoffRecordValidation?.state === "review"
           ? `Provider integration remains held because ${handoffRecordValidation.detail}`
           : handoffRecordValidation?.state === "ready" &&
-              (handoffRecordValidation.matchesCurrentEvidence !== true ||
-                !handoffRecordValidation.expectedFingerprint)
-            ? "Provider integration remains held until the owner handoff record proves a current evidence fingerprint match."
+              !hasReadyHandoffValidation(handoffRecordValidation)
+            ? "Provider integration remains held until the owner handoff record proves a current evidence fingerprint match and fresh age metadata."
           : !handoffRecordValidation && handoffRecordState === "ready"
             ? "Provider integration remains held until the owner handoff record is validated against current evidence."
             : "Provider integration remains held until the owner handoff record is attached.",
@@ -349,9 +461,8 @@ function providerBoundaryItem(
         handoffRecordValidation?.state === "review"
           ? handoffRecordValidation.nextAction
           : handoffRecordValidation?.state === "ready" &&
-              (handoffRecordValidation.matchesCurrentEvidence !== true ||
-                !handoffRecordValidation.expectedFingerprint)
-            ? "Attach current fingerprint-matched handoff validation before advancing provider integration."
+              !hasReadyHandoffValidation(handoffRecordValidation)
+            ? "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
           : !handoffRecordValidation && handoffRecordState === "ready"
             ? "Attach current handoff validation before advancing provider integration."
           : "Attach the owner-reviewed Phase 3 handoff before advancing provider integration."
@@ -413,8 +524,7 @@ export function buildPhase3HandoffGate(
       state === "ready" &&
       input.clearancePackage.canExit &&
       canTrustTraceability(input.traceabilityPrecondition) &&
-      input.handoffRecordValidation?.state === "ready" &&
-      input.handoffRecordValidation.matchesCurrentEvidence === true,
+      hasReadyHandoffValidation(input.handoffRecordValidation),
     readyCount,
     reviewCount,
     blockedCount,
@@ -422,6 +532,10 @@ export function buildPhase3HandoffGate(
     exactBlockerCount: input.clearancePackage.openCount,
     nextAction: firstNextAction(items),
     safety: SAFETY,
+    handoffEvidenceReview: buildHandoffEvidenceReview(
+      input.clearancePackage,
+      input.handoffRecordValidation
+    ),
     items
   };
 

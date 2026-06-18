@@ -129,6 +129,25 @@ function handoff(
     nextAction: "Advance after owner review.",
     safety: "Evidence only.",
     ariaLabel: "Ready.",
+    handoffEvidenceReview: {
+      expectedFingerprint: "current",
+      recordFingerprint: "current",
+      matchesCurrentEvidence: true,
+      evaluatedAt: "2026-06-11T00:10:00.000Z",
+      recordAgeMs: 600_000,
+      maxRecordAgeMs: 86_400_000,
+      hasFreshAgeMetadata: true,
+      clearanceSnapshot: {
+        state: "ready",
+        readiness: 100,
+        canExit: true,
+        readyCount: 5,
+        exactBlockerCount: 0,
+        reviewCount: 0,
+        blockedCount: 0,
+        waitingCount: 0
+      }
+    },
     items: [],
     ...overrides
   };
