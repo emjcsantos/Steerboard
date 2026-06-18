@@ -9680,12 +9680,13 @@ function RightPanel({
   const recordPhase8AuditReview = useCallback(() => {
     const record = createPhase8AuditReviewRecord(
       phase8PermissionAuditDepth,
-      new Date().toISOString()
+      new Date().toISOString(),
+      phase8RiskBlockerPriority
     );
 
     savePhase8AuditReviewRecord(record);
     setPhase8AuditReviewRecord(record);
-  }, [phase8PermissionAuditDepth]);
+  }, [phase8PermissionAuditDepth, phase8RiskBlockerPriority]);
   const clearPhase8AuditReview = useCallback(() => {
     clearPhase8AuditReviewRecord();
     setPhase8AuditReviewRecord(undefined);
@@ -14386,6 +14387,13 @@ export function Phase8PermissionAuditDepthPanel({
                 ? `${formatTimestamp(reviewRecord.createdAt)}; ${reviewRecord.openExceptionCount} open exceptions`
                 : "Mutation paths remain locked"}
             </span>
+            {reviewRecord?.topBlockerSourceId ? (
+              <small title={reviewRecord.topBlockerAction ?? "No recorded blocker action."}>
+                Reviewed blocker {reviewRecord.topBlockerSourceId} /{" "}
+                {reviewRecord.topBlockerKind ?? "none"} /{" "}
+                {reviewRecord.topBlockerStatus ?? "ready"}
+              </small>
+            ) : null}
           </div>
           <div
             className="phase8-audit-review-record-actions"

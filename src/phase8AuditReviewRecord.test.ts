@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Phase8PermissionAuditDepthSnapshot } from "./phase8PermissionAuditDepth";
+import type { Phase8RiskBlockerPrioritySummary } from "./phase8RiskBlockerPriority";
 import {
   buildPhase8AuditEvidenceFingerprint,
   clearPhase8AuditReviewRecord,
@@ -36,6 +37,28 @@ function auditDepthSnapshot(
   };
 }
 
+function blockerPriority(): Phase8RiskBlockerPrioritySummary {
+  return {
+    id: "phase-08-risk-blocker-priority",
+    label: "Phase 8 risk blocker priority",
+    state: "waiting",
+    statusLabel: "Waiting",
+    readiness: 35,
+    openBlockerCount: 1,
+    auditReviewAddressableCount: 1,
+    topPriorityLabel: "terminal action",
+    topPriorityAction: "Review terminal action before mutation paths grow.",
+    topPrioritySourceId: "phase8-live-action-terminal:permission",
+    topPriorityKind: "audit-depth",
+    topPriorityStatus: "waiting",
+    auditReviewCanAddressTopBlocker: true,
+    nextAction: "Review terminal action before mutation paths grow.",
+    safety: "Evidence only.",
+    ariaLabel: "Phase 8 risk blocker priority.",
+    items: []
+  };
+}
+
 describe("phase 8 audit review record", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -61,6 +84,22 @@ describe("phase 8 audit review record", () => {
         "Runtime, profile, terminal, Git, MCP, plugin, automation, and external-service mutation paths remain locked; rollback evidence is required before future executed or failed mutation records can advance.",
       detail:
         "Owner-reviewed Phase 8 audit depth recorded locally at 65% readiness with 4 open exceptions; mutation paths remain locked."
+    });
+  });
+
+  it("stores reviewed top-blocker metadata when a blocker priority summary is attached", () => {
+    const record = createPhase8AuditReviewRecord(
+      auditDepthSnapshot(),
+      "2026-06-18T00:00:00.000Z",
+      blockerPriority()
+    );
+
+    expect(record).toMatchObject({
+      topBlockerLabel: "terminal action",
+      topBlockerSourceId: "phase8-live-action-terminal:permission",
+      topBlockerKind: "audit-depth",
+      topBlockerStatus: "waiting",
+      topBlockerAction: "Review terminal action before mutation paths grow."
     });
   });
 

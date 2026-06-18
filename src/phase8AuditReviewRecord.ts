@@ -2,6 +2,11 @@ import type {
   Phase8PermissionAuditDepthSnapshot,
   Phase8PermissionAuditDepthState
 } from "./phase8PermissionAuditDepth";
+import type {
+  Phase8RiskBlockerPriorityKind,
+  Phase8RiskBlockerPriorityState,
+  Phase8RiskBlockerPrioritySummary
+} from "./phase8RiskBlockerPriority";
 
 export interface Phase8AuditReviewRecord {
   readonly id: string;
@@ -13,6 +18,11 @@ export interface Phase8AuditReviewRecord {
   readonly disabledPathCount: number;
   readonly mutationLocked: boolean;
   readonly auditEvidenceFingerprint?: string;
+  readonly topBlockerLabel?: string;
+  readonly topBlockerSourceId?: string;
+  readonly topBlockerKind?: Phase8RiskBlockerPriorityKind | "none";
+  readonly topBlockerStatus?: Phase8RiskBlockerPriorityState | "ready";
+  readonly topBlockerAction?: string;
   readonly rollbackEvidence: string;
   readonly detail: string;
 }
@@ -233,6 +243,21 @@ export function parseStoredPhase8AuditReviewRecord(
           : undefined,
         ""
       ),
+      topBlockerLabel: nonEmptyString(parsed.topBlockerLabel)
+        ? publicText(parsed.topBlockerLabel, "")
+        : undefined,
+      topBlockerSourceId: nonEmptyString(parsed.topBlockerSourceId)
+        ? publicText(parsed.topBlockerSourceId, "")
+        : undefined,
+      topBlockerKind: nonEmptyString(parsed.topBlockerKind)
+        ? publicText(parsed.topBlockerKind, "") as Phase8RiskBlockerPriorityKind | "none"
+        : undefined,
+      topBlockerStatus: nonEmptyString(parsed.topBlockerStatus)
+        ? publicText(parsed.topBlockerStatus, "") as Phase8RiskBlockerPriorityState | "ready"
+        : undefined,
+      topBlockerAction: nonEmptyString(parsed.topBlockerAction)
+        ? publicText(parsed.topBlockerAction, "")
+        : undefined,
       rollbackEvidence: publicText(
         parsed.rollbackEvidence,
         "Rollback evidence remains required before mutation paths can unlock."
@@ -253,7 +278,8 @@ export function loadPhase8AuditReviewRecord(): Phase8AuditReviewRecord | undefin
 
 export function createPhase8AuditReviewRecord(
   snapshot: Phase8PermissionAuditDepthSnapshot,
-  createdAt: string
+  createdAt: string,
+  blockerPriority?: Phase8RiskBlockerPrioritySummary
 ): Phase8AuditReviewRecord {
   const ownerReviewMissingOnly =
     snapshot.items.some(
@@ -280,6 +306,11 @@ export function createPhase8AuditReviewRecord(
     disabledPathCount: snapshot.disabledPathCount,
     mutationLocked: true,
     auditEvidenceFingerprint: buildPhase8AuditEvidenceFingerprint(snapshot),
+    topBlockerLabel: blockerPriority?.topPriorityLabel,
+    topBlockerSourceId: blockerPriority?.topPrioritySourceId,
+    topBlockerKind: blockerPriority?.topPriorityKind,
+    topBlockerStatus: blockerPriority?.topPriorityStatus,
+    topBlockerAction: blockerPriority?.topPriorityAction,
     rollbackEvidence:
       "Runtime, profile, terminal, Git, MCP, plugin, automation, and external-service mutation paths remain locked; rollback evidence is required before future executed or failed mutation records can advance.",
     detail: publicText(
@@ -293,6 +324,21 @@ export function savePhase8AuditReviewRecord(record: Phase8AuditReviewRecord): vo
   writeStorage({
     ...record,
     auditEvidenceFingerprint: publicText(record.auditEvidenceFingerprint, ""),
+    topBlockerLabel: record.topBlockerLabel
+      ? publicText(record.topBlockerLabel, "")
+      : undefined,
+    topBlockerSourceId: record.topBlockerSourceId
+      ? publicText(record.topBlockerSourceId, "")
+      : undefined,
+    topBlockerKind: record.topBlockerKind
+      ? publicText(record.topBlockerKind, "") as Phase8RiskBlockerPriorityKind | "none"
+      : undefined,
+    topBlockerStatus: record.topBlockerStatus
+      ? publicText(record.topBlockerStatus, "") as Phase8RiskBlockerPriorityState | "ready"
+      : undefined,
+    topBlockerAction: record.topBlockerAction
+      ? publicText(record.topBlockerAction, "")
+      : undefined,
     rollbackEvidence: publicText(
       record.rollbackEvidence,
       "Rollback evidence remains required before mutation paths can unlock."

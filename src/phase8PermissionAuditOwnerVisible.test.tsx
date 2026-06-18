@@ -170,9 +170,13 @@ function auditDepth(options: {
 }
 
 function ownerReviewFor(options: Parameters<typeof auditDepth>[0] = {}) {
+  const snapshot = auditDepth({ ...options, ownerAuditReviewRecord: undefined });
+  const traceability = buildPhase8RiskTraceabilitySummary({ snapshot });
+
   return createPhase8AuditReviewRecord(
-    auditDepth({ ...options, ownerAuditReviewRecord: undefined }),
-    "2026-06-18T09:00:00.000Z"
+    snapshot,
+    "2026-06-18T09:00:00.000Z",
+    buildPhase8RiskBlockerPriority({ snapshot, traceability })
   );
 }
 
@@ -286,6 +290,9 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("current audit evidence");
     expect(html).toContain("Audit review artifact");
     expect(html).toContain("Review record attached");
+    expect(html).toContain(
+      "Reviewed blocker phase-08-permission-audit-depth:owner-audit-review / audit-depth / waiting"
+    );
     expect(html).toContain("Runtime, profile, terminal, Git, MCP, plugin, automation, and external-service mutation paths remain locked");
     expect(html).toContain("Clear");
     expect(html).toContain("Record review");
