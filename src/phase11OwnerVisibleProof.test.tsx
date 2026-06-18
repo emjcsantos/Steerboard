@@ -511,6 +511,10 @@ describe("phase 11 owner-visible proof", () => {
       items: releaseReadinessSnapshot().items.map((item) => ({
         ...item,
         status: "ready" as const,
+        detail:
+          item.kind === "phase3-trace"
+            ? "goal-phase-3-proof-clearance is active, current yes, with 11 PM task links including phase-03-child-smoke-rows, phase-03-child-exit-gate, phase-03-child-command-plan, phase-03-child-blocker-priority, phase-03-child-traceability, phase-03-child-handoff-gate; proof freshness trusted; handoff proof ready."
+            : item.detail,
         nextAction:
           item.label === "Packaging lock"
             ? "Keep packaging locked until owner resumes release."
@@ -525,6 +529,10 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Owner can decide whether to resume release");
     expect(html).toContain("Keep packaging locked until owner resumes release");
     expect(html).toContain("2 open blockers");
+    expect(html).toContain("goal-phase-3-proof-clearance is active");
+    expect(html).toContain("phase-03-child-blocker-priority");
+    expect(html).toContain("phase-03-child-traceability");
+    expect(html).toContain("phase-03-child-handoff-gate");
     expect(html).not.toContain("phase-03-child-blocker-priority: Clearance Blocker Priority");
     expect(html).not.toContain("phase-03-child-handoff-gate: Owner Handoff Gate");
     expect(html).not.toContain("82% complete");
