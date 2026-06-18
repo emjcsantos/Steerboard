@@ -642,6 +642,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("<dt>Evidence Keys</dt><dd>5</dd>");
     expect(html).toContain("Desktop proof clearance");
     expect(html).toContain("Exact blocker visibility");
+    expect(html).toContain(
+      'aria-label="Phase 3 blocker priority counts"><div><dt>Open</dt><dd>0</dd></div><div><dt>Command</dt><dd>0</dd></div><div><dt>State</dt><dd>Ready</dd></div><div><dt>Ready</dt><dd>100%</dd></div></dl>'
+    );
     expect(html).toContain("Traceability boundary");
     expect(html).toContain("goal-phase-3-proof-clearance");
     expect(html).toContain("PM Rows");
