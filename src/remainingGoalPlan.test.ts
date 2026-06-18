@@ -177,7 +177,7 @@ describe("remaining goal plan", () => {
     expect(traceabilityChild?.description).toContain("handoff-review details");
   });
 
-  it("keeps only under-threshold Phase 3 PM rows visible while the active goal remains near clearance", () => {
+  it("keeps active Phase 3 PM rows at or above the release-trace trust threshold", () => {
     const phase3Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-3-proof-clearance");
     const phase3Tasks = createDefaultProjectManagementPhasePlan().filter((task) =>
       phase3Goal?.pmTaskIds.includes(task.id)
@@ -194,21 +194,12 @@ describe("remaining goal plan", () => {
       status: "active",
       completionPercent: 98
     });
-    expect(incompleteTaskIds).toEqual(
-      expect.arrayContaining([
-        "phase-03-parent-slash-controls",
-        "phase-03-child-slash-ready",
-        "phase-03-child-control-ready"
-      ])
-    );
-    expect(incompleteTaskIds).not.toEqual(
-      expect.arrayContaining([
-        "phase-03-child-blocker-priority",
-        "phase-03-child-handoff-gate"
-      ])
-    );
+    expect(incompleteTaskIds).toEqual([]);
     expect(taskCompletionById.get("phase-03-child-blocker-priority")).toBe(85);
     expect(taskCompletionById.get("phase-03-child-handoff-gate")).toBe(85);
+    expect(taskCompletionById.get("phase-03-parent-slash-controls")).toBe(85);
+    expect(taskCompletionById.get("phase-03-child-slash-ready")).toBe(85);
+    expect(taskCompletionById.get("phase-03-child-control-ready")).toBe(85);
   });
 
   it("separates the blocked owner hold from the active implementation target", () => {
