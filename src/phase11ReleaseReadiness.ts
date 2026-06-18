@@ -3,6 +3,7 @@ import { REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS } from "./phase3ClearanceTr
 import type { Phase11EvidenceRecordSnapshot } from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
+import type { ProjectManagementTask } from "./projectManagementHierarchy";
 import type { RemainingGoalPlanSummary } from "./remainingGoalPlan";
 import type { SecurityFinalReviewSnapshot } from "./securityFinalReview";
 
@@ -54,6 +55,7 @@ export interface Phase11ReleaseReadinessInput {
   desktopPackaging: DesktopPackagingReadinessSnapshot;
   securityFinalReview: SecurityFinalReviewSnapshot;
   remainingGoalSummary: RemainingGoalPlanSummary;
+  projectManagementTasks?: readonly ProjectManagementTask[];
   cleanCheckoutEvidence?: Phase11EvidenceRecordSnapshot;
   buildTestEvidence?: Phase11EvidenceRecordSnapshot;
   docsKnownLimitsEvidence?: Phase11EvidenceRecordSnapshot;
@@ -77,6 +79,7 @@ const STATUS_LABELS: Record<Phase11ReleaseReadinessState, string> = {
 
 const PHASE3_CLEARANCE_GOAL_ID = "goal-phase-3-proof-clearance";
 const REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS = REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS;
+const MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION = 85;
 
 function publicText(value: string | undefined, fallback: string): string {
   if (!value || value.trim().length === 0) {
@@ -213,6 +216,27 @@ function phase3HandoffProofDetail(
   );
 }
 
+function incompletePhase3PmTaskIds(
+  projectManagementTasks: readonly ProjectManagementTask[] | undefined,
+  requiredTaskIds: readonly string[]
+): string[] {
+  if (!projectManagementTasks) {
+    return [];
+  }
+
+  const completionById = new Map(
+    projectManagementTasks.map((task) => [task.id, task.completionPercent])
+  );
+
+  return requiredTaskIds.filter((taskId) => {
+    const completion = completionById.get(taskId);
+    return (
+      typeof completion === "number" &&
+      completion < MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION
+    );
+  });
+}
+
 function desktopSmokeProofDetail(
   proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
 ): string {
@@ -259,11 +283,16 @@ function smokeProofItem(
 
 function phase3TraceItem(
   ownerCommandCenter: Phase11OwnerCommandCenterSnapshot,
-  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot,
+  projectManagementTasks?: readonly ProjectManagementTask[]
 ): Phase11ReleaseReadinessItem {
   const phase3Trace = phase3ReleaseTrace(ownerCommandCenter);
   const missingPmTaskIds = REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS.filter(
     (taskId) => !phase3Trace?.pmTaskIds.includes(taskId)
+  );
+  const incompletePmTaskIds = incompletePhase3PmTaskIds(
+    projectManagementTasks,
+    REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS
   );
   const handoffProofReady = phase3HandoffProofReady(proofFreshnessDepth);
   const handoffProofDetail = phase3HandoffProofDetail(proofFreshnessDepth);
@@ -274,8 +303,21 @@ function phase3TraceItem(
     traceIsCurrent &&
     traceIsActive &&
     missingPmTaskIds.length === 0 &&
+    incompletePmTaskIds.length === 0 &&
     handoffProofReady &&
     proofFreshnessDepth.canTrustOwnerProof;
+  const incompletePmDetail =
+    incompletePmTaskIds.length > 0
+      ? `; incomplete PM rows below ${MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION}%: ${incompletePmTaskIds.join(", ")}`
+      : "";
+  const traceRestoreTarget =
+    missingPmTaskIds.join(", ") ||
+    incompletePmTaskIds.join(", ") ||
+    (!traceIsCurrent || !traceIsActive
+      ? PHASE3_CLEARANCE_GOAL_ID
+      : !proofFreshnessDepth.canTrustOwnerProof
+        ? "phase-11-proof-freshness-depth"
+        : "phase-11-proof-freshness-depth:handoff-proof");
 
   return {
     id: `${SNAPSHOT_ID}:phase3-trace`,
@@ -283,11 +325,11 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status: traceIsTrusted ? "ready" : "review",
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links; proof freshness ${proofFreshnessDepth.canTrustOwnerProof ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; ${handoffProofDetail}`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links${incompletePmDetail}; proof freshness ${proofFreshnessDepth.canTrustOwnerProof ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; ${handoffProofDetail}`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction: traceIsTrusted
       ? "Keep current active Phase 3 clearance PM traceability and ready handoff proof attached before release packaging resumes."
-      : `Restore current active Phase 3 clearance PM traceability and trusted handoff proof before release readiness can recommend release: ${missingPmTaskIds.join(", ") || (!traceIsCurrent || !traceIsActive ? PHASE3_CLEARANCE_GOAL_ID : !proofFreshnessDepth.canTrustOwnerProof ? "phase-11-proof-freshness-depth" : "phase-11-proof-freshness-depth:handoff-proof")}.`
+      : `Restore current active Phase 3 clearance PM traceability, required PM row completion, and trusted handoff proof before release readiness can recommend release: ${traceRestoreTarget}.`
   };
 }
 
@@ -582,7 +624,11 @@ export function buildPhase11ReleaseReadinessSnapshot(
     cleanCheckoutItem(input.cleanCheckoutEvidence, input.cleanCheckoutState),
     buildTestItem(input.buildTestEvidence, input.buildTestState),
     smokeProofItem(input.ownerCommandCenter, input.proofFreshnessDepth),
-    phase3TraceItem(input.ownerCommandCenter, input.proofFreshnessDepth),
+    phase3TraceItem(
+      input.ownerCommandCenter,
+      input.proofFreshnessDepth,
+      input.projectManagementTasks
+    ),
     packagingLockItem(input.desktopPackaging, input.securityFinalReview),
     docsKnownLimitsItem(input.docsKnownLimitsEvidence, input.docsKnownLimitsState)
   ];

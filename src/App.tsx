@@ -4359,6 +4359,7 @@ export function App() {
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
             phase11EvidenceEvaluationTime={phase11EvidenceEvaluationTime}
             phase11EvidenceRecordInputs={phase11EvidenceRecordInputs}
+            projectManagementTasks={projectManagementTasks}
             sessionControlOwnerTestingState={sessionControlOwnerTestingState}
             sessionControlReadinessEvidence={sessionControlReadinessEvidence}
             slashCommandExecutionEvidence={slashCommandExecutionEvidence}
@@ -8522,6 +8523,7 @@ function RightPanel({
   phase3SmokeProofReadiness,
   phase11EvidenceEvaluationTime,
   phase11EvidenceRecordInputs,
+  projectManagementTasks,
   sessionControlOwnerTestingState,
   sessionControlReadinessEvidence,
   slashCommandExecutionEvidence,
@@ -8611,6 +8613,7 @@ function RightPanel({
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   phase11EvidenceEvaluationTime: string;
   phase11EvidenceRecordInputs: Phase11EvidenceRecordInputMap;
+  projectManagementTasks: ProjectManagementTask[];
   sessionControlOwnerTestingState: OwnerTestingReadinessState;
   sessionControlReadinessEvidence: SessionControlReadinessEvidence;
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
@@ -9340,6 +9343,7 @@ function RightPanel({
         desktopPackaging: desktopPackagingReadinessSnapshot,
         securityFinalReview: securityFinalReviewSnapshot,
         remainingGoalSummary,
+        projectManagementTasks,
         cleanCheckoutEvidence: phase11EvidenceRecords.records["clean-checkout"],
         buildTestEvidence: phase11EvidenceRecords.records["build-test"],
         docsKnownLimitsEvidence: phase11EvidenceRecords.records["docs-known-limits"],
@@ -9350,6 +9354,7 @@ function RightPanel({
       phase11OwnerCommandCenter,
       phase11ProofFreshnessDepth,
       phase11EvidenceRecords,
+      projectManagementTasks,
       remainingGoalSummary,
       securityFinalReviewSnapshot
     ]

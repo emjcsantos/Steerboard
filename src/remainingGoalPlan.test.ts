@@ -177,6 +177,31 @@ describe("remaining goal plan", () => {
     expect(traceabilityChild?.description).toContain("handoff-review details");
   });
 
+  it("keeps incomplete Phase 3 PM rows visible while the active goal remains near clearance", () => {
+    const phase3Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-3-proof-clearance");
+    const phase3Tasks = createDefaultProjectManagementPhasePlan().filter((task) =>
+      phase3Goal?.pmTaskIds.includes(task.id)
+    );
+    const incompleteTaskIds = phase3Tasks
+      .filter((task) => task.completionPercent < 85)
+      .map((task) => task.id);
+
+    expect(phase3Goal).toMatchObject({
+      current: true,
+      status: "active",
+      completionPercent: 98
+    });
+    expect(incompleteTaskIds).toEqual(
+      expect.arrayContaining([
+        "phase-03-child-blocker-priority",
+        "phase-03-child-handoff-gate",
+        "phase-03-parent-slash-controls",
+        "phase-03-child-slash-ready",
+        "phase-03-child-control-ready"
+      ])
+    );
+  });
+
   it("separates the blocked owner hold from the active implementation target", () => {
     const summary = summarizeRemainingGoalPlan();
 

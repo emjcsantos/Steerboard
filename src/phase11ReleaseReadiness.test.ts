@@ -7,6 +7,7 @@ import {
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import { buildPhase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
+import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import {
   buildRemainingGoalPriorityTraces,
   type RemainingGoalPlanSummary
@@ -456,6 +457,29 @@ describe("phase 11 release readiness", () => {
         expect.objectContaining({
           label: "Current Phase 3 trace",
           nextAction: expect.stringContaining("phase-03-child-command-plan")
+        })
+      ])
+    );
+  });
+
+  it("reviews release readiness when required Phase 3 PM rows remain below clearance completion", () => {
+    const result = snapshot({
+      projectManagementTasks: createDefaultProjectManagementPhasePlan()
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Current Phase 3 trace",
+          status: "review",
+          detail: expect.stringContaining("incomplete PM rows below 85%"),
+          nextAction: expect.stringContaining("phase-03-child-handoff-gate")
+        }),
+        expect.objectContaining({
+          label: "Current Phase 3 trace",
+          nextAction: expect.stringContaining("phase-03-child-blocker-priority")
         })
       ])
     );
