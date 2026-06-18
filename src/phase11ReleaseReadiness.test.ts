@@ -178,6 +178,7 @@ function snapshot(
     desktopPackaging: packagingSnapshot(),
     securityFinalReview: securitySnapshot(),
     remainingGoalSummary: remainingSummary(),
+    freshCheckoutEvidence: readyEvidence("fresh-checkout"),
     cleanCheckoutEvidence: readyEvidence("clean-checkout"),
     buildTestEvidence: readyEvidence("build-test"),
     docsKnownLimitsEvidence: readyEvidence("docs-known-limits"),
@@ -508,10 +509,12 @@ describe("phase 11 release readiness", () => {
 
   it("does not recommend release from state-only ready flags without evidence records", () => {
     const result = snapshot({
+      freshCheckoutEvidence: undefined,
       cleanCheckoutEvidence: undefined,
       buildTestEvidence: undefined,
       docsKnownLimitsEvidence: undefined,
       releaseDecisionEvidence: undefined,
+      freshCheckoutState: "ready",
       cleanCheckoutState: "ready",
       buildTestState: "ready",
       docsKnownLimitsState: "ready"
@@ -521,6 +524,11 @@ describe("phase 11 release readiness", () => {
     expect(result.canRecommendRelease).toBe(false);
     expect(result.items).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({
+          label: "Fresh checkout",
+          status: "review",
+          detail: expect.stringContaining("structured evidence record")
+        }),
         expect.objectContaining({
           label: "Clean checkout",
           status: "review",
@@ -712,6 +720,17 @@ describe("phase 11 release readiness", () => {
 
   it("maps structured release evidence records into clean checkout, build, and docs gates", () => {
     const result = snapshot({
+      freshCheckoutEvidence: evaluatePhase11EvidenceRecord(
+        "fresh-checkout",
+        {
+          gate: "fresh-checkout",
+          state: "ready",
+          source: "owner fresh checkout",
+          recordedAt: "2026-06-17T11:00:00.000Z",
+          detail: "Fresh checkout install, test, build, desktop run, and proof-panel evidence passed."
+        },
+        "2026-06-17T12:00:00.000Z"
+      ),
       cleanCheckoutEvidence: evaluatePhase11EvidenceRecord(
         "clean-checkout",
         {
@@ -745,6 +764,11 @@ describe("phase 11 release readiness", () => {
     expect(result.canRecommendRelease).toBe(false);
     expect(result.items).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({
+          label: "Fresh checkout",
+          status: "ready",
+          detail: expect.stringContaining("proof-panel evidence passed")
+        }),
         expect.objectContaining({
           label: "Clean checkout",
           status: "review",

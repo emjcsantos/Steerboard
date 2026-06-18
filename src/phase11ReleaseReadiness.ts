@@ -10,6 +10,7 @@ import type { SecurityFinalReviewSnapshot } from "./securityFinalReview";
 export type Phase11ReleaseReadinessState = "ready" | "review" | "blocked" | "waiting";
 
 export type Phase11ReleaseReadinessItemKind =
+  | "fresh-checkout"
   | "clean-checkout"
   | "build-test"
   | "smoke-proof"
@@ -56,10 +57,12 @@ export interface Phase11ReleaseReadinessInput {
   securityFinalReview: SecurityFinalReviewSnapshot;
   remainingGoalSummary: RemainingGoalPlanSummary;
   projectManagementTasks?: readonly ProjectManagementTask[];
+  freshCheckoutEvidence?: Phase11EvidenceRecordSnapshot;
   cleanCheckoutEvidence?: Phase11EvidenceRecordSnapshot;
   buildTestEvidence?: Phase11EvidenceRecordSnapshot;
   docsKnownLimitsEvidence?: Phase11EvidenceRecordSnapshot;
   releaseDecisionEvidence?: Phase11EvidenceRecordSnapshot;
+  freshCheckoutState?: Phase11ReleaseReadinessState;
   cleanCheckoutState?: Phase11ReleaseReadinessState;
   buildTestState?: Phase11ReleaseReadinessState;
   docsKnownLimitsState?: Phase11ReleaseReadinessState;
@@ -145,6 +148,30 @@ function firstNextAction(items: readonly Phase11ReleaseReadinessItem[]): string 
     items.find((item) => item.status === "waiting")?.nextAction ??
     "Attach release proof and keep packaging held until the owner explicitly resumes release actions."
   );
+}
+
+function freshCheckoutItem(
+  evidence: Phase11EvidenceRecordSnapshot | undefined,
+  state: Phase11ReleaseReadinessState | undefined
+): Phase11ReleaseReadinessItem {
+  const status = evidence?.state ?? (state === "ready" ? "review" : state) ?? "waiting";
+
+  return {
+    id: `${SNAPSHOT_ID}:fresh-checkout`,
+    label: "Fresh checkout",
+    kind: "fresh-checkout",
+    status,
+    detail: evidence
+      ? `${evidence.detail} Source: ${evidence.source}; recorded: ${evidence.recordedAt}; freshness: ${evidence.freshness}.`
+      : state === "ready"
+        ? "Fresh-checkout install, test, build, desktop run, and proof-panel evidence need a structured evidence record."
+        : "Fresh-checkout install, test, build, desktop run, and proof-panel evidence still need owner evidence.",
+    nextAction: evidence?.nextAction ?? (
+      state === "ready"
+        ? "Attach fresh-checkout evidence metadata before release readiness can proceed."
+        : "Record fresh-checkout install, test, build, desktop run, and proof-panel evidence after live workflow blockers clear."
+    )
+  };
 }
 
 function cleanCheckoutItem(
@@ -624,6 +651,7 @@ export function buildPhase11ReleaseReadinessSnapshot(
   input: Phase11ReleaseReadinessInput
 ): Phase11ReleaseReadinessSnapshot {
   const prerequisiteItems = [
+    freshCheckoutItem(input.freshCheckoutEvidence, input.freshCheckoutState),
     cleanCheckoutItem(input.cleanCheckoutEvidence, input.cleanCheckoutState),
     buildTestItem(input.buildTestEvidence, input.buildTestState),
     smokeProofItem(input.ownerCommandCenter, input.proofFreshnessDepth),
@@ -655,6 +683,8 @@ export function buildPhase11ReleaseReadinessSnapshot(
     input.desktopPackaging.packagingLocked &&
     !input.desktopPackaging.canPackage &&
     !input.securityFinalReview.canResumePackaging &&
+    input.freshCheckoutEvidence?.state === "ready" &&
+    input.freshCheckoutEvidence.freshness === "fresh" &&
     input.releaseDecisionEvidence?.state === "ready" &&
     input.releaseDecisionEvidence.freshness === "fresh" &&
     input.remainingGoalSummary.blocked === 0 &&

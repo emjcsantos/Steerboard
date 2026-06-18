@@ -250,7 +250,7 @@ function releaseReadinessSnapshot(
     readiness: 75,
     canRecommendRelease: false,
     releaseHoldCount: 4,
-    readyCount: 4,
+    readyCount: 5,
     reviewCount: 4,
     blockedCount: 0,
     waitingCount: 0,
@@ -263,6 +263,14 @@ function releaseReadinessSnapshot(
       "Phase 11 release readiness is evidence-only. It does not install dependencies, run tests, build packages, execute smoke flows, sign artifacts, push branches, call networks, or resume packaging.",
     ariaLabel: "Phase 11 release readiness review.",
     items: [
+      {
+        id: "phase-11-release-readiness:fresh-checkout",
+        label: "Fresh checkout",
+        kind: "fresh-checkout",
+        status: "ready",
+        detail: "Fresh checkout install, test, build, desktop run, and proof-panel evidence is attached.",
+        nextAction: "Keep fresh-checkout evidence attached to release readiness."
+      },
       {
         id: "phase-11-release-readiness:clean-checkout",
         label: "Clean checkout",
@@ -508,7 +516,7 @@ describe("phase 11 owner-visible proof", () => {
       readiness: 100,
       canRecommendRelease: true,
       releaseHoldCount: 0,
-      readyCount: 8,
+      readyCount: 9,
       reviewCount: 0,
       nextAction: "Release readiness is recorded.",
       items: releaseReadinessSnapshot().items.map((item) => ({
