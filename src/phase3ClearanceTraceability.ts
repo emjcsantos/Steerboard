@@ -236,7 +236,10 @@ function clearanceEvidenceItem(
       kind: "clearance-evidence",
       status: "blocked",
       detail: "Blocked Phase 3 clearance, command, or blocker-priority evidence is still linked.",
-      nextAction: "Clear blocked Phase 3 evidence before the trace can pass."
+      nextAction: publicText(
+        blockerPriority.nextAction,
+        "Clear blocked Phase 3 evidence before the trace can pass."
+      )
     };
   }
 

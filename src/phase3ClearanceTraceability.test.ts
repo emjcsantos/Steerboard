@@ -331,4 +331,41 @@ describe("phase 3 clearance traceability", () => {
     expect(combinedText).not.toContain(">");
     expect(combinedText).not.toContain("Phase 7");
   });
+
+  it("carries exact blocked blocker-priority action into clearance traceability", () => {
+    const result = snapshot({
+      clearancePackage: clearance({
+        state: "blocked",
+        canExit: false,
+        openCount: 1,
+        blockerCount: 1,
+        nextAction: "Generic blocked clearance action."
+      }),
+      blockerPriority: blockerPriority({
+        state: "blocked",
+        openBlockerCount: 1,
+        topPriorityLabel: "Session controls",
+        topPriorityAction: "Repair session controls.",
+        nextAction: "Repair session controls."
+      }),
+      commandPlan: commandPlan({ state: "blocked" }),
+      handoffGate: handoff({
+        state: "blocked",
+        canAdvanceProviderIntegration: false,
+        nextAction: "Repair session controls."
+      })
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.nextAction).toBe("Repair session controls.");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "clearance-evidence",
+          status: "blocked",
+          nextAction: "Repair session controls."
+        })
+      ])
+    );
+  });
 });

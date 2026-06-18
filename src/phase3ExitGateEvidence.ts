@@ -296,6 +296,66 @@ function resolveNextAction(state: Phase3ExitGateState): string {
   return REVIEW_NEXT_ACTION;
 }
 
+function diagnosticLaneRank(item: Phase3ExitGateDiagnostic): number {
+  if (item.id === PHASE3_GATE_IDS.slash || item.id === PHASE3_GATE_IDS.session) {
+    return 0;
+  }
+  if (
+    item.id === PHASE3_GATE_IDS.liveControl ||
+    item.id === PHASE3_GATE_IDS.interrupt ||
+    item.id === PHASE3_GATE_IDS.steer
+  ) {
+    return 1;
+  }
+  return 2;
+}
+
+function diagnosticStateRank(state: Phase3ExitGateState): number {
+  if (state === "blocked") {
+    return 0;
+  }
+  if (state === "review") {
+    return 1;
+  }
+  if (state === "waiting") {
+    return 2;
+  }
+  return 3;
+}
+
+function diagnosticKindRank(item: Phase3ExitGateDiagnostic): number {
+  if (item.id === PHASE3_GATE_IDS.slash) {
+    return 0;
+  }
+  if (item.id === PHASE3_GATE_IDS.session) {
+    return 1;
+  }
+  if (item.id === PHASE3_GATE_IDS.liveControl) {
+    return 2;
+  }
+  if (item.id === PHASE3_GATE_IDS.interrupt) {
+    return 3;
+  }
+  if (item.id === PHASE3_GATE_IDS.steer) {
+    return 4;
+  }
+  return 5;
+}
+
+function topOpenDiagnostic(
+  items: readonly Phase3ExitGateDiagnostic[]
+): Phase3ExitGateDiagnostic | undefined {
+  return [...items]
+    .filter((item) => item.state !== "ready")
+    .sort(
+      (left, right) =>
+        diagnosticLaneRank(left) - diagnosticLaneRank(right) ||
+        diagnosticStateRank(left.state) - diagnosticStateRank(right.state) ||
+        diagnosticKindRank(left) - diagnosticKindRank(right) ||
+        left.label.localeCompare(right.label)
+    )[0];
+}
+
 function resolveGateNextAction(
   state: Phase3ExitGateState,
   items: readonly Phase3ExitGateDiagnostic[]
@@ -304,11 +364,7 @@ function resolveGateNextAction(
     return READY_NEXT_ACTION;
   }
 
-  if (state === "blocked") {
-    return items.find((item) => item.state === "blocked")?.nextAction ?? BLOCKED_NEXT_ACTION;
-  }
-
-  return items.find((item) => item.state !== "ready")?.nextAction ?? resolveNextAction(state);
+  return topOpenDiagnostic(items)?.nextAction ?? resolveNextAction(state);
 }
 
 function resolveSlashNextAction(state: Phase3ExitGateState): string {

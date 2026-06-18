@@ -288,6 +288,41 @@ describe("phase 3 exit gate evidence", () => {
     expect(result.nextAction).not.toContain("desktop smoke");
   });
 
+  it("keeps slash or session diagnostics ahead of blocked desktop smoke in the top-level next action", () => {
+    const result = buildPhase3ExitGateEvidence({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
+      slashEvidence: {
+        state: "waiting",
+        pass: false,
+        readiness: 35,
+        status: "Waiting",
+        detail: "Slash proof missing.",
+        safety: "none"
+      },
+      sessionControlEvidence: readySessionControlEvidence(),
+      liveControlSmoke: readyLiveControlSmoke(),
+      activeTurnInterruptSmoke: readyInterruptSmoke(),
+      activeTurnSteerSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.002Z",
+        executed: true,
+        unsupported: true,
+        completed: true,
+        steerObserved: false
+      }
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.nextAction).toBe(
+      "Submit a provider-routed slash command from an Arena panel before Phase 3 can exit."
+    );
+    expect(result.items[4]).toMatchObject({
+      id: "phase3-exit-gate:active-turn-steer-smoke",
+      state: "blocked"
+    });
+  });
+
   it("does not trust ready slash evidence without provider route and result counts", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",

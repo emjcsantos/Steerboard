@@ -210,6 +210,36 @@ describe("phase 11 proof freshness depth", () => {
     expect(result.blockedCount).toBe(1);
   });
 
+  it("carries the Phase 3 clearance next action into proof freshness when clearance is blocked", () => {
+    const result = snapshot({
+      phase3ClearancePackage: clearance({
+        state: "blocked",
+        statusLabel: "Blocked",
+        canExit: false,
+        readiness: 15,
+        openCount: 1,
+        blockerCount: 1,
+        nextAction:
+          "Submit a provider-routed slash command from an Arena panel before Phase 3 can exit."
+      })
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.nextAction).toBe(
+      "Submit a provider-routed slash command from an Arena panel before Phase 3 can exit."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Phase 3 clearance proof",
+          status: "blocked",
+          nextAction:
+            "Submit a provider-routed slash command from an Arena panel before Phase 3 can exit."
+        })
+      ])
+    );
+  });
+
   it("keeps owner proof waiting until the handoff gate can advance provider integration", () => {
     const result = snapshot({
       phase3HandoffGate: handoff({
