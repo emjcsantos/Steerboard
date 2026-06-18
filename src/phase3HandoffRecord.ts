@@ -453,6 +453,19 @@ export function derivePhase3HandoffRecordValidation(
 
     const freshRecord = isRecordFresh(record, options);
     const freshnessMetadata = recordFreshnessMetadata(record, options);
+    if (freshRecord === undefined) {
+      return {
+        state: "review",
+        detail:
+          "Owner handoff record cannot be freshness-checked without the current Phase 3 evaluation timestamp.",
+        nextAction: "Review the owner handoff record with the current evaluation time before advancing provider integration.",
+        expectedFingerprint,
+        recordFingerprint: record.evidenceFingerprint,
+        ...freshnessMetadata,
+        matchesCurrentEvidence: true
+      };
+    }
+
     if (freshRecord === false) {
       return {
         state: "review",

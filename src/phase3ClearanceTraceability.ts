@@ -481,6 +481,17 @@ function goalHonestyItem(
     };
   }
 
+  if (handoffGate.canAdvanceProviderIntegration) {
+    return {
+      id: `${SNAPSHOT_ID}:goal-honesty`,
+      label: "Goal completion honesty",
+      kind: "goal-honesty",
+      status: "ready",
+      detail: `Phase 3 remains ${goal.status} at ${goal.completionPercent}% with owner-reviewed handoff ready for provider advance.`,
+      nextAction: "Phase 3 completion can be reported after owner review keeps the handoff boundary attached."
+    };
+  }
+
   return {
     id: `${SNAPSHOT_ID}:goal-honesty`,
     label: "Goal completion honesty",

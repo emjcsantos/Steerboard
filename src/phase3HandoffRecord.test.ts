@@ -104,10 +104,13 @@ describe("phase 3 handoff record", () => {
       derivePhase3HandoffRecordValidation(
         record,
         currentClearance,
-        originalFingerprint
+        originalFingerprint,
+        { evaluatedAt: "2026-06-11T00:10:00.000Z" }
       )
     ).toMatchObject({
       state: "ready",
+      evaluatedAt: "2026-06-11T00:10:00.000Z",
+      recordAgeMs: 600_000,
       matchesCurrentEvidence: true
     });
     expect(
@@ -120,6 +123,32 @@ describe("phase 3 handoff record", () => {
       state: "review",
       detail: expect.stringContaining("no longer matches"),
       matchesCurrentEvidence: false
+    });
+  });
+
+  it("reviews current-matching handoff records without a current evaluation timestamp", () => {
+    const currentClearance = clearancePackage();
+    const expectedFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: currentClearance
+    });
+    const record = createPhase3OwnerHandoffRecord(
+      currentClearance,
+      "2026-06-11T00:00:00.000Z",
+      expectedFingerprint
+    );
+
+    expect(
+      derivePhase3HandoffRecordValidation(
+        record,
+        currentClearance,
+        expectedFingerprint
+      )
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("cannot be freshness-checked"),
+      nextAction: expect.stringContaining("current evaluation time"),
+      maxRecordAgeMs: DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS,
+      matchesCurrentEvidence: true
     });
   });
 

@@ -195,6 +195,15 @@ describe("phase 3 clearance traceability", () => {
     expect(result.missingPmTaskIds).toEqual([]);
     expect(result.missingGoalPmTaskIds).toEqual([]);
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "goal-honesty",
+          detail: expect.stringContaining("owner-reviewed handoff ready"),
+          nextAction: expect.stringContaining("completion can be reported")
+        })
+      ])
+    );
   });
 
   it("keeps trace untrusted when Phase 3 is active but no longer current", () => {
