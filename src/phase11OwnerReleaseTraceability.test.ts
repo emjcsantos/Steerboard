@@ -301,6 +301,52 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
+  it("carries the top blocked owner command row into release traceability", () => {
+    const result = trace({
+      ownerCommandCenter: ownerSnapshot({
+        state: "blocked",
+        statusLabel: "Blocked",
+        readiness: 88,
+        canRelease: false,
+        blockerCount: 1,
+        readyCount: 8,
+        blockedCount: 1,
+        nextAction: "Refresh slash execution evidence from the current Arena panel transcript.",
+        items: [
+          {
+            id: "phase-11-owner-command-center:phase3-clearance",
+            label: "Phase 3 clearance",
+            kind: "phase3-clearance",
+            status: "blocked",
+            detail:
+              "Top blocker: Slash execution (phase-03-child-slash-ready / phase3.slash-execution) is blocked.",
+            nextAction: "Refresh slash execution evidence from the current Arena panel transcript."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.nextAction).toBe(
+      "Refresh slash execution evidence from the current Arena panel transcript."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "owner-command",
+          status: "blocked",
+          detail: expect.stringContaining("Top owner row: Phase 3 clearance is blocked"),
+          nextAction: "Refresh slash execution evidence from the current Arena panel transcript."
+        }),
+        expect.objectContaining({
+          kind: "owner-command",
+          detail: expect.stringContaining("phase-03-child-slash-ready / phase3.slash-execution")
+        })
+      ])
+    );
+  });
+
   it("reviews current Phase 3 trace when handoff is ready but proof freshness is not trusted", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({

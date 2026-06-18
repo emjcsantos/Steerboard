@@ -264,12 +264,20 @@ function pmCoverageItem(
 function ownerCommandItem(
   snapshot: Phase11OwnerCommandCenterSnapshot
 ): Phase11OwnerReleaseTraceabilityItem {
+  const topOwnerCommandItem =
+    snapshot.items.find((item) => item.status === "blocked") ??
+    snapshot.items.find((item) => item.status === "review") ??
+    snapshot.items.find((item) => item.status === "waiting");
+  const topOwnerCommandDetail = topOwnerCommandItem
+    ? ` Top owner row: ${publicText(topOwnerCommandItem.label, "Owner command row")} is ${topOwnerCommandItem.status}; ${publicText(topOwnerCommandItem.detail, topOwnerCommandItem.nextAction)}`
+    : "";
+
   return {
     id: `${TRACE_ID}:owner-command`,
     label: "Owner command gate",
     kind: "owner-command",
     status: snapshot.state,
-    detail: `${snapshot.readyCount} ready, ${snapshot.reviewCount} review, ${snapshot.blockedCount} blocked, and ${snapshot.waitingCount} waiting Owner Testing rows.`,
+    detail: `${snapshot.readyCount} ready, ${snapshot.reviewCount} review, ${snapshot.blockedCount} blocked, and ${snapshot.waitingCount} waiting Owner Testing rows.${topOwnerCommandDetail}`,
     nextAction: publicText(snapshot.nextAction, "Resolve Owner Testing command-center blockers.")
   };
 }
