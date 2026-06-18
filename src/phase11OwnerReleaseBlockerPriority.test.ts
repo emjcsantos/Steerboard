@@ -560,6 +560,41 @@ describe("phase 11 owner release blocker priority", () => {
     });
   });
 
+  it("surfaces fresh-checkout release readiness as an owner-review blocker", () => {
+    const result = priority({
+      releaseReadiness: releaseSnapshot({
+        state: "review",
+        canRecommendRelease: false,
+        releaseHoldCount: 1,
+        items: [
+          {
+            id: "phase-11-release-readiness:fresh-checkout",
+            label: "Fresh checkout",
+            kind: "fresh-checkout",
+            status: "review",
+            detail:
+              "Fresh-checkout install, test, build, desktop run, and proof-panel evidence need a structured evidence record.",
+            nextAction: "Attach fresh-checkout evidence metadata before release readiness can proceed."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.openBlockerCount).toBe(1);
+    expect(result.topPriorityLabel).toBe("Fresh checkout");
+    expect(result.topPriorityAction).toContain("fresh-checkout evidence metadata");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "release-readiness",
+          label: "Fresh checkout",
+          nextAction: expect.stringContaining("fresh-checkout evidence metadata")
+        })
+      ])
+    );
+  });
+
   it("ranks open packaging holds above proof and evidence blockers", () => {
     const result = priority({
       ownerCommandCenter: ownerSnapshot({
