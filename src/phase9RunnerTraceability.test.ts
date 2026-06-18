@@ -352,6 +352,17 @@ describe("phase 9 runner traceability", () => {
     });
   });
 
+  it("keeps the desktop probe held when Phase 9 approval is not request-ready", () => {
+    const approval = approvalSnapshot();
+    const summary = traceability({ approval, goals: withCurrentPhase9Goal() });
+
+    expect(approval.canRequestDesktopProbe).toBe(false);
+    expect(buildPhase9DesktopProbeGate(approval, summary)).toMatchObject({
+      canRun: false,
+      holdReason: "Request owner approval for the fixed terminal read-only probe."
+    });
+  });
+
   it("does not trust runner approval when Phase 9 is current but still next", () => {
     const approval = approvalSnapshot({
       request: permissionRequest({ state: "approved" }),
