@@ -401,6 +401,10 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Current Phase 3 trace");
     expect(html).toContain("Packaging lock");
     expect(html).toContain("Phase 11 Proof Freshness");
+    expect(html).toContain("<dt>Trust</dt><dd>Held</dd>");
+    expect(html).toContain("<dt>Ready</dt><dd>4</dd>");
+    expect(html).toContain("<dt>Open</dt><dd>2</dd>");
+    expect(html).toContain("<dt>Blocked</dt><dd>0</dd>");
     expect(html).toContain("Phase 1/2/6 priority proof");
     expect(html).toContain("Phase 3 clearance");
     expect(html).toContain("Desktop smoke proof");
