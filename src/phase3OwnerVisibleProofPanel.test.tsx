@@ -646,8 +646,9 @@ describe("phase 3 owner-visible proof panel", () => {
     );
     expect(html).toContain("Traceability boundary");
     expect(html).toContain("goal-phase-3-proof-clearance");
-    expect(html).toContain("PM Rows");
-    expect(html).toContain("11/11");
+    expect(html).toContain(
+      'aria-label="Phase 3 clearance traceability counts"><div><dt>PM Rows</dt><dd>11/11</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>State</dt><dd>Ready</dd></div><div><dt>Ready</dt><dd>100%</dd></div></dl>'
+    );
     expect(html).toContain("npm.cmd run smoke:phase3");
     expect(html).toContain(
       'aria-label="Phase 3 command plan smoke counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Covers</dt><dd>3</dd></div><div><dt>State</dt><dd>Ready</dd></div></dl>'
