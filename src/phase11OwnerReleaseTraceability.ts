@@ -1,4 +1,5 @@
 import { currentProjectManagementPhasePlanTaskIds } from "./projectManagementPhasePlan";
+import { REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS } from "./phase3ClearanceTraceability";
 import type { Phase11EvidenceRecordsSnapshot } from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
@@ -62,10 +63,7 @@ const OWNER_GOAL_ID = "goal-phase-11-owner-command-center";
 const RELEASE_GOAL_ID = "goal-phase-11-release-readiness";
 const PHASE3_CLEARANCE_GOAL_ID = "goal-phase-3-proof-clearance";
 const PHASE11_PHASE_ID = "phase-11-owner-packaging";
-const REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS = [
-  "phase-03-child-traceability",
-  "phase-03-child-handoff-gate"
-] as const;
+const REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS = REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS;
 const REQUIRED_PM_TASK_IDS = [
   "phase-11-owner-packaging",
   "phase-11-parent-owner-testing",

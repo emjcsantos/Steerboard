@@ -218,6 +218,41 @@ describe("phase 11 release readiness", () => {
     );
   });
 
+  it("reviews release readiness when the current Phase 3 trace misses clearance child PM rows", () => {
+    const result = snapshot({
+      ownerCommandCenter: ownerSnapshot({
+        priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
+          trace.goalId === "goal-phase-3-proof-clearance"
+            ? {
+                ...trace,
+                pmTaskIds: trace.pmTaskIds.filter(
+                  (taskId) =>
+                    taskId !== "phase-03-child-smoke-rows" &&
+                    taskId !== "phase-03-child-command-plan"
+                )
+              }
+            : trace
+        )
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Current Phase 3 trace",
+          status: "review",
+          nextAction: expect.stringContaining("phase-03-child-smoke-rows")
+        }),
+        expect.objectContaining({
+          label: "Current Phase 3 trace",
+          nextAction: expect.stringContaining("phase-03-child-command-plan")
+        })
+      ])
+    );
+  });
+
   it("does not recommend release from state-only ready flags without evidence records", () => {
     const result = snapshot({
       cleanCheckoutEvidence: undefined,

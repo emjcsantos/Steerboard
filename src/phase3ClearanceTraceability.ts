@@ -80,15 +80,18 @@ export interface Phase3ClearanceTraceabilityPreconditionInput {
 
 export const PHASE3_CLEARANCE_GOAL_ID = "goal-phase-3-proof-clearance";
 export const PHASE3_CLEARANCE_PHASE_ID = "phase-03-controls-slash";
-export const REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS = [
-  "phase-03-controls-slash",
-  "phase-03-parent-proof-clearance",
+export const REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS = [
   "phase-03-child-smoke-rows",
   "phase-03-child-exit-gate",
   "phase-03-child-command-plan",
   "phase-03-child-blocker-priority",
   "phase-03-child-traceability",
-  "phase-03-child-handoff-gate",
+  "phase-03-child-handoff-gate"
+] as const;
+export const REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS = [
+  "phase-03-controls-slash",
+  "phase-03-parent-proof-clearance",
+  ...REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS,
   "phase-03-parent-slash-controls",
   "phase-03-child-slash-ready",
   "phase-03-child-control-ready"

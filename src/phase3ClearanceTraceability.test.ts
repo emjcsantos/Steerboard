@@ -9,6 +9,7 @@ import {
   buildPhase3ClearanceTraceabilityPrecondition,
   PHASE3_CLEARANCE_GOAL_ID,
   PHASE3_CLEARANCE_PHASE_ID,
+  REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS,
   REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS
 } from "./phase3ClearanceTraceability";
 import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
@@ -149,6 +150,20 @@ function snapshot(
 }
 
 describe("phase 3 clearance traceability", () => {
+  it("exposes the clearance child PM rows required by downstream release gates", () => {
+    expect(REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS).toEqual([
+      "phase-03-child-smoke-rows",
+      "phase-03-child-exit-gate",
+      "phase-03-child-command-plan",
+      "phase-03-child-blocker-priority",
+      "phase-03-child-traceability",
+      "phase-03-child-handoff-gate"
+    ]);
+    expect(REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS).toEqual(
+      expect.arrayContaining([...REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS])
+    );
+  });
+
   it("links the current active critical Phase 3 goal to every required PM row and ready evidence", () => {
     const result = snapshot();
 

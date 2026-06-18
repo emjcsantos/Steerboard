@@ -290,6 +290,41 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
+  it("reviews when the current Phase 3 trace misses clearance child PM rows", () => {
+    const result = trace({
+      ownerCommandCenter: ownerSnapshot({
+        priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
+          trace.goalId === "goal-phase-3-proof-clearance"
+            ? {
+                ...trace,
+                pmTaskIds: trace.pmTaskIds.filter(
+                  (taskId) =>
+                    taskId !== "phase-03-child-smoke-rows" &&
+                    taskId !== "phase-03-child-command-plan"
+                )
+              }
+            : trace
+        )
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "phase3-trace",
+          status: "review",
+          nextAction: expect.stringContaining("phase-03-child-smoke-rows")
+        }),
+        expect.objectContaining({
+          kind: "phase3-trace",
+          nextAction: expect.stringContaining("phase-03-child-command-plan")
+        })
+      ])
+    );
+  });
+
   it("reports missing traceability and blocker-priority PM coverage", () => {
     const goals = withLinkedPhase11Goals().map((goal) =>
       goal.phaseIds.includes("phase-11-owner-packaging")

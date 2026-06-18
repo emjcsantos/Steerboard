@@ -1,4 +1,5 @@
 import type { DesktopPackagingReadinessSnapshot } from "./desktopPackagingReadiness";
+import { REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS } from "./phase3ClearanceTraceability";
 import type { Phase11EvidenceRecordSnapshot } from "./phase11EvidenceRecords";
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import type { RemainingGoalPlanSummary } from "./remainingGoalPlan";
@@ -71,10 +72,7 @@ const STATUS_LABELS: Record<Phase11ReleaseReadinessState, string> = {
 };
 
 const PHASE3_CLEARANCE_GOAL_ID = "goal-phase-3-proof-clearance";
-const REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS = [
-  "phase-03-child-traceability",
-  "phase-03-child-handoff-gate"
-] as const;
+const REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS = REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS;
 
 function publicText(value: string | undefined, fallback: string): string {
   if (!value || value.trim().length === 0) {
