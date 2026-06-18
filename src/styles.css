@@ -8190,7 +8190,7 @@ textarea {
   min-width: 0;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 3px 8px;
   border: 1px solid #26303a;
   border-radius: 7px;
   background: #10161d;
@@ -8198,7 +8198,8 @@ textarea {
 }
 
 .owner-testing-phase3-traceability-list strong,
-.owner-testing-phase3-traceability-list span {
+.owner-testing-phase3-traceability-list span,
+.owner-testing-phase3-traceability-list small {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -8216,6 +8217,12 @@ textarea {
   font-size: 8px;
   font-weight: 900;
   text-transform: uppercase;
+}
+
+.owner-testing-phase3-traceability-list small {
+  grid-column: 1 / -1;
+  color: #8f99a4;
+  font-size: 10px;
 }
 
 .owner-testing-phase3-traceability-ready,
@@ -8681,7 +8688,7 @@ textarea {
   min-width: 0;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 3px 8px;
   border: 1px solid #26303a;
   border-radius: 7px;
   background: #0f171d;
@@ -8689,7 +8696,8 @@ textarea {
 }
 
 .owner-testing-phase3-handoff-list strong,
-.owner-testing-phase3-handoff-list span {
+.owner-testing-phase3-handoff-list span,
+.owner-testing-phase3-handoff-list small {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -8707,6 +8715,12 @@ textarea {
   font-size: 8px;
   font-weight: 900;
   text-transform: uppercase;
+}
+
+.owner-testing-phase3-handoff-list small {
+  grid-column: 1 / -1;
+  color: #8f99a4;
+  font-size: 10px;
 }
 
 .owner-testing-phase3-handoff-ready,
