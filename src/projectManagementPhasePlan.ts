@@ -84,7 +84,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-01-live-chat",
     title: "Phase 1: One Live Chat Panel",
-    description: "Prove one Arena chat panel can run against the desktop-backed session path with honest owner-visible evidence.",
+    description: "Prove one Arena chat panel can run against the desktop-backed session path with honest owner-visible evidence; local proof remains ongoing while publishing is owner-held by the Phase 1/2/6 publish blocker.",
     status: "ongoing",
     completionPercent: 60,
     complexity: "high",
@@ -139,7 +139,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-02-multi-panel",
     title: "Phase 2: Multi-Panel Session Isolation",
-    description: "Verify multiple Arena panels can run independently without cross-talk in identity, stream, or control state.",
+    description: "Verify multiple Arena panels can run independently without cross-talk in identity, stream, or control state; local isolation proof remains ongoing while publishing is owner-held by the Phase 1/2/6 publish blocker.",
     status: "ongoing",
     completionPercent: 55,
     complexity: "high",
@@ -455,7 +455,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-06-planning-lane",
     title: "Phase 6: Project and Program Planning Lane",
-    description: "Make the Project Management lane a useful phase board, hierarchy planner, and staged Arena packet source.",
+    description: "Make the Project Management lane a useful phase board, hierarchy planner, and staged Arena packet source; local PM staging remains ongoing while publishing is owner-held by the Phase 1/2/6 publish blocker.",
     status: "ongoing",
     completionPercent: 55,
     complexity: "high",

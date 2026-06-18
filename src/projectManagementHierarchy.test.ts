@@ -89,6 +89,30 @@ describe("project management hierarchy", () => {
     expect(byId.get("phase-11-child-traceability")?.description).toContain("current active Phase 3 clearance PM traceability and handoff proof");
   });
 
+  it("keeps Phase 1/2/6 PM rows locally ongoing while surfacing the owner publish hold", () => {
+    const tasks = createDefaultProjectManagementTasks();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+
+    for (const phaseId of [
+      "phase-01-live-chat",
+      "phase-02-multi-panel",
+      "phase-06-planning-lane"
+    ]) {
+      const task = byId.get(phaseId);
+      expect(task?.status).toBe("ongoing");
+      expect(task?.description).toContain("local");
+      expect(task?.description).toContain("owner-held");
+      expect(task?.description).toContain("Phase 1/2/6 publish blocker");
+    }
+
+    expect(byId.get("phase-06-child-publish-hold-traceability")?.description).toContain(
+      "owner-held publish blocker"
+    );
+    expect(byId.get("phase-06-child-publish-hold-blocker-priority")?.description).toContain(
+      "owner/remote publish hold"
+    );
+  });
+
   it("builds a staged Arena dispatch package with hierarchy context", () => {
     const result = buildProjectManagementArenaDispatch(
       createDefaultProjectManagementTasks(),

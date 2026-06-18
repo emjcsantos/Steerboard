@@ -7,6 +7,7 @@ import {
   steerboardMilestoneStatuses,
   summarizeMilestoneStatuses
 } from "./milestoneStatus";
+import { remainingGoalPlan } from "./remainingGoalPlan";
 
 const privateTermPatterns: RegExp[] = [
   /[A-Za-z]:\\/,
@@ -260,11 +261,31 @@ describe("milestone status model", () => {
     expect(platform?.completionPercent).toBe(56);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution."
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution. The current active implementation goal inside this milestone is Phase 3 desktop proof clearance; Phase 4 provider integration remains next until that boundary clears."
     );
     expect(platform?.nextStep).toBe(
-      "Run live provider-routed slash and session-control checks in desktop mode and verify Owner Testing evidence moves from review to ready, then keep the connection dialog catalog smoke as the recurring provider-refresh regression check while arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions remain disabled."
+      "Clear Phase 3 desktop proof clearance by running live provider-routed slash and session-control checks in desktop mode and verifying Owner Testing evidence moves from review to ready; then advance Phase 4 provider integration while keeping the connection dialog catalog smoke as the recurring provider-refresh regression check and arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
     );
+  });
+
+  it("ties the current Platform milestone to the active Phase 3 goal before Phase 4 advances", () => {
+    const platform = steerboardMilestoneStatuses.find(
+      (milestone) => milestone.target === "Platform capabilities"
+    );
+    const activeGoal = remainingGoalPlan.find((goal) => goal.current === true);
+    const providerGoal = remainingGoalPlan.find(
+      (goal) => goal.id === "goal-phase-4-provider-surfaces"
+    );
+
+    expect(platform?.current).toBe(true);
+    expect(activeGoal?.id).toBe("goal-phase-3-proof-clearance");
+    expect(activeGoal?.status).toBe("active");
+    expect(activeGoal?.target).toBe("Phase 3 desktop proof clearance");
+    expect(providerGoal?.status).toBe("next");
+    expect(platform?.latestNote).toContain(activeGoal?.target);
+    expect(platform?.latestNote).toContain("Phase 4 provider integration remains next");
+    expect(platform?.nextStep).toContain(activeGoal?.target);
+    expect(platform?.nextStep).toContain("advance Phase 4 provider integration");
   });
 
   it("tracks Migration Center as an active metadata-only transition milestone", () => {
@@ -307,7 +328,7 @@ describe("milestone status model", () => {
       averageCompletionPercent: 46,
       nextTarget: "Platform capabilities",
       nextStep:
-        "Run live provider-routed slash and session-control checks in desktop mode and verify Owner Testing evidence moves from review to ready, then keep the connection dialog catalog smoke as the recurring provider-refresh regression check while arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions remain disabled.",
+        "Clear Phase 3 desktop proof clearance by running live provider-routed slash and session-control checks in desktop mode and verifying Owner Testing evidence moves from review to ready; then advance Phase 4 provider integration while keeping the connection dialog catalog smoke as the recurring provider-refresh regression check and arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
       nextCompletionPercent: 56
     });
   });

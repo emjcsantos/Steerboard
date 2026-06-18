@@ -59,7 +59,7 @@ describe("milestone report next detail", () => {
       title:
         "Arena monitor and operating modes 60% Control surfaces are actively being validated. Finalize the focus behavior and keep toolbar actions consistent.",
       ariaLabel:
-        "Next milestone Arena monitor and operating modes (60%) | latest note: Control surfaces are actively being validated. | next step: Finalize the focus behavior and keep toolbar actions consistent."
+        "Current milestone focus Arena monitor and operating modes (60%) | latest note: Control surfaces are actively being validated. | next step: Finalize the focus behavior and keep toolbar actions consistent."
     });
   });
 
@@ -73,8 +73,8 @@ describe("milestone report next detail", () => {
       "No active milestone is currently identified for reporting."
     );
     expect(detail.latestNote).toBe("No current milestone context is available.");
-    expect(detail.nextStep).toBe("Choose the next milestone to continue work.");
-    expect(detail.ariaLabel).toContain("No next milestone");
+    expect(detail.nextStep).toBe("Choose the current milestone focus to continue work.");
+    expect(detail.ariaLabel).toContain("No current milestone focus");
     expect(detail.title).toContain("No active milestone");
   });
 
@@ -97,11 +97,11 @@ describe("milestone report next detail", () => {
       plan: "No active milestone is currently identified for reporting.",
       completionLabel: "100%",
       latestNote: "No current milestone context is available.",
-      nextStep: "Choose the next milestone to continue work.",
+      nextStep: "Choose the current milestone focus to continue work.",
       ariaLabel:
-        "No next milestone: No active milestone (100%). No current milestone context is available. Next step: Choose the next milestone to continue work.",
+        "No current milestone focus: No active milestone (100%). No current milestone context is available. Next step: Choose the current milestone focus to continue work.",
       title:
-        "No active milestone 100% No current milestone context is available. Choose the next milestone to continue work."
+        "No active milestone 100% No current milestone context is available. Choose the current milestone focus to continue work."
     });
   });
 });

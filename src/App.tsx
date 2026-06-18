@@ -6863,7 +6863,7 @@ function MilestoneStatusPanel({
         </span>
       </div>
       <div
-        aria-label={`Milestone report summary: ${summary.averageCompletionPercent}% overall. Next milestone: ${summary.nextTarget}. Next step: ${summary.nextStep}`}
+        aria-label={`Milestone report summary: ${summary.averageCompletionPercent}% overall. Current milestone focus: ${summary.nextTarget}. Next step: ${summary.nextStep}`}
         className="milestone-report-summary"
       >
         <div className="milestone-report-meter">
@@ -6874,7 +6874,7 @@ function MilestoneStatusPanel({
           </b>
         </div>
         <div className="milestone-report-next">
-          <small>Next milestone</small>
+          <small>Current milestone focus</small>
           <strong title={summary.nextTarget}>{summary.nextTarget}</strong>
           <span title={summary.nextStep}>{summary.nextStep}</span>
         </div>

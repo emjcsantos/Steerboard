@@ -19,7 +19,7 @@ const NO_ACTIVE_MILESTONE_COMPLETION_LABEL = "100%";
 const FALLBACK_PLAN =
   "No active milestone is currently identified for reporting.";
 const FALLBACK_LATEST_NOTE = "No current milestone context is available.";
-const FALLBACK_NEXT_STEP = "Choose the next milestone to continue work.";
+const FALLBACK_NEXT_STEP = "Choose the current milestone focus to continue work.";
 
 function normalizeText(value: string): string {
   return value.trim().replace(/\s+/g, " ");
@@ -42,7 +42,7 @@ export function createMilestoneReportNextDetail(
   if (!activeMilestone) {
     const fallbackLabel = NO_ACTIVE_MILESTONE_COMPLETION_LABEL;
     const title = `${NO_ACTIVE_MILESTONE_TARGET} ${fallbackLabel} ${FALLBACK_LATEST_NOTE} ${FALLBACK_NEXT_STEP}`.trim();
-    const ariaLabel = `No next milestone: ${NO_ACTIVE_MILESTONE_TARGET} (${fallbackLabel}). ${FALLBACK_LATEST_NOTE} Next step: ${FALLBACK_NEXT_STEP}`.trim();
+    const ariaLabel = `No current milestone focus: ${NO_ACTIVE_MILESTONE_TARGET} (${fallbackLabel}). ${FALLBACK_LATEST_NOTE} Next step: ${FALLBACK_NEXT_STEP}`.trim();
 
     return {
       hasNext: false,
@@ -64,7 +64,7 @@ export function createMilestoneReportNextDetail(
     `${activeMilestone.target} ${completionLabel} ${latestNote} ${nextStep}`
   );
   const ariaLabel = normalizeText(
-    `Next milestone ${activeMilestone.target} (${completionLabel}) | latest note: ${latestNote} | next step: ${nextStep}`
+    `Current milestone focus ${activeMilestone.target} (${completionLabel}) | latest note: ${latestNote} | next step: ${nextStep}`
   );
 
   return {

@@ -56,11 +56,11 @@ describe("milestone report row state", () => {
 
     expect(rowState).toEqual({
       isNext: true,
-      markerLabel: "Next",
+      markerLabel: "Focus",
       rowTitle:
         "Arena monitor and operating modes 60% Core Arena visibility is in place with active attention flows and control surface wiring. Finalize monitoring depth and keep toolbar focus/clear behavior consistent.",
       ariaLabel:
-        "Next milestone Arena monitor and operating modes (60%) | latest note: Core Arena visibility is in place with active attention flows and control surface wiring. | next step: Finalize monitoring depth and keep toolbar focus/clear behavior consistent."
+        "Current milestone focus Arena monitor and operating modes (60%) | latest note: Core Arena visibility is in place with active attention flows and control surface wiring. | next step: Finalize monitoring depth and keep toolbar focus/clear behavior consistent."
     });
   });
 
@@ -76,7 +76,7 @@ describe("milestone report row state", () => {
     expect(rowState.rowTitle).toContain("30%");
     expect(rowState.rowTitle).toContain(planningMilestone.latestNote);
     expect(rowState.rowTitle).toContain(planningMilestone.nextStep);
-    expect(rowState.ariaLabel).not.toContain("Next milestone");
+    expect(rowState.ariaLabel).not.toContain("Current milestone focus");
     expect(rowState.ariaLabel).toContain("Milestone Orchestration model");
   });
 
@@ -86,6 +86,6 @@ describe("milestone report row state", () => {
     expect(rowState.isNext).toBe(false);
     expect(rowState.markerLabel).toBe("In progress");
     expect(rowState.ariaLabel).toContain("Milestone Arena monitor and operating modes");
-    expect(rowState.ariaLabel).not.toContain("Next milestone");
+    expect(rowState.ariaLabel).not.toContain("Current milestone focus");
   });
 });

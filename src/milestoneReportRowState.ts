@@ -23,11 +23,11 @@ export function createMilestoneReportRowState(
   const nextStep = milestone.nextStep.trim().replace(/\s+/g, " ");
 
   const rowTitle = `${milestone.target} ${percentText} ${latestNote} ${nextStep}`.trim();
-  const ariaLabel = `${isNext ? "Next milestone" : "Milestone"} ${milestone.target} (${percentText}) | latest note: ${latestNote} | next step: ${nextStep}`;
+  const ariaLabel = `${isNext ? "Current milestone focus" : "Milestone"} ${milestone.target} (${percentText}) | latest note: ${latestNote} | next step: ${nextStep}`;
 
   return {
     isNext,
-    markerLabel: isNext ? "Next" : milestone.completion,
+    markerLabel: isNext ? "Focus" : milestone.completion,
     rowTitle,
     ariaLabel
   };
