@@ -206,6 +206,16 @@ function withCurrentPhase9Goal() {
   );
 }
 
+function withCurrentNextPhase9Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-9-runner"
+      ? { ...goal, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 9 runner traceability", () => {
   it("links the Phase 9 goal, PM child rows, Phase 8 gate, approval depth, and mutation lock", () => {
     const summary = traceability();
@@ -317,6 +327,30 @@ describe("phase 9 runner traceability", () => {
     expect(summary.readyCount).toBe(6);
     expect(summary.mutationLockCount).toBeGreaterThanOrEqual(6);
     expect(summary.runnerReviewRecordReady).toBe(true);
+  });
+
+  it("does not trust runner approval when Phase 9 is current but still next", () => {
+    const approval = approvalSnapshot({
+      request: permissionRequest({ state: "approved" }),
+      result: desktopResult({
+        requestId: "terminal-permission-1",
+        status: "executed",
+        code: "ok",
+        canExecute: true,
+        summary: "Desktop terminal read-only probe executed through the approved runner contract.",
+        detail: "Executed fixed terminal read-only probe command for audit trail."
+      }),
+      auditRecords: [terminalAuditRecord("approved"), terminalAuditRecord("executed")]
+    });
+    const summary = traceability({ approval, goals: withCurrentNextPhase9Goal() });
+
+    expect(summary.state).toBe("waiting");
+    expect(summary.canTrustRunnerApproval).toBe(false);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "active-goal", status: "waiting" })
+      ])
+    );
   });
 
   it("does not trust runner approval without persisted runner review evidence", () => {

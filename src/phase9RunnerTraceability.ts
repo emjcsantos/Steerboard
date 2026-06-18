@@ -3,7 +3,11 @@ import type { Phase8PermissionAuditDepthSnapshot } from "./phase8PermissionAudit
 import type { Phase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDepth";
 import type { Phase9RunnerApprovalRecord } from "./phase9RunnerApprovalRecord";
 import type { Phase9RunnerApprovalSnapshot, Phase9RunnerApprovalState } from "./phase9RunnerApproval";
-import { remainingGoalPlan, type RemainingGoalPlanItem } from "./remainingGoalPlan";
+import {
+  isCurrentActiveRemainingGoal,
+  remainingGoalPlan,
+  type RemainingGoalPlanItem
+} from "./remainingGoalPlan";
 
 export type Phase9RunnerTraceabilityState = Phase9RunnerApprovalState;
 
@@ -168,7 +172,7 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase9RunnerTr
     status:
       goal.status === "blocked"
         ? "blocked"
-        : goal.current && goal.status === "active"
+        : isCurrentActiveRemainingGoal(goal)
           ? "ready"
           : goal.status === "active"
             ? "review"
@@ -486,8 +490,7 @@ export function buildPhase9RunnerTraceabilitySummary({
     readiness,
     canTrustRunnerApproval:
       state === "ready" &&
-      goal?.current === true &&
-      goal.status === "active" &&
+      isCurrentActiveRemainingGoal(goal) &&
       missingPmTaskIds.length === 0 &&
       phase8.openExceptionCount === 0 &&
       phase8.blockedCount === 0 &&

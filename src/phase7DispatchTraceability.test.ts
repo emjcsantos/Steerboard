@@ -121,6 +121,16 @@ function withCurrentPhase7Goal() {
   );
 }
 
+function withCurrentNextPhase7Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-7-dispatch-loop"
+      ? { ...goal, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 7 dispatch traceability", () => {
   it("keeps Phase 7 dispatch traceability waiting while Phase 7 is only next", () => {
     const { record, run } = buildRecordBundle();
@@ -153,6 +163,23 @@ describe("phase 7 dispatch traceability", () => {
     expect(summary.state).toBe("ready");
     expect(summary.canTrustDispatchReview).toBe(true);
     expect(summary.readyCount).toBe(5);
+  });
+
+  it("does not trust dispatch traceability when Phase 7 is current but still next", () => {
+    const { record, run } = buildRecordBundle();
+    const summary = traceability({
+      record,
+      run,
+      goals: withCurrentNextPhase7Goal()
+    });
+
+    expect(summary.state).toBe("waiting");
+    expect(summary.canTrustDispatchReview).toBe(false);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "active-goal", status: "waiting" })
+      ])
+    );
   });
 
   it("waits when no dispatch review record exists", () => {

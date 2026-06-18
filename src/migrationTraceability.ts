@@ -4,7 +4,11 @@ import type {
   MigrationHardeningReadinessState,
   MigrationReviewDepthItem
 } from "./migrationHardeningReadiness";
-import { remainingGoalPlan, type RemainingGoalPlanItem } from "./remainingGoalPlan";
+import {
+  isCurrentActiveRemainingGoal,
+  remainingGoalPlan,
+  type RemainingGoalPlanItem
+} from "./remainingGoalPlan";
 
 export type MigrationTraceabilityState = MigrationHardeningReadinessState;
 
@@ -161,7 +165,7 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): MigrationTrace
     status:
       goal.status === "blocked"
         ? "blocked"
-        : goal.current && goal.status === "active"
+        : isCurrentActiveRemainingGoal(goal)
           ? "ready"
           : goal.status === "active"
             ? "review"
@@ -364,8 +368,7 @@ export function buildMigrationTraceabilitySummary({
     readiness: readinessScore,
     canTrustMigrationReview:
       state === "ready" &&
-      goal?.current === true &&
-      goal.status === "active" &&
+      isCurrentActiveRemainingGoal(goal) &&
       missingPmTaskIds.length === 0 &&
       readiness.openReviewRecordCount === 0 &&
       evidenceKeyCount === readiness.reviewDepthItems.length,

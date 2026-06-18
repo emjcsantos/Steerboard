@@ -48,6 +48,16 @@ function withCurrentPhase5Goal() {
   );
 }
 
+function withCurrentNextPhase5Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-5-migration-hardening"
+      ? { ...goal, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("migration traceability", () => {
   it("keeps Phase 5 migration traceability waiting while Phase 5 is only next", () => {
     const summary = buildMigrationTraceabilitySummary({ readiness: readyReadiness() });
@@ -77,6 +87,21 @@ describe("migration traceability", () => {
     expect(summary.state).toBe("ready");
     expect(summary.canTrustMigrationReview).toBe(true);
     expect(summary.readyCount).toBe(5);
+  });
+
+  it("does not trust migration review when Phase 5 is current but still next", () => {
+    const summary = buildMigrationTraceabilitySummary({
+      readiness: readyReadiness(),
+      goals: withCurrentNextPhase5Goal()
+    });
+
+    expect(summary.state).toBe("waiting");
+    expect(summary.canTrustMigrationReview).toBe(false);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "active-goal", status: "waiting" })
+      ])
+    );
   });
 
   it("blocks when the Phase 5 goal misses the traceability PM child link", () => {

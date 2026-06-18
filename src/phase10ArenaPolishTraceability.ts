@@ -1,6 +1,10 @@
 import { currentProjectManagementPhasePlanTaskIds } from "./projectManagementPhasePlan";
 import type { Phase10ArenaPolishSnapshot, Phase10ArenaPolishState } from "./phase10ArenaPolish";
-import { remainingGoalPlan, type RemainingGoalPlanItem } from "./remainingGoalPlan";
+import {
+  isCurrentActiveRemainingGoal,
+  remainingGoalPlan,
+  type RemainingGoalPlanItem
+} from "./remainingGoalPlan";
 
 export type Phase10ArenaPolishTraceabilityState = Phase10ArenaPolishState;
 
@@ -168,7 +172,7 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase10ArenaPo
     status:
       goal.status === "blocked"
         ? "blocked"
-        : goal.current && goal.status === "active"
+        : isCurrentActiveRemainingGoal(goal)
           ? "ready"
           : goal.status === "active"
             ? "review"
@@ -312,8 +316,7 @@ export function buildPhase10ArenaPolishTraceability(
     readiness: scoreItems(items),
     canTrustArenaPolish:
       state === "ready" &&
-      goal?.current === true &&
-      goal.status === "active" &&
+      isCurrentActiveRemainingGoal(goal) &&
       input.snapshot.state === "ready" &&
       missingPmTaskIds.length === 0,
     readyCount: items.filter((item) => item.status === "ready").length,

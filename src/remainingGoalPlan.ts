@@ -64,6 +64,12 @@ export const remainingProjectManagementPhaseIds = [
   "phase-11-owner-packaging"
 ];
 
+export function isCurrentActiveRemainingGoal(
+  goal: RemainingGoalPlanItem | undefined
+): goal is RemainingGoalPlanItem & { current: true; status: "active" } {
+  return goal?.current === true && goal.status === "active";
+}
+
 export const remainingGoalPlan: RemainingGoalPlanItem[] = [
   {
     id: "goal-phase-1-2-6-publish",

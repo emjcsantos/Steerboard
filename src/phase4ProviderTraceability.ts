@@ -5,7 +5,11 @@ import type {
   Phase4ProviderSurfaceDepthState
 } from "./phase4ProviderSurfaceDepth";
 import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
-import { remainingGoalPlan, type RemainingGoalPlanItem } from "./remainingGoalPlan";
+import {
+  isCurrentActiveRemainingGoal,
+  remainingGoalPlan,
+  type RemainingGoalPlanItem
+} from "./remainingGoalPlan";
 
 export type Phase4ProviderTraceabilityState = Phase4ProviderSurfaceDepthState;
 
@@ -186,7 +190,7 @@ function goalItem(goal: RemainingGoalPlanItem | undefined): Phase4ProviderTracea
     status:
       goal.status === "blocked"
         ? "blocked"
-        : goal.current && goal.status === "active"
+        : isCurrentActiveRemainingGoal(goal)
           ? "ready"
           : goal.status === "active"
             ? "preview"
@@ -390,8 +394,7 @@ export function buildPhase4ProviderTraceabilitySummary({
     readiness: scoreItems(items),
     canTrustProviderReview:
       state === "ready" &&
-      goal?.current === true &&
-      goal.status === "active" &&
+      isCurrentActiveRemainingGoal(goal) &&
       missingPmTaskIds.length === 0 &&
       catalogDepth.executionLockCount >= 6 &&
       !surfaceDepth.canEnableExecution,

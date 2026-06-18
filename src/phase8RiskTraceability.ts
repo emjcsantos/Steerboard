@@ -3,7 +3,11 @@ import type {
   Phase8PermissionAuditDepthSnapshot,
   Phase8PermissionAuditDepthState
 } from "./phase8PermissionAuditDepth";
-import { remainingGoalPlan, type RemainingGoalPlanItem } from "./remainingGoalPlan";
+import {
+  isCurrentActiveRemainingGoal,
+  remainingGoalPlan,
+  type RemainingGoalPlanItem
+} from "./remainingGoalPlan";
 
 export type Phase8RiskTraceabilityState = Phase8PermissionAuditDepthState;
 
@@ -169,7 +173,7 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase8RiskTrac
     status:
       goal.status === "blocked"
         ? "blocked"
-        : goal.current && goal.status === "active"
+        : isCurrentActiveRemainingGoal(goal)
           ? "ready"
           : goal.status === "active"
             ? "review"
@@ -350,8 +354,7 @@ export function buildPhase8RiskTraceabilitySummary({
     readiness,
     canTrustPermissionAudit:
       state === "ready" &&
-      goal?.current === true &&
-      goal.status === "active" &&
+      isCurrentActiveRemainingGoal(goal) &&
       missingPmTaskIds.length === 0 &&
       snapshot.openExceptionCount === 0 &&
       evidenceKeyCount === snapshot.items.length + snapshot.exceptions.length,

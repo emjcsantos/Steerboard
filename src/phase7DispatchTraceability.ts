@@ -2,7 +2,11 @@ import { currentProjectManagementPhasePlanTaskIds } from "./projectManagementPha
 import type { DispatchReviewRecord } from "./dispatchReviewRecord";
 import type { Phase7DispatchReviewDepthSnapshot } from "./phase7DispatchReviewDepth";
 import type { Phase7IntegrationOwnershipDepthSnapshot } from "./phase7IntegrationOwnershipDepth";
-import { remainingGoalPlan, type RemainingGoalPlanItem } from "./remainingGoalPlan";
+import {
+  isCurrentActiveRemainingGoal,
+  remainingGoalPlan,
+  type RemainingGoalPlanItem
+} from "./remainingGoalPlan";
 
 export type Phase7DispatchTraceabilityState = "ready" | "review" | "blocked" | "waiting";
 
@@ -174,7 +178,7 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase7Dispatch
     status:
       goal.status === "blocked"
         ? "blocked"
-        : goal.current && goal.status === "active"
+        : isCurrentActiveRemainingGoal(goal)
           ? "ready"
           : goal.status === "active"
             ? "review"
@@ -333,8 +337,7 @@ export function buildPhase7DispatchTraceability(
     readiness: readiness(items),
     canTrustDispatchReview:
       state === "ready" &&
-      goal?.current === true &&
-      goal.status === "active" &&
+      isCurrentActiveRemainingGoal(goal) &&
       input.depth.state === "ready" &&
       input.ownership.state === "ready" &&
       missingPmTaskIds.length === 0 &&

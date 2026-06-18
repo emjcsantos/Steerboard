@@ -194,6 +194,16 @@ function withCurrentPhase8Goal() {
   );
 }
 
+function withCurrentNextPhase8Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-8-permission-audit"
+      ? { ...goal, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 8 risk traceability", () => {
   it("links the Phase 8 goal, PM child rows, audit-depth evidence, exceptions, and disabled paths", () => {
     const summary = traceability();
@@ -300,6 +310,42 @@ describe("phase 8 risk traceability", () => {
     expect(summary.readyCount).toBe(5);
     expect(summary.evidenceKeyCount).toBe(summary.auditDepthItemCount + summary.exceptionCount);
     expect(summary.openExceptionCount).toBe(0);
+  });
+
+  it("does not trust permission audit when Phase 8 is current but still next", () => {
+    const summary = traceability({
+      snapshot: depth({
+        summaries: [
+          liveSummary("terminal", "approved"),
+          liveSummary("git", "approved"),
+          liveSummary("plugin", "approved")
+        ],
+        liveAuditRecords: [liveAuditRecord],
+        runtimeExecutionAudit: readyRuntimeExecutionAudit,
+        runtimeExecutionAuditHistory: [executionRecord],
+        runtimeProfilePermissionRequestHistory: [profileRequest],
+        ownerAuditReviewRecord: ownerReviewFor({
+          summaries: [
+            liveSummary("terminal", "approved"),
+            liveSummary("git", "approved"),
+            liveSummary("plugin", "approved")
+          ],
+          liveAuditRecords: [liveAuditRecord],
+          runtimeExecutionAudit: readyRuntimeExecutionAudit,
+          runtimeExecutionAuditHistory: [executionRecord],
+          runtimeProfilePermissionRequestHistory: [profileRequest]
+        })
+      }),
+      goals: withCurrentNextPhase8Goal()
+    });
+
+    expect(summary.state).toBe("waiting");
+    expect(summary.canTrustPermissionAudit).toBe(false);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "active-goal", status: "waiting" })
+      ])
+    );
   });
 
   it("does not trust permission audit without persisted owner review and rollback evidence", () => {

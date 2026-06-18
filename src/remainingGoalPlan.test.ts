@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildRemainingGoalPriorityTraces,
   findRemainingGoalPlanIssues,
+  isCurrentActiveRemainingGoal,
   remainingGoalPlan,
   remainingProjectManagementPhaseIds,
   summarizeRemainingGoalPlan
@@ -170,6 +171,19 @@ describe("remaining goal plan", () => {
       status: "blocked",
       current: false
     });
+  });
+
+  it("identifies only the current active remaining goal as implementation-trustable", () => {
+    const phase3Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-3-proof-clearance");
+    const phase4Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-4-provider-surfaces");
+
+    expect(isCurrentActiveRemainingGoal(phase3Goal)).toBe(true);
+    expect(isCurrentActiveRemainingGoal(phase4Goal)).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase3Goal!, current: false })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, current: true })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, status: "active" })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, status: "active", current: true })).toBe(true);
+    expect(isCurrentActiveRemainingGoal(undefined)).toBe(false);
   });
 
   it("keeps the Phase 9 runner approval target linked to traceability, approval depth, and blocker priority", () => {
