@@ -120,6 +120,10 @@ import {
   type SlashCommandExecutionEvidence
 } from "./slashCommandExecutionEvidence";
 import {
+  selectPhase3SessionControlEvidence,
+  selectPhase3SlashCommandEvidence
+} from "./phase3PanelEvidenceSelection";
+import {
   buildCommandCatalogSnapshot,
   type CommandCatalogRefreshSource,
   type CommandCatalogSnapshot
@@ -1926,21 +1930,16 @@ export function App() {
     ]
   );
   const slashCommandExecutionEvidence = useMemo(() => {
-    const evidenceItems = Object.values(slashCommandExecutionEvidenceByPanel);
-
-    return (
-      evidenceItems.find((item) => item.pass) ??
-      evidenceItems.find((item) => item.route === "provider") ??
-      evidenceItems.find((item) => item.state === "blocked") ??
-      evidenceItems.find((item) => item.state === "review") ??
-      evidenceItems[0] ??
+    return selectPhase3SlashCommandEvidence(
+      slashCommandExecutionEvidenceByPanel,
+      focusedPanelId,
       buildSlashCommandExecutionEvidence({
         submittedMessage: "",
         liveTransportAvailable: false,
         commandCatalog: commandCatalogSnapshot.catalog
       })
     );
-  }, [commandCatalogSnapshot.catalog, slashCommandExecutionEvidenceByPanel]);
+  }, [commandCatalogSnapshot.catalog, focusedPanelId, slashCommandExecutionEvidenceByPanel]);
   const slashCommandOwnerTestingState =
     slashCommandExecutionEvidence.state === "ready"
       ? "ready"
@@ -1948,17 +1947,12 @@ export function App() {
         ? "blocked"
         : "review";
   const sessionControlReadinessEvidence = useMemo(() => {
-    const evidenceItems = Object.values(sessionControlReadinessEvidenceByPanel);
-
-    return (
-      evidenceItems.find((item) => item.pass) ??
-      evidenceItems.find((item) => item.state === "blocked") ??
-      evidenceItems.find((item) => item.state === "review") ??
-      evidenceItems.find((item) => item.state === "waiting") ??
-      evidenceItems[0] ??
+    return selectPhase3SessionControlEvidence(
+      sessionControlReadinessEvidenceByPanel,
+      focusedPanelId,
       buildSessionControlReadinessEvidence(undefined)
     );
-  }, [sessionControlReadinessEvidenceByPanel]);
+  }, [focusedPanelId, sessionControlReadinessEvidenceByPanel]);
   const sessionControlOwnerTestingState: OwnerTestingReadinessState =
     sessionControlReadinessEvidence.state === "ready"
       ? "ready"
