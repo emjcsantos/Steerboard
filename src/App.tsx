@@ -10127,7 +10127,7 @@ function RightPanel({
       const result = buildDesktopActionRunnerBuildFailureResult(
         request.id,
         "execution-blocked",
-        "Phase 9 runner approval is held until Phase 8 owner review, Phase 9 runner review, rollback evidence, and mutation-lock gates are ready.",
+        `Phase 9 runner approval is held: ${phase9RunnerApproval.nextAction}`,
         timestamp
       );
       setDesktopActionRunnerResult(result);
@@ -11052,6 +11052,7 @@ function RightPanel({
         desktopActionRunnerBusyProvider={desktopActionRunnerBusyProvider}
         desktopActionRunnerSummary={desktopActionRunnerSummary}
         phase9CanRequestDesktopProbe={phase9RunnerApproval.canRequestDesktopProbe}
+        phase9DesktopProbeHoldReason={phase9RunnerApproval.nextAction}
         requestsByProvider={liveActionRequestsByProvider}
         runnerEvaluations={liveActionRunnerEvaluations}
         runnerSummary={liveActionRunnerSummary}
@@ -12061,6 +12062,7 @@ function LiveActionRiskGatePanel({
   desktopActionRunnerBusyProvider,
   desktopActionRunnerSummary,
   phase9CanRequestDesktopProbe,
+  phase9DesktopProbeHoldReason,
   requestsByProvider,
   runnerEvaluations,
   runnerSummary,
@@ -12079,6 +12081,7 @@ function LiveActionRiskGatePanel({
   desktopActionRunnerBusyProvider?: string;
   desktopActionRunnerSummary: DesktopActionRunnerResultSummary;
   phase9CanRequestDesktopProbe: boolean;
+  phase9DesktopProbeHoldReason: string;
   requestsByProvider: Record<string, LiveActionPermissionRequest>;
   runnerEvaluations: LiveActionRunnerExecutionResult[];
   runnerSummary: LiveActionRunnerSummary;
@@ -12262,7 +12265,7 @@ function LiveActionRiskGatePanel({
                         ? "Desktop probe is not enabled for this provider yet."
                         : phase9CanRequestDesktopProbe
                           ? "Run a fixed read-only terminal probe through the desktop runner."
-                          : "Phase 9 runner approval is held until owner review, runner review, rollback evidence, and mutation lock gates are ready."
+                          : `Phase 9 runner approval is held: ${phase9DesktopProbeHoldReason}`
                     }
                     type="button"
                   >
