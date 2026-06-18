@@ -10188,7 +10188,7 @@ function RightPanel({
       const result = buildDesktopActionRunnerBuildFailureResult(
         request.id,
         "execution-blocked",
-        `Phase 9 runner approval is held: ${phase9DesktopProbeGate.holdReason}`,
+        `Phase 9 desktop probe is held: ${phase9DesktopProbeGate.holdReason}`,
         timestamp
       );
       setDesktopActionRunnerResult(result);
@@ -12326,7 +12326,7 @@ function LiveActionRiskGatePanel({
                         ? "Desktop probe is not enabled for this provider yet."
                         : phase9CanRequestDesktopProbe
                           ? "Run a fixed read-only terminal probe through the desktop runner."
-                          : `Phase 9 runner approval is held: ${phase9DesktopProbeHoldReason}`
+                          : `Phase 9 desktop probe is held: ${phase9DesktopProbeHoldReason}`
                     }
                     type="button"
                   >
