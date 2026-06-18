@@ -319,6 +319,34 @@ describe("phase 9 runner blocker priority", () => {
     });
   });
 
+  it("keeps current-goal traceability blockers out of runner-review addressability", () => {
+    const summary = priority({
+      approval: approvalSnapshot({
+        request: permissionRequest({ state: "approved" }),
+        result: desktopResult({
+          requestId: "terminal-permission-1",
+          status: "executed",
+          code: "ok",
+          canExecute: true,
+          summary: "Desktop terminal read-only probe executed through the approved runner contract.",
+          detail: "Executed fixed terminal read-only probe command for audit trail."
+        }),
+        auditRecords: [terminalAuditRecord("approved"), terminalAuditRecord("executed")]
+      })
+    });
+
+    expect(summary.state).toBe("waiting");
+    expect(summary.topPriorityLabel).toBe("Remaining goal link");
+    expect(summary.topPrioritySourceId).toBe("phase-09-runner-traceability:active-goal");
+    expect(summary.topPriorityAction).toContain("terminal-readonly-probe");
+    expect(summary.runnerReviewCanAddressTopBlocker).toBe(false);
+    expect(summary.items[0]).toMatchObject({
+      kind: "traceability",
+      status: "waiting",
+      canUseRunnerReview: false
+    });
+  });
+
   it("ranks missing persisted runner review before lower-value traceability rows", () => {
     const approval = approvalSnapshot({
       request: permissionRequest({ state: "approved" }),
