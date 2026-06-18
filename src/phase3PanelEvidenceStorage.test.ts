@@ -247,6 +247,81 @@ describe("phase 3 panel evidence storage", () => {
     expect(loadPhase3SessionControlEvidenceByPanel()).toEqual(stampedSessionEvidence);
   });
 
+  it("preserves unrelated ready panel proof while refreshing the targeted panel", () => {
+    const store = new Map<string, string>();
+    const oldPanelProofCreatedAt = "2026-06-05T23:00:00.000Z";
+    const refreshCreatedAt = "2026-06-06T00:00:30.000Z";
+    const oldPanelSlash = withStorageProof(
+      "panel-1",
+      slashEvidence["panel-1"],
+      oldPanelProofCreatedAt
+    );
+    const oldPanelSession = withStorageProof(
+      "panel-1",
+      sessionEvidence["panel-1"],
+      oldPanelProofCreatedAt
+    );
+    const newPanelSlash = {
+      ...slashEvidence["panel-1"],
+      command: "/review panel two"
+    };
+    const newPanelSession = {
+      ...sessionEvidence["panel-1"],
+      detail: "Panel two session controls are evidenced."
+    };
+
+    vi.stubGlobal("window", {
+      localStorage: {
+        getItem: vi.fn((key: string) => store.get(key) ?? null),
+        setItem: vi.fn((key: string, value: string) => {
+          store.set(key, value);
+        })
+      }
+    });
+
+    const savedSlashEvidence = savePhase3SlashEvidenceByPanel(
+      {
+        "panel-1": oldPanelSlash,
+        "panel-2": newPanelSlash
+      },
+      {
+        createdAt: refreshCreatedAt,
+        refreshPanelIds: ["panel-2"]
+      }
+    );
+    const savedSessionEvidence = savePhase3SessionControlEvidenceByPanel(
+      {
+        "panel-1": oldPanelSession,
+        "panel-2": newPanelSession
+      },
+      {
+        createdAt: refreshCreatedAt,
+        refreshPanelIds: ["panel-2"]
+      }
+    );
+
+    expect(savedSlashEvidence["panel-1"].phase3StorageProof?.createdAt).toBe(
+      oldPanelProofCreatedAt
+    );
+    expect(savedSessionEvidence["panel-1"].phase3StorageProof?.createdAt).toBe(
+      oldPanelProofCreatedAt
+    );
+    expect(savedSlashEvidence["panel-2"].phase3StorageProof).toMatchObject({
+      panelId: "panel-2",
+      createdAt: refreshCreatedAt
+    });
+    expect(savedSessionEvidence["panel-2"].phase3StorageProof).toMatchObject({
+      panelId: "panel-2",
+      createdAt: refreshCreatedAt
+    });
+    expect(loadPhase3SlashEvidenceByPanel()["panel-1"].phase3StorageProof?.createdAt).toBe(
+      oldPanelProofCreatedAt
+    );
+    expect(loadPhase3SessionControlEvidenceByPanel()["panel-1"].phase3StorageProof?.createdAt).toBe(
+      oldPanelProofCreatedAt
+    );
+  });
+
   it("persists only ready slash and session-control evidence", () => {
     const store = new Map<string, string>();
     const reviewSlash: Phase3SlashEvidenceByPanel = {

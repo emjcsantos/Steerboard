@@ -3837,7 +3837,9 @@ export function App() {
           [panelId]: evidence
         };
 
-        return savePhase3SlashEvidenceByPanel(nextEvidenceByPanel);
+        return savePhase3SlashEvidenceByPanel(nextEvidenceByPanel, {
+          refreshPanelIds: [panelId]
+        });
       });
     },
     []
@@ -3861,7 +3863,9 @@ export function App() {
           [panelId]: evidence
         };
 
-        return savePhase3SessionControlEvidenceByPanel(nextEvidenceByPanel);
+        return savePhase3SessionControlEvidenceByPanel(nextEvidenceByPanel, {
+          refreshPanelIds: [panelId]
+        });
       });
     },
     []

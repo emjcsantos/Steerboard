@@ -15,6 +15,7 @@ export type Phase3SessionControlEvidenceByPanel = Record<string, SessionControlR
 
 export interface Phase3PanelEvidenceSaveOptions {
   readonly createdAt?: string | Date;
+  readonly refreshPanelIds?: readonly string[];
 }
 
 export interface Phase3PanelEvidenceFreshnessOptions {
@@ -218,6 +219,44 @@ function stampPhase3PanelEvidence<T extends SlashCommandExecutionEvidence | Sess
       evidenceFingerprint
     }
   } as T;
+}
+
+function hasMatchingPhase3PanelEvidenceStorageProof(
+  panelId: string,
+  evidence: SlashCommandExecutionEvidence | SessionControlReadinessEvidence
+): boolean {
+  const proof = evidence.phase3StorageProof;
+
+  return (
+    proof?.source === PHASE3_PANEL_EVIDENCE_STORAGE_PROOF_SOURCE &&
+    proof.panelId === panelId &&
+    proof.evidenceFingerprint === createPhase3PanelEvidenceFingerprint(evidence) &&
+    toTimestamp(proof.createdAt) !== undefined
+  );
+}
+
+function shouldRefreshPanelProof(
+  panelId: string,
+  options: Phase3PanelEvidenceSaveOptions
+): boolean {
+  return options.refreshPanelIds?.includes(panelId) === true;
+}
+
+function stampOrPreservePhase3PanelEvidence<
+  T extends SlashCommandExecutionEvidence | SessionControlReadinessEvidence
+>(panelId: string, evidence: T, options: Phase3PanelEvidenceSaveOptions = {}): T {
+  if (evidence.state !== "ready" || !evidence.pass) {
+    return evidence;
+  }
+
+  if (
+    !shouldRefreshPanelProof(panelId, options) &&
+    hasMatchingPhase3PanelEvidenceStorageProof(panelId, evidence)
+  ) {
+    return evidence;
+  }
+
+  return stampPhase3PanelEvidence(panelId, evidence, options);
 }
 
 function readFromLocalStorage(key: string): string | null {
@@ -462,9 +501,7 @@ export function savePhase3SlashEvidenceByPanel(
     Object.entries(evidenceByPanel)
       .map(([panelId, evidence]) => [
         panelId,
-        evidence.state === "ready" && evidence.pass
-          ? stampPhase3PanelEvidence(panelId, evidence, options)
-          : evidence
+        stampOrPreservePhase3PanelEvidence(panelId, evidence, options)
       ])
   );
   const readyEvidenceByPanel = Object.fromEntries(
@@ -485,9 +522,7 @@ export function savePhase3SessionControlEvidenceByPanel(
     Object.entries(evidenceByPanel)
       .map(([panelId, evidence]) => [
         panelId,
-        evidence.state === "ready" && evidence.pass
-          ? stampPhase3PanelEvidence(panelId, evidence, options)
-          : evidence
+        stampOrPreservePhase3PanelEvidence(panelId, evidence, options)
       ])
   );
   const readyEvidenceByPanel = Object.fromEntries(
