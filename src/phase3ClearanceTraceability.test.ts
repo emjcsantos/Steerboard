@@ -135,6 +135,8 @@ function handoff(
     waitingCount: 0,
     exactBlockerCount: 0,
     nextAction: "Advance after owner review.",
+    ownerReviewSummary:
+      "Owner handoff current: fingerprint, clearance snapshot, and age metadata match; Phase 4 remains behind owner review.",
     safety: "Evidence only.",
     ariaLabel: "Ready.",
     handoffEvidenceReview: {

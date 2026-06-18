@@ -80,6 +80,8 @@ describe("phase 3 handoff gate", () => {
       }
     });
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
+    expect(result.ownerReviewSummary).toContain("Owner handoff current");
+    expect(result.ariaLabel).toContain("owner review: Owner handoff current");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -107,6 +109,8 @@ describe("phase 3 handoff gate", () => {
     expect(result.state).toBe("review");
     expect(result.canAdvanceProviderIntegration).toBe(false);
     expect(result.nextAction).toContain("exactly one current active remaining goal");
+    expect(result.ownerReviewSummary).toContain("Owner handoff held");
+    expect(result.ownerReviewSummary).toContain("2 current active remaining goals");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -149,6 +153,7 @@ describe("phase 3 handoff gate", () => {
     expect(result.nextAction).toBe(
       "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
     );
+    expect(result.ownerReviewSummary).toContain("must prove both");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -177,6 +182,7 @@ describe("phase 3 handoff gate", () => {
     expect(result.nextAction).toBe(
       "Attach current handoff validation before advancing provider integration."
     );
+    expect(result.ownerReviewSummary).toContain("fingerprint validation is missing");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -248,6 +254,7 @@ describe("phase 3 handoff gate", () => {
     expect(result.nextAction).toBe(
       "Record the owner-reviewed Phase 3 handoff before advancing provider integration."
     );
+    expect(result.ownerReviewSummary).toContain("Owner handoff recordable");
   });
 
   it("blocks provider advance when the owner handoff record fingerprint is stale", () => {

@@ -466,6 +466,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Fresh 25000ms");
     expect(html).toContain("Current evidence match 100%");
     expect(html).toContain("Advance ready");
+    expect(html).toContain("Owner handoff current");
     expect(html).toContain("Phase 3 handoff gate");
     expect(html).toContain("Desktop proof clearance");
     expect(html).toContain("Exact blocker visibility");
@@ -476,6 +477,49 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Clear record");
     expect(html).toContain("phase3-smoke-record:2026-06-18T07:57:30.551Z");
     expect(html).toContain("local_private/phase3-smoke-proof-bundle.json");
+  });
+
+  it("holds handoff recording when desktop proof is ready but Phase 3 traceability is untrusted", () => {
+    const props = buildReadyPhase3Props();
+    const expectedFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: props.phase3ClearancePackage,
+      exitGate: props.phase3ExitGateEvidence,
+      commandPlanId: props.phase3ClearanceCommandPlan.id
+    });
+    const handoffValidation = derivePhase3HandoffRecordValidation(
+      props.phase3OwnerHandoffRecord!,
+      props.phase3ClearancePackage,
+      expectedFingerprint,
+      { evaluatedAt: "2026-06-18T07:58:30.000Z" }
+    );
+    const untrustedTraceability = {
+      state: "review" as const,
+      canTrustTrace: false,
+      detail: "2 current active remaining goals are set.",
+      nextAction:
+        "Keep exactly one current active remaining goal before Phase 3 handoff can advance."
+    };
+    const heldHandoffGate = buildPhase3HandoffGate({
+      clearancePackage: props.phase3ClearancePackage,
+      traceabilityPrecondition: untrustedTraceability,
+      handoffRecordState: "ready",
+      handoffRecordValidation: handoffValidation
+    });
+    const html = renderOwnerTestingReadinessPanel({
+      ...props,
+      phase3ClearanceTraceabilityPrecondition: untrustedTraceability,
+      phase3HandoffGate: heldHandoffGate
+    });
+
+    expect(html).toContain("Advance held");
+    expect(html).toContain("Traceability boundary");
+    expect(html).toContain(
+      "Keep exactly one current active remaining goal before Phase 3 handoff can advance."
+    );
+    expect(html).toContain("Provider integration remains held because");
+    expect(html).toContain("Owner handoff held");
+    expect(html).toContain("Record handoff");
+    expect(html).not.toContain("Advance ready");
   });
 
   it("keeps stale Phase 3 handoff records visibly in review", () => {
@@ -512,6 +556,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain(expectedFingerprint);
     expect(html).toContain("phase3-handoff-stale");
     expect(html).toContain("Owner handoff record no longer matches");
+    expect(html).toContain("Owner handoff review");
     expect(html).toContain("Clear and record the Phase 3 handoff again");
     expect(html).toContain("Provider integration remains held");
     expect(html).toContain("Recorded");

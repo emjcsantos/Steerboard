@@ -12559,6 +12559,12 @@ export function OwnerTestingReadinessPanel({
               <span>{phase3HandoffGate.canAdvanceProviderIntegration ? "Advance ready" : "Advance held"}</span>
             </div>
             <p title={phase3HandoffGate.nextAction}>{phase3HandoffGate.nextAction}</p>
+            <small
+              className="owner-testing-phase3-handoff-summary"
+              title={phase3HandoffGate.ownerReviewSummary}
+            >
+              {phase3HandoffGate.ownerReviewSummary}
+            </small>
             <dl
               className="owner-testing-phase3-handoff-grid"
               aria-label="Phase 3 handoff gate counts"

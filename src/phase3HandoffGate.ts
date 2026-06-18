@@ -56,6 +56,7 @@ export interface Phase3HandoffGate {
   readonly waitingCount: number;
   readonly exactBlockerCount: number;
   readonly nextAction: string;
+  readonly ownerReviewSummary: string;
   readonly safety: string;
   readonly ariaLabel: string;
   readonly handoffEvidenceReview: Phase3HandoffEvidenceReview;
@@ -481,12 +482,72 @@ function providerBoundaryItem(
   };
 }
 
+function buildOwnerReviewSummary(
+  input: Phase3HandoffGateInput,
+  canAdvanceProviderIntegration: boolean
+): string {
+  const { clearancePackage, handoffRecordState, handoffRecordValidation, traceabilityPrecondition } =
+    input;
+  const validatedRecordState = resolveHandoffRecordStatus(
+    clearancePackage,
+    handoffRecordState,
+    handoffRecordValidation
+  );
+
+  if (canAdvanceProviderIntegration) {
+    return "Owner handoff current: fingerprint, clearance snapshot, and age metadata match; Phase 4 remains behind owner review.";
+  }
+
+  if (clearancePackage.state === "blocked") {
+    return `Owner handoff blocked: ${publicText(
+      clearancePackage.nextAction,
+      "Clear the blocked Phase 3 evidence before recording handoff."
+    )}`;
+  }
+
+  if (!clearancePackage.canExit) {
+    return `Owner handoff held: ${clearancePackage.openCount} exact Phase 3 blocker${clearancePackage.openCount === 1 ? "" : "s"} remain before the handoff can be recorded.`;
+  }
+
+  if (!canTrustTraceability(traceabilityPrecondition)) {
+    return `Owner handoff held: ${publicText(
+      traceabilityPrecondition?.detail,
+      "Phase 3 current-goal and PM traceability is not trusted yet."
+    )}`;
+  }
+
+  if (!handoffRecordValidation && handoffRecordState === "ready") {
+    return "Owner handoff review: a ready handoff state is attached, but current evidence fingerprint validation is missing.";
+  }
+
+  if (!handoffRecordValidation) {
+    return "Owner handoff recordable: clearance is exit-ready and Phase 3 PM traceability is trusted; record the owner-reviewed handoff locally.";
+  }
+
+  if (
+    handoffRecordValidation.state === "ready" &&
+    validatedRecordState !== "ready"
+  ) {
+    return "Owner handoff review: the handoff record must prove both a current evidence fingerprint match and fresh age metadata.";
+  }
+
+  if (validatedRecordState !== "ready") {
+    return `Owner handoff review: ${publicText(
+      handoffRecordValidation.detail,
+      "The owner handoff record needs review before provider integration advances."
+    )}`;
+  }
+
+  return "Owner handoff review: keep the owner-reviewed handoff attached while Phase 4 remains behind owner review.";
+}
+
 function buildAriaLabel(snapshot: Omit<Phase3HandoffGate, "ariaLabel">): string {
   return (
     `${snapshot.label}: ${snapshot.statusLabel}; ${snapshot.readiness}% ready; ` +
     `${snapshot.readyCount} ready, ${snapshot.reviewCount} review, ` +
     `${snapshot.blockedCount} blocked, ${snapshot.waitingCount} waiting; ` +
-    `${snapshot.exactBlockerCount} exact blockers; next action: ${snapshot.nextAction}`
+    `${snapshot.exactBlockerCount} exact blockers; owner review: ${snapshot.ownerReviewSummary}; ` +
+    `next action: ${snapshot.nextAction}`
   );
 }
 
@@ -514,23 +575,25 @@ export function buildPhase3HandoffGate(
   const reviewCount = items.filter((item) => item.status === "review").length;
   const blockedCount = items.filter((item) => item.status === "blocked").length;
   const waitingCount = items.filter((item) => item.status === "waiting").length;
+  const canAdvanceProviderIntegration =
+    state === "ready" &&
+    input.clearancePackage.canExit &&
+    canTrustTraceability(input.traceabilityPrecondition) &&
+    hasReadyHandoffValidation(input.handoffRecordValidation);
   const draft = {
     id: GATE_ID,
     label: GATE_LABEL,
     state,
     statusLabel: STATUS_LABELS[state],
     readiness: scoreItems(items),
-    canAdvanceProviderIntegration:
-      state === "ready" &&
-      input.clearancePackage.canExit &&
-      canTrustTraceability(input.traceabilityPrecondition) &&
-      hasReadyHandoffValidation(input.handoffRecordValidation),
+    canAdvanceProviderIntegration,
     readyCount,
     reviewCount,
     blockedCount,
     waitingCount,
     exactBlockerCount: input.clearancePackage.openCount,
     nextAction: firstNextAction(items),
+    ownerReviewSummary: buildOwnerReviewSummary(input, canAdvanceProviderIntegration),
     safety: SAFETY,
     handoffEvidenceReview: buildHandoffEvidenceReview(
       input.clearancePackage,
