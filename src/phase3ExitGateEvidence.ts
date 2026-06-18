@@ -213,7 +213,11 @@ function storageProofReviewDetail(
     return `${label} storage provenance source is not recognized and must be refreshed from the current panel.`;
   }
 
-  if (currentPanelId && proof.panelId !== currentPanelId) {
+  if (!currentPanelId) {
+    return `${label} storage provenance cannot be tied to a current Arena panel and must be refreshed from the focused panel.`;
+  }
+
+  if (proof.panelId !== currentPanelId) {
     return `${label} storage provenance belongs to another panel and must be refreshed from the current Arena panel.`;
   }
 

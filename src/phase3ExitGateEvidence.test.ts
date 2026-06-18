@@ -165,6 +165,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns review when desktop proof is incomplete despite good slash/session evidence", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence(),
@@ -218,6 +219,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns review when desktop-shaped smoke proofs are not storage-attested", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence(),
       liveControlSmoke: readyLiveControlSmoke(),
@@ -251,6 +253,7 @@ describe("phase 3 exit gate evidence", () => {
   it("routes slash and session-control review rows to their own proof actions", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: {
         state: "review",
@@ -295,6 +298,7 @@ describe("phase 3 exit gate evidence", () => {
   it("uses the first open diagnostic row for the top-level next action", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: {
         state: "review",
@@ -323,6 +327,7 @@ describe("phase 3 exit gate evidence", () => {
   it("keeps slash or session diagnostics ahead of blocked desktop smoke in the top-level next action", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: {
         state: "waiting",
@@ -358,6 +363,7 @@ describe("phase 3 exit gate evidence", () => {
   it("does not trust ready slash evidence without provider route and result counts", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: readySlashEvidence({
         evidence: {
@@ -388,6 +394,7 @@ describe("phase 3 exit gate evidence", () => {
       readySessionControlEvidence();
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: legacySlashEvidence,
       sessionControlEvidence: legacySessionEvidence,
@@ -421,6 +428,7 @@ describe("phase 3 exit gate evidence", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-08T00:01:00.000Z",
       maxPanelEvidenceAgeMs: 24 * 60 * 60 * 1000,
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence(),
@@ -472,9 +480,38 @@ describe("phase 3 exit gate evidence", () => {
     });
   });
 
+  it("does not trust ready slash or session storage provenance without a current panel", () => {
+    const result = buildPhase3ExitGateEvidence({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs,
+      slashEvidence: readySlashEvidence(),
+      sessionControlEvidence: readySessionControlEvidence(),
+      liveControlSmoke: readyLiveControlSmoke(),
+      activeTurnInterruptSmoke: readyInterruptSmoke(),
+      activeTurnSteerSmoke: readySteerSmoke()
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.pass).toBe(false);
+    expect(result.nextAction).toBe(
+      "Refresh slash execution evidence from the current Arena panel transcript before Phase 3 can exit."
+    );
+    expect(result.items[0]).toMatchObject({
+      id: "phase3-exit-gate:slash-execution",
+      state: "review",
+      detail: expect.stringContaining("current Arena panel")
+    });
+    expect(result.items[1]).toMatchObject({
+      id: "phase3-exit-gate:session-controls",
+      state: "review",
+      detail: expect.stringContaining("current Arena panel")
+    });
+  });
+
   it("does not trust ready session evidence without canonical control states", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence({
@@ -498,6 +535,7 @@ describe("phase 3 exit gate evidence", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-20T00:00:00.000Z",
       maxProofAgeMs: 24 * 60 * 60 * 1000,
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence(),
@@ -534,6 +572,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns blocked when any smoke proof is unsupported after execution", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: readySlashEvidence(),
       sessionControlEvidence: readySessionControlEvidence(),
@@ -569,6 +608,7 @@ describe("phase 3 exit gate evidence", () => {
   it("keeps blocked slash or session evidence above missing smoke proof", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: {
         state: "blocked",
@@ -610,6 +650,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns waiting when key evidence is malformed or missing", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: "not-an-object",
       sessionControlEvidence: readySessionControlEvidence(),
@@ -659,6 +700,7 @@ describe("phase 3 exit gate evidence", () => {
 
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence,
       sessionControlEvidence,
@@ -691,6 +733,7 @@ describe("phase 3 exit gate evidence", () => {
   it("returns review diagnostics and item details for mixed evidence states", () => {
     const result = buildPhase3ExitGateEvidence({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
+      currentPanelId: "panel-1",
       persistedDesktopProofs,
       slashEvidence: {
         state: "ready",
