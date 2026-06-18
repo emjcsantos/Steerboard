@@ -233,8 +233,9 @@ function phase3TraceItem(
     (taskId) => !phase3Trace?.pmTaskIds.includes(taskId)
   );
   const handoffProofReady = phase3HandoffProofReady(proofFreshnessDepth);
+  const traceIsCurrent = phase3Trace?.current === true;
   const traceIsTrusted =
-    Boolean(phase3Trace) && missingPmTaskIds.length === 0 && handoffProofReady;
+    Boolean(phase3Trace) && traceIsCurrent && missingPmTaskIds.length === 0 && handoffProofReady;
 
   return {
     id: `${SNAPSHOT_ID}:phase3-trace`,
@@ -245,8 +246,8 @@ function phase3TraceItem(
       ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction: traceIsTrusted
-      ? "Keep Phase 3 clearance PM traceability and ready handoff proof attached before release packaging resumes."
-      : `Restore Phase 3 clearance PM traceability and ready handoff proof before release readiness can recommend release: ${missingPmTaskIds.join(", ") || (phase3Trace ? "phase-11-proof-freshness-depth:handoff-proof" : PHASE3_CLEARANCE_GOAL_ID)}.`
+      ? "Keep current Phase 3 clearance PM traceability and ready handoff proof attached before release packaging resumes."
+      : `Restore current Phase 3 clearance PM traceability and ready handoff proof before release readiness can recommend release: ${missingPmTaskIds.join(", ") || (!traceIsCurrent ? PHASE3_CLEARANCE_GOAL_ID : "phase-11-proof-freshness-depth:handoff-proof")}.`
   };
 }
 
@@ -454,7 +455,7 @@ function releaseDecisionItem(
     status: "ready",
     detail: "Release readiness evidence is complete and packaging remains locked for explicit owner resume.",
     nextAction:
-      "Owner can decide whether to resume release packaging from this recorded gate while Phase 3 clearance PM traceability with handoff proof stays attached."
+      "Owner can decide whether to resume release packaging from this recorded gate while current Phase 3 clearance PM traceability with handoff proof stays attached."
   };
 }
 

@@ -254,13 +254,64 @@ describe("phase 11 owner release blocker priority", () => {
     expect(result.state).toBe("review");
     expect(result.openBlockerCount).toBe(3);
     expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
-    expect(result.topPriorityAction).toContain("Phase 3 clearance PM traceability");
+    expect(result.topPriorityAction).toContain("current Phase 3 clearance PM traceability");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           kind: "traceability",
           status: "review",
           detail: expect.stringContaining("not visible")
+        })
+      ])
+    );
+  });
+
+  it("ranks handoff-proof review as the current Phase 3 trace release blocker", () => {
+    const proofFreshnessDepth = proofSnapshot({
+      state: "review",
+      statusLabel: "Review",
+      readiness: 83,
+      canTrustOwnerProof: false,
+      readyCount: 5,
+      reviewCount: 1,
+      openProofCount: 1,
+      nextAction: "Record ready Phase 3 handoff proof before release review.",
+      items: [
+        {
+          id: "phase-11-proof-freshness-depth:handoff-proof",
+          label: "Owner handoff proof",
+          kind: "handoff-proof",
+          status: "review",
+          detail: "current Phase 3 clearance PM traceability with handoff proof still needs owner review.",
+          nextAction: "Record ready Phase 3 handoff proof before release review."
+        }
+      ]
+    });
+    const traceability = buildPhase11OwnerReleaseTraceability({
+      ownerCommandCenter: ownerSnapshot(),
+      proofFreshnessDepth,
+      evidenceRecords: evidenceSnapshot(),
+      releaseReadiness: releaseSnapshot(),
+      goals: withReadyPhase11Goals()
+    });
+    const result = priority({ proofFreshnessDepth, traceability });
+
+    expect(result.state).toBe("review");
+    expect(result.openBlockerCount).toBe(5);
+    expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
+    expect(result.topPriorityAction).toContain("current Phase 3 clearance PM traceability");
+    expect(result.topPriorityAction).toContain("handoff proof");
+    expect(result.items[0]).toMatchObject({
+      kind: "traceability",
+      label: "Current Phase 3 trace",
+      status: "review"
+    });
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "proof-freshness",
+          label: "Owner handoff proof",
+          status: "review"
         })
       ])
     );

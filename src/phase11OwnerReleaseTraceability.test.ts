@@ -264,7 +264,7 @@ describe("phase 11 owner release traceability", () => {
 
     expect(result.state).toBe("review");
     expect(result.canTrustOwnerReleaseGate).toBe(false);
-    expect(result.nextAction).toContain("Phase 3 clearance PM traceability");
+    expect(result.nextAction).toContain("current Phase 3 clearance PM traceability");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -295,7 +295,7 @@ describe("phase 11 owner release traceability", () => {
           kind: "phase3-trace",
           status: "ready",
           detail: expect.stringContaining("is next"),
-          nextAction: expect.stringContaining("Phase 3 clearance PM traceability")
+          nextAction: expect.stringContaining("current Phase 3 clearance PM traceability")
         })
       ])
     );
