@@ -357,3 +357,13 @@ export function verifyPhase3ProofExportArtifact(
     counts
   );
 }
+
+export function verifySerializedPhase3ProofExportArtifact(
+  serializedArtifact: string,
+  options: Phase3ProofExportVerifyOptions = {}
+): Phase3ProofExportVerification {
+  return verifyPhase3ProofExportArtifact(
+    parsePhase3ProofExportArtifact(serializedArtifact),
+    options
+  );
+}

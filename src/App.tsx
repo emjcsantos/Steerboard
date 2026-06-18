@@ -441,6 +441,7 @@ import {
   buildPhase3ProofExportArtifact,
   serializePhase3ProofExportArtifact,
   verifyPhase3ProofExportArtifact,
+  verifySerializedPhase3ProofExportArtifact,
   type Phase3ProofExportVerification
 } from "./phase3ProofExport";
 import {
@@ -1769,6 +1770,8 @@ export function App() {
     useState<Phase3OwnerHandoffRecord | undefined>(() => loadPhase3OwnerHandoffRecord());
   const [phase3CommandValidationRecord, setPhase3CommandValidationRecord] =
     useState<Phase3CommandValidationRecord | undefined>(() => loadPhase3CommandValidationRecord());
+  const [importedPhase3ProofExportVerification, setImportedPhase3ProofExportVerification] =
+    useState<Phase3ProofExportVerification | undefined>();
   const [codexActiveTurnControlSmokeProof, setCodexActiveTurnControlSmokeProof] =
     useState<CodexActiveTurnControlSmokeProof>(() =>
       phase3SmokeProofInitialLoad.bundle.activeTurnInterruptSmoke
@@ -2669,6 +2672,15 @@ export function App() {
     sessionControlReadinessEvidenceByPanel,
     slashCommandExecutionEvidenceByPanel
   ]);
+  const verifyImportedPhase3ProofArtifact = useCallback((serializedArtifact: string) => {
+    const now = new Date().toISOString();
+    const verification = verifySerializedPhase3ProofExportArtifact(serializedArtifact, {
+      verifiedAt: now
+    });
+
+    setImportedPhase3ProofExportVerification(verification);
+    setAppNotice(`Imported Phase 3 proof ${verification.statusLabel}: ${verification.detail}`);
+  }, []);
   const clearPhase3CommandValidation = useCallback(() => {
     const now = new Date().toISOString();
 
@@ -4403,6 +4415,7 @@ export function App() {
             mockRuns={projectMockRuns}
             onRecordWorkerValidationAttempt={handleWorkerValidationAttempt}
             onExportPhase3ProofArtifact={exportPhase3ProofArtifact}
+            onVerifyImportedPhase3ProofArtifact={verifyImportedPhase3ProofArtifact}
             onRecordPhase3OwnerHandoff={recordPhase3OwnerHandoff}
             onClearPhase3OwnerHandoff={clearPhase3OwnerHandoff}
             onRecordPhase3CommandValidation={recordPhase3CommandValidation}
@@ -4446,6 +4459,7 @@ export function App() {
             phase3OwnerHandoffRecord={phase3OwnerHandoffRecord}
             phase3CommandValidationRecord={phase3CommandValidationRecord}
             phase3CommandValidationRecordValidation={phase3CommandValidationRecordValidation}
+            importedPhase3ProofExportVerification={importedPhase3ProofExportVerification}
             phase3ProofExportVerification={phase3ProofExportVerification}
             phase3OwnerTestingActions={phase3OwnerTestingDisplayActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
@@ -8578,6 +8592,7 @@ function RightPanel({
   onRecordPhase4ProviderPermission,
   onRecordPhase4ProviderRollback,
   onRecordWorkerValidationAttempt,
+  onVerifyImportedPhase3ProofArtifact,
   onSelectRun,
   onUpdateRunStatus,
   project,
@@ -8612,6 +8627,7 @@ function RightPanel({
   phase3CommandValidationRecord,
   phase3CommandValidationRecordValidation,
   phase3OwnerHandoffRecord,
+  importedPhase3ProofExportVerification,
   phase3ProofExportVerification,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
@@ -8670,6 +8686,7 @@ function RightPanel({
     taskId: string,
     outcome: "pass" | "fail"
   ) => void;
+  onVerifyImportedPhase3ProofArtifact: (serializedArtifact: string) => void;
   onSelectRun: (runId: string) => void;
   onUpdateRunStatus: (runId: string, nextStatus: MockRunStatus) => void;
   project: ProjectSummary;
@@ -8704,6 +8721,7 @@ function RightPanel({
   phase3CommandValidationRecord?: Phase3CommandValidationRecord;
   phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation;
   phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
+  importedPhase3ProofExportVerification?: Phase3ProofExportVerification;
   phase3ProofExportVerification: Phase3ProofExportVerification;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
@@ -10006,10 +10024,12 @@ function RightPanel({
         phase3CommandValidationRecord={phase3CommandValidationRecord}
         phase3CommandValidationRecordValidation={phase3CommandValidationRecordValidation}
         phase3OwnerHandoffRecord={phase3OwnerHandoffRecord}
+        importedPhase3ProofExportVerification={importedPhase3ProofExportVerification}
         phase3ProofExportVerification={phase3ProofExportVerification}
         phase3OwnerTestingActions={phase3OwnerTestingActions}
         phase3SmokeProofReadiness={phase3SmokeProofReadiness}
         onExportPhase3ProofArtifact={onExportPhase3ProofArtifact}
+        onVerifyImportedPhase3ProofArtifact={onVerifyImportedPhase3ProofArtifact}
         onRecordPhase3CommandValidation={onRecordPhase3CommandValidation}
         onImportPhase3CommandValidation={onImportPhase3CommandValidation}
         onImportPhase3SmokeProofBundle={onImportPhase3SmokeProofBundle}
@@ -12412,10 +12432,12 @@ export function OwnerTestingReadinessPanel({
   phase3CommandValidationRecord,
   phase3CommandValidationRecordValidation,
   phase3OwnerHandoffRecord,
+  importedPhase3ProofExportVerification,
   phase3ProofExportVerification,
   phase3OwnerTestingActions,
   phase3SmokeProofReadiness,
   onExportPhase3ProofArtifact,
+  onVerifyImportedPhase3ProofArtifact,
   onRecordPhase3CommandValidation,
   onClearPhase3CommandValidation,
   onImportPhase3CommandValidation,
@@ -12448,10 +12470,12 @@ export function OwnerTestingReadinessPanel({
   phase3CommandValidationRecord?: Phase3CommandValidationRecord;
   phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation;
   phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
+  importedPhase3ProofExportVerification?: Phase3ProofExportVerification;
   phase3ProofExportVerification: Phase3ProofExportVerification;
   phase3OwnerTestingActions: readonly Phase3OwnerTestingAction[];
   phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   onExportPhase3ProofArtifact: () => void;
+  onVerifyImportedPhase3ProofArtifact: (serializedArtifact: string) => void;
   onRecordPhase3CommandValidation: () => void;
   onImportPhase3CommandValidation: (serializedRecord: string) => void;
   onImportPhase3SmokeProofBundle: (serializedBundle: string) => void;
@@ -12470,6 +12494,7 @@ export function OwnerTestingReadinessPanel({
   slashCommandExecutionEvidence: SlashCommandExecutionEvidence;
 }) {
   const phase3CommandValidationImportInputRef = useRef<HTMLInputElement | null>(null);
+  const phase3ProofExportImportInputRef = useRef<HTMLInputElement | null>(null);
   const phase3SmokeProofBundleImportInputRef = useRef<HTMLInputElement | null>(null);
   const visibleChecklistItems = checklist.items.slice(0, 6);
   const catalogRefreshItems = checklist.items.filter((item) => item.id.startsWith("catalog-"));
@@ -12499,6 +12524,19 @@ export function OwnerTestingReadinessPanel({
       onImportPhase3SmokeProofBundle(await file.text());
     },
     [onImportPhase3SmokeProofBundle]
+  );
+  const handlePhase3ProofExportImport = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      event.currentTarget.value = "";
+
+      if (!file) {
+        return;
+      }
+
+      onVerifyImportedPhase3ProofArtifact(await file.text());
+    },
+    [onVerifyImportedPhase3ProofArtifact]
   );
   const phase126PublishHoldTraceability = buildPhase126PublishHoldTraceability({
     phasePriorityEvidence
@@ -13348,7 +13386,40 @@ export function OwnerTestingReadinessPanel({
                 <ClipboardList size={12} />
                 <span>Export proof</span>
               </button>
+              <button
+                onClick={() => phase3ProofExportImportInputRef.current?.click()}
+                title="Verify an exported Phase 3 proof artifact without changing local proof state."
+                type="button"
+              >
+                <Paperclip size={12} />
+                <span>Import proof</span>
+              </button>
+              <input
+                accept="application/json,.json"
+                aria-label="Import Phase 3 proof export artifact for verification"
+                onChange={handlePhase3ProofExportImport}
+                ref={phase3ProofExportImportInputRef}
+                type="file"
+              />
             </div>
+            {importedPhase3ProofExportVerification ? (
+              <div
+                className={`owner-testing-phase3-proof-export owner-testing-phase3-proof-export-${importedPhase3ProofExportVerification.state}`}
+                aria-label={`Imported Phase 3 proof artifact verifier ${importedPhase3ProofExportVerification.statusLabel}; ${importedPhase3ProofExportVerification.readiness}% ready`}
+                title={importedPhase3ProofExportVerification.detail}
+              >
+                <strong>Imported proof artifact</strong>
+                <span>{importedPhase3ProofExportVerification.statusLabel}</span>
+                <small>{importedPhase3ProofExportVerification.detail}</small>
+                <small>{importedPhase3ProofExportVerification.nextAction}</small>
+                <small>
+                  Panel proof {importedPhase3ProofExportVerification.readyPanelEvidenceCount}/2 | Desktop{" "}
+                  {importedPhase3ProofExportVerification.storageAttestedDesktopProofCount}/3 | CLI{" "}
+                  {importedPhase3ProofExportVerification.hasCommandValidationRecord ? "attached" : "missing"} | Handoff{" "}
+                  {importedPhase3ProofExportVerification.hasOwnerHandoffRecord ? "attached" : "missing"}
+                </small>
+              </div>
+            ) : null}
             <ol
               className="owner-testing-phase3-handoff-list"
               aria-label="Phase 3 handoff gate rows"

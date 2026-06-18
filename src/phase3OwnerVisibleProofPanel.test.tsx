@@ -25,7 +25,8 @@ import {
 } from "./phase3HandoffRecord";
 import {
   buildPhase3ProofExportArtifact,
-  verifyPhase3ProofExportArtifact
+  verifyPhase3ProofExportArtifact,
+  verifySerializedPhase3ProofExportArtifact
 } from "./phase3ProofExport";
 import {
   loadPhase3SessionControlEvidenceByPanel,
@@ -359,6 +360,9 @@ type OwnerVisiblePhase3Props = Omit<
   "phase3OwnerHandoffRecord"
 > & {
   readonly phase3OwnerHandoffRecord?: Phase3OwnerHandoffRecord;
+  readonly importedPhase3ProofExportVerification?: ReturnType<
+    typeof verifySerializedPhase3ProofExportArtifact
+  >;
 };
 
 function renderOwnerTestingReadinessPanel(props: OwnerVisiblePhase3Props) {
@@ -373,6 +377,7 @@ function renderOwnerTestingReadinessPanel(props: OwnerVisiblePhase3Props) {
       onExportPhase3ProofArtifact={() => undefined}
       onImportPhase3CommandValidation={() => undefined}
       onImportPhase3SmokeProofBundle={() => undefined}
+      onVerifyImportedPhase3ProofArtifact={() => undefined}
       onRecordPhase3CommandValidation={() => undefined}
       onRecordPhase3OwnerHandoff={() => undefined}
       onRunCodexActiveTurnControlSmokeProof={() => undefined}
@@ -628,6 +633,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Provider boundary");
     expect(html).toContain("Phase 3 proof export");
     expect(html).toContain("Export proof");
+    expect(html).toContain("Import proof");
     expect(html).toContain("Panel proof 2/2");
     expect(html).toContain("CLI attached");
     expect(html).toContain("Handoff attached");
@@ -635,6 +641,97 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Clear record");
     expect(html).toContain("phase3-smoke-record:2026-06-18T07:57:30.551Z");
     expect(html).toContain("local_private/phase3-smoke-proof-bundle.json");
+  });
+
+  it("renders imported Phase 3 proof artifact verification without replacing local proof state", () => {
+    const props = buildReadyPhase3Props();
+    const importedPhase3ProofExportVerification = verifySerializedPhase3ProofExportArtifact(
+      JSON.stringify(
+        buildPhase3ProofExportArtifact({
+          currentPanelId,
+          evaluatedAt,
+          exportedAt: evaluatedAt,
+          handoffEvidenceFingerprint: props.phase3HandoffGate.handoffEvidenceReview.expectedFingerprint,
+          slashEvidenceByPanel: loadPhase3SlashEvidenceByPanel(),
+          sessionControlEvidenceByPanel: loadPhase3SessionControlEvidenceByPanel(),
+          smokeProofBundle: {
+            liveControlSmoke,
+            activeTurnInterruptSmoke,
+            activeTurnSteerSmoke
+          } as Phase3SmokeProofBundle,
+          persistedDesktopProofs: {
+            liveControlSmoke: true,
+            activeTurnInterruptSmoke: true,
+            activeTurnSteerSmoke: true
+          },
+          commandValidationRecord: props.phase3CommandValidationRecord,
+          ownerHandoffRecord: props.phase3OwnerHandoffRecord
+        })
+      ),
+      { verifiedAt: "2026-06-18T07:58:30.000Z" }
+    );
+    const html = renderOwnerTestingReadinessPanel({
+      ...props,
+      importedPhase3ProofExportVerification
+    });
+
+    expect(html).toContain("Imported proof artifact");
+    expect(html).toContain("Phase 3 proof export artifact contains current-panel panel proof");
+    expect(html).toContain("Panel proof 2/2");
+    expect(html).toContain("Handoff attached");
+    expect(html).toContain("Phase 3 proof export");
+  });
+
+  it("renders malformed imported Phase 3 proof artifact verification as waiting", () => {
+    const props = buildReadyPhase3Props();
+    const html = renderOwnerTestingReadinessPanel({
+      ...props,
+      importedPhase3ProofExportVerification: verifySerializedPhase3ProofExportArtifact("{", {
+        verifiedAt: evaluatedAt
+      })
+    });
+
+    expect(html).toContain("Imported proof artifact");
+    expect(html).toContain("Waiting");
+    expect(html).toContain("Phase 3 proof export artifact is missing or malformed");
+    expect(html).toContain("Panel proof 0/2");
+    expect(html).toContain("Handoff missing");
+  });
+
+  it("does not run proof persistence or live-action callbacks while rendering imported proof verification", () => {
+    const props = buildReadyPhase3Props();
+    const callbacks = {
+      onClearPhase3CommandValidation: vi.fn(),
+      onClearPhase3OwnerHandoff: vi.fn(),
+      onExportPhase3ProofArtifact: vi.fn(),
+      onImportPhase3CommandValidation: vi.fn(),
+      onImportPhase3SmokeProofBundle: vi.fn(),
+      onRecordPhase3CommandValidation: vi.fn(),
+      onRecordPhase3OwnerHandoff: vi.fn(),
+      onRunCodexActiveTurnControlSmokeProof: vi.fn(),
+      onRunCodexActiveTurnSteerSmokeProof: vi.fn(),
+      onRunCodexLiveControlSmokeProof: vi.fn(),
+      onRunCodexLiveSmokeProof: vi.fn(),
+      onRunCodexTwoPanelSmokeProof: vi.fn(),
+      onVerifyImportedPhase3ProofArtifact: vi.fn()
+    };
+
+    renderToStaticMarkup(
+      <OwnerTestingReadinessPanel
+        {...props}
+        importedPhase3ProofExportVerification={verifySerializedPhase3ProofExportArtifact("{}", {
+          verifiedAt: evaluatedAt
+        })}
+        codexCanStartSession={true}
+        codexLiveSmokeLoading={false}
+        codexTwoPanelSmokeLoading={false}
+        {...callbacks}
+      />
+    );
+
+    for (const callback of Object.values(callbacks)) {
+      expect(callback).not.toHaveBeenCalled();
+    }
   });
 
   it("does not borrow another panel's slash or session-control proof for Phase 3 exit", () => {

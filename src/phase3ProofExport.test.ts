@@ -5,7 +5,8 @@ import {
   buildPhase3ProofExportArtifact,
   parsePhase3ProofExportArtifact,
   serializePhase3ProofExportArtifact,
-  verifyPhase3ProofExportArtifact
+  verifyPhase3ProofExportArtifact,
+  verifySerializedPhase3ProofExportArtifact
 } from "./phase3ProofExport";
 import type { Phase3SmokeProofBundle } from "./phase3SmokeProofStorage";
 import { buildSessionControlReadinessEvidence } from "./sessionControlReadinessEvidence";
@@ -147,5 +148,17 @@ describe("phase 3 proof export", () => {
     expect(parsed).toBeUndefined();
     expect(verification.state).toBe("waiting");
     expect(verification.canVerifyOffline).toBe(false);
+  });
+
+  it("verifies serialized proof export artifacts without persisting proof state", () => {
+    const verification = verifySerializedPhase3ProofExportArtifact(
+      serializePhase3ProofExportArtifact(readyArtifact()),
+      { verifiedAt }
+    );
+    const malformed = verifySerializedPhase3ProofExportArtifact("{", { verifiedAt });
+
+    expect(verification.state).toBe("ready");
+    expect(verification.canVerifyOffline).toBe(true);
+    expect(malformed.state).toBe("waiting");
   });
 });
