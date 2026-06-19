@@ -111,16 +111,21 @@ describe("phase 1/2/6 publish hold blocker priority", () => {
     expect(result.state).toBe("blocked");
     expect(result.readiness).toBe(0);
     expect(result.openBlockerCount).toBe(2);
-    expect(result.ownerReviewAddressableCount).toBe(2);
+    expect(result.ownerReviewAddressableCount).toBe(1);
     expect(result.ownerReviewCanAddressTopBlocker).toBe(true);
     expect(result.topPriorityLabel).toBe("Publish hold");
     expect(result.ariaLabel).toContain(
-      "Phase 1/2/6 publish hold blocker priority: Blocked; 2 open blockers; 2 owner-review addressable; top priority Publish hold; next action:"
+      "Phase 1/2/6 publish hold blocker priority: Blocked; 2 open blockers; 1 owner-review addressable; top priority Publish hold; next action:"
     );
     expect(result.items[0]).toMatchObject({
       priority: 1,
       status: "blocked",
       severity: "critical"
+    });
+    expect(result.items[1]).toMatchObject({
+      label: "Publish hold goal",
+      ownerReviewAddressable: false,
+      nextAction: "Keep the branch local and push only after the owner says to push."
     });
   });
 
@@ -149,13 +154,18 @@ describe("phase 1/2/6 publish hold blocker priority", () => {
       "Phase 6 PM phase board"
     ]);
     expect(result.readiness).toBe(22);
-    expect(result.ownerReviewAddressableCount).toBe(3);
+    expect(result.ownerReviewAddressableCount).toBe(2);
     expect(result.ariaLabel).toContain(
-      "Phase 1/2/6 publish hold blocker priority: Blocked; 3 open blockers; 3 owner-review addressable; top priority Publish hold; next action:"
+      "Phase 1/2/6 publish hold blocker priority: Blocked; 3 open blockers; 2 owner-review addressable; top priority Publish hold; next action:"
     );
+    expect(result.items[1]).toMatchObject({
+      label: "Publish hold goal",
+      ownerReviewAddressable: false
+    });
     expect(result.items[2]).toMatchObject({
       status: "review",
-      severity: "high"
+      severity: "high",
+      ownerReviewAddressable: true
     });
   });
 

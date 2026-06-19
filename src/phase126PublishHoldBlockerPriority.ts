@@ -136,13 +136,26 @@ function publicText(value: string | undefined, fallback: string): string {
   return sanitized.length > 0 ? sanitized : fallback;
 }
 
+function canOwnerReviewTraceability(item: Phase126PublishHoldTraceabilityItem): boolean {
+  return (
+    item.status !== "ready" &&
+    (
+      item.kind === "phase-1-proof" ||
+      item.kind === "phase-2-proof" ||
+      item.kind === "phase-6-board" ||
+      item.kind === "publish-hold"
+    )
+  );
+}
+
 function buildItem(
   sourceId: string,
   label: string,
   kind: Phase126PublishHoldBlockerPriorityKind,
   status: Phase126PublishHoldBlockerPriorityState,
   detail: string,
-  nextAction: string
+  nextAction: string,
+  ownerReviewAddressable = status !== "ready"
 ): Phase126PublishHoldBlockerPriorityItem {
   return {
     id: `${SNAPSHOT_ID}:${kind}:${sourceId}`,
@@ -152,9 +165,14 @@ function buildItem(
     status,
     severity: severityForState(status),
     priority: 0,
-    ownerReviewAddressable: status !== "ready",
+    ownerReviewAddressable,
     detail: publicText(detail, "Phase 1/2/6 publish-hold evidence is incomplete."),
-    nextAction: `${OWNER_REVIEW_ACTION}; ${publicText(nextAction, "resolve this publish-hold blocker.")}`
+    nextAction: ownerReviewAddressable
+      ? `${OWNER_REVIEW_ACTION}; ${publicText(nextAction, "resolve this publish-hold blocker.")}`
+      : publicText(
+          nextAction,
+          "Repair the Phase 1/2/6 publish goal or Project Management links before publishing can be reviewed."
+        )
   };
 }
 
@@ -174,7 +192,15 @@ function traceabilityItems(
   return traceability.items
     .filter((item) => item.status !== "ready")
     .map((item: Phase126PublishHoldTraceabilityItem) =>
-      buildItem(item.id, item.label, "traceability", item.status, item.detail, item.nextAction)
+      buildItem(
+        item.id,
+        item.label,
+        "traceability",
+        item.status,
+        item.detail,
+        item.nextAction,
+        canOwnerReviewTraceability(item)
+      )
     );
 }
 
