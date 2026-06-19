@@ -281,10 +281,12 @@ describe("phase 11 owner release blocker priority", () => {
         expect.objectContaining({
           kind: "traceability",
           status: "review",
-          detail: expect.stringContaining("not visible")
+          detail: expect.stringContaining("not visible"),
+          ownerReviewAddressable: false
         })
       ])
     );
+    expect(result.ownerReviewCanAddressTopBlocker).toBe(false);
   });
 
   it("ranks incomplete Phase 3 PM completion rows above the generic Phase 3 trace", () => {
@@ -305,8 +307,10 @@ describe("phase 11 owner release blocker priority", () => {
     expect(result.items[0]).toMatchObject({
       kind: "traceability",
       label: expect.stringContaining("phase-03-child-blocker-priority"),
-      status: "review"
+      status: "review",
+      ownerReviewAddressable: false
     });
+    expect(result.ownerReviewCanAddressTopBlocker).toBe(false);
   });
 
   it("ranks handoff-proof review as the current Phase 3 trace release blocker", () => {
@@ -347,8 +351,10 @@ describe("phase 11 owner release blocker priority", () => {
     expect(result.items[0]).toMatchObject({
       kind: "traceability",
       label: "Current Phase 3 trace",
-      status: "review"
+      status: "review",
+      ownerReviewAddressable: false
     });
+    expect(result.ownerReviewCanAddressTopBlocker).toBe(false);
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -550,10 +556,20 @@ describe("phase 11 owner release blocker priority", () => {
 
     expect(result.state).toBe("blocked");
     expect(result.openBlockerCount).toBe(3);
-    expect(result.ownerReviewAddressableCount).toBe(3);
+    expect(result.ownerReviewAddressableCount).toBe(2);
     expect(result.items.map((item) => item.priority)).toEqual([1, 2, 3]);
     expect(result.topPriorityLabel).toBe("Phase readiness");
     expect(result.ownerReviewCanAddressTopBlocker).toBe(true);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "traceability",
+          label: "PM row coverage",
+          ownerReviewAddressable: false,
+          nextAction: "Add the missing Phase 11 PM child link."
+        })
+      ])
+    );
     expect(result.items.at(-1)).toMatchObject({
       label: "Fresh checkout",
       status: "waiting"

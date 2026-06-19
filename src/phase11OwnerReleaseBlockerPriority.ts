@@ -179,13 +179,27 @@ function canOwnerReview(status: Phase11OwnerReleaseBlockerPriorityState): boolea
   return status !== "ready";
 }
 
+function canOwnerReviewTraceability(item: Phase11OwnerReleaseTraceabilityItem): boolean {
+  return (
+    item.status !== "ready" &&
+    (
+      item.kind === "owner-command" ||
+      item.kind === "proof-freshness" ||
+      item.kind === "evidence-records" ||
+      item.kind === "release-readiness" ||
+      item.kind === "packaging-hold"
+    )
+  );
+}
+
 function buildItem(
   sourceId: string,
   label: string,
   kind: Phase11OwnerReleaseBlockerPriorityKind,
   status: Phase11OwnerReleaseBlockerPriorityState,
   detail: string,
-  nextAction: string
+  nextAction: string,
+  ownerReviewAddressable = canOwnerReview(status)
 ): Phase11OwnerReleaseBlockerPriorityItem {
   return {
     id: `${SNAPSHOT_ID}:${kind}:${sourceId}`,
@@ -195,9 +209,14 @@ function buildItem(
     status,
     severity: severityForState(status),
     priority: 0,
-    ownerReviewAddressable: canOwnerReview(status),
+    ownerReviewAddressable,
     detail: publicText(detail, "Phase 11 release evidence is incomplete."),
-    nextAction: `${OWNER_REVIEW_ACTION}; ${publicText(nextAction, "resolve this Phase 11 blocker.")}`
+    nextAction: ownerReviewAddressable
+      ? `${OWNER_REVIEW_ACTION}; ${publicText(nextAction, "resolve this Phase 11 blocker.")}`
+      : publicText(
+          nextAction,
+          "Repair Phase 11 remaining-goal, Project Management, or Phase 3 traceability links before release review can be trusted."
+        )
   };
 }
 
@@ -254,7 +273,15 @@ function traceabilityItems(
   return traceability.items
     .filter((item) => item.status !== "ready")
     .map((item: Phase11OwnerReleaseTraceabilityItem) =>
-      buildItem(item.id, item.label, "traceability", item.status, item.detail, item.nextAction)
+      buildItem(
+        item.id,
+        item.label,
+        "traceability",
+        item.status,
+        item.detail,
+        item.nextAction,
+        canOwnerReviewTraceability(item)
+      )
     );
 }
 
