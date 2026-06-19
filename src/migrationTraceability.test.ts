@@ -72,6 +72,14 @@ function withCurrentNextPhase5Goal() {
   );
 }
 
+function withDuplicateCurrentActivePhase5Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-5-migration-hardening"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal
+  );
+}
+
 describe("migration traceability", () => {
   it("keeps Phase 5 migration traceability waiting while Phase 5 is only next", () => {
     const summary = buildMigrationTraceabilitySummary({ readiness: readyReadiness() });
@@ -114,6 +122,26 @@ describe("migration traceability", () => {
     expect(summary.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "active-goal", status: "waiting" })
+      ])
+    );
+  });
+
+  it("does not trust migration review when Phase 5 duplicates the current active goal", () => {
+    const summary = buildMigrationTraceabilitySummary({
+      readiness: readyReadiness(),
+      goals: withDuplicateCurrentActivePhase5Goal()
+    });
+
+    expect(summary.state).toBe("review");
+    expect(summary.canTrustMigrationReview).toBe(false);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "active-goal",
+          status: "review",
+          detail: expect.stringContaining("2 current active goals"),
+          nextAction: expect.stringContaining("exactly one current active remaining goal")
+        })
       ])
     );
   });
