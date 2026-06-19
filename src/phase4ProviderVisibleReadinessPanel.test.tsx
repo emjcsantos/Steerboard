@@ -231,7 +231,10 @@ describe("phase 4 provider visible readiness panel", () => {
         permissionRecord,
         permissionValidation
       }),
-      { verifiedAt: "2026-06-18T10:35:00.000Z" }
+      {
+        verifiedAt: "2026-06-18T10:35:00.000Z",
+        expectedCatalogFingerprint: "phase4-catalog-current"
+      }
     );
     const html = renderToStaticMarkup(
       <>

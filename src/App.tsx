@@ -2233,7 +2233,8 @@ export function App() {
     });
 
     return verifyPhase4ProviderReviewArtifact(artifact, {
-      verifiedAt: phase4CatalogProofEvaluationTime
+      verifiedAt: phase4CatalogProofEvaluationTime,
+      expectedCatalogFingerprint: phase4CurrentCatalogFingerprint
     });
   }, [
     phase4CatalogProofEvaluationTime,
@@ -2842,7 +2843,8 @@ export function App() {
     });
     const serializedArtifact = serializePhase4ProviderReviewArtifact(artifact);
     const verification = verifyPhase4ProviderReviewArtifact(artifact, {
-      verifiedAt: now
+      verifiedAt: now,
+      expectedCatalogFingerprint: phase4CurrentCatalogFingerprint
     });
 
     if (typeof document !== "undefined" && typeof URL !== "undefined" && typeof Blob !== "undefined") {
@@ -2879,7 +2881,8 @@ export function App() {
     (serializedArtifact: string) => {
       const now = new Date().toISOString();
       const verification = verifySerializedPhase4ProviderReviewArtifact(serializedArtifact, {
-        verifiedAt: now
+        verifiedAt: now,
+        expectedCatalogFingerprint: phase4CurrentCatalogFingerprint
       });
 
       setImportedPhase4ProviderReviewArtifactVerification(verification);
@@ -2887,7 +2890,7 @@ export function App() {
         `Imported Phase 4 provider review ${verification.statusLabel}: ${verification.detail}`
       );
     },
-    []
+    [phase4CurrentCatalogFingerprint]
   );
   const clearPhase3CommandValidation = useCallback(() => {
     const now = new Date().toISOString();
