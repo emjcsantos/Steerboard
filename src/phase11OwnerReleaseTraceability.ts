@@ -503,14 +503,16 @@ function packagingHoldItem(
     packagingHoldItems.find((item) => item.status === "waiting") ??
     packagingItem ??
     decisionItem;
-  const status =
-    packagingItem?.status === "blocked" || decisionItem?.status === "blocked"
-      ? "blocked"
-      : packagingItem?.status === "review" || decisionItem?.status === "review"
-        ? "review"
-        : packagingItem?.status === "waiting" || decisionItem?.status === "waiting"
-          ? "waiting"
-          : "ready";
+  let status: Phase11OwnerReleaseTraceabilityState = "ready";
+  if (packagingItem?.status === "blocked" || decisionItem?.status === "blocked") {
+    status = "blocked";
+  } else if (packagingItem?.status === "review" || decisionItem?.status === "review") {
+    status = "review";
+  } else if (packagingItem?.status === "waiting" || decisionItem?.status === "waiting") {
+    status = "waiting";
+  } else if (!snapshot.canRecommendRelease || snapshot.releaseHoldCount > 0) {
+    status = snapshot.state;
+  }
 
   return {
     id: `${TRACE_ID}:packaging-hold`,

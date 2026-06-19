@@ -872,6 +872,32 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
+  it("keeps release hold in review when release readiness rows omit packaging details", () => {
+    const result = trace({
+      releaseReadiness: releaseSnapshot({
+        state: "review",
+        statusLabel: "Review",
+        canRecommendRelease: false,
+        releaseHoldCount: 1,
+        items: []
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.releaseHoldStatus).toBe("review");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "packaging-hold",
+          status: "review",
+          detail: "Packaging hold evidence is missing from release readiness.",
+          nextAction: "Keep packaging locked until the owner explicitly resumes release actions."
+        })
+      ])
+    );
+  });
+
   it("carries the top release readiness row into owner release traceability", () => {
     const result = trace({
       releaseReadiness: releaseSnapshot({
