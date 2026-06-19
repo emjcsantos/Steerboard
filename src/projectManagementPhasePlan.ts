@@ -193,7 +193,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-03-controls-slash",
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
-    description: "Clear the current blocker by proving slash execution, session controls, storage-attested current-panel desktop proof freshness, PM-link and evidence-key counted exit visibility, command-plan clarity, visible CLI validation provenance, slash/session-first blocker review, goal/PM traceability, visible handoff record-gate reason, and owner-reviewed handoff readiness tied to compact current non-expired evidence, clearance snapshot, and age matching.",
+    description: "Clear the current blocker by proving slash execution, session controls, storage-attested current-panel desktop proof freshness, fail-closed proof-export offline verification, PM-link and evidence-key counted exit visibility, command-plan clarity, visible CLI validation provenance, slash/session-first blocker review, goal/PM traceability, visible handoff record-gate reason, and owner-reviewed handoff readiness tied to compact current non-expired evidence, clearance snapshot, and age matching.",
     status: "ongoing",
     completionPercent: 99,
     complexity: "extra_high",
@@ -202,7 +202,7 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-03-parent-proof-clearance",
         title: "Desktop Proof Clearance",
-        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan and CLI validation provenance visible in traceability, surface PM-link and evidence-key counted exit visibility, prioritize slash/session blockers before desktop smoke, link goal/PM traceability, show the visible handoff record-gate reason, and keep the handoff boundary matched to compact current non-expired evidence, clearance snapshot, and age.",
+        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan and CLI validation provenance visible in traceability, surface PM-link and evidence-key counted exit visibility, keep proof-export download gated by offline verification, prioritize slash/session blockers before desktop smoke, link goal/PM traceability, show the visible handoff record-gate reason, and keep the handoff boundary matched to compact current non-expired evidence, clearance snapshot, and age.",
         status: "ongoing",
         completionPercent: 99,
         complexity: "extra_high",
@@ -242,7 +242,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-traceability",
             title: "Clearance Traceability",
-            description: "Link the current active Phase 3 goal, required PM rows, clearance evidence, command plan, CLI validation freshness, blocker priority, and exact handoff-review details for current fingerprint, clearance snapshot, and age matching in one owner-review trace.",
+            description: "Link the current active Phase 3 goal, required PM rows, clearance evidence, command plan, CLI validation freshness, proof-export offline verification, blocker priority, and exact handoff-review details for current fingerprint, clearance snapshot, and age matching in one owner-review trace.",
             completionPercent: 90,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance traceability"
@@ -250,7 +250,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-handoff-gate",
             title: "Owner Handoff Gate",
-            description: "Show desktop proof clearance, exact blocker visibility, trusted current-goal and PM traceability precondition, visible handoff record-gate reason, local owner handoff record actions gated by fresh CLI validation, export-ready current-evidence fingerprint, clearance snapshot, age matching, and the provider-integration boundary before Phase 4 advances.",
+            description: "Show desktop proof clearance, exact blocker visibility, trusted current-goal and PM traceability precondition, visible handoff record-gate reason, local owner handoff record actions gated by fresh CLI validation, fail-closed proof-export offline verification, export-ready current-evidence fingerprint, clearance snapshot, age matching, and the provider-integration boundary before Phase 4 advances.",
             completionPercent: 99,
             complexity: "high",
             sourceDocument: "Phase 3 handoff gate"

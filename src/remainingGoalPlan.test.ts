@@ -32,7 +32,7 @@ describe("remaining goal plan", () => {
       averageCompletionPercent: 72,
       currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
-        "Use the Phase 3 command plan, visible CLI validation record actions and provenance, PM-link and evidence-key counted exit gate, slash/session-first blocker-priority queue, row-specific slash/session/smoke exit actions, traceability rows, storage-attested current-panel smoke proof rows, and visible handoff record-gate reason with compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, current active goal/PM traceability is trusted, and CLI validation is fresh and matching, and keep Phase 4 held behind the provider boundary.",
+        "Use the Phase 3 command plan, visible CLI validation record actions and provenance, PM-link and evidence-key counted exit gate, slash/session-first blocker-priority queue, row-specific slash/session/smoke exit actions, traceability rows, storage-attested current-panel smoke proof rows, fail-closed proof export/offline verification, and visible handoff record-gate reason with compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, current active goal/PM traceability is trusted, CLI validation is fresh and matching, and proof export is offline-verifiable, and keep Phase 4 held behind the provider boundary.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -222,6 +222,9 @@ describe("remaining goal plan", () => {
     expect(phase3Goal?.nextAction).toContain("PM-link and evidence-key counted exit gate");
     expect(phase3Goal?.nextAction).toContain("row-specific slash/session/smoke exit actions");
     expect(phase3Goal?.nextAction).toContain("storage-attested current-panel smoke proof rows");
+    expect(phase3Goal?.goal).toContain("fail-closed proof-export rows");
+    expect(phase3Goal?.nextAction).toContain("fail-closed proof export/offline verification");
+    expect(phase3Goal?.nextAction).toContain("proof export is offline-verifiable");
     expect(phase3Goal?.nextAction).toContain("visible handoff record-gate reason");
     expect(phase3Goal?.nextAction).toContain("current active goal");
     expect(phase3Goal?.nextAction).toContain("current active goal/PM traceability is trusted");
@@ -231,6 +234,9 @@ describe("remaining goal plan", () => {
     const traceabilityChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-03-child-traceability"
     );
+    const handoffGateChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-03-child-handoff-gate"
+    );
 
     expect(traceabilityChild).toMatchObject({
       title: "Clearance Traceability",
@@ -238,7 +244,9 @@ describe("remaining goal plan", () => {
     });
     expect(traceabilityChild?.description).toContain("current active Phase 3 goal");
     expect(traceabilityChild?.description).toContain("required PM rows");
+    expect(traceabilityChild?.description).toContain("proof-export offline verification");
     expect(traceabilityChild?.description).toContain("handoff-review details");
+    expect(handoffGateChild?.description).toContain("fail-closed proof-export offline verification");
   });
 
   it("keeps active Phase 3 PM rows at or above the release-trace trust threshold", () => {
