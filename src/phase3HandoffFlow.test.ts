@@ -9,6 +9,7 @@ import {
   createPhase3OwnerHandoffRecord,
   derivePhase3HandoffRecordValidation
 } from "./phase3HandoffRecord";
+import type { Phase3ProofExportVerification } from "./phase3ProofExport";
 import {
   loadPhase3SessionControlEvidenceByPanel,
   loadPhase3SlashEvidenceByPanel,
@@ -164,6 +165,30 @@ function readyCommandValidation(): Phase3CommandValidationRecordValidation {
       "Keep the CLI smoke validation attached for owner review without using it to unlock handoff.",
     isFresh: true,
     hasSmokeBundleProvenance: true
+  };
+}
+
+function readyProofExportVerification(
+  expectedFingerprint: string
+): Phase3ProofExportVerification {
+  return {
+    state: "ready",
+    statusLabel: "Ready",
+    readiness: 100,
+    canVerifyOffline: true,
+    detail:
+      "Phase 3 proof export artifact contains current-panel panel proof, storage-attested desktop proof, CLI validation, and current exit-ready owner handoff evidence.",
+    nextAction:
+      "Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification.",
+    currentPanelId,
+    readyPanelEvidenceCount: 2,
+    storageAttestedDesktopProofCount: 3,
+    hasCommandValidationRecord: true,
+    hasOwnerHandoffRecord: true,
+    handoffEvidenceFingerprint: expectedFingerprint,
+    ownerHandoffRecordFingerprint: expectedFingerprint,
+    ownerHandoffClearanceReadiness: 100,
+    ownerHandoffExactBlockerCount: 0
   };
 }
 
@@ -329,6 +354,7 @@ describe("phase 3 handoff flow", () => {
       clearancePackage,
       traceabilityPrecondition,
       commandValidation: readyCommandValidation(),
+      proofExportVerification: readyProofExportVerification(expectedFingerprint),
       handoffRecordValidation: handoffValidation
     });
 

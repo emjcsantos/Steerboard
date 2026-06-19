@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
+import type { Phase3ProofExportVerification } from "./phase3ProofExport";
 import { buildPhase3HandoffGate } from "./phase3HandoffGate";
 
 function clearancePackage(
@@ -69,9 +70,35 @@ function readyCommandValidation(
   };
 }
 
+function readyProofExportVerification(
+  overrides: Partial<Phase3ProofExportVerification> = {}
+): Phase3ProofExportVerification {
+  return {
+    state: "ready",
+    statusLabel: "Ready",
+    readiness: 100,
+    canVerifyOffline: true,
+    detail:
+      "Phase 3 proof export artifact contains current-panel panel proof, storage-attested desktop proof, CLI validation, and current exit-ready owner handoff evidence.",
+    nextAction:
+      "Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification.",
+    currentPanelId: "panel-phase3",
+    readyPanelEvidenceCount: 2,
+    storageAttestedDesktopProofCount: 3,
+    hasCommandValidationRecord: true,
+    hasOwnerHandoffRecord: true,
+    handoffEvidenceFingerprint: "current",
+    ownerHandoffRecordFingerprint: "current",
+    ownerHandoffClearanceReadiness: 100,
+    ownerHandoffExactBlockerCount: 0,
+    ...overrides
+  };
+}
+
 function buildGate(input: Parameters<typeof buildPhase3HandoffGate>[0]) {
   return buildPhase3HandoffGate({
     commandValidation: readyCommandValidation(),
+    proofExportVerification: readyProofExportVerification(),
     ...input
   });
 }
@@ -115,6 +142,10 @@ describe("phase 3 handoff gate", () => {
           detail: expect.stringContaining("age 600000ms of 86400000ms window")
         }),
         expect.objectContaining({
+          label: "Proof export boundary",
+          detail: expect.stringContaining("offline verification trusted")
+        }),
+        expect.objectContaining({
           label: "Provider boundary",
           detail: expect.stringContaining("proof-export offline verification"),
           nextAction: expect.stringContaining("proof-export offline verification")
@@ -122,6 +153,43 @@ describe("phase 3 handoff gate", () => {
       ])
     );
     expect(result.ariaLabel).toContain("0 exact blockers");
+  });
+
+  it("holds provider integration when proof export is not offline-verifiable", () => {
+    const result = buildGate({
+      clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
+      proofExportVerification: readyProofExportVerification({
+        state: "review",
+        statusLabel: "Review",
+        readiness: 65,
+        canVerifyOffline: false,
+        detail: "Phase 3 proof export artifact is missing the owner handoff record.",
+        nextAction: "Record the owner-reviewed Phase 3 handoff before exporting.",
+        hasOwnerHandoffRecord: false
+      }),
+      handoffRecordState: "ready",
+      handoffRecordValidation: readyHandoffValidation()
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canAdvanceProviderIntegration).toBe(false);
+    expect(result.nextAction).toBe("Record the owner-reviewed Phase 3 handoff before exporting.");
+    expect(result.ownerReviewSummary).toContain("Owner handoff held");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Proof export boundary",
+          status: "review",
+          detail: expect.stringContaining("offline verification not trusted")
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          status: "review",
+          detail: expect.stringContaining("missing the owner handoff record")
+        })
+      ])
+    );
   });
 
   it("holds provider integration when CLI smoke validation is missing or needs review", () => {
@@ -417,7 +485,7 @@ describe("phase 3 handoff gate", () => {
 
     expect(result.state).toBe("waiting");
     expect(result.canAdvanceProviderIntegration).toBe(false);
-    expect(result.readyCount).toBe(4);
+    expect(result.readyCount).toBe(5);
     expect(result.waitingCount).toBe(2);
     expect(result.items).toEqual(
       expect.arrayContaining([

@@ -5,6 +5,7 @@ import type {
 import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffRecordValidation } from "./phase3HandoffRecord";
+import type { Phase3ProofExportVerification } from "./phase3ProofExport";
 
 export type Phase3HandoffGateState = Phase3ClearancePackageState;
 
@@ -13,6 +14,7 @@ export type Phase3HandoffGateItemKind =
   | "blocker-visibility"
   | "traceability-boundary"
   | "command-validation"
+  | "proof-export"
   | "handoff-record"
   | "provider-boundary";
 
@@ -69,6 +71,7 @@ export interface Phase3HandoffGateInput {
   readonly clearancePackage: Phase3ClearancePackage;
   readonly traceabilityPrecondition?: Phase3ClearanceTraceabilityPrecondition;
   readonly commandValidation?: Phase3CommandValidationRecordValidation;
+  readonly proofExportVerification?: Phase3ProofExportVerification;
   readonly handoffRecordState?: Phase3HandoffGateState;
   readonly handoffRecordValidation?: Phase3HandoffRecordValidation;
 }
@@ -233,6 +236,12 @@ function hasReadyCommandValidation(
   return commandValidation?.state === "ready";
 }
 
+function hasOfflineVerifiableProofExport(
+  proofExportVerification: Phase3ProofExportVerification | undefined
+): boolean {
+  return proofExportVerification?.state === "ready" && proofExportVerification.canVerifyOffline;
+}
+
 function commandValidationItem(
   commandValidation: Phase3CommandValidationRecordValidation | undefined
 ): Phase3HandoffGateItem {
@@ -258,6 +267,38 @@ function commandValidationItem(
       commandValidation.state === "ready"
         ? "Keep fresh Phase 3 CLI smoke validation attached through owner handoff."
         : commandValidation.nextAction
+  };
+}
+
+function proofExportItem(
+  proofExportVerification: Phase3ProofExportVerification | undefined
+): Phase3HandoffGateItem {
+  if (!proofExportVerification) {
+    return {
+      id: `${GATE_ID}:proof-export`,
+      label: "Proof export boundary",
+      kind: "proof-export",
+      status: "waiting",
+      detail:
+        "Phase 3 proof export offline verification is not attached to the handoff gate.",
+      nextAction:
+        "Attach offline-verifiable Phase 3 proof export before Phase 4 review resumes."
+    };
+  }
+
+  return {
+    id: `${GATE_ID}:proof-export`,
+    label: "Proof export boundary",
+    kind: "proof-export",
+    status: proofExportVerification.state,
+    detail:
+      `Phase 3 proof export is ${proofExportVerification.statusLabel.toLowerCase()} ` +
+      `at ${proofExportVerification.readiness}% ready; offline verification ` +
+      `${proofExportVerification.canVerifyOffline ? "trusted" : "not trusted"}. ` +
+      proofExportVerification.detail,
+    nextAction: proofExportVerification.canVerifyOffline
+      ? "Keep the offline-verifiable Phase 3 proof export attached before Phase 4 review resumes."
+      : proofExportVerification.nextAction
   };
 }
 
@@ -431,6 +472,7 @@ function providerBoundaryItem(
   clearancePackage: Phase3ClearancePackage,
   traceabilityPrecondition: Phase3ClearanceTraceabilityPrecondition | undefined,
   commandValidation: Phase3CommandValidationRecordValidation | undefined,
+  proofExportVerification: Phase3ProofExportVerification | undefined,
   handoffRecordState: Phase3HandoffGateState | undefined,
   handoffRecordValidation: Phase3HandoffRecordValidation | undefined
 ): Phase3HandoffGateItem {
@@ -525,6 +567,21 @@ function providerBoundaryItem(
     };
   }
 
+  if (!hasOfflineVerifiableProofExport(proofExportVerification)) {
+    return {
+      id: `${GATE_ID}:provider-boundary`,
+      label: "Provider boundary",
+      kind: "provider-boundary",
+      status: proofExportVerification?.state ?? "waiting",
+      detail: proofExportVerification
+        ? `Phase 4 review remains held because ${proofExportVerification.detail}`
+        : "Phase 4 review remains held until proof-export offline verification is attached.",
+      nextAction:
+        proofExportVerification?.nextAction ??
+        "Attach offline-verifiable Phase 3 proof export before Phase 4 review resumes."
+    };
+  }
+
   return {
     id: `${GATE_ID}:provider-boundary`,
     label: "Provider boundary",
@@ -583,6 +640,13 @@ function buildOwnerReviewSummary(
     )}`;
   }
 
+  if (!hasOfflineVerifiableProofExport(input.proofExportVerification)) {
+    return `Owner handoff held: ${publicText(
+      input.proofExportVerification?.detail,
+      "Phase 3 proof export offline verification is not attached yet."
+    )}`;
+  }
+
   if (!handoffRecordValidation && handoffRecordState === "ready") {
     return "Owner handoff review: a ready handoff state is attached, but current evidence fingerprint validation is missing.";
   }
@@ -626,6 +690,7 @@ export function buildPhase3HandoffGate(
     blockerVisibilityItem(input.clearancePackage),
     traceabilityBoundaryItem(input.traceabilityPrecondition),
     commandValidationItem(input.commandValidation),
+    proofExportItem(input.proofExportVerification),
     handoffRecordItem(
       input.clearancePackage,
       input.handoffRecordState,
@@ -635,6 +700,7 @@ export function buildPhase3HandoffGate(
       input.clearancePackage,
       input.traceabilityPrecondition,
       input.commandValidation,
+      input.proofExportVerification,
       input.handoffRecordState,
       input.handoffRecordValidation
     )
@@ -649,6 +715,7 @@ export function buildPhase3HandoffGate(
     input.clearancePackage.canExit &&
     canTrustTraceability(input.traceabilityPrecondition) &&
     hasReadyCommandValidation(input.commandValidation) &&
+    hasOfflineVerifiableProofExport(input.proofExportVerification) &&
     hasReadyHandoffValidation(input.handoffRecordValidation);
   const draft = {
     id: GATE_ID,

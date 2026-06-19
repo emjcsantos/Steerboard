@@ -2651,6 +2651,7 @@ export function App() {
         clearancePackage: phase3ClearancePackage,
         traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition,
         commandValidation: phase3CommandValidationRecordValidation,
+        proofExportVerification: phase3ProofExportVerification,
         handoffRecordState: phase3HandoffRecordState,
         handoffRecordValidation: phase3HandoffRecordValidation
       }),
@@ -2658,6 +2659,7 @@ export function App() {
       phase3ClearanceTraceabilityPrecondition,
       phase3CommandValidationRecordValidation,
       phase3ClearancePackage,
+      phase3ProofExportVerification,
       phase3HandoffRecordState,
       phase3HandoffRecordValidation
     ]
