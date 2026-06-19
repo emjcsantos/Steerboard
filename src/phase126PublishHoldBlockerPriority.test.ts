@@ -112,6 +112,9 @@ describe("phase 1/2/6 publish hold blocker priority", () => {
     expect(result.openBlockerCount).toBe(2);
     expect(result.ownerReviewCanAddressTopBlocker).toBe(true);
     expect(result.topPriorityLabel).toBe("Publish hold");
+    expect(result.ariaLabel).toContain(
+      "Phase 1/2/6 publish hold blocker priority: Blocked; 2 open blockers; 2 owner-review addressable; top priority Publish hold; next action:"
+    );
     expect(result.items[0]).toMatchObject({
       priority: 1,
       status: "blocked",
@@ -165,6 +168,9 @@ describe("phase 1/2/6 publish hold blocker priority", () => {
     expect(result.state).toBe("ready");
     expect(result.openBlockerCount).toBe(0);
     expect(result.topPriorityLabel).toBe("No open Phase 1/2/6 publish-hold blocker");
+    expect(result.ariaLabel).toBe(
+      "Phase 1/2/6 publish hold blocker priority: Ready; 0 open blockers; 0 owner-review addressable; top priority No open Phase 1/2/6 publish-hold blocker; next action: No Phase 1/2/6 publish-hold blockers remain; keep publishing held until owner approval."
+    );
   });
 
   it("keeps blocker-priority text public-safe", () => {

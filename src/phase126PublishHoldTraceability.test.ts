@@ -89,6 +89,9 @@ describe("phase 1/2/6 publish hold traceability", () => {
     expect(result.linkedPhaseCount).toBe(3);
     expect(result.missingPmTaskIds).toEqual([]);
     expect(result.publishHoldStatus).toBe("blocked");
+    expect(result.ariaLabel).toContain(
+      "Phase 1/2/6 publish hold traceability: Blocked; 67% ready; 3 phases; 20 PM links; 2 blocked; 0 waiting; publish hold blocked; next action:"
+    );
     expect(result.items.map((item) => item.kind)).toEqual([
       "publish-goal",
       "pm-coverage",
