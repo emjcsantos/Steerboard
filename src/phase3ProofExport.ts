@@ -1,5 +1,9 @@
-import type { Phase3CommandValidationRecord } from "./phase3CommandValidationRecord";
-import { loadPhase3CommandValidationRecord } from "./phase3CommandValidationRecord";
+import {
+  derivePhase3CommandValidationRecordValidation,
+  loadPhase3CommandValidationRecord,
+  type Phase3CommandValidationRecord
+} from "./phase3CommandValidationRecord";
+import { PHASE3_SMOKE_COMMAND } from "./phase3ClearanceCommandPlan";
 import type { Phase3OwnerHandoffRecord } from "./phase3HandoffRecord";
 import { loadPhase3OwnerHandoffRecord } from "./phase3HandoffRecord";
 import {
@@ -334,6 +338,24 @@ export function verifyPhase3ProofExportArtifact(
       artifact,
       "Phase 3 proof export artifact is missing the CLI smoke validation record.",
       "Attach the Phase 3 CLI smoke validation record before exporting.",
+      counts
+    );
+  }
+
+  const commandValidation = derivePhase3CommandValidationRecordValidation(
+    artifact.commandValidationRecord,
+    {
+      expectedCommand: PHASE3_SMOKE_COMMAND,
+      evaluatedAt: artifact.evaluatedAt,
+      currentSmokeProofBundle: artifact.smokeProofBundle
+    }
+  );
+  if (commandValidation.state !== "ready") {
+    return result(
+      commandValidation.state,
+      artifact,
+      `Phase 3 proof export artifact CLI smoke validation is not ready: ${commandValidation.detail}`,
+      commandValidation.nextAction,
       counts
     );
   }

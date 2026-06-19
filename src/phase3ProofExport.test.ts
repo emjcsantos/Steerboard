@@ -148,6 +148,59 @@ describe("phase 3 proof export", () => {
     expect(verification.nextAction).toContain("Resolve the storage proof review reasons");
   });
 
+  it("blocks failed CLI smoke validation records during proof export verification", () => {
+    const verification = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        commandValidationRecord: {
+          ...commandValidationRecord,
+          status: "failed",
+          passedTestCount: 1,
+          failedTestCount: 1,
+          detail: "Phase 3 CLI smoke validation failed locally."
+        }
+      }),
+      { verifiedAt }
+    );
+
+    expect(verification.state).toBe("blocked");
+    expect(verification.detail).toContain("CLI smoke validation is not ready");
+    expect(verification.detail).toContain("failed locally");
+    expect(verification.nextAction).toContain("Rerun npm.cmd run smoke:phase3");
+  });
+
+  it("reviews stale CLI smoke validation records during proof export verification", () => {
+    const verification = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        commandValidationRecord: {
+          ...commandValidationRecord,
+          createdAt: "2026-06-15T08:09:00.000Z"
+        }
+      }),
+      { verifiedAt }
+    );
+
+    expect(verification.state).toBe("review");
+    expect(verification.detail).toContain("CLI smoke validation is not ready");
+    expect(verification.detail).toContain("stale");
+    expect(verification.nextAction).toContain("record a fresh local CLI pass");
+  });
+
+  it("reviews wrong-command CLI smoke validation records during proof export verification", () => {
+    const verification = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        commandValidationRecord: {
+          ...commandValidationRecord,
+          command: "npm.cmd run smoke:phase1-2"
+        }
+      }),
+      { verifiedAt }
+    );
+
+    expect(verification.state).toBe("review");
+    expect(verification.detail).toContain("different command");
+    expect(verification.nextAction).toContain("current command plan");
+  });
+
   it("keeps stale owner handoff records in review", () => {
     const verification = verifyPhase3ProofExportArtifact(
       readyArtifact({

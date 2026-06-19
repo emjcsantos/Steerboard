@@ -45,7 +45,7 @@ export interface Phase3ClearanceCommandPlanInput {
 
 const PLAN_ID = "phase-3-clearance-command-plan";
 const PLAN_LABEL = "Phase 3 desktop smoke command plan";
-const PHASE3_SMOKE_COMMAND = "npm.cmd run smoke:phase3";
+export const PHASE3_SMOKE_COMMAND = "npm.cmd run smoke:phase3";
 const SAFETY =
   "Phase 3 command plan is evidence-only. It displays the explicit local smoke command but does not run commands, launch providers, mutate runtime state, or record handoff automatically.";
 
