@@ -836,6 +836,11 @@ describe("phase 3 owner-visible proof panel", () => {
 
     expect(html).toContain("Import desktop proof");
     expect(html).toContain("Load recorded");
+    expect(html).toContain('aria-label="Import Phase 3 CLI smoke validation artifact"');
+    expect(html).toContain(
+      'aria-label="Import Phase 3 proof export artifact for verification"'
+    );
+    expect(html).toContain('aria-label="Import Phase 3 desktop smoke proof bundle"');
     expect(html).toContain("Open Steerboard in desktop mode or use Import");
     expect(html).toContain(
       '<button disabled="" title="Open Steerboard in desktop mode or use Import to attach this local artifact." type="button">'
