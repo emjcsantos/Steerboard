@@ -731,7 +731,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Provider boundary");
     expect(html).toContain("Phase 3 proof export");
     expect(html).toContain(
-      'aria-label="Phase 3 proof export verifier Ready; 100% ready; next action: Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification."'
+      'aria-label="Phase 3 proof export verifier Ready; 100% ready; PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification; next action: Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification."'
     );
     expect(html).toContain("Export proof");
     expect(html).toContain("Import proof");
@@ -816,7 +816,7 @@ describe("phase 3 owner-visible proof panel", () => {
 
     expect(html).toContain("Imported proof artifact");
     expect(html).toContain(
-      'aria-label="Imported Phase 3 proof artifact verifier Ready; 100% ready; next action: Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification."'
+      'aria-label="Imported Phase 3 proof artifact verifier Ready; 100% ready; PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification; next action: Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification."'
     );
     expect(html).toContain("Phase 3 proof export artifact contains current-panel panel proof");
     expect(html).toContain("Panel proof 2/2");
@@ -844,7 +844,7 @@ describe("phase 3 owner-visible proof panel", () => {
 
     expect(html).toContain("Imported proof artifact");
     expect(html).toContain(
-      'aria-label="Imported Phase 3 proof artifact verifier Waiting; 35% ready; next action: Export or import a Phase 3 proof package before offline verification."'
+      'aria-label="Imported Phase 3 proof artifact verifier Waiting; 35% ready; PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification; next action: Export or import a Phase 3 proof package before offline verification."'
     );
     expect(html).toContain("Waiting");
     expect(html).toContain("Phase 3 proof export artifact is missing or malformed");
@@ -885,7 +885,7 @@ describe("phase 3 owner-visible proof panel", () => {
     });
 
     expect(html).toContain(
-      'aria-label="Phase 3 proof export verifier Review; 65% ready; next action: Record the owner-reviewed Phase 3 handoff before exporting."'
+      'aria-label="Phase 3 proof export verifier Review; 65% ready; PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification; next action: Record the owner-reviewed Phase 3 handoff before exporting."'
     );
     expect(html).toContain(
       '<button disabled="" title="Export held: Record the owner-reviewed Phase 3 handoff before exporting." type="button">'
