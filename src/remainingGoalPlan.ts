@@ -86,7 +86,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Hold the completed priority slice locally with publish-hold traceability and blocker priority until the Steerboard public remote is restored and the owner approves pushing.",
     status: "blocked",
     priority: "critical",
-    completionPercent: 95,
+    completionPercent: 99,
     pmTaskIds: [
       "phase-01-live-chat",
       "phase-01-parent-single-panel",
@@ -299,7 +299,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Make Owner Testing the single pass-fail release gate for proof freshness depth, blockers, phase readiness, owner release traceability, blocker priority, and next actions.",
     status: "next",
     priority: "high",
-    completionPercent: 62,
+    completionPercent: 72,
     pmTaskIds: [
       "phase-11-owner-packaging",
       "phase-11-parent-owner-testing",
@@ -322,7 +322,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Coordinate the final fresh-checkout, clean-checkout, build, smoke, current active Phase 3 clearance PM traceability and handoff proof, packaging-lock, docs, known-limits, owner release traceability, blocker-priority review, structured evidence records, final security closure capability, and release-decision pass before release.",
     status: "next",
     priority: "high",
-    completionPercent: 59,
+    completionPercent: 74,
     pmTaskIds: [
       "phase-11-owner-packaging",
       "phase-11-parent-release-packaging",
@@ -349,6 +349,17 @@ const STATUS_ORDER: Record<RemainingGoalStatus, number> = {
   paused: 4
 };
 
+const STRATEGIC_GOAL_ORDER: Record<string, number> = {
+  "goal-phase-3-proof-clearance": 0,
+  "goal-phase-1-2-6-publish": 1,
+  "goal-phase-11-release-readiness": 2,
+  "goal-phase-11-owner-command-center": 3
+};
+
+function getStrategicGoalOrder(goal: RemainingGoalPlanItem): number {
+  return STRATEGIC_GOAL_ORDER[goal.id] ?? 100;
+}
+
 function compareGoalPriority(a: RemainingGoalPlanItem, b: RemainingGoalPlanItem): number {
   const aCurrentActive = isCurrentActiveRemainingGoal(a);
   const bCurrentActive = isCurrentActiveRemainingGoal(b);
@@ -365,6 +376,11 @@ function compareGoalPriority(a: RemainingGoalPlanItem, b: RemainingGoalPlanItem)
   const statusDelta = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
   if (statusDelta !== 0) {
     return statusDelta;
+  }
+
+  const strategicOrderDelta = getStrategicGoalOrder(a) - getStrategicGoalOrder(b);
+  if (strategicOrderDelta !== 0) {
+    return strategicOrderDelta;
   }
 
   const completionDelta = a.completionPercent - b.completionPercent;
