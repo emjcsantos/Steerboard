@@ -4,6 +4,7 @@ import type { Phase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDep
 import type { Phase9RunnerApprovalRecord } from "./phase9RunnerApprovalRecord";
 import type { Phase9RunnerApprovalSnapshot, Phase9RunnerApprovalState } from "./phase9RunnerApproval";
 import {
+  findCurrentActiveRemainingGoals,
   isCurrentActiveRemainingGoal,
   remainingGoalPlan,
   type RemainingGoalPlanItem
@@ -147,7 +148,10 @@ function phase9Goal(goals: readonly RemainingGoalPlanItem[]): RemainingGoalPlanI
   return goals.find((goal) => goal.id === PHASE9_GOAL_ID);
 }
 
-function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase9RunnerTraceabilityItem {
+function activeGoalItem(
+  goal: RemainingGoalPlanItem | undefined,
+  currentActiveGoalIds: readonly string[]
+): Phase9RunnerTraceabilityItem {
   if (!goal) {
     return {
       id: `${TRACE_ID}:active-goal`,
@@ -170,6 +174,10 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase9RunnerTr
     };
   }
 
+  const exactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
+  const isTrustedPhase9Goal =
+    isCurrentActiveRemainingGoal(goal) && exactlyOneCurrentActiveGoal;
+
   return {
     id: `${TRACE_ID}:active-goal`,
     label: "Remaining goal link",
@@ -177,16 +185,20 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase9RunnerTr
     status:
       goal.status === "blocked"
         ? "blocked"
-        : isCurrentActiveRemainingGoal(goal)
+        : isTrustedPhase9Goal
           ? "ready"
           : goal.status === "active"
             ? "review"
             : "waiting",
-    detail: `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links.`,
-    nextAction: publicText(
-      goal.nextAction,
-      "Make Phase 9 the current active goal before runner approval can be trusted."
-    )
+    detail:
+      `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links ` +
+      `and ${currentActiveGoalIds.length} current active goal${currentActiveGoalIds.length === 1 ? "" : "s"}.`,
+    nextAction: exactlyOneCurrentActiveGoal
+      ? publicText(
+          goal.nextAction,
+          "Make Phase 9 the current active goal before runner approval can be trusted."
+        )
+      : `Keep exactly one current active remaining goal before Phase 9 runner approval can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
   };
 }
 
@@ -470,8 +482,9 @@ export function buildPhase9RunnerTraceabilitySummary({
   const missingPmTaskIds = Array.from(
     new Set([...missingPlanPmTaskIds, ...missingGoalPmTaskIds])
   );
+  const currentActiveGoalIds = findCurrentActiveRemainingGoals(goals).map((item) => item.id);
   const items = [
-    activeGoalItem(goal),
+    activeGoalItem(goal, currentActiveGoalIds),
     pmCoverageItem(goal, missingPmTaskIds),
     phase8GateItem(phase8),
     approvalDepthItem(approval, depth),
@@ -496,6 +509,7 @@ export function buildPhase9RunnerTraceabilitySummary({
     canTrustRunnerApproval:
       state === "ready" &&
       isCurrentActiveRemainingGoal(goal) &&
+      currentActiveGoalIds.length === 1 &&
       missingPmTaskIds.length === 0 &&
       phase8.openExceptionCount === 0 &&
       phase8.blockedCount === 0 &&

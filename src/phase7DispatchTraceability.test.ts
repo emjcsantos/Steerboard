@@ -131,6 +131,14 @@ function withCurrentNextPhase7Goal() {
   );
 }
 
+function withDuplicateCurrentActivePhase7Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-7-dispatch-loop"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal
+  );
+}
+
 describe("phase 7 dispatch traceability", () => {
   it("keeps Phase 7 dispatch traceability waiting while Phase 7 is only next", () => {
     const { record, run } = buildRecordBundle();
@@ -178,6 +186,28 @@ describe("phase 7 dispatch traceability", () => {
     expect(summary.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "active-goal", status: "waiting" })
+      ])
+    );
+  });
+
+  it("does not trust dispatch traceability when Phase 7 duplicates the current active goal", () => {
+    const { record, run } = buildRecordBundle();
+    const summary = traceability({
+      record,
+      run,
+      goals: withDuplicateCurrentActivePhase7Goal()
+    });
+
+    expect(summary.state).toBe("review");
+    expect(summary.canTrustDispatchReview).toBe(false);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "active-goal",
+          status: "review",
+          detail: expect.stringContaining("2 current active goals"),
+          nextAction: expect.stringContaining("exactly one current active remaining goal")
+        })
       ])
     );
   });

@@ -88,6 +88,14 @@ function withCurrentNextPhase10Goal() {
   );
 }
 
+function withDuplicateCurrentActivePhase10Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-10-arena-polish"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal
+  );
+}
+
 describe("phase 10 Arena polish traceability", () => {
   it("keeps Phase 10 Arena polish traceability waiting while Phase 10 is only next", () => {
     const summary = buildPhase10ArenaPolishTraceability({ snapshot: polishSnapshot() });
@@ -131,6 +139,26 @@ describe("phase 10 Arena polish traceability", () => {
     expect(summary.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "active-goal", status: "waiting" })
+      ])
+    );
+  });
+
+  it("does not trust Arena polish when Phase 10 duplicates the current active goal", () => {
+    const summary = buildPhase10ArenaPolishTraceability({
+      snapshot: polishSnapshot(),
+      goals: withDuplicateCurrentActivePhase10Goal()
+    });
+
+    expect(summary.state).toBe("review");
+    expect(summary.canTrustArenaPolish).toBe(false);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "active-goal",
+          status: "review",
+          detail: expect.stringContaining("2 current active goals"),
+          nextAction: expect.stringContaining("exactly one current active remaining goal")
+        })
       ])
     );
   });

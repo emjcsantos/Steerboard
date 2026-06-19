@@ -3,6 +3,7 @@ import type { DispatchReviewRecord } from "./dispatchReviewRecord";
 import type { Phase7DispatchReviewDepthSnapshot } from "./phase7DispatchReviewDepth";
 import type { Phase7IntegrationOwnershipDepthSnapshot } from "./phase7IntegrationOwnershipDepth";
 import {
+  findCurrentActiveRemainingGoals,
   isCurrentActiveRemainingGoal,
   remainingGoalPlan,
   type RemainingGoalPlanItem
@@ -148,7 +149,10 @@ function phase7Goal(goals: readonly RemainingGoalPlanItem[]): RemainingGoalPlanI
   return goals.find((goal) => goal.id === PHASE7_GOAL_ID);
 }
 
-function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase7DispatchTraceabilityItem {
+function activeGoalItem(
+  goal: RemainingGoalPlanItem | undefined,
+  currentActiveGoalIds: readonly string[]
+): Phase7DispatchTraceabilityItem {
   if (!goal) {
     return {
       id: `${TRACE_ID}:active-goal`,
@@ -171,6 +175,10 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase7Dispatch
     };
   }
 
+  const exactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
+  const isTrustedPhase7Goal =
+    isCurrentActiveRemainingGoal(goal) && exactlyOneCurrentActiveGoal;
+
   return {
     id: `${TRACE_ID}:active-goal`,
     label: "Remaining goal link",
@@ -178,16 +186,20 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase7Dispatch
     status:
       goal.status === "blocked"
         ? "blocked"
-        : isCurrentActiveRemainingGoal(goal)
+        : isTrustedPhase7Goal
           ? "ready"
           : goal.status === "active"
             ? "review"
             : "waiting",
-    detail: `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links.`,
-    nextAction: publicText(
-      goal.nextAction,
-      "Make Phase 7 the current active goal before dispatch review can be trusted."
-    )
+    detail:
+      `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links ` +
+      `and ${currentActiveGoalIds.length} current active goal${currentActiveGoalIds.length === 1 ? "" : "s"}.`,
+    nextAction: exactlyOneCurrentActiveGoal
+      ? publicText(
+          goal.nextAction,
+          "Make Phase 7 the current active goal before dispatch review can be trusted."
+        )
+      : `Keep exactly one current active remaining goal before Phase 7 dispatch review can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
   };
 }
 
@@ -318,8 +330,9 @@ export function buildPhase7DispatchTraceability(
   const missingPmTaskIds = REQUIRED_PM_TASK_IDS.filter(
     (taskId) => !goal?.pmTaskIds.includes(taskId) || !planTaskIds.has(taskId)
   );
+  const currentActiveGoalIds = findCurrentActiveRemainingGoals(goals).map((item) => item.id);
   const items = [
-    activeGoalItem(goal),
+    activeGoalItem(goal, currentActiveGoalIds),
     pmCoverageItem(goal, missingPmTaskIds),
     reviewDepthItem(input.depth),
     ownershipItem(input.ownership),
@@ -338,6 +351,7 @@ export function buildPhase7DispatchTraceability(
     canTrustDispatchReview:
       state === "ready" &&
       isCurrentActiveRemainingGoal(goal) &&
+      currentActiveGoalIds.length === 1 &&
       input.depth.state === "ready" &&
       input.ownership.state === "ready" &&
       missingPmTaskIds.length === 0 &&

@@ -204,6 +204,14 @@ function withCurrentNextPhase8Goal() {
   );
 }
 
+function withDuplicateCurrentActivePhase8Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-8-permission-audit"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal
+  );
+}
+
 describe("phase 8 risk traceability", () => {
   it("links the Phase 8 goal, PM child rows, audit-depth evidence, exceptions, and disabled paths", () => {
     const summary = traceability();
@@ -344,6 +352,48 @@ describe("phase 8 risk traceability", () => {
     expect(summary.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "active-goal", status: "waiting" })
+      ])
+    );
+  });
+
+  it("does not trust permission audit when Phase 8 duplicates the current active goal", () => {
+    const readyDepth = depth({
+      summaries: [
+        liveSummary("terminal", "approved"),
+        liveSummary("git", "approved"),
+        liveSummary("plugin", "approved")
+      ],
+      liveAuditRecords: [liveAuditRecord],
+      runtimeExecutionAudit: readyRuntimeExecutionAudit,
+      runtimeExecutionAuditHistory: [executionRecord],
+      runtimeProfilePermissionRequestHistory: [profileRequest],
+      ownerAuditReviewRecord: ownerReviewFor({
+        summaries: [
+          liveSummary("terminal", "approved"),
+          liveSummary("git", "approved"),
+          liveSummary("plugin", "approved")
+        ],
+        liveAuditRecords: [liveAuditRecord],
+        runtimeExecutionAudit: readyRuntimeExecutionAudit,
+        runtimeExecutionAuditHistory: [executionRecord],
+        runtimeProfilePermissionRequestHistory: [profileRequest]
+      })
+    });
+    const summary = traceability({
+      snapshot: readyDepth,
+      goals: withDuplicateCurrentActivePhase8Goal()
+    });
+
+    expect(summary.state).toBe("review");
+    expect(summary.canTrustPermissionAudit).toBe(false);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "active-goal",
+          status: "review",
+          detail: expect.stringContaining("2 current active goals"),
+          nextAction: expect.stringContaining("exactly one current active remaining goal")
+        })
       ])
     );
   });

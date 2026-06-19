@@ -1,6 +1,7 @@
 import { currentProjectManagementPhasePlanTaskIds } from "./projectManagementPhasePlan";
 import type { Phase10ArenaPolishSnapshot, Phase10ArenaPolishState } from "./phase10ArenaPolish";
 import {
+  findCurrentActiveRemainingGoals,
   isCurrentActiveRemainingGoal,
   remainingGoalPlan,
   type RemainingGoalPlanItem
@@ -142,7 +143,10 @@ function phase10Goal(goals: readonly RemainingGoalPlanItem[]): RemainingGoalPlan
   return goals.find((goal) => goal.id === PHASE10_GOAL_ID);
 }
 
-function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase10ArenaPolishTraceabilityItem {
+function activeGoalItem(
+  goal: RemainingGoalPlanItem | undefined,
+  currentActiveGoalIds: readonly string[]
+): Phase10ArenaPolishTraceabilityItem {
   if (!goal) {
     return {
       id: `${TRACE_ID}:active-goal`,
@@ -165,6 +169,10 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase10ArenaPo
     };
   }
 
+  const exactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
+  const isTrustedPhase10Goal =
+    isCurrentActiveRemainingGoal(goal) && exactlyOneCurrentActiveGoal;
+
   return {
     id: `${TRACE_ID}:active-goal`,
     label: "Remaining goal link",
@@ -172,16 +180,20 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase10ArenaPo
     status:
       goal.status === "blocked"
         ? "blocked"
-        : isCurrentActiveRemainingGoal(goal)
+        : isTrustedPhase10Goal
           ? "ready"
           : goal.status === "active"
             ? "review"
             : "waiting",
-    detail: `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links.`,
-    nextAction: publicText(
-      goal.nextAction,
-      "Make Phase 10 the current active goal before Arena polish can be trusted."
-    )
+    detail:
+      `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links ` +
+      `and ${currentActiveGoalIds.length} current active goal${currentActiveGoalIds.length === 1 ? "" : "s"}.`,
+    nextAction: exactlyOneCurrentActiveGoal
+      ? publicText(
+          goal.nextAction,
+          "Make Phase 10 the current active goal before Arena polish can be trusted."
+        )
+      : `Keep exactly one current active remaining goal before Phase 10 Arena polish can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
   };
 }
 
@@ -299,8 +311,9 @@ export function buildPhase10ArenaPolishTraceability(
   const missingPmTaskIds = REQUIRED_PM_TASK_IDS.filter(
     (taskId) => !goal?.pmTaskIds.includes(taskId) || !planTaskIds.has(taskId)
   );
+  const currentActiveGoalIds = findCurrentActiveRemainingGoals(goals).map((item) => item.id);
   const items = [
-    activeGoalItem(goal),
+    activeGoalItem(goal, currentActiveGoalIds),
     pmCoverageItem(goal, missingPmTaskIds),
     polishReadinessItem(input.snapshot),
     layoutEvidenceItem(input.snapshot),
@@ -317,6 +330,7 @@ export function buildPhase10ArenaPolishTraceability(
     canTrustArenaPolish:
       state === "ready" &&
       isCurrentActiveRemainingGoal(goal) &&
+      currentActiveGoalIds.length === 1 &&
       input.snapshot.state === "ready" &&
       missingPmTaskIds.length === 0,
     readyCount: items.filter((item) => item.status === "ready").length,

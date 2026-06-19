@@ -235,6 +235,14 @@ function withCurrentNextPhase9Goal() {
   );
 }
 
+function withDuplicateCurrentActivePhase9Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-9-runner"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal
+  );
+}
+
 describe("phase 9 runner traceability", () => {
   it("links the Phase 9 goal, PM child rows, Phase 8 gate, approval depth, and mutation lock", () => {
     const summary = traceability();
@@ -387,6 +395,38 @@ describe("phase 9 runner traceability", () => {
     expect(summary.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "active-goal", status: "waiting" })
+      ])
+    );
+  });
+
+  it("does not trust runner approval when Phase 9 duplicates the current active goal", () => {
+    const approval = approvalSnapshot({
+      request: permissionRequest({ state: "approved" }),
+      result: desktopResult({
+        requestId: "terminal-permission-1",
+        status: "executed",
+        code: "ok",
+        canExecute: true,
+        summary: "Desktop terminal read-only probe executed through the approved runner contract.",
+        detail: "Executed fixed terminal read-only probe command for audit trail."
+      }),
+      auditRecords: [terminalAuditRecord("approved"), terminalAuditRecord("executed")]
+    });
+    const summary = traceability({ approval, goals: withDuplicateCurrentActivePhase9Goal() });
+
+    expect(summary.state).toBe("review");
+    expect(summary.canTrustRunnerApproval).toBe(false);
+    expect(buildPhase9DesktopProbeGate(approval, summary)).toMatchObject({
+      canRun: false
+    });
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "active-goal",
+          status: "review",
+          detail: expect.stringContaining("2 current active goals"),
+          nextAction: expect.stringContaining("exactly one current active remaining goal")
+        })
       ])
     );
   });

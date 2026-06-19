@@ -4,6 +4,7 @@ import type {
   Phase8PermissionAuditDepthState
 } from "./phase8PermissionAuditDepth";
 import {
+  findCurrentActiveRemainingGoals,
   isCurrentActiveRemainingGoal,
   remainingGoalPlan,
   type RemainingGoalPlanItem
@@ -143,7 +144,10 @@ function phase8Goal(goals: readonly RemainingGoalPlanItem[]): RemainingGoalPlanI
   return goals.find((goal) => goal.id === PHASE8_GOAL_ID);
 }
 
-function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase8RiskTraceabilityItem {
+function activeGoalItem(
+  goal: RemainingGoalPlanItem | undefined,
+  currentActiveGoalIds: readonly string[]
+): Phase8RiskTraceabilityItem {
   if (!goal) {
     return {
       id: `${TRACE_ID}:active-goal`,
@@ -166,6 +170,10 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase8RiskTrac
     };
   }
 
+  const exactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
+  const isTrustedPhase8Goal =
+    isCurrentActiveRemainingGoal(goal) && exactlyOneCurrentActiveGoal;
+
   return {
     id: `${TRACE_ID}:active-goal`,
     label: "Remaining goal link",
@@ -173,16 +181,20 @@ function activeGoalItem(goal: RemainingGoalPlanItem | undefined): Phase8RiskTrac
     status:
       goal.status === "blocked"
         ? "blocked"
-        : isCurrentActiveRemainingGoal(goal)
+        : isTrustedPhase8Goal
           ? "ready"
           : goal.status === "active"
             ? "review"
             : "waiting",
-    detail: `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links.`,
-    nextAction: publicText(
-      goal.nextAction,
-      "Make Phase 8 the current active goal before permission audit can be trusted."
-    )
+    detail:
+      `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links ` +
+      `and ${currentActiveGoalIds.length} current active goal${currentActiveGoalIds.length === 1 ? "" : "s"}.`,
+    nextAction: exactlyOneCurrentActiveGoal
+      ? publicText(
+          goal.nextAction,
+          "Make Phase 8 the current active goal before permission audit can be trusted."
+        )
+      : `Keep exactly one current active remaining goal before Phase 8 permission audit can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
   };
 }
 
@@ -333,8 +345,9 @@ export function buildPhase8RiskTraceabilitySummary({
     ...snapshot.items.map((item) => item.evidenceKey),
     ...snapshot.exceptions.map((exception) => exception.evidenceKey)
   ]).size;
+  const currentActiveGoalIds = findCurrentActiveRemainingGoals(goals).map((item) => item.id);
   const items = [
-    activeGoalItem(goal),
+    activeGoalItem(goal, currentActiveGoalIds),
     pmCoverageItem(goal, missingPmTaskIds),
     auditDepthItem(snapshot),
     exceptionRegisterItem(snapshot),
@@ -355,6 +368,7 @@ export function buildPhase8RiskTraceabilitySummary({
     canTrustPermissionAudit:
       state === "ready" &&
       isCurrentActiveRemainingGoal(goal) &&
+      currentActiveGoalIds.length === 1 &&
       missingPmTaskIds.length === 0 &&
       snapshot.openExceptionCount === 0 &&
       evidenceKeyCount === snapshot.items.length + snapshot.exceptions.length,
