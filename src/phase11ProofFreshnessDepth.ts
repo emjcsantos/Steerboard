@@ -250,6 +250,7 @@ function proofExportItem(
       `handoff ${phase3ProofExportVerification.hasOwnerHandoffRecord ? "attached" : "missing"}, ` +
       `expected fingerprint ${formatHandoffFingerprint(phase3ProofExportVerification.handoffEvidenceFingerprint)}, ` +
       `record fingerprint ${formatHandoffFingerprint(phase3ProofExportVerification.ownerHandoffRecordFingerprint)}, ` +
+      `PM trace ${phase3ProofExportVerification.pmTaskId} / ${phase3ProofExportVerification.evidenceKey}, ` +
       `clearance snapshot ${phase3ProofExportVerification.ownerHandoffClearanceReadiness ?? 0}% with ` +
       `${phase3ProofExportVerification.ownerHandoffExactBlockerCount ?? 0} open blocker${phase3ProofExportVerification.ownerHandoffExactBlockerCount === 1 ? "" : "s"}.`,
     nextAction: phase3ProofExportVerification.canVerifyOffline

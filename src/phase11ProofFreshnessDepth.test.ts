@@ -242,6 +242,12 @@ describe("phase 11 proof freshness depth", () => {
         }),
         expect.objectContaining({
           label: "Phase 3 proof export",
+          detail: expect.stringContaining(
+            "PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification"
+          )
+        }),
+        expect.objectContaining({
+          label: "Phase 3 proof export",
           detail: expect.stringContaining("clearance snapshot 100% with 0 open blockers")
         })
       ])
@@ -286,6 +292,12 @@ describe("phase 11 proof freshness depth", () => {
         expect.objectContaining({
           label: "Phase 3 proof export",
           detail: expect.stringContaining("expected fingerprint missing")
+        }),
+        expect.objectContaining({
+          label: "Phase 3 proof export",
+          detail: expect.stringContaining(
+            "PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification"
+          )
         })
       ])
     );
