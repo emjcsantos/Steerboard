@@ -289,7 +289,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 52,
+    completionPercent: 60,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -297,7 +297,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
         description: "Render provider catalogs, readiness labels, current catalog fingerprints, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 45,
+        completionPercent: 55,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
@@ -305,14 +305,14 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-command-skill",
             title: "Command and Skill Catalogs",
             description: "Show command and skill entries with scope, fallback guidance, and owner-safe readiness status.",
-            completionPercent: 40,
+            completionPercent: 52,
             sourceDocument: "Command and skill catalogs"
           },
           {
             id: "phase-04-child-plugin-mcp",
             title: "Plugin and MCP Catalogs",
             description: "Show plugin and MCP entries with connection state, allowed surfaces, and non-mutating readiness evidence.",
-            completionPercent: 35,
+            completionPercent: 50,
             complexity: "high",
             sourceDocument: "Plugin and MCP catalogs"
           },
@@ -320,7 +320,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-catalog-depth",
             title: "Provider Catalog Detail Depth",
             description: "Show command, skill, plugin, MCP, automation, and personalization catalog records with visible source, totals, readiness state, evidence expectations, next actions, and execution locks.",
-            completionPercent: 40,
+            completionPercent: 55,
             complexity: "high",
             sourceDocument: "Phase 4 provider catalog depth"
           },
@@ -328,7 +328,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-surface-depth",
             title: "Provider Surface Depth",
             description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, and execution lock before provider execution is considered.",
-            completionPercent: 40,
+            completionPercent: 56,
             complexity: "high",
             sourceDocument: "Phase 4 provider surface depth"
           },
@@ -368,7 +368,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-traceability",
             title: "Provider Traceability",
             description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval, audit, rollback, and permission records, and execution locks before provider execution is considered.",
-            completionPercent: 42,
+            completionPercent: 60,
             complexity: "high",
             sourceDocument: "Phase 4 provider traceability"
           },
@@ -386,7 +386,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-refresh-safety",
         title: "Metadata-Only Refresh Safety",
         description: "Keep refresh and readiness paths read-only, fresh, and matched to current catalog evidence until provider permissions and approval gates are explicit.",
-        completionPercent: 50,
+        completionPercent: 58,
         complexity: "high",
         sourceDocument: "Provider catalog safety",
         children: [
@@ -394,14 +394,14 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-refresh-smoke",
             title: "All-Catalog Refresh Smoke",
             description: "Refresh and classify catalog status with checkedAt and catalog fingerprint proof without running commands, tools, automations, or mutations.",
-            completionPercent: 52,
+            completionPercent: 58,
             sourceDocument: "Catalog refresh owner validation"
           },
           {
             id: "phase-04-child-refresh-safety-depth",
             title: "Refresh Safety Depth",
             description: "Show refresh run state, six-surface order, validation result, proof freshness, catalog fingerprint match, metadata-only contract, provider execution lock, and reload-safe metadata-only proof as separate review rows.",
-            completionPercent: 58,
+            completionPercent: 62,
             complexity: "high",
             sourceDocument: "Phase 4 refresh safety depth"
           }

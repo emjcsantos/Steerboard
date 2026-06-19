@@ -132,7 +132,7 @@ describe("remaining goal plan", () => {
       "goal-phase-3-proof-clearance",
       "goal-phase-1-2-6-publish",
       "goal-phase-11-release-readiness",
-      "goal-phase-4-provider-surfaces"
+      "goal-phase-11-owner-command-center"
     ]);
     expect(queue[0]).toMatchObject({
       current: true,
