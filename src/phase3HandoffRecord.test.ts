@@ -109,6 +109,7 @@ describe("phase 3 handoff record", () => {
       )
     ).toMatchObject({
       state: "ready",
+      nextAction: expect.stringContaining("proof-export offline verification"),
       evaluatedAt: "2026-06-11T00:10:00.000Z",
       recordAgeMs: 600_000,
       matchesCurrentEvidence: true
@@ -137,19 +138,20 @@ describe("phase 3 handoff record", () => {
       expectedFingerprint
     );
 
-    expect(
-      derivePhase3HandoffRecordValidation(
-        record,
-        currentClearance,
-        expectedFingerprint
-      )
-    ).toMatchObject({
+    const validation = derivePhase3HandoffRecordValidation(
+      record,
+      currentClearance,
+      expectedFingerprint
+    );
+
+    expect(validation).toMatchObject({
       state: "review",
       detail: expect.stringContaining("cannot be freshness-checked"),
       nextAction: expect.stringContaining("current evaluation time"),
       maxRecordAgeMs: DEFAULT_PHASE3_HANDOFF_RECORD_MAX_AGE_MS,
       matchesCurrentEvidence: true
     });
+    expect(validation.nextAction).toContain("proof-export offline verification");
   });
 
   it("reviews stored handoff when no current evidence fingerprint is supplied", () => {
@@ -160,15 +162,16 @@ describe("phase 3 handoff record", () => {
       "phase3-handoff-existing"
     );
 
-    expect(
-      derivePhase3HandoffRecordValidation(record, currentClearance)
-    ).toMatchObject({
+    const validation = derivePhase3HandoffRecordValidation(record, currentClearance);
+
+    expect(validation).toMatchObject({
       state: "review",
       detail: expect.stringContaining("current Phase 3 evidence fingerprint is missing"),
       nextAction: expect.stringContaining("current Phase 3 evidence fingerprint"),
       recordFingerprint: "phase3-handoff-existing",
       matchesCurrentEvidence: false
     });
+    expect(validation.nextAction).toContain("proof-export offline verification");
   });
 
   it("reviews legacy ready handoff records when current evidence has a fingerprint", () => {

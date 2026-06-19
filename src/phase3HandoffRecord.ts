@@ -390,7 +390,8 @@ export function derivePhase3HandoffRecordValidation(
     return {
       state: "waiting",
       detail: "Owner-reviewed Phase 3 handoff record is not attached yet.",
-      nextAction: "Record the owner-reviewed Phase 3 handoff before Phase 4 review resumes.",
+      nextAction:
+        "Record the owner-reviewed Phase 3 handoff before Phase 4 review resumes and proof-export offline verification is trusted.",
       expectedFingerprint,
       matchesCurrentEvidence: false
     };
@@ -419,7 +420,8 @@ export function derivePhase3HandoffRecordValidation(
         state: "review",
         detail:
           "Owner handoff record cannot be validated because the current Phase 3 evidence fingerprint is missing.",
-        nextAction: "Attach the current Phase 3 evidence fingerprint before Phase 4 review resumes.",
+        nextAction:
+          "Attach the current Phase 3 evidence fingerprint before Phase 4 review resumes and proof-export offline verification is trusted.",
         recordFingerprint: record.evidenceFingerprint,
         ...recordFreshnessMetadata(record, options),
         matchesCurrentEvidence: false
@@ -458,7 +460,8 @@ export function derivePhase3HandoffRecordValidation(
         state: "review",
         detail:
           "Owner handoff record cannot be freshness-checked without the current Phase 3 evaluation timestamp.",
-        nextAction: "Review the owner handoff record with the current evaluation time before Phase 4 review resumes.",
+        nextAction:
+          "Review the owner handoff record with the current evaluation time before Phase 4 review resumes and proof-export offline verification is trusted.",
         expectedFingerprint,
         recordFingerprint: record.evidenceFingerprint,
         ...freshnessMetadata,
@@ -482,7 +485,8 @@ export function derivePhase3HandoffRecordValidation(
     return {
       state: "ready",
       detail: "Owner-reviewed Phase 3 handoff record matches the current evidence fingerprint.",
-      nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 review resumes.",
+      nextAction:
+        "Keep the owner-reviewed handoff record attached before Phase 4 review resumes and proof-export offline verification is trusted.",
       expectedFingerprint,
       recordFingerprint: record.evidenceFingerprint,
       ...freshnessMetadata,
