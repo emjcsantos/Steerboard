@@ -434,6 +434,10 @@ import {
 } from "./phase3CommandValidationRecord";
 import { runPhase3CommandValidationImportAction } from "./phase3CommandValidationImport";
 import {
+  buildPhase3RecordedArtifactLoadNotice,
+  type Phase3RecordedArtifactLoadState
+} from "./phase3ProofArtifactLoadNotice";
+import {
   buildPhase3OwnerTestingActions,
   gatePhase3OwnerTestingActionsToPrimary,
   type Phase3OwnerTestingAction
@@ -2771,42 +2775,37 @@ export function App() {
     }
   }, [importPhase3SmokeProofBundle]);
   const loadRecordedPhase3ProofArtifacts = useCallback(async () => {
-    let commandLoaded = false;
-    let smokeLoaded = false;
+    let commandState: Phase3RecordedArtifactLoadState = "unavailable";
+    let smokeState: Phase3RecordedArtifactLoadState = "unavailable";
 
     try {
       const serializedRecord = await invokeDesktopCommand<string>(
         "phase3_command_validation_artifact_read"
       );
-      commandLoaded = importPhase3CommandValidation(serializedRecord).imported;
+      commandState = importPhase3CommandValidation(serializedRecord).imported
+        ? "loaded"
+        : "rejected";
     } catch {
-      commandLoaded = false;
+      commandState = "unavailable";
     }
 
     try {
       const serializedBundle = await invokeDesktopCommand<string>(
         "phase3_smoke_proof_bundle_artifact_read"
       );
-      smokeLoaded = importPhase3SmokeProofBundle(serializedBundle).imported;
+      smokeState = importPhase3SmokeProofBundle(serializedBundle).imported
+        ? "loaded"
+        : "rejected";
     } catch {
-      smokeLoaded = false;
+      smokeState = "unavailable";
     }
 
-    if (commandLoaded && smokeLoaded) {
-      setAppNotice("Phase 3 CLI validation and desktop smoke proof artifacts loaded");
-    } else if (commandLoaded) {
-      setAppNotice(
-        "Phase 3 CLI validation artifact loaded; desktop smoke proof bundle is unavailable"
-      );
-    } else if (smokeLoaded) {
-      setAppNotice(
-        "Phase 3 desktop smoke proof bundle loaded; CLI validation artifact is unavailable"
-      );
-    } else {
-      setAppNotice(
-        "Recorded Phase 3 proof artifacts are unavailable; run npm.cmd run smoke:phase3:record first"
-      );
-    }
+    setAppNotice(
+      buildPhase3RecordedArtifactLoadNotice({
+        commandValidation: commandState,
+        smokeProofBundle: smokeState
+      })
+    );
   }, [importPhase3CommandValidation, importPhase3SmokeProofBundle]);
   const exportPhase3ProofArtifact = useCallback(() => {
     const now = new Date().toISOString();
