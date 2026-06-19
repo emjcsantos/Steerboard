@@ -332,6 +332,20 @@ describe("remaining goal plan", () => {
     );
   });
 
+  it("keeps active work as the current summary when current metadata is stale", () => {
+    const staleCurrentGoals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-3-proof-clearance"
+        ? { ...goal, current: false }
+        : goal.id === "goal-phase-4-provider-surfaces"
+          ? { ...goal, current: true }
+          : goal
+    );
+    const summary = summarizeRemainingGoalPlan(staleCurrentGoals);
+
+    expect(summary.currentTarget).toBe("Phase 3 desktop proof clearance");
+    expect(summary.currentNextAction).toContain("Phase 3 command plan");
+  });
+
   it("keeps the Phase 9 runner approval target linked to traceability, approval depth, and blocker priority", () => {
     const phase9Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-9-runner");
 

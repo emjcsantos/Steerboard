@@ -433,8 +433,8 @@ export function summarizeRemainingGoalPlan(
   const currentGoal =
     currentActiveGoals.length === 1
       ? currentActiveGoals[0]
-      : (goals.find((goal) => goal.current && goal.status !== "blocked") ??
-        goals.find((goal) => goal.status === "active") ??
+      : (goals.find((goal) => goal.status === "active") ??
+        goals.find((goal) => goal.current && goal.status !== "blocked") ??
         goals.find((goal) => goal.current) ??
         goals.find((goal) => goal.status === "blocked") ??
         goals.find((goal) => goal.status === "next") ??
