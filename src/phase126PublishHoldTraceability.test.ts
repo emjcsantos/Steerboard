@@ -119,6 +119,9 @@ describe("phase 1/2/6 publish hold traceability", () => {
 
     expect(result.state).toBe("blocked");
     expect(result.canTrustLocalHold).toBe(false);
+    expect(result.ariaLabel).toContain(
+      "Phase 1/2/6 publish hold traceability: Blocked; 50% ready; 3 phases; 18 PM links; 3 blocked; 0 waiting; publish hold blocked; next action:"
+    );
     expect(result.missingPmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-06-child-publish-hold-traceability",
@@ -154,6 +157,9 @@ describe("phase 1/2/6 publish hold traceability", () => {
 
     expect(result.state).toBe("blocked");
     expect(result.canTrustLocalHold).toBe(false);
+    expect(result.ariaLabel).toContain(
+      "Phase 1/2/6 publish hold traceability: Blocked; 56% ready; 3 phases; 20 PM links; 2 blocked; 1 waiting; publish hold blocked; next action:"
+    );
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "phase-6-board", status: "waiting" }),
@@ -171,6 +177,9 @@ describe("phase 1/2/6 publish hold traceability", () => {
 
     expect(result.state).toBe("blocked");
     expect(result.canTrustLocalHold).toBe(false);
+    expect(result.ariaLabel).toContain(
+      "Phase 1/2/6 publish hold traceability: Blocked; 50% ready; 3 phases; 20 PM links; 3 blocked; 0 waiting; publish hold blocked; next action:"
+    );
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

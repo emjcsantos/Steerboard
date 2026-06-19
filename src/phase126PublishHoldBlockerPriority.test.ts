@@ -146,6 +146,9 @@ describe("phase 1/2/6 publish hold blocker priority", () => {
       "Publish hold goal",
       "Phase 6 PM phase board"
     ]);
+    expect(result.ariaLabel).toContain(
+      "Phase 1/2/6 publish hold blocker priority: Blocked; 3 open blockers; 3 owner-review addressable; top priority Publish hold; next action:"
+    );
     expect(result.items[2]).toMatchObject({
       status: "review",
       severity: "high"
