@@ -632,6 +632,12 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Clearance package");
     expect(html).toContain("Exit ready");
     expect(html).toContain(
+      'aria-label="Phase 3 exit gate Ready; 100% ready; current panel panel-phase3-owner-visible; 3 PM links; 5 evidence keys"'
+    );
+    expect(html).toContain(
+      'aria-label="Phase 3 clearance package Ready; 100% ready; 0 open blockers"'
+    );
+    expect(html).toContain(
       'aria-label="Phase 3 clearance package counts"><div><dt>Ready</dt><dd>5</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>Action</dt><dd>Review</dd></div></dl>'
     );
     expect(html).toContain(
@@ -858,6 +864,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain(currentPanelId);
     expect(html).toContain("Phase 3 clearance package Waiting");
     expect(html).toContain(
+      'aria-label="Phase 3 exit gate Waiting; 35% ready; current panel panel-phase3-owner-visible; 3 PM links; 5 evidence keys"'
+    );
+    expect(html).toContain(
       'aria-label="Phase 3 clearance package Waiting; 35% ready; 2 open blockers"'
     );
     expect(html).toContain(
@@ -882,6 +891,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Phase 3 gate");
     expect(html).toContain("Needs review");
     expect(html).toContain("Exit held");
+    expect(html).toContain(
+      'aria-label="Phase 3 exit gate Review; 65% ready; current panel panel-phase3-owner-visible; 3 PM links; 5 evidence keys"'
+    );
     expect(html).toContain(
       'aria-label="Phase 3 clearance package Needs review; 65% ready; 2 open blockers"'
     );
