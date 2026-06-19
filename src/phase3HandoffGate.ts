@@ -248,6 +248,21 @@ function hasOfflineVerifiableProofExport(
   return proofExportVerification?.state === "ready" && proofExportVerification.canVerifyOffline;
 }
 
+function canRecordHandoffFromProofExportPreflight(
+  proofExportVerification: Phase3ProofExportVerification | undefined
+): boolean {
+  return (
+    proofExportVerification?.state === "review" &&
+    proofExportVerification.readyPanelEvidenceCount === 2 &&
+    proofExportVerification.storageAttestedDesktopProofCount === 3 &&
+    proofExportVerification.hasCommandValidationRecord &&
+    !proofExportVerification.hasOwnerHandoffRecord &&
+    Boolean(proofExportVerification.handoffEvidenceFingerprint) &&
+    proofExportVerification.detail ===
+      "Phase 3 proof export artifact is missing the owner handoff record."
+  );
+}
+
 function commandValidationItem(
   commandValidation: Phase3CommandValidationRecordValidation | undefined
 ): Phase3HandoffGateItem {
@@ -650,7 +665,10 @@ function buildOwnerReviewSummary(
     )}`;
   }
 
-  if (!hasOfflineVerifiableProofExport(input.proofExportVerification)) {
+  if (
+    !hasOfflineVerifiableProofExport(input.proofExportVerification) &&
+    !canRecordHandoffFromProofExportPreflight(input.proofExportVerification)
+  ) {
     return `Owner handoff held: ${publicText(
       input.proofExportVerification?.detail,
       "Phase 3 proof export offline verification is not attached yet."
@@ -662,7 +680,9 @@ function buildOwnerReviewSummary(
   }
 
   if (!handoffRecordValidation) {
-    return "Owner handoff recordable: clearance is exit-ready, Phase 3 PM traceability is trusted, CLI validation is ready, and proof-export offline verification is trusted; record the owner-reviewed handoff locally.";
+    return canRecordHandoffFromProofExportPreflight(input.proofExportVerification)
+      ? "Owner handoff recordable: clearance is exit-ready, Phase 3 PM traceability is trusted, CLI validation is ready, and proof-export preflight only needs the owner handoff record; record the owner-reviewed handoff locally."
+      : "Owner handoff recordable: clearance is exit-ready, Phase 3 PM traceability is trusted, CLI validation is ready, and proof-export offline verification is trusted; record the owner-reviewed handoff locally.";
   }
 
   if (

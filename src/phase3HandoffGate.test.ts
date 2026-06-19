@@ -172,9 +172,11 @@ describe("phase 3 handoff gate", () => {
         statusLabel: "Review",
         readiness: 65,
         canVerifyOffline: false,
-        detail: "Phase 3 proof export artifact is missing the owner handoff record.",
-        nextAction: "Record the owner-reviewed Phase 3 handoff before exporting.",
-        hasOwnerHandoffRecord: false
+        detail:
+          "Phase 3 proof export artifact handoff fingerprint does not match the current owner-visible handoff fingerprint.",
+        nextAction:
+          "Clear and record the Phase 3 handoff again from current exit-ready evidence, then re-export the proof package.",
+        handoffEvidenceFingerprint: "phase3-handoff-old"
       }),
       handoffRecordState: "ready",
       handoffRecordValidation: readyHandoffValidation()
@@ -182,7 +184,9 @@ describe("phase 3 handoff gate", () => {
 
     expect(result.state).toBe("review");
     expect(result.canAdvanceProviderIntegration).toBe(false);
-    expect(result.nextAction).toBe("Record the owner-reviewed Phase 3 handoff before exporting.");
+    expect(result.nextAction).toBe(
+      "Clear and record the Phase 3 handoff again from current exit-ready evidence, then re-export the proof package."
+    );
     expect(result.ownerReviewSummary).toContain("Owner handoff held");
     expect(result.items).toEqual(
       expect.arrayContaining([
@@ -196,7 +200,47 @@ describe("phase 3 handoff gate", () => {
         expect.objectContaining({
           label: "Provider boundary",
           status: "review",
+          detail: expect.stringContaining("handoff fingerprint does not match")
+        })
+      ])
+    );
+  });
+
+  it("marks owner handoff recordable from a complete proof-export preflight", () => {
+    const result = buildGate({
+      clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
+      proofExportVerification: readyProofExportVerification({
+        state: "review",
+        statusLabel: "Review",
+        readiness: 65,
+        canVerifyOffline: false,
+        detail: "Phase 3 proof export artifact is missing the owner handoff record.",
+        nextAction: "Record the owner-reviewed Phase 3 handoff before exporting.",
+        hasOwnerHandoffRecord: false
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canAdvanceProviderIntegration).toBe(false);
+    expect(result.ownerReviewSummary).toContain("Owner handoff recordable");
+    expect(result.ownerReviewSummary).toContain(
+      "proof-export preflight only needs the owner handoff record"
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Proof export boundary",
+          status: "review",
           detail: expect.stringContaining("missing the owner handoff record")
+        }),
+        expect.objectContaining({
+          label: "Owner handoff record",
+          status: "waiting"
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          status: "waiting"
         })
       ])
     );
