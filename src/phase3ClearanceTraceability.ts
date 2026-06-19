@@ -86,6 +86,7 @@ export const REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS = [
   "phase-03-child-command-plan",
   "phase-03-child-blocker-priority",
   "phase-03-child-traceability",
+  "phase-03-child-proof-export-boundary",
   "phase-03-child-handoff-gate"
 ] as const;
 export const REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS = [

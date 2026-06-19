@@ -252,6 +252,7 @@ function trace(overrides: Partial<Parameters<typeof buildPhase11OwnerReleaseTrac
 function underThresholdPhase3ProjectManagementPlan() {
   return createDefaultProjectManagementPhasePlan().map((task) =>
     task.id === "phase-03-child-blocker-priority" ||
+    task.id === "phase-03-child-proof-export-boundary" ||
     task.id === "phase-03-child-handoff-gate"
       ? { ...task, completionPercent: 82 }
       : task
@@ -366,6 +367,7 @@ describe("phase 11 owner release traceability", () => {
     const phase3Trace = result.items.find((item) => item.kind === "phase3-trace");
     expect(phase3Trace?.detail).toContain("phase-03-child-blocker-priority");
     expect(phase3Trace?.detail).toContain("phase-03-child-traceability");
+    expect(phase3Trace?.detail).toContain("phase-03-child-proof-export-boundary");
     expect(phase3Trace?.detail).toContain("phase-03-child-handoff-gate");
     expect(phase3Trace?.detail).toContain("proof export ready");
     expect(phase3Trace?.detail).toContain("Proof export is ready for offline verification.");
