@@ -236,6 +236,22 @@ describe("phase 3 proof export", () => {
     expect(verification.nextAction).toContain("current focused panel");
   });
 
+  it("keeps proof exports from a different focused panel in review", () => {
+    const verification = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        currentPanelId: "panel-other-phase3"
+      }),
+      {
+        verifiedAt,
+        expectedCurrentPanelId: currentPanelId
+      }
+    );
+
+    expect(verification.state).toBe("review");
+    expect(verification.detail).toContain("different focused panel");
+    expect(verification.nextAction).toContain("current focused Arena panel");
+  });
+
   it("requires the current expected owner handoff fingerprint", () => {
     const verification = verifyPhase3ProofExportArtifact(
       readyArtifact({
@@ -247,6 +263,27 @@ describe("phase 3 proof export", () => {
     expect(verification.state).toBe("review");
     expect(verification.detail).toContain("current expected owner handoff fingerprint");
     expect(verification.nextAction).toContain("current exit-ready handoff fingerprint");
+  });
+
+  it("keeps self-consistent but non-current handoff fingerprints in review", () => {
+    const oldFingerprint = "phase3-handoff-old";
+    const verification = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        handoffEvidenceFingerprint: oldFingerprint,
+        ownerHandoffRecord: {
+          ...ownerHandoffRecord,
+          evidenceFingerprint: oldFingerprint
+        }
+      }),
+      {
+        verifiedAt,
+        expectedHandoffEvidenceFingerprint: handoffFingerprint
+      }
+    );
+
+    expect(verification.state).toBe("review");
+    expect(verification.detail).toContain("current owner-visible handoff fingerprint");
+    expect(verification.nextAction).toContain("re-export the proof package");
   });
 
   it("reviews proof export artifacts with stale owner handoff fingerprints", () => {

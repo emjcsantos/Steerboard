@@ -2826,12 +2826,14 @@ export function App() {
   const verifyImportedPhase3ProofArtifact = useCallback((serializedArtifact: string) => {
     const now = new Date().toISOString();
     const verification = verifySerializedPhase3ProofExportArtifact(serializedArtifact, {
-      verifiedAt: now
+      verifiedAt: now,
+      expectedCurrentPanelId: focusedPanelId,
+      expectedHandoffEvidenceFingerprint: phase3HandoffEvidenceFingerprint
     });
 
     setImportedPhase3ProofExportVerification(verification);
     setAppNotice(`Imported Phase 3 proof ${verification.statusLabel}: ${verification.detail}`);
-  }, []);
+  }, [focusedPanelId, phase3HandoffEvidenceFingerprint]);
   const exportPhase4ProviderReviewArtifact = useCallback(() => {
     const now = new Date().toISOString();
     const artifact = buildPhase4ProviderReviewArtifact({

@@ -84,6 +84,8 @@ export interface Phase3ProofExportVerifyOptions {
   readonly verifiedAt?: string | Date;
   readonly maxArtifactAgeMs?: number;
   readonly maxHandoffAgeMs?: number;
+  readonly expectedCurrentPanelId?: string;
+  readonly expectedHandoffEvidenceFingerprint?: string;
 }
 
 export interface Phase3ProofExportDownloadPreparation {
@@ -325,6 +327,19 @@ export function verifyPhase3ProofExportArtifact(
     );
   }
 
+  if (
+    options.expectedCurrentPanelId &&
+    artifact.currentPanelId !== options.expectedCurrentPanelId
+  ) {
+    return result(
+      "review",
+      artifact,
+      "Phase 3 proof export artifact belongs to a different focused panel than the current owner-visible context.",
+      "Re-export Phase 3 proof from the current focused Arena panel before using it for owner review.",
+      counts
+    );
+  }
+
   if (!isFresh(artifact.evaluatedAt, options.verifiedAt, options.maxArtifactAgeMs ?? DEFAULT_MAX_ARTIFACT_AGE_MS)) {
     return result(
       "review",
@@ -402,6 +417,19 @@ export function verifyPhase3ProofExportArtifact(
       artifact,
       "Phase 3 proof export artifact is missing the current expected owner handoff fingerprint.",
       "Re-export Phase 3 proof with the current exit-ready handoff fingerprint attached.",
+      counts
+    );
+  }
+
+  if (
+    options.expectedHandoffEvidenceFingerprint &&
+    artifact.handoffEvidenceFingerprint !== options.expectedHandoffEvidenceFingerprint
+  ) {
+    return result(
+      "review",
+      artifact,
+      "Phase 3 proof export artifact handoff fingerprint does not match the current owner-visible handoff fingerprint.",
+      "Clear and record the Phase 3 handoff again from current exit-ready evidence, then re-export the proof package.",
       counts
     );
   }
