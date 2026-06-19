@@ -4,97 +4,67 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 ## Current Pipeline
 
-The current development lane is Phase 3 desktop proof clearance: run the explicit desktop smoke actions, persist their proof rows across reload, continuously reevaluate proof freshness while the app remains open, and verify slash-command plus session-control evidence before advancing broader provider, dispatch, or release work. Phase 4 now includes Provider Readiness catalog-depth rows, Connection Dialog Refresh Safety depth rows, and the Phase 4 Surface Depth panel for metadata-only source coverage, catalog evidence expectations, fresh fingerprint-matched metadata-only refresh proof, surface coverage, setup blockers, capability gaps, preview review, and execution lock tracking. Phase 11 tracks release-readiness decision support for clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability with handoff proof, packaging lock, docs/known limits, final security closure capability, and owner release decision while packaging remains paused. The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md).
+The current implementation target is Phase 3 desktop proof clearance. Phase 1, Phase 2, and Phase 6 are held locally behind the owner/remote publish hold until the Steerboard public remote is restored and the owner explicitly approves pushing. The Project Management board, Remaining Goals summary, Owner Testing surfaces, and release-readiness gates all use the current Phase 0-11 plan below.
+
+The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md). The Project Management lane details are maintained in [Project Management Lane](product/project-management-lane.md).
 
 ## Milestone Tracking
 
 | Target | Completion | Note |
 |---|---|---|
-| Phase 1: Product Scaffold | In progress | Core local shell, restrained app menu, public fixture data, project sidebar, fixed Arena presets, compact Arena control row, layout dropdown, local panel chat, and operating modes are scaffolded for local review. |
-| Phase 2: Orchestration Model | In progress | Mock runs, task state, validation gates, handoff previews, selected-run evidence panels, and compact Arena monitor summaries with local stream controls are available without external runtime execution. |
-| Phase 3: Optional Project Management Lane | In progress | Pipeline items can be inspected, request history is local, dispatch-ready items can create local Arena run projections, and selected items can show linked local runs with status summaries. This lane supports visibility and change management, while Arena chat remains primary. |
-| Phase 4: Runtime Adapters | In progress | Provider-neutral adapter previews, runtime profiles, local approvals, bridge status, permission previews, and evidence readiness are scaffolded as locked local previews. |
-| Phase 5: Live Codex Integration | In progress | Codex transport spike identifies supervised app-server stdio as the safest first session bridge, with no-prompt readiness on startup and explicit live smoke for one read-only send/stream proof. |
-| Phase 6: Project and Program Planning Lane | In progress | The Project Management board now carries the current Phase 0-11 Epic, Parent, and Child hierarchy, saved-state upgrades, staged Arena review packages, Phase 1/2/6 publish-hold traceability, and blocker-priority rows while execution remains locked. |
-| Phase 7: Platform Capabilities | In progress | Slash commands, Skills catalog, Plugin manager, MCP manager, Automations manager, and Personalization center now expose structured feedback plus desktop-backed safe provider capability refresh; permissions and audit state continue toward live provider-backed surfaces. |
-| Phase 8: Local Execution And Packaging | Planned | Real runtime execution, permissioned terminal/Git capture, audit exports, build signing, and installer checks remain behind future explicit approval gates; Phase 11 release-readiness tracking keeps the package lock and release decision visible before this work resumes. |
+| Phase 0: Baseline, Safety, and Docs Hygiene | Completed | Public boundary, repeatable validation, and roadmap/PM documentation hygiene are in place. |
+| Phase 1: One Live Chat Panel | In progress | One-panel live send/stream proof is modeled with persisted proof rows and remains part of the Phase 1/2/6 owner publish hold. |
+| Phase 2: Multi-Panel Session Isolation | In progress | Two-panel session/thread isolation, no-cross-talk proof, and restore-panel behavior are modeled and remain part of the Phase 1/2/6 owner publish hold. |
+| Phase 3: Controls, Slash Commands, and Desktop Proof | In progress | Current active implementation target for slash/session controls, desktop smoke proof, blocker priority, traceability, and owner handoff gating. |
+| Phase 4: Provider Integration Surfaces | Next | Provider catalog depth, surface depth, approval, audit, rollback, permission, traceability, and blocker priority remain metadata-only and execution-locked. |
+| Phase 5: Migration Center | Next | Migration review, apply-intent lock, rollback evidence, sensitive exclusions, traceability, and blocker priority remain metadata-only until review gates pass. |
+| Phase 6: Project and Program Planning Lane | In progress | The Project Management board carries the current Phase 0-11 Epic, Parent, and Child hierarchy, saved-state upgrades, staged Arena review packages, publish-hold traceability, and blocker-priority rows. |
+| Phase 7: Orchestrator-Worker Dispatch | Next | Dispatch review depth, role packet staging, integration ownership, traceability, blocker priority, and live-worker locks remain staged for review. |
+| Phase 8: Permissions and Audit | Next | Permission labels, risk blockers, risk exceptions, audit persistence, traceability, and blocker priority remain prerequisites before mutation paths grow. |
+| Phase 9: Desktop-Backed Runner | Next | The fixed terminal read-only probe remains behind permission, audit, validation, rollback, traceability, runner-review, and owner approval gates. |
+| Phase 10: Adaptive Magnetic Arena | Next | Adaptive layout regression, density, keyboard controls, focus state, Arena terminology, traceability, and blocker priority remain polish work after core proof clears. |
+| Phase 11: Owner Testing and Release Readiness | Next | Owner Testing, evidence records, proof freshness, fresh checkout, release readiness, owner release traceability, blocker priority, and packaging holds remain the final release gate. |
 
-## Phase 1: Product Scaffold
+## Phase 0: Baseline, Safety, and Docs Hygiene
 
-- Local desktop shell.
-- Top-left desktop app menu with only useful MVP sections: `File`, `View`, `Connect`, and `Help`.
-- Local panel chat transcript and composer in every Arena panel.
-- Local slash command discovery in panel composers.
-- Local Codex connection request preview with execution still locked.
-- Public-safe fixture data.
-- Project sidebar.
-- Fixed Arena grid presets up to `3x3`.
-- Layout dropdown with `Adaptive` as a selectable option.
-- Compact single-row Arena control strip for layout, focus, panel activity, hidden queue, and monitor controls.
-- Focus lane, orchestrator-with-workers, and independent project monitor modes.
+- Public-safe project boundary and documentation hygiene.
+- Repeatable validation and build checks.
+- Roadmap and current-state handoff references.
 
-## Phase 2: Orchestration Model
+## Phase 1: One Live Chat Panel
 
-- Runs, tasks, workers, attempts, validation states, and handoff records.
-- Orchestrator task board.
-- Worker detail and validation evidence views.
-- Deterministic handoff preview.
-- Compact Arena monitor summary for selected-run and stream state.
-- Local stream controls on the compact Arena monitor summary.
+- Live Arena panel send/stream proof with thread, turn, stream delta, completion, and expected-token evidence.
+- Persisted proof rows that can survive reload without sending prompts on startup.
+- Owner-visible proof status in the Phase 1/2/6 priority evidence surface.
+- Publishing remains held locally until owner approval.
 
-## Phase 3: Optional Project Management Lane
+## Phase 2: Multi-Panel Session Isolation
 
-- Optional project pipeline.
-- Milestones, tasks, blockers, readiness checks, and dispatch previews.
-- Selected pipeline item dispatch detail preview.
-- Local selected-item dispatch request history.
-- Link from pipeline item to Arena run.
-- Local pipeline item to Arena run projection.
-- Visible linked local Arena runs for selected pipeline items.
-- Linked Arena run status summaries in the pipeline lane.
+- Two-panel live smoke proof with distinct session and thread identities.
+- No foreign-token or cross-talk evidence between panels.
+- Restore-panel behavior for saved sessions.
+- Duplicated live panel identity blocks Phase 2 until fresh isolated sessions are proven.
 
-## Phase 4: Runtime Adapters
+## Phase 3: Controls, Slash Commands, and Desktop Proof
 
-- Provider-neutral adapter contract.
-- Provider-neutral runtime profile readiness model.
-- Phase 4 Provider Readiness catalog-depth metadata, Refresh Safety depth rows, and Surface Depth tracking for source coverage, catalog evidence expectations, fresh fingerprint-matched metadata-only refresh proof, provider surface coverage, setup blockers, capability gaps, preview review, and execution locks with no provider execution.
-- Runtime profile catalog and Arena readiness panel.
-- Editable local runtime profile draft with saved-state repair.
-- Local runtime profile approval request preview.
-- Local runtime profile approval history.
-- Local runtime profile activation state with no process execution.
-- Mock adapter for tests and demos.
-- Runtime setup and permission review flow.
-- Local launch request preview before approved runtime execution.
-- Local approval request preview for runtime handoff.
-- Local execution audit preview before runtime execution.
-- Local execution audit preview history.
-- Desktop bridge status panel for shell reachability and locked execution state.
-- Desktop permission handoff preview for an active local runtime profile.
-- Local desktop permission request history.
-- Local desktop permission approval preview.
-- Desktop permission approval status panel.
-- Local desktop permission audit and export preview.
-- Desktop packaging readiness preview.
-- Local validation evidence readiness preview.
-- Terminal and Git evidence readiness preview.
-- Local terminal and Git capture request history.
+- Slash command readiness and local control rows.
+- Session-control proof for active-turn interrupt, retry, and steer while unsupported controls stay honest.
+- Desktop smoke proof rows with stale-proof review and row-specific next actions.
+- Phase 3 command plan, CLI validation provenance, blocker-priority queue, traceability rows, and handoff gate.
+- Provider integration remains held until current evidence, current active goal links, PM row links, fingerprint match, clearance snapshot, and handoff age metadata are trusted.
 
-## Phase 5: Live Codex Integration
+## Phase 4: Provider Integration Surfaces
 
-- Codex install and version detection.
-- Auth posture display for ChatGPT login, API-key login, and trusted access-token setup.
-- Provider connection flow that grows from the local Codex connection request preview into a real adapter handshake.
-- Desktop-gated app-server stdio transport probe with no-prompt initialize handshake.
-- Explicit live smoke action for one ephemeral read-only `turn/start` and `item/agentMessage/delta` proof.
-- Documented fallback to local preview or explicit one-shot `exec --json` behavior when stable session transport is unavailable.
-- Read-only Codex default option seed for plugins, skills, slash commands, MCP servers, and personalization sources.
-- `File > Migrate...` preview for importing supported Codex settings, options, projects, threads/chats, skills, plugins, MCP servers, commands, and personalization into a Steerboard profile.
-- Local app-server initialization and health state.
-- Thread start, resume, fork, archive, turn start, steer, interrupt, retry, and completion handling.
-- Live panel chat backed by normalized stream events.
-- Per-panel workspace, model, sandbox, approval, and runtime metadata where supported.
-- Connection failure, unsupported capability, and offline states.
+- Command, skill, plugin, MCP, automation, and personalization catalog depth.
+- Provider surface depth for setup blockers, capability gaps, preview review, and execution locks.
+- Local approval, audit, rollback, and permission records tied to the current catalog and evidence fingerprints.
+- Provider traceability and blocker priority before any provider execution is considered.
+
+## Phase 5: Migration Center
+
+- Migration source picker and metadata-only import review.
+- Apply-intent lock, rollback evidence, profile activation lock, and sensitive exclusion checks.
+- Migration review depth, traceability, and blocker priority before any active profile or source platform state can change.
 
 ## Phase 6: Project and Program Planning Lane
 
@@ -103,48 +73,35 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 - Dense Jira-like hierarchy for task, description, status, completion, complexity, source, and action review.
 - Row-level staged Arena review packages for Epics, Parents, and Children, including hierarchy context and descendant tasks.
 - Remaining-goal links from each priority target to the PM rows needed to stage Arena review packages.
-- Phase 1/2/6 publish-hold traceability linking one-panel proof, two-panel isolation, PM staging, required PM coverage, and owner/remote publish hold.
-- Phase 1/2/6 blocker-priority rows that keep the owner/remote publish hold ranked above proof review until the owner approves pushing.
+- Phase 1/2/6 publish-hold traceability and blocker-priority rows that keep the owner/remote publish hold ranked above proof review.
 - Execution remains locked: PM staging is local review only and does not launch workers, push branches, publish artifacts, or mutate external state.
 
-## Phase 7: Platform Capabilities
+## Phase 7: Orchestrator-Worker Dispatch
 
-- Slash command registry and composer command menu with ready, preview, blocked, unsupported, and unavailable feedback.
-- Desktop-backed safe provider capability refresh for slash commands, with seeded fallback in browser preview.
-- Desktop-backed safe provider capability refresh for Skills catalog metadata, with seeded fallback in browser preview.
-- Desktop-backed safe provider capability refresh for Plugin catalog metadata, with seeded fallback in browser preview.
-- Desktop-backed safe provider capability refresh for MCP catalog metadata, with seeded fallback in browser preview.
-- Desktop-backed safe provider capability refresh for Automation catalog metadata, with seeded fallback in browser preview.
-- Desktop-backed safe provider capability refresh for Personalization catalog metadata, with seeded fallback in browser preview.
-- Migration center for supported agent tools, generic MCP config, generic skill/prompt folders, and manual JSON or TOML imports, with source picker, category checkboxes, and minimum-needed tool scope.
-- Provider-backed command execution with unsupported-state handling.
-- Plugin manager showing installed, enabled, disabled, setup-required, and unavailable states.
-- Plugin invocation through prompt prefixes or provider-supported command actions.
-- Automation manager for thread, project, and standalone automation lifecycle.
-- Automation schedule, worktree/local mode, latest findings, and triage state.
-- MCP manager for configured servers, health, OAuth/setup state, tool policy, and server failures.
-- Personalization center for active instructions, config layers, rules, skills, memories, and custom prompts.
-- Permission and approval surface shared by sessions, plugins, MCP tools, automations, terminal, Git, and external services.
-- Local audit records for approvals, denials, retries, and normalized live events.
+- Role-panel plan scaffolds for orchestrator, implementer, validator, and integration ownership.
+- Dispatch review depth for role coverage, max attempts, handoff task depth, packet integrity, validation gates, and closure boundaries.
+- Current evidence fingerprint matching, traceability, blocker priority, and no-live-worker execution lock before worker spawning.
 
-## Phase 8: Local Execution And Packaging
+## Phase 8: Permissions and Audit
 
-- Phase 11 release-readiness tracking for clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability with handoff proof, packaging lock, docs/known limits, final security closure capability, and final owner release decision while packaging stays paused.
-- Real session ownership through configured runtimes.
-- Approved launch handoff from local preview into configured runtimes.
-- Desktop bridge permission flow for approved process and workspace access.
-- Runtime profile editor and validation flow before approved launch.
-- Runtime profile activation handoff into desktop-shell permission flow.
-- Desktop permission request records for approved profile handoffs.
-- Desktop permission request execution with approval, rollback, and audit export.
-- Desktop permission approval command backed by shell-level safety checks.
-- Signed desktop permission audit export after approved handoff.
-- Runtime execution unlock after shell permission approval and audit handoff.
-- Runtime execution audit trail for approved handoffs.
-- Persisted execution audit records and rollback references.
-- Audit export and review workflow.
-- Git, terminal, validation, and evidence panels.
-- Permissioned terminal and Git evidence capture.
-- Rollback-aware command and repository evidence records.
-- Local build, signing, and installer readiness checks.
-- Signed desktop builds after the local security model is proven.
+- Permission labels, risk blockers, risk exceptions, and disabled-path explanations.
+- Local owner audit-review records with current audit evidence fingerprints.
+- Record-specific rollback review, audit persistence, risk traceability, blocker priority, and owner-visible proof before mutation paths grow.
+
+## Phase 9: Desktop-Backed Runner
+
+- Fixed terminal read-only probe selection and owner approval.
+- Request preview, validation output, audit record, rollback evidence, local runner-review record, and unique evidence keys.
+- Phase 8 owner-review linkage, Phase 9 traceability, blocker priority, and mutation lock before the desktop runner can advance.
+
+## Phase 10: Adaptive Magnetic Arena
+
+- Adaptive layout regression, density/readability, keyboard controls, focus state, and Arena terminology.
+- Current adaptive canvas behavior remains local UI work; release gating stays behind Phase 3 clearance and later packaging gates.
+- Traceability and blocker priority for Arena-review acceptance before packaging resumes.
+
+## Phase 11: Owner Testing and Release Readiness
+
+- Owner Testing command center with checklist coverage, proof freshness depth, evidence records, phase readiness, current next action, and prioritized remaining-goal traces.
+- Release readiness gate for fresh checkout, clean checkout, build/test, owner smoke proof, current active Phase 3 clearance PM traceability with handoff proof, docs/known limits, security closure capability, and final release decision.
+- Owner release traceability and blocker priority keep packaging, signing, installer creation, Git push, and external release actions paused until the owner explicitly resumes them.
