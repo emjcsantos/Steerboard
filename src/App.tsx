@@ -1780,6 +1780,26 @@ async function readPhase3RecordedArtifact(
   return response.text();
 }
 
+async function readPhase4RecordedArtifact(
+  artifactName: "phase4-provider-review-artifact.json",
+  desktopCommand: string
+): Promise<string> {
+  if (hasDesktopRuntime()) {
+    return invokeDesktopCommand<string>(desktopCommand);
+  }
+
+  if (!hasPhase3RecordedArtifactLoadAccess()) {
+    throw new Error("phase4_recorded_artifact_load_unavailable");
+  }
+
+  const response = await fetch(`/local_private/${artifactName}`, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`phase4_recorded_artifact_fetch_failed:${artifactName}:${response.status}`);
+  }
+
+  return response.text();
+}
+
 const adaptiveProjectTemplateOptions: Array<{
   id: AdaptiveCockpitProjectStackRequestedTemplateId;
   label: string;
@@ -3010,6 +3030,20 @@ export function App() {
     },
     [phase4CurrentCatalogFingerprint]
   );
+  const loadRecordedPhase4ProviderReviewArtifact = useCallback(async () => {
+    try {
+      const serializedArtifact = await readPhase4RecordedArtifact(
+        "phase4-provider-review-artifact.json",
+        "phase4_provider_review_artifact_read"
+      );
+
+      verifyImportedPhase4ProviderReviewArtifact(serializedArtifact);
+    } catch {
+      setAppNotice(
+        "Recorded Phase 4 provider review artifact is unavailable; run npm.cmd run smoke:phase4:record first"
+      );
+    }
+  }, [verifyImportedPhase4ProviderReviewArtifact]);
   const clearPhase3CommandValidation = useCallback(() => {
     const now = new Date().toISOString();
 
@@ -4775,6 +4809,7 @@ export function App() {
             phase4ProviderPermissionRecord={phase4ProviderPermissionRecord}
             phase4ProviderPermissionValidation={phase4ProviderPermissionValidation}
             phase4ProviderReviewArtifactVerification={phase4ProviderReviewArtifactVerification}
+            phase4RecordedArtifactLoadAvailable={hasPhase3RecordedArtifactLoadAccess()}
             phase4ProviderTraceability={phase4ProviderTraceability}
             phase4ProviderSurfaceDepth={phase4ProviderSurfaceDepth}
             importedPhase4ProviderReviewArtifactVerification={
@@ -4827,6 +4862,9 @@ export function App() {
             onRecordPhase4ProviderPermission={recordPhase4ProviderPermission}
             onClearPhase4ProviderPermission={clearPhase4ProviderPermission}
             onExportPhase4ProviderReviewArtifact={exportPhase4ProviderReviewArtifact}
+            onLoadRecordedPhase4ProviderReviewArtifact={
+              loadRecordedPhase4ProviderReviewArtifact
+            }
             onVerifyImportedPhase4ProviderReviewArtifact={
               verifyImportedPhase4ProviderReviewArtifact
             }
@@ -8178,6 +8216,7 @@ export function Phase4ProviderSurfaceDepthPanel({
   onClearPermission,
   onClearRollback,
   onExportReviewArtifact,
+  onLoadRecordedReviewArtifact,
   onRecordApproval,
   onRecordAudit,
   onRecordPermission,
@@ -8187,6 +8226,7 @@ export function Phase4ProviderSurfaceDepthPanel({
   permissionRecord,
   permissionValidation,
   record,
+  recordedArtifactLoadAvailable,
   reviewArtifactVerification,
   rollbackRecord,
   rollbackValidation,
@@ -8200,6 +8240,7 @@ export function Phase4ProviderSurfaceDepthPanel({
   onClearPermission?: () => void;
   onClearRollback?: () => void;
   onExportReviewArtifact?: () => void;
+  onLoadRecordedReviewArtifact?: () => void;
   onRecordApproval?: () => void;
   onRecordAudit?: () => void;
   onRecordPermission?: () => void;
@@ -8209,6 +8250,7 @@ export function Phase4ProviderSurfaceDepthPanel({
   permissionRecord?: Phase4ProviderPermissionRecord;
   permissionValidation?: Phase4ProviderPermissionRecordValidation;
   record?: Phase4ProviderApprovalRecord;
+  recordedArtifactLoadAvailable?: boolean;
   reviewArtifactVerification?: Phase4ProviderReviewArtifactVerification;
   rollbackRecord?: Phase4ProviderRollbackRecord;
   rollbackValidation?: Phase4ProviderRollbackRecordValidation;
@@ -8384,6 +8426,18 @@ export function Phase4ProviderSurfaceDepthPanel({
               type="button"
             >
               Import review
+            </button>
+            <button
+              disabled={!recordedArtifactLoadAvailable || !onLoadRecordedReviewArtifact}
+              onClick={onLoadRecordedReviewArtifact}
+              title={
+                recordedArtifactLoadAvailable
+                  ? "Load local_private/phase4-provider-review-artifact.json from the desktop workspace or local dev server."
+                  : "Open Steerboard in desktop mode or use Import review to attach this local artifact."
+              }
+              type="button"
+            >
+              Load recorded
             </button>
             <input
               accept="application/json,.json"
@@ -9041,6 +9095,7 @@ function RightPanel({
   onClearPhase11EvidenceRecord,
   onExportPhase3ProofArtifact,
   onExportPhase4ProviderReviewArtifact,
+  onLoadRecordedPhase4ProviderReviewArtifact,
   onImportPhase3CommandValidation,
   onImportPhase3SmokeProofBundle,
   onLoadRecordedPhase3CommandValidation,
@@ -9069,6 +9124,7 @@ function RightPanel({
   phase4ProviderPermissionRecord,
   phase4ProviderPermissionValidation,
   phase4ProviderReviewArtifactVerification,
+  phase4RecordedArtifactLoadAvailable,
   phase4ProviderRollbackRecord,
   phase4ProviderRollbackValidation,
   phase4ProviderTraceability,
@@ -9140,6 +9196,7 @@ function RightPanel({
   onClearPhase11EvidenceRecord: (gate: Phase11EvidenceGate) => void;
   onExportPhase3ProofArtifact: () => void;
   onExportPhase4ProviderReviewArtifact: () => void;
+  onLoadRecordedPhase4ProviderReviewArtifact: () => void;
   onImportPhase3CommandValidation: (serializedRecord: string) => void;
   onImportPhase3SmokeProofBundle: (serializedBundle: string) => void;
   onLoadRecordedPhase3CommandValidation: () => void;
@@ -9172,6 +9229,7 @@ function RightPanel({
   phase4ProviderPermissionRecord?: Phase4ProviderPermissionRecord;
   phase4ProviderPermissionValidation: Phase4ProviderPermissionRecordValidation;
   phase4ProviderReviewArtifactVerification: Phase4ProviderReviewArtifactVerification;
+  phase4RecordedArtifactLoadAvailable: boolean;
   phase4ProviderRollbackRecord?: Phase4ProviderRollbackRecord;
   phase4ProviderRollbackValidation: Phase4ProviderRollbackRecordValidation;
   phase4ProviderTraceability: Phase4ProviderTraceabilitySummary;
@@ -10594,6 +10652,7 @@ function RightPanel({
         onClearPermission={onClearPhase4ProviderPermission}
         onClearRollback={onClearPhase4ProviderRollback}
         onExportReviewArtifact={onExportPhase4ProviderReviewArtifact}
+        onLoadRecordedReviewArtifact={onLoadRecordedPhase4ProviderReviewArtifact}
         onRecordApproval={onRecordPhase4ProviderApproval}
         onRecordAudit={onRecordPhase4ProviderAudit}
         onRecordPermission={onRecordPhase4ProviderPermission}
@@ -10603,6 +10662,7 @@ function RightPanel({
         permissionRecord={phase4ProviderPermissionRecord}
         permissionValidation={phase4ProviderPermissionValidation}
         record={phase4ProviderApprovalRecord}
+        recordedArtifactLoadAvailable={phase4RecordedArtifactLoadAvailable}
         reviewArtifactVerification={phase4ProviderReviewArtifactVerification}
         rollbackRecord={phase4ProviderRollbackRecord}
         rollbackValidation={phase4ProviderRollbackValidation}

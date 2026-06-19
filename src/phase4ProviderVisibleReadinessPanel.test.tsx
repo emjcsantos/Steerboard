@@ -282,6 +282,7 @@ describe("phase 4 provider visible readiness panel", () => {
           onClearPermission={() => undefined}
           onClearRollback={() => undefined}
           onExportReviewArtifact={() => undefined}
+          onLoadRecordedReviewArtifact={() => undefined}
           onRecordApproval={() => undefined}
           onRecordAudit={() => undefined}
           onRecordPermission={() => undefined}
@@ -290,6 +291,7 @@ describe("phase 4 provider visible readiness panel", () => {
           permissionRecord={permissionRecord}
           permissionValidation={permissionValidation}
           record={record}
+          recordedArtifactLoadAvailable={true}
           reviewArtifactVerification={reviewArtifactVerification}
           rollbackRecord={rollbackRecord}
           rollbackValidation={rollbackValidation}
@@ -316,6 +318,7 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("owner-visible provider readiness check");
     expect(html).toContain("Export review");
     expect(html).toContain("Import review");
+    expect(html).toContain("Load recorded");
     expect(html).toContain("Record approval");
     expect(html).toContain("Clear approval");
     expect(html).toContain("Record audit");

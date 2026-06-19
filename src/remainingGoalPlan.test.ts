@@ -30,10 +30,10 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 72,
+      averageCompletionPercent: 73,
       currentTarget: "Provider integration surfaces",
       currentNextAction:
-        "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, Surface Depth, local approval, audit, rollback, and permission record validation, traceability, blocker-priority panels, and owner-visible provider readiness check to resolve source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks before provider execution is considered.",
+        "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, Surface Depth, local approval, audit, rollback, and permission record validation, recorded provider-review artifact loading, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -493,7 +493,7 @@ describe("remaining goal plan", () => {
       target: "Provider integration surfaces",
       priority: "high",
       status: "active",
-      completionPercent: 64
+      completionPercent: 70
     });
     expect(phase4Epic?.completionPercent).toBe(64);
     expect(phase4Goal?.pmTaskIds).toEqual(

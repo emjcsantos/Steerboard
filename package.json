@@ -22,6 +22,7 @@
     "smoke:phase3:panel-record": "node scripts/record-phase3-panel-evidence.mjs",
     "smoke:phase3:record:all": "npm run smoke:phase3:record && npm run smoke:phase3:panel-record",
     "smoke:phase3:verify": "node scripts/verify-phase3-smoke-validation.mjs",
+    "smoke:phase4:record": "node scripts/record-phase4-provider-review-artifact.mjs",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build"
