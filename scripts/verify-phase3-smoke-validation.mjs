@@ -41,7 +41,55 @@ function assertNonEmptyString(value, label) {
   }
 }
 
-function verifyCommandArtifact(record) {
+function stableJson(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableJson).join(",")}]`;
+  }
+
+  if (isRecord(value)) {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`)
+      .join(",")}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
+function shortHash(value) {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function proofWithoutStorageProof(value) {
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  const copy = { ...value };
+  delete copy.phase3StorageProof;
+  return copy;
+}
+
+function proofFingerprint(value) {
+  return `phase3-smoke-proof-${shortHash(stableJson(proofWithoutStorageProof(value)))}`;
+}
+
+function assertFingerprintMatches(actual, proof, label) {
+  const expected = proofFingerprint(proof);
+
+  if (actual !== expected) {
+    throw new Error(`${label} fingerprint mismatch: expected ${expected}, found ${actual}`);
+  }
+}
+
+function verifyCommandArtifact(record, smokeBundleEnvelope) {
   assertRecord(record, "command validation artifact");
 
   if (record.source === expectedSource) {
@@ -72,6 +120,9 @@ function verifyCommandArtifact(record) {
   );
   for (const key of proofKeys) {
     assertNonEmptyString(fingerprints[key], `command validation ${key} fingerprint`);
+    if (fingerprints[key] !== smokeBundleEnvelope.rowFingerprints[key]) {
+      throw new Error(`command validation ${key} fingerprint does not match smoke proof bundle`);
+    }
   }
 }
 
@@ -95,6 +146,7 @@ function verifySmokeBundleArtifact(envelope) {
   for (const key of proofKeys) {
     assertNonEmptyString(fingerprints[key], `smoke proof ${key} fingerprint`);
     const proof = assertRecord(bundle[key], `smoke proof ${key}`);
+    assertFingerprintMatches(fingerprints[key], proof, `smoke proof ${key}`);
     if (proof.source === "desktop" && proof.executed === true) {
       desktopExecutedRows += 1;
     }
@@ -111,8 +163,8 @@ try {
   const commandArtifact = await readJson(commandArtifactPath);
   const smokeBundleArtifact = await readJson(smokeBundleArtifactPath);
 
-  verifyCommandArtifact(commandArtifact);
   verifySmokeBundleArtifact(smokeBundleArtifact);
+  verifyCommandArtifact(commandArtifact, smokeBundleArtifact);
 
   console.log("Phase 3 smoke validation artifacts are ready for Owner Testing load/import.");
   console.log(`Command validation: ${commandArtifactPath}`);
