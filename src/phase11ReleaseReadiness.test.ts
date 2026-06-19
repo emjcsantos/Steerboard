@@ -532,7 +532,7 @@ describe("phase 11 release readiness", () => {
         expect.objectContaining({
           label: "Current Phase 3 trace",
           status: "ready",
-          detail: expect.stringContaining("handoff proof ready")
+          detail: expect.stringContaining("handoff proof ready; proof export ready")
         }),
         expect.objectContaining({
           label: "Owner smoke proof",
