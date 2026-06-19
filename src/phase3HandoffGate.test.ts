@@ -149,6 +149,8 @@ describe("phase 3 handoff gate", () => {
         }),
         expect.objectContaining({
           label: "Proof export boundary",
+          pmTaskId: PHASE3_PROOF_EXPORT_PM_TASK_ID,
+          evidenceKey: PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
           detail: expect.stringContaining("offline verification trusted")
         }),
         expect.objectContaining({
@@ -187,6 +189,8 @@ describe("phase 3 handoff gate", () => {
         expect.objectContaining({
           label: "Proof export boundary",
           status: "review",
+          pmTaskId: PHASE3_PROOF_EXPORT_PM_TASK_ID,
+          evidenceKey: PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
           detail: expect.stringContaining("offline verification not trusted")
         }),
         expect.objectContaining({

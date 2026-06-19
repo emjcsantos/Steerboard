@@ -6,6 +6,10 @@ import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceT
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffRecordValidation } from "./phase3HandoffRecord";
 import type { Phase3ProofExportVerification } from "./phase3ProofExport";
+import {
+  PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
+  PHASE3_PROOF_EXPORT_PM_TASK_ID
+} from "./phase3ProofExportTrace";
 
 export type Phase3HandoffGateState = Phase3ClearancePackageState;
 
@@ -23,6 +27,8 @@ export interface Phase3HandoffGateItem {
   readonly label: string;
   readonly kind: Phase3HandoffGateItemKind;
   readonly status: Phase3HandoffGateState;
+  readonly pmTaskId?: string;
+  readonly evidenceKey?: string;
   readonly detail: string;
   readonly nextAction: string;
 }
@@ -279,6 +285,8 @@ function proofExportItem(
       label: "Proof export boundary",
       kind: "proof-export",
       status: "waiting",
+      pmTaskId: PHASE3_PROOF_EXPORT_PM_TASK_ID,
+      evidenceKey: PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
       detail:
         "Phase 3 proof export offline verification is not attached to the handoff gate.",
       nextAction:
@@ -291,6 +299,8 @@ function proofExportItem(
     label: "Proof export boundary",
     kind: "proof-export",
     status: proofExportVerification.state,
+    pmTaskId: proofExportVerification.pmTaskId,
+    evidenceKey: proofExportVerification.evidenceKey,
     detail:
       `Phase 3 proof export is ${proofExportVerification.statusLabel.toLowerCase()} ` +
       `at ${proofExportVerification.readiness}% ready; offline verification ` +

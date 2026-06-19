@@ -701,6 +701,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Desktop proof clearance");
     expect(html).toContain("Exact blocker visibility");
     expect(html).toContain(
+      "<strong>Proof export boundary</strong><span>ready</span><small>phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification</small>"
+    );
+    expect(html).toContain(
       'aria-label="Phase 3 blocker priority: Ready; 0 open blockers; top priority No open Phase 3 blocker; evidence phase3.clearance.none; command addressable no; next action: No Phase 3 blockers remain; record the owner-reviewed handoff before Phase 4 review resumes and proof-export offline verification is trusted."'
     );
     expect(html).toContain(
