@@ -73,7 +73,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 - Dense Jira-like hierarchy for task, description, status, completion, complexity, source, and action review.
 - Row-level staged Arena review packages for Epics, Parents, and Children, including hierarchy context and descendant tasks.
 - Remaining-goal links from each priority target to the PM rows needed to stage Arena review packages.
-- Phase 1/2/6 publish-hold traceability and blocker-priority rows that keep the owner/remote publish hold ranked above proof review.
+- Phase 1/2/6 publish-hold traceability and blocker-priority rows, including the required Phase 6 publish-hold traceability and blocker-priority child rows, that keep the owner/remote publish hold ranked above proof review.
 - Execution remains locked: PM staging is local review only and does not launch workers, push branches, publish artifacts, or mutate external state.
 
 ## Phase 7: Orchestrator-Worker Dispatch
