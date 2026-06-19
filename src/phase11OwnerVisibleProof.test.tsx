@@ -211,7 +211,7 @@ function evidenceRecordsSnapshot(
         freshness: "fresh",
         source: "owner build",
         recordedAt: "2026-06-17T10:00:00.000Z",
-        detail: "Vitest and Vite build passed.",
+        detail: "Final test, build, and output evidence passed.",
         nextAction: "Keep the final test and build output attached to the release record.",
         ageHours: 2,
         safety:
@@ -548,7 +548,16 @@ describe("phase 11 owner-visible proof", () => {
             freshness: "fresh",
             source: "owner release review",
             recordedAt: "2026-06-17T10:00:00.000Z",
-            detail: `${record.label} evidence is ready.`,
+            detail:
+              record.gate === "fresh-checkout"
+                ? "Fresh checkout install, test, build, desktop run, and proof-panel evidence passed."
+                : record.gate === "clean-checkout"
+                  ? "Clean checkout install, dependency verification, and startup proof passed."
+                  : record.gate === "build-test"
+                    ? "Final test, build, and output evidence passed."
+                    : record.gate === "docs-known-limits"
+                      ? "Release docs, owner checklist, packaging limits, and known limits reviewed."
+                      : "Owner release-decision evidence recorded while packaging locked, Phase 3 handoff proof stayed attached, and security closure proof was ready.",
             nextAction: `Keep ${record.label.toLowerCase()} evidence attached.`
           }
         ])

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { evaluatePhase11EvidenceRecord } from "./phase11EvidenceRecords";
 import {
   clearPhase11EvidenceRecordInput,
   createPhase11EvidenceRecordInput,
@@ -9,6 +10,32 @@ import {
 } from "./phase11EvidenceRecordStorage";
 
 describe("phase 11 evidence record storage", () => {
+  it.each([
+    "fresh-checkout",
+    "clean-checkout",
+    "build-test",
+    "docs-known-limits",
+    "release-decision"
+  ] as const)("creates complete owner-local %s metadata accepted by the evaluator", (gate) => {
+    const input = createPhase11EvidenceRecordInput(
+      gate,
+      "2026-06-18T00:00:00.000Z"
+    );
+    const record = evaluatePhase11EvidenceRecord(
+      gate,
+      input,
+      "2026-06-18T01:00:00.000Z"
+    );
+
+    expect(record).toMatchObject({
+      gate,
+      state: "ready",
+      freshness: "fresh",
+      source: "owner local evidence record",
+      ageHours: 1
+    });
+  });
+
   it("creates owner-local ready evidence metadata without executing release actions", () => {
     expect(createPhase11EvidenceRecordInput("build-test", "2026-06-18T00:00:00.000Z")).toEqual({
       gate: "build-test",
