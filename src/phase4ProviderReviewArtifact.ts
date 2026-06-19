@@ -175,6 +175,70 @@ function result(
   };
 }
 
+interface ProviderReviewRecordValidationEvidence {
+  readonly label: string;
+  readonly record: unknown;
+  readonly validation:
+    | {
+        readonly state: string;
+        readonly detail: string;
+        readonly nextAction: string;
+      }
+    | undefined;
+}
+
+function findRecordValidationReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const evidence: ProviderReviewRecordValidationEvidence[] = [
+    {
+      label: "approval",
+      record: artifact.approvalRecord,
+      validation: artifact.approvalValidation
+    },
+    {
+      label: "audit",
+      record: artifact.auditRecord,
+      validation: artifact.auditValidation
+    },
+    {
+      label: "rollback",
+      record: artifact.rollbackRecord,
+      validation: artifact.rollbackValidation
+    },
+    {
+      label: "permission",
+      record: artifact.permissionRecord,
+      validation: artifact.permissionValidation
+    }
+  ];
+
+  for (const item of evidence) {
+    if (item.record && !item.validation) {
+      return {
+        detail: `Phase 4 provider review artifact includes a ${item.label} record without matching validation evidence.`,
+        nextAction: `Re-export Phase 4 provider review evidence after the ${item.label} record validation is visible.`
+      };
+    }
+
+    if (item.validation && !item.record) {
+      return {
+        detail: `Phase 4 provider review artifact includes ${item.label} validation without the matching local record.`,
+        nextAction: `Re-export Phase 4 provider review evidence after the ${item.label} record is attached.`
+      };
+    }
+
+    if (item.record && item.validation && item.validation.state !== "ready") {
+      return {
+        detail: `Phase 4 provider review artifact includes a ${item.label} record that is not ready: ${item.validation.detail}`,
+        nextAction: item.validation.nextAction
+      };
+    }
+  }
+
+  return undefined;
+}
+
 export function buildPhase4ProviderReviewArtifact(
   input: Phase4ProviderReviewArtifactBuildInput
 ): Phase4ProviderReviewArtifact {
@@ -349,6 +413,16 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       `Phase 4 provider review artifact is valid but still has ${artifact.blockerPriority.openBlockerCount} open blocker${artifact.blockerPriority.openBlockerCount === 1 ? "" : "s"}.`,
       artifact.blockerPriority.topPriorityAction
+    );
+  }
+
+  const recordValidationReview = findRecordValidationReview(artifact);
+  if (recordValidationReview) {
+    return result(
+      "review",
+      artifact,
+      recordValidationReview.detail,
+      recordValidationReview.nextAction
     );
   }
 

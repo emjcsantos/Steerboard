@@ -208,4 +208,48 @@ describe("phase 4 provider review artifact", () => {
       executionLocked: true
     });
   });
+
+  it("reviews artifacts with inconsistent local record validation evidence", () => {
+    const artifact = reviewArtifact({
+      refreshSmoke: buildCatalogRefreshProviderSmoke(liveCatalogPayload)
+    });
+    const inconsistentArtifact: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      traceability: { ...artifact.traceability, canTrustProviderReview: true },
+      blockerPriority: {
+        ...artifact.blockerPriority,
+        openBlockerCount: 0,
+        topPriorityAction: "No Phase 4 provider blockers remain.",
+        topPriorityLabel: "No open Phase 4 provider blocker"
+      },
+      approvalRecord: {
+        id: "phase4-provider-approval-1",
+        createdAt: "2026-06-18T10:00:00.000Z",
+        state: "ready",
+        catalogFingerprint: "phase4-catalog-current",
+        detail: "Approval record attached."
+      },
+      approvalValidation: {
+        state: "review",
+        detail: "Approval record no longer matches the current catalog.",
+        nextAction: "Record a current Phase 4 provider approval.",
+        expectedCatalogFingerprint: "phase4-catalog-current",
+        recordCatalogFingerprint: "phase4-catalog-old",
+        recordAgeMs: 5 * 60 * 1000,
+        maxRecordAgeMs: 24 * 60 * 60 * 1000,
+        matchesCurrentCatalog: false
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(inconsistentArtifact, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: "phase4-catalog-current"
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("approval record that is not ready"),
+      nextAction: "Record a current Phase 4 provider approval."
+    });
+  });
 });
