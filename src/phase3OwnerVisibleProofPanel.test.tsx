@@ -852,6 +852,12 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Phase 3 gate");
     expect(html).toContain(currentPanelId);
     expect(html).toContain("Phase 3 clearance package Waiting");
+    expect(html).toContain(
+      'aria-label="Phase 3 clearance package Waiting; 35% ready; 2 open blockers"'
+    );
+    expect(html).toContain(
+      'aria-label="Phase 3 clearance package counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Open</dt><dd>2</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>Action</dt><dd>Review</dd></div></dl>'
+    );
     expect(html).toContain("Slash execution");
     expect(html).toContain("Session controls");
     expect(html).toContain("Submit a provider-routed slash command from an Arena panel");
@@ -871,6 +877,12 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Phase 3 gate");
     expect(html).toContain("Needs review");
     expect(html).toContain("Exit held");
+    expect(html).toContain(
+      'aria-label="Phase 3 clearance package Needs review; 65% ready; 2 open blockers"'
+    );
+    expect(html).toContain(
+      'aria-label="Phase 3 clearance package counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Open</dt><dd>2</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>Action</dt><dd>Review</dd></div></dl>'
+    );
     expect(html).toContain("storage provenance belongs to another panel");
     expect(html).toContain(
       "Refresh slash execution evidence from the current Arena panel transcript"
