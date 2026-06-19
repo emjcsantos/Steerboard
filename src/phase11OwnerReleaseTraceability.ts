@@ -358,10 +358,16 @@ function phase3TraceItem(
   const proofFreshnessTrusted = proofFreshnessDepth.canTrustOwnerProof;
   const traceIsCurrent = phase3Trace?.current === true;
   const traceIsActive = phase3Trace?.status === "active";
+  const currentActiveGoalIds = snapshot.priorityGoalTraces
+    .filter((trace) => trace.current === true && trace.status === "active")
+    .map((trace) => trace.goalId);
+  const exactlyOneCurrentActiveGoal =
+    currentActiveGoalIds.length === 1 && currentActiveGoalIds[0] === PHASE3_CLEARANCE_GOAL_ID;
   const status: Phase11OwnerReleaseTraceabilityState =
     !phase3Trace ||
     !traceIsCurrent ||
     !traceIsActive ||
+    !exactlyOneCurrentActiveGoal ||
     !proofFreshnessTrusted ||
     !handoffProofReady ||
     missingPmTaskIds.length > 0 ||
@@ -375,6 +381,9 @@ function phase3TraceItem(
   const traceRestoreTarget =
     missingPmTaskIds.join(", ") ||
     incompletePmTaskIds.join(", ") ||
+    (!exactlyOneCurrentActiveGoal
+      ? currentActiveGoalIds.join(", ") || PHASE3_CLEARANCE_GOAL_ID
+      : "") ||
     (!traceIsCurrent || !traceIsActive
       ? PHASE3_CLEARANCE_GOAL_ID
       : !proofFreshnessTrusted
@@ -387,7 +396,7 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status,
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}; proof freshness ${proofFreshnessTrusted ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}; current active goals ${currentActiveGoalIds.length}; proof freshness ${proofFreshnessTrusted ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction:
       status === "ready"

@@ -565,6 +565,33 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
+  it("reviews when another goal duplicates the current active Phase 3 trace", () => {
+    const result = trace({
+      ownerCommandCenter: ownerSnapshot({
+        priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
+          trace.goalId === "goal-phase-4-provider-surfaces"
+            ? { ...trace, status: "active" as const, current: true }
+            : trace
+        )
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.nextAction).toContain("goal-phase-3-proof-clearance");
+    expect(result.nextAction).toContain("goal-phase-4-provider-surfaces");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "phase3-trace",
+          status: "review",
+          detail: expect.stringContaining("current active goals 2"),
+          nextAction: expect.stringContaining("goal-phase-4-provider-surfaces")
+        })
+      ])
+    );
+  });
+
   it("reviews when the current Phase 3 trace misses clearance child PM rows", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
