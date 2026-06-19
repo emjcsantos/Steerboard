@@ -839,6 +839,54 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Phase 3 proof export");
   });
 
+  it("renders wrong-context imported Phase 3 proof artifacts as owner review", () => {
+    const props = buildReadyPhase3Props();
+    const importedPhase3ProofExportVerification = verifySerializedPhase3ProofExportArtifact(
+      JSON.stringify(
+        buildPhase3ProofExportArtifact({
+          currentPanelId,
+          evaluatedAt,
+          exportedAt: phase3ProofExportedAt,
+          handoffEvidenceFingerprint: props.phase3HandoffGate.handoffEvidenceReview.expectedFingerprint,
+          slashEvidenceByPanel: loadPhase3SlashEvidenceByPanel(),
+          sessionControlEvidenceByPanel: loadPhase3SessionControlEvidenceByPanel(),
+          smokeProofBundle: {
+            liveControlSmoke,
+            activeTurnInterruptSmoke,
+            activeTurnSteerSmoke
+          } as Phase3SmokeProofBundle,
+          persistedDesktopProofs: {
+            liveControlSmoke: true,
+            activeTurnInterruptSmoke: true,
+            activeTurnSteerSmoke: true
+          },
+          commandValidationRecord: props.phase3CommandValidationRecord,
+          ownerHandoffRecord: props.phase3OwnerHandoffRecord
+        })
+      ),
+      {
+        verifiedAt: "2026-06-18T07:58:30.000Z",
+        expectedCurrentPanelId: "panel-other-owner-context"
+      }
+    );
+    const html = renderOwnerTestingReadinessPanel({
+      ...props,
+      importedPhase3ProofExportVerification
+    });
+
+    expect(html).toContain("Imported proof artifact");
+    expect(html).toContain(
+      'aria-label="Imported Phase 3 proof artifact verifier Review; 65% ready; PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification; next action: Re-export Phase 3 proof from the current focused Arena panel before using it for owner review."'
+    );
+    expect(html).toContain(
+      "Phase 3 proof export artifact belongs to a different focused panel than the current owner-visible context."
+    );
+    expect(html).toContain("Panel proof 2/2");
+    expect(html).toContain("Desktop 3/3");
+    expect(html).toContain("CLI attached");
+    expect(html).toContain("Handoff attached");
+  });
+
   it("renders malformed imported Phase 3 proof artifact verification as waiting", () => {
     const props = buildReadyPhase3Props();
     const html = renderOwnerTestingReadinessPanel({
