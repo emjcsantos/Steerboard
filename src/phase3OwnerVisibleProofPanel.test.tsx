@@ -1204,6 +1204,12 @@ describe("phase 3 owner-visible proof panel", () => {
     );
     expect(html).toContain("Live-control desktop smoke proof");
     expect(html).toContain("dated after the current evaluation timestamp");
+    expect(html).toContain(
+      'aria-label="Phase 3 blocker priority: Review; 1 open blockers; top priority Live control smoke; evidence phase3.live-control-smoke; command addressable yes; next action: Run npm.cmd run smoke:phase3 locally when desktop session start is available."'
+    );
+    expect(html).toContain(
+      'aria-label="Phase 3 desktop smoke command plan: Review; command available; 2/3 smoke proofs ready; next action: Run npm.cmd run smoke:phase3 locally to refresh live-control, active-turn interrupt, and active-turn steer proofs."'
+    );
     expect(html).toContain("Current evidence review");
     expect(html).toContain("Advance held");
   });
