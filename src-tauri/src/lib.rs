@@ -2684,8 +2684,7 @@ mod runtime_bridge {
     }
 
     const ACTIVE_TURN_CONTROL_SMOKE_PANEL_ID: &str = "smoke-active-turn-control";
-    const ACTIVE_TURN_CONTROL_SMOKE_PROMPT: &str =
-        "Reply with exactly this token and nothing else: STEERBOARD_ACTIVE_TURN_CONTROL_OK";
+    const ACTIVE_TURN_CONTROL_SMOKE_PROMPT: &str = "This is a Steerboard active-turn interrupt smoke. Do not use tools. Start a numbered list from 1 to 200, one short neutral word per line.";
     const ACTIVE_TURN_STEER_SMOKE_PANEL_ID: &str = "smoke-active-turn-steer";
     const ACTIVE_TURN_STEER_SMOKE_TOKEN: &str = "STEERBOARD_ACTIVE_TURN_STEER_OK";
     const ACTIVE_TURN_STEER_SMOKE_PROMPT: &str = "This is a Steerboard active-turn steer smoke. Do not use tools. Start a numbered list from 1 to 200, one short neutral word per line. Do not include STEERBOARD_ACTIVE_TURN_STEER_OK unless a later steering instruction asks for it.";
@@ -2751,7 +2750,6 @@ mod runtime_bridge {
             },
         ];
 
-        let mut events = Vec::new();
         let mut interrupt_sent = false;
         let turn_start_id = session.next_request_id();
         let turn_start = serde_json::json!({
@@ -2847,6 +2845,9 @@ mod runtime_bridge {
         set_current_turn(&session, turn_id.clone());
 
         let active_turn_id = turn_id.clone();
+        let mut events =
+            wait_for_active_turn_stream(&session, active_turn_id.as_deref(), Duration::from_secs(8))
+                .unwrap_or_default();
         if let Some(turn_id) = turn_id {
             let interrupt_request_id = session.next_request_id();
             let interrupt = serde_json::json!({
@@ -2928,6 +2929,38 @@ mod runtime_bridge {
         )
     }
 
+    fn wait_for_active_turn_stream(
+        session: &Arc<CodexPanelSession>,
+        active_turn_id: Option<&str>,
+        timeout: Duration,
+    ) -> Result<Vec<Value>, String> {
+        let mut events = Vec::new();
+        let deadline = std::time::Instant::now() + timeout;
+        while std::time::Instant::now() < deadline {
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            let Some(value) =
+                recv_session_value(session, remaining.min(Duration::from_millis(250)))?
+            else {
+                continue;
+            };
+            let Some(event) = normalize_panel_event(&value) else {
+                continue;
+            };
+            if !event_belongs_to_turn(active_turn_id, &event) {
+                continue;
+            }
+            let stream_ready = event.delta.as_deref().is_some_and(|delta| !delta.is_empty())
+                || event.status.as_deref().is_some_and(|status| {
+                    matches!(status, "completed" | "interrupted" | "failed")
+                });
+            events.push(value);
+            if stream_ready {
+                break;
+            }
+        }
+        Ok(events)
+    }
+
     pub(crate) fn codex_transport_active_turn_control_smoke_from_values(
         checked_at: Option<String>,
         executed: bool,
@@ -2955,7 +2988,7 @@ mod runtime_bridge {
                 Some("interrupted") => interrupt_observed = true,
                 _ => {}
             }
-            if event.event_type == "error" {
+            if panel_event_is_failure(event) {
                 failed = true;
             }
         }
@@ -3085,7 +3118,6 @@ mod runtime_bridge {
             },
         ];
 
-        let mut events = Vec::new();
         let mut steer_sent = false;
         let turn_start_id = session.next_request_id();
         let turn_start = serde_json::json!({
@@ -3181,6 +3213,9 @@ mod runtime_bridge {
         set_current_turn(&session, turn_id.clone());
 
         let active_turn_id = turn_id.clone();
+        let mut events =
+            wait_for_active_turn_stream(&session, active_turn_id.as_deref(), Duration::from_secs(8))
+                .unwrap_or_default();
         if let Some(turn_id) = turn_id {
             let steer_request_id = session.next_request_id();
             let steer = steer_request(
@@ -3293,7 +3328,7 @@ mod runtime_bridge {
                 Some("failed") => failed = true,
                 _ => {}
             }
-            if event.event_type == "error" {
+            if panel_event_is_failure(event) {
                 failed = true;
             }
         }
@@ -3956,13 +3991,30 @@ mod runtime_bridge {
     fn first_failure_message(events: &[CodexPanelEvent]) -> Option<String> {
         events
             .iter()
-            .find(|event| {
-                event.status.as_deref() == Some("failed") || event.event_type == "error"
-            })
+            .find(|event| panel_event_is_failure(event))
             .and_then(|event| event.message.as_deref())
             .map(str::trim)
             .filter(|message| !message.is_empty())
             .map(ToOwned::to_owned)
+    }
+
+    fn panel_event_is_failure(event: &CodexPanelEvent) -> bool {
+        event.status.as_deref() == Some("failed")
+            || (event.event_type == "error" && !panel_event_is_transient_reconnect(event))
+    }
+
+    fn panel_event_is_transient_reconnect(event: &CodexPanelEvent) -> bool {
+        event
+            .message
+            .as_deref()
+            .map(str::trim)
+            .is_some_and(|message| {
+                message.starts_with("Reconnecting...")
+                    && message
+                        .rsplit_once('/')
+                        .and_then(|(_, total)| total.parse::<u8>().ok())
+                        .is_some()
+            })
     }
 
     pub(crate) fn event_belongs_to_turn(turn_id: Option<&str>, event: &CodexPanelEvent) -> bool {
@@ -4619,6 +4671,47 @@ mod tests {
     }
 
     #[test]
+    fn codex_transport_active_turn_control_smoke_ignores_transient_reconnect_before_interrupt() {
+        let proof = runtime_bridge::codex_transport_active_turn_control_smoke_from_values(
+            Some("1700000000000".to_string()),
+            true,
+            true,
+            true,
+            true,
+            vec![
+                active_turn_control_smoke_control("thread/start", true, true, ""),
+                active_turn_control_smoke_control("turn/start", true, true, ""),
+                active_turn_control_smoke_control("turn/interrupt", true, true, ""),
+            ],
+            &[
+                serde_json::json!({
+                    "jsonrpc": "2.0",
+                    "method": "error",
+                    "params": {
+                        "turnId": "turn-3",
+                        "message": "Reconnecting... 2/5"
+                    }
+                }),
+                serde_json::json!({
+                    "jsonrpc": "2.0",
+                    "method": "turn/interrupted",
+                    "params": {
+                        "turn": {
+                            "id": "turn-3",
+                            "status": "interrupted"
+                        }
+                    }
+                }),
+            ],
+        );
+
+        assert!(proof.ok);
+        assert!(!proof.failed);
+        assert!(proof.interrupt_observed);
+        assert_eq!(proof.event_count, 2);
+    }
+
+    #[test]
     fn codex_transport_active_turn_steer_smoke_marks_ok_when_token_is_observed() {
         let proof = runtime_bridge::codex_transport_active_turn_steer_smoke_from_values(
             Some("1700000000000".to_string()),
@@ -4753,6 +4846,35 @@ mod tests {
         assert!(!proof.ok);
         assert!(proof.failed);
         assert!(proof.detail.contains("provider rejected steer"));
+    }
+
+    #[test]
+    fn codex_transport_active_turn_steer_smoke_ignores_transient_reconnect() {
+        let proof = runtime_bridge::codex_transport_active_turn_steer_smoke_from_values(
+            Some("1700000000000".to_string()),
+            true,
+            true,
+            true,
+            true,
+            vec![
+                active_turn_control_smoke_control("thread/start", true, true, ""),
+                active_turn_control_smoke_control("turn/start", true, true, ""),
+                active_turn_control_smoke_control("turn/steer", true, true, ""),
+            ],
+            &[serde_json::json!({
+                "jsonrpc": "2.0",
+                "method": "error",
+                "params": {
+                    "turnId": "turn-4",
+                    "message": "Reconnecting... 2/5"
+                }
+            })],
+        );
+
+        assert!(proof.ok);
+        assert!(!proof.failed);
+        assert!(proof.steer_sent);
+        assert!(!proof.steer_observed);
     }
 
     #[test]
