@@ -134,9 +134,10 @@ function handoff(
     blockedCount: 0,
     waitingCount: 0,
     exactBlockerCount: 0,
-    nextAction: "Advance after owner review.",
+    nextAction:
+      "Resume Phase 4 review from the reviewed handoff while keeping proof-export offline verification, current active goal, and PM traceability trusted.",
     ownerReviewSummary:
-      "Owner handoff current: fingerprint, clearance snapshot, and age metadata match; Phase 4 remains behind owner review.",
+      "Owner handoff current: fingerprint, clearance snapshot, proof export, and age metadata match; Phase 4 review remains behind owner review plus proof-export offline verification.",
     safety: "Evidence only.",
     ariaLabel: "Ready.",
     handoffEvidenceReview: {
@@ -217,8 +218,8 @@ describe("phase 3 clearance traceability", () => {
         }),
         expect.objectContaining({
           kind: "goal-honesty",
-          detail: expect.stringContaining("owner-reviewed handoff ready"),
-          nextAction: expect.stringContaining("completion can be reported")
+          detail: expect.stringContaining("proof-export offline verification ready"),
+          nextAction: expect.stringContaining("proof-export offline verification attached")
         })
       ])
     );
