@@ -428,11 +428,11 @@ import {
   createPhase3CommandValidationRecord,
   derivePhase3CommandValidationRecordValidation,
   loadPhase3CommandValidationRecord,
-  parseStoredPhase3CommandValidationRecord,
   savePhase3CommandValidationRecord,
   type Phase3CommandValidationRecordValidation,
   type Phase3CommandValidationRecord
 } from "./phase3CommandValidationRecord";
+import { runPhase3CommandValidationImportAction } from "./phase3CommandValidationImport";
 import {
   buildPhase3OwnerTestingActions,
   gatePhase3OwnerTestingActionsToPrimary,
@@ -2729,25 +2729,14 @@ export function App() {
     setAppNotice("Phase 3 CLI smoke validation recorded locally");
   }, [phase3ClearanceCommandPlan.command]);
   const importPhase3CommandValidation = useCallback((serializedRecord: string) => {
-    const record = parseStoredPhase3CommandValidationRecord(serializedRecord);
-
-    if (!record) {
-      setAppNotice("Phase 3 CLI smoke validation artifact could not be imported");
-      return;
-    }
-
-    const now = new Date().toISOString();
-    savePhase3CommandValidationRecord(record);
-    setPhase3CommandValidationRecord(record);
-    setPhase3ProofEvaluationTime(now);
-    setAppNotice(
-      record.status === "passed"
-        ? "Phase 3 CLI smoke validation artifact imported"
-        : "Phase 3 CLI smoke validation artifact imported with failed status"
-    );
+    return runPhase3CommandValidationImportAction(serializedRecord, {
+      setRecord: setPhase3CommandValidationRecord,
+      setProofEvaluationTime: setPhase3ProofEvaluationTime,
+      setAppNotice
+    });
   }, []);
   const importPhase3SmokeProofBundle = useCallback((serializedBundle: string) => {
-    runPhase3SmokeProofBundleImportAction(serializedBundle, {
+    return runPhase3SmokeProofBundleImportAction(serializedBundle, {
       setLiveControlSmokeProof: setCodexLiveControlSmokeProof,
       setActiveTurnInterruptSmokeProof: setCodexActiveTurnControlSmokeProof,
       setActiveTurnSteerSmokeProof: setCodexActiveTurnSteerSmokeProof,
@@ -2789,8 +2778,7 @@ export function App() {
       const serializedRecord = await invokeDesktopCommand<string>(
         "phase3_command_validation_artifact_read"
       );
-      importPhase3CommandValidation(serializedRecord);
-      commandLoaded = true;
+      commandLoaded = importPhase3CommandValidation(serializedRecord).imported;
     } catch {
       commandLoaded = false;
     }
@@ -2799,8 +2787,7 @@ export function App() {
       const serializedBundle = await invokeDesktopCommand<string>(
         "phase3_smoke_proof_bundle_artifact_read"
       );
-      importPhase3SmokeProofBundle(serializedBundle);
-      smokeLoaded = true;
+      smokeLoaded = importPhase3SmokeProofBundle(serializedBundle).imported;
     } catch {
       smokeLoaded = false;
     }
