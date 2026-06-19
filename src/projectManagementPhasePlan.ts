@@ -386,7 +386,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-refresh-safety",
         title: "Metadata-Only Refresh Safety",
         description: "Keep refresh and readiness paths read-only, fresh, and matched to current catalog evidence until provider permissions and approval gates are explicit.",
-        completionPercent: 58,
+        completionPercent: 62,
         complexity: "high",
         sourceDocument: "Provider catalog safety",
         children: [
@@ -453,7 +453,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-audit-summary",
             title: "Audit Summary Review",
             description: "Surface who, what, when, risk level, evidence fingerprint, apply-intent lock, and rollback path for every migration draft.",
-            completionPercent: 56,
+            completionPercent: 60,
             sourceDocument: "Migration audit summary"
           },
           {
@@ -468,7 +468,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-traceability",
             title: "Migration Traceability",
             description: "Link Phase 5 remaining-goal status, PM child rows, migration review depth evidence keys, draft/audit fingerprint coverage, sensitive exclusions, rollback/audit coverage, and the profile activation lock before apply review can advance.",
-            completionPercent: 46,
+            completionPercent: 62,
             complexity: "high",
             sourceDocument: "Phase 5 migration traceability"
           },

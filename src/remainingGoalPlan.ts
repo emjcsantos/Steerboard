@@ -178,7 +178,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Finish preview, apply-intent lock, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, and review-depth records for metadata-only migration work.",
     status: "next",
     priority: "high",
-    completionPercent: 61,
+    completionPercent: 64,
     pmTaskIds: [
       "phase-05-migration-center",
       "phase-05-parent-draft-workflow",
