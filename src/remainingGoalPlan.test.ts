@@ -376,6 +376,9 @@ describe("remaining goal plan", () => {
     const phase9Parent = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-09-desktop-runner"
     );
+    const phase9RunnerProbeParent = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-09-parent-runner-probe"
+    );
     const reversibleChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-09-child-reversible-action"
     );
@@ -389,6 +392,8 @@ describe("remaining goal plan", () => {
     expect(phase9Parent?.description).toContain(
       "trusted Phase 9 traceability/current active goal gates"
     );
+    expect(phase9Parent?.completionPercent).toBe(64);
+    expect(phase9RunnerProbeParent?.completionPercent).toBe(62);
     expect(reversibleChild?.description).toContain(
       "trusted Phase 9 traceability/current active goal proof"
     );

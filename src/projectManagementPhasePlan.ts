@@ -718,7 +718,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-09-desktop-runner",
     title: "Phase 9: Desktop-Backed Runner",
     description: "Enable the fixed terminal read-only desktop probe after permission, preview, audit, validation, persisted runner-review, current runner evidence fingerprint, complete Phase 8 owner-review proof, rollback, Phase 9 request gate, and trusted Phase 9 traceability/current active goal gates pass.",
-    completionPercent: 58,
+    completionPercent: 64,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -726,7 +726,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-09-parent-runner-probe",
         title: "Runner Probe Hardening",
         description: "Keep the desktop runner limited to the fixed terminal-readonly-probe with visible request preview, Phase 9 approval checks, fingerprint-matched local runner-review evidence, and mutation locks.",
-        completionPercent: 58,
+        completionPercent: 62,
         complexity: "high",
         sourceDocument: "Desktop runner probe",
         children: [
