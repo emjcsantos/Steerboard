@@ -967,6 +967,7 @@ describe("phase 3 owner-visible proof panel", () => {
           currentPanelId,
           evaluatedAt,
           exportedAt: phase3ProofExportedAt,
+          handoffEvidenceFingerprint: props.phase3HandoffGate.handoffEvidenceReview.expectedFingerprint,
           slashEvidenceByPanel: loadPhase3SlashEvidenceByPanel(),
           sessionControlEvidenceByPanel: loadPhase3SessionControlEvidenceByPanel(),
           smokeProofBundle: {
@@ -992,13 +993,13 @@ describe("phase 3 owner-visible proof panel", () => {
       '<button disabled="" title="Export held: Record the owner-reviewed Phase 3 handoff before exporting." type="button">'
     );
     expect(html).toContain(
-      '<button disabled="" title="Record the owner-reviewed Phase 3 handoff before exporting." type="button">Record handoff</button>'
+      '<button title="Record owner-reviewed Phase 3 handoff locally." type="button">Record handoff</button>'
     );
     expect(html).toContain(
-      "Record gate: Record the owner-reviewed Phase 3 handoff before exporting."
+      "Record gate: Record owner-reviewed Phase 3 handoff locally."
     );
     expect(html).toContain("Handoff missing");
-    expect(html).toContain("Expected fingerprint missing");
+    expect(html).toContain("Expected fingerprint phase3-handoff-");
     expect(html).toContain("Record fingerprint missing");
   });
 

@@ -418,6 +418,7 @@ import {
   type Phase3OwnerHandoffRecord
 } from "./phase3HandoffRecord";
 import {
+  canRecordPhase3OwnerHandoffWithProofExport,
   runPhase3OwnerHandoffClearAction,
   runPhase3OwnerHandoffRecordAction,
   runPhase3SmokeProofBundleImportAction
@@ -13039,7 +13040,7 @@ export function OwnerTestingReadinessPanel({
     phase3ClearancePackage.canExit &&
     phase3ClearanceTraceabilityPrecondition.canTrustTrace &&
     phase3CommandValidationRecordValidation.state === "ready" &&
-    phase3ProofExportVerification.canVerifyOffline
+    canRecordPhase3OwnerHandoffWithProofExport(phase3ProofExportVerification)
       ? "Record owner-reviewed Phase 3 handoff locally."
       : phase3ClearancePackage.canExit &&
           phase3ClearanceTraceabilityPrecondition.canTrustTrace &&
@@ -13922,7 +13923,7 @@ export function OwnerTestingReadinessPanel({
                   !phase3ClearancePackage.canExit ||
                   !phase3ClearanceTraceabilityPrecondition.canTrustTrace ||
                   phase3CommandValidationRecordValidation.state !== "ready" ||
-                  !phase3ProofExportVerification.canVerifyOffline
+                  !canRecordPhase3OwnerHandoffWithProofExport(phase3ProofExportVerification)
                 }
                 onClick={onRecordPhase3OwnerHandoff}
                 title={phase3OwnerHandoffRecordGateMessage}

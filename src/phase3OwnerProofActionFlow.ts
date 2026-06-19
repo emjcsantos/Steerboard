@@ -66,6 +66,22 @@ export interface Phase3OwnerHandoffRecordActionResult {
   readonly record?: Phase3OwnerHandoffRecord;
 }
 
+export function canRecordPhase3OwnerHandoffWithProofExport(
+  verification: Phase3ProofExportVerification
+): boolean {
+  return (
+    verification.canVerifyOffline ||
+    (verification.state === "review" &&
+      verification.readyPanelEvidenceCount === 2 &&
+      verification.storageAttestedDesktopProofCount === 3 &&
+      verification.hasCommandValidationRecord &&
+      !verification.hasOwnerHandoffRecord &&
+      Boolean(verification.handoffEvidenceFingerprint) &&
+      verification.detail ===
+        "Phase 3 proof export artifact is missing the owner handoff record.")
+  );
+}
+
 export function runPhase3SmokeProofBundleImportAction(
   serializedBundle: string,
   effects: Phase3SmokeProofBundleImportActionEffects,
@@ -110,7 +126,7 @@ export function runPhase3OwnerHandoffRecordAction(
     return { recorded: false, notice };
   }
 
-  if (!input.proofExportVerification.canVerifyOffline) {
+  if (!canRecordPhase3OwnerHandoffWithProofExport(input.proofExportVerification)) {
     const notice = input.proofExportVerification.nextAction;
     input.setAppNotice(notice);
     return { recorded: false, notice };

@@ -9,6 +9,7 @@ import {
   PHASE3_HANDOFF_RECORD_STORAGE_KEY
 } from "./phase3HandoffRecord";
 import {
+  canRecordPhase3OwnerHandoffWithProofExport,
   runPhase3OwnerHandoffClearAction,
   runPhase3OwnerHandoffRecordAction,
   runPhase3SmokeProofBundleImportAction
@@ -377,7 +378,53 @@ describe("phase 3 owner proof action flow", () => {
     );
   });
 
-  it("holds owner handoff recording until proof export is offline-verifiable", () => {
+  it("records owner handoff when proof export preflight only needs the owner handoff record", () => {
+    const currentClearance = clearancePackage();
+    const evidenceFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: currentClearance
+    });
+    const effects = {
+      saveRecord: vi.fn(),
+      setRecord: vi.fn(),
+      setProofEvaluationTime: vi.fn(),
+      setAppNotice: vi.fn()
+    };
+
+    const result = runPhase3OwnerHandoffRecordAction({
+      clearancePackage: currentClearance,
+      traceabilityPrecondition: traceabilityPrecondition(),
+      commandValidation: commandValidation(),
+      proofExportVerification: proofExportVerification({
+        state: "review",
+        statusLabel: "Review",
+        readiness: 65,
+        canVerifyOffline: false,
+        detail: "Phase 3 proof export artifact is missing the owner handoff record.",
+        nextAction: "Record the owner-reviewed Phase 3 handoff before exporting.",
+        hasOwnerHandoffRecord: false,
+        handoffEvidenceFingerprint: evidenceFingerprint
+      }),
+      evidenceFingerprint,
+      createdAt: "2026-06-18T08:00:00.000Z",
+      ...effects
+    });
+
+    expect(result.recorded).toBe(true);
+    expect(effects.saveRecord).toHaveBeenCalledWith(
+      expect.objectContaining({ evidenceFingerprint })
+    );
+    expect(effects.setRecord).toHaveBeenCalledWith(
+      expect.objectContaining({ evidenceFingerprint })
+    );
+    expect(effects.setProofEvaluationTime).toHaveBeenCalledWith(
+      "2026-06-18T08:00:00.000Z"
+    );
+    expect(effects.setAppNotice).toHaveBeenCalledWith(
+      "Phase 3 owner handoff recorded locally"
+    );
+  });
+
+  it("holds owner handoff recording when proof export review is not handoff preflight", () => {
     const effects = {
       saveRecord: vi.fn(),
       setRecord: vi.fn(),
@@ -394,8 +441,10 @@ describe("phase 3 owner proof action flow", () => {
         statusLabel: "Review",
         readiness: 65,
         canVerifyOffline: false,
-        detail: "Phase 3 proof export is missing the owner handoff record.",
-        nextAction: "Record the owner-reviewed Phase 3 handoff before exporting."
+        detail: "Phase 3 proof export artifact handoff fingerprint does not match the current owner-visible handoff fingerprint.",
+        nextAction:
+          "Clear and record the Phase 3 handoff again from current exit-ready evidence, then re-export the proof package.",
+        handoffEvidenceFingerprint: "phase3-handoff-old"
       }),
       evidenceFingerprint: "phase3-handoff-current",
       createdAt: "2026-06-18T08:00:00.000Z",
@@ -407,8 +456,39 @@ describe("phase 3 owner proof action flow", () => {
     expect(effects.setRecord).not.toHaveBeenCalled();
     expect(effects.setProofEvaluationTime).not.toHaveBeenCalled();
     expect(effects.setAppNotice).toHaveBeenCalledWith(
-      "Record the owner-reviewed Phase 3 handoff before exporting."
+      "Clear and record the Phase 3 handoff again from current exit-ready evidence, then re-export the proof package."
     );
+  });
+
+  it("identifies the proof-export preflight state that may record owner handoff", () => {
+    expect(
+      canRecordPhase3OwnerHandoffWithProofExport(
+        proofExportVerification({
+          state: "review",
+          statusLabel: "Review",
+          readiness: 65,
+          canVerifyOffline: false,
+          detail: "Phase 3 proof export artifact is missing the owner handoff record.",
+          nextAction: "Record the owner-reviewed Phase 3 handoff before exporting.",
+          hasOwnerHandoffRecord: false,
+          handoffEvidenceFingerprint: "phase3-handoff-current"
+        })
+      )
+    ).toBe(true);
+    expect(
+      canRecordPhase3OwnerHandoffWithProofExport(
+        proofExportVerification({
+          state: "review",
+          statusLabel: "Review",
+          readiness: 65,
+          canVerifyOffline: false,
+          detail: "Phase 3 proof export artifact is stale or future-dated.",
+          nextAction: "Re-export Phase 3 proof from the current focused panel.",
+          hasOwnerHandoffRecord: false,
+          handoffEvidenceFingerprint: "phase3-handoff-current"
+        })
+      )
+    ).toBe(false);
   });
 
   it("records fresh owner handoff with the current evidence fingerprint", () => {
