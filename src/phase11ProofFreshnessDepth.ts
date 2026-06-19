@@ -286,7 +286,7 @@ function handoffProofItem(
     detail: handoffReviewDetail(phase3HandoffGate),
     nextAction:
       status === "ready"
-        ? `Run ${OWNER_VISIBLE_PHASE3_PROOF_COMMAND} and keep the owner handoff record attached, matching current evidence, and backed by trusted current active goal/PM traceability before provider or release readiness advances.`
+        ? `Run ${OWNER_VISIBLE_PHASE3_PROOF_COMMAND} and keep the owner handoff record attached, matching current evidence, and backed by fresh matching CLI validation plus trusted current active goal/PM traceability before provider or release readiness advances.`
         : phase3HandoffGate.nextAction
   };
 }

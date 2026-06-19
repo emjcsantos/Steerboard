@@ -190,6 +190,10 @@ describe("phase 11 proof freshness depth", () => {
           nextAction: expect.stringContaining("current active goal/PM traceability")
         }),
         expect.objectContaining({
+          label: "Owner handoff proof",
+          nextAction: expect.stringContaining("fresh matching CLI validation")
+        }),
+        expect.objectContaining({
           label: "CLI smoke validation record",
           detail: expect.stringContaining("phase3-smoke-record:2026-06-18T07:57:30.551Z")
         }),
