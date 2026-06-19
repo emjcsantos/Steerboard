@@ -457,6 +457,32 @@ describe("phase 4 provider blocker priority", () => {
     );
   });
 
+  it("keeps remaining-goal traceability blockers out of catalog-smoke actions", () => {
+    const approvalValidation = readyApprovalValidation();
+    const auditValidation = readyAuditValidation(approvalValidation);
+    const rollbackValidation = readyRollbackValidation(auditValidation);
+    const snapshot = priority({
+      approvalValidation,
+      auditValidation,
+      rollbackValidation,
+      permissionValidation: readyPermissionValidation(rollbackValidation),
+      validation: validationFixture(),
+      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads)
+    });
+
+    expect(snapshot.state).toBe("preview");
+    expect(snapshot.topPriorityLabel).toBe("Remaining goal link");
+    expect(snapshot.catalogSmokeCanAddressTopBlocker).toBe(false);
+    expect(snapshot.topPriorityAction).not.toContain("catalog smoke");
+    expect(snapshot.topPriorityAction).toContain("owner-visible provider readiness check");
+    expect(snapshot.items[0]).toMatchObject({
+      kind: "traceability",
+      status: "preview",
+      evidenceKey: "phase-04-traceability:active-goal",
+      canUseCatalogSmoke: false
+    });
+  });
+
   it("clears open provider blockers after current permission evidence is attached and Phase 4 is active", () => {
     const approvalValidation = readyApprovalValidation();
     const auditValidation = readyAuditValidation(approvalValidation);

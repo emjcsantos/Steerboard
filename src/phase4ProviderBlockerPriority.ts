@@ -320,7 +320,10 @@ function traceabilityItems(
 function buildItemFromTraceability(
   item: Phase4ProviderTraceabilityItem
 ): Phase4ProviderBlockerPriorityItem {
-  const smokeAddressable = canUseCatalogSmoke("traceability", item.status);
+  const smokeAddressable =
+    item.kind === "catalog-depth" || item.kind === "refresh-safety"
+      ? canUseCatalogSmoke("traceability", item.status)
+      : false;
 
   return {
     id: `${SNAPSHOT_ID}:trace:${item.kind}`,
