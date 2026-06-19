@@ -501,6 +501,9 @@ export function findRemainingGoalPlanIssues(
     if (!Number.isInteger(goal.completionPercent) || goal.completionPercent < 0 || goal.completionPercent > 100) {
       issues.push(`Remaining goal ${goal.id} has invalid completion.`);
     }
+    if (goal.current === true && goal.status !== "active") {
+      issues.push(`Remaining goal ${goal.id} is marked current but has status ${goal.status}; current goals must be active.`);
+    }
 
     for (const phaseId of goal.phaseIds) {
       coveredPhaseIds.add(phaseId);

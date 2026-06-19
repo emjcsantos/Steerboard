@@ -299,6 +299,21 @@ describe("remaining goal plan", () => {
     );
   });
 
+  it("reports stale current flags on non-active goals", () => {
+    const staleCurrentGoals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-4-provider-surfaces"
+        ? { ...goal, current: true }
+        : goal
+    );
+
+    expect(findCurrentActiveRemainingGoals(staleCurrentGoals).map((goal) => goal.id)).toEqual([
+      "goal-phase-3-proof-clearance"
+    ]);
+    expect(findRemainingGoalPlanIssues(staleCurrentGoals)).toContain(
+      "Remaining goal goal-phase-4-provider-surfaces is marked current but has status next; current goals must be active."
+    );
+  });
+
   it("keeps the Phase 9 runner approval target linked to traceability, approval depth, and blocker priority", () => {
     const phase9Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-9-runner");
 
