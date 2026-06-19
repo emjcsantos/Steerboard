@@ -485,7 +485,7 @@ describe("remaining goal plan", () => {
       target: "Planning and dispatch loop",
       priority: "high",
       status: "next",
-      completionPercent: 60
+      completionPercent: 64
     });
     expect(phase7Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([

@@ -202,7 +202,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits, dispatch review depth, handoff packet integrity, current evidence freshness, main integration ownership, validation gates, traceability, blocker priority, and live-worker locks.",
     status: "next",
     priority: "high",
-    completionPercent: 60,
+    completionPercent: 64,
     pmTaskIds: [
       "phase-07-dispatch-loop",
       "phase-07-parent-role-panels",
