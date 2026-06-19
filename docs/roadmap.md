@@ -104,5 +104,5 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 ## Phase 11: Owner Testing and Release Readiness
 
 - Owner Testing command center with checklist coverage, proof freshness depth, evidence records, phase readiness, current next action, and prioritized remaining-goal traces.
-- Release readiness gate for fresh checkout, clean checkout, build/test, owner smoke proof, current active Phase 3 clearance PM traceability with handoff proof, docs/known limits, security closure capability, and final release decision.
+- Release readiness gate for fresh checkout, clean checkout, build/test, owner smoke proof with Phase 3 proof-export detail, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, docs/known limits, security closure capability, and final release decision.
 - Owner release traceability and blocker priority keep packaging, signing, installer creation, Git push, and external release actions paused until the owner explicitly resumes them.
