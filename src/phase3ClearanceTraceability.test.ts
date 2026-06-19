@@ -12,7 +12,10 @@ import {
   REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS,
   REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS
 } from "./phase3ClearanceTraceability";
-import { PHASE3_PROOF_EXPORT_PM_TASK_ID } from "./phase3ProofExportTrace";
+import {
+  PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
+  PHASE3_PROOF_EXPORT_PM_TASK_ID
+} from "./phase3ProofExportTrace";
 import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import { remainingGoalPlan, type RemainingGoalPlanItem } from "./remainingGoalPlan";
 
@@ -221,7 +224,9 @@ describe("phase 3 clearance traceability", () => {
         expect.objectContaining({
           kind: "handoff-boundary",
           detail: expect.stringContaining("proof-export offline verification trusted"),
-          nextAction: expect.stringContaining("proof-export offline verification")
+          nextAction: expect.stringContaining("proof-export offline verification"),
+          pmTaskId: PHASE3_PROOF_EXPORT_PM_TASK_ID,
+          evidenceKey: PHASE3_PROOF_EXPORT_EVIDENCE_KEY
         }),
         expect.objectContaining({
           kind: "goal-honesty",

@@ -13647,6 +13647,9 @@ export function OwnerTestingReadinessPanel({
                 >
                   <strong>{item.label}</strong>
                   <span>{item.status}</span>
+                  {item.pmTaskId && item.evidenceKey ? (
+                    <small>{item.pmTaskId} / {item.evidenceKey}</small>
+                  ) : null}
                   <small>{item.detail}</small>
                   <small>{item.nextAction}</small>
                 </li>

@@ -6,7 +6,10 @@ import type {
 } from "./phase3ClearancePackage";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffGate } from "./phase3HandoffGate";
-import { PHASE3_PROOF_EXPORT_PM_TASK_ID } from "./phase3ProofExportTrace";
+import {
+  PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
+  PHASE3_PROOF_EXPORT_PM_TASK_ID
+} from "./phase3ProofExportTrace";
 import {
   createDefaultProjectManagementPhasePlan
 } from "./projectManagementPhasePlan";
@@ -35,6 +38,8 @@ export interface Phase3ClearanceTraceabilityItem {
   readonly status: Phase3ClearanceTraceabilityState;
   readonly detail: string;
   readonly nextAction: string;
+  readonly pmTaskId?: string;
+  readonly evidenceKey?: string;
 }
 
 export interface Phase3ClearanceTraceabilitySnapshot {
@@ -431,7 +436,9 @@ function handoffBoundaryItem(
       detail:
         "Owner handoff is attached and provider integration can advance only with proof-export offline verification trusted.",
       nextAction:
-        "Keep provider integration tied to the owner-reviewed Phase 3 handoff and proof-export offline verification."
+        "Keep provider integration tied to the owner-reviewed Phase 3 handoff and proof-export offline verification.",
+      pmTaskId: PHASE3_PROOF_EXPORT_PM_TASK_ID,
+      evidenceKey: PHASE3_PROOF_EXPORT_EVIDENCE_KEY
     };
   }
 
@@ -442,7 +449,9 @@ function handoffBoundaryItem(
       kind: "handoff-boundary",
       status: "blocked",
       detail: "The Phase 3 handoff gate is blocked.",
-      nextAction: handoffGate.nextAction
+      nextAction: handoffGate.nextAction,
+      pmTaskId: PHASE3_PROOF_EXPORT_PM_TASK_ID,
+      evidenceKey: PHASE3_PROOF_EXPORT_EVIDENCE_KEY
     };
   }
 
@@ -462,7 +471,9 @@ function handoffBoundaryItem(
           )
         : "Clearance is exit-ready, but the owner handoff record is not attached yet."
       : "Phase 4 review remains held behind Phase 3 clearance.",
-    nextAction: handoffGate.nextAction
+    nextAction: handoffGate.nextAction,
+    pmTaskId: PHASE3_PROOF_EXPORT_PM_TASK_ID,
+    evidenceKey: PHASE3_PROOF_EXPORT_EVIDENCE_KEY
   };
 }
 

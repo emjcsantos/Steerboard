@@ -712,6 +712,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Traceability boundary");
     expect(html).toContain("goal-phase-3-proof-clearance");
     expect(html).toContain(
+      "<strong>Handoff boundary</strong><span>ready</span><small>phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification</small>"
+    );
+    expect(html).toContain(
       'aria-label="Phase 3 clearance traceability: Ready; 100% ready; 12/12 PM rows linked; 0 open trace rows; next action: Keep the current active Phase 3 goal, PM rows, clearance evidence, and owner handoff trace linked until Phase 3 exits."'
     );
     expect(html).toContain(
