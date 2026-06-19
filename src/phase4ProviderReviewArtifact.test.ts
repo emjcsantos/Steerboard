@@ -170,7 +170,13 @@ describe("phase 4 provider review artifact", () => {
         verifiedAt: "2026-06-18T10:05:00.000Z",
         expectedCatalogFingerprint: "phase4-catalog-new"
       })
-    ).toMatchObject({ state: "review", detail: expect.stringContaining("does not match") });
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("does not match"),
+      currentCatalogFingerprint: "phase4-catalog-current",
+      expectedCatalogFingerprint: "phase4-catalog-new",
+      matchesExpectedCatalog: false
+    });
     expect(
       verifyPhase4ProviderReviewArtifact(
         {
@@ -199,13 +205,17 @@ describe("phase 4 provider review artifact", () => {
 
     expect(
       verifyPhase4ProviderReviewArtifact(readyArtifact, {
-        verifiedAt: "2026-06-18T10:05:00.000Z"
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: "phase4-catalog-current"
       })
     ).toMatchObject({
       state: "ready",
       readiness: 100,
       canVerifyOffline: true,
-      executionLocked: true
+      executionLocked: true,
+      currentCatalogFingerprint: "phase4-catalog-current",
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      matchesExpectedCatalog: true
     });
   });
 

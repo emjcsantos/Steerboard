@@ -8239,6 +8239,16 @@ export function Phase4ProviderSurfaceDepthPanel({
                 {reviewArtifactVerification.traceabilityItemCount} | Execution{" "}
                 {reviewArtifactVerification.executionLocked ? "locked" : "unlocked"}
               </small>
+              <small>
+                Catalog fingerprint{" "}
+                {reviewArtifactVerification.currentCatalogFingerprint ?? "missing"} / expected{" "}
+                {reviewArtifactVerification.expectedCatalogFingerprint ?? "missing"} /{" "}
+                {reviewArtifactVerification.matchesExpectedCatalog === false
+                  ? "mismatch"
+                  : reviewArtifactVerification.matchesExpectedCatalog === true
+                    ? "matched"
+                    : "unverified"}
+              </small>
             </div>
             <button
               onClick={onExportReviewArtifact}
@@ -8281,6 +8291,16 @@ export function Phase4ProviderSurfaceDepthPanel({
                 Audit {importedReviewArtifactVerification.hasAuditRecord ? "attached" : "missing"} |
                 Rollback {importedReviewArtifactVerification.hasRollbackRecord ? "attached" : "missing"} |
                 Permission {importedReviewArtifactVerification.hasPermissionRecord ? "attached" : "missing"}
+              </small>
+              <small>
+                Catalog fingerprint{" "}
+                {importedReviewArtifactVerification.currentCatalogFingerprint ?? "missing"} / expected{" "}
+                {importedReviewArtifactVerification.expectedCatalogFingerprint ?? "missing"} /{" "}
+                {importedReviewArtifactVerification.matchesExpectedCatalog === false
+                  ? "mismatch"
+                  : importedReviewArtifactVerification.matchesExpectedCatalog === true
+                    ? "matched"
+                    : "unverified"}
               </small>
             </div>
           </div>

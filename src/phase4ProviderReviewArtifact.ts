@@ -56,6 +56,9 @@ export interface Phase4ProviderReviewArtifactVerification {
   readonly traceabilityItemCount: number;
   readonly openBlockerCount: number;
   readonly executionLocked: boolean;
+  readonly currentCatalogFingerprint?: string;
+  readonly expectedCatalogFingerprint?: string;
+  readonly matchesExpectedCatalog?: boolean;
   readonly hasApprovalRecord: boolean;
   readonly hasAuditRecord: boolean;
   readonly hasRollbackRecord: boolean;
@@ -127,7 +130,8 @@ function isFresh(
 }
 
 function counts(
-  artifact: Phase4ProviderReviewArtifact | undefined
+  artifact: Phase4ProviderReviewArtifact | undefined,
+  expectedCatalogFingerprint?: string
 ): Pick<
   Phase4ProviderReviewArtifactVerification,
   | "catalogDepthRecordCount"
@@ -136,11 +140,17 @@ function counts(
   | "traceabilityItemCount"
   | "openBlockerCount"
   | "executionLocked"
+  | "currentCatalogFingerprint"
+  | "expectedCatalogFingerprint"
+  | "matchesExpectedCatalog"
   | "hasApprovalRecord"
   | "hasAuditRecord"
   | "hasRollbackRecord"
   | "hasPermissionRecord"
 > {
+  const currentCatalogFingerprint = artifact?.currentCatalogFingerprint.trim();
+  const expectedFingerprint = expectedCatalogFingerprint?.trim();
+
   return {
     catalogDepthRecordCount: artifact?.catalogDepth.records.length ?? 0,
     refreshSafetyRecordCount: artifact?.refreshSafety.records.length ?? 0,
@@ -148,6 +158,12 @@ function counts(
     traceabilityItemCount: artifact?.traceability.items.length ?? 0,
     openBlockerCount: artifact?.blockerPriority.openBlockerCount ?? 0,
     executionLocked: artifact ? !artifact.surfaceDepth.canEnableExecution : false,
+    currentCatalogFingerprint: currentCatalogFingerprint || undefined,
+    expectedCatalogFingerprint: expectedFingerprint || undefined,
+    matchesExpectedCatalog:
+      artifact && expectedFingerprint
+        ? currentCatalogFingerprint === expectedFingerprint
+        : undefined,
     hasApprovalRecord: Boolean(artifact?.approvalRecord),
     hasAuditRecord: Boolean(artifact?.auditRecord),
     hasRollbackRecord: Boolean(artifact?.rollbackRecord),
@@ -159,7 +175,8 @@ function result(
   state: Phase4ProviderReviewArtifactState,
   artifact: Phase4ProviderReviewArtifact | undefined,
   detail: string,
-  nextAction: string
+  nextAction: string,
+  expectedCatalogFingerprint?: string
 ): Phase4ProviderReviewArtifactVerification {
   const readiness =
     state === "ready" ? 100 : state === "review" ? 70 : state === "blocked" ? 20 : 35;
@@ -171,7 +188,7 @@ function result(
     canVerifyOffline: state === "ready" || state === "review",
     detail,
     nextAction,
-    ...counts(artifact)
+    ...counts(artifact, expectedCatalogFingerprint)
   };
 }
 
@@ -304,12 +321,15 @@ export function verifyPhase4ProviderReviewArtifact(
   artifact: Phase4ProviderReviewArtifact | undefined,
   options: Phase4ProviderReviewArtifactVerifyOptions = {}
 ): Phase4ProviderReviewArtifactVerification {
+  const expectedCatalogFingerprint = options.expectedCatalogFingerprint?.trim();
+
   if (!artifact) {
     return result(
       "waiting",
       undefined,
       "Phase 4 provider review artifact is missing or malformed.",
-      "Export or import a Phase 4 provider review artifact before offline verification."
+      "Export or import a Phase 4 provider review artifact before offline verification.",
+      expectedCatalogFingerprint
     );
   }
 
@@ -321,7 +341,8 @@ export function verifyPhase4ProviderReviewArtifact(
       "waiting",
       artifact,
       "Phase 4 provider review artifact has an unsupported schema.",
-      "Re-export the Phase 4 provider review artifact from the current Steerboard build."
+      "Re-export the Phase 4 provider review artifact from the current Steerboard build.",
+      expectedCatalogFingerprint
     );
   }
 
@@ -336,7 +357,8 @@ export function verifyPhase4ProviderReviewArtifact(
       "review",
       artifact,
       "Phase 4 provider review artifact is stale or future-dated.",
-      "Re-export Phase 4 provider review evidence from the current provider readiness state."
+      "Re-export Phase 4 provider review evidence from the current provider readiness state.",
+      expectedCatalogFingerprint
     );
   }
 
@@ -345,11 +367,11 @@ export function verifyPhase4ProviderReviewArtifact(
       "review",
       artifact,
       "Phase 4 provider review artifact is missing the current six-surface catalog fingerprint.",
-      "Run the metadata-only provider catalog review, then export again with the current fingerprint attached."
+      "Run the metadata-only provider catalog review, then export again with the current fingerprint attached.",
+      expectedCatalogFingerprint
     );
   }
 
-  const expectedCatalogFingerprint = options.expectedCatalogFingerprint?.trim();
   if (
     expectedCatalogFingerprint &&
     artifact.currentCatalogFingerprint.trim() !== expectedCatalogFingerprint
@@ -358,7 +380,8 @@ export function verifyPhase4ProviderReviewArtifact(
       "review",
       artifact,
       "Phase 4 provider review artifact catalog fingerprint does not match the current six-surface catalog.",
-      "Re-export Phase 4 provider review evidence after the current metadata-only provider catalog refresh."
+      "Re-export Phase 4 provider review evidence after the current metadata-only provider catalog refresh.",
+      expectedCatalogFingerprint
     );
   }
 
@@ -367,7 +390,8 @@ export function verifyPhase4ProviderReviewArtifact(
       "review",
       artifact,
       "Phase 4 provider review artifact does not include all six catalog-depth records.",
-      "Export again after command, skill, plugin, MCP, automation, and personalization catalog-depth rows are visible."
+      "Export again after command, skill, plugin, MCP, automation, and personalization catalog-depth rows are visible.",
+      expectedCatalogFingerprint
     );
   }
 
@@ -376,7 +400,8 @@ export function verifyPhase4ProviderReviewArtifact(
       "review",
       artifact,
       "Phase 4 provider review artifact is missing refresh-safety records.",
-      "Attach metadata-only refresh-safety proof before exporting the provider review artifact."
+      "Attach metadata-only refresh-safety proof before exporting the provider review artifact.",
+      expectedCatalogFingerprint
     );
   }
 
@@ -385,7 +410,8 @@ export function verifyPhase4ProviderReviewArtifact(
       "review",
       artifact,
       "Phase 4 provider review artifact is missing surface-depth or traceability rows.",
-      "Export again after Phase 4 surface-depth and traceability rows render in Owner review."
+      "Export again after Phase 4 surface-depth and traceability rows render in Owner review.",
+      expectedCatalogFingerprint
     );
   }
 
@@ -394,7 +420,8 @@ export function verifyPhase4ProviderReviewArtifact(
       "blocked",
       artifact,
       "Phase 4 provider review artifact cannot be trusted because provider execution is enabled.",
-      "Restore the provider execution lock and export metadata-only review evidence again."
+      "Restore the provider execution lock and export metadata-only review evidence again.",
+      expectedCatalogFingerprint
     );
   }
 
@@ -403,7 +430,8 @@ export function verifyPhase4ProviderReviewArtifact(
       "review",
       artifact,
       "Phase 4 provider review artifact is missing six provider execution locks.",
-      "Keep command, skill, plugin, MCP, automation, and personalization execution locks visible before exporting."
+      "Keep command, skill, plugin, MCP, automation, and personalization execution locks visible before exporting.",
+      expectedCatalogFingerprint
     );
   }
 
@@ -412,7 +440,8 @@ export function verifyPhase4ProviderReviewArtifact(
       "review",
       artifact,
       `Phase 4 provider review artifact is valid but still has ${artifact.blockerPriority.openBlockerCount} open blocker${artifact.blockerPriority.openBlockerCount === 1 ? "" : "s"}.`,
-      artifact.blockerPriority.topPriorityAction
+      artifact.blockerPriority.topPriorityAction,
+      expectedCatalogFingerprint
     );
   }
 
@@ -422,7 +451,8 @@ export function verifyPhase4ProviderReviewArtifact(
       "review",
       artifact,
       recordValidationReview.detail,
-      recordValidationReview.nextAction
+      recordValidationReview.nextAction,
+      expectedCatalogFingerprint
     );
   }
 
@@ -431,7 +461,8 @@ export function verifyPhase4ProviderReviewArtifact(
       "review",
       artifact,
       "Phase 4 provider review artifact has no open blockers, but traceability is not trusted yet.",
-      artifact.traceability.nextAction
+      artifact.traceability.nextAction,
+      expectedCatalogFingerprint
     );
   }
 
@@ -439,7 +470,8 @@ export function verifyPhase4ProviderReviewArtifact(
     "ready",
     artifact,
     "Phase 4 provider review artifact contains current catalog depth, refresh safety, surface depth, traceability, blocker priority, and execution-lock evidence.",
-    "Keep the Phase 4 provider review artifact attached while provider execution remains locked."
+    "Keep the Phase 4 provider review artifact attached while provider execution remains locked.",
+    expectedCatalogFingerprint
   );
 }
 

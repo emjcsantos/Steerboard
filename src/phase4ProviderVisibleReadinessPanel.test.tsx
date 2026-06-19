@@ -278,6 +278,9 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("Permission record");
     expect(html).toContain("Provider review artifact");
     expect(html).toContain("Imported provider review");
+    expect(html).toContain("Catalog fingerprint");
+    expect(html).toContain("phase4-catalog-current");
+    expect(html).toContain("matched");
     expect(html).toContain("Export review");
     expect(html).toContain("Import review");
     expect(html).toContain("Record approval");
