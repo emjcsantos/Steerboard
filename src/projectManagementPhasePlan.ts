@@ -851,7 +851,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-10-child-traceability",
             title: "Arena Polish Traceability",
             description: "Link Phase 10 remaining-goal status, PM child rows, layout regression, density, keyboard, focus, terminology, and acceptance gates before release packaging can resume.",
-            completionPercent: 40,
+            completionPercent: 55,
             complexity: "medium",
             sourceDocument: "Phase 10 Arena polish traceability"
           },

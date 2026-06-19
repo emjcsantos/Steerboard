@@ -101,7 +101,7 @@ describe("phase 10 Arena polish traceability", () => {
     const summary = buildPhase10ArenaPolishTraceability({ snapshot: polishSnapshot() });
 
     expect(summary.linkedGoalId).toBe("goal-phase-10-arena-polish");
-    expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(8);
+    expect(summary.linkedPmTaskCount).toBe(9);
     expect(summary.missingPmTaskIds).toEqual([]);
     expect(summary.items.map((item) => item.kind)).toEqual([
       "active-goal",
@@ -184,6 +184,33 @@ describe("phase 10 Arena polish traceability", () => {
         expect.objectContaining({
           kind: "pm-coverage",
           status: "blocked"
+        })
+      ])
+    );
+  });
+
+  it("blocks when the Phase 10 goal misses the FlexLayout docking spike PM child link", () => {
+    const goals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-10-arena-polish"
+        ? {
+            ...goal,
+            pmTaskIds: goal.pmTaskIds.filter((taskId) => taskId !== "phase-10-child-flexlayout-spike")
+          }
+        : goal
+    );
+    const summary = buildPhase10ArenaPolishTraceability({
+      snapshot: polishSnapshot(),
+      goals
+    });
+
+    expect(summary.state).toBe("blocked");
+    expect(summary.canTrustArenaPolish).toBe(false);
+    expect(summary.missingPmTaskIds).toEqual(["phase-10-child-flexlayout-spike"]);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "pm-coverage",
+          detail: expect.stringContaining("phase-10-child-flexlayout-spike")
         })
       ])
     );

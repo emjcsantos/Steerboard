@@ -540,6 +540,7 @@ describe("remaining goal plan", () => {
       expect.arrayContaining([
         "phase-10-child-layout-regression",
         "phase-10-child-density-polish",
+        "phase-10-child-flexlayout-spike",
         "phase-10-child-term-scan",
         "phase-10-child-traceability",
         "phase-10-child-blocker-priority"

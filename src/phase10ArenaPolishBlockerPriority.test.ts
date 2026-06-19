@@ -127,6 +127,27 @@ describe("phase 10 Arena polish blocker priority", () => {
     expect(summary.arenaReviewCanAddressTopBlocker).toBe(false);
   });
 
+  it("surfaces FlexLayout docking spike coverage before Arena polish can be trusted", () => {
+    const goals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-10-arena-polish"
+        ? {
+            ...goal,
+            pmTaskIds: goal.pmTaskIds.filter((taskId) => taskId !== "phase-10-child-flexlayout-spike")
+          }
+        : goal
+    );
+    const summary = priority({ goals });
+
+    expect(summary.state).toBe("blocked");
+    expect(summary.topPriorityLabel).toBe("PM row coverage");
+    expect(summary.items[0]).toMatchObject({
+      kind: "traceability",
+      status: "blocked",
+      canUseArenaReview: false,
+      detail: expect.stringContaining("phase-10-child-flexlayout-spike")
+    });
+  });
+
   it("reports ready when polish and traceability are ready", () => {
     const summary = priority({ goals: withCurrentPhase10Goal() });
 

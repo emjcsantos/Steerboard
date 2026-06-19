@@ -60,6 +60,7 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-10-parent-layout-foundation",
   "phase-10-child-layout-regression",
   "phase-10-child-density-polish",
+  "phase-10-child-flexlayout-spike",
   "phase-10-parent-arena-identity",
   "phase-10-child-term-scan",
   "phase-10-child-traceability",
@@ -228,7 +229,7 @@ function pmCoverageItem(
     label: "PM row coverage",
     kind: "pm-coverage",
     status: "ready",
-    detail: `${goal.pmTaskIds.length} Phase 10 PM task links cover layout foundation, density polish, Arena identity, traceability, and blocker priority rows.`,
+    detail: `${goal.pmTaskIds.length} Phase 10 PM task links cover layout foundation, density polish, FlexLayout docking feasibility, Arena identity, traceability, and blocker priority rows.`,
     nextAction: "Keep Phase 10 goal links aligned with the Project Management Epic, Parent, and Child rows."
   };
 }
