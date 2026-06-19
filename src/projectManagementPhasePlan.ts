@@ -445,7 +445,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-05-parent-rollback-audit",
         title: "Rollback and Audit Review",
         description: "Make rollback strategy, review-depth records, and fingerprint-matched audit evidence mandatory before migration work can leave review-only mode.",
-        completionPercent: 58,
+        completionPercent: 62,
         complexity: "high",
         sourceDocument: "Permissions and audit",
         children: [

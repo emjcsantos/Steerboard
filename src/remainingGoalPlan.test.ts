@@ -405,12 +405,21 @@ describe("remaining goal plan", () => {
 
   it("keeps the Phase 5 migration hardening target linked to traceability and review depth", () => {
     const phase5Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-5-migration-hardening");
+    const phase5Epic = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-05-migration-center"
+    );
+    const rollbackAuditParent = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-05-parent-rollback-audit"
+    );
 
     expect(phase5Goal).toMatchObject({
       target: "Migration Center hardening",
       priority: "high",
-      status: "next"
+      status: "next",
+      completionPercent: 64
     });
+    expect(phase5Epic?.completionPercent).toBe(64);
+    expect(rollbackAuditParent?.completionPercent).toBe(62);
     expect(phase5Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-05-child-profile-drafts",
