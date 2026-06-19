@@ -545,8 +545,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-06-child-publish-hold-blocker-priority",
             title: "Publish Hold Blocker Priority",
-            description: "Rank the owner/remote publish hold, one-panel proof, two-panel isolation, PM staging, and traceability blockers before owner push approval.",
-            completionPercent: 45,
+            description: "Rank the owner/remote publish hold, one-panel proof, two-panel isolation, PM staging, and traceability blockers before owner push approval, while keeping publish-goal and PM-link repairs out of owner-review actions.",
+            completionPercent: 65,
             complexity: "medium",
             sourceDocument: "Phase 1/2/6 publish hold blocker priority"
           }
@@ -629,8 +629,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-07-child-blocker-priority",
             title: "Dispatch Blocker Priority",
-            description: "Rank exact Phase 7 blockers across role coverage, attempt limits, handoff tasks, handoff packet integrity, evidence freshness, validation gates, integration ownership, traceability, closure boundaries, and live-worker locks before dispatch can expand.",
-            completionPercent: 45,
+            description: "Rank exact Phase 7 blockers across role coverage, attempt limits, handoff tasks, handoff packet integrity, evidence freshness, validation gates, integration ownership, traceability, closure boundaries, and live-worker locks before dispatch can expand, while keeping remaining-goal and PM traceability repairs out of dispatch-review actions.",
+            completionPercent: 62,
             complexity: "medium",
             sourceDocument: "Phase 7 dispatch blocker priority"
           }
@@ -942,8 +942,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-blocker-priority",
             title: "Owner Release Blocker Priority",
-            description: "Rank exact Phase 11 blockers across owner proof, evidence freshness, fresh-checkout release readiness, visible Security 100% final closure guidance, PM coverage, and packaging hold state before packaging resumes.",
-            completionPercent: 48,
+            description: "Rank exact Phase 11 blockers across owner proof, evidence freshness, fresh-checkout release readiness, visible Security 100% final closure guidance, PM coverage, and packaging hold state before packaging resumes, while keeping goal, PM, and Phase 3 trace repairs out of owner-review actions.",
+            completionPercent: 62,
             complexity: "medium",
             sourceDocument: "Phase 11 owner release blocker priority"
           }
