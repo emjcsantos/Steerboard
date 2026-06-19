@@ -384,6 +384,7 @@ function renderOwnerTestingReadinessPanel(props: OwnerVisiblePhase3Props) {
       onImportPhase3SmokeProofBundle={() => undefined}
       onLoadRecordedPhase3CommandValidation={() => undefined}
       onLoadRecordedPhase3SmokeProofBundle={() => undefined}
+      onLoadRecordedPhase3ProofArtifacts={() => undefined}
       onVerifyImportedPhase3ProofArtifact={() => undefined}
       onRecordPhase3CommandValidation={() => undefined}
       onRecordPhase3OwnerHandoff={() => undefined}
@@ -739,6 +740,10 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain(
       'aria-label="Phase 3 proof export verifier Ready; 100% ready; PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification; next action: Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification."'
     );
+    expect(html).toContain("Load proof artifacts");
+    expect(html).toContain(
+      "Load both local_private/phase3-command-validation-record.json and local_private/phase3-smoke-proof-bundle.json from the desktop workspace."
+    );
     expect(html).toContain("Export proof");
     expect(html).toContain("Import proof");
     expect(html).toContain("Load recorded");
@@ -1013,6 +1018,7 @@ describe("phase 3 owner-visible proof panel", () => {
       onImportPhase3SmokeProofBundle: vi.fn(),
       onLoadRecordedPhase3CommandValidation: vi.fn(),
       onLoadRecordedPhase3SmokeProofBundle: vi.fn(),
+      onLoadRecordedPhase3ProofArtifacts: vi.fn(),
       onRecordPhase3CommandValidation: vi.fn(),
       onRecordPhase3OwnerHandoff: vi.fn(),
       onRunCodexActiveTurnControlSmokeProof: vi.fn(),
@@ -1058,6 +1064,7 @@ describe("phase 3 owner-visible proof panel", () => {
         onImportPhase3SmokeProofBundle={() => undefined}
         onLoadRecordedPhase3CommandValidation={() => undefined}
         onLoadRecordedPhase3SmokeProofBundle={() => undefined}
+        onLoadRecordedPhase3ProofArtifacts={() => undefined}
         onVerifyImportedPhase3ProofArtifact={() => undefined}
         onRecordPhase3CommandValidation={() => undefined}
         onRecordPhase3OwnerHandoff={() => undefined}
@@ -1071,6 +1078,7 @@ describe("phase 3 owner-visible proof panel", () => {
 
     expect(html).toContain("Import desktop proof");
     expect(html).toContain("Load recorded");
+    expect(html).toContain("Load proof artifacts");
     expect(html).toContain('aria-label="Import Phase 3 CLI smoke validation artifact"');
     expect(html).toContain(
       'aria-label="Import Phase 3 proof export artifact for verification"'
@@ -1079,6 +1087,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Open Steerboard in desktop mode or use Import");
     expect(html).toContain(
       '<button disabled="" title="Open Steerboard in desktop mode or use Import to attach this local artifact." type="button">'
+    );
+    expect(html).toContain(
+      '<button disabled="" title="Open Steerboard in desktop mode or use the Import buttons to attach both local Phase 3 artifacts." type="button">'
     );
   });
 
