@@ -50,6 +50,7 @@ import { buildSlashCommandExecutionEvidence } from "./slashCommandExecutionEvide
 
 const evaluatedAt = "2026-06-18T07:58:00.000Z";
 const panelProofCreatedAt = "2026-06-18T07:57:40.000Z";
+const phase3ProofExportedAt = "2026-06-18T07:58:30.000Z";
 const currentPanelId = "panel-phase3-owner-visible";
 const otherPanelId = "panel-phase3-other";
 
@@ -317,7 +318,7 @@ function buildReadyPhase3Props(input: {
     buildPhase3ProofExportArtifact({
       currentPanelId: focusedPanelId,
       evaluatedAt,
-      exportedAt: evaluatedAt,
+      exportedAt: phase3ProofExportedAt,
       handoffEvidenceFingerprint: expectedFingerprint,
       slashEvidenceByPanel: loadedSlashEvidenceByPanel,
       sessionControlEvidenceByPanel: loadedSessionControlEvidenceByPanel,
@@ -326,7 +327,7 @@ function buildReadyPhase3Props(input: {
       commandValidationRecord: phase3CommandValidationRecord,
       ownerHandoffRecord: phase3OwnerHandoffRecord
     }),
-    { verifiedAt: evaluatedAt }
+    { verifiedAt: phase3ProofExportedAt }
   );
   const failureFixtures = buildFailureStateFixtures();
 
@@ -666,7 +667,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Provider boundary");
     expect(html).toContain("Phase 3 proof export");
     expect(html).toContain(
-      'aria-label="Phase 3 proof export verifier Review; 65% ready"'
+      'aria-label="Phase 3 proof export verifier Ready; 100% ready"'
     );
     expect(html).toContain("Export proof");
     expect(html).toContain("Import proof");
