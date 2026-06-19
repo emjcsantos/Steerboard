@@ -51,7 +51,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 - Session-control proof for active-turn interrupt, retry, and steer while unsupported controls stay honest.
 - Desktop smoke proof rows with stale-proof review, transient reconnect handling, local smoke-record verification, and row-specific next actions.
 - Phase 3 command plan, CLI validation provenance, blocker-priority queue, traceability rows, and handoff gate.
-- Fail-closed Phase 3 proof export that lets the owner record the handoff from a complete proof-export preflight when the handoff record is the only missing item, then prepares downloadable owner-review JSON only after offline verification is ready; imported proof packages return to review unless they match the current focused panel and owner-visible handoff fingerprint.
+- Fail-closed Phase 3 proof export that lets the owner record the handoff from a complete proof-export preflight when the handoff record is the only missing item, then prepares downloadable owner-review JSON only after offline verification is ready; imported proof packages return to review unless they match the current focused panel and owner-visible handoff fingerprint, and current App state is not backfilled from older stored CLI, handoff, or desktop proof records when those inputs are explicitly absent.
 - Phase 4 review remains held until current evidence, current active goal links, PM row links, fingerprint match, clearance snapshot, proof-export offline verification, and handoff age metadata are trusted.
 
 ## Phase 4: Provider Integration Surfaces
