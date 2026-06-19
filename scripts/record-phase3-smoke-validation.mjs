@@ -6,6 +6,11 @@ const command = "npm.cmd run smoke:phase3";
 const smokeBundleSource = "steerboard.phase3.smoke-record.v1";
 const artifactPath = resolve("local_private", "phase3-command-validation-record.json");
 const smokeBundleArtifactPath = resolve("local_private", "phase3-smoke-proof-bundle.json");
+const proofKeys = [
+  "liveControlSmoke",
+  "activeTurnInterruptSmoke",
+  "activeTurnSteerSmoke"
+];
 const cargoBin = process.platform === "win32" ? "cargo.exe" : "cargo";
 const cargoArgs = [
   "test",
@@ -209,6 +214,7 @@ try {
   await writeFile(smokeBundleArtifactPath, `${JSON.stringify(smokeBundleEnvelope, null, 2)}\n`, "utf8");
 } catch (error) {
   smokeBundleError = error instanceof Error ? error : new Error(String(error));
+  await unlink(smokeBundleArtifactPath).catch(() => undefined);
 }
 
 const record = createRecord(result, createdAt, counts, smokeBundleEnvelope, smokeBundleError);
@@ -216,6 +222,14 @@ const record = createRecord(result, createdAt, counts, smokeBundleEnvelope, smok
 await writeFile(artifactPath, `${JSON.stringify(record, null, 2)}\n`, "utf8");
 
 console.log(`\nPhase 3 CLI smoke validation artifact written to ${artifactPath}`);
-console.log(`Phase 3 desktop smoke proof bundle artifact written to ${smokeBundleArtifactPath}`);
+if (smokeBundleEnvelope) {
+  console.log(`Phase 3 desktop smoke proof bundle artifact written to ${smokeBundleArtifactPath}`);
+} else {
+  console.log(
+    `Phase 3 desktop smoke proof bundle artifact was not written: ${
+      smokeBundleError?.message ?? "smoke proof bundle was not ready"
+    }`
+  );
+}
 
 process.exitCode = result.code === 0 && record.status === "passed" ? 0 : 1;

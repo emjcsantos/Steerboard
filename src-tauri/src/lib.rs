@@ -5605,6 +5605,11 @@ mod tests {
         );
         if proof.executed {
             assert!(
+                proof.ok,
+                "active-turn control smoke must produce a ready proof row: {:?}",
+                proof
+            );
+            assert!(
                 !proof.controls.is_empty(),
                 "active-turn control smoke should report control probes when attempted"
             );
@@ -5627,6 +5632,11 @@ mod tests {
             &proof.detail,
         );
         if proof.executed {
+            assert!(
+                proof.ok,
+                "active-turn steer smoke must produce a ready proof row: {:?}",
+                proof
+            );
             assert!(
                 !proof.controls.is_empty(),
                 "active-turn steer smoke should report control probes when attempted"
