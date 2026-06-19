@@ -158,5 +158,27 @@ describe("project management hierarchy", () => {
     expect(result?.payload.children).toHaveLength(6);
     expect(result?.dispatchPackage.status).toBe("staged");
     expect(result?.dispatchPackage.scope.join(" ")).toContain("Runtime execution is locked");
+
+    const childResult = buildProjectManagementArenaDispatch(
+      createDefaultProjectManagementTasks(),
+      "phase-06-child-run-context",
+      { id: "website-refresh", name: "Website Refresh" },
+      "2026-06-06T08:05:00.000Z"
+    );
+
+    expect(childResult?.payload).toMatchObject({
+      taskId: "phase-06-child-run-context",
+      taskType: "Child",
+      completion: 60,
+      sourceDocument: "Arena dispatch package",
+      relationshipContext: {
+        epic: { id: "phase-06-planning-lane", title: "Phase 6: Project and Program Planning Lane" },
+        parent: { id: "phase-06-parent-arena-staging", title: "Arena Staging from PM Rows" }
+      },
+      children: []
+    });
+    expect(childResult?.dispatchPackage.risk).toBe("medium");
+    expect(childResult?.dispatchPackage.scope.join(" ")).toContain("Completion: 60%");
+    expect(childResult?.dispatchPackage.scope.join(" ")).toContain("Source: Arena dispatch package");
   });
 });
