@@ -839,6 +839,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Submit a provider-routed slash command from an Arena panel");
     expect(html).toContain("Collect Arena session-control evidence");
     expect(html).toContain("Advance held");
+    expect(html).toContain(
+      'aria-label="Phase 3 exit gate counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Review</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>Waiting</dt><dd>2</dd></div><div><dt>Panel</dt><dd title="panel-phase3-owner-visible">panel-phase3-owner-visible</dd></div><div><dt>PM Links</dt><dd>3</dd></div><div><dt>Evidence Keys</dt><dd>5</dd></div></dl>'
+    );
     expect(html).not.toContain("Current evidence match 100%");
     expect(html).not.toContain(`panel ${otherPanelId}`);
   });
