@@ -2846,6 +2846,7 @@ mod runtime_bridge {
         };
         set_current_turn(&session, turn_id.clone());
 
+        let active_turn_id = turn_id.clone();
         if let Some(turn_id) = turn_id {
             let interrupt_request_id = session.next_request_id();
             let interrupt = serde_json::json!({
@@ -2887,8 +2888,6 @@ mod runtime_bridge {
             };
         }
 
-        set_current_turn(&session, None);
-
         let deadline = std::time::Instant::now() + Duration::from_secs(8);
         while std::time::Instant::now() < deadline {
             let remaining = deadline.saturating_duration_since(std::time::Instant::now());
@@ -2899,16 +2898,24 @@ mod runtime_bridge {
                     break;
                 }
             };
-            let terminal_status = normalize_panel_event(&value)
-                .and_then(|event| event.status)
+            let Some(event) = normalize_panel_event(&value) else {
+                continue;
+            };
+            if !event_belongs_to_turn(active_turn_id.as_deref(), &event) {
+                continue;
+            }
+            let terminal_status = event
+                .status
+                .as_deref()
                 .is_some_and(|status| {
-                    matches!(status.as_str(), "completed" | "interrupted" | "failed")
+                    matches!(status, "completed" | "interrupted" | "failed")
                 });
             events.push(value.clone());
             if terminal_status {
                 break;
             }
         }
+        set_current_turn(&session, None);
 
         codex_transport_active_turn_control_smoke_from_values(
             checked_at,
@@ -2952,6 +2959,7 @@ mod runtime_bridge {
                 failed = true;
             }
         }
+        let failure_message = first_failure_message(&events);
 
         for control in &mut controls {
             match control.control.as_str() {
@@ -2987,7 +2995,13 @@ mod runtime_bridge {
         } else if unsupported {
             "Active-turn control smoke was unable to complete required controls.".to_string()
         } else if failed {
-            "Active-turn control smoke observed a failed event during the turn.".to_string()
+            match failure_message {
+                Some(message) => format!(
+                    "Active-turn control smoke observed a failed event during the turn: {message}"
+                ),
+                None => "Active-turn control smoke observed a failed event during the turn."
+                    .to_string(),
+            }
         } else if completed {
             "Active-turn control smoke completed; turn/interrupt did not return an interrupted event.".to_string()
         } else {
@@ -3166,6 +3180,7 @@ mod runtime_bridge {
         };
         set_current_turn(&session, turn_id.clone());
 
+        let active_turn_id = turn_id.clone();
         if let Some(turn_id) = turn_id {
             let steer_request_id = session.next_request_id();
             let steer = steer_request(
@@ -3203,8 +3218,6 @@ mod runtime_bridge {
             };
         }
 
-        set_current_turn(&session, None);
-
         let deadline = std::time::Instant::now() + Duration::from_secs(10);
         while std::time::Instant::now() < deadline {
             let remaining = deadline.saturating_duration_since(std::time::Instant::now());
@@ -3214,6 +3227,12 @@ mod runtime_bridge {
                 Err(_) => break,
             };
             let event = normalize_panel_event(&value);
+            if event
+                .as_ref()
+                .is_some_and(|event| !event_belongs_to_turn(active_turn_id.as_deref(), event))
+            {
+                continue;
+            }
             let terminal_status = event
                 .as_ref()
                 .and_then(|event| event.status.as_deref())
@@ -3227,6 +3246,7 @@ mod runtime_bridge {
                 break;
             }
         }
+        set_current_turn(&session, None);
 
         codex_transport_active_turn_steer_smoke_from_values(
             checked_at,
@@ -3277,6 +3297,7 @@ mod runtime_bridge {
                 failed = true;
             }
         }
+        let failure_message = first_failure_message(&events);
 
         let steer_observed = expected_token_seen;
         for control in &mut controls {
@@ -3312,7 +3333,12 @@ mod runtime_bridge {
         } else if unsupported {
             "Active-turn steer smoke was unable to complete required controls.".to_string()
         } else if failed {
-            "Active-turn steer smoke observed a failed event during the turn.".to_string()
+            match failure_message {
+                Some(message) => format!(
+                    "Active-turn steer smoke observed a failed event during the turn: {message}"
+                ),
+                None => "Active-turn steer smoke observed a failed event during the turn.".to_string(),
+            }
         } else if steer_observed {
             "Active-turn steer smoke sent steer request and observed the expected token.".to_string()
         } else if completed {
@@ -3925,6 +3951,26 @@ mod runtime_bridge {
             delta,
             message,
         })
+    }
+
+    fn first_failure_message(events: &[CodexPanelEvent]) -> Option<String> {
+        events
+            .iter()
+            .find(|event| {
+                event.status.as_deref() == Some("failed") || event.event_type == "error"
+            })
+            .and_then(|event| event.message.as_deref())
+            .map(str::trim)
+            .filter(|message| !message.is_empty())
+            .map(ToOwned::to_owned)
+    }
+
+    pub(crate) fn event_belongs_to_turn(turn_id: Option<&str>, event: &CodexPanelEvent) -> bool {
+        match (turn_id, event.turn_id.as_deref()) {
+            (Some(expected), Some(actual)) => expected == actual,
+            (None, _) => true,
+            (Some(_), None) => false,
+        }
     }
 
     fn panel_event_type(method: &str) -> &str {
@@ -4540,6 +4586,39 @@ mod tests {
     }
 
     #[test]
+    fn codex_transport_active_turn_control_smoke_includes_failure_message() {
+        let proof = runtime_bridge::codex_transport_active_turn_control_smoke_from_values(
+            Some("1700000000000".to_string()),
+            true,
+            true,
+            true,
+            true,
+            vec![
+                active_turn_control_smoke_control("thread/start", true, true, ""),
+                active_turn_control_smoke_control("turn/start", true, true, ""),
+                active_turn_control_smoke_control("turn/interrupt", true, true, ""),
+            ],
+            &[serde_json::json!({
+                "jsonrpc": "2.0",
+                "method": "turn/failed",
+                "params": {
+                    "turn": {
+                        "id": "turn-3",
+                        "status": "failed"
+                    },
+                    "error": {
+                        "message": "provider rejected interrupt"
+                    }
+                }
+            })],
+        );
+
+        assert!(!proof.ok);
+        assert!(proof.failed);
+        assert!(proof.detail.contains("provider rejected interrupt"));
+    }
+
+    #[test]
     fn codex_transport_active_turn_steer_smoke_marks_ok_when_token_is_observed() {
         let proof = runtime_bridge::codex_transport_active_turn_steer_smoke_from_values(
             Some("1700000000000".to_string()),
@@ -4641,6 +4720,39 @@ mod tests {
         assert!(!proof.ok);
         assert!(proof.unsupported);
         assert!(!proof.session_started);
+    }
+
+    #[test]
+    fn codex_transport_active_turn_steer_smoke_includes_failure_message() {
+        let proof = runtime_bridge::codex_transport_active_turn_steer_smoke_from_values(
+            Some("1700000000000".to_string()),
+            true,
+            true,
+            true,
+            true,
+            vec![
+                active_turn_control_smoke_control("thread/start", true, true, ""),
+                active_turn_control_smoke_control("turn/start", true, true, ""),
+                active_turn_control_smoke_control("turn/steer", true, true, ""),
+            ],
+            &[serde_json::json!({
+                "jsonrpc": "2.0",
+                "method": "turn/failed",
+                "params": {
+                    "turn": {
+                        "id": "turn-4",
+                        "status": "failed"
+                    },
+                    "error": {
+                        "message": "provider rejected steer"
+                    }
+                }
+            })],
+        );
+
+        assert!(!proof.ok);
+        assert!(proof.failed);
+        assert!(proof.detail.contains("provider rejected steer"));
     }
 
     #[test]
@@ -4847,6 +4959,35 @@ mod tests {
         assert_eq!(event.event_type, "error");
         assert_eq!(event.turn_id.as_deref(), Some("turn-3"));
         assert_eq!(event.message.as_deref(), Some("provider failed"));
+    }
+
+    #[test]
+    fn panel_event_turn_filter_excludes_unrelated_reconnect_events() {
+        let reconnect = CodexPanelEvent {
+            method: "turn/failed".to_string(),
+            event_type: "error".to_string(),
+            turn_id: None,
+            status: Some("failed".to_string()),
+            delta: None,
+            message: Some("Reconnecting... 2/5".to_string()),
+        };
+        let matching = CodexPanelEvent {
+            method: "turn/completed".to_string(),
+            event_type: "turn_status".to_string(),
+            turn_id: Some("turn-1".to_string()),
+            status: Some("completed".to_string()),
+            delta: None,
+            message: None,
+        };
+        let other_turn = CodexPanelEvent {
+            turn_id: Some("turn-2".to_string()),
+            ..matching.clone()
+        };
+
+        assert!(!runtime_bridge::event_belongs_to_turn(Some("turn-1"), &reconnect));
+        assert!(runtime_bridge::event_belongs_to_turn(Some("turn-1"), &matching));
+        assert!(!runtime_bridge::event_belongs_to_turn(Some("turn-1"), &other_turn));
+        assert!(runtime_bridge::event_belongs_to_turn(None, &reconnect));
     }
 
     fn fake_codex_transport_probe() -> CodexTransportProbe {
