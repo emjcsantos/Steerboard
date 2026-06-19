@@ -275,6 +275,15 @@ function desktopSmokeProofDetail(
   );
 }
 
+function proofExportDetail(
+  proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
+): string {
+  return (
+    proofFreshnessDepth.items.find((item) => item.kind === "proof-export")?.detail ??
+    "Phase 3 proof export detail is missing from proof freshness depth."
+  );
+}
+
 function smokeProofItem(
   ownerCommandCenter: Phase11OwnerCommandCenterSnapshot,
   proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot
@@ -294,7 +303,8 @@ function smokeProofItem(
     detail:
       `Owner command center is ${ownerCommandCenter.statusLabel.toLowerCase()} at ${ownerCommandCenter.readiness}% with ${ownerCommandCenter.blockerCount} blocker${ownerCommandCenter.blockerCount === 1 ? "" : "s"}; ` +
       `proof freshness is ${proofFreshnessDepth.statusLabel.toLowerCase()} at ${proofFreshnessDepth.readiness}% with ${proofFreshnessDepth.openProofCount} open proof row${proofFreshnessDepth.openProofCount === 1 ? "" : "s"}; ` +
-      `desktop smoke proof: ${desktopSmokeProofDetail(proofFreshnessDepth)}`,
+      `desktop smoke proof: ${desktopSmokeProofDetail(proofFreshnessDepth)}; ` +
+      `proof export: ${proofExportDetail(proofFreshnessDepth)}`,
     nextAction:
       status === "ready"
         ? "Keep owner smoke proof fresh across reload and while the app remains open before release packaging resumes."
@@ -326,6 +336,7 @@ function phase3TraceItem(
   const missingPmBoardEvidence = !projectManagementTasks;
   const handoffProofReady = phase3HandoffProofReady(proofFreshnessDepth);
   const handoffProofDetail = phase3HandoffProofDetail(proofFreshnessDepth);
+  const phase3ProofExportDetail = proofExportDetail(proofFreshnessDepth);
   const traceIsCurrent = phase3Trace?.current === true;
   const traceIsActive = phase3Trace?.status === "active";
   const traceIsTrusted =
@@ -360,7 +371,7 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status: traceIsTrusted ? "ready" : "review",
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}${missingPmBoardDetail}; proof freshness ${proofFreshnessDepth.canTrustOwnerProof ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; ${handoffProofDetail}`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}${missingPmBoardDetail}; proof freshness ${proofFreshnessDepth.canTrustOwnerProof ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; proof export: ${phase3ProofExportDetail}; ${handoffProofDetail}`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction: traceIsTrusted
       ? "Keep current active Phase 3 clearance PM traceability and ready handoff proof attached before release packaging resumes."

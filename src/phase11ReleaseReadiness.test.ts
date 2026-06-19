@@ -63,7 +63,7 @@ function proofSnapshot(
     statusLabel: "Ready",
     readiness: 100,
     canTrustOwnerProof: true,
-    readyCount: 1,
+    readyCount: 3,
     reviewCount: 0,
     blockedCount: 0,
     waitingCount: 0,
@@ -80,6 +80,16 @@ function proofSnapshot(
         detail:
           "3/3 desktop smoke rows are ready; 0 review, 0 blocked, and 0 waiting; 3/3 storage-proof attested, 0 storage review; freshness evaluated at 2026-06-11T00:10:00.000Z.",
         nextAction: "Keep desktop smoke proof rows fresh and storage-proof attested."
+      },
+      {
+        id: "phase-11-proof-freshness-depth:proof-export",
+        label: "Phase 3 proof export",
+        kind: "proof-export",
+        status: "ready",
+        detail:
+          "Proof export is ready at 100% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff attached, expected fingerprint current, record fingerprint current, clearance snapshot 100% with 0 open blockers.",
+        nextAction:
+          "Keep the offline-verifiable Phase 3 proof export attached before release readiness resumes."
       },
       {
         id: "phase-11-proof-freshness-depth:handoff-proof",
@@ -224,6 +234,10 @@ describe("phase 11 release readiness", () => {
           detail: expect.stringContaining("3/3 storage-proof attested")
         }),
         expect.objectContaining({
+          label: "Owner smoke proof",
+          detail: expect.stringContaining("proof export: Proof export is ready at 100% ready")
+        }),
+        expect.objectContaining({
           label: "Current Phase 3 trace",
           status: "ready",
           nextAction: expect.stringContaining("current active Phase 3 clearance PM traceability")
@@ -249,6 +263,7 @@ describe("phase 11 release readiness", () => {
       ])
     );
     expect(phase3Trace?.detail).toContain("expected fingerprint current");
+    expect(phase3Trace?.detail).toContain("proof export: Proof export is ready at 100% ready");
     expect(phase3Trace?.detail).toContain("phase-03-child-blocker-priority");
     expect(phase3Trace?.detail).toContain("phase-03-child-traceability");
     expect(phase3Trace?.detail).toContain("phase-03-child-handoff-gate");
@@ -266,17 +281,25 @@ describe("phase 11 release readiness", () => {
         readyCount: 5,
         reviewCount: 1,
         openProofCount: 1,
-        nextAction: "Import or rerun desktop smoke proof rows until each required row is storage-proof attested.",
+        nextAction: "Record the owner-reviewed Phase 3 handoff before exporting.",
         items: [
+          {
+            id: "phase-11-proof-freshness-depth:proof-export",
+            label: "Phase 3 proof export",
+            kind: "proof-export",
+            status: "review",
+            detail:
+              "Proof export is review at 65% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff missing, expected fingerprint missing, record fingerprint missing, clearance snapshot 0% with 0 open blockers.",
+            nextAction: "Record the owner-reviewed Phase 3 handoff before exporting."
+          },
           {
             id: "phase-11-proof-freshness-depth:desktop-smoke",
             label: "Desktop smoke proof",
             kind: "desktop-smoke",
-            status: "review",
+            status: "ready",
             detail:
-              "2/3 desktop smoke rows are ready; 1 review, 0 blocked, and 0 waiting; 2/3 storage-proof attested, 1 storage review; freshness evaluated at 2026-06-11T00:10:00.000Z.",
-            nextAction:
-              "Import or rerun desktop smoke proof rows until each required row is storage-proof attested."
+              "3/3 desktop smoke rows are ready; 0 review, 0 blocked, and 0 waiting; 3/3 storage-proof attested, 0 storage review; freshness evaluated at 2026-06-11T00:10:00.000Z.",
+            nextAction: "Keep desktop smoke proof rows fresh and storage-proof attested."
           },
           {
             id: "phase-11-proof-freshness-depth:handoff-proof",
@@ -300,9 +323,9 @@ describe("phase 11 release readiness", () => {
         expect.objectContaining({
           label: "Owner smoke proof",
           status: "review",
-          detail: expect.stringContaining("2/3 storage-proof attested, 1 storage review"),
+          detail: expect.stringContaining("proof export: Proof export is review at 65% ready"),
           nextAction:
-            "Import or rerun desktop smoke proof rows until each required row is storage-proof attested."
+            "Record the owner-reviewed Phase 3 handoff before exporting."
         }),
         expect.objectContaining({
           label: "Current Phase 3 trace",
@@ -316,8 +339,10 @@ describe("phase 11 release readiness", () => {
       ])
     );
     expect(phase3Trace?.detail).toContain("proof freshness not trusted");
-    expect(phase3Trace?.detail).toContain("expected fingerprint current");
+    expect(phase3Trace?.detail).toContain("proof export: Proof export is review at 65% ready");
+    expect(phase3Trace?.detail).toContain("expected fingerprint missing");
     expect(smokeProof?.detail).toContain("proof freshness is review at 84%");
+    expect(smokeProof?.detail).toContain("handoff missing");
   });
 
   it("reviews release readiness when owner proof lacks Phase 3 clearance traceability", () => {
