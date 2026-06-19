@@ -297,7 +297,8 @@ describe("phase 11 proof freshness depth", () => {
         handoffRecordValidation: {
           state: "ready",
           detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
-          nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 review resumes.",
+          nextAction:
+            "Keep the owner-reviewed handoff record attached before Phase 4 review resumes and proof-export offline verification is trusted.",
           expectedFingerprint: "current",
           recordFingerprint: "current",
           matchesCurrentEvidence: true

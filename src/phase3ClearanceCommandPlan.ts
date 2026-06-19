@@ -122,7 +122,7 @@ function firstNextAction(
     items.find((item) => item.state === "blocked")?.nextAction ||
     items.find((item) => item.state === "review")?.nextAction ||
     items.find((item) => item.state === "waiting")?.nextAction ||
-    "Desktop smoke command is no longer needed; record Phase 3 handoff after owner review."
+    "Desktop smoke command is no longer needed; record Phase 3 handoff after owner review and keep proof-export offline verification trusted."
   );
 }
 

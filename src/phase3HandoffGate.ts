@@ -202,7 +202,8 @@ function traceabilityBoundaryItem(
       kind: "traceability-boundary",
       status: "review",
       detail: "Phase 3 current-goal and PM traceability precondition is not attached.",
-      nextAction: "Attach Phase 3 traceability precondition before Phase 4 review resumes."
+      nextAction:
+        "Attach Phase 3 traceability precondition before Phase 4 review resumes and proof-export offline verification is trusted."
     };
   }
 
@@ -215,7 +216,7 @@ function traceabilityBoundaryItem(
       : traceabilityPrecondition.state,
     detail: traceabilityPrecondition.detail,
     nextAction: traceabilityPrecondition.canTrustTrace
-      ? "Keep Phase 3 traceability trusted before Phase 4 review resumes."
+      ? "Keep Phase 3 traceability trusted before Phase 4 review resumes and proof-export offline verification is trusted."
       : traceabilityPrecondition.nextAction
   };
 }
@@ -412,16 +413,16 @@ function handoffRecordItem(
       handoffValidationMetadata(handoffRecordValidation),
     nextAction:
       (invalidReadyValidation
-        ? "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
+        ? "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes and proof-export offline verification is trusted."
         : undefined) ??
       handoffRecordValidation?.nextAction ??
       (missingValidation
-        ? "Attach current handoff validation before Phase 4 review resumes."
+        ? "Attach current handoff validation before Phase 4 review resumes and proof-export offline verification is trusted."
         : undefined) ??
       (status === "ready"
-        ? "Keep the owner-reviewed handoff record attached before Phase 4 review resumes."
+        ? "Keep the owner-reviewed handoff record attached before Phase 4 review resumes and proof-export offline verification is trusted."
         : clearancePackage.canExit
-          ? "Record the owner-reviewed Phase 3 handoff before Phase 4 review resumes."
+          ? "Record the owner-reviewed Phase 3 handoff before Phase 4 review resumes and proof-export offline verification is trusted."
           : "Wait for the clearance package to reach exit-ready before recording handoff.")
   };
 }
@@ -448,7 +449,7 @@ function providerBoundaryItem(
       detail: "Phase 4 review remains blocked because Phase 3 evidence is blocked.",
       nextAction: publicText(
         clearancePackage.nextAction,
-        "Clear the blocked Phase 3 evidence before Phase 4 review resumes."
+        "Clear the blocked Phase 3 evidence before Phase 4 review resumes and proof-export offline verification is trusted."
       )
     };
   }
@@ -462,7 +463,7 @@ function providerBoundaryItem(
       detail: "Phase 4 review remains held until Phase 3 clearance reaches exit-ready.",
       nextAction: publicText(
         clearancePackage.nextAction,
-        "Complete Phase 3 clearance before Phase 4 review resumes."
+        "Complete Phase 3 clearance before Phase 4 review resumes and proof-export offline verification is trusted."
       )
     };
   }
@@ -478,7 +479,7 @@ function providerBoundaryItem(
         : "Phase 4 review remains held until Phase 3 traceability precondition is attached.",
       nextAction:
         traceabilityPrecondition?.nextAction ??
-        "Attach Phase 3 traceability precondition before Phase 4 review resumes."
+        "Attach Phase 3 traceability precondition before Phase 4 review resumes and proof-export offline verification is trusted."
     };
   }
 
@@ -493,7 +494,7 @@ function providerBoundaryItem(
         : "Phase 4 review remains held until fresh Phase 3 CLI smoke validation is attached.",
       nextAction:
         commandValidation?.nextAction ??
-        "Attach fresh Phase 3 CLI smoke validation before Phase 4 review resumes."
+        "Attach fresh Phase 3 CLI smoke validation before Phase 4 review resumes and proof-export offline verification is trusted."
     };
   }
 
@@ -517,10 +518,10 @@ function providerBoundaryItem(
           ? handoffRecordValidation.nextAction
           : handoffRecordValidation?.state === "ready" &&
               !hasReadyHandoffValidation(handoffRecordValidation)
-            ? "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
+            ? "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes and proof-export offline verification is trusted."
           : !handoffRecordValidation && handoffRecordState === "ready"
-            ? "Attach current handoff validation before Phase 4 review resumes."
-          : "Attach the owner-reviewed Phase 3 handoff before Phase 4 review resumes."
+            ? "Attach current handoff validation before Phase 4 review resumes and proof-export offline verification is trusted."
+          : "Attach the owner-reviewed Phase 3 handoff before Phase 4 review resumes and proof-export offline verification is trusted."
     };
   }
 
@@ -600,7 +601,7 @@ function buildOwnerReviewSummary(
   if (validatedRecordState !== "ready") {
     return `Owner handoff review: ${publicText(
       handoffRecordValidation.detail,
-      "The owner handoff record needs review before Phase 4 review resumes."
+      "The owner handoff record needs review before Phase 4 review resumes and proof-export offline verification is trusted."
     )}`;
   }
 

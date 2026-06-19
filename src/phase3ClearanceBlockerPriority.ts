@@ -262,11 +262,12 @@ export function buildPhase3ClearanceBlockerPriority(
     topPriorityEvidenceKey: topItem?.evidenceKey ?? "phase3.clearance.none",
     topPriorityPmTaskId: topItem?.pmTaskId ?? "phase-03-child-handoff-gate",
     topPriorityAction:
-      topItem?.nextAction ?? "Record the Phase 3 handoff after owner review.",
+      topItem?.nextAction ??
+      "Record the Phase 3 handoff after owner review and keep proof-export offline verification trusted.",
     commandCanAddressTopBlocker: topItem?.canUseSmokeCommand === true,
     nextAction:
       topItem?.nextAction ??
-      "No Phase 3 blockers remain; record the owner-reviewed handoff before Phase 4 review resumes.",
+      "No Phase 3 blockers remain; record the owner-reviewed handoff before Phase 4 review resumes and proof-export offline verification is trusted.",
     safety: SAFETY,
     items
   };

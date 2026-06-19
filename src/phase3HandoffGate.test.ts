@@ -13,7 +13,8 @@ function clearancePackage(
     readiness: 100,
     canExit: true,
     detail: "Phase 3 has complete evidence.",
-    nextAction: "Record the Phase 3 handoff before Phase 4 review resumes after owner review.",
+    nextAction:
+      "Record the Phase 3 handoff before Phase 4 review resumes and proof-export offline verification is trusted.",
     readyCount: 5,
     openCount: 0,
     blockerCount: 0,
@@ -41,7 +42,8 @@ function readyHandoffValidation() {
   return {
     state: "ready" as const,
     detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
-    nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 review resumes.",
+    nextAction:
+      "Keep the owner-reviewed handoff record attached before Phase 4 review resumes and proof-export offline verification is trusted.",
     expectedFingerprint: "current",
     recordFingerprint: "current",
     evaluatedAt: "2026-06-11T00:10:00.000Z",
@@ -240,7 +242,8 @@ describe("phase 3 handoff gate", () => {
       handoffRecordValidation: {
         state: "ready",
         detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
-        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 review resumes.",
+        nextAction:
+          "Keep the owner-reviewed handoff record attached before Phase 4 review resumes and proof-export offline verification is trusted.",
         expectedFingerprint: "current",
         recordFingerprint: "current",
         matchesCurrentEvidence: true
@@ -256,7 +259,7 @@ describe("phase 3 handoff gate", () => {
       hasFreshAgeMetadata: false
     });
     expect(result.nextAction).toBe(
-      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
+      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes and proof-export offline verification is trusted."
     );
     expect(result.ownerReviewSummary).toContain("must prove both");
     expect(result.items).toEqual(
@@ -285,7 +288,7 @@ describe("phase 3 handoff gate", () => {
     expect(result.state).toBe("review");
     expect(result.canAdvanceProviderIntegration).toBe(false);
     expect(result.nextAction).toBe(
-      "Attach current handoff validation before Phase 4 review resumes."
+      "Attach current handoff validation before Phase 4 review resumes and proof-export offline verification is trusted."
     );
     expect(result.ownerReviewSummary).toContain("fingerprint validation is missing");
     expect(result.items).toEqual(
@@ -312,7 +315,8 @@ describe("phase 3 handoff gate", () => {
       handoffRecordValidation: {
         state: "ready",
         detail: "Owner-reviewed Phase 3 handoff record is attached.",
-        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 review resumes.",
+        nextAction:
+          "Keep the owner-reviewed handoff record attached before Phase 4 review resumes and proof-export offline verification is trusted.",
         recordFingerprint: "phase3-handoff-existing",
         matchesCurrentEvidence: true
       }
@@ -321,7 +325,7 @@ describe("phase 3 handoff gate", () => {
     expect(result.state).toBe("review");
     expect(result.canAdvanceProviderIntegration).toBe(false);
     expect(result.nextAction).toBe(
-      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
+      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes and proof-export offline verification is trusted."
     );
     expect(result.items).toEqual(
       expect.arrayContaining([
@@ -358,7 +362,7 @@ describe("phase 3 handoff gate", () => {
       hasFreshAgeMetadata: true
     });
     expect(result.nextAction).toBe(
-      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
+      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes and proof-export offline verification is trusted."
     );
     expect(result.ownerReviewSummary).toContain("must prove both");
     expect(result.ariaLabel).toContain("must prove both");
@@ -386,7 +390,7 @@ describe("phase 3 handoff gate", () => {
       hasFreshAgeMetadata: true
     });
     expect(result.nextAction).toBe(
-      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
+      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes and proof-export offline verification is trusted."
     );
     expect(result.ownerReviewSummary).toContain("must prove both");
     expect(result.items).toEqual(
@@ -424,7 +428,7 @@ describe("phase 3 handoff gate", () => {
       ])
     );
     expect(result.nextAction).toBe(
-      "Record the owner-reviewed Phase 3 handoff before Phase 4 review resumes."
+      "Record the owner-reviewed Phase 3 handoff before Phase 4 review resumes and proof-export offline verification is trusted."
     );
     expect(result.ownerReviewSummary).toContain("Owner handoff recordable");
     expect(result.ariaLabel).toContain("Owner handoff recordable");
