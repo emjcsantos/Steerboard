@@ -932,6 +932,12 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Advance held");
     expect(html).toContain("Traceability boundary");
     expect(html).toContain(
+      'aria-label="Phase 3 handoff gate: Review; 86% ready; 3 ready, 2 review, 0 blocked, 0 waiting; 0 exact blockers; owner review: Owner handoff held: 2 current active remaining goals are set.; next action: Keep exactly one current active remaining goal before Phase 3 handoff can advance."'
+    );
+    expect(html).toContain(
+      'aria-label="Phase 3 handoff gate counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>State</dt><dd>Review</dd></div></dl>'
+    );
+    expect(html).toContain(
       "Keep exactly one current active remaining goal before Phase 3 handoff can advance."
     );
     expect(html).toContain("Provider integration remains held because");
