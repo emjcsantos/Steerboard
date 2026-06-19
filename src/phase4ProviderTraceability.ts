@@ -161,6 +161,31 @@ function publicText(value: string | undefined, fallback: string): string {
   return sanitized.length > 0 ? sanitized : fallback;
 }
 
+function activeGoalNextAction(
+  goal: RemainingGoalPlanItem,
+  currentActiveGoalIds: readonly string[],
+  isTrustedPhase4Goal: boolean
+): string {
+  if (isTrustedPhase4Goal) {
+    return publicText(
+      goal.nextAction,
+      "Keep Phase 4 provider traceability attached while provider execution remains locked."
+    );
+  }
+
+  if (currentActiveGoalIds.length === 1) {
+    return (
+      `Keep Phase 4 provider review held until ${PHASE4_GOAL_ID} is the single current active remaining goal; ` +
+      `current active goal is ${currentActiveGoalIds[0]}. After that, ${publicText(
+        goal.nextAction,
+        "run the owner-visible provider readiness check."
+      )}`
+    );
+  }
+
+  return `Keep exactly one current active remaining goal before Phase 4 provider review can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`;
+}
+
 function phase4Goal(goals: readonly RemainingGoalPlanItem[]): RemainingGoalPlanItem | undefined {
   return goals.find((goal) => goal.id === PHASE4_GOAL_ID);
 }
@@ -210,12 +235,7 @@ function goalItem(
     detail:
       `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links ` +
       `and ${currentActiveGoalIds.length} current active goal${currentActiveGoalIds.length === 1 ? "" : "s"}.`,
-    nextAction: exactlyOneCurrentActiveGoal
-      ? publicText(
-          goal.nextAction,
-          "Make Phase 4 the current active goal before provider review can be trusted."
-        )
-      : `Keep exactly one current active remaining goal before Phase 4 provider review can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
+    nextAction: activeGoalNextAction(goal, currentActiveGoalIds, isTrustedPhase4Goal)
   };
 }
 
