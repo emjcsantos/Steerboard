@@ -448,7 +448,7 @@ export function verifyPhase3ProofExportArtifact(
     "ready",
     artifact,
     `Phase 3 proof export artifact contains current-panel panel proof, storage-attested desktop proof, CLI validation, and current exit-ready owner handoff evidence for handoff fingerprint ${artifact.handoffEvidenceFingerprint}.`,
-    "Keep the exported Phase 3 proof package attached while Phase 4 remains gated by owner review.",
+    "Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification.",
     counts
   );
 }

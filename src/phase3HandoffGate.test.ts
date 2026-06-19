@@ -111,6 +111,11 @@ describe("phase 3 handoff gate", () => {
         expect.objectContaining({
           label: "Owner handoff record",
           detail: expect.stringContaining("age 600000ms of 86400000ms window")
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          detail: expect.stringContaining("proof-export offline verification"),
+          nextAction: expect.stringContaining("proof-export offline verification")
         })
       ])
     );

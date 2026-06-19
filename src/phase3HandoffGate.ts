@@ -530,9 +530,9 @@ function providerBoundaryItem(
     kind: "provider-boundary",
     status: "ready",
     detail:
-      "Phase 4 review can resume after owner review with current active goal and PM traceability trusted.",
+      "Phase 4 review can resume after owner review when proof-export offline verification, current active goal, and PM traceability are trusted.",
     nextAction:
-      "Resume Phase 4 review from the reviewed handoff while keeping current active goal and PM traceability trusted."
+      "Resume Phase 4 review from the reviewed handoff while keeping proof-export offline verification, current active goal, and PM traceability trusted."
   };
 }
 

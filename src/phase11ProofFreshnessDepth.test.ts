@@ -158,7 +158,7 @@ function proofExport(
     detail:
       "Phase 3 proof export artifact contains current-panel panel proof, storage-attested desktop proof, CLI validation, and current exit-ready owner handoff evidence for handoff fingerprint current.",
     nextAction:
-      "Keep the exported Phase 3 proof package attached while Phase 4 remains gated by owner review.",
+      "Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification.",
     currentPanelId: "panel-phase3-owner-visible",
     readyPanelEvidenceCount: 2,
     storageAttestedDesktopProofCount: 3,

@@ -730,7 +730,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Provider boundary");
     expect(html).toContain("Phase 3 proof export");
     expect(html).toContain(
-      'aria-label="Phase 3 proof export verifier Ready; 100% ready; next action: Keep the exported Phase 3 proof package attached while Phase 4 remains gated by owner review."'
+      'aria-label="Phase 3 proof export verifier Ready; 100% ready; next action: Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification."'
     );
     expect(html).toContain("Export proof");
     expect(html).toContain("Import proof");
@@ -744,7 +744,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Record fingerprint phase3-handoff-");
     expect(html).toContain("Handoff snapshot 100% / 0 open");
     expect(html).toContain(
-      "Keep the exported Phase 3 proof package attached while Phase 4 remains gated by owner review."
+      "Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification."
     );
     expect(html).toContain("Record handoff");
     expect(html).toContain("Clear record");
@@ -812,7 +812,7 @@ describe("phase 3 owner-visible proof panel", () => {
 
     expect(html).toContain("Imported proof artifact");
     expect(html).toContain(
-      'aria-label="Imported Phase 3 proof artifact verifier Ready; 100% ready; next action: Keep the exported Phase 3 proof package attached while Phase 4 remains gated by owner review."'
+      'aria-label="Imported Phase 3 proof artifact verifier Ready; 100% ready; next action: Keep the exported Phase 3 proof package attached while Phase 4 review remains gated by owner review plus proof-export offline verification."'
     );
     expect(html).toContain("Phase 3 proof export artifact contains current-panel panel proof");
     expect(html).toContain("Panel proof 2/2");
