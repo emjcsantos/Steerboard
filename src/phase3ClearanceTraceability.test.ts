@@ -217,6 +217,11 @@ describe("phase 3 clearance traceability", () => {
           detail: expect.stringContaining("3/3 row fingerprints")
         }),
         expect.objectContaining({
+          kind: "handoff-boundary",
+          detail: expect.stringContaining("proof-export offline verification trusted"),
+          nextAction: expect.stringContaining("proof-export offline verification")
+        }),
+        expect.objectContaining({
           kind: "goal-honesty",
           detail: expect.stringContaining("proof-export offline verification ready"),
           nextAction: expect.stringContaining("proof-export offline verification attached")

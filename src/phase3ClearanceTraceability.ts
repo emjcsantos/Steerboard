@@ -426,8 +426,10 @@ function handoffBoundaryItem(
       label: "Handoff boundary",
       kind: "handoff-boundary",
       status: "ready",
-      detail: "Owner handoff is attached and provider integration can advance after review.",
-      nextAction: "Keep provider integration tied to the owner-reviewed Phase 3 handoff."
+      detail:
+        "Owner handoff is attached and provider integration can advance only with proof-export offline verification trusted.",
+      nextAction:
+        "Keep provider integration tied to the owner-reviewed Phase 3 handoff and proof-export offline verification."
     };
   }
 
