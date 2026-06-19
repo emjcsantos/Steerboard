@@ -252,6 +252,9 @@ describe("phase 11 evidence records", () => {
       ageHours: 0.5
     });
     expect(record.nextAction).toContain("current active Phase 3 clearance PM traceability");
+    expect(record.nextAction).toContain(
+      "current non-ready proof freshness row actions for handoff/proof-export review"
+    );
   });
 
   it("summarizes all release evidence records", () => {

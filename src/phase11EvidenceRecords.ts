@@ -84,7 +84,7 @@ const READY_NEXT_ACTIONS: Record<Phase11EvidenceGate, string> = {
   "clean-checkout": "Keep clean-checkout proof attached to the release record.",
   "build-test": "Keep the final test and build output attached to the release record.",
   "docs-known-limits": "Keep release docs and known limits attached to the readiness record.",
-  "release-decision": "Keep owner release-decision evidence attached while current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence stays attached and packaging remains locked for explicit owner resume."
+  "release-decision": "Keep owner release-decision evidence attached while current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence stays attached, current non-ready proof freshness row actions for handoff/proof-export review remain visible, and packaging remains locked for explicit owner resume."
 };
 
 const REQUIRED_DETAIL_TERMS: Record<Phase11EvidenceGate, readonly string[]> = {
