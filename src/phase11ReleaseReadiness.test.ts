@@ -187,6 +187,7 @@ function snapshot(
     desktopPackaging: packagingSnapshot(),
     securityFinalReview: securitySnapshot(),
     remainingGoalSummary: remainingSummary(),
+    projectManagementTasks: createDefaultProjectManagementPhasePlan(),
     freshCheckoutEvidence: readyEvidence("fresh-checkout"),
     cleanCheckoutEvidence: readyEvidence("clean-checkout"),
     buildTestEvidence: readyEvidence("build-test"),
@@ -488,6 +489,25 @@ describe("phase 11 release readiness", () => {
         expect.objectContaining({
           label: "Current Phase 3 trace",
           nextAction: expect.stringContaining("phase-03-child-command-plan")
+        })
+      ])
+    );
+  });
+
+  it("reviews release readiness when Phase 3 PM board evidence is missing", () => {
+    const result = snapshot({
+      projectManagementTasks: undefined
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Current Phase 3 trace",
+          status: "review",
+          detail: expect.stringContaining("PM board evidence missing"),
+          nextAction: expect.stringContaining("phase-03-child-blocker-priority")
         })
       ])
     );

@@ -323,6 +323,7 @@ function phase3TraceItem(
     projectManagementTasks,
     REQUIRED_PHASE3_RELEASE_TRACE_PM_TASK_IDS
   );
+  const missingPmBoardEvidence = !projectManagementTasks;
   const handoffProofReady = phase3HandoffProofReady(proofFreshnessDepth);
   const handoffProofDetail = phase3HandoffProofDetail(proofFreshnessDepth);
   const traceIsCurrent = phase3Trace?.current === true;
@@ -331,6 +332,7 @@ function phase3TraceItem(
     Boolean(phase3Trace) &&
     traceIsCurrent &&
     traceIsActive &&
+    !missingPmBoardEvidence &&
     missingPmTaskIds.length === 0 &&
     incompletePmTaskIds.length === 0 &&
     handoffProofReady &&
@@ -339,9 +341,13 @@ function phase3TraceItem(
     incompletePmTaskIds.length > 0
       ? `; incomplete PM rows below ${MIN_PHASE3_RELEASE_TRACE_PM_COMPLETION}%: ${incompletePmTaskIds.join(", ")}`
       : "";
+  const missingPmBoardDetail = missingPmBoardEvidence
+    ? `; PM board evidence missing for required rows: ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}`
+    : "";
   const traceRestoreTarget =
     missingPmTaskIds.join(", ") ||
     incompletePmTaskIds.join(", ") ||
+    (missingPmBoardEvidence ? REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS : "") ||
     (!traceIsCurrent || !traceIsActive
       ? PHASE3_CLEARANCE_GOAL_ID
       : !proofFreshnessDepth.canTrustOwnerProof
@@ -354,7 +360,7 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status: traceIsTrusted ? "ready" : "review",
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}; proof freshness ${proofFreshnessDepth.canTrustOwnerProof ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; ${handoffProofDetail}`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}${missingPmBoardDetail}; proof freshness ${proofFreshnessDepth.canTrustOwnerProof ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; ${handoffProofDetail}`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction: traceIsTrusted
       ? "Keep current active Phase 3 clearance PM traceability and ready handoff proof attached before release packaging resumes."

@@ -45,6 +45,7 @@ import {
   type Phase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
 import { buildPhasePriorityEvidence } from "./phasePriorityEvidence";
+import { createDefaultProjectManagementTasks } from "./projectManagementHierarchy";
 import { buildSessionControlReadinessEvidence } from "./sessionControlReadinessEvidence";
 import { buildSlashCommandExecutionEvidence } from "./slashCommandExecutionEvidence";
 
@@ -754,6 +755,23 @@ describe("phase 3 owner-visible proof panel", () => {
     );
     expect(html).toContain(
       'aria-label="Catalog refresh owner validation ready; 100% ready"'
+    );
+  });
+
+  it("shows missing Phase 6 publish-hold acceptance child rows in owner priority evidence", () => {
+    const props = buildReadyPhase3Props();
+    const html = renderOwnerTestingReadinessPanel({
+      ...props,
+      phasePriorityEvidence: buildPhasePriorityEvidence({
+        projectManagementTasks: createDefaultProjectManagementTasks().filter(
+          (task) => task.id !== "phase-06-child-publish-hold-blocker-priority"
+        )
+      })
+    });
+
+    expect(html).toContain("phase-06-child-publish-hold-blocker-priority");
+    expect(html).toContain(
+      "Restore Phase 6 publish-hold traceability and blocker-priority child rows before trusting PM board evidence."
     );
   });
 

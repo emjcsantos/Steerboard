@@ -244,6 +244,22 @@ describe("phase 3 proof export", () => {
     expect(verification.nextAction).toContain("current exit-ready handoff fingerprint");
   });
 
+  it("reviews proof export artifacts with stale owner handoff fingerprints", () => {
+    const verification = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        ownerHandoffRecord: {
+          ...ownerHandoffRecord,
+          evidenceFingerprint: "phase3-handoff-old"
+        }
+      }),
+      { verifiedAt }
+    );
+
+    expect(verification.state).toBe("review");
+    expect(verification.detail).toContain("handoff fingerprint does not match");
+    expect(verification.nextAction).toContain("current exit-ready evidence");
+  });
+
   it.each([
     ["state", { state: "review" as const }],
     ["canExit", { canExit: false }],
