@@ -617,6 +617,18 @@ describe("phase 3 owner-visible proof panel", () => {
     const html = renderOwnerTestingReadinessPanel(props);
 
     expect(html).toContain("Phase 3 gate");
+    expect(html).toContain(
+      'aria-label="Owner testing readiness Waiting; 25% ready; 0 ready, 0 review, 0 blocked, 19 waiting"'
+    );
+    expect(html).toContain(
+      'aria-label="Phase 1 2 6 priority evidence Needs review; 45% ready"'
+    );
+    expect(html).toContain(
+      'aria-label="Session control readiness evidence Ready; 100% ready"'
+    );
+    expect(html).toContain(
+      'aria-label="Slash command execution evidence Ready; 100% ready"'
+    );
     expect(html).toContain("Clearance package");
     expect(html).toContain("Exit ready");
     expect(html).toContain(
@@ -683,6 +695,12 @@ describe("phase 3 owner-visible proof panel", () => {
     );
     expect(html).toContain("phase3-smoke-record:2026-06-18T07:57:30.551Z");
     expect(html).toContain("local_private/phase3-smoke-proof-bundle.json");
+    expect(html).toContain(
+      'aria-label="Catalog refresh owner testing Waiting; 25% ready"'
+    );
+    expect(html).toContain(
+      'aria-label="Catalog refresh owner validation ready; 100% ready"'
+    );
   });
 
   it("renders imported Phase 3 proof artifact verification without replacing local proof state", () => {
