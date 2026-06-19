@@ -57,9 +57,10 @@ function ownerCommandSnapshot(
         label: "Proof freshness depth",
         kind: "proof-freshness",
         status: "review",
-        detail: "Desktop smoke storage proof needs owner review.",
+        detail:
+          "Top proof-depth row: Phase 3 proof export is review; Proof export is held until offline verification is ready.",
         nextAction:
-          "Import or rerun desktop smoke proof rows until each required row is storage-proof attested."
+          "Refresh Phase 3 proof export before release readiness."
       },
       {
         id: "phase-11-owner-command-center:phase-readiness",
@@ -453,6 +454,8 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("<dt>Blockers</dt><dd>3</dd>");
     expect(html).toContain("Owner checklist");
     expect(html).toContain("Proof freshness depth");
+    expect(html).toContain("Top proof-depth row: Phase 3 proof export is review");
+    expect(html).toContain("Refresh Phase 3 proof export before release readiness");
     expect(html).toContain("Phase readiness");
     expect(html).toContain("Prioritized remaining goal traces");
     expect(html).toContain("Phase 11 owner release traceability");
