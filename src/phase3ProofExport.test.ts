@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { Phase3CommandValidationRecord } from "./phase3CommandValidationRecord";
 import type { Phase3OwnerHandoffRecord } from "./phase3HandoffRecord";
 import {
+  PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
+  PHASE3_PROOF_EXPORT_PM_TASK_ID,
   buildPhase3ProofExportArtifact,
   parsePhase3ProofExportArtifact,
   preparePhase3ProofExportDownload,
@@ -90,8 +92,8 @@ describe("phase 3 proof export", () => {
       state: "ready",
       readiness: 100,
       canVerifyOffline: true,
-      pmTaskId: "phase-03-child-proof-export-boundary",
-      evidenceKey: "phase3.proof-export.offline-verification",
+      pmTaskId: PHASE3_PROOF_EXPORT_PM_TASK_ID,
+      evidenceKey: PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
       readyPanelEvidenceCount: 2,
       storageAttestedDesktopProofCount: 3,
       hasCommandValidationRecord: true,

@@ -3,7 +3,11 @@ import type { Phase3ClearanceCommandPlan } from "./phase3ClearanceCommandPlan";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import { buildPhase3HandoffGate, type Phase3HandoffGate } from "./phase3HandoffGate";
-import type { Phase3ProofExportVerification } from "./phase3ProofExport";
+import {
+  PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
+  PHASE3_PROOF_EXPORT_PM_TASK_ID,
+  type Phase3ProofExportVerification
+} from "./phase3ProofExport";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
 import { buildPhase11ProofFreshnessDepth } from "./phase11ProofFreshnessDepth";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
@@ -169,8 +173,8 @@ function proofExport(
     ownerHandoffClearanceReadiness: 100,
     ownerHandoffExactBlockerCount: 0,
     ...overrides,
-    pmTaskId: "phase-03-child-proof-export-boundary",
-    evidenceKey: "phase3.proof-export.offline-verification"
+    pmTaskId: PHASE3_PROOF_EXPORT_PM_TASK_ID,
+    evidenceKey: PHASE3_PROOF_EXPORT_EVIDENCE_KEY
   };
 }
 

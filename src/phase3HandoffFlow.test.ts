@@ -9,7 +9,11 @@ import {
   createPhase3OwnerHandoffRecord,
   derivePhase3HandoffRecordValidation
 } from "./phase3HandoffRecord";
-import type { Phase3ProofExportVerification } from "./phase3ProofExport";
+import {
+  PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
+  PHASE3_PROOF_EXPORT_PM_TASK_ID,
+  type Phase3ProofExportVerification
+} from "./phase3ProofExport";
 import {
   loadPhase3SessionControlEvidenceByPanel,
   loadPhase3SlashEvidenceByPanel,
@@ -189,8 +193,8 @@ function readyProofExportVerification(
     ownerHandoffRecordFingerprint: expectedFingerprint,
     ownerHandoffClearanceReadiness: 100,
     ownerHandoffExactBlockerCount: 0,
-    pmTaskId: "phase-03-child-proof-export-boundary",
-    evidenceKey: "phase3.proof-export.offline-verification"
+    pmTaskId: PHASE3_PROOF_EXPORT_PM_TASK_ID,
+    evidenceKey: PHASE3_PROOF_EXPORT_EVIDENCE_KEY
   };
 }
 

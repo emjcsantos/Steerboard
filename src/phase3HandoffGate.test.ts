@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
-import type { Phase3ProofExportVerification } from "./phase3ProofExport";
+import {
+  PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
+  PHASE3_PROOF_EXPORT_PM_TASK_ID,
+  type Phase3ProofExportVerification
+} from "./phase3ProofExport";
 import { buildPhase3HandoffGate } from "./phase3HandoffGate";
 
 function clearancePackage(
@@ -92,8 +96,8 @@ function readyProofExportVerification(
     ownerHandoffClearanceReadiness: 100,
     ownerHandoffExactBlockerCount: 0,
     ...overrides,
-    pmTaskId: "phase-03-child-proof-export-boundary",
-    evidenceKey: "phase3.proof-export.offline-verification"
+    pmTaskId: PHASE3_PROOF_EXPORT_PM_TASK_ID,
+    evidenceKey: PHASE3_PROOF_EXPORT_EVIDENCE_KEY
   };
 }
 
