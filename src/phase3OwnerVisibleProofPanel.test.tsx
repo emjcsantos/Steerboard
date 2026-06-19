@@ -624,6 +624,9 @@ describe("phase 3 owner-visible proof panel", () => {
       'aria-label="Phase 1 2 6 priority evidence Needs review; 45% ready"'
     );
     expect(html).toContain(
+      'aria-label="Phase 1 2 6 priority evidence counts"><div><dt>Ready</dt><dd>0</dd></div><div><dt>Review</dt><dd>1</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>Waiting</dt><dd>2</dd></div></dl>'
+    );
+    expect(html).toContain(
       'aria-label="Phase 1 2 6 publish hold traceability counts"><div><dt>Phases</dt><dd>3</dd></div><div><dt>PM</dt><dd>20</dd></div><div><dt>Hold</dt><dd>blocked</dd></div></dl>'
     );
     expect(html).toContain(
