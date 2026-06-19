@@ -258,7 +258,12 @@ function traceabilityItems(
 function buildItemFromTraceability(
   item: Phase8RiskTraceabilityItem
 ): Phase8RiskBlockerPriorityItem {
-  const auditReview = canUseAuditReview("traceability", item.status);
+  const auditReview =
+    item.kind === "audit-depth" ||
+    item.kind === "exception-register" ||
+    item.kind === "disabled-path-lock"
+      ? canUseAuditReview("traceability", item.status)
+      : false;
 
   return {
     id: `${SNAPSHOT_ID}:traceability:${item.kind}`,

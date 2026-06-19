@@ -306,6 +306,44 @@ describe("phase 8 risk blocker priority", () => {
     });
   });
 
+  it("keeps remaining-goal traceability blockers out of audit-review actions", () => {
+    const summary = priority({
+      depth: snapshot({
+        summaries: [
+          liveSummary("terminal", "approved"),
+          liveSummary("git", "approved"),
+          liveSummary("plugin", "approved")
+        ],
+        liveAuditRecords: [liveAuditRecord],
+        runtimeExecutionAudit: readyRuntimeExecutionAudit,
+        runtimeExecutionAuditHistory: [readyAuditRecord],
+        runtimeProfilePermissionRequestHistory: [readyProfileRequest],
+        ownerAuditReviewRecord: ownerReviewFor({
+          summaries: [
+            liveSummary("terminal", "approved"),
+            liveSummary("git", "approved"),
+            liveSummary("plugin", "approved")
+          ],
+          liveAuditRecords: [liveAuditRecord],
+          runtimeExecutionAudit: readyRuntimeExecutionAudit,
+          runtimeExecutionAuditHistory: [readyAuditRecord],
+          runtimeProfilePermissionRequestHistory: [readyProfileRequest]
+        })
+      })
+    });
+
+    expect(summary.state).toBe("waiting");
+    expect(summary.topPriorityLabel).toBe("Remaining goal link");
+    expect(summary.auditReviewCanAddressTopBlocker).toBe(false);
+    expect(summary.topPriorityAction).not.toContain("Record owner audit review");
+    expect(summary.topPriorityAction).toContain("owner-visible Phase 8 audit proof");
+    expect(summary.items[0]).toMatchObject({
+      kind: "traceability",
+      status: "waiting",
+      canUseAuditReview: false
+    });
+  });
+
   it("reports ready when permission audit depth and traceability are ready", () => {
     const summary = priority({
       depth: snapshot({
