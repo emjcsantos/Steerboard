@@ -739,9 +739,14 @@ describe("phase 3 owner-visible proof panel", () => {
     });
 
     expect(html).toContain("Imported proof artifact");
+    expect(html).toContain(
+      'aria-label="Imported Phase 3 proof artifact verifier Waiting; 35% ready"'
+    );
     expect(html).toContain("Waiting");
     expect(html).toContain("Phase 3 proof export artifact is missing or malformed");
     expect(html).toContain("Panel proof 0/2");
+    expect(html).toContain("Desktop 0/3");
+    expect(html).toContain("CLI missing");
     expect(html).toContain("Handoff missing");
   });
 
