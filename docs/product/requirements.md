@@ -109,7 +109,7 @@
 - The desktop shell should expose a safe permission approval status so the Arena can show whether the approval command is unavailable, locked, ready, or errored.
 - Desktop permission state should expose a local audit and export preview that combines approval state, shell approval status, request history, and execution lock status without writing files.
 - The environment panel should expose desktop packaging readiness so users can see shell, bridge, permission, and packaging-lock state before any installer or signed build command exists.
-- The environment panel should expose Phase 11 release readiness so users can see clean checkout, build/test, owner smoke proof, current active Phase 3 clearance PM traceability with handoff proof, packaging lock, docs/known limits, final security closure capability, and final release decision while packaging remains paused.
+- The environment panel should expose Phase 11 release readiness so users can see clean checkout, build/test, owner smoke proof with Phase 3 proof-export detail, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, packaging lock, docs/known limits, final security closure capability, and final release decision while packaging remains paused.
 - Live platform capability plans must track connection center, app-server/session bridge, slash command registry, plugin manager, automation manager, MCP manager, personalization center, and permission/audit layers.
 - A Codex default option seed preview should show discovered plugins, skills, MCP servers, commands, and personalization sources without enabling live execution.
 - Migration previews should show importable, review-required, unsupported, and excluded items before writing any Steerboard profile data.
@@ -162,7 +162,7 @@
 - Desktop permission approval previews should later become real approval gates with signed audit records.
 - Desktop permission approval status should later connect to the real shell approval command after safety checks are implemented.
 - Desktop permission audit previews should later export signed review records after the desktop approval and rollback model is implemented.
-- Desktop packaging readiness should later hand off to real local build, signing, and installer checks only after the Phase 11 release-readiness gate records clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability with handoff proof, docs/known limits, package-lock validation, final security closure capability, and an explicit owner release decision; ready desktop inputs remain held while `canPackage` is false.
+- Desktop packaging readiness should later hand off to real local build, signing, and installer checks only after the Phase 11 release-readiness gate records clean checkout, build/test, smoke proof with Phase 3 proof-export detail, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, docs/known limits, package-lock validation, final security closure capability, and an explicit owner release decision; ready desktop inputs remain held while `canPackage` is false.
 - Local validation evidence readiness should later connect to real terminal, test, and Git evidence capture after the execution permission model is implemented.
 - Terminal and Git evidence readiness should later become permissioned command/test/Git capture with rollback-aware audit records.
 
