@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
+import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import {
   buildPhase3HandoffEvidenceFingerprint,
   derivePhase3HandoffRecordValidation,
@@ -179,6 +180,19 @@ function traceabilityPrecondition(
   };
 }
 
+function commandValidation(
+  overrides: Partial<Phase3CommandValidationRecordValidation> = {}
+): Phase3CommandValidationRecordValidation {
+  return {
+    state: "ready",
+    statusLabel: "Ready",
+    detail: "Phase 3 CLI smoke validation is fresh.",
+    nextAction: "Keep Phase 3 CLI smoke validation attached.",
+    isFresh: true,
+    ...overrides
+  };
+}
+
 describe("phase 3 owner proof action flow", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -263,6 +277,7 @@ describe("phase 3 owner proof action flow", () => {
     const result = runPhase3OwnerHandoffRecordAction({
       clearancePackage: clearancePackage({ canExit: false, state: "review" }),
       traceabilityPrecondition: traceabilityPrecondition(),
+      commandValidation: commandValidation(),
       evidenceFingerprint: "phase3-handoff-current",
       createdAt: "2026-06-18T08:00:00.000Z",
       ...effects
@@ -292,6 +307,7 @@ describe("phase 3 owner proof action flow", () => {
         canTrustTrace: false,
         nextAction: "Attach Phase 3 PM child rows before handoff."
       }),
+      commandValidation: commandValidation(),
       evidenceFingerprint: "phase3-handoff-current",
       createdAt: "2026-06-18T08:00:00.000Z",
       ...effects
@@ -303,6 +319,37 @@ describe("phase 3 owner proof action flow", () => {
     expect(effects.setProofEvaluationTime).not.toHaveBeenCalled();
     expect(effects.setAppNotice).toHaveBeenCalledWith(
       "Attach Phase 3 PM child rows before handoff."
+    );
+  });
+
+  it("holds owner handoff recording until CLI validation is ready", () => {
+    const effects = {
+      saveRecord: vi.fn(),
+      setRecord: vi.fn(),
+      setProofEvaluationTime: vi.fn(),
+      setAppNotice: vi.fn()
+    };
+
+    const result = runPhase3OwnerHandoffRecordAction({
+      clearancePackage: clearancePackage(),
+      traceabilityPrecondition: traceabilityPrecondition(),
+      commandValidation: commandValidation({
+        state: "review",
+        statusLabel: "Review",
+        detail: "Phase 3 CLI smoke validation is stale.",
+        nextAction: "Rerun npm.cmd run smoke:phase3 manually."
+      }),
+      evidenceFingerprint: "phase3-handoff-current",
+      createdAt: "2026-06-18T08:00:00.000Z",
+      ...effects
+    });
+
+    expect(result.recorded).toBe(false);
+    expect(effects.saveRecord).not.toHaveBeenCalled();
+    expect(effects.setRecord).not.toHaveBeenCalled();
+    expect(effects.setProofEvaluationTime).not.toHaveBeenCalled();
+    expect(effects.setAppNotice).toHaveBeenCalledWith(
+      "Rerun npm.cmd run smoke:phase3 manually."
     );
   });
 
@@ -321,6 +368,7 @@ describe("phase 3 owner proof action flow", () => {
     const result = runPhase3OwnerHandoffRecordAction({
       clearancePackage: currentClearance,
       traceabilityPrecondition: traceabilityPrecondition(),
+      commandValidation: commandValidation(),
       evidenceFingerprint,
       createdAt: "2026-06-18T08:00:00.000Z",
       ...effects

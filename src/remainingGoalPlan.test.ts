@@ -263,7 +263,7 @@ describe("remaining goal plan", () => {
     expect(taskCompletionById.get("phase-03-child-exit-gate")).toBe(94);
     expect(taskCompletionById.get("phase-03-child-command-plan")).toBe(90);
     expect(taskCompletionById.get("phase-03-child-blocker-priority")).toBe(90);
-    expect(taskCompletionById.get("phase-03-child-handoff-gate")).toBe(98);
+    expect(taskCompletionById.get("phase-03-child-handoff-gate")).toBe(99);
     expect(taskCompletionById.get("phase-03-parent-slash-controls")).toBe(90);
     expect(taskCompletionById.get("phase-03-child-slash-ready")).toBe(90);
     expect(taskCompletionById.get("phase-03-child-control-ready")).toBe(90);

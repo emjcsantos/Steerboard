@@ -2684,6 +2684,7 @@ export function App() {
     runPhase3OwnerHandoffRecordAction({
       clearancePackage: phase3ClearancePackage,
       traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition,
+      commandValidation: phase3CommandValidationRecordValidation,
       evidenceFingerprint: phase3HandoffEvidenceFingerprint,
       setRecord: setPhase3OwnerHandoffRecord,
       setProofEvaluationTime: setPhase3ProofEvaluationTime,
@@ -2692,6 +2693,7 @@ export function App() {
   }, [
     phase3ClearancePackage,
     phase3ClearanceTraceabilityPrecondition,
+    phase3CommandValidationRecordValidation,
     phase3HandoffEvidenceFingerprint
   ]);
   const clearPhase3OwnerHandoff = useCallback(() => {
@@ -13000,10 +13002,13 @@ export function OwnerTestingReadinessPanel({
   const visibleFailureFixtures = failureFixtures.slice(0, 4);
   const phase3OwnerHandoffRecordGateMessage =
     phase3ClearancePackage.canExit &&
-    phase3ClearanceTraceabilityPrecondition.canTrustTrace
+    phase3ClearanceTraceabilityPrecondition.canTrustTrace &&
+    phase3CommandValidationRecordValidation.state === "ready"
       ? "Record owner-reviewed Phase 3 handoff locally."
-      : phase3ClearancePackage.canExit
-        ? phase3ClearanceTraceabilityPrecondition.nextAction
+      : phase3ClearancePackage.canExit && phase3ClearanceTraceabilityPrecondition.canTrustTrace
+        ? phase3CommandValidationRecordValidation.nextAction
+        : phase3ClearancePackage.canExit
+          ? phase3ClearanceTraceabilityPrecondition.nextAction
         : phase3ClearancePackage.nextAction;
   const handlePhase3CommandValidationImport = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -13852,7 +13857,8 @@ export function OwnerTestingReadinessPanel({
               <button
                 disabled={
                   !phase3ClearancePackage.canExit ||
-                  !phase3ClearanceTraceabilityPrecondition.canTrustTrace
+                  !phase3ClearanceTraceabilityPrecondition.canTrustTrace ||
+                  phase3CommandValidationRecordValidation.state !== "ready"
                 }
                 onClick={onRecordPhase3OwnerHandoff}
                 title={phase3OwnerHandoffRecordGateMessage}
