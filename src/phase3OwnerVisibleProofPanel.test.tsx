@@ -798,6 +798,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Desktop 3/3");
     expect(html).toContain("CLI attached");
     expect(html).toContain("Handoff attached");
+    expect(html).toContain("handoff fingerprint phase3-handoff-");
     expect(html).toContain("Phase 3 proof export");
   });
 

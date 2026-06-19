@@ -267,12 +267,19 @@ function buildPhase6PmBoardItem(
   tasks: readonly ProjectManagementTask[] | undefined,
   project: { id: string; name: string } | undefined
 ): PhasePriorityEvidenceItem {
+  const requiredPhase6AcceptanceChildIds = [
+    "phase-06-child-publish-hold-traceability",
+    "phase-06-child-publish-hold-blocker-priority"
+  ];
   const safeTasks = tasks ?? [];
   const epics = safeTasks.filter((task) => task.type === "epic");
   const parents = safeTasks.filter((task) => task.type === "parent");
   const children = safeTasks.filter((task) => task.type === "child");
   const missingPhaseIds = [...currentProjectManagementPhaseEpicIds].filter(
     (phaseId) => !safeTasks.some((task) => task.id === phaseId)
+  );
+  const missingPhase6AcceptanceChildIds = requiredPhase6AcceptanceChildIds.filter(
+    (taskId) => !safeTasks.some((task) => task.id === taskId)
   );
   const proofProject = project ?? { id: "phase-board-proof", name: "Phase Board Proof" };
   const stageableEpic = findTask(safeTasks, "epic");
@@ -293,6 +300,16 @@ function buildPhase6PmBoardItem(
       "review",
       `Project Management board is missing ${missingPhaseIds.length} phase Epic row${missingPhaseIds.length === 1 ? "" : "s"}.`,
       "Repair saved PM state so Phase 0 through Phase 11 are present."
+    );
+  }
+
+  if (missingPhase6AcceptanceChildIds.length > 0) {
+    return item(
+      "phase-6-pm-board",
+      "Phase 6 PM phase board",
+      "review",
+      `Project Management board is missing Phase 6 acceptance child row${missingPhase6AcceptanceChildIds.length === 1 ? "" : "s"}: ${missingPhase6AcceptanceChildIds.join(", ")}.`,
+      "Restore Phase 6 publish-hold traceability and blocker-priority child rows before trusting PM board evidence."
     );
   }
 

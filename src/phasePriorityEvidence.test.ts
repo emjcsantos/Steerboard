@@ -117,6 +117,50 @@ describe("phase priority evidence", () => {
     );
   });
 
+  it("keeps Phase 6 PM board evidence in review when acceptance child rows are missing", () => {
+    const result = buildPhasePriorityEvidence({
+      liveSmokeProof: readyLiveSmoke,
+      twoPanelSmokeProof: readyTwoPanelSmoke,
+      panelSessionState: {
+        orchestrator: {
+          panelId: "orchestrator",
+          provider: "codex",
+          sessionId: "session-a",
+          threadId: "thread-a",
+          status: "active",
+          checkedAt: "2026-06-10T00:00:00.000Z",
+          updatedAt: "2026-06-10T00:00:00.000Z",
+          stale: false,
+          detail: "Panel A active."
+        },
+        validator: {
+          panelId: "validator",
+          provider: "codex",
+          sessionId: "session-b",
+          threadId: "thread-b",
+          status: "active",
+          checkedAt: "2026-06-10T00:00:00.000Z",
+          updatedAt: "2026-06-10T00:00:00.000Z",
+          stale: false,
+          detail: "Panel B active."
+        }
+      },
+      projectManagementTasks: createDefaultProjectManagementTasks().filter(
+        (task) => task.id !== "phase-06-child-publish-hold-blocker-priority"
+      ),
+      project: { id: "steerboard", name: "Steerboard" }
+    });
+    const phase6 = result.items.find((item) => item.id === "phase-6-pm-board");
+
+    expect(result.state).toBe("review");
+    expect(phase6).toMatchObject({
+      state: "review",
+      nextAction:
+        "Restore Phase 6 publish-hold traceability and blocker-priority child rows before trusting PM board evidence."
+    });
+    expect(phase6?.detail).toContain("phase-06-child-publish-hold-blocker-priority");
+  });
+
   it("keeps live and isolation proof waiting in browser-only state while PM staging is ready", () => {
     const result = buildPhasePriorityEvidence({
       projectManagementTasks: createDefaultProjectManagementTasks()
