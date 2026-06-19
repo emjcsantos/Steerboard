@@ -13841,6 +13841,7 @@ export function OwnerTestingReadinessPanel({
               <strong>Phase 3 proof export</strong>
               <span>{phase3ProofExportVerification.statusLabel}</span>
               <small>{phase3ProofExportVerification.detail}</small>
+              <small>{phase3ProofExportVerification.nextAction}</small>
               <small>
                 Panel proof {phase3ProofExportVerification.readyPanelEvidenceCount}/2 | Desktop{" "}
                 {phase3ProofExportVerification.storageAttestedDesktopProofCount}/3 | CLI{" "}
