@@ -1,7 +1,10 @@
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
-import type { Phase3ProofExportVerification } from "./phase3ProofExport";
+import {
+  canRecordPhase3OwnerHandoffFromProofExportPreflight,
+  type Phase3ProofExportVerification
+} from "./phase3ProofExport";
 import {
   createPhase3OwnerHandoffRecord,
   clearPhase3OwnerHandoffRecord,
@@ -71,14 +74,7 @@ export function canRecordPhase3OwnerHandoffWithProofExport(
 ): boolean {
   return (
     verification.canVerifyOffline ||
-    (verification.state === "review" &&
-      verification.readyPanelEvidenceCount === 2 &&
-      verification.storageAttestedDesktopProofCount === 3 &&
-      verification.hasCommandValidationRecord &&
-      !verification.hasOwnerHandoffRecord &&
-      Boolean(verification.handoffEvidenceFingerprint) &&
-      verification.detail ===
-        "Phase 3 proof export artifact is missing the owner handoff record.")
+    canRecordPhase3OwnerHandoffFromProofExportPreflight(verification)
   );
 }
 

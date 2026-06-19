@@ -93,6 +93,9 @@ export interface Phase3ProofExportDownloadPreparation {
   readonly serializedArtifact?: string;
 }
 
+export const PHASE3_PROOF_EXPORT_MISSING_OWNER_HANDOFF_DETAIL =
+  "Phase 3 proof export artifact is missing the owner handoff record.";
+
 const STATUS_LABELS: Record<Phase3ProofExportState, string> = {
   ready: "Ready",
   review: "Review",
@@ -208,6 +211,20 @@ function result(
     ownerHandoffClearanceReadiness: artifact?.ownerHandoffRecord?.clearanceReadiness,
     ownerHandoffExactBlockerCount: artifact?.ownerHandoffRecord?.exactBlockerCount
   };
+}
+
+export function canRecordPhase3OwnerHandoffFromProofExportPreflight(
+  verification: Phase3ProofExportVerification | undefined
+): boolean {
+  return (
+    verification?.state === "review" &&
+    verification.readyPanelEvidenceCount === 2 &&
+    verification.storageAttestedDesktopProofCount === 3 &&
+    verification.hasCommandValidationRecord &&
+    !verification.hasOwnerHandoffRecord &&
+    Boolean(verification.handoffEvidenceFingerprint) &&
+    verification.detail === PHASE3_PROOF_EXPORT_MISSING_OWNER_HANDOFF_DETAIL
+  );
 }
 
 export function buildPhase3ProofExportArtifact(
@@ -405,7 +422,7 @@ export function verifyPhase3ProofExportArtifact(
     return result(
       "review",
       artifact,
-      "Phase 3 proof export artifact is missing the owner handoff record.",
+      PHASE3_PROOF_EXPORT_MISSING_OWNER_HANDOFF_DETAIL,
       "Record the owner-reviewed Phase 3 handoff before exporting.",
       counts
     );

@@ -5,6 +5,7 @@ import {
   PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
   PHASE3_PROOF_EXPORT_PM_TASK_ID,
   buildPhase3ProofExportArtifact,
+  canRecordPhase3OwnerHandoffFromProofExportPreflight,
   parsePhase3ProofExportArtifact,
   preparePhase3ProofExportDownload,
   serializePhase3ProofExportArtifact,
@@ -263,6 +264,27 @@ describe("phase 3 proof export", () => {
     expect(verification.state).toBe("review");
     expect(verification.detail).toContain("current expected owner handoff fingerprint");
     expect(verification.nextAction).toContain("current exit-ready handoff fingerprint");
+  });
+
+  it("identifies proof export preflight that can record the owner handoff", () => {
+    const verification = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        ownerHandoffRecord: undefined
+      }),
+      { verifiedAt }
+    );
+    const stale = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        evaluatedAt: "2026-06-15T08:10:00.000Z",
+        ownerHandoffRecord: undefined
+      }),
+      { verifiedAt }
+    );
+
+    expect(verification.state).toBe("review");
+    expect(verification.detail).toContain("missing the owner handoff record");
+    expect(canRecordPhase3OwnerHandoffFromProofExportPreflight(verification)).toBe(true);
+    expect(canRecordPhase3OwnerHandoffFromProofExportPreflight(stale)).toBe(false);
   });
 
   it("keeps self-consistent but non-current handoff fingerprints in review", () => {

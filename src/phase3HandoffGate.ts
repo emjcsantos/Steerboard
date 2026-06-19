@@ -5,7 +5,10 @@ import type {
 import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffRecordValidation } from "./phase3HandoffRecord";
-import type { Phase3ProofExportVerification } from "./phase3ProofExport";
+import {
+  canRecordPhase3OwnerHandoffFromProofExportPreflight,
+  type Phase3ProofExportVerification
+} from "./phase3ProofExport";
 import {
   PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
   PHASE3_PROOF_EXPORT_PM_TASK_ID
@@ -246,21 +249,6 @@ function hasOfflineVerifiableProofExport(
   proofExportVerification: Phase3ProofExportVerification | undefined
 ): boolean {
   return proofExportVerification?.state === "ready" && proofExportVerification.canVerifyOffline;
-}
-
-function canRecordHandoffFromProofExportPreflight(
-  proofExportVerification: Phase3ProofExportVerification | undefined
-): boolean {
-  return (
-    proofExportVerification?.state === "review" &&
-    proofExportVerification.readyPanelEvidenceCount === 2 &&
-    proofExportVerification.storageAttestedDesktopProofCount === 3 &&
-    proofExportVerification.hasCommandValidationRecord &&
-    !proofExportVerification.hasOwnerHandoffRecord &&
-    Boolean(proofExportVerification.handoffEvidenceFingerprint) &&
-    proofExportVerification.detail ===
-      "Phase 3 proof export artifact is missing the owner handoff record."
-  );
 }
 
 function commandValidationItem(
@@ -667,7 +655,7 @@ function buildOwnerReviewSummary(
 
   if (
     !hasOfflineVerifiableProofExport(input.proofExportVerification) &&
-    !canRecordHandoffFromProofExportPreflight(input.proofExportVerification)
+    !canRecordPhase3OwnerHandoffFromProofExportPreflight(input.proofExportVerification)
   ) {
     return `Owner handoff held: ${publicText(
       input.proofExportVerification?.detail,
@@ -680,7 +668,7 @@ function buildOwnerReviewSummary(
   }
 
   if (!handoffRecordValidation) {
-    return canRecordHandoffFromProofExportPreflight(input.proofExportVerification)
+    return canRecordPhase3OwnerHandoffFromProofExportPreflight(input.proofExportVerification)
       ? "Owner handoff recordable: clearance is exit-ready, Phase 3 PM traceability is trusted, CLI validation is ready, and proof-export preflight only needs the owner handoff record; record the owner-reviewed handoff locally."
       : "Owner handoff recordable: clearance is exit-ready, Phase 3 PM traceability is trusted, CLI validation is ready, and proof-export offline verification is trusted; record the owner-reviewed handoff locally.";
   }
