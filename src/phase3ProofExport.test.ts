@@ -164,6 +164,75 @@ describe("phase 3 proof export", () => {
     expect(verification.detail).toContain("stale");
   });
 
+  it("keeps stale proof export artifacts in review", () => {
+    const verification = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        evaluatedAt: "2026-06-15T08:10:00.000Z"
+      }),
+      { verifiedAt }
+    );
+
+    expect(verification.state).toBe("review");
+    expect(verification.detail).toContain("stale or future-dated");
+    expect(verification.nextAction).toContain("current focused panel");
+  });
+
+  it("requires the current expected owner handoff fingerprint", () => {
+    const verification = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        handoffEvidenceFingerprint: undefined
+      }),
+      { verifiedAt }
+    );
+
+    expect(verification.state).toBe("review");
+    expect(verification.detail).toContain("current expected owner handoff fingerprint");
+    expect(verification.nextAction).toContain("current exit-ready handoff fingerprint");
+  });
+
+  it.each([
+    ["state", { state: "review" as const }],
+    ["canExit", { canExit: false }],
+    ["exactBlockerCount", { exactBlockerCount: 1 }],
+    ["clearanceReadiness", { clearanceReadiness: 90 }]
+  ])(
+    "keeps fresh handoff records in review when %s is not exit-ready",
+    (_field, ownerHandoffRecordOverride) => {
+      const verification = verifyPhase3ProofExportArtifact(
+        readyArtifact({
+          ownerHandoffRecord: {
+            ...ownerHandoffRecord,
+            ...ownerHandoffRecordOverride
+          }
+        }),
+        { verifiedAt }
+      );
+
+      expect(verification.state).toBe("review");
+      expect(verification.detail).toContain("not an exit-ready clearance snapshot");
+      expect(verification.nextAction).toContain("100% ready clearance snapshot");
+    }
+  );
+
+  it("keeps fresh handoff records in review until the full clearance snapshot is exit-ready", () => {
+    const verification = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        ownerHandoffRecord: {
+          ...ownerHandoffRecord,
+          state: "review",
+          clearanceReadiness: 90,
+          exactBlockerCount: 1,
+          canExit: false
+        }
+      }),
+      { verifiedAt }
+    );
+
+    expect(verification.state).toBe("review");
+    expect(verification.detail).toContain("not an exit-ready clearance snapshot");
+    expect(verification.nextAction).toContain("100% ready clearance snapshot");
+  });
+
   it("keeps malformed proof export artifacts out of ready verification", () => {
     const parsed = parsePhase3ProofExportArtifact("{");
     const verification = verifyPhase3ProofExportArtifact(parsed, { verifiedAt });

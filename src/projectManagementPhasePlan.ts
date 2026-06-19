@@ -195,7 +195,7 @@ const phaseSpecs: PhaseSpec[] = [
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
     description: "Clear the current blocker by proving slash execution, session controls, storage-attested current-panel desktop proof freshness, PM-link and evidence-key counted exit visibility, command-plan clarity, visible CLI validation provenance, slash/session-first blocker review, goal/PM traceability, visible handoff record-gate reason, and owner-reviewed handoff readiness tied to compact current non-expired evidence, clearance snapshot, and age matching.",
     status: "ongoing",
-    completionPercent: 98,
+    completionPercent: 99,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -204,7 +204,7 @@ const phaseSpecs: PhaseSpec[] = [
         title: "Desktop Proof Clearance",
         description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan and CLI validation provenance visible in traceability, surface PM-link and evidence-key counted exit visibility, prioritize slash/session blockers before desktop smoke, link goal/PM traceability, show the visible handoff record-gate reason, and keep the handoff boundary matched to compact current non-expired evidence, clearance snapshot, and age.",
         status: "ongoing",
-        completionPercent: 98,
+        completionPercent: 99,
         complexity: "extra_high",
         sourceDocument: "Current state and pipeline",
         children: [
@@ -250,8 +250,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-handoff-gate",
             title: "Owner Handoff Gate",
-            description: "Show desktop proof clearance, exact blocker visibility, trusted current-goal and PM traceability precondition, visible handoff record-gate reason, local owner handoff record actions, compact current-evidence fingerprint, clearance snapshot, age matching, and the provider-integration boundary before Phase 4 advances.",
-            completionPercent: 90,
+            description: "Show desktop proof clearance, exact blocker visibility, trusted current-goal and PM traceability precondition, visible handoff record-gate reason, local owner handoff record actions, export-ready current-evidence fingerprint, clearance snapshot, age matching, and the provider-integration boundary before Phase 4 advances.",
+            completionPercent: 94,
             complexity: "high",
             sourceDocument: "Phase 3 handoff gate"
           }

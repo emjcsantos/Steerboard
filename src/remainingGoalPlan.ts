@@ -121,7 +121,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Clear live-control, active-turn interrupt, active-turn steer, slash, and session-control proof rows from desktop mode with prioritized blocker review, fresh proof checks, and goal/PM traceability.",
     status: "active",
     priority: "critical",
-    completionPercent: 98,
+    completionPercent: 99,
     current: true,
     pmTaskIds: [
       "phase-03-controls-slash",

@@ -348,15 +348,47 @@ export function verifyPhase3ProofExportArtifact(
     );
   }
 
-  if (
-    artifact.handoffEvidenceFingerprint &&
-    artifact.ownerHandoffRecord.evidenceFingerprint !== artifact.handoffEvidenceFingerprint
-  ) {
+  if (!artifact.handoffEvidenceFingerprint) {
+    return result(
+      "review",
+      artifact,
+      "Phase 3 proof export artifact is missing the current expected owner handoff fingerprint.",
+      "Re-export Phase 3 proof with the current exit-ready handoff fingerprint attached.",
+      counts
+    );
+  }
+
+  if (!artifact.ownerHandoffRecord.evidenceFingerprint) {
+    return result(
+      "review",
+      artifact,
+      "Phase 3 owner handoff record in the export predates fingerprint validation.",
+      "Clear and record the Phase 3 handoff again from current exit-ready evidence.",
+      counts
+    );
+  }
+
+  if (artifact.ownerHandoffRecord.evidenceFingerprint !== artifact.handoffEvidenceFingerprint) {
     return result(
       "review",
       artifact,
       "Phase 3 proof export artifact handoff fingerprint does not match the current expected fingerprint.",
       "Clear and record the Phase 3 handoff again from current exit-ready evidence.",
+      counts
+    );
+  }
+
+  if (
+    artifact.ownerHandoffRecord.state !== "ready" ||
+    !artifact.ownerHandoffRecord.canExit ||
+    artifact.ownerHandoffRecord.exactBlockerCount !== 0 ||
+    artifact.ownerHandoffRecord.clearanceReadiness !== 100
+  ) {
+    return result(
+      "review",
+      artifact,
+      "Phase 3 owner handoff record in the export is not an exit-ready clearance snapshot.",
+      "Clear and record the Phase 3 handoff again from the current 100% ready clearance snapshot.",
       counts
     );
   }
@@ -380,7 +412,7 @@ export function verifyPhase3ProofExportArtifact(
   return result(
     "ready",
     artifact,
-    "Phase 3 proof export artifact contains current-panel panel proof, storage-attested desktop proof, CLI validation, and owner handoff evidence.",
+    "Phase 3 proof export artifact contains current-panel panel proof, storage-attested desktop proof, CLI validation, and current exit-ready owner handoff evidence.",
     "Keep the exported Phase 3 proof package attached while Phase 4 remains gated by owner review.",
     counts
   );
