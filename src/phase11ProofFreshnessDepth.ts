@@ -2,6 +2,7 @@ import type { Phase3ClearanceCommandPlan } from "./phase3ClearanceCommandPlan";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffGate } from "./phase3HandoffGate";
+import type { Phase3ProofExportVerification } from "./phase3ProofExport";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
 
@@ -13,6 +14,7 @@ export type Phase11ProofFreshnessDepthItemKind =
   | "desktop-smoke"
   | "command-plan"
   | "command-validation"
+  | "proof-export"
   | "handoff-proof";
 
 export interface Phase11ProofFreshnessDepthItem {
@@ -48,6 +50,7 @@ export interface Phase11ProofFreshnessDepthInput {
   readonly phase3SmokeProofReadiness: Phase3SmokeProofReadinessResult;
   readonly phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
   readonly phase3CommandValidationRecordValidation: Phase3CommandValidationRecordValidation;
+  readonly phase3ProofExportVerification: Phase3ProofExportVerification;
   readonly phase3HandoffGate: Phase3HandoffGate;
 }
 
@@ -231,6 +234,30 @@ function commandValidationItem(
   };
 }
 
+function proofExportItem(
+  phase3ProofExportVerification: Phase3ProofExportVerification
+): Phase11ProofFreshnessDepthItem {
+  return {
+    id: `${SNAPSHOT_ID}:proof-export`,
+    label: "Phase 3 proof export",
+    kind: "proof-export",
+    status: phase3ProofExportVerification.state,
+    detail:
+      `Proof export is ${phase3ProofExportVerification.statusLabel.toLowerCase()} at ${phase3ProofExportVerification.readiness}% ready; ` +
+      `panel proof ${phase3ProofExportVerification.readyPanelEvidenceCount}/2, ` +
+      `desktop proof ${phase3ProofExportVerification.storageAttestedDesktopProofCount}/3, ` +
+      `CLI ${phase3ProofExportVerification.hasCommandValidationRecord ? "attached" : "missing"}, ` +
+      `handoff ${phase3ProofExportVerification.hasOwnerHandoffRecord ? "attached" : "missing"}, ` +
+      `expected fingerprint ${formatHandoffFingerprint(phase3ProofExportVerification.handoffEvidenceFingerprint)}, ` +
+      `record fingerprint ${formatHandoffFingerprint(phase3ProofExportVerification.ownerHandoffRecordFingerprint)}, ` +
+      `clearance snapshot ${phase3ProofExportVerification.ownerHandoffClearanceReadiness ?? 0}% with ` +
+      `${phase3ProofExportVerification.ownerHandoffExactBlockerCount ?? 0} open blocker${phase3ProofExportVerification.ownerHandoffExactBlockerCount === 1 ? "" : "s"}.`,
+    nextAction: phase3ProofExportVerification.canVerifyOffline
+      ? "Keep the offline-verifiable Phase 3 proof export attached before release readiness resumes."
+      : phase3ProofExportVerification.nextAction
+  };
+}
+
 function formatHandoffFingerprint(value: string | undefined): string {
   return value && value.trim().length > 0 ? value : "missing";
 }
@@ -309,6 +336,7 @@ export function buildPhase11ProofFreshnessDepth(
     desktopSmokeItem(input.phase3SmokeProofReadiness),
     commandPlanItem(input.phase3ClearanceCommandPlan),
     commandValidationItem(input.phase3CommandValidationRecordValidation),
+    proofExportItem(input.phase3ProofExportVerification),
     handoffProofItem(input.phase3HandoffGate)
   ];
   const state = resolveState(items);

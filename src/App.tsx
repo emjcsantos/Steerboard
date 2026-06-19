@@ -9535,12 +9535,14 @@ function RightPanel({
         phase3SmokeProofReadiness,
         phase3ClearanceCommandPlan,
         phase3CommandValidationRecordValidation,
+        phase3ProofExportVerification,
         phase3HandoffGate
       }),
     [
       phase3ClearanceCommandPlan,
       phase3ClearancePackage,
       phase3CommandValidationRecordValidation,
+      phase3ProofExportVerification,
       phase3HandoffGate,
       phase3SmokeProofReadiness,
       phasePriorityEvidence

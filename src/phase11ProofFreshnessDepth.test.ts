@@ -3,6 +3,7 @@ import type { Phase3ClearanceCommandPlan } from "./phase3ClearanceCommandPlan";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import { buildPhase3HandoffGate, type Phase3HandoffGate } from "./phase3HandoffGate";
+import type { Phase3ProofExportVerification } from "./phase3ProofExport";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
 import { buildPhase11ProofFreshnessDepth } from "./phase11ProofFreshnessDepth";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
@@ -146,6 +147,31 @@ function commandValidation(
   };
 }
 
+function proofExport(
+  overrides: Partial<Phase3ProofExportVerification> = {}
+): Phase3ProofExportVerification {
+  return {
+    state: "ready",
+    statusLabel: "Ready",
+    readiness: 100,
+    canVerifyOffline: true,
+    detail:
+      "Phase 3 proof export artifact contains current-panel panel proof, storage-attested desktop proof, CLI validation, and current exit-ready owner handoff evidence for handoff fingerprint current.",
+    nextAction:
+      "Keep the exported Phase 3 proof package attached while Phase 4 remains gated by owner review.",
+    currentPanelId: "panel-phase3-owner-visible",
+    readyPanelEvidenceCount: 2,
+    storageAttestedDesktopProofCount: 3,
+    hasCommandValidationRecord: true,
+    hasOwnerHandoffRecord: true,
+    handoffEvidenceFingerprint: "current",
+    ownerHandoffRecordFingerprint: "current",
+    ownerHandoffClearanceReadiness: 100,
+    ownerHandoffExactBlockerCount: 0,
+    ...overrides
+  };
+}
+
 function snapshot(
   overrides: Partial<Parameters<typeof buildPhase11ProofFreshnessDepth>[0]> = {}
 ) {
@@ -155,13 +181,14 @@ function snapshot(
     phase3SmokeProofReadiness: smoke(),
     phase3ClearanceCommandPlan: commandPlan(),
     phase3CommandValidationRecordValidation: commandValidation(),
+    phase3ProofExportVerification: proofExport(),
     phase3HandoffGate: handoff(),
     ...overrides
   });
 }
 
 describe("phase 11 proof freshness depth", () => {
-  it("trusts owner proof only when priority, clearance, smoke, command, CLI validation, and handoff rows are ready", () => {
+  it("trusts owner proof only when priority, clearance, smoke, command, CLI validation, proof export, and handoff rows are ready", () => {
     const result = snapshot();
 
     expect(result.state).toBe("ready");
@@ -200,6 +227,15 @@ describe("phase 11 proof freshness depth", () => {
         expect.objectContaining({
           label: "CLI smoke validation record",
           detail: expect.stringContaining("3/3 row fingerprints")
+        }),
+        expect.objectContaining({
+          label: "Phase 3 proof export",
+          status: "ready",
+          detail: expect.stringContaining("expected fingerprint current")
+        }),
+        expect.objectContaining({
+          label: "Phase 3 proof export",
+          detail: expect.stringContaining("clearance snapshot 100% with 0 open blockers")
         })
       ])
     );
@@ -208,6 +244,43 @@ describe("phase 11 proof freshness depth", () => {
     expect(handoffProof?.detail).toContain("age 600000ms of 86400000ms window");
     expect(handoffProof?.detail).toContain("clearance snapshot ready at 100%");
     expect(result.ariaLabel).toContain("0 open proof rows");
+  });
+
+  it("reviews owner proof when Phase 3 proof export is not offline-verifiable", () => {
+    const result = snapshot({
+      phase3ProofExportVerification: proofExport({
+        state: "review",
+        statusLabel: "Review",
+        readiness: 65,
+        canVerifyOffline: false,
+        hasOwnerHandoffRecord: false,
+        handoffEvidenceFingerprint: undefined,
+        ownerHandoffRecordFingerprint: undefined,
+        ownerHandoffClearanceReadiness: undefined,
+        ownerHandoffExactBlockerCount: undefined,
+        detail: "Phase 3 proof export artifact is missing the owner handoff record.",
+        nextAction: "Record the owner-reviewed Phase 3 handoff before exporting."
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerProof).toBe(false);
+    expect(result.nextAction).toBe("Record the owner-reviewed Phase 3 handoff before exporting.");
+    expect(result.openProofCount).toBe(1);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Phase 3 proof export",
+          status: "review",
+          detail: expect.stringContaining("handoff missing"),
+          nextAction: "Record the owner-reviewed Phase 3 handoff before exporting."
+        }),
+        expect.objectContaining({
+          label: "Phase 3 proof export",
+          detail: expect.stringContaining("expected fingerprint missing")
+        })
+      ])
+    );
   });
 
   it("reviews owner proof when the handoff gate lacks Phase 3 traceability precondition", () => {

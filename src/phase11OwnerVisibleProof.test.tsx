@@ -92,7 +92,7 @@ function proofFreshnessSnapshot(
     statusLabel: "Review",
     readiness: 84,
     canTrustOwnerProof: false,
-    readyCount: 4,
+    readyCount: 5,
     reviewCount: 2,
     blockedCount: 0,
     waitingCount: 0,
@@ -144,6 +144,16 @@ function proofFreshnessSnapshot(
         status: "ready",
         detail: "CLI validation is fresh and includes smoke bundle provenance.",
         nextAction: "Keep CLI validation attached without treating it as desktop proof."
+      },
+      {
+        id: "phase-11-proof-freshness-depth:proof-export",
+        label: "Phase 3 proof export",
+        kind: "proof-export",
+        status: "ready",
+        detail:
+          "Proof export is ready at 100% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff attached, expected fingerprint current, record fingerprint current, clearance snapshot 100% with 0 open blockers.",
+        nextAction:
+          "Keep the offline-verifiable Phase 3 proof export attached before release readiness resumes."
       },
       {
         id: "phase-11-proof-freshness-depth:handoff-proof",
@@ -451,7 +461,7 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Packaging lock");
     expect(html).toContain("Phase 11 Proof Freshness");
     expect(html).toContain("<dt>Trust</dt><dd>Held</dd>");
-    expect(html).toContain("<dt>Ready</dt><dd>4</dd>");
+    expect(html).toContain("<dt>Ready</dt><dd>5</dd>");
     expect(html).toContain("<dt>Open</dt><dd>2</dd>");
     expect(html).toContain("<dt>Blocked</dt><dd>0</dd>");
     expect(html).toContain("Phase 1/2/6 priority proof");
@@ -459,6 +469,7 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Desktop smoke proof");
     expect(html).toContain("Desktop smoke command plan");
     expect(html).toContain("CLI smoke validation record");
+    expect(html).toContain("Phase 3 proof export");
     expect(html).toContain("Owner handoff proof");
     expect(html).toContain("Phase 11 Evidence Records");
     expect(html).toContain("Phase 11 evidence records: Blocked; 47% ready; 4 open evidence gates");
@@ -569,7 +580,7 @@ describe("phase 11 owner-visible proof", () => {
       statusLabel: "Ready",
       readiness: 100,
       canTrustOwnerProof: true,
-      readyCount: 6,
+      readyCount: 7,
       reviewCount: 0,
       openProofCount: 0,
       nextAction: "Keep owner proof attached.",
