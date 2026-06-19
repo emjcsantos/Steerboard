@@ -147,7 +147,7 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Prepare install, environment, and distribution path for dependable rollout.",
     completionPercent: 20,
     latestNote:
-      "The Phase 11 Release Readiness gate now tracks clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, packaging lock, docs/known limits, final security closure capability, structured release-decision evidence, owner release traceability, and blocker-priority review while packaging remains paused and owner-held.",
+      "The Phase 11 Release Readiness gate now tracks clean checkout, build/test, smoke proof with Phase 3 proof-export detail, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, packaging lock, docs/known limits, final security closure capability, structured release-decision evidence, owner release traceability, and blocker-priority review while packaging remains paused and owner-held.",
     nextStep:
       "Use the Phase 11 Release Readiness, owner release traceability, and blocker-priority panels to record the final release proof after live workflow, provider, migration, audit, Phase 3 traceability, final security closure, owner proof, and release-decision evidence holds are clear; do not package, sign, create installers, push, or resume release actions from this gate.",
     tone: "paused",
