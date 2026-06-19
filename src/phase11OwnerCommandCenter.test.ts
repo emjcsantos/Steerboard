@@ -520,6 +520,48 @@ describe("phase 11 owner command center", () => {
     );
   });
 
+  it("surfaces proof-export depth as the top proof freshness review row", () => {
+    const result = snapshot({
+      proofFreshnessDepth: proofFreshnessDepth({
+        state: "review",
+        statusLabel: "Review",
+        canTrustOwnerProof: false,
+        readyCount: 6,
+        reviewCount: 1,
+        openProofCount: 1,
+        nextAction: "Refresh Phase 3 proof export before release readiness.",
+        items: [
+          {
+            id: "phase-11-proof-freshness-depth:proof-export",
+            label: "Phase 3 proof export",
+            kind: "proof-export",
+            status: "review",
+            detail: "Proof export is held until offline verification is ready.",
+            nextAction: "Refresh Phase 3 proof export before release readiness."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRelease).toBe(false);
+    expect(result.nextAction).toBe("Refresh Phase 3 proof export before release readiness.");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Proof freshness",
+          status: "review",
+          detail: expect.stringContaining("Top proof-depth row: Phase 3 proof export is review"),
+          nextAction: "Refresh Phase 3 proof export before release readiness."
+        }),
+        expect.objectContaining({
+          label: "Proof freshness",
+          detail: expect.stringContaining("Proof export is held until offline verification is ready.")
+        })
+      ])
+    );
+  });
+
   it("exposes prioritized remaining goal and PM task trace links", () => {
     const result = snapshot();
 

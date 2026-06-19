@@ -268,15 +268,22 @@ function phase3SmokeProofItem(input: Phase3SmokeProofReadinessResult): Phase11Ow
 
 function proofFreshnessItem(input: Phase11OwnerCommandCenterInput): Phase11OwnerCommandCenterItem {
   const proofDepth = input.proofFreshnessDepth;
+  const topProofDepthItem =
+    proofDepth.items.find((item) => item.status === "blocked") ??
+    proofDepth.items.find((item) => item.status === "review") ??
+    proofDepth.items.find((item) => item.status === "waiting");
+  const topProofDepthDetail = topProofDepthItem
+    ? ` Top proof-depth row: ${publicText(topProofDepthItem.label, "Proof freshness row")} is ${topProofDepthItem.status}; ${publicText(topProofDepthItem.detail, topProofDepthItem.nextAction)}`
+    : "";
 
   return {
     id: `${SNAPSHOT_ID}:proof-freshness`,
     label: "Proof freshness",
     kind: "proof-freshness",
     status: proofDepth.state,
-    detail: `${proofDepth.readyCount} proof-depth row${proofDepth.readyCount === 1 ? "" : "s"} ready; ${proofDepth.reviewCount} review, ${proofDepth.blockedCount} blocked, and ${proofDepth.waitingCount} waiting.`,
+    detail: `${proofDepth.readyCount} proof-depth row${proofDepth.readyCount === 1 ? "" : "s"} ready; ${proofDepth.reviewCount} review, ${proofDepth.blockedCount} blocked, and ${proofDepth.waitingCount} waiting.${topProofDepthDetail}`,
     nextAction: publicText(
-      proofDepth.nextAction,
+      topProofDepthItem?.nextAction ?? proofDepth.nextAction,
       "Review Phase 11 proof freshness depth before Owner Testing can pass."
     )
   };
