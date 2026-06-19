@@ -15,7 +15,7 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 | Phase 3: Optional Project Management Lane | In progress | Pipeline items can be inspected, request history is local, dispatch-ready items can create local Arena run projections, and selected items can show linked local runs with status summaries. This lane supports visibility and change management, while Arena chat remains primary. |
 | Phase 4: Runtime Adapters | In progress | Provider-neutral adapter previews, runtime profiles, local approvals, bridge status, permission previews, and evidence readiness are scaffolded as locked local previews. |
 | Phase 5: Live Codex Integration | In progress | Codex transport spike identifies supervised app-server stdio as the safest first session bridge, with no-prompt readiness on startup and explicit live smoke for one read-only send/stream proof. |
-| Phase 6: Adaptive Arena Canvas | In progress | Adaptive mode now supports persisted panel geometry, add/reveal, hide, resize, reset, keyboard move/resize, magnetic panel dragging, project stack drag-in, chat drag-in, and visible drop-preview states from the left rail. |
+| Phase 6: Project and Program Planning Lane | In progress | The Project Management board now carries the current Phase 0-11 Epic, Parent, and Child hierarchy, saved-state upgrades, staged Arena review packages, Phase 1/2/6 publish-hold traceability, and blocker-priority rows while execution remains locked. |
 | Phase 7: Platform Capabilities | In progress | Slash commands, Skills catalog, Plugin manager, MCP manager, Automations manager, and Personalization center now expose structured feedback plus desktop-backed safe provider capability refresh; permissions and audit state continue toward live provider-backed surfaces. |
 | Phase 8: Local Execution And Packaging | Planned | Real runtime execution, permissioned terminal/Git capture, audit exports, build signing, and installer checks remain behind future explicit approval gates; Phase 11 release-readiness tracking keeps the package lock and release decision visible before this work resumes. |
 
@@ -96,17 +96,16 @@ The current development lane is Phase 3 desktop proof clearance: run the explici
 - Per-panel workspace, model, sandbox, approval, and runtime metadata where supported.
 - Connection failure, unsupported capability, and offline states.
 
-## Phase 6: Adaptive Arena Canvas
+## Phase 6: Project and Program Planning Lane
 
-- Adaptive freeform Arena mode.
-- User-created panels from existing Arena sessions and tasks.
-- Drag-and-drop from the left rail into the Arena center, starting with project stacks and chats, with selectable templates for whole-project drops.
-- Resizable and repositionable panels with magnetic snapping.
-- Collision handling, safe drop zones, hidden queue integration, and reset to last safe layout.
-- Local persistence and saved-state repair for panel geometry.
-- Keyboard alternatives for add, move, resize, focus, hide, reveal, and reset.
-- Visible ready, unsupported, and unavailable drop-preview states for adaptive docking.
-- Default project stack selection that prioritizes orchestrator, implementer, validator, and integration panels before monitor fallbacks, and an adaptive project-drop template selector for explicit template choice.
+- Current Phase 0-11 Project Management board seeded as Epics with Parent and Child rows.
+- Saved-state repair that replaces older seed rows with the current phase plan while preserving custom owner rows.
+- Dense Jira-like hierarchy for task, description, status, completion, complexity, source, and action review.
+- Row-level staged Arena review packages for Epics, Parents, and Children, including hierarchy context and descendant tasks.
+- Remaining-goal links from each priority target to the PM rows needed to stage Arena review packages.
+- Phase 1/2/6 publish-hold traceability linking one-panel proof, two-panel isolation, PM staging, required PM coverage, and owner/remote publish hold.
+- Phase 1/2/6 blocker-priority rows that keep the owner/remote publish hold ranked above proof review until the owner approves pushing.
+- Execution remains locked: PM staging is local review only and does not launch workers, push branches, publish artifacts, or mutate external state.
 
 ## Phase 7: Platform Capabilities
 

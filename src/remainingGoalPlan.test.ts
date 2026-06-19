@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import {
   buildRemainingGoalPriorityTraces,
+  buildRemainingGoalPriorityQueue,
   findCurrentActiveRemainingGoals,
   findRemainingGoalPlanIssues,
   isCurrentActiveRemainingGoal,
@@ -122,6 +123,26 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(traces.every((trace) => trace.phaseIds.length > 0 && trace.pmTaskIds.length > 0)).toBe(true);
+  });
+
+  it("keeps the visible remaining goal queue priority-first", () => {
+    const queue = buildRemainingGoalPriorityQueue();
+
+    expect(queue.map((goal) => goal.id).slice(0, 4)).toEqual([
+      "goal-phase-3-proof-clearance",
+      "goal-phase-1-2-6-publish",
+      "goal-phase-4-provider-surfaces",
+      "goal-phase-11-release-readiness"
+    ]);
+    expect(queue[0]).toMatchObject({
+      current: true,
+      priority: "critical",
+      status: "active"
+    });
+    expect(queue[1]).toMatchObject({
+      priority: "critical",
+      status: "blocked"
+    });
   });
 
   it("keeps the owner hold and Phase 3 proof target explicit", () => {

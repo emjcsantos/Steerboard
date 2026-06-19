@@ -371,12 +371,17 @@ function compareGoalPriority(a: RemainingGoalPlanItem, b: RemainingGoalPlanItem)
   return a.target.localeCompare(b.target);
 }
 
+export function buildRemainingGoalPriorityQueue(
+  goals: readonly RemainingGoalPlanItem[] = remainingGoalPlan
+): RemainingGoalPlanItem[] {
+  return [...goals].sort(compareGoalPriority);
+}
+
 export function buildRemainingGoalPriorityTraces(
   goals: readonly RemainingGoalPlanItem[] = remainingGoalPlan,
   limit = 9
 ): RemainingGoalPlanTrace[] {
-  return [...goals]
-    .sort(compareGoalPriority)
+  return buildRemainingGoalPriorityQueue(goals)
     .slice(0, Math.max(0, limit))
     .map((goal) => ({
       goalId: goal.id,

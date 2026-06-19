@@ -508,6 +508,7 @@ import {
   type MilestoneStatusSummary
 } from "./milestoneStatus";
 import {
+  buildRemainingGoalPriorityQueue,
   remainingGoalPlan,
   summarizeRemainingGoalPlan,
   type RemainingGoalPlanItem,
@@ -9172,6 +9173,10 @@ function RightPanel({
     () => summarizeRemainingGoalPlan(remainingGoalPlan),
     []
   );
+  const remainingGoalPriorityQueue = useMemo(
+    () => buildRemainingGoalPriorityQueue(remainingGoalPlan),
+    []
+  );
   const panelPriority = useMemo(
     () => createCockpitPanelPriority(sessions),
     [sessions]
@@ -10386,7 +10391,7 @@ function RightPanel({
       />
 
       <RemainingGoalsPanel
-        goals={remainingGoalPlan}
+        goals={remainingGoalPriorityQueue}
         summary={remainingGoalSummary}
       />
 
