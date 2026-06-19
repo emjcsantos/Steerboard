@@ -446,7 +446,7 @@ import {
 } from "./phase3PanelEvidenceStorage";
 import {
   buildPhase3ProofExportArtifact,
-  serializePhase3ProofExportArtifact,
+  preparePhase3ProofExportDownload,
   verifyPhase3ProofExportArtifact,
   verifySerializedPhase3ProofExportArtifact,
   type Phase3ProofExportVerification
@@ -2788,13 +2788,13 @@ export function App() {
       commandValidationRecord: phase3CommandValidationRecord,
       ownerHandoffRecord: phase3OwnerHandoffRecord
     });
-    const verification = verifyPhase3ProofExportArtifact(artifact, { verifiedAt: now });
-    if (!verification.canVerifyOffline) {
+    const { verification, serializedArtifact } = preparePhase3ProofExportDownload(artifact, {
+      verifiedAt: now
+    });
+    if (!serializedArtifact) {
       setAppNotice(`Phase 3 proof export ${verification.statusLabel}: ${verification.detail}`);
       return;
     }
-
-    const serializedArtifact = serializePhase3ProofExportArtifact(artifact);
 
     if (typeof document !== "undefined" && typeof URL !== "undefined" && typeof Blob !== "undefined") {
       const blob = new Blob([serializedArtifact], { type: "application/json" });

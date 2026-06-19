@@ -75,6 +75,11 @@ export interface Phase3ProofExportVerifyOptions {
   readonly maxHandoffAgeMs?: number;
 }
 
+export interface Phase3ProofExportDownloadPreparation {
+  readonly verification: Phase3ProofExportVerification;
+  readonly serializedArtifact?: string;
+}
+
 const STATUS_LABELS: Record<Phase3ProofExportState, string> = {
   ready: "Ready",
   review: "Review",
@@ -456,4 +461,18 @@ export function verifySerializedPhase3ProofExportArtifact(
     parsePhase3ProofExportArtifact(serializedArtifact),
     options
   );
+}
+
+export function preparePhase3ProofExportDownload(
+  artifact: Phase3ProofExportArtifact,
+  options: Phase3ProofExportVerifyOptions = {}
+): Phase3ProofExportDownloadPreparation {
+  const verification = verifyPhase3ProofExportArtifact(artifact, options);
+
+  return {
+    verification,
+    ...(verification.canVerifyOffline
+      ? { serializedArtifact: serializePhase3ProofExportArtifact(artifact) }
+      : {})
+  };
 }

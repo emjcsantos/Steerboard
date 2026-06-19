@@ -4,6 +4,7 @@ import type { Phase3OwnerHandoffRecord } from "./phase3HandoffRecord";
 import {
   buildPhase3ProofExportArtifact,
   parsePhase3ProofExportArtifact,
+  preparePhase3ProofExportDownload,
   serializePhase3ProofExportArtifact,
   verifyPhase3ProofExportArtifact,
   verifySerializedPhase3ProofExportArtifact
@@ -322,5 +323,24 @@ describe("phase 3 proof export", () => {
     expect(verification.state).toBe("ready");
     expect(verification.canVerifyOffline).toBe(true);
     expect(malformed.state).toBe("waiting");
+  });
+
+  it("prepares downloadable proof export JSON only after offline verification is ready", () => {
+    const readyDownload = preparePhase3ProofExportDownload(readyArtifact(), { verifiedAt });
+    const heldDownload = preparePhase3ProofExportDownload(
+      readyArtifact({
+        ownerHandoffRecord: undefined,
+        handoffEvidenceFingerprint: undefined
+      }),
+      { verifiedAt }
+    );
+
+    expect(readyDownload.verification.canVerifyOffline).toBe(true);
+    expect(readyDownload.serializedArtifact).toContain(currentPanelId);
+    expect(heldDownload.verification).toMatchObject({
+      state: "review",
+      canVerifyOffline: false
+    });
+    expect(heldDownload.serializedArtifact).toBeUndefined();
   });
 });
