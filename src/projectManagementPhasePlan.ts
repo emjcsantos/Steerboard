@@ -927,7 +927,7 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-11-parent-release-packaging",
         title: "Release Readiness Gate",
-        description: "Keep fresh checkout, clean checkout, build/test, smoke proof with Phase 3 proof-export detail, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, packaging lock, docs, known limits, evidence records, visible Security 100% final closure guidance, and release-decision top-prerequisite detail visible while packaging stays paused.",
+        description: "Keep fresh checkout, clean checkout, build/test, smoke proof with Phase 3 proof-export detail, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, packaging lock, docs, known limits, evidence records, visible Security 100% final closure guidance, and release-decision top-prerequisite detail visible while packaging stays paused.",
         completionPercent: 59,
         complexity: "high",
         sourceDocument: "Phase 11 release readiness",
@@ -935,7 +935,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-package-validation",
             title: "Package Lock Validation",
-            description: "Validate packaged-app prerequisites, fresh-checkout proof, proof persistence, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, evidence-record inputs, visible Security 100% final closure guidance, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
+            description: "Validate packaged-app prerequisites, fresh-checkout proof, proof persistence, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, evidence-record inputs, visible Security 100% final closure guidance, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
             completionPercent: 56,
             complexity: "high",
             sourceDocument: "Release validation"
@@ -943,7 +943,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-traceability",
             title: "Owner Release Traceability",
-            description: "Link Owner Testing command gates, proof freshness depth, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, evidence records, release readiness, visible Security 100% final closure guidance, required PM rows, and packaging holds before release review can be trusted.",
+            description: "Link Owner Testing command gates, proof freshness depth, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, evidence records, release readiness, visible Security 100% final closure guidance, required PM rows, and packaging holds before release review can be trusted.",
             completionPercent: 48,
             complexity: "high",
             sourceDocument: "Phase 11 owner release traceability"

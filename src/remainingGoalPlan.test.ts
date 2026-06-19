@@ -668,11 +668,17 @@ describe("remaining goal plan", () => {
     expect(releaseGoal?.goal).toContain(
       "current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence"
     );
+    expect(releaseGoal?.goal).toContain(
+      "current non-ready proof freshness row actions for handoff/proof-export review"
+    );
     expect(releaseGoal?.nextAction).toContain("Evidence Records");
     expect(releaseGoal?.nextAction).toContain("structured fresh-checkout");
     expect(releaseGoal?.nextAction).toContain("structured clean-checkout");
     expect(releaseGoal?.nextAction).toContain(
       "current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence/detail"
+    );
+    expect(releaseGoal?.nextAction).toContain(
+      "current non-ready proof freshness row actions for handoff/proof-export review"
     );
     expect(releaseGoal?.nextAction).toContain("owner release traceability");
     expect(releaseGoal?.nextAction).toContain("blocker-priority panels");

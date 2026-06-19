@@ -321,7 +321,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 11"],
     phaseIds: ["phase-11-owner-packaging"],
     goal:
-      "Coordinate the final fresh-checkout, clean-checkout, build, smoke, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, packaging-lock, docs, known-limits, owner release traceability, blocker-priority review, structured evidence records, final security closure capability, and release-decision pass before release.",
+      "Coordinate the final fresh-checkout, clean-checkout, build, smoke, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, packaging-lock, docs, known-limits, owner release traceability, blocker-priority review, structured evidence records, final security closure capability, and release-decision pass before release.",
     status: "next",
     priority: "high",
     completionPercent: 74,
@@ -333,7 +333,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 11 Release Readiness, Evidence Records, owner release traceability, blocker-priority panels, and owner-visible Phase 11 proof to require structured fresh-checkout, structured clean-checkout, build/test, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence/detail, docs-known-limits evidence, visible Security 100% final closure guidance, and visible release-decision top-prerequisite detail before any ready state can recommend release while packaging stays paused."
+      "Use the Phase 11 Release Readiness, Evidence Records, owner release traceability, blocker-priority panels, and owner-visible Phase 11 proof to require structured fresh-checkout, structured clean-checkout, build/test, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence/detail, current non-ready proof freshness row actions for handoff/proof-export review, docs-known-limits evidence, visible Security 100% final closure guidance, and visible release-decision top-prerequisite detail before any ready state can recommend release while packaging stays paused."
   }
 ];
 
