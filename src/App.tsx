@@ -2586,6 +2586,7 @@ export function App() {
           activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof
         },
         persistedDesktopProofs: phase3PersistedDesktopProofs,
+        storageReviewReasons: phase3SmokeProofStorageReviewReasons,
         commandValidationRecord: phase3CommandValidationRecord,
         ownerHandoffRecord: phase3OwnerHandoffRecord
       }),
@@ -2598,6 +2599,7 @@ export function App() {
       phase3HandoffEvidenceFingerprint,
       phase3OwnerHandoffRecord,
       phase3PersistedDesktopProofs,
+      phase3SmokeProofStorageReviewReasons,
       phase3ProofEvaluationTime,
       sessionControlReadinessEvidenceByPanel,
       slashCommandExecutionEvidenceByPanel
@@ -2767,6 +2769,7 @@ export function App() {
         activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof
       },
       persistedDesktopProofs: phase3PersistedDesktopProofs,
+      storageReviewReasons: phase3SmokeProofStorageReviewReasons,
       commandValidationRecord: phase3CommandValidationRecord,
       ownerHandoffRecord: phase3OwnerHandoffRecord
     });
@@ -2793,6 +2796,7 @@ export function App() {
     phase3HandoffEvidenceFingerprint,
     phase3OwnerHandoffRecord,
     phase3PersistedDesktopProofs,
+    phase3SmokeProofStorageReviewReasons,
     phase3ProofEvaluationTime,
     sessionControlReadinessEvidenceByPanel,
     slashCommandExecutionEvidenceByPanel

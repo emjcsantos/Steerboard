@@ -11,6 +11,7 @@ import {
 import {
   loadPhase3SmokeProofBundleWithStorageProof,
   type Phase3PersistedDesktopProofs,
+  type Phase3PersistedDesktopProofReviewReasons,
   type Phase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
 
@@ -27,6 +28,7 @@ export interface Phase3ProofExportArtifact {
   readonly sessionControlEvidenceByPanel: Phase3SessionControlEvidenceByPanel;
   readonly smokeProofBundle: Phase3SmokeProofBundle;
   readonly persistedDesktopProofs: Phase3PersistedDesktopProofs;
+  readonly storageReviewReasons?: Phase3PersistedDesktopProofReviewReasons;
   readonly commandValidationRecord?: Phase3CommandValidationRecord;
   readonly ownerHandoffRecord?: Phase3OwnerHandoffRecord;
 }
@@ -54,6 +56,7 @@ export interface Phase3ProofExportBuildInput {
   readonly sessionControlEvidenceByPanel?: Phase3SessionControlEvidenceByPanel;
   readonly smokeProofBundle?: Phase3SmokeProofBundle;
   readonly persistedDesktopProofs?: Phase3PersistedDesktopProofs;
+  readonly storageReviewReasons?: Phase3PersistedDesktopProofReviewReasons;
   readonly commandValidationRecord?: Phase3CommandValidationRecord;
   readonly ownerHandoffRecord?: Phase3OwnerHandoffRecord;
 }
@@ -110,6 +113,24 @@ function persistedDesktopProofCount(proofs: Phase3PersistedDesktopProofs): numbe
   ].filter(Boolean).length;
 }
 
+function storageReviewReasonSummary(
+  reasons: Phase3PersistedDesktopProofReviewReasons | undefined
+): string | undefined {
+  if (!reasons) {
+    return undefined;
+  }
+
+  const entries = [
+    ["live-control", reasons.liveControlSmoke],
+    ["active-turn-interrupt", reasons.activeTurnInterruptSmoke],
+    ["active-turn-steer", reasons.activeTurnSteerSmoke]
+  ].filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1].trim().length > 0);
+
+  return entries.length > 0
+    ? ` Storage proof review: ${entries.map(([label, reason]) => `${label}: ${reason}`).join(" ")}`
+    : undefined;
+}
+
 function panelEvidenceReady(
   artifact: Phase3ProofExportArtifact,
   currentPanelId: string | undefined
@@ -163,7 +184,8 @@ export function buildPhase3ProofExportArtifact(
   const smokeProofLoad = input.smokeProofBundle && input.persistedDesktopProofs
     ? {
         bundle: input.smokeProofBundle,
-        persistedDesktopProofs: input.persistedDesktopProofs
+        persistedDesktopProofs: input.persistedDesktopProofs,
+        storageReviewReasons: input.storageReviewReasons ?? {}
       }
     : loadPhase3SmokeProofBundleWithStorageProof();
   const now = new Date().toISOString();
@@ -182,6 +204,9 @@ export function buildPhase3ProofExportArtifact(
       input.sessionControlEvidenceByPanel ?? loadPhase3SessionControlEvidenceByPanel(),
     smokeProofBundle: smokeProofLoad.bundle,
     persistedDesktopProofs: smokeProofLoad.persistedDesktopProofs,
+    ...(Object.keys(smokeProofLoad.storageReviewReasons).length > 0
+      ? { storageReviewReasons: smokeProofLoad.storageReviewReasons }
+      : {}),
     ...(input.commandValidationRecord ?? loadPhase3CommandValidationRecord()
       ? { commandValidationRecord: input.commandValidationRecord ?? loadPhase3CommandValidationRecord() }
       : {}),
@@ -291,11 +316,14 @@ export function verifyPhase3ProofExportArtifact(
   }
 
   if (storageAttestedDesktopProofCount < 3) {
+    const storageDetail = storageReviewReasonSummary(artifact.storageReviewReasons);
     return result(
       "review",
       artifact,
-      "Phase 3 proof export artifact does not include all storage-attested desktop proof rows.",
-      "Import or record the Phase 3 desktop smoke proof bundle before exporting.",
+      `Phase 3 proof export artifact does not include all storage-attested desktop proof rows.${storageDetail ?? ""}`,
+      storageDetail
+        ? "Resolve the storage proof review reasons, then re-export the Phase 3 proof package."
+        : "Import or record the Phase 3 desktop smoke proof bundle before exporting.",
       counts
     );
   }

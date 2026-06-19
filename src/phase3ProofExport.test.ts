@@ -125,6 +125,29 @@ describe("phase 3 proof export", () => {
     expect(verification.readyPanelEvidenceCount).toBe(0);
   });
 
+  it("carries storage proof review reasons into offline proof export verification", () => {
+    const verification = verifyPhase3ProofExportArtifact(
+      readyArtifact({
+        persistedDesktopProofs: {
+          liveControlSmoke: false,
+          activeTurnInterruptSmoke: true,
+          activeTurnSteerSmoke: true
+        },
+        storageReviewReasons: {
+          liveControlSmoke:
+            "Storage proof was created before the desktop proof row it attests; reload the recorded desktop smoke proof bundle."
+        }
+      }),
+      { verifiedAt }
+    );
+
+    expect(verification.state).toBe("review");
+    expect(verification.storageAttestedDesktopProofCount).toBe(2);
+    expect(verification.detail).toContain("Storage proof review");
+    expect(verification.detail).toContain("created before the desktop proof row it attests");
+    expect(verification.nextAction).toContain("Resolve the storage proof review reasons");
+  });
+
   it("keeps stale owner handoff records in review", () => {
     const verification = verifyPhase3ProofExportArtifact(
       readyArtifact({
