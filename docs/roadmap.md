@@ -4,7 +4,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 ## Current Pipeline
 
-The current implementation target is Phase 3 desktop proof clearance. Phase 1, Phase 2, and Phase 6 are held locally behind the owner/remote publish hold until the Steerboard public remote is restored and the owner explicitly approves pushing. The Project Management board, Remaining Goals summary, Owner Testing surfaces, and release-readiness gates all use the current Phase 0-11 plan below.
+The current implementation target is Phase 3 exit-package clearance after local desktop smoke proof passed. Phase 1, Phase 2, and Phase 6 are held locally behind the owner/remote publish hold until the Steerboard public remote is restored and the owner explicitly approves pushing. The Project Management board, Remaining Goals summary, Owner Testing surfaces, and release-readiness gates all use the current Phase 0-11 plan below.
 
 The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md). The Project Management lane details are maintained in [Project Management Lane](product/project-management-lane.md).
 
@@ -15,7 +15,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 | Phase 0: Baseline, Safety, and Docs Hygiene | Completed | Public boundary, repeatable validation, and roadmap/PM documentation hygiene are in place. |
 | Phase 1: One Live Chat Panel | In progress | One-panel live send/stream proof is modeled with persisted proof rows and remains part of the Phase 1/2/6 owner publish hold. |
 | Phase 2: Multi-Panel Session Isolation | In progress | Two-panel session/thread isolation, no-cross-talk proof, and restore-panel behavior are modeled and remain part of the Phase 1/2/6 owner publish hold. |
-| Phase 3: Controls, Slash Commands, and Desktop Proof | In progress | Current active implementation target for slash/session controls, desktop smoke proof, blocker priority, traceability, and owner handoff gating. |
+| Phase 3: Controls, Slash Commands, and Desktop Proof | In progress | Desktop smoke proof now passes locally; current active implementation target is current-panel slash/session evidence, persisted proof import, blocker priority, traceability, owner handoff, and proof-export gating. |
 | Phase 4: Provider Integration Surfaces | Next | Provider catalog depth, surface depth, approval, audit, rollback, permission, traceability, and blocker priority remain metadata-only and execution-locked. |
 | Phase 5: Migration Center | Next | Migration review, apply-intent lock, rollback evidence, sensitive exclusions, traceability, and blocker priority remain metadata-only until review gates pass. |
 | Phase 6: Project and Program Planning Lane | In progress | The Project Management board carries the current Phase 0-11 Epic, Parent, and Child hierarchy, saved-state upgrades, staged Arena review packages, publish-hold traceability, and blocker-priority rows. |
@@ -49,7 +49,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 
 - Slash command readiness and local control rows.
 - Session-control proof for active-turn interrupt, retry, and steer while unsupported controls stay honest.
-- Desktop smoke proof rows with stale-proof review and row-specific next actions.
+- Desktop smoke proof rows with stale-proof review, transient reconnect handling, local smoke-record verification, and row-specific next actions.
 - Phase 3 command plan, CLI validation provenance, blocker-priority queue, traceability rows, and handoff gate.
 - Fail-closed Phase 3 proof export that lets the owner record the handoff from a complete proof-export preflight when the handoff record is the only missing item, then prepares downloadable owner-review JSON only after offline verification is ready; imported proof packages return to review unless they match the current focused panel and owner-visible handoff fingerprint.
 - Phase 4 review remains held until current evidence, current active goal links, PM row links, fingerprint match, clearance snapshot, proof-export offline verification, and handoff age metadata are trusted.
