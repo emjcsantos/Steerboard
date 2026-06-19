@@ -13835,7 +13835,7 @@ export function OwnerTestingReadinessPanel({
             </div>
             <div
               className={`owner-testing-phase3-proof-export owner-testing-phase3-proof-export-${phase3ProofExportVerification.state}`}
-              aria-label={`Phase 3 proof export verifier ${phase3ProofExportVerification.statusLabel}; ${phase3ProofExportVerification.readiness}% ready`}
+              aria-label={`Phase 3 proof export verifier ${phase3ProofExportVerification.statusLabel}; ${phase3ProofExportVerification.readiness}% ready; next action: ${phase3ProofExportVerification.nextAction}`}
               title={phase3ProofExportVerification.detail}
             >
               <strong>Phase 3 proof export</strong>
@@ -13875,7 +13875,7 @@ export function OwnerTestingReadinessPanel({
             {importedPhase3ProofExportVerification ? (
               <div
                 className={`owner-testing-phase3-proof-export owner-testing-phase3-proof-export-${importedPhase3ProofExportVerification.state}`}
-                aria-label={`Imported Phase 3 proof artifact verifier ${importedPhase3ProofExportVerification.statusLabel}; ${importedPhase3ProofExportVerification.readiness}% ready`}
+                aria-label={`Imported Phase 3 proof artifact verifier ${importedPhase3ProofExportVerification.statusLabel}; ${importedPhase3ProofExportVerification.readiness}% ready; next action: ${importedPhase3ProofExportVerification.nextAction}`}
                 title={importedPhase3ProofExportVerification.detail}
               >
                 <strong>Imported proof artifact</strong>
