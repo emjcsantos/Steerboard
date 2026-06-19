@@ -184,6 +184,18 @@ function canUseDispatchReview(status: Phase7DispatchBlockerPriorityState): boole
   return status !== "ready";
 }
 
+function canUseDispatchReviewForTraceability(item: Phase7DispatchTraceabilityItem): boolean {
+  if (item.status === "ready") {
+    return false;
+  }
+
+  return (
+    item.kind === "review-depth" ||
+    item.kind === "integration-ownership" ||
+    item.kind === "live-worker-lock"
+  );
+}
+
 function depthItems(
   depth: Phase7DispatchReviewDepthSnapshot
 ): readonly Phase7DispatchBlockerPriorityItem[] {
@@ -253,7 +265,7 @@ function buildItemFromTraceability(
     status: item.status,
     severity: severityForStatus(item.status),
     priority: 0,
-    canUseDispatchReview: canUseDispatchReview(item.status),
+    canUseDispatchReview: canUseDispatchReviewForTraceability(item),
     detail: `${item.label} trace is ${STATUS_LABELS[item.status]}; ${publicText(item.detail, "Phase 7 traceability evidence is incomplete.")}`,
     nextAction: `${DISPATCH_REVIEW_ACTION}, then re-check Phase 7 dispatch traceability.`
   };

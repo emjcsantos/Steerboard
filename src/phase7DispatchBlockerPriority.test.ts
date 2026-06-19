@@ -162,8 +162,10 @@ describe("phase 7 dispatch blocker priority", () => {
     expect(summary.topPriorityLabel).toBe("PM row coverage");
     expect(summary.items[0]).toMatchObject({
       kind: "traceability",
-      status: "blocked"
+      status: "blocked",
+      canUseDispatchReview: false
     });
+    expect(summary.dispatchReviewCanAddressTopBlocker).toBe(false);
   });
 
   it("keeps non-current Phase 7 traceability as an open blocker", () => {
@@ -175,8 +177,10 @@ describe("phase 7 dispatch blocker priority", () => {
     expect(summary.topPriorityLabel).toBe("Remaining goal link");
     expect(summary.items[0]).toMatchObject({
       kind: "traceability",
-      status: "waiting"
+      status: "waiting",
+      canUseDispatchReview: false
     });
+    expect(summary.dispatchReviewAddressableCount).toBe(0);
   });
 
   it("reports ready when dispatch review, ownership, traceability, and current goal are ready", () => {
