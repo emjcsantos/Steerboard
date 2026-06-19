@@ -29,7 +29,7 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 65,
+      averageCompletionPercent: 66,
       currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
         "Use the Phase 3 command plan, visible CLI validation record actions and provenance, PM-link and evidence-key counted exit gate, slash/session-first blocker-priority queue, row-specific slash/session/smoke exit actions, traceability rows, storage-attested current-panel smoke proof rows, and visible handoff record-gate reason with compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, current active goal/PM traceability is trusted, and CLI validation is fresh and matching, and keep Phase 4 held behind the provider boundary.",
@@ -131,8 +131,8 @@ describe("remaining goal plan", () => {
     expect(queue.map((goal) => goal.id).slice(0, 4)).toEqual([
       "goal-phase-3-proof-clearance",
       "goal-phase-1-2-6-publish",
-      "goal-phase-4-provider-surfaces",
-      "goal-phase-11-release-readiness"
+      "goal-phase-11-release-readiness",
+      "goal-phase-4-provider-surfaces"
     ]);
     expect(queue[0]).toMatchObject({
       current: true,
@@ -156,7 +156,7 @@ describe("remaining goal plan", () => {
     expect(queue.map((goal) => goal.id).slice(0, 3)).toEqual([
       "goal-phase-3-proof-clearance",
       "goal-phase-1-2-6-publish",
-      "goal-phase-4-provider-surfaces"
+      "goal-phase-11-release-readiness"
     ]);
     expect(isCurrentActiveRemainingGoal(queue[0])).toBe(true);
     expect(queue[1]).toMatchObject({
@@ -428,7 +428,7 @@ describe("remaining goal plan", () => {
       target: "Permission and audit depth",
       priority: "high",
       status: "next",
-      completionPercent: 62
+      completionPercent: 65
     });
     expect(phase8Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -485,7 +485,7 @@ describe("remaining goal plan", () => {
       target: "Planning and dispatch loop",
       priority: "high",
       status: "next",
-      completionPercent: 57
+      completionPercent: 60
     });
     expect(phase7Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -534,7 +534,7 @@ describe("remaining goal plan", () => {
       target: "Owner Testing command center",
       priority: "high",
       status: "next",
-      completionPercent: 58
+      completionPercent: 60
     });
     expect(ownerGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -574,7 +574,7 @@ describe("remaining goal plan", () => {
       target: "Release readiness pass",
       priority: "high",
       status: "next",
-      completionPercent: 52
+      completionPercent: 54
     });
     expect(releaseGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([

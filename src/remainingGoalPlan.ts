@@ -148,7 +148,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Harden command, skill, plugin, MCP, automation, and personalization readiness states while keeping refresh proof metadata-only, fresh, and tied to the current six-surface catalog fingerprint.",
     status: "next",
     priority: "high",
-    completionPercent: 52,
+    completionPercent: 56,
     pmTaskIds: [
       "phase-04-provider-surfaces",
       "phase-04-parent-catalogs",
@@ -178,7 +178,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Finish preview, apply-intent lock, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, and review-depth records for metadata-only migration work.",
     status: "next",
     priority: "high",
-    completionPercent: 58,
+    completionPercent: 61,
     pmTaskIds: [
       "phase-05-migration-center",
       "phase-05-parent-draft-workflow",
@@ -202,7 +202,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits, dispatch review depth, handoff packet integrity, current evidence freshness, main integration ownership, validation gates, traceability, blocker priority, and live-worker locks.",
     status: "next",
     priority: "high",
-    completionPercent: 57,
+    completionPercent: 60,
     pmTaskIds: [
       "phase-07-dispatch-loop",
       "phase-07-parent-role-panels",
@@ -227,7 +227,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Expand approval gates, risk exceptions, disabled-path explanations, owner audit-review persistence, current audit evidence fingerprints, and record-specific rollback evidence before mutation paths grow.",
     status: "next",
     priority: "high",
-    completionPercent: 62,
+    completionPercent: 65,
     pmTaskIds: [
       "phase-08-permissions-audit",
       "phase-08-parent-risk-gates",
@@ -299,7 +299,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Make Owner Testing the single pass-fail release gate for proof freshness depth, blockers, phase readiness, owner release traceability, blocker priority, and next actions.",
     status: "next",
     priority: "high",
-    completionPercent: 58,
+    completionPercent: 60,
     pmTaskIds: [
       "phase-11-owner-packaging",
       "phase-11-parent-owner-testing",
@@ -322,7 +322,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Coordinate the final fresh-checkout, clean-checkout, build, smoke, current active Phase 3 clearance PM traceability and handoff proof, packaging-lock, docs, known-limits, owner release traceability, blocker-priority review, structured evidence records, final security closure capability, and release-decision pass before release.",
     status: "next",
     priority: "high",
-    completionPercent: 52,
+    completionPercent: 54,
     pmTaskIds: [
       "phase-11-owner-packaging",
       "phase-11-parent-release-packaging",

@@ -336,7 +336,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-approval-record",
             title: "Provider Approval Record",
             description: "Record and clear local owner approval only when the current six-surface catalog fingerprint and fresh metadata-only refresh-safety proof match, without unlocking audit, rollback, permission, or execution.",
-            completionPercent: 45,
+            completionPercent: 58,
             complexity: "high",
             sourceDocument: "Phase 4 provider approval record"
           },
@@ -344,7 +344,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-audit-record",
             title: "Provider Audit Record",
             description: "Record and clear local provider audit review only when the current approval record, current six-surface catalog fingerprint, and current surface-depth audit evidence fingerprint match, without unlocking rollback, permission, or execution.",
-            completionPercent: 35,
+            completionPercent: 55,
             complexity: "high",
             sourceDocument: "Phase 4 provider audit record"
           },
@@ -352,7 +352,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-rollback-record",
             title: "Provider Rollback Record",
             description: "Record and clear local provider rollback review only when the current approval record, current audit record, current six-surface catalog fingerprint, and current surface-depth rollback evidence fingerprint match, without unlocking permission or execution.",
-            completionPercent: 30,
+            completionPercent: 52,
             complexity: "high",
             sourceDocument: "Phase 4 provider rollback record"
           },
@@ -360,7 +360,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-permission-record",
             title: "Provider Permission Record",
             description: "Record and clear local provider permission review only when the current approval, audit, rollback, six-surface catalog, surface-depth, and permission evidence fingerprints match every provider surface while mutation remains locked.",
-            completionPercent: 25,
+            completionPercent: 50,
             complexity: "high",
             sourceDocument: "Phase 4 provider permission record"
           },
@@ -375,8 +375,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-blocker-priority",
             title: "Provider Blocker Priority",
-            description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action.",
-            completionPercent: 35,
+            description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action, while keeping remaining-goal and PM traceability repairs out of catalog-smoke actions.",
+            completionPercent: 62,
             complexity: "high",
             sourceDocument: "Phase 4 provider blocker priority"
           }
@@ -475,8 +475,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-05-child-blocker-priority",
             title: "Migration Blocker Priority",
-            description: "Rank exact Phase 5 blockers across migration hardening, review-depth records, traceability, apply intent, rollback, fingerprint-matched audit, sensitive exclusions, and profile activation lock before apply review advances.",
-            completionPercent: 42,
+            description: "Rank exact Phase 5 blockers across migration hardening, review-depth records, traceability, apply intent, rollback, fingerprint-matched audit, sensitive exclusions, and profile activation lock before apply review advances, while keeping remaining-goal and PM traceability repairs out of metadata-review actions.",
+            completionPercent: 62,
             complexity: "medium",
             sourceDocument: "Phase 5 migration blocker priority"
           }
@@ -687,8 +687,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-blocker-priority",
             title: "Risk Blocker Priority",
-            description: "Rank exact Phase 8 blockers across permission, approval, evidence, audit persistence, owner-review freshness, record-specific rollback, disabled paths, exceptions, and traceability before mutation-capable paths can advance.",
-            completionPercent: 45,
+            description: "Rank exact Phase 8 blockers across permission, approval, evidence, audit persistence, owner-review freshness, record-specific rollback, disabled paths, exceptions, and traceability before mutation-capable paths can advance, while keeping remaining-goal and PM traceability repairs out of audit-review actions.",
+            completionPercent: 62,
             complexity: "medium",
             sourceDocument: "Phase 8 risk blocker priority"
           }
