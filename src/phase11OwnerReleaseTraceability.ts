@@ -358,6 +358,12 @@ function phase3TraceItem(
   const handoffProofReady = proofFreshnessDepth.items.some(
     (item) => item.kind === "handoff-proof" && item.status === "ready"
   );
+  const proofExportItem = proofFreshnessDepth.items.find((item) => item.kind === "proof-export");
+  const proofExportReady = proofExportItem?.status === "ready";
+  const proofExportDetail = publicText(
+    proofExportItem?.detail,
+    "Phase 3 proof export detail is missing from proof freshness depth."
+  );
   const proofFreshnessTrusted = proofFreshnessDepth.canTrustOwnerProof;
   const traceIsCurrent = phase3Trace?.current === true;
   const traceIsActive = phase3Trace?.status === "active";
@@ -373,6 +379,7 @@ function phase3TraceItem(
     !exactlyOneCurrentActiveGoal ||
     !proofFreshnessTrusted ||
     !handoffProofReady ||
+    !proofExportReady ||
     missingPmTaskIds.length > 0 ||
     incompletePmTaskIds.length > 0
       ? "review"
@@ -391,7 +398,9 @@ function phase3TraceItem(
       ? PHASE3_CLEARANCE_GOAL_ID
       : !proofFreshnessTrusted
         ? "phase-11-proof-freshness-depth"
-        : "phase-11-proof-freshness-depth:handoff-proof");
+        : !handoffProofReady
+          ? "phase-11-proof-freshness-depth:handoff-proof"
+          : "phase-11-proof-freshness-depth:proof-export");
 
   return {
     id: `${TRACE_ID}:phase3-trace`,
@@ -399,12 +408,12 @@ function phase3TraceItem(
     kind: "phase3-trace",
     status,
     detail: phase3Trace
-      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}; current active goals ${currentActiveGoalIds.length}; proof freshness ${proofFreshnessTrusted ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}.`
+      ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}; current active goals ${currentActiveGoalIds.length}; proof freshness ${proofFreshnessTrusted ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; proof export ${proofExportReady ? "ready" : "not ready"}; proof export detail: ${proofExportDetail}.`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction:
       status === "ready"
-        ? "Keep current active Phase 3 clearance PM traceability and ready handoff proof visible before release readiness is trusted."
-        : `Restore current active Phase 3 clearance PM traceability, required PM row completion, and trusted handoff proof before Phase 11 owner release review can be trusted: ${traceRestoreTarget}.`
+        ? "Keep current active Phase 3 clearance PM traceability plus ready handoff proof and proof-export evidence visible before release readiness is trusted."
+        : `Restore current active Phase 3 clearance PM traceability, required PM row completion, trusted handoff proof, and proof-export evidence before Phase 11 owner release review can be trusted: ${traceRestoreTarget}.`
   };
 }
 

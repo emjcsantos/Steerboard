@@ -50,7 +50,7 @@ function proofSnapshot(
     statusLabel: "Ready",
     readiness: 100,
     canTrustOwnerProof: true,
-    readyCount: 6,
+    readyCount: 7,
     reviewCount: 0,
     blockedCount: 0,
     waitingCount: 0,
@@ -59,6 +59,14 @@ function proofSnapshot(
     safety: "Evidence only.",
     ariaLabel: "Proof ready.",
     items: [
+      {
+        id: "phase-11-proof-freshness-depth:proof-export",
+        label: "Phase 3 proof export",
+        kind: "proof-export",
+        status: "ready",
+        detail: "Proof export is ready for offline verification.",
+        nextAction: "Keep the offline-verifiable Phase 3 proof export attached."
+      },
       {
         id: "phase-11-proof-freshness-depth:handoff-proof",
         label: "Owner handoff proof",
@@ -351,7 +359,7 @@ describe("phase 11 owner release traceability", () => {
           kind: "phase3-trace",
           status: "ready",
           detail: expect.stringContaining("is active"),
-          nextAction: expect.stringContaining("current active Phase 3 clearance PM traceability")
+          nextAction: expect.stringContaining("proof-export evidence")
         })
       ])
     );
@@ -359,6 +367,8 @@ describe("phase 11 owner release traceability", () => {
     expect(phase3Trace?.detail).toContain("phase-03-child-blocker-priority");
     expect(phase3Trace?.detail).toContain("phase-03-child-traceability");
     expect(phase3Trace?.detail).toContain("phase-03-child-handoff-gate");
+    expect(phase3Trace?.detail).toContain("proof export ready");
+    expect(phase3Trace?.detail).toContain("Proof export is ready for offline verification.");
   });
 
   it("carries the top blocked owner command row into release traceability", () => {
@@ -405,6 +415,55 @@ describe("phase 11 owner release traceability", () => {
         })
       ])
     );
+  });
+
+  it("reviews current Phase 3 trace when proof export is not ready", () => {
+    const result = trace({
+      ownerCommandCenter: ownerSnapshot({
+        priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
+          trace.goalId === "goal-phase-3-proof-clearance"
+            ? { ...trace, status: "active" }
+            : trace
+        )
+      }),
+      proofFreshnessDepth: proofSnapshot({
+        readiness: 86,
+        readyCount: 6,
+        reviewCount: 1,
+        openProofCount: 1,
+        items: [
+          {
+            id: "phase-11-proof-freshness-depth:proof-export",
+            label: "Phase 3 proof export",
+            kind: "proof-export",
+            status: "review",
+            detail: "Proof export is held until offline verification is ready.",
+            nextAction: "Refresh Phase 3 proof export before release readiness."
+          },
+          {
+            id: "phase-11-proof-freshness-depth:handoff-proof",
+            label: "Owner handoff proof",
+            kind: "handoff-proof",
+            status: "ready",
+            detail: "Owner handoff proof is attached.",
+            nextAction: "Keep the owner handoff record attached."
+          }
+        ]
+      })
+    });
+
+    const phase3Trace = result.items.find((item) => item.kind === "phase3-trace");
+
+    expect(result.state).toBe("review");
+    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(phase3Trace).toEqual(
+      expect.objectContaining({
+        status: "review",
+        detail: expect.stringContaining("proof export not ready"),
+        nextAction: expect.stringContaining("phase-11-proof-freshness-depth:proof-export")
+      })
+    );
+    expect(phase3Trace?.detail).toContain("Proof export is held until offline verification is ready.");
   });
 
   it("reviews current Phase 3 trace when handoff is ready but proof freshness is not trusted", () => {
