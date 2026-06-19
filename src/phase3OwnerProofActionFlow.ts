@@ -128,6 +128,16 @@ export function runPhase3OwnerHandoffRecordAction(
     return { recorded: false, notice };
   }
 
+  if (
+    input.proofExportVerification.handoffEvidenceFingerprint &&
+    input.proofExportVerification.handoffEvidenceFingerprint !== input.evidenceFingerprint
+  ) {
+    const notice =
+      "Phase 3 handoff remains held until the proof-export handoff fingerprint matches the current clearance fingerprint";
+    input.setAppNotice(notice);
+    return { recorded: false, notice };
+  }
+
   const record = createPhase3OwnerHandoffRecord(
     input.clearancePackage,
     input.createdAt ?? new Date().toISOString(),

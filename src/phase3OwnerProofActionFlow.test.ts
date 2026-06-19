@@ -424,6 +424,46 @@ describe("phase 3 owner proof action flow", () => {
     );
   });
 
+  it("holds owner handoff recording when proof export fingerprint differs from current clearance", () => {
+    const currentClearance = clearancePackage();
+    const currentFingerprint = buildPhase3HandoffEvidenceFingerprint({
+      clearancePackage: currentClearance
+    });
+    const effects = {
+      saveRecord: vi.fn(),
+      setRecord: vi.fn(),
+      setProofEvaluationTime: vi.fn(),
+      setAppNotice: vi.fn()
+    };
+
+    const result = runPhase3OwnerHandoffRecordAction({
+      clearancePackage: currentClearance,
+      traceabilityPrecondition: traceabilityPrecondition(),
+      commandValidation: commandValidation(),
+      proofExportVerification: proofExportVerification({
+        state: "review",
+        statusLabel: "Review",
+        readiness: 65,
+        canVerifyOffline: false,
+        detail: "Phase 3 proof export artifact is missing the owner handoff record.",
+        nextAction: "Record the owner-reviewed Phase 3 handoff before exporting.",
+        hasOwnerHandoffRecord: false,
+        handoffEvidenceFingerprint: "phase3-handoff-old"
+      }),
+      evidenceFingerprint: currentFingerprint,
+      createdAt: "2026-06-18T08:00:00.000Z",
+      ...effects
+    });
+
+    expect(result.recorded).toBe(false);
+    expect(effects.saveRecord).not.toHaveBeenCalled();
+    expect(effects.setRecord).not.toHaveBeenCalled();
+    expect(effects.setProofEvaluationTime).not.toHaveBeenCalled();
+    expect(effects.setAppNotice).toHaveBeenCalledWith(
+      "Phase 3 handoff remains held until the proof-export handoff fingerprint matches the current clearance fingerprint"
+    );
+  });
+
   it("holds owner handoff recording when proof export review is not handoff preflight", () => {
     const effects = {
       saveRecord: vi.fn(),
