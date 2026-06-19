@@ -922,6 +922,9 @@ describe("phase 3 owner-visible proof panel", () => {
     const html = renderOwnerTestingReadinessPanel(props);
 
     expect(html).toContain("CLI smoke validation recorded");
+    expect(html).toContain(
+      'aria-label="Phase 3 CLI smoke validation Review; 3 passed, 0 failed"'
+    );
     expect(html).toContain("Review; Jun 17");
     expect(html).toContain("Phase 3 CLI smoke validation record is stale");
     expect(html).toContain("Rerun npm.cmd run smoke:phase3 manually");
