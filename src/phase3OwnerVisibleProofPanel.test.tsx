@@ -887,6 +887,53 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Handoff attached");
   });
 
+  it("renders stale-handoff imported Phase 3 proof artifacts as owner review", () => {
+    const props = buildReadyPhase3Props();
+    const importedPhase3ProofExportVerification = verifySerializedPhase3ProofExportArtifact(
+      JSON.stringify(
+        buildPhase3ProofExportArtifact({
+          currentPanelId,
+          evaluatedAt,
+          exportedAt: phase3ProofExportedAt,
+          handoffEvidenceFingerprint: props.phase3HandoffGate.handoffEvidenceReview.expectedFingerprint,
+          slashEvidenceByPanel: loadPhase3SlashEvidenceByPanel(),
+          sessionControlEvidenceByPanel: loadPhase3SessionControlEvidenceByPanel(),
+          smokeProofBundle: {
+            liveControlSmoke,
+            activeTurnInterruptSmoke,
+            activeTurnSteerSmoke
+          } as Phase3SmokeProofBundle,
+          persistedDesktopProofs: {
+            liveControlSmoke: true,
+            activeTurnInterruptSmoke: true,
+            activeTurnSteerSmoke: true
+          },
+          commandValidationRecord: props.phase3CommandValidationRecord,
+          ownerHandoffRecord: props.phase3OwnerHandoffRecord
+        })
+      ),
+      {
+        verifiedAt: "2026-06-18T07:58:30.000Z",
+        expectedHandoffEvidenceFingerprint: "phase3-handoff-new-owner-context"
+      }
+    );
+    const html = renderOwnerTestingReadinessPanel({
+      ...props,
+      importedPhase3ProofExportVerification
+    });
+
+    expect(html).toContain("Imported proof artifact");
+    expect(html).toContain(
+      'aria-label="Imported Phase 3 proof artifact verifier Review; 65% ready; PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification; next action: Clear and record the Phase 3 handoff again from current exit-ready evidence, then re-export the proof package."'
+    );
+    expect(html).toContain(
+      "Phase 3 proof export artifact handoff fingerprint does not match the current owner-visible handoff fingerprint."
+    );
+    expect(html).toContain("Expected fingerprint phase3-handoff-");
+    expect(html).toContain("Record fingerprint phase3-handoff-");
+    expect(html).toContain("Handoff snapshot 100% / 0 open");
+  });
+
   it("renders malformed imported Phase 3 proof artifact verification as waiting", () => {
     const props = buildReadyPhase3Props();
     const html = renderOwnerTestingReadinessPanel({
