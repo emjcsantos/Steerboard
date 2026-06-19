@@ -143,7 +143,7 @@ function firstNextAction(items: readonly Phase3HandoffGateItem[]): string {
     items.find((item) => item.status === "blocked")?.nextAction ??
     items.find((item) => item.status === "review")?.nextAction ??
     items.find((item) => item.status === "waiting")?.nextAction ??
-    "Record Phase 3 handoff completion and keep provider integration behind owner review."
+    "Record Phase 3 handoff completion and keep Phase 4 review behind owner review plus proof-export offline verification."
   );
 }
 
@@ -554,7 +554,7 @@ function buildOwnerReviewSummary(
   );
 
   if (canAdvanceProviderIntegration) {
-    return "Owner handoff current: fingerprint, clearance snapshot, and age metadata match; Phase 4 remains behind owner review.";
+    return "Owner handoff current: fingerprint, clearance snapshot, proof export, and age metadata match; Phase 4 review remains behind owner review plus proof-export offline verification.";
   }
 
   if (clearancePackage.state === "blocked") {
@@ -604,7 +604,7 @@ function buildOwnerReviewSummary(
     )}`;
   }
 
-  return "Owner handoff review: keep the owner-reviewed handoff attached while Phase 4 remains behind owner review.";
+  return "Owner handoff review: keep the owner-reviewed handoff attached while Phase 4 review remains behind owner review plus proof-export offline verification.";
 }
 
 function buildAriaLabel(snapshot: Omit<Phase3HandoffGate, "ariaLabel">): string {

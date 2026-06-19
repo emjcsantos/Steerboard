@@ -688,7 +688,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Owner handoff current");
     expect(html).toContain("Phase 3 handoff gate");
     expect(html).toContain(
-      'aria-label="Phase 3 handoff gate: Ready; 100% ready; 6 ready, 0 review, 0 blocked, 0 waiting; 0 exact blockers; owner review: Owner handoff current: fingerprint, clearance snapshot, and age metadata match; Phase 4 remains behind owner review.; next action:'
+      'aria-label="Phase 3 handoff gate: Ready; 100% ready; 6 ready, 0 review, 0 blocked, 0 waiting; 0 exact blockers; owner review: Owner handoff current: fingerprint, clearance snapshot, proof export, and age metadata match; Phase 4 review remains behind owner review plus proof-export offline verification.; next action:'
     );
     expect(html).toContain(
       'aria-label="Phase 3 handoff gate counts"><div><dt>Ready</dt><dd>6</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>State</dt><dd>Ready</dd></div></dl>'

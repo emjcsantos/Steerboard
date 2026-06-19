@@ -97,7 +97,7 @@ function handoff(
     exactBlockerCount: 0,
     nextAction: "Resume Phase 4 review from the reviewed handoff.",
     ownerReviewSummary:
-      "Owner handoff current: fingerprint, clearance snapshot, and age metadata match; Phase 4 remains behind owner review.",
+      "Owner handoff current: fingerprint, clearance snapshot, proof export, and age metadata match; Phase 4 review remains behind owner review plus proof-export offline verification.",
     safety: "Evidence only.",
     ariaLabel: "Ready.",
     handoffEvidenceReview: {
