@@ -162,7 +162,7 @@ function proofFreshnessSnapshot(
         kind: "handoff-proof",
         status: "review",
         detail:
-          "Owner handoff proof needs current active Phase 3 clearance PM traceability with handoff proof.",
+          "Owner handoff proof needs current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence.",
         nextAction:
           "Record ready Phase 3 handoff proof before release review."
       }
@@ -474,6 +474,7 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("CLI smoke validation record");
     expect(html).toContain("Phase 3 proof export");
     expect(html).toContain("Owner handoff proof");
+    expect(html).toContain("handoff proof and proof-export evidence");
     expect(html).toContain("Phase 11 Evidence Records");
     expect(html).toContain("Phase 11 evidence records: Blocked; 47% ready; 4 open evidence gates");
     expect(html).toContain("<b>47%</b>");
@@ -497,7 +498,7 @@ describe("phase 11 owner-visible proof", () => {
       "Attach owner-local docs and known limits metadata covering docs, owner checklist, packaging limits, and known limits."
     );
     expect(html).toContain(
-      "Attach owner-local release decision evidence metadata covering owner release-decision evidence, packaging locked, Phase 3 handoff proof, and security closure."
+      "Attach owner-local release decision evidence metadata covering owner release-decision evidence, packaging locked, Phase 3 handoff proof, proof-export evidence, and security closure."
     );
     expect(html).toContain(
       "Record release-decision evidence metadata before release readiness can recommend release"
@@ -627,7 +628,7 @@ describe("phase 11 owner-visible proof", () => {
                     ? "Final test, build, and output evidence passed."
                     : record.gate === "docs-known-limits"
                       ? "Release docs, owner checklist, packaging limits, and known limits reviewed."
-                      : "Owner release-decision evidence recorded while packaging locked, Phase 3 handoff proof stayed attached, and security closure proof was ready.",
+                      : "Owner release-decision evidence recorded while packaging locked, Phase 3 handoff proof and proof-export evidence stayed attached, and security closure proof was ready.",
             nextAction: `Keep ${record.label.toLowerCase()} evidence attached.`
           }
         ])

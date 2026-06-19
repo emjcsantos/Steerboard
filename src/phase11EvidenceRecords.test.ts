@@ -70,6 +70,7 @@ describe("phase 11 evidence records", () => {
       expect(record.freshness).toBe("fresh");
       expect(record.detail).toContain("missing checklist coverage");
       if (gate === "release-decision") {
+        expect(record.detail).toContain("proof-export");
         expect(record.detail).toContain("security closure");
       }
       expect(record.nextAction).toContain("evidence metadata covering");
@@ -88,7 +89,7 @@ describe("phase 11 evidence records", () => {
     ],
     [
       "release-decision",
-      "Owner release decision recorded with packaging locked, Phase 3 handoff proof attached, and security closure proof ready."
+      "Owner release decision recorded with packaging locked, Phase 3 handoff proof attached, proof-export evidence attached, and security closure proof ready."
     ]
   ] as const)("keeps complete %s ready evidence ready", (gate, detail) => {
     const record = evaluatePhase11EvidenceRecord(
@@ -237,7 +238,7 @@ describe("phase 11 evidence records", () => {
         source: "owner release review",
         recordedAt: "2026-06-17T11:30:00.000Z",
         detail:
-          "Owner approved the release decision while packaging locked, Phase 3 handoff proof stayed attached, and security closure proof was ready."
+          "Owner approved the release decision while packaging locked, Phase 3 handoff proof and proof-export evidence stayed attached, and security closure proof was ready."
       },
       NOW
     );
@@ -283,7 +284,7 @@ describe("phase 11 evidence records", () => {
           source: "owner",
           recordedAt: "2026-06-17T11:00:00.000Z",
           detail:
-            "Owner release decision recorded while packaging locked, Phase 3 handoff proof stayed attached, and security closure proof was ready."
+            "Owner release decision recorded while packaging locked, Phase 3 handoff proof and proof-export evidence stayed attached, and security closure proof was ready."
         }
       },
       NOW

@@ -172,7 +172,7 @@ function readyEvidence(gate: Phase11EvidenceGate) {
     "build-test": "Final test, build, and output evidence passed.",
     "docs-known-limits": "Release docs, owner checklist, packaging limits, and known limits reviewed.",
     "release-decision":
-      "Owner release decision recorded while packaging locked, Phase 3 handoff proof stayed attached, and security closure proof was ready."
+      "Owner release decision recorded while packaging locked, Phase 3 handoff proof and proof-export evidence stayed attached, and security closure proof was ready."
   };
 
   return evaluatePhase11EvidenceRecord(
@@ -258,7 +258,9 @@ describe("phase 11 release readiness", () => {
         }),
         expect.objectContaining({
           label: "Release decision",
-          nextAction: expect.stringContaining("current active Phase 3 clearance PM traceability with handoff proof")
+          nextAction: expect.stringContaining(
+            "current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence"
+          )
         })
       ])
     );
@@ -683,7 +685,7 @@ describe("phase 11 release readiness", () => {
           source: "owner release review",
           recordedAt: "2026-06-12T10:00:00.000Z",
           detail:
-            "Owner approved release decision while packaging locked, Phase 3 handoff proof stayed attached, and security closure proof was ready."
+            "Owner approved release decision while packaging locked, Phase 3 handoff proof and proof-export evidence stayed attached, and security closure proof was ready."
         },
         "2026-06-17T12:00:00.000Z"
       )
@@ -723,7 +725,7 @@ describe("phase 11 release readiness", () => {
           source: "owner release review",
           recordedAt: "2026-06-17T10:00:00.000Z",
           detail:
-            "Owner release decision recorded while packaging locked and Phase 3 handoff proof stayed attached."
+            "Owner release decision recorded while packaging locked and Phase 3 handoff proof plus proof-export evidence stayed attached."
         },
         "2026-06-17T12:00:00.000Z"
       )
@@ -763,7 +765,7 @@ describe("phase 11 release readiness", () => {
           source: "owner release review",
           recordedAt: "2026-06-17T10:00:00.000Z",
           detail:
-            "Owner release decision recorded while packaging locked, Phase 3 handoff proof stayed attached, and security closure proof was ready."
+            "Owner release decision recorded while packaging locked, Phase 3 handoff proof and proof-export evidence stayed attached, and security closure proof was ready."
         },
         "2026-06-17T12:00:00.000Z"
       )

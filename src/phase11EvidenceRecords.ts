@@ -84,7 +84,7 @@ const READY_NEXT_ACTIONS: Record<Phase11EvidenceGate, string> = {
   "clean-checkout": "Keep clean-checkout proof attached to the release record.",
   "build-test": "Keep the final test and build output attached to the release record.",
   "docs-known-limits": "Keep release docs and known limits attached to the readiness record.",
-  "release-decision": "Keep owner release-decision evidence attached while current active Phase 3 clearance PM traceability with handoff proof stays attached and packaging remains locked for explicit owner resume."
+  "release-decision": "Keep owner release-decision evidence attached while current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence stays attached and packaging remains locked for explicit owner resume."
 };
 
 const REQUIRED_DETAIL_TERMS: Record<Phase11EvidenceGate, readonly string[]> = {
@@ -92,7 +92,15 @@ const REQUIRED_DETAIL_TERMS: Record<Phase11EvidenceGate, readonly string[]> = {
   "clean-checkout": ["install", "dependency", "startup"],
   "build-test": ["test", "build", "output"],
   "docs-known-limits": ["docs", "owner checklist", "packaging limits", "known limits"],
-  "release-decision": ["owner", "release-decision", "packaging locked", "phase 3", "security closure"]
+  "release-decision": [
+    "owner",
+    "release-decision",
+    "packaging locked",
+    "phase 3",
+    "handoff proof",
+    "proof-export",
+    "security closure"
+  ]
 };
 
 const REQUIRED_DETAIL_COVERAGE_COPY: Record<Phase11EvidenceGate, string> = {
@@ -100,7 +108,7 @@ const REQUIRED_DETAIL_COVERAGE_COPY: Record<Phase11EvidenceGate, string> = {
   "clean-checkout": "install, dependency verification, and startup proof",
   "build-test": "test, build, and output",
   "docs-known-limits": "docs, owner checklist, packaging limits, and known limits",
-  "release-decision": "owner release-decision evidence, packaging locked, Phase 3 handoff proof, and security closure"
+  "release-decision": "owner release-decision evidence, packaging locked, Phase 3 handoff proof, proof-export evidence, and security closure"
 };
 
 export function phase11EvidenceGateCoverageCopy(gate: Phase11EvidenceGate): string {

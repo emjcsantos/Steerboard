@@ -28,7 +28,7 @@ const DEFAULT_RECORD_DETAILS: Record<Phase11EvidenceGate, string> = {
   "docs-known-limits":
     "Owner attached docs, owner checklist, packaging limits, and known limits evidence metadata for Phase 11 release review.",
   "release-decision":
-    "Owner attached owner release-decision evidence metadata while packaging locked, Phase 3 handoff proof remains attached, and security closure proof is ready for Phase 11 release review."
+    "Owner attached owner release-decision evidence metadata while packaging locked, Phase 3 handoff proof and proof-export evidence remain attached, and security closure proof is ready for Phase 11 release review."
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
