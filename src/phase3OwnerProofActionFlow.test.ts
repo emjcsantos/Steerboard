@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
+import type { Phase3ProofExportVerification } from "./phase3ProofExport";
 import {
   buildPhase3HandoffEvidenceFingerprint,
   derivePhase3HandoffRecordValidation,
@@ -193,6 +194,26 @@ function commandValidation(
   };
 }
 
+function proofExportVerification(
+  overrides: Partial<Phase3ProofExportVerification> = {}
+): Phase3ProofExportVerification {
+  return {
+    state: "ready",
+    statusLabel: "Ready",
+    readiness: 100,
+    canVerifyOffline: true,
+    pmTaskId: "phase-03-child-proof-export-boundary",
+    evidenceKey: "phase3.proof-export.offline-verification",
+    detail: "Phase 3 proof export is offline-verifiable.",
+    nextAction: "Keep Phase 3 proof export offline verification attached.",
+    readyPanelEvidenceCount: 2,
+    storageAttestedDesktopProofCount: 3,
+    hasCommandValidationRecord: true,
+    hasOwnerHandoffRecord: true,
+    ...overrides
+  };
+}
+
 describe("phase 3 owner proof action flow", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -278,6 +299,7 @@ describe("phase 3 owner proof action flow", () => {
       clearancePackage: clearancePackage({ canExit: false, state: "review" }),
       traceabilityPrecondition: traceabilityPrecondition(),
       commandValidation: commandValidation(),
+      proofExportVerification: proofExportVerification(),
       evidenceFingerprint: "phase3-handoff-current",
       createdAt: "2026-06-18T08:00:00.000Z",
       ...effects
@@ -308,6 +330,7 @@ describe("phase 3 owner proof action flow", () => {
         nextAction: "Attach Phase 3 PM child rows before handoff."
       }),
       commandValidation: commandValidation(),
+      proofExportVerification: proofExportVerification(),
       evidenceFingerprint: "phase3-handoff-current",
       createdAt: "2026-06-18T08:00:00.000Z",
       ...effects
@@ -339,6 +362,7 @@ describe("phase 3 owner proof action flow", () => {
         detail: "Phase 3 CLI smoke validation is stale.",
         nextAction: "Rerun npm.cmd run smoke:phase3 manually."
       }),
+      proofExportVerification: proofExportVerification(),
       evidenceFingerprint: "phase3-handoff-current",
       createdAt: "2026-06-18T08:00:00.000Z",
       ...effects
@@ -350,6 +374,40 @@ describe("phase 3 owner proof action flow", () => {
     expect(effects.setProofEvaluationTime).not.toHaveBeenCalled();
     expect(effects.setAppNotice).toHaveBeenCalledWith(
       "Rerun npm.cmd run smoke:phase3 manually."
+    );
+  });
+
+  it("holds owner handoff recording until proof export is offline-verifiable", () => {
+    const effects = {
+      saveRecord: vi.fn(),
+      setRecord: vi.fn(),
+      setProofEvaluationTime: vi.fn(),
+      setAppNotice: vi.fn()
+    };
+
+    const result = runPhase3OwnerHandoffRecordAction({
+      clearancePackage: clearancePackage(),
+      traceabilityPrecondition: traceabilityPrecondition(),
+      commandValidation: commandValidation(),
+      proofExportVerification: proofExportVerification({
+        state: "review",
+        statusLabel: "Review",
+        readiness: 65,
+        canVerifyOffline: false,
+        detail: "Phase 3 proof export is missing the owner handoff record.",
+        nextAction: "Record the owner-reviewed Phase 3 handoff before exporting."
+      }),
+      evidenceFingerprint: "phase3-handoff-current",
+      createdAt: "2026-06-18T08:00:00.000Z",
+      ...effects
+    });
+
+    expect(result.recorded).toBe(false);
+    expect(effects.saveRecord).not.toHaveBeenCalled();
+    expect(effects.setRecord).not.toHaveBeenCalled();
+    expect(effects.setProofEvaluationTime).not.toHaveBeenCalled();
+    expect(effects.setAppNotice).toHaveBeenCalledWith(
+      "Record the owner-reviewed Phase 3 handoff before exporting."
     );
   });
 
@@ -369,6 +427,7 @@ describe("phase 3 owner proof action flow", () => {
       clearancePackage: currentClearance,
       traceabilityPrecondition: traceabilityPrecondition(),
       commandValidation: commandValidation(),
+      proofExportVerification: proofExportVerification(),
       evidenceFingerprint,
       createdAt: "2026-06-18T08:00:00.000Z",
       ...effects

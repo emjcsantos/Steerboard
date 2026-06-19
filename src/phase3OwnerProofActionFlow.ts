@@ -1,6 +1,7 @@
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
+import type { Phase3ProofExportVerification } from "./phase3ProofExport";
 import {
   createPhase3OwnerHandoffRecord,
   clearPhase3OwnerHandoffRecord,
@@ -54,6 +55,7 @@ export interface Phase3OwnerHandoffRecordActionInput
   readonly clearancePackage: Phase3ClearancePackage;
   readonly traceabilityPrecondition: Phase3ClearanceTraceabilityPrecondition;
   readonly commandValidation: Phase3CommandValidationRecordValidation;
+  readonly proofExportVerification: Phase3ProofExportVerification;
   readonly evidenceFingerprint: string;
   readonly createdAt?: string;
 }
@@ -104,6 +106,12 @@ export function runPhase3OwnerHandoffRecordAction(
 
   if (input.commandValidation.state !== "ready") {
     const notice = input.commandValidation.nextAction;
+    input.setAppNotice(notice);
+    return { recorded: false, notice };
+  }
+
+  if (!input.proofExportVerification.canVerifyOffline) {
+    const notice = input.proofExportVerification.nextAction;
     input.setAppNotice(notice);
     return { recorded: false, notice };
   }

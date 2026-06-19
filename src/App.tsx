@@ -2695,6 +2695,7 @@ export function App() {
       clearancePackage: phase3ClearancePackage,
       traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition,
       commandValidation: phase3CommandValidationRecordValidation,
+      proofExportVerification: phase3ProofExportVerification,
       evidenceFingerprint: phase3HandoffEvidenceFingerprint,
       setRecord: setPhase3OwnerHandoffRecord,
       setProofEvaluationTime: setPhase3ProofEvaluationTime,
@@ -2704,7 +2705,8 @@ export function App() {
     phase3ClearancePackage,
     phase3ClearanceTraceabilityPrecondition,
     phase3CommandValidationRecordValidation,
-    phase3HandoffEvidenceFingerprint
+    phase3HandoffEvidenceFingerprint,
+    phase3ProofExportVerification
   ]);
   const clearPhase3OwnerHandoff = useCallback(() => {
     runPhase3OwnerHandoffClearAction({
@@ -13036,9 +13038,14 @@ export function OwnerTestingReadinessPanel({
   const phase3OwnerHandoffRecordGateMessage =
     phase3ClearancePackage.canExit &&
     phase3ClearanceTraceabilityPrecondition.canTrustTrace &&
-    phase3CommandValidationRecordValidation.state === "ready"
+    phase3CommandValidationRecordValidation.state === "ready" &&
+    phase3ProofExportVerification.canVerifyOffline
       ? "Record owner-reviewed Phase 3 handoff locally."
-      : phase3ClearancePackage.canExit && phase3ClearanceTraceabilityPrecondition.canTrustTrace
+      : phase3ClearancePackage.canExit &&
+          phase3ClearanceTraceabilityPrecondition.canTrustTrace &&
+          phase3CommandValidationRecordValidation.state === "ready"
+        ? phase3ProofExportVerification.nextAction
+        : phase3ClearancePackage.canExit && phase3ClearanceTraceabilityPrecondition.canTrustTrace
         ? phase3CommandValidationRecordValidation.nextAction
         : phase3ClearancePackage.canExit
           ? phase3ClearanceTraceabilityPrecondition.nextAction
@@ -13914,7 +13921,8 @@ export function OwnerTestingReadinessPanel({
                 disabled={
                   !phase3ClearancePackage.canExit ||
                   !phase3ClearanceTraceabilityPrecondition.canTrustTrace ||
-                  phase3CommandValidationRecordValidation.state !== "ready"
+                  phase3CommandValidationRecordValidation.state !== "ready" ||
+                  !phase3ProofExportVerification.canVerifyOffline
                 }
                 onClick={onRecordPhase3OwnerHandoff}
                 title={phase3OwnerHandoffRecordGateMessage}

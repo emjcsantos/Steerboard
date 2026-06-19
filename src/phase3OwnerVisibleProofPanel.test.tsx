@@ -991,6 +991,12 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain(
       '<button disabled="" title="Export held: Record the owner-reviewed Phase 3 handoff before exporting." type="button">'
     );
+    expect(html).toContain(
+      '<button disabled="" title="Record the owner-reviewed Phase 3 handoff before exporting." type="button">Record handoff</button>'
+    );
+    expect(html).toContain(
+      "Record gate: Record the owner-reviewed Phase 3 handoff before exporting."
+    );
     expect(html).toContain("Handoff missing");
     expect(html).toContain("Expected fingerprint missing");
     expect(html).toContain("Record fingerprint missing");
