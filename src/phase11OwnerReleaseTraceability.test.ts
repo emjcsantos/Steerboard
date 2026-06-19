@@ -283,6 +283,33 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
+  it("trusts owner release traceability when Phase 11 goals reach 100% with required links", () => {
+    const goals = withLinkedPhase11Goals().map((goal) =>
+      goal.id === "goal-phase-11-owner-command-center" ||
+      goal.id === "goal-phase-11-release-readiness"
+        ? {
+            ...goal,
+            completionPercent: 100,
+            nextAction: "Keep Phase 11 release proof attached while packaging remains owner-held."
+          }
+        : goal
+    );
+    const result = trace({ goals });
+
+    expect(result.state).toBe("ready");
+    expect(result.canTrustOwnerReleaseGate).toBe(true);
+    expect(result.releaseHoldStatus).toBe("ready");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "owner-goal", status: "ready" }),
+        expect.objectContaining({ kind: "release-goal", status: "ready" }),
+        expect.objectContaining({ kind: "pm-coverage", status: "ready" }),
+        expect.objectContaining({ kind: "release-readiness", status: "ready" }),
+        expect.objectContaining({ kind: "packaging-hold", status: "ready" })
+      ])
+    );
+  });
+
   it("reviews when Phase 3 clearance traceability is missing from owner proof", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({

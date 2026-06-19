@@ -13,7 +13,7 @@ The first-class workflow is:
 
 ## Current Status
 
-This repository currently contains the desktop app scaffold, Arena UI, public product brief, requirements, architecture notes, local testing guidance, installation strategy, and contribution guidance. The active development lane is making the Arena controls, slash commands, provider metadata refresh, and smoke-proof evidence fully testable in desktop mode.
+This repository currently contains the desktop app scaffold, Arena UI, public product brief, requirements, architecture notes, local testing guidance, installation strategy, and contribution guidance. The active development lane is making the Arena controls, slash commands, provider metadata refresh, desktop smoke-proof evidence, Phase 11 release readiness, owner release traceability, blocker-priority review, and packaging holds fully testable in local desktop mode without automatic release execution.
 
 See [Current State And Pipeline](docs/project/current-state-and-pipeline.md) for the latest public summary of completed work, active pipeline items, and future tasks. Internal planning, progress logs, and agent execution rules should stay outside the public repository.
 

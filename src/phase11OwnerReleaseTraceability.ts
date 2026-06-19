@@ -184,6 +184,9 @@ function goalStatus(
   if (goal.status === "paused" || goal.status === "planned") {
     return "waiting";
   }
+  if (goal.completionPercent >= 100) {
+    return "ready";
+  }
   if (goal.status === "active" || goal.status === "next") {
     return "review";
   }

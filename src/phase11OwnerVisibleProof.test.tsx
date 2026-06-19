@@ -11,7 +11,11 @@ import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCen
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { Phase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
 import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
-import { buildRemainingGoalPriorityTraces } from "./remainingGoalPlan";
+import {
+  buildRemainingGoalPriorityTraces,
+  remainingGoalPlan,
+  type RemainingGoalPlanItem
+} from "./remainingGoalPlan";
 
 function ownerCommandSnapshot(
   overrides: Partial<Phase11OwnerCommandCenterSnapshot> = {}
@@ -359,6 +363,7 @@ function renderPhase11Proof(options: {
   proof?: Phase11ProofFreshnessDepthSnapshot;
   evidence?: Phase11EvidenceRecordsSnapshot;
   release?: Phase11ReleaseReadinessSnapshot;
+  goals?: readonly RemainingGoalPlanItem[];
 } = {}) {
   const owner = options.owner ?? ownerCommandSnapshot();
   const proof = options.proof ?? proofFreshnessSnapshot();
@@ -369,6 +374,7 @@ function renderPhase11Proof(options: {
     <>
       <Phase11OwnerCommandCenterPanel
         evidenceRecords={evidence}
+        goals={options.goals}
         proofFreshnessDepth={proof}
         projectManagementTasks={createDefaultProjectManagementPhasePlan()}
         releaseReadiness={release}
@@ -383,6 +389,41 @@ function renderPhase11Proof(options: {
       />
       <Phase11ReleaseReadinessPanel snapshot={release} />
     </>
+  );
+}
+
+function completedPhase11Goals(): RemainingGoalPlanItem[] {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-11-owner-command-center"
+      ? {
+          ...goal,
+          completionPercent: 100,
+          nextAction: "Keep Phase 11 owner command proof attached while packaging remains owner-held.",
+          pmTaskIds: Array.from(new Set([
+            ...goal.pmTaskIds,
+            "phase-11-parent-release-packaging",
+            "phase-11-child-package-validation",
+            "phase-11-child-traceability",
+            "phase-11-child-blocker-priority"
+          ]))
+        }
+      : goal.id === "goal-phase-11-release-readiness"
+        ? {
+            ...goal,
+            completionPercent: 100,
+            nextAction: "Keep Phase 11 release readiness proof attached while packaging remains owner-held.",
+            pmTaskIds: Array.from(new Set([
+              ...goal.pmTaskIds,
+              "phase-11-parent-owner-testing",
+              "phase-11-child-owner-checklist",
+              "phase-11-child-proof-freshness-depth",
+              "phase-11-child-evidence-records",
+              "phase-11-child-fresh-checkout",
+              "phase-11-child-traceability",
+              "phase-11-child-blocker-priority"
+            ]))
+          }
+        : goal
   );
 }
 
@@ -600,14 +641,23 @@ describe("phase 11 owner-visible proof", () => {
             : "Keep release evidence attached."
       }))
     });
-    const html = renderPhase11Proof({ owner, proof, evidence, release });
+    const html = renderPhase11Proof({
+      owner,
+      proof,
+      evidence,
+      release,
+      goals: completedPhase11Goals()
+    });
 
     expect(html).toContain("Release gate ready");
     expect(html).toContain("Ready");
     expect(html).toContain("Decision");
     expect(html).toContain("Owner can decide whether to resume release");
     expect(html).toContain("Keep packaging locked until owner resumes release");
-    expect(html).toContain("2 open blockers");
+    expect(html).toContain("No open Phase 11 blocker");
+    expect(html).toContain(
+      'aria-label="Phase 11 owner release blocker priority counts"><div><dt>Open</dt><dd>0</dd></div><div><dt>Review</dt><dd>0</dd></div><div><dt>Status</dt><dd>Ready</dd></div></dl>'
+    );
     expect(html).toContain("goal-phase-3-proof-clearance is active");
     expect(html).toContain("phase-03-child-blocker-priority");
     expect(html).toContain("phase-03-child-traceability");

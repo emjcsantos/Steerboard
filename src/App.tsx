@@ -15304,12 +15304,14 @@ function Phase10ArenaPolishPanel({
 
 export function Phase11OwnerCommandCenterPanel({
   evidenceRecords,
+  goals,
   proofFreshnessDepth,
   projectManagementTasks,
   releaseReadiness,
   snapshot
 }: {
   evidenceRecords: Phase11EvidenceRecordsSnapshot;
+  goals?: readonly RemainingGoalPlanItem[];
   proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot;
   projectManagementTasks: readonly ProjectManagementTask[];
   releaseReadiness: Phase11ReleaseReadinessSnapshot;
@@ -15320,6 +15322,7 @@ export function Phase11OwnerCommandCenterPanel({
     proofFreshnessDepth,
     evidenceRecords,
     releaseReadiness,
+    goals,
     projectManagementTasks
   });
   const blockerPriority = buildPhase11OwnerReleaseBlockerPriority({
