@@ -8249,6 +8249,8 @@ export function Phase4ProviderSurfaceDepthPanel({
                     ? "matched"
                     : "unverified"}
               </small>
+              <small>{reviewArtifactVerification.detail}</small>
+              <small>{reviewArtifactVerification.nextAction}</small>
             </div>
             <button
               onClick={onExportReviewArtifact}

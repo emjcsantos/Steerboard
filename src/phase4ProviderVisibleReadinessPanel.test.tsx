@@ -281,6 +281,8 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("Catalog fingerprint");
     expect(html).toContain("phase4-catalog-current");
     expect(html).toContain("matched");
+    expect(html).toContain("Phase 4 provider review artifact is missing refresh-safety records");
+    expect(html).toContain("Attach metadata-only refresh-safety proof before exporting");
     expect(html).toContain("Export review");
     expect(html).toContain("Import review");
     expect(html).toContain("Record approval");
