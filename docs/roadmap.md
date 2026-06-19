@@ -52,7 +52,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 - Desktop smoke proof rows with stale-proof review and row-specific next actions.
 - Phase 3 command plan, CLI validation provenance, blocker-priority queue, traceability rows, and handoff gate.
 - Fail-closed Phase 3 proof export that prepares downloadable owner-review JSON only after offline verification is ready.
-- Provider integration remains held until current evidence, current active goal links, PM row links, fingerprint match, clearance snapshot, and handoff age metadata are trusted.
+- Phase 4 review remains held until current evidence, current active goal links, PM row links, fingerprint match, clearance snapshot, proof-export offline verification, and handoff age metadata are trusted.
 
 ## Phase 4: Provider Integration Surfaces
 

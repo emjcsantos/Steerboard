@@ -495,7 +495,7 @@ describe("phase 3 clearance traceability", () => {
             kind: "provider-boundary",
             status: "review",
             detail:
-              "Provider integration remains held because Owner handoff record snapshot no longer matches current Phase 3 clearance readiness or blocker evidence.",
+              "Phase 4 review remains held because Owner handoff record snapshot no longer matches current Phase 3 clearance readiness or blocker evidence.",
             nextAction:
               "Clear and record the Phase 3 handoff again from the current clearance snapshot."
           }

@@ -457,7 +457,7 @@ function handoffBoundaryItem(
             "Clearance is exit-ready, but the owner handoff record does not match current evidence."
           )
         : "Clearance is exit-ready, but the owner handoff record is not attached yet."
-      : "Provider integration remains held behind Phase 3 clearance.",
+      : "Phase 4 review remains held behind Phase 3 clearance.",
     nextAction: handoffGate.nextAction
   };
 }
