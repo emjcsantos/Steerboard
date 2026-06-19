@@ -445,7 +445,7 @@ function providerBoundaryItem(
       label: "Provider boundary",
       kind: "provider-boundary",
       status: "blocked",
-      detail: "Provider integration remains blocked because Phase 3 evidence is blocked.",
+      detail: "Phase 4 review remains blocked because Phase 3 evidence is blocked.",
       nextAction: publicText(
         clearancePackage.nextAction,
         "Clear the blocked Phase 3 evidence before Phase 4 review resumes."
@@ -459,7 +459,7 @@ function providerBoundaryItem(
       label: "Provider boundary",
       kind: "provider-boundary",
       status: clearancePackage.state,
-      detail: "Provider integration remains held until Phase 3 clearance reaches exit-ready.",
+      detail: "Phase 4 review remains held until Phase 3 clearance reaches exit-ready.",
       nextAction: publicText(
         clearancePackage.nextAction,
         "Complete Phase 3 clearance before Phase 4 review resumes."
@@ -474,8 +474,8 @@ function providerBoundaryItem(
       kind: "provider-boundary",
       status: traceabilityPrecondition?.state ?? "review",
       detail: traceabilityPrecondition
-        ? `Provider integration remains held because ${traceabilityPrecondition.detail}`
-        : "Provider integration remains held until Phase 3 traceability precondition is attached.",
+        ? `Phase 4 review remains held because ${traceabilityPrecondition.detail}`
+        : "Phase 4 review remains held until Phase 3 traceability precondition is attached.",
       nextAction:
         traceabilityPrecondition?.nextAction ??
         "Attach Phase 3 traceability precondition before Phase 4 review resumes."
@@ -489,8 +489,8 @@ function providerBoundaryItem(
       kind: "provider-boundary",
       status: commandValidation?.state ?? "waiting",
       detail: commandValidation
-        ? `Provider integration remains held because ${commandValidation.detail}`
-        : "Provider integration remains held until fresh Phase 3 CLI smoke validation is attached.",
+        ? `Phase 4 review remains held because ${commandValidation.detail}`
+        : "Phase 4 review remains held until fresh Phase 3 CLI smoke validation is attached.",
       nextAction:
         commandValidation?.nextAction ??
         "Attach fresh Phase 3 CLI smoke validation before Phase 4 review resumes."
@@ -505,13 +505,13 @@ function providerBoundaryItem(
       status: validatedRecordState === "review" ? "review" : "waiting",
       detail:
         handoffRecordValidation?.state === "review"
-          ? `Provider integration remains held because ${handoffRecordValidation.detail}`
+          ? `Phase 4 review remains held because ${handoffRecordValidation.detail}`
           : handoffRecordValidation?.state === "ready" &&
               !hasReadyHandoffValidation(handoffRecordValidation)
-            ? "Provider integration remains held until the owner handoff record proves a current evidence fingerprint match and fresh age metadata."
+            ? "Phase 4 review remains held until the owner handoff record proves a current evidence fingerprint match and fresh age metadata."
           : !handoffRecordValidation && handoffRecordState === "ready"
-            ? "Provider integration remains held until the owner handoff record is validated against current evidence."
-            : "Provider integration remains held until the owner handoff record is attached.",
+            ? "Phase 4 review remains held until the owner handoff record is validated against current evidence."
+            : "Phase 4 review remains held until the owner handoff record is attached.",
       nextAction:
         handoffRecordValidation?.state === "review"
           ? handoffRecordValidation.nextAction

@@ -1072,7 +1072,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain(
       "Keep exactly one current active remaining goal before Phase 3 handoff can advance."
     );
-    expect(html).toContain("Provider integration remains held because");
+    expect(html).toContain("Phase 4 review remains held because");
     expect(html).toContain("Owner handoff held");
     expect(html).toContain("Record handoff");
     expect(html).toContain(
@@ -1195,7 +1195,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Owner handoff record no longer matches");
     expect(html).toContain("Owner handoff review");
     expect(html).toContain("Clear and record the Phase 3 handoff again");
-    expect(html).toContain("Provider integration remains held");
+    expect(html).toContain("Phase 4 review remains held");
     expect(html).toContain("Recorded");
   });
 

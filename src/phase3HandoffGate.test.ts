@@ -193,7 +193,7 @@ describe("phase 3 handoff gate", () => {
         expect.objectContaining({
           label: "Provider boundary",
           status: "review",
-          detail: expect.stringContaining("Provider integration remains held")
+          detail: expect.stringContaining("Phase 4 review remains held")
         })
       ])
     );
