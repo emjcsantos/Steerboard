@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PHASE3_PROOF_EXPORT_PM_TASK_ID } from "./phase3ProofExportTrace";
 import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import {
   buildRemainingGoalPriorityTraces,
@@ -215,7 +216,7 @@ describe("remaining goal plan", () => {
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-exit-gate");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-blocker-priority");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-traceability");
-    expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-proof-export-boundary");
+    expect(phase3Goal?.pmTaskIds).toContain(PHASE3_PROOF_EXPORT_PM_TASK_ID);
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-handoff-gate");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-slash-ready");
     expect(phase3Goal?.nextAction).toContain("clearance-snapshot");
@@ -239,7 +240,7 @@ describe("remaining goal plan", () => {
       (task) => task.id === "phase-03-child-handoff-gate"
     );
     const proofExportChild = createDefaultProjectManagementPhasePlan().find(
-      (task) => task.id === "phase-03-child-proof-export-boundary"
+      (task) => task.id === PHASE3_PROOF_EXPORT_PM_TASK_ID
     );
 
     expect(traceabilityChild).toMatchObject({
@@ -283,7 +284,7 @@ describe("remaining goal plan", () => {
     expect(taskCompletionById.get("phase-03-child-exit-gate")).toBe(94);
     expect(taskCompletionById.get("phase-03-child-command-plan")).toBe(90);
     expect(taskCompletionById.get("phase-03-child-blocker-priority")).toBe(90);
-    expect(taskCompletionById.get("phase-03-child-proof-export-boundary")).toBe(99);
+    expect(taskCompletionById.get(PHASE3_PROOF_EXPORT_PM_TASK_ID)).toBe(99);
     expect(taskCompletionById.get("phase-03-child-handoff-gate")).toBe(99);
     expect(taskCompletionById.get("phase-03-parent-slash-controls")).toBe(90);
     expect(taskCompletionById.get("phase-03-child-slash-ready")).toBe(90);

@@ -12,6 +12,7 @@ import {
   REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS,
   REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS
 } from "./phase3ClearanceTraceability";
+import { PHASE3_PROOF_EXPORT_PM_TASK_ID } from "./phase3ProofExportTrace";
 import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import { remainingGoalPlan, type RemainingGoalPlanItem } from "./remainingGoalPlan";
 
@@ -187,7 +188,7 @@ describe("phase 3 clearance traceability", () => {
       "phase-03-child-command-plan",
       "phase-03-child-blocker-priority",
       "phase-03-child-traceability",
-      "phase-03-child-proof-export-boundary",
+      PHASE3_PROOF_EXPORT_PM_TASK_ID,
       "phase-03-child-handoff-gate"
     ]);
     expect(REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS).toEqual(

@@ -7,6 +7,7 @@ import {
   repairProjectManagementTasks,
   toggleProjectManagementTaskCollapsed
 } from "./projectManagementHierarchy";
+import { PHASE3_PROOF_EXPORT_PM_TASK_ID } from "./phase3ProofExportTrace";
 
 describe("project management hierarchy", () => {
   it("repairs malformed rows and strips private source paths", () => {
@@ -61,7 +62,7 @@ describe("project management hierarchy", () => {
       "phase-03-child-command-plan",
       "phase-03-child-blocker-priority",
       "phase-03-child-traceability",
-      "phase-03-child-proof-export-boundary",
+      PHASE3_PROOF_EXPORT_PM_TASK_ID,
       "phase-03-child-handoff-gate",
       "phase-03-parent-slash-controls",
       "phase-03-child-slash-ready",
@@ -73,7 +74,7 @@ describe("project management hierarchy", () => {
       "phase-03-child-command-plan",
       "phase-03-child-blocker-priority",
       "phase-03-child-traceability",
-      "phase-03-child-proof-export-boundary",
+      PHASE3_PROOF_EXPORT_PM_TASK_ID,
       "phase-03-child-handoff-gate"
     ]);
   });
@@ -95,8 +96,8 @@ describe("project management hierarchy", () => {
     expect(byId.get("phase-03-child-command-plan")?.description).toContain("visible CLI validation record actions and provenance");
     expect(byId.get("phase-03-child-blocker-priority")?.description).toContain("visible row-specific detail plus exit action");
     expect(byId.get("phase-03-child-traceability")?.description).toContain("handoff-review details");
-    expect(byId.get("phase-03-child-proof-export-boundary")?.description).toContain("offline verification");
-    expect(byId.get("phase-03-child-proof-export-boundary")?.description).toContain("Phase 4 review can advance");
+    expect(byId.get(PHASE3_PROOF_EXPORT_PM_TASK_ID)?.description).toContain("offline verification");
+    expect(byId.get(PHASE3_PROOF_EXPORT_PM_TASK_ID)?.description).toContain("Phase 4 review can advance");
     expect(byId.get("phase-03-child-slash-ready")?.description).toContain("current-panel storage provenance");
     expect(byId.get("phase-03-child-control-ready")?.description).toContain("honestly unsupported");
     expect(byId.get("phase-11-parent-owner-testing")?.description).toContain("proof freshness depth");
