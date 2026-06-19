@@ -238,7 +238,12 @@ function traceabilityItems(
 function buildItemFromTraceability(
   item: MigrationTraceabilityItem
 ): MigrationBlockerPriorityItem {
-  const metadataReview = canUseMetadataReview("traceability", item.status);
+  const metadataReview =
+    item.kind === "review-depth" ||
+    item.kind === "sensitive-boundary" ||
+    item.kind === "profile-lock"
+      ? canUseMetadataReview("traceability", item.status)
+      : false;
 
   return {
     id: `${SNAPSHOT_ID}:traceability:${item.kind}`,

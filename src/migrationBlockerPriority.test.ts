@@ -176,6 +176,25 @@ describe("migration blocker priority", () => {
     expect(snapshot.topPriorityAction).toContain("phase5.apply-review-staged-audit");
   });
 
+  it("keeps remaining-goal traceability blockers out of metadata-review actions", () => {
+    const snapshot = priority({
+      preview: selectedPreview(),
+      draftHistory: historyForStagedAcceptedDraft(),
+      excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded", "Source mutation excluded"]
+    });
+
+    expect(snapshot.state).toBe("waiting");
+    expect(snapshot.topPriorityLabel).toBe("Remaining goal link");
+    expect(snapshot.metadataReviewCanAddressTopBlocker).toBe(false);
+    expect(snapshot.topPriorityAction).not.toContain("Run metadata review");
+    expect(snapshot.topPriorityAction).toContain("Migration review gate");
+    expect(snapshot.items[0]).toMatchObject({
+      kind: "traceability",
+      status: "waiting",
+      canUseMetadataReview: false
+    });
+  });
+
   it("reports ready when migration review and traceability are fully ready", () => {
     const snapshot = priority({
       preview: selectedPreview(),
