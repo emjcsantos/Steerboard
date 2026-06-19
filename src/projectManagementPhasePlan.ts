@@ -794,7 +794,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-10-adaptive-arena",
     title: "Phase 10: Adaptive Magnetic Arena",
-    description: "Polish adaptive Arena layout regression, density, keyboard controls, focus state, terminology, and acceptance gates.",
+    description: "Polish adaptive Arena layout regression, evaluate a FlexLayout-backed docking spike, density, keyboard controls, focus state, terminology, and acceptance gates.",
     completionPercent: 55,
     complexity: "high",
     sourceDocument: "Phase completion map",
@@ -802,7 +802,7 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-10-parent-layout-foundation",
         title: "Adaptive Layout Foundation",
-        description: "Keep drag, drop, keyboard adjustment, saved-state repair, project stack drop, and panel capacity rules visible in Phase 10 readiness.",
+        description: "Keep drag, drop, keyboard adjustment, saved-state repair, project stack drop, panel capacity rules, and the FlexLayout docking feasibility spike visible in Phase 10 readiness.",
         completionPercent: 60,
         sourceDocument: "Adaptive Arena layout",
         children: [
@@ -819,6 +819,14 @@ const phaseSpecs: PhaseSpec[] = [
             description: "Tune dense operational views so controls, labels, Phase readiness panels, and evidence rows remain scannable.",
             completionPercent: 55,
             sourceDocument: "Product UI polish"
+          },
+          {
+            id: "phase-10-child-flexlayout-spike",
+            title: "FlexLayout Docking Spike",
+            description: "Evaluate caplin/FlexLayout as an MIT-licensed React docking layout option for Arena tabsets, splitters, saved layout JSON, and dockable panels before replacing custom adaptive-grid behavior.",
+            completionPercent: 0,
+            complexity: "medium",
+            sourceDocument: "caplin/FlexLayout MIT license review"
           }
         ]
       },
