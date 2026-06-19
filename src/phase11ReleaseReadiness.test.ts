@@ -231,7 +231,8 @@ describe("phase 11 release readiness", () => {
         expect.objectContaining({
           label: "Owner smoke proof",
           status: "ready",
-          detail: expect.stringContaining("3/3 storage-proof attested")
+          detail: expect.stringContaining("3/3 storage-proof attested"),
+          nextAction: expect.stringContaining("Phase 3 proof-export detail")
         }),
         expect.objectContaining({
           label: "Owner smoke proof",

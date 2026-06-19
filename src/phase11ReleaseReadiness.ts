@@ -315,7 +315,7 @@ function smokeProofItem(
       `proof export: ${proofExportDetail(proofFreshnessDepth)}`,
     nextAction:
       status === "ready"
-        ? "Keep owner smoke proof fresh across reload and while the app remains open before release packaging resumes."
+        ? "Keep owner smoke proof with Phase 3 proof-export detail fresh across reload and while the app remains open before release packaging resumes."
         : ownerCommandCenter.canRelease && !proofFreshnessDepth.canTrustOwnerProof
           ? publicText(
               proofFreshnessDepth.nextAction,
