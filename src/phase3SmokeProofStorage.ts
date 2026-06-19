@@ -233,10 +233,18 @@ function hasValidStorageProof(
   normalizedValue: Phase3SmokeProofBundle[keyof Phase3SmokeProofBundle]
 ): boolean {
   const storageProof = getStorageProof(rawValue);
+  const checkedAt =
+    isRecord(normalizedValue) && typeof normalizedValue.checkedAt === "string"
+      ? Date.parse(normalizedValue.checkedAt)
+      : Number.NaN;
+  const createdAt = storageProof ? Date.parse(storageProof.createdAt) : Number.NaN;
 
   return (
     storageProof?.proof === proof &&
-    storageProof.proofFingerprint === createPhase3SmokeProofFingerprint(normalizedValue)
+    storageProof.proofFingerprint === createPhase3SmokeProofFingerprint(normalizedValue) &&
+    Number.isFinite(checkedAt) &&
+    Number.isFinite(createdAt) &&
+    createdAt >= checkedAt
   );
 }
 

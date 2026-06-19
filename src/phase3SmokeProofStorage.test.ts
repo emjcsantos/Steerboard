@@ -539,6 +539,25 @@ describe("phase 3 smoke proof storage", () => {
     expect(result.persistedDesktopProofs.liveControlSmoke).toBe(false);
   });
 
+  it("rejects storage proof that predates the desktop proof row it attests", () => {
+    const result = parseStoredPhase3SmokeProofBundleWithStorageProof(
+      JSON.stringify({
+        liveControlSmoke: {
+          ...desktopLiveControlSmoke,
+          phase3StorageProof: {
+            source: PHASE3_SMOKE_PROOF_STORAGE_PROOF_SOURCE,
+            proof: "liveControlSmoke",
+            createdAt: "2026-06-05T23:59:59.000Z",
+            proofFingerprint: createPhase3SmokeProofFingerprint(desktopLiveControlSmoke)
+          }
+        }
+      })
+    );
+
+    expect(result.bundle.liveControlSmoke).toEqual(desktopLiveControlSmoke);
+    expect(result.persistedDesktopProofs.liveControlSmoke).toBe(false);
+  });
+
   it("returns existing persisted state when no desktop-executed row can be saved", () => {
     const store: { value: string | null } = {
       value: JSON.stringify({
