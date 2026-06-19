@@ -30,7 +30,7 @@ describe("phase 11 evidence records", () => {
         state: "ready",
         source: "local owner run",
         recordedAt: "2026-06-17T11:00:00.000Z",
-        detail: "Vitest and Vite build passed."
+        detail: "Vitest test output and Vite build output passed."
       },
       NOW
     );
@@ -40,10 +40,68 @@ describe("phase 11 evidence records", () => {
       freshness: "fresh",
       source: "local owner run",
       recordedAt: "2026-06-17T11:00:00.000Z",
-      detail: "Vitest and Vite build passed.",
+      detail: "Vitest test output and Vite build output passed.",
       ageHours: 1
     });
     expect(record.nextAction).toContain("Keep the final test and build output");
+  });
+
+  it.each([
+    ["clean-checkout", "Clean checkout install passed."],
+    ["build-test", "Vitest test and Vite build passed."],
+    ["docs-known-limits", "Docs and known limits reviewed."],
+    ["release-decision", "Owner approved release decision while packaging stayed held."]
+  ] as const)(
+    "moves incomplete %s ready evidence into review",
+    (gate, detail) => {
+      const record = evaluatePhase11EvidenceRecord(
+        gate,
+        {
+          gate,
+          state: "ready",
+          source: "owner release evidence",
+          recordedAt: "2026-06-17T11:00:00.000Z",
+          detail
+        },
+        NOW
+      );
+
+      expect(record.state).toBe("review");
+      expect(record.freshness).toBe("fresh");
+      expect(record.detail).toContain("missing checklist coverage");
+      expect(record.nextAction).toContain("evidence metadata covering");
+    }
+  );
+
+  it.each([
+    [
+      "clean-checkout",
+      "Clean checkout install, dependency verification, and startup proof passed."
+    ],
+    ["build-test", "Final test, build, and output evidence passed."],
+    [
+      "docs-known-limits",
+      "Release docs, owner checklist, packaging limits, and known limits reviewed."
+    ],
+    [
+      "release-decision",
+      "Owner release decision recorded with packaging locked and Phase 3 handoff proof attached."
+    ]
+  ] as const)("keeps complete %s ready evidence ready", (gate, detail) => {
+    const record = evaluatePhase11EvidenceRecord(
+      gate,
+      {
+        gate,
+        state: "ready",
+        source: "owner release evidence",
+        recordedAt: "2026-06-17T11:00:00.000Z",
+        detail
+      },
+      NOW
+    );
+
+    expect(record.state).toBe("ready");
+    expect(record.freshness).toBe("fresh");
   });
 
   it("moves stale evidence into review", () => {
@@ -175,7 +233,8 @@ describe("phase 11 evidence records", () => {
         state: "ready",
         source: "owner release review",
         recordedAt: "2026-06-17T11:30:00.000Z",
-        detail: "Owner approved the release decision while packaging stayed locked."
+        detail:
+          "Owner approved the release decision while packaging locked and Phase 3 handoff proof stayed attached."
       },
       NOW
     );
@@ -220,7 +279,7 @@ describe("phase 11 evidence records", () => {
           state: "ready",
           source: "owner",
           recordedAt: "2026-06-17T11:00:00.000Z",
-          detail: "Release decision recorded."
+          detail: "Owner release decision recorded while packaging locked and Phase 3 handoff proof stayed attached."
         }
       },
       NOW

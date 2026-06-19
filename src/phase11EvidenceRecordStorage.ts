@@ -22,13 +22,13 @@ const DEFAULT_RECORD_DETAILS: Record<Phase11EvidenceGate, string> = {
   "fresh-checkout":
     "Owner attached fresh-checkout install, test, build, desktop run, and proof-panel evidence metadata for Phase 11 release review.",
   "clean-checkout":
-    "Owner attached clean-checkout evidence metadata for Phase 11 release review.",
+    "Owner attached clean-checkout install, dependency verification, and startup proof evidence metadata for Phase 11 release review.",
   "build-test":
-    "Owner attached build/test evidence metadata for Phase 11 release review.",
+    "Owner attached final test, build, and output evidence metadata for Phase 11 release review.",
   "docs-known-limits":
-    "Owner attached docs and known-limits evidence metadata for Phase 11 release review.",
+    "Owner attached docs, owner checklist, packaging limits, and known limits evidence metadata for Phase 11 release review.",
   "release-decision":
-    "Owner attached release-decision evidence metadata for Phase 11 release review."
+    "Owner attached owner release-decision evidence metadata while packaging locked and Phase 3 handoff proof remains attached for Phase 11 release review."
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

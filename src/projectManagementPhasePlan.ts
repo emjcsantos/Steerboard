@@ -901,7 +901,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-11-child-evidence-records",
             title: "Structured Evidence Records",
             description: "Represent fresh checkout, clean checkout, build/test, and docs/known-limits proof as source/timestamp/detail records with missing, stale, malformed, waiting, review, blocked, and ready states.",
-            completionPercent: 58,
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Phase 11 evidence records"
           },
@@ -919,7 +919,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-11-parent-release-packaging",
         title: "Release Readiness Gate",
         description: "Keep fresh checkout, clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability and handoff proof, packaging lock, docs, known limits, evidence records, visible Security 100% final closure guidance, and release-decision top-prerequisite detail visible while packaging stays paused.",
-        completionPercent: 56,
+        completionPercent: 58,
         complexity: "high",
         sourceDocument: "Phase 11 release readiness",
         children: [
@@ -927,7 +927,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-11-child-package-validation",
             title: "Package Lock Validation",
             description: "Validate packaged-app prerequisites, fresh-checkout proof, proof persistence, current active Phase 3 clearance PM traceability and handoff proof, evidence-record inputs, visible Security 100% final closure guidance, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
-            completionPercent: 52,
+            completionPercent: 55,
             complexity: "high",
             sourceDocument: "Release validation"
           },

@@ -87,13 +87,21 @@ const READY_NEXT_ACTIONS: Record<Phase11EvidenceGate, string> = {
   "release-decision": "Keep owner release-decision evidence attached while current active Phase 3 clearance PM traceability with handoff proof stays attached and packaging remains locked for explicit owner resume."
 };
 
-const FRESH_CHECKOUT_REQUIRED_DETAIL_TERMS = [
-  "install",
-  "test",
-  "build",
-  "desktop",
-  "proof-panel"
-];
+const REQUIRED_DETAIL_TERMS: Record<Phase11EvidenceGate, readonly string[]> = {
+  "fresh-checkout": ["install", "test", "build", "desktop", "proof-panel"],
+  "clean-checkout": ["install", "dependency", "startup"],
+  "build-test": ["test", "build", "output"],
+  "docs-known-limits": ["docs", "owner checklist", "packaging limits", "known limits"],
+  "release-decision": ["owner", "release-decision", "packaging locked", "phase 3"]
+};
+
+const REQUIRED_DETAIL_COVERAGE_COPY: Record<Phase11EvidenceGate, string> = {
+  "fresh-checkout": "install, test, build, desktop run, and proof-panel",
+  "clean-checkout": "install, dependency verification, and startup proof",
+  "build-test": "test, build, and output",
+  "docs-known-limits": "docs, owner checklist, packaging limits, and known limits",
+  "release-decision": "owner release-decision evidence, packaging locked, and Phase 3 handoff proof"
+};
 
 function normalizeState(value: unknown): Phase11EvidenceRecordState | undefined {
   if (typeof value !== "string") {
@@ -139,16 +147,26 @@ function ageHours(recordedAt: Date, now: Date): number {
   return Math.max(0, Math.round((now.getTime() - recordedAt.getTime()) / 36_000) / 100);
 }
 
-function missingFreshCheckoutTerms(detail: string): string[] {
+function detailIncludesTerm(normalizedDetail: string, term: string): boolean {
+  if (term === "proof-panel") {
+    return normalizedDetail.includes("proof-panel") || normalizedDetail.includes("proof panel");
+  }
+
+  if (term === "dependency") {
+    return normalizedDetail.includes("dependency") || normalizedDetail.includes("dependencies");
+  }
+
+  if (term === "release-decision") {
+    return normalizedDetail.includes("release-decision") || normalizedDetail.includes("release decision");
+  }
+
+  return normalizedDetail.includes(term);
+}
+
+function missingRequiredDetailTerms(gate: Phase11EvidenceGate, detail: string): string[] {
   const normalized = detail.toLowerCase().replace(/\s+/g, " ");
 
-  return FRESH_CHECKOUT_REQUIRED_DETAIL_TERMS.filter((term) => {
-    if (term === "proof-panel") {
-      return !normalized.includes("proof-panel") && !normalized.includes("proof panel");
-    }
-
-    return !normalized.includes(term);
-  });
+  return REQUIRED_DETAIL_TERMS[gate].filter((term) => !detailIncludesTerm(normalized, term));
 }
 
 function stateWeight(state: Phase11EvidenceRecordState): number {
@@ -290,12 +308,10 @@ export function evaluatePhase11EvidenceRecord(
 
   const source = publicText(input.source, "local evidence");
   const detail = publicText(input.detail, `${label} evidence recorded.`);
-  const missingFreshTerms =
-    gate === "fresh-checkout" && state === "ready"
-      ? missingFreshCheckoutTerms(detail)
-      : [];
+  const missingTerms =
+    state === "ready" ? missingRequiredDetailTerms(gate, detail) : [];
 
-  if (missingFreshTerms.length > 0) {
+  if (missingTerms.length > 0) {
     return {
       gate,
       label,
@@ -303,9 +319,8 @@ export function evaluatePhase11EvidenceRecord(
       freshness: "fresh",
       source,
       recordedAt: recordedAtDate.toISOString(),
-      detail: `${label} evidence is fresh but missing checklist coverage for ${missingFreshTerms.join(", ")}.`,
-      nextAction:
-        "Attach fresh-checkout install, test, build, desktop run, and proof-panel evidence metadata before release readiness can proceed.",
+      detail: `${label} evidence is fresh but missing checklist coverage for ${missingTerms.join(", ")}.`,
+      nextAction: `Attach ${label.toLowerCase()} evidence metadata covering ${REQUIRED_DETAIL_COVERAGE_COPY[gate]} before release readiness can proceed.`,
       ageHours: hours,
       safety: SAFETY
     };

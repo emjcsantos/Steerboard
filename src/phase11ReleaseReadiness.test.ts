@@ -156,10 +156,14 @@ function remainingSummary(
 }
 
 function readyEvidence(gate: Phase11EvidenceGate) {
-  const detail =
-    gate === "fresh-checkout"
-      ? "Fresh checkout install, test, build, desktop run, and proof-panel evidence passed."
-      : `${gate} passed.`;
+  const detailByGate: Record<Phase11EvidenceGate, string> = {
+    "fresh-checkout": "Fresh checkout install, test, build, desktop run, and proof-panel evidence passed.",
+    "clean-checkout": "Clean checkout install, dependency verification, and startup proof passed.",
+    "build-test": "Final test, build, and output evidence passed.",
+    "docs-known-limits": "Release docs, owner checklist, packaging limits, and known limits reviewed.",
+    "release-decision":
+      "Owner release decision recorded while packaging locked and Phase 3 handoff proof stayed attached."
+  };
 
   return evaluatePhase11EvidenceRecord(
     gate,
@@ -168,7 +172,7 @@ function readyEvidence(gate: Phase11EvidenceGate) {
       state: "ready",
       source: `owner ${gate}`,
       recordedAt: "2026-06-17T10:00:00.000Z",
-      detail
+      detail: detailByGate[gate]
     },
     "2026-06-17T12:00:00.000Z"
   );
@@ -759,7 +763,7 @@ describe("phase 11 release readiness", () => {
           state: "ready",
           source: "owner build",
           recordedAt: "2026-06-17T10:00:00.000Z",
-          detail: "Build and tests passed."
+          detail: "Final test, build, and output evidence passed."
         },
         "2026-06-17T12:00:00.000Z"
       ),

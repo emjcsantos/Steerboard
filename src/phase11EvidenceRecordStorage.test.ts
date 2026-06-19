@@ -15,7 +15,8 @@ describe("phase 11 evidence record storage", () => {
       state: "ready",
       source: "owner local evidence record",
       recordedAt: "2026-06-18T00:00:00.000Z",
-      detail: "Owner attached build/test evidence metadata for Phase 11 release review."
+      detail:
+        "Owner attached final test, build, and output evidence metadata for Phase 11 release review."
     });
   });
 
@@ -42,7 +43,7 @@ describe("phase 11 evidence record storage", () => {
       source: "owner local evidence record",
       recordedAt: "2026-06-18T00:00:00.000Z",
       detail:
-        "Owner attached release-decision evidence metadata for Phase 11 release review."
+        "Owner attached owner release-decision evidence metadata while packaging locked and Phase 3 handoff proof remains attached for Phase 11 release review."
     });
   });
 
