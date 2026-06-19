@@ -648,7 +648,7 @@ describe("phase 11 owner-visible proof", () => {
         status: "ready" as const,
         detail:
           item.kind === "phase3-trace"
-            ? "goal-phase-3-proof-clearance is active, current yes, with 11 PM task links including phase-03-child-smoke-rows, phase-03-child-exit-gate, phase-03-child-command-plan, phase-03-child-blocker-priority, phase-03-child-traceability, phase-03-child-handoff-gate; proof freshness trusted; handoff proof ready."
+            ? "goal-phase-3-proof-clearance is active, current yes, with 11 PM task links including phase-03-child-smoke-rows, phase-03-child-exit-gate, phase-03-child-command-plan, phase-03-child-blocker-priority, phase-03-child-traceability, phase-03-child-handoff-gate; proof freshness trusted; handoff proof ready; proof export ready."
             : item.detail,
         nextAction:
           item.label === "Packaging lock"
