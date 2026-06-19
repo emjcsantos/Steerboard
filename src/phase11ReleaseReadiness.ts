@@ -348,10 +348,12 @@ function phase3TraceItem(
   const phase3ProofExportDetail = proofExportDetail(proofFreshnessDepth);
   const traceIsCurrent = phase3Trace?.current === true;
   const traceIsActive = phase3Trace?.status === "active";
+  const traceIsCompleted =
+    phase3Trace?.status === "next" && phase3Trace.completionPercent >= 100;
+  const traceLifecycleTrusted = (traceIsCurrent && traceIsActive) || traceIsCompleted;
   const traceIsTrusted =
     Boolean(phase3Trace) &&
-    traceIsCurrent &&
-    traceIsActive &&
+    traceLifecycleTrusted &&
     !missingPmBoardEvidence &&
     missingPmTaskIds.length === 0 &&
     incompletePmTaskIds.length === 0 &&
@@ -369,7 +371,7 @@ function phase3TraceItem(
     missingPmTaskIds.join(", ") ||
     incompletePmTaskIds.join(", ") ||
     (missingPmBoardEvidence ? REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS : "") ||
-    (!traceIsCurrent || !traceIsActive
+    (!traceLifecycleTrusted
       ? PHASE3_CLEARANCE_GOAL_ID
       : !proofFreshnessDepth.canTrustOwnerProof
         ? "phase-11-proof-freshness-depth"
@@ -386,8 +388,8 @@ function phase3TraceItem(
       ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}${missingPmBoardDetail}; proof freshness ${proofFreshnessDepth.canTrustOwnerProof ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; proof export ${proofExportReady ? "ready" : "not ready"}; proof export: ${phase3ProofExportDetail}; ${handoffProofDetail}`
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction: traceIsTrusted
-      ? "Keep current active Phase 3 clearance PM traceability plus ready handoff proof and proof-export evidence attached before release packaging resumes."
-      : `Restore current active Phase 3 clearance PM traceability, required PM row completion, trusted handoff proof, and proof-export evidence before release readiness can recommend release: ${traceRestoreTarget}.`
+      ? "Keep completed Phase 3 clearance PM traceability plus ready handoff proof and proof-export evidence attached before release packaging resumes."
+      : `Restore completed Phase 3 clearance PM traceability, required PM row completion, trusted handoff proof, and proof-export evidence before release readiness can recommend release: ${traceRestoreTarget}.`
   };
 }
 

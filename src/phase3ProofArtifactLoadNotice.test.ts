@@ -11,6 +11,16 @@ describe("phase 3 recorded artifact load notice", () => {
     ).toBe("Phase 3 CLI validation and desktop smoke proof artifacts loaded");
   });
 
+  it("reports full success when panel evidence also imports", () => {
+    expect(
+      buildPhase3RecordedArtifactLoadNotice({
+        commandValidation: "loaded",
+        smokeProofBundle: "loaded",
+        panelEvidence: "loaded"
+      })
+    ).toBe("Phase 3 CLI validation, desktop smoke proof, and panel evidence artifacts loaded");
+  });
+
   it("reports unavailable artifacts separately from rejected imports", () => {
     expect(
       buildPhase3RecordedArtifactLoadNotice({
@@ -22,9 +32,12 @@ describe("phase 3 recorded artifact load notice", () => {
     expect(
       buildPhase3RecordedArtifactLoadNotice({
         commandValidation: "loaded",
-        smokeProofBundle: "rejected"
+        smokeProofBundle: "rejected",
+        panelEvidence: "unavailable"
       })
-    ).toBe("Phase 3 CLI validation artifact loaded; desktop smoke proof bundle could not be imported");
+    ).toBe(
+      "Phase 3 CLI validation artifact loaded; desktop smoke proof bundle could not be imported; panel slash/session evidence is unavailable"
+    );
   });
 
   it("reports partial smoke success with the command artifact reason", () => {

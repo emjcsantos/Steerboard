@@ -31,9 +31,9 @@ describe("remaining goal plan", () => {
       planned: 0,
       paused: 0,
       averageCompletionPercent: 72,
-      currentTarget: "Phase 3 desktop proof clearance",
+      currentTarget: "Provider integration surfaces",
       currentNextAction:
-        "Use the Phase 3 command plan, visible CLI validation record actions and provenance, PM-link and evidence-key counted exit gate, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, the combined CLI validation plus smoke-proof artifact loader, storage-attested current-panel smoke proof rows, fail-closed proof export/offline verification, and visible handoff record-gate reason with compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, load the recorded CLI validation and desktop smoke proof bundle into UI storage before owner review, capture real current-panel slash/session evidence without manufacturing it, record fresh owner handoff only after current evidence is exit-ready, current active goal/PM traceability is trusted, CLI validation and smoke proof are fresh and matching, and proof-export preflight only needs that handoff record, then keep Phase 4 review behind owner review plus proof-export/offline verification.",
+        "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, Surface Depth, local approval, audit, rollback, and permission record validation, traceability, blocker-priority panels, and owner-visible provider readiness check to resolve source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks before provider execution is considered.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -48,7 +48,7 @@ describe("remaining goal plan", () => {
     const traces = buildRemainingGoalPriorityTraces();
 
     expect(traces.map((trace) => trace.goalId).slice(0, 2)).toEqual([
-      "goal-phase-3-proof-clearance",
+      "goal-phase-4-provider-surfaces",
       "goal-phase-1-2-6-publish"
     ]);
     expect(traces).toEqual(
@@ -130,14 +130,14 @@ describe("remaining goal plan", () => {
     const queue = buildRemainingGoalPriorityQueue();
 
     expect(queue.map((goal) => goal.id).slice(0, 4)).toEqual([
-      "goal-phase-3-proof-clearance",
+      "goal-phase-4-provider-surfaces",
       "goal-phase-1-2-6-publish",
-      "goal-phase-11-release-readiness",
-      "goal-phase-11-owner-command-center"
+      "goal-phase-3-proof-clearance",
+      "goal-phase-11-release-readiness"
     ]);
     expect(queue[0]).toMatchObject({
       current: true,
-      priority: "critical",
+      priority: "high",
       status: "active"
     });
     expect(queue[1]).toMatchObject({
@@ -148,16 +148,16 @@ describe("remaining goal plan", () => {
 
   it("keeps stale current next goals below the critical owner hold", () => {
     const staleCurrentNextGoals = remainingGoalPlan.map((goal) =>
-      goal.id === "goal-phase-4-provider-surfaces"
+      goal.id === "goal-phase-3-proof-clearance"
         ? { ...goal, current: true }
         : goal
     );
     const queue = buildRemainingGoalPriorityQueue(staleCurrentNextGoals);
 
     expect(queue.map((goal) => goal.id).slice(0, 3)).toEqual([
-      "goal-phase-3-proof-clearance",
+      "goal-phase-4-provider-surfaces",
       "goal-phase-1-2-6-publish",
-      "goal-phase-11-release-readiness"
+      "goal-phase-3-proof-clearance"
     ]);
     expect(isCurrentActiveRemainingGoal(queue[0])).toBe(true);
     expect(queue[1]).toMatchObject({
@@ -168,19 +168,19 @@ describe("remaining goal plan", () => {
 
   it("reports only current active goals as current in priority traces", () => {
     const staleCurrentNextGoals = remainingGoalPlan.map((goal) =>
-      goal.id === "goal-phase-4-provider-surfaces"
+      goal.id === "goal-phase-3-proof-clearance"
         ? { ...goal, current: true }
         : goal
     );
     const traces = buildRemainingGoalPriorityTraces(staleCurrentNextGoals);
 
     expect(traces.find((trace) => trace.goalId === "goal-phase-3-proof-clearance")).toMatchObject({
-      current: true,
-      status: "active"
-    });
-    expect(traces.find((trace) => trace.goalId === "goal-phase-4-provider-surfaces")).toMatchObject({
       current: false,
       status: "next"
+    });
+    expect(traces.find((trace) => trace.goalId === "goal-phase-4-provider-surfaces")).toMatchObject({
+      current: true,
+      status: "active"
     });
   });
 
@@ -212,29 +212,20 @@ describe("remaining goal plan", () => {
     expect(publishGoal?.nextAction).toContain("publish-hold traceability");
     expect(publishGoal?.nextAction).toContain("blocker-priority queue");
     expect(phase3Goal?.target).toBe("Phase 3 desktop proof clearance");
-    expect(phase3Goal?.current).toBe(true);
+    expect(phase3Goal?.current).toBeUndefined();
+    expect(phase3Goal?.completionPercent).toBe(100);
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-exit-gate");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-blocker-priority");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-traceability");
     expect(phase3Goal?.pmTaskIds).toContain(PHASE3_PROOF_EXPORT_PM_TASK_ID);
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-handoff-gate");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-slash-ready");
-    expect(phase3Goal?.nextAction).toContain("clearance-snapshot");
-    expect(phase3Goal?.nextAction).toContain("visible CLI validation record actions and provenance");
-    expect(phase3Goal?.nextAction).toContain("PM-link and evidence-key counted exit gate");
-    expect(phase3Goal?.nextAction).toContain("row-specific slash/session exit actions");
-    expect(phase3Goal?.nextAction).toContain("combined CLI validation plus smoke-proof artifact loader");
-    expect(phase3Goal?.nextAction).toContain(
-      "load the recorded CLI validation and desktop smoke proof bundle into UI storage"
-    );
-    expect(phase3Goal?.nextAction).toContain("capture real current-panel slash/session evidence");
-    expect(phase3Goal?.nextAction).toContain("storage-attested current-panel smoke proof rows");
+    expect(phase3Goal?.nextAction).toContain("CLI validation");
+    expect(phase3Goal?.nextAction).toContain("desktop smoke proof");
+    expect(phase3Goal?.nextAction).toContain("current-panel slash/session storage proof");
     expect(phase3Goal?.goal).toContain("fail-closed proof-export rows");
-    expect(phase3Goal?.nextAction).toContain("fail-closed proof export/offline verification");
-    expect(phase3Goal?.nextAction).toContain("proof-export preflight only needs that handoff record");
-    expect(phase3Goal?.nextAction).toContain("visible handoff record-gate reason");
-    expect(phase3Goal?.nextAction).toContain("current active goal");
-    expect(phase3Goal?.nextAction).toContain("current active goal/PM traceability is trusted");
+    expect(phase3Goal?.nextAction).toContain("proof-export offline verification");
+    expect(phase3Goal?.nextAction).toContain("Phase 4 provider integration becomes the current active implementation target");
   });
 
   it("keeps the Phase 3 PM traceability child aligned to the current active goal boundary", () => {
@@ -280,9 +271,8 @@ describe("remaining goal plan", () => {
       .map((task) => task.id);
 
     expect(phase3Goal).toMatchObject({
-      current: true,
-      status: "active",
-      completionPercent: 99
+      status: "next",
+      completionPercent: 100
     });
     expect(incompleteTaskIds).toEqual([]);
     expect(taskCompletionById.get("phase-03-child-smoke-rows")).toBe(90);
@@ -299,12 +289,12 @@ describe("remaining goal plan", () => {
   it("separates the blocked owner hold from the active implementation target", () => {
     const summary = summarizeRemainingGoalPlan();
 
-    expect(summary.currentTarget).toBe("Phase 3 desktop proof clearance");
-    expect(summary.currentNextAction).toContain("combined CLI validation plus smoke-proof artifact loader");
+    expect(summary.currentTarget).toBe("Provider integration surfaces");
+    expect(summary.currentNextAction).toContain("Phase 4 Provider Readiness catalog depth");
     expect(summary.ownerHoldTarget).toBe("Unblock Phase 1/2/6 publishing");
     expect(summary.ownerHoldNextAction).toContain("owner says to push");
     expect(summary.priorityGoalTraces[0]).toMatchObject({
-      goalId: "goal-phase-3-proof-clearance",
+      goalId: "goal-phase-4-provider-surfaces",
       current: true
     });
     expect(summary.priorityGoalTraces[1]).toMatchObject({
@@ -315,22 +305,19 @@ describe("remaining goal plan", () => {
   });
 
   it("identifies only the current active remaining goal as implementation-trustable", () => {
-    const phase3Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-3-proof-clearance");
     const phase4Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-4-provider-surfaces");
 
-    expect(findCurrentActiveRemainingGoals()).toEqual([phase3Goal]);
-    expect(isCurrentActiveRemainingGoal(phase3Goal)).toBe(true);
-    expect(isCurrentActiveRemainingGoal(phase4Goal)).toBe(false);
-    expect(isCurrentActiveRemainingGoal({ ...phase3Goal!, current: false })).toBe(false);
-    expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, current: true })).toBe(false);
-    expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, status: "active" })).toBe(false);
+    expect(findCurrentActiveRemainingGoals()).toEqual([phase4Goal]);
+    expect(isCurrentActiveRemainingGoal(phase4Goal)).toBe(true);
+    expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, current: false })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, status: "next" })).toBe(false);
     expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, status: "active", current: true })).toBe(true);
     expect(isCurrentActiveRemainingGoal(undefined)).toBe(false);
   });
 
   it("reports duplicate current active goals before summaries and traceability can disagree", () => {
     const duplicateCurrentGoals = remainingGoalPlan.map((goal) =>
-      goal.id === "goal-phase-4-provider-surfaces"
+      goal.id === "goal-phase-3-proof-clearance"
         ? { ...goal, status: "active" as const, current: true }
         : goal
     );
@@ -346,16 +333,16 @@ describe("remaining goal plan", () => {
 
   it("reports stale current flags on non-active goals", () => {
     const staleCurrentGoals = remainingGoalPlan.map((goal) =>
-      goal.id === "goal-phase-4-provider-surfaces"
+      goal.id === "goal-phase-3-proof-clearance"
         ? { ...goal, current: true }
         : goal
     );
 
     expect(findCurrentActiveRemainingGoals(staleCurrentGoals).map((goal) => goal.id)).toEqual([
-      "goal-phase-3-proof-clearance"
+      "goal-phase-4-provider-surfaces"
     ]);
     expect(findRemainingGoalPlanIssues(staleCurrentGoals)).toContain(
-      "Remaining goal goal-phase-4-provider-surfaces is marked current but has status next; current goals must be active."
+      "Remaining goal goal-phase-3-proof-clearance is marked current but has status next; current goals must be active."
     );
   });
 
@@ -369,8 +356,8 @@ describe("remaining goal plan", () => {
     );
     const summary = summarizeRemainingGoalPlan(staleCurrentGoals);
 
-    expect(summary.currentTarget).toBe("Phase 3 desktop proof clearance");
-    expect(summary.currentNextAction).toContain("combined CLI validation plus smoke-proof artifact loader");
+    expect(summary.currentTarget).toBe("Provider integration surfaces");
+    expect(summary.currentNextAction).toContain("Phase 4 Provider Readiness catalog depth");
   });
 
   it("keeps the Phase 9 runner approval target linked to traceability, approval depth, and blocker priority", () => {
@@ -505,7 +492,7 @@ describe("remaining goal plan", () => {
     expect(phase4Goal).toMatchObject({
       target: "Provider integration surfaces",
       priority: "high",
-      status: "next",
+      status: "active",
       completionPercent: 64
     });
     expect(phase4Epic?.completionPercent).toBe(64);

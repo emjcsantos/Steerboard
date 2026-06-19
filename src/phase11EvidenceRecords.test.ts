@@ -251,7 +251,7 @@ describe("phase 11 evidence records", () => {
       source: "owner release review",
       ageHours: 0.5
     });
-    expect(record.nextAction).toContain("current active Phase 3 clearance PM traceability");
+    expect(record.nextAction).toContain("completed Phase 3 clearance PM traceability");
     expect(record.nextAction).toContain(
       "current non-ready proof freshness row actions for handoff/proof-export review"
     );

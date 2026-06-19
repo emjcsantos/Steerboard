@@ -199,7 +199,7 @@ describe("phase 3 clearance traceability", () => {
     );
   });
 
-  it("links the current active critical Phase 3 goal to every required PM row and ready evidence", () => {
+  it("links the completed critical Phase 3 goal to every required PM row and ready evidence", () => {
     const result = snapshot();
 
     expect(result.state).toBe("ready");
@@ -260,7 +260,7 @@ describe("phase 3 clearance traceability", () => {
   it("keeps trace untrusted when Phase 3 is active but no longer current", () => {
     for (const current of [false, undefined]) {
       const result = snapshot({
-        goals: [phase3Goal({ current })]
+        goals: [phase3Goal({ status: "active", completionPercent: 99, current })]
       });
 
       expect(result.state).toBe("review");
@@ -274,13 +274,13 @@ describe("phase 3 clearance traceability", () => {
           })
         ])
       );
-      expect(result.nextAction).toContain("current active critical goal");
+      expect(result.nextAction).toContain("trusted critical goal");
     }
   });
 
-  it("keeps trace blocked when Phase 3 is current but not active", () => {
+  it("keeps trace blocked when Phase 3 is current but incomplete", () => {
     const result = snapshot({
-      goals: [phase3Goal({ current: true, status: "next" })]
+      goals: [phase3Goal({ current: true, status: "next", completionPercent: 99 })]
     });
 
     expect(result.state).toBe("blocked");
@@ -307,7 +307,7 @@ describe("phase 3 clearance traceability", () => {
 
     const result = snapshot({
       goals: [
-        phase3Goal(),
+        phase3Goal({ status: "active", current: true, completionPercent: 99 }),
         {
           ...phase4Goal,
           status: "active",
@@ -347,7 +347,7 @@ describe("phase 3 clearance traceability", () => {
     });
     const duplicateCurrent = buildPhase3ClearanceTraceabilityPrecondition({
       goals: [
-        phase3Goal(),
+        phase3Goal({ status: "active", current: true, completionPercent: 99 }),
         {
           ...remainingGoalPlan.find(
             (goal) => goal.id === "goal-phase-4-provider-surfaces"
@@ -459,6 +459,7 @@ describe("phase 3 clearance traceability", () => {
 
   it("keeps trace untrusted when the handoff record no longer matches current evidence", () => {
     const result = snapshot({
+      goals: [phase3Goal({ status: "active", current: true, completionPercent: 99 })],
       handoffGate: handoff({
         state: "review",
         statusLabel: "Review",
@@ -484,6 +485,7 @@ describe("phase 3 clearance traceability", () => {
 
   it("carries handoff snapshot mismatch detail into traceability", () => {
     const result = snapshot({
+      goals: [phase3Goal({ status: "active", current: true, completionPercent: 99 })],
       handoffGate: handoff({
         state: "review",
         statusLabel: "Review",

@@ -433,6 +433,7 @@ import {
   type Phase3CommandValidationRecord
 } from "./phase3CommandValidationRecord";
 import { runPhase3CommandValidationImportAction } from "./phase3CommandValidationImport";
+import { runPhase3PanelEvidenceImportAction } from "./phase3PanelEvidenceImport";
 import {
   buildPhase3RecordedArtifactLoadNotice,
   type Phase3RecordedArtifactLoadState
@@ -1757,7 +1758,10 @@ async function invokeDesktopCommand<T>(command: string, args?: Record<string, un
 }
 
 async function readPhase3RecordedArtifact(
-  artifactName: "phase3-command-validation-record.json" | "phase3-smoke-proof-bundle.json",
+  artifactName:
+    | "phase3-command-validation-record.json"
+    | "phase3-smoke-proof-bundle.json"
+    | "phase3-panel-evidence-record.json",
   desktopCommand: string
 ): Promise<string> {
   if (hasDesktopRuntime()) {
@@ -2787,6 +2791,14 @@ export function App() {
       setAppNotice
     });
   }, []);
+  const importPhase3PanelEvidence = useCallback((serializedRecord: string) => {
+    return runPhase3PanelEvidenceImportAction(serializedRecord, {
+      currentPanelId: focusedPanelId,
+      setSlashEvidenceByPanel: setSlashCommandExecutionEvidenceByPanel,
+      setSessionControlEvidenceByPanel: setSessionControlReadinessEvidenceByPanel,
+      setProofEvaluationTime: setPhase3ProofEvaluationTime
+    });
+  }, [focusedPanelId]);
   const loadRecordedPhase3CommandValidation = useCallback(async () => {
     try {
       const serializedRecord = await readPhase3RecordedArtifact(
@@ -2816,6 +2828,7 @@ export function App() {
   const loadRecordedPhase3ProofArtifacts = useCallback(async () => {
     let commandState: Phase3RecordedArtifactLoadState = "unavailable";
     let smokeState: Phase3RecordedArtifactLoadState = "unavailable";
+    let panelState: Phase3RecordedArtifactLoadState = "unavailable";
 
     try {
       const serializedRecord = await readPhase3RecordedArtifact(
@@ -2841,13 +2854,26 @@ export function App() {
       smokeState = "unavailable";
     }
 
+    try {
+      const serializedPanelEvidence = await readPhase3RecordedArtifact(
+        "phase3-panel-evidence-record.json",
+        "phase3_panel_evidence_artifact_read"
+      );
+      panelState = importPhase3PanelEvidence(serializedPanelEvidence).imported
+        ? "loaded"
+        : "rejected";
+    } catch {
+      panelState = "unavailable";
+    }
+
     setAppNotice(
       buildPhase3RecordedArtifactLoadNotice({
         commandValidation: commandState,
-        smokeProofBundle: smokeState
+        smokeProofBundle: smokeState,
+        panelEvidence: panelState
       })
     );
-  }, [importPhase3CommandValidation, importPhase3SmokeProofBundle]);
+  }, [importPhase3CommandValidation, importPhase3PanelEvidence, importPhase3SmokeProofBundle]);
   const exportPhase3ProofArtifact = useCallback(() => {
     const now = new Date().toISOString();
     const artifact = buildPhase3ProofExportArtifact({
@@ -13881,7 +13907,7 @@ export function OwnerTestingReadinessPanel({
                   onClick={onLoadRecordedPhase3ProofArtifacts}
                   title={
                     phase3RecordedArtifactLoadAvailable
-                      ? "Load both local_private/phase3-command-validation-record.json and local_private/phase3-smoke-proof-bundle.json from the desktop workspace or local dev server."
+                      ? "Load local_private/phase3-command-validation-record.json, local_private/phase3-smoke-proof-bundle.json, and local_private/phase3-panel-evidence-record.json from the desktop workspace or local dev server."
                       : "Open Steerboard in desktop mode or use the Import buttons to attach both local Phase 3 artifacts."
                   }
                   type="button"

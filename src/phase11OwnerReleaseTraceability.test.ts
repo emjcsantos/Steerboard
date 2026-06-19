@@ -334,7 +334,7 @@ describe("phase 11 owner release traceability", () => {
 
     expect(result.state).toBe("review");
     expect(result.canTrustOwnerReleaseGate).toBe(false);
-    expect(result.nextAction).toContain("current active Phase 3 clearance PM traceability");
+    expect(result.nextAction).toContain("completed Phase 3 clearance PM traceability");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -347,15 +347,7 @@ describe("phase 11 owner release traceability", () => {
   });
 
   it("keeps the Phase 3 release trace ready when handoff proof is ready after active work", () => {
-    const result = trace({
-      ownerCommandCenter: ownerSnapshot({
-        priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
-          trace.goalId === "goal-phase-3-proof-clearance"
-            ? { ...trace, status: "active" }
-            : trace
-        )
-      })
-    });
+    const result = trace();
 
     expect(result.state).toBe("review");
     expect(result.canTrustOwnerReleaseGate).toBe(false);
@@ -364,7 +356,7 @@ describe("phase 11 owner release traceability", () => {
         expect.objectContaining({
           kind: "phase3-trace",
           status: "ready",
-          detail: expect.stringContaining("is active"),
+          detail: expect.stringContaining("is next"),
           nextAction: expect.stringContaining("proof-export evidence")
         })
       ])
@@ -430,7 +422,7 @@ describe("phase 11 owner release traceability", () => {
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
           trace.goalId === "goal-phase-3-proof-clearance"
-            ? { ...trace, status: "active" }
+            ? { ...trace, status: "next" as const, completionPercent: 100, current: false }
             : trace
         )
       }),
@@ -484,7 +476,7 @@ describe("phase 11 owner release traceability", () => {
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
           trace.goalId === "goal-phase-3-proof-clearance"
-            ? { ...trace, status: "active" }
+            ? { ...trace, status: "next" as const, completionPercent: 100, current: false }
             : trace
         )
       }),
@@ -617,7 +609,7 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
-  it("reviews when Phase 3 traceability is not current", () => {
+  it("reviews when completed Phase 3 traceability is incomplete", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
@@ -625,7 +617,7 @@ describe("phase 11 owner release traceability", () => {
             ? {
                 ...trace,
                 status: "next" as const,
-                completionPercent: 100,
+                completionPercent: 99,
                 current: false,
                 nextAction: "Keep the completed Phase 3 handoff proof and proof-export evidence attached."
               }
@@ -649,7 +641,7 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
-  it("reviews when Phase 3 traceability is current but not active", () => {
+  it("reviews when Phase 3 traceability is current but incomplete", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
@@ -657,7 +649,7 @@ describe("phase 11 owner release traceability", () => {
             ? {
                 ...trace,
                 status: "next" as const,
-                completionPercent: 100,
+                completionPercent: 99,
                 current: true,
                 nextAction: "Keep the completed Phase 3 handoff proof and proof-export evidence attached."
               }
@@ -681,12 +673,12 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
-  it("reviews when another goal duplicates the current active Phase 3 trace", () => {
+  it("reviews when another goal duplicates the current active trace", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
-          trace.goalId === "goal-phase-4-provider-surfaces"
-            ? { ...trace, status: "active" as const, current: true }
+          trace.goalId === "goal-phase-3-proof-clearance"
+            ? { ...trace, status: "active" as const, completionPercent: 100, current: true }
             : trace
         )
       })

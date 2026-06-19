@@ -370,15 +370,17 @@ function phase3TraceItem(
   const proofFreshnessTrusted = proofFreshnessDepth.canTrustOwnerProof;
   const traceIsCurrent = phase3Trace?.current === true;
   const traceIsActive = phase3Trace?.status === "active";
+  const traceIsCompleted =
+    phase3Trace?.status === "next" && phase3Trace.completionPercent >= 100;
+  const phase3TraceLifecycleTrusted =
+    (traceIsCurrent && traceIsActive) || traceIsCompleted;
   const currentActiveGoalIds = snapshot.priorityGoalTraces
     .filter((trace) => trace.current === true && trace.status === "active")
     .map((trace) => trace.goalId);
-  const exactlyOneCurrentActiveGoal =
-    currentActiveGoalIds.length === 1 && currentActiveGoalIds[0] === PHASE3_CLEARANCE_GOAL_ID;
+  const exactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
   const status: Phase11OwnerReleaseTraceabilityState =
     !phase3Trace ||
-    !traceIsCurrent ||
-    !traceIsActive ||
+    !phase3TraceLifecycleTrusted ||
     !exactlyOneCurrentActiveGoal ||
     !proofFreshnessTrusted ||
     !handoffProofReady ||
@@ -397,7 +399,7 @@ function phase3TraceItem(
     (!exactlyOneCurrentActiveGoal
       ? currentActiveGoalIds.join(", ") || PHASE3_CLEARANCE_GOAL_ID
       : "") ||
-    (!traceIsCurrent || !traceIsActive
+    (!phase3TraceLifecycleTrusted
       ? PHASE3_CLEARANCE_GOAL_ID
       : !proofFreshnessTrusted
         ? "phase-11-proof-freshness-depth"
@@ -425,8 +427,8 @@ function phase3TraceItem(
       : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction:
       status === "ready"
-        ? "Keep current active Phase 3 clearance PM traceability plus ready handoff proof and proof-export evidence visible before release readiness is trusted."
-        : `Restore current active Phase 3 clearance PM traceability, required PM row completion, trusted handoff proof, and proof-export evidence before Phase 11 owner release review can be trusted: ${traceRestoreTarget}. Next proof action: ${proofFreshnessNextAction}`
+        ? "Keep completed Phase 3 clearance PM traceability plus ready handoff proof and proof-export evidence visible before release readiness is trusted."
+        : `Restore completed Phase 3 clearance PM traceability, required PM row completion, trusted handoff proof, and proof-export evidence before Phase 11 owner release review can be trusted: ${traceRestoreTarget}. Next proof action: ${proofFreshnessNextAction}`
   };
 }
 

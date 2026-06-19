@@ -419,12 +419,12 @@ describe("phase 3 handoff flow", () => {
     );
 
     expect(currentGoals.map((goal) => goal.id)).toEqual([
-      "goal-phase-3-proof-clearance"
+      "goal-phase-4-provider-surfaces"
     ]);
     expect(phase4Goal).toMatchObject({
-      status: "next",
+      status: "active",
       priority: "high"
     });
-    expect(phase4Goal?.current).toBeUndefined();
+    expect(phase4Goal?.current).toBe(true);
   });
 });

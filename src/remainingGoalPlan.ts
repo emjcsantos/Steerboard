@@ -120,10 +120,9 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-03-controls-slash"],
     goal:
       "Clear live-control, active-turn interrupt, active-turn steer, slash, session-control, and fail-closed proof-export rows from desktop mode with prioritized blocker review, fresh proof checks, offline verification, and goal/PM traceability.",
-    status: "active",
+    status: "next",
     priority: "critical",
-    completionPercent: 99,
-    current: true,
+    completionPercent: 100,
     pmTaskIds: [
       "phase-03-controls-slash",
       "phase-03-parent-proof-clearance",
@@ -139,7 +138,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-03-child-control-ready"
     ],
     nextAction:
-      "Use the Phase 3 command plan, visible CLI validation record actions and provenance, PM-link and evidence-key counted exit gate, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, the combined CLI validation plus smoke-proof artifact loader, storage-attested current-panel smoke proof rows, fail-closed proof export/offline verification, and visible handoff record-gate reason with compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, load the recorded CLI validation and desktop smoke proof bundle into UI storage before owner review, capture real current-panel slash/session evidence without manufacturing it, record fresh owner handoff only after current evidence is exit-ready, current active goal/PM traceability is trusted, CLI validation and smoke proof are fresh and matching, and proof-export preflight only needs that handoff record, then keep Phase 4 review behind owner review plus proof-export/offline verification."
+      "Keep the Phase 3 command plan, CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, and proof-export offline verification attached as audit evidence while Phase 4 provider integration becomes the current active implementation target."
   },
   {
     id: "goal-phase-4-provider-surfaces",
@@ -148,9 +147,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-04-provider-surfaces"],
     goal:
       "Harden command, skill, plugin, MCP, automation, and personalization readiness states while keeping refresh proof metadata-only, fresh, and tied to the current six-surface catalog fingerprint.",
-    status: "next",
+    status: "active",
     priority: "high",
     completionPercent: 64,
+    current: true,
     pmTaskIds: [
       "phase-04-provider-surfaces",
       "phase-04-parent-catalogs",
@@ -352,10 +352,11 @@ const STATUS_ORDER: Record<RemainingGoalStatus, number> = {
 };
 
 const STRATEGIC_GOAL_ORDER: Record<string, number> = {
-  "goal-phase-3-proof-clearance": 0,
-  "goal-phase-1-2-6-publish": 1,
-  "goal-phase-11-release-readiness": 2,
-  "goal-phase-11-owner-command-center": 3
+  "goal-phase-4-provider-surfaces": 0,
+  "goal-phase-3-proof-clearance": 1,
+  "goal-phase-1-2-6-publish": 2,
+  "goal-phase-11-release-readiness": 3,
+  "goal-phase-11-owner-command-center": 4
 };
 
 function getStrategicGoalOrder(goal: RemainingGoalPlanItem): number {

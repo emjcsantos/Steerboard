@@ -118,16 +118,14 @@ function traceability({
 function withCurrentNextPhase4Goal() {
   return remainingGoalPlan.map((goal) =>
     goal.id === "goal-phase-4-provider-surfaces"
-      ? { ...goal, current: true }
-      : goal.current
-        ? { ...goal, current: false }
-        : goal
+      ? { ...goal, status: "next" as const, current: true }
+      : goal
   );
 }
 
 function withDuplicateCurrentActivePhase4Goal() {
   return remainingGoalPlan.map((goal) =>
-    goal.id === "goal-phase-4-provider-surfaces"
+    goal.id === "goal-phase-3-proof-clearance"
       ? { ...goal, status: "active" as const, current: true }
       : goal
   );
@@ -147,7 +145,7 @@ describe("phase 4 provider traceability", () => {
     expect(summary.surfaceDepthItemCount).toBe(9);
     expect(summary.executionLockCount).toBe(6);
     expect(summary.nextAction).toContain(
-      "Keep Phase 4 provider review held until goal-phase-4-provider-surfaces is the single current active remaining goal"
+      "Add an explicit owner approval gate before provider execution can leave preview"
     );
     expect(summary.items.map((item) => item.kind)).toEqual([
       "active-goal",
@@ -161,10 +159,8 @@ describe("phase 4 provider traceability", () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: "active-goal",
-          status: "preview",
-          nextAction: expect.stringContaining(
-            "current active goal is goal-phase-3-proof-clearance"
-          )
+          status: "ready",
+          detail: expect.stringContaining("1 current active goal")
         }),
         expect.objectContaining({ kind: "surface-depth", status: "preview" }),
         expect.objectContaining({ kind: "execution-lock", status: "ready" })

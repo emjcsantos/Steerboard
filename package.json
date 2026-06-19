@@ -19,6 +19,8 @@
     "smoke:phase1-2": "cargo test phase1_phase2_live_desktop_smoke --manifest-path src-tauri/Cargo.toml -- --ignored --test-threads=1",
     "smoke:phase3": "cargo test phase3_live_desktop_smoke --manifest-path src-tauri/Cargo.toml -- --ignored --test-threads=1",
     "smoke:phase3:record": "node scripts/record-phase3-smoke-validation.mjs",
+    "smoke:phase3:panel-record": "node scripts/record-phase3-panel-evidence.mjs",
+    "smoke:phase3:record:all": "npm run smoke:phase3:record && npm run smoke:phase3:panel-record",
     "smoke:phase3:verify": "node scripts/verify-phase3-smoke-validation.mjs",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",

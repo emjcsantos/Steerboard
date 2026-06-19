@@ -312,7 +312,7 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("Catalog fingerprint");
     expect(html).toContain(phase4CatalogFingerprint);
     expect(html).toContain("matched");
-    expect(html).toContain("Phase 4 provider review artifact is valid but still has 1 open blocker");
+    expect(html).toContain("Phase 4 provider review artifact contains current catalog depth");
     expect(html).toContain("owner-visible provider readiness check");
     expect(html).toContain("Export review");
     expect(html).toContain("Import review");
@@ -328,7 +328,7 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("phase-04-surface-depth:audit-gate");
     expect(html).toContain("phase-04-surface-depth:rollback-gate");
     expect(html).toContain("phase-04-surface-depth:permission-gate");
-    expect(html).toContain("phase-04-traceability:active-goal");
+    expect(html).toContain("active-goal");
     expect(html).toContain("Phase 4 provider blocker priority");
     expect(html).toContain("Remaining goal link");
     expect(html).toContain("phase4-provider-permission-current");
@@ -339,15 +339,15 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("does not execute commands");
     expect(html).toContain("without running provider actions");
     expect(html).toContain("metadata-only");
-    expect(traceability.canTrustProviderReview).toBe(false);
+    expect(traceability.canTrustProviderReview).toBe(true);
     expect(traceability.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: "active-goal", status: "preview" })
+        expect.objectContaining({ kind: "active-goal", status: "ready" })
       ])
     );
-    expect(blockerPriority.state).toBe("preview");
+    expect(blockerPriority.state).toBe("ready");
     expect(reviewArtifactVerification).toMatchObject({
-      state: "review",
+      state: "ready",
       executionLocked: true
     });
   });

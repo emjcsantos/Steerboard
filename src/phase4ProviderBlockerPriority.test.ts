@@ -467,7 +467,14 @@ describe("phase 4 provider blocker priority", () => {
       rollbackValidation,
       permissionValidation: readyPermissionValidation(rollbackValidation),
       validation: validationFixture(),
-      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads)
+      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads),
+      goals: remainingGoalPlan.map((goal) =>
+        goal.id === "goal-phase-3-proof-clearance"
+          ? { ...goal, status: "active" as const, current: true, completionPercent: 99 }
+          : goal.id === "goal-phase-4-provider-surfaces"
+            ? { ...goal, status: "active" as const, current: false }
+            : goal
+      )
     });
 
     expect(snapshot.state).toBe("preview");

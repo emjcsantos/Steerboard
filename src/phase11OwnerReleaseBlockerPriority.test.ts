@@ -283,7 +283,7 @@ describe("phase 11 owner release blocker priority", () => {
     expect(result.state).toBe("review");
     expect(result.openBlockerCount).toBe(3);
     expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
-    expect(result.topPriorityAction).toContain("current active Phase 3 clearance PM traceability");
+    expect(result.topPriorityAction).toContain("completed Phase 3 clearance PM traceability");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -337,7 +337,7 @@ describe("phase 11 owner release blocker priority", () => {
           label: "Owner handoff proof",
           kind: "handoff-proof",
           status: "review",
-          detail: "current active Phase 3 clearance PM traceability with handoff proof still needs owner review.",
+          detail: "completed Phase 3 clearance PM traceability with handoff proof still needs owner review.",
           nextAction: "Record ready Phase 3 handoff proof before release review."
         }
       ]
@@ -354,7 +354,7 @@ describe("phase 11 owner release blocker priority", () => {
     expect(result.state).toBe("review");
     expect(result.openBlockerCount).toBe(5);
     expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
-    expect(result.topPriorityAction).toContain("current active Phase 3 clearance PM traceability");
+    expect(result.topPriorityAction).toContain("completed Phase 3 clearance PM traceability");
     expect(result.topPriorityAction).toContain("handoff proof");
     expect(result.items[0]).toMatchObject({
       kind: "traceability",

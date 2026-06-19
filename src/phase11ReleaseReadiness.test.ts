@@ -25,9 +25,9 @@ function ownerSnapshot(
     trace.goalId === "goal-phase-3-proof-clearance"
       ? {
           ...trace,
-          status: "active" as const,
+          status: "next" as const,
           completionPercent: 100,
-          current: true,
+          current: false,
           nextAction: "Keep the completed Phase 3 handoff proof and proof-export evidence attached."
         }
       : trace
@@ -246,7 +246,7 @@ describe("phase 11 release readiness", () => {
         expect.objectContaining({
           label: "Current Phase 3 trace",
           status: "ready",
-          nextAction: expect.stringContaining("current active Phase 3 clearance PM traceability")
+          nextAction: expect.stringContaining("completed Phase 3 clearance PM traceability")
         }),
         expect.objectContaining({
           label: "Packaging lock",
@@ -265,7 +265,7 @@ describe("phase 11 release readiness", () => {
         expect.objectContaining({
           label: "Release decision",
           nextAction: expect.stringContaining(
-            "current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence"
+            "completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence"
           )
         })
       ])
@@ -436,7 +436,7 @@ describe("phase 11 release readiness", () => {
           label: "Current Phase 3 trace",
           status: "review",
           detail: expect.stringContaining("not visible"),
-          nextAction: expect.stringContaining("current active Phase 3 clearance PM traceability")
+          nextAction: expect.stringContaining("completed Phase 3 clearance PM traceability")
         }),
         expect.objectContaining({
           label: "Release decision",
@@ -446,7 +446,7 @@ describe("phase 11 release readiness", () => {
     );
   });
 
-  it("reviews release readiness when Phase 3 traceability is not current", () => {
+  it("reviews release readiness when completed Phase 3 traceability is incomplete", () => {
     const result = snapshot({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
@@ -454,7 +454,7 @@ describe("phase 11 release readiness", () => {
             ? {
                 ...trace,
                 status: "next" as const,
-                completionPercent: 100,
+                completionPercent: 99,
                 current: false,
                 nextAction:
                   "Keep the completed Phase 3 handoff proof and proof-export evidence attached."
@@ -482,7 +482,7 @@ describe("phase 11 release readiness", () => {
     );
   });
 
-  it("reviews release readiness when Phase 3 traceability is current but not active", () => {
+  it("reviews release readiness when Phase 3 traceability is current but incomplete", () => {
     const result = snapshot({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
@@ -490,7 +490,7 @@ describe("phase 11 release readiness", () => {
             ? {
                 ...trace,
                 status: "next" as const,
-                completionPercent: 100,
+                completionPercent: 99,
                 current: true,
                 nextAction:
                   "Keep the completed Phase 3 handoff proof and proof-export evidence attached."

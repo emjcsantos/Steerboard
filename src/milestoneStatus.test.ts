@@ -261,14 +261,14 @@ describe("milestone status model", () => {
     expect(platform?.completionPercent).toBe(56);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution, and Phase 4 now exposes visible catalog evidence/action rows plus separate approval, audit, rollback, and permission execution holds. The current active implementation goal inside this milestone is Phase 3 exit-package clearance after local desktop smoke proof passed; Phase 4 provider integration remains next until combined recorded-artifact import, current-panel slash/session evidence, persisted smoke proof, CLI validation, traceability, proof export, and handoff boundary clear."
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution, Phase 3 exit-package clearance now has recorded CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, and proof-export readiness, and Phase 4 provider integration is the current active implementation goal."
     );
     expect(platform?.nextStep).toBe(
-      "Clear Phase 3 exit-package clearance by loading the combined recorded CLI validation and desktop smoke proof artifacts into UI storage, recording current-panel provider-routed slash and session-control checks in desktop mode, and verifying Owner Testing evidence moves from review to ready; then advance Phase 4 provider integration while keeping the connection dialog catalog smoke as the recurring provider-refresh regression check and arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled."
+      "Advance Phase 4 provider integration with the connection dialog catalog smoke as the recurring provider-refresh regression check, keep provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions behind owner-reviewed locks."
     );
   });
 
-  it("ties the current Platform milestone to the active Phase 3 goal before Phase 4 review resumes", () => {
+  it("ties the current Platform milestone to the active Phase 4 goal after Phase 3 clearance", () => {
     const platform = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Platform capabilities"
     );
@@ -278,14 +278,13 @@ describe("milestone status model", () => {
     );
 
     expect(platform?.current).toBe(true);
-    expect(activeGoal?.id).toBe("goal-phase-3-proof-clearance");
+    expect(activeGoal?.id).toBe("goal-phase-4-provider-surfaces");
     expect(activeGoal?.status).toBe("active");
-    expect(activeGoal?.target).toBe("Phase 3 desktop proof clearance");
-    expect(providerGoal?.status).toBe("next");
-    expect(platform?.latestNote).toContain("Phase 3 exit-package clearance");
-    expect(platform?.latestNote).toContain("Phase 4 provider integration remains next");
-    expect(platform?.nextStep).toContain("Phase 3 exit-package clearance");
-    expect(platform?.nextStep).toContain("advance Phase 4 provider integration");
+    expect(activeGoal?.target).toBe("Provider integration surfaces");
+    expect(providerGoal?.status).toBe("active");
+    expect(platform?.latestNote).toContain("Phase 3 exit-package clearance now has recorded CLI validation");
+    expect(platform?.latestNote).toContain("Phase 4 provider integration is the current active implementation goal");
+    expect(platform?.nextStep).toContain("Advance Phase 4 provider integration");
   });
 
   it("tracks Migration Center as an active metadata-only transition milestone", () => {
@@ -328,7 +327,7 @@ describe("milestone status model", () => {
       averageCompletionPercent: 51,
       nextTarget: "Platform capabilities",
       nextStep:
-        "Clear Phase 3 exit-package clearance by loading the combined recorded CLI validation and desktop smoke proof artifacts into UI storage, recording current-panel provider-routed slash and session-control checks in desktop mode, and verifying Owner Testing evidence moves from review to ready; then advance Phase 4 provider integration while keeping the connection dialog catalog smoke as the recurring provider-refresh regression check and arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions disabled.",
+        "Advance Phase 4 provider integration with the connection dialog catalog smoke as the recurring provider-refresh regression check, keep provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions behind owner-reviewed locks.",
       nextCompletionPercent: 56
     });
   });

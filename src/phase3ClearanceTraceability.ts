@@ -198,8 +198,8 @@ function goalItem(
   }
 
   const isLinked =
-    isCurrentActiveRemainingGoal(goal) &&
-    currentActiveGoalIds.length === 1 &&
+    ((isCurrentActiveRemainingGoal(goal) && currentActiveGoalIds.length === 1) ||
+      (goal.status === "next" && goal.completionPercent >= 100)) &&
     goal.priority === "critical" &&
     goal.phaseIds.includes(PHASE3_CLEARANCE_PHASE_ID);
   const status: Phase3ClearanceTraceabilityState = isLinked
@@ -218,8 +218,8 @@ function goalItem(
       currentActiveGoalIds.length > 1
         ? `Keep exactly one current active remaining goal before Phase 3 traceability can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
         : isLinked
-          ? "Keep Phase 3 as the current active critical clearance goal until handoff is recorded."
-          : "Restore Phase 3 to the current active critical goal linked to phase-03-controls-slash."
+          ? "Keep completed Phase 3 clearance proof linked while the next current active goal advances."
+          : "Restore Phase 3 to a trusted critical goal linked to phase-03-controls-slash."
   };
 }
 
@@ -240,12 +240,6 @@ export function buildPhase3ClearanceTraceabilityPrecondition(
   const missingGoalPmTaskIds = REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS.filter(
     (taskId) => !goalPmTaskIds.has(taskId)
   );
-  const isGoalReady =
-    isCurrentActiveRemainingGoal(goal) &&
-    currentActiveGoalIds.length === 1 &&
-    goal.priority === "critical" &&
-    goal.phaseIds.includes(PHASE3_CLEARANCE_PHASE_ID);
-
   if (!goal) {
     return {
       state: "blocked",
@@ -254,6 +248,12 @@ export function buildPhase3ClearanceTraceabilityPrecondition(
       nextAction: "Restore goal-phase-3-proof-clearance before Phase 3 handoff can advance."
     };
   }
+
+  const isGoalReady =
+    ((isCurrentActiveRemainingGoal(goal) && currentActiveGoalIds.length === 1) ||
+      (goal.status === "next" && goal.completionPercent >= 100)) &&
+    goal.priority === "critical" &&
+    goal.phaseIds.includes(PHASE3_CLEARANCE_PHASE_ID);
 
   if (currentActiveGoalIds.length > 1) {
     return {
@@ -269,7 +269,7 @@ export function buildPhase3ClearanceTraceabilityPrecondition(
       state: goal.status === "active" ? "review" : "blocked",
       canTrustTrace: false,
       detail: `${goal.id} is ${goal.status}, ${goal.priority}, current ${goal.current === true ? "yes" : "no"}, and linked to ${goal.phaseIds.includes(PHASE3_CLEARANCE_PHASE_ID) ? "Phase 3" : "another phase"}.`,
-      nextAction: "Restore Phase 3 to the current active critical goal linked to phase-03-controls-slash before handoff can advance."
+      nextAction: "Restore Phase 3 to a current active or completed critical goal linked to phase-03-controls-slash before handoff can advance."
     };
   }
 
@@ -547,7 +547,11 @@ export function buildPhase3ClearanceTraceability(
     (item) => item.id
   );
   const isCurrentActiveGoal = isCurrentActiveRemainingGoal(goal);
+  const isCompletedPhase3Goal =
+    goal?.status === "next" && goal.completionPercent >= 100;
   const hasExactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
+  const hasTrustedPhase3GoalLifecycle =
+    (isCurrentActiveGoal && hasExactlyOneCurrentActiveGoal) || isCompletedPhase3Goal;
   const pmTaskIds = new Set(pmTasks.map((task) => task.id));
   const goalPmTaskIds = new Set(goal?.pmTaskIds ?? []);
   const missingPmTaskIds = REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS.filter(
@@ -587,8 +591,7 @@ export function buildPhase3ClearanceTraceability(
     openTraceCount: items.filter((item) => item.status !== "ready").length,
     canTrustTrace:
       state === "ready" &&
-      isCurrentActiveGoal &&
-      hasExactlyOneCurrentActiveGoal &&
+      hasTrustedPhase3GoalLifecycle &&
       missingPmTaskIds.length === 0 &&
       missingGoalPmTaskIds.length === 0,
     nextAction: firstNextAction(items),
