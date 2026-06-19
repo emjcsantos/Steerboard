@@ -606,6 +606,15 @@ describe("phase 11 owner release traceability", () => {
         })
       ])
     );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "phase3-trace",
+          status: "review",
+          nextAction: expect.stringContaining("Record the owner-reviewed Phase 3 handoff.")
+        })
+      ])
+    );
   });
 
   it("reviews when Phase 3 traceability is not current", () => {

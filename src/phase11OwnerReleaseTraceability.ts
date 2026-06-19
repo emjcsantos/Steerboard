@@ -358,6 +358,9 @@ function phase3TraceItem(
   const handoffProofReady = proofFreshnessDepth.items.some(
     (item) => item.kind === "handoff-proof" && item.status === "ready"
   );
+  const handoffProofItem = proofFreshnessDepth.items.find(
+    (item) => item.kind === "handoff-proof"
+  );
   const proofExportItem = proofFreshnessDepth.items.find((item) => item.kind === "proof-export");
   const proofExportReady = proofExportItem?.status === "ready";
   const proofExportDetail = publicText(
@@ -401,10 +404,14 @@ function phase3TraceItem(
         : !handoffProofReady
           ? "phase-11-proof-freshness-depth:handoff-proof"
           : "phase-11-proof-freshness-depth:proof-export");
+  const targetedProofAction =
+    !handoffProofReady && handoffProofItem?.nextAction
+      ? handoffProofItem.nextAction
+      : !proofExportReady && proofExportItem?.nextAction
+        ? proofExportItem.nextAction
+        : proofFreshnessDepth.nextAction;
   const proofFreshnessNextAction = publicText(
-    !proofExportReady && proofExportItem?.nextAction
-      ? proofExportItem.nextAction
-      : proofFreshnessDepth.nextAction,
+    targetedProofAction,
     "Review Phase 11 proof freshness depth before release readiness."
   );
 
