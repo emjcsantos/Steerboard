@@ -374,7 +374,7 @@ describe("phase 11 owner release blocker priority", () => {
     );
   });
 
-  it("ranks desktop-smoke storage review above generic proof review rows", () => {
+  it("ranks desktop-smoke storage review above proof-export review rows", () => {
     const proofFreshnessDepth = proofSnapshot({
       state: "review",
       statusLabel: "Review",
@@ -386,12 +386,12 @@ describe("phase 11 owner release blocker priority", () => {
       nextAction: "Import or rerun desktop smoke proof rows until each required row is storage-proof attested.",
       items: [
         {
-          id: "phase-11-proof-freshness-depth:command-validation",
-          label: "CLI smoke validation record",
-          kind: "command-validation",
+          id: "phase-11-proof-freshness-depth:proof-export",
+          label: "Phase 3 proof export",
+          kind: "proof-export",
           status: "review",
-          detail: "CLI validation record needs review.",
-          nextAction: "Record a fresh CLI validation."
+          detail: "Proof export is held until offline verification is ready.",
+          nextAction: "Refresh Phase 3 proof export before release readiness."
         },
         {
           id: "phase-11-proof-freshness-depth:desktop-smoke",
@@ -412,7 +412,17 @@ describe("phase 11 owner release blocker priority", () => {
     expect(result.topPriorityLabel).toBe("Desktop smoke proof");
     expect(result.topPriorityAction).toContain("storage-proof attested");
     expect(priorityByLabel.get("Desktop smoke proof")).toBeLessThan(
-      priorityByLabel.get("CLI smoke validation record") ?? Number.POSITIVE_INFINITY
+      priorityByLabel.get("Phase 3 proof export") ?? Number.POSITIVE_INFINITY
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "proof-freshness",
+          label: "Phase 3 proof export",
+          detail: expect.stringContaining("offline verification"),
+          nextAction: expect.stringContaining("Refresh Phase 3 proof export before release readiness.")
+        })
+      ])
     );
   });
 
