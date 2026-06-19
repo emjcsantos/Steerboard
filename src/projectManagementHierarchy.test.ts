@@ -129,6 +129,15 @@ describe("project management hierarchy", () => {
     expect(byId.get("phase-06-child-publish-hold-blocker-priority")?.description).toContain(
       "owner/remote publish hold"
     );
+    expect(collectProjectManagementDescendants(tasks, "phase-06-planning-lane").map((task) => task.id)).toEqual([
+      "phase-06-parent-phase-board",
+      "phase-06-child-current-phase-map",
+      "phase-06-child-saved-state-upgrade",
+      "phase-06-parent-arena-staging",
+      "phase-06-child-run-context",
+      "phase-06-child-publish-hold-traceability",
+      "phase-06-child-publish-hold-blocker-priority"
+    ]);
   });
 
   it("builds a staged Arena dispatch package with hierarchy context", () => {
