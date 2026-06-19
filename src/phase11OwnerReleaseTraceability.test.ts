@@ -472,6 +472,9 @@ describe("phase 11 owner release traceability", () => {
         nextAction: expect.stringContaining("phase-11-proof-freshness-depth:proof-export")
       })
     );
+    expect(phase3Trace?.nextAction).toContain(
+      "Refresh Phase 3 proof export before release readiness."
+    );
     expect(phase3Trace?.detail).toContain("Proof export is held until offline verification is ready.");
     expect(phase3Trace?.detail).toContain(PHASE3_PROOF_EXPORT_EVIDENCE_KEY);
   });

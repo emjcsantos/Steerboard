@@ -401,6 +401,12 @@ function phase3TraceItem(
         : !handoffProofReady
           ? "phase-11-proof-freshness-depth:handoff-proof"
           : "phase-11-proof-freshness-depth:proof-export");
+  const proofFreshnessNextAction = publicText(
+    !proofExportReady && proofExportItem?.nextAction
+      ? proofExportItem.nextAction
+      : proofFreshnessDepth.nextAction,
+    "Review Phase 11 proof freshness depth before release readiness."
+  );
 
   return {
     id: `${TRACE_ID}:phase3-trace`,
@@ -413,7 +419,7 @@ function phase3TraceItem(
     nextAction:
       status === "ready"
         ? "Keep current active Phase 3 clearance PM traceability plus ready handoff proof and proof-export evidence visible before release readiness is trusted."
-        : `Restore current active Phase 3 clearance PM traceability, required PM row completion, trusted handoff proof, and proof-export evidence before Phase 11 owner release review can be trusted: ${traceRestoreTarget}.`
+        : `Restore current active Phase 3 clearance PM traceability, required PM row completion, trusted handoff proof, and proof-export evidence before Phase 11 owner release review can be trusted: ${traceRestoreTarget}. Next proof action: ${proofFreshnessNextAction}`
   };
 }
 
