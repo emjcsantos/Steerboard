@@ -89,6 +89,16 @@ function assertFingerprintMatches(actual, proof, label) {
   }
 }
 
+function isReadyDesktopProof(proof) {
+  return (
+    proof.source === "desktop" &&
+    proof.executed === true &&
+    proof.ok === true &&
+    proof.failed !== true &&
+    proof.unsupported !== true
+  );
+}
+
 function verifyCommandArtifact(record, smokeBundleEnvelope) {
   assertRecord(record, "command validation artifact");
 
@@ -149,6 +159,9 @@ function verifySmokeBundleArtifact(envelope) {
     assertFingerprintMatches(fingerprints[key], proof, `smoke proof ${key}`);
     if (proof.source === "desktop" && proof.executed === true) {
       desktopExecutedRows += 1;
+    }
+    if (!isReadyDesktopProof(proof)) {
+      throw new Error(`smoke proof ${key} is not a ready desktop proof row`);
     }
   }
 

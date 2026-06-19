@@ -107,6 +107,15 @@ function desktopExecutedRow(value) {
   return isRecord(value) && value.source === "desktop" && value.executed === true;
 }
 
+function desktopReadyRow(value) {
+  return (
+    desktopExecutedRow(value) &&
+    value.ok === true &&
+    value.failed !== true &&
+    value.unsupported !== true
+  );
+}
+
 async function createSmokeBundleEnvelope(createdAt, counts) {
   const parsed = JSON.parse(await readFile(smokeBundleArtifactPath, "utf8"));
   if (!isRecord(parsed)) {
@@ -120,9 +129,15 @@ async function createSmokeBundleEnvelope(createdAt, counts) {
     activeTurnSteerSmoke: bundle.activeTurnSteerSmoke
   };
   const desktopExecutedRows = Object.values(proofs).filter(desktopExecutedRow).length;
+  const desktopReadyRows = Object.values(proofs).filter(desktopReadyRow).length;
 
   if (desktopExecutedRows === 0) {
     throw new Error("Phase 3 smoke proof bundle has no desktop-executed proof rows.");
+  }
+  if (desktopReadyRows !== proofKeys.length) {
+    throw new Error(
+      `expected ${proofKeys.length} ready desktop proof rows, found ${desktopReadyRows}`
+    );
   }
 
   return {

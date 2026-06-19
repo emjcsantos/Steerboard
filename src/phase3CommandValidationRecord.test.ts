@@ -238,6 +238,117 @@ describe("phase 3 command validation record", () => {
     });
   });
 
+  it("keeps CLI smoke validation ready when current proof rows are storage-attested", () => {
+    const parsed = parseStoredPhase3CommandValidationRecord(
+      JSON.stringify({
+        id: "phase3-command-validation:2026-06-18T07:30:00.000Z",
+        createdAt: "2026-06-18T07:30:00.000Z",
+        command: "npm.cmd run smoke:phase3",
+        status: "passed",
+        passedTestCount: 3,
+        failedTestCount: 0,
+        smokeBundle: smokeBundleMetadataForRows(currentSmokeProofBundle),
+        detail:
+          "Phase 3 CLI smoke validation passed locally via npm.cmd run smoke:phase3."
+      })
+    );
+    const storageAttestedCurrentProof = {
+      liveControlSmoke: {
+        ...currentSmokeProofBundle.liveControlSmoke,
+        phase3StorageProof: {
+          source: "steerboard.phase3.smoke-proof-storage.v1",
+          proof: "liveControlSmoke",
+          createdAt: "2026-06-18T07:31:00.000Z",
+          proofFingerprint: createPhase3SmokeProofFingerprint(
+            currentSmokeProofBundle.liveControlSmoke
+          )
+        }
+      },
+      activeTurnInterruptSmoke: {
+        ...currentSmokeProofBundle.activeTurnInterruptSmoke,
+        phase3StorageProof: {
+          source: "steerboard.phase3.smoke-proof-storage.v1",
+          proof: "activeTurnInterruptSmoke",
+          createdAt: "2026-06-18T07:31:00.000Z",
+          proofFingerprint: createPhase3SmokeProofFingerprint(
+            currentSmokeProofBundle.activeTurnInterruptSmoke
+          )
+        }
+      },
+      activeTurnSteerSmoke: {
+        ...currentSmokeProofBundle.activeTurnSteerSmoke,
+        phase3StorageProof: {
+          source: "steerboard.phase3.smoke-proof-storage.v1",
+          proof: "activeTurnSteerSmoke",
+          createdAt: "2026-06-18T07:31:00.000Z",
+          proofFingerprint: createPhase3SmokeProofFingerprint(
+            currentSmokeProofBundle.activeTurnSteerSmoke
+          )
+        }
+      }
+    } as unknown as Phase3SmokeProofBundle;
+
+    const validation = derivePhase3CommandValidationRecordValidation(parsed, {
+      evaluatedAt: "2026-06-18T07:31:00.000Z",
+      expectedCommand: "npm.cmd run smoke:phase3",
+      currentSmokeProofBundle: storageAttestedCurrentProof
+    });
+
+    expect(validation).toMatchObject({
+      state: "ready",
+      isFresh: true,
+      hasSmokeBundleProvenance: true
+    });
+  });
+
+  it("keeps CLI smoke validation ready when imported proof rows normalize checkedAt timestamps", () => {
+    const normalizedCurrentProof = {
+      liveControlSmoke: {
+        ...currentSmokeProofBundle.liveControlSmoke,
+        checkedAt: new Date(
+          Number(currentSmokeProofBundle.liveControlSmoke.checkedAt)
+        ).toISOString()
+      },
+      activeTurnInterruptSmoke: {
+        ...currentSmokeProofBundle.activeTurnInterruptSmoke,
+        checkedAt: new Date(
+          Number(currentSmokeProofBundle.activeTurnInterruptSmoke.checkedAt)
+        ).toISOString()
+      },
+      activeTurnSteerSmoke: {
+        ...currentSmokeProofBundle.activeTurnSteerSmoke,
+        checkedAt: new Date(
+          Number(currentSmokeProofBundle.activeTurnSteerSmoke.checkedAt)
+        ).toISOString()
+      }
+    } as unknown as Phase3SmokeProofBundle;
+    const parsed = parseStoredPhase3CommandValidationRecord(
+      JSON.stringify({
+        id: "phase3-command-validation:2026-06-18T07:30:00.000Z",
+        createdAt: "2026-06-18T07:30:00.000Z",
+        command: "npm.cmd run smoke:phase3",
+        status: "passed",
+        passedTestCount: 3,
+        failedTestCount: 0,
+        smokeBundle: smokeBundleMetadataForRows(currentSmokeProofBundle),
+        detail:
+          "Phase 3 CLI smoke validation passed locally via npm.cmd run smoke:phase3."
+      })
+    );
+
+    const validation = derivePhase3CommandValidationRecordValidation(parsed, {
+      evaluatedAt: "2026-06-18T07:31:00.000Z",
+      expectedCommand: "npm.cmd run smoke:phase3",
+      currentSmokeProofBundle: normalizedCurrentProof
+    });
+
+    expect(validation).toMatchObject({
+      state: "ready",
+      isFresh: true,
+      hasSmokeBundleProvenance: true
+    });
+  });
+
   it("rejects records with malformed attached smoke bundle provenance", () => {
     expect(
       parseStoredPhase3CommandValidationRecord(

@@ -204,6 +204,38 @@ function summarizeSmokeBundleProvenance(
   };
 }
 
+function proofWithRecorderTimestamp(value: unknown): unknown {
+  if (!isRecord(value) || typeof value.checkedAt !== "string") {
+    return value;
+  }
+
+  const checkedAtMs = Date.parse(value.checkedAt);
+  if (!Number.isFinite(checkedAtMs)) {
+    return value;
+  }
+
+  return {
+    ...value,
+    checkedAt: String(checkedAtMs)
+  };
+}
+
+function proofFingerprintCandidates(value: unknown): readonly string[] {
+  return Array.from(
+    new Set([
+      createPhase3SmokeProofFingerprint(value),
+      createPhase3SmokeProofFingerprint(proofWithRecorderTimestamp(value))
+    ])
+  );
+}
+
+function fingerprintMatchesAny(
+  expected: string,
+  candidates: readonly string[]
+): boolean {
+  return candidates.includes(expected);
+}
+
 function smokeBundleFingerprintsMatchCurrentProofRows(
   record: Phase3CommandValidationRecord,
   currentSmokeProofBundle: Phase3SmokeProofBundle | undefined
@@ -213,24 +245,30 @@ function smokeBundleFingerprintsMatchCurrentProofRows(
   }
 
   const currentFingerprints = {
-    liveControlSmoke: createPhase3SmokeProofFingerprint(
+    liveControlSmoke: proofFingerprintCandidates(
       currentSmokeProofBundle.liveControlSmoke
     ),
-    activeTurnInterruptSmoke: createPhase3SmokeProofFingerprint(
+    activeTurnInterruptSmoke: proofFingerprintCandidates(
       currentSmokeProofBundle.activeTurnInterruptSmoke
     ),
-    activeTurnSteerSmoke: createPhase3SmokeProofFingerprint(
+    activeTurnSteerSmoke: proofFingerprintCandidates(
       currentSmokeProofBundle.activeTurnSteerSmoke
     )
   };
 
   return (
-    record.smokeBundle.rowFingerprints.liveControlSmoke ===
-      currentFingerprints.liveControlSmoke &&
-    record.smokeBundle.rowFingerprints.activeTurnInterruptSmoke ===
-      currentFingerprints.activeTurnInterruptSmoke &&
-    record.smokeBundle.rowFingerprints.activeTurnSteerSmoke ===
+    fingerprintMatchesAny(
+      record.smokeBundle.rowFingerprints.liveControlSmoke,
+      currentFingerprints.liveControlSmoke
+    ) &&
+    fingerprintMatchesAny(
+      record.smokeBundle.rowFingerprints.activeTurnInterruptSmoke,
+      currentFingerprints.activeTurnInterruptSmoke
+    ) &&
+    fingerprintMatchesAny(
+      record.smokeBundle.rowFingerprints.activeTurnSteerSmoke,
       currentFingerprints.activeTurnSteerSmoke
+    )
   );
 }
 
