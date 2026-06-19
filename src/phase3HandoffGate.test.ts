@@ -200,7 +200,7 @@ describe("phase 3 handoff gate", () => {
         expect.objectContaining({
           label: "Provider boundary",
           status: "review",
-          detail: expect.stringContaining("Phase 4 review remains held")
+          detail: expect.stringContaining("proof-export offline verification")
         })
       ])
     );
@@ -228,7 +228,7 @@ describe("phase 3 handoff gate", () => {
         expect.objectContaining({
           label: "Provider boundary",
           status: "review",
-          detail: expect.stringContaining("traceability precondition is attached")
+          detail: expect.stringContaining("traceability precondition is attached and proof-export offline verification is trusted")
         })
       ])
     );
@@ -272,7 +272,7 @@ describe("phase 3 handoff gate", () => {
         expect.objectContaining({
           label: "Provider boundary",
           status: "review",
-          detail: expect.stringContaining("fresh age metadata")
+          detail: expect.stringContaining("proof-export offline verification")
         })
       ])
     );
@@ -301,7 +301,7 @@ describe("phase 3 handoff gate", () => {
         expect.objectContaining({
           label: "Provider boundary",
           status: "review",
-          detail: expect.stringContaining("validated against current evidence")
+          detail: expect.stringContaining("validated against current evidence and proof-export offline verification is trusted")
         })
       ])
     );

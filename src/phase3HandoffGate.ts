@@ -475,8 +475,8 @@ function providerBoundaryItem(
       kind: "provider-boundary",
       status: traceabilityPrecondition?.state ?? "review",
       detail: traceabilityPrecondition
-        ? `Phase 4 review remains held because ${traceabilityPrecondition.detail}`
-        : "Phase 4 review remains held until Phase 3 traceability precondition is attached.",
+        ? `Phase 4 review remains held because ${traceabilityPrecondition.detail} proof-export offline verification must stay trusted before Phase 4 review resumes.`
+        : "Phase 4 review remains held until Phase 3 traceability precondition is attached and proof-export offline verification is trusted.",
       nextAction:
         traceabilityPrecondition?.nextAction ??
         "Attach Phase 3 traceability precondition before Phase 4 review resumes and proof-export offline verification is trusted."
@@ -490,8 +490,8 @@ function providerBoundaryItem(
       kind: "provider-boundary",
       status: commandValidation?.state ?? "waiting",
       detail: commandValidation
-        ? `Phase 4 review remains held because ${commandValidation.detail}`
-        : "Phase 4 review remains held until fresh Phase 3 CLI smoke validation is attached.",
+        ? `Phase 4 review remains held because ${commandValidation.detail} proof-export offline verification must stay trusted before Phase 4 review resumes.`
+        : "Phase 4 review remains held until fresh Phase 3 CLI smoke validation is attached and proof-export offline verification is trusted.",
       nextAction:
         commandValidation?.nextAction ??
         "Attach fresh Phase 3 CLI smoke validation before Phase 4 review resumes and proof-export offline verification is trusted."
@@ -506,13 +506,13 @@ function providerBoundaryItem(
       status: validatedRecordState === "review" ? "review" : "waiting",
       detail:
         handoffRecordValidation?.state === "review"
-          ? `Phase 4 review remains held because ${handoffRecordValidation.detail}`
+          ? `Phase 4 review remains held because ${handoffRecordValidation.detail} proof-export offline verification must stay trusted before Phase 4 review resumes.`
           : handoffRecordValidation?.state === "ready" &&
               !hasReadyHandoffValidation(handoffRecordValidation)
-            ? "Phase 4 review remains held until the owner handoff record proves a current evidence fingerprint match and fresh age metadata."
+            ? "Phase 4 review remains held until the owner handoff record proves a current evidence fingerprint match, fresh age metadata, and trusted proof-export offline verification."
           : !handoffRecordValidation && handoffRecordState === "ready"
-            ? "Phase 4 review remains held until the owner handoff record is validated against current evidence."
-            : "Phase 4 review remains held until the owner handoff record is attached.",
+            ? "Phase 4 review remains held until the owner handoff record is validated against current evidence and proof-export offline verification is trusted."
+            : "Phase 4 review remains held until the owner handoff record is attached and proof-export offline verification is trusted.",
       nextAction:
         handoffRecordValidation?.state === "review"
           ? handoffRecordValidation.nextAction
