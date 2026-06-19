@@ -536,7 +536,8 @@ describe("phase 11 owner command center", () => {
             label: "Phase 3 proof export",
             kind: "proof-export",
             status: "review",
-            detail: "Proof export is held until offline verification is ready.",
+            detail:
+              "Proof export is held until offline verification is ready. PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification.",
             nextAction: "Refresh Phase 3 proof export before release readiness."
           }
         ]
@@ -556,7 +557,7 @@ describe("phase 11 owner command center", () => {
         }),
         expect.objectContaining({
           label: "Proof freshness",
-          detail: expect.stringContaining("Proof export is held until offline verification is ready.")
+          detail: expect.stringContaining("phase3.proof-export.offline-verification")
         })
       ])
     );

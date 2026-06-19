@@ -441,7 +441,8 @@ describe("phase 11 owner release traceability", () => {
             label: "Phase 3 proof export",
             kind: "proof-export",
             status: "review",
-            detail: "Proof export is held until offline verification is ready.",
+            detail:
+              "Proof export is held until offline verification is ready. PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification.",
             nextAction: "Refresh Phase 3 proof export before release readiness."
           },
           {
@@ -468,6 +469,7 @@ describe("phase 11 owner release traceability", () => {
       })
     );
     expect(phase3Trace?.detail).toContain("Proof export is held until offline verification is ready.");
+    expect(phase3Trace?.detail).toContain("phase3.proof-export.offline-verification");
   });
 
   it("reviews current Phase 3 trace when handoff is ready but proof freshness is not trusted", () => {

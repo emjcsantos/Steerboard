@@ -58,7 +58,7 @@ function ownerCommandSnapshot(
         kind: "proof-freshness",
         status: "review",
         detail:
-          "Top proof-depth row: Phase 3 proof export is review; Proof export is held until offline verification is ready.",
+          "Top proof-depth row: Phase 3 proof export is review; Proof export is held until offline verification is ready. PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification.",
         nextAction:
           "Refresh Phase 3 proof export before release readiness."
       },
@@ -649,7 +649,7 @@ describe("phase 11 owner-visible proof", () => {
         status: "ready" as const,
         detail:
           item.kind === "phase3-trace"
-            ? "goal-phase-3-proof-clearance is active, current yes, with 11 PM task links including phase-03-child-smoke-rows, phase-03-child-exit-gate, phase-03-child-command-plan, phase-03-child-blocker-priority, phase-03-child-traceability, phase-03-child-handoff-gate; proof freshness trusted; handoff proof ready; proof export ready."
+            ? "goal-phase-3-proof-clearance is active, current yes, with 12 PM task links including phase-03-child-smoke-rows, phase-03-child-exit-gate, phase-03-child-command-plan, phase-03-child-blocker-priority, phase-03-child-traceability, phase-03-child-proof-export-boundary, phase-03-child-handoff-gate; proof freshness trusted; handoff proof ready; proof export ready."
             : item.detail,
         nextAction:
           item.label === "Packaging lock"

@@ -390,7 +390,8 @@ describe("phase 11 owner release blocker priority", () => {
           label: "Phase 3 proof export",
           kind: "proof-export",
           status: "review",
-          detail: "Proof export is held until offline verification is ready.",
+          detail:
+            "Proof export is held until offline verification is ready. PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification.",
           nextAction: "Refresh Phase 3 proof export before release readiness."
         },
         {
