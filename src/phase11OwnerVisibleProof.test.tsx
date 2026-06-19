@@ -433,6 +433,18 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Docs and known limits");
     expect(html).toContain("Release decision evidence");
     expect(html).toContain(
+      "Attach owner-local clean checkout metadata covering install, dependency verification, and startup proof."
+    );
+    expect(html).toContain(
+      "Attach owner-local build and test metadata covering test, build, and output."
+    );
+    expect(html).toContain(
+      "Attach owner-local docs and known limits metadata covering docs, owner checklist, packaging limits, and known limits."
+    );
+    expect(html).toContain(
+      "Attach owner-local release decision evidence metadata covering owner release-decision evidence, packaging locked, Phase 3 handoff proof, and security closure."
+    );
+    expect(html).toContain(
       "Record release-decision evidence metadata before release readiness can recommend release"
     );
     expect(html).toContain("Import JSON");

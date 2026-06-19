@@ -103,6 +103,10 @@ const REQUIRED_DETAIL_COVERAGE_COPY: Record<Phase11EvidenceGate, string> = {
   "release-decision": "owner release-decision evidence, packaging locked, Phase 3 handoff proof, and security closure"
 };
 
+export function phase11EvidenceGateCoverageCopy(gate: Phase11EvidenceGate): string {
+  return REQUIRED_DETAIL_COVERAGE_COPY[gate];
+}
+
 function normalizeState(value: unknown): Phase11EvidenceRecordState | undefined {
   if (typeof value !== "string") {
     return undefined;

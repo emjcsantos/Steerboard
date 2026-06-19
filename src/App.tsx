@@ -681,6 +681,7 @@ import {
 } from "./phase11OwnerCommandCenter";
 import {
   buildPhase11EvidenceRecords,
+  phase11EvidenceGateCoverageCopy,
   type Phase11EvidenceGate,
   type Phase11EvidenceRecordInput,
   type Phase11EvidenceRecordsSnapshot
@@ -15650,7 +15651,7 @@ export function Phase11EvidenceRecordsPanel({
               <div className="phase11-evidence-record-row-actions">
                 <button
                   onClick={() => onRecord(record.gate)}
-                  title={`Attach owner-local ${record.label.toLowerCase()} evidence metadata.`}
+                  title={`Attach owner-local ${record.label.toLowerCase()} metadata covering ${phase11EvidenceGateCoverageCopy(record.gate)}.`}
                   type="button"
                 >
                   <CheckCircle2 size={13} />
