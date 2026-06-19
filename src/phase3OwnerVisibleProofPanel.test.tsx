@@ -996,6 +996,9 @@ describe("phase 3 owner-visible proof panel", () => {
     });
 
     expect(html).toContain("Advance held");
+    expect(html).toContain(
+      'aria-label="Phase 3 handoff gate counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>State</dt><dd>Review</dd></div></dl>'
+    );
     expect(html).toContain("Current evidence review 100%");
     expect(html).toContain(expectedFingerprint);
     expect(html).toContain("phase3-handoff-stale");
