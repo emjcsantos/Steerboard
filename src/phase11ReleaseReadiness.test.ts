@@ -638,6 +638,51 @@ describe("phase 11 release readiness", () => {
     );
   });
 
+  it("reviews release readiness when release-decision evidence predates prerequisite evidence", () => {
+    const result = snapshot({
+      buildTestEvidence: evaluatePhase11EvidenceRecord(
+        "build-test",
+        {
+          gate: "build-test",
+          state: "ready",
+          source: "owner build",
+          recordedAt: "2026-06-17T11:30:00.000Z",
+          detail: "Final test, build, and output evidence passed."
+        },
+        "2026-06-17T12:00:00.000Z"
+      ),
+      releaseDecisionEvidence: evaluatePhase11EvidenceRecord(
+        "release-decision",
+        {
+          gate: "release-decision",
+          state: "ready",
+          source: "owner release review",
+          recordedAt: "2026-06-17T10:00:00.000Z",
+          detail:
+            "Owner release decision recorded while packaging locked, Phase 3 handoff proof stayed attached, and security closure proof was ready."
+        },
+        "2026-06-17T12:00:00.000Z"
+      )
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Release decision",
+          status: "review",
+          detail: expect.stringContaining(
+            "recorded before build and test evidence at 2026-06-17T11:30:00.000Z"
+          ),
+          nextAction: expect.stringContaining(
+            "Re-record owner release-decision evidence after all prerequisite evidence rows are current"
+          )
+        })
+      ])
+    );
+  });
+
   it("keeps the current release pass held when proof and clean-run evidence are missing", () => {
     const result = snapshot({
       ownerCommandCenter: ownerSnapshot({

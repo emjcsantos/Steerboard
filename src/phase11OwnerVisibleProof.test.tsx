@@ -466,6 +466,9 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Security closure capability is available.");
     expect(html).toContain("Keep security closure evidence attached.");
     expect(html).toContain("Release decision");
+    expect(html).toContain(
+      "Owner can decide whether to resume release only after all evidence is ready."
+    );
     expect(html).toContain("storage-proof attested");
     expect(html).toContain("current active Phase 3 clearance PM traceability");
     expect(html).toContain("Top prerequisite row: Fresh checkout is review");

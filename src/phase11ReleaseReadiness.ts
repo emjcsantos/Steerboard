@@ -460,6 +460,29 @@ function nonReadyState(
   return undefined;
 }
 
+function evidenceRecordedAtMs(evidence: Phase11EvidenceRecordSnapshot | undefined): number | undefined {
+  if (!evidence) {
+    return undefined;
+  }
+
+  const recordedAtMs = Date.parse(evidence.recordedAt);
+  return Number.isFinite(recordedAtMs) ? recordedAtMs : undefined;
+}
+
+function latestPrerequisiteEvidence(
+  evidenceRows: readonly Phase11EvidenceRecordSnapshot[]
+): Phase11EvidenceRecordSnapshot | undefined {
+  return evidenceRows.reduce<Phase11EvidenceRecordSnapshot | undefined>((latest, evidence) => {
+    const evidenceMs = evidenceRecordedAtMs(evidence);
+    if (evidenceMs === undefined) {
+      return latest;
+    }
+
+    const latestMs = evidenceRecordedAtMs(latest);
+    return latestMs === undefined || evidenceMs > latestMs ? evidence : latest;
+  }, undefined);
+}
+
 function releaseDecisionItem(
   input: Phase11ReleaseReadinessInput,
   prerequisiteItems: readonly Phase11ReleaseReadinessItem[]
@@ -636,6 +659,35 @@ function releaseDecisionItem(
         `${input.releaseDecisionEvidence.detail} Source: ${input.releaseDecisionEvidence.source}; ` +
         `recorded: ${input.releaseDecisionEvidence.recordedAt}; freshness: ${input.releaseDecisionEvidence.freshness}.`,
       nextAction: input.releaseDecisionEvidence.nextAction
+    };
+  }
+
+  const latestPrerequisite = latestPrerequisiteEvidence([
+    input.freshCheckoutEvidence,
+    input.cleanCheckoutEvidence,
+    input.buildTestEvidence,
+    input.docsKnownLimitsEvidence
+  ].filter((evidence): evidence is Phase11EvidenceRecordSnapshot => Boolean(evidence)));
+  const releaseDecisionRecordedAtMs = evidenceRecordedAtMs(input.releaseDecisionEvidence);
+  const latestPrerequisiteRecordedAtMs = evidenceRecordedAtMs(latestPrerequisite);
+
+  if (
+    latestPrerequisite &&
+    releaseDecisionRecordedAtMs !== undefined &&
+    latestPrerequisiteRecordedAtMs !== undefined &&
+    releaseDecisionRecordedAtMs < latestPrerequisiteRecordedAtMs
+  ) {
+    return {
+      id: `${SNAPSHOT_ID}:release-decision`,
+      label: "Release decision",
+      kind: "release-decision",
+      status: "review",
+      detail:
+        `${input.releaseDecisionEvidence.detail} Source: ${input.releaseDecisionEvidence.source}; ` +
+        `recorded: ${input.releaseDecisionEvidence.recordedAt}; freshness: ${input.releaseDecisionEvidence.freshness}; ` +
+        `recorded before ${latestPrerequisite.label.toLowerCase()} evidence at ${latestPrerequisite.recordedAt}.`,
+      nextAction:
+        "Re-record owner release-decision evidence after all prerequisite evidence rows are current and packaging remains locked."
     };
   }
 
