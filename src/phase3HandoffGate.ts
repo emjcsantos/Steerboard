@@ -3,6 +3,7 @@ import type {
   Phase3ClearancePackageState
 } from "./phase3ClearancePackage";
 import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
+import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffRecordValidation } from "./phase3HandoffRecord";
 
 export type Phase3HandoffGateState = Phase3ClearancePackageState;
@@ -11,6 +12,7 @@ export type Phase3HandoffGateItemKind =
   | "desktop-proof"
   | "blocker-visibility"
   | "traceability-boundary"
+  | "command-validation"
   | "handoff-record"
   | "provider-boundary";
 
@@ -66,6 +68,7 @@ export interface Phase3HandoffGate {
 export interface Phase3HandoffGateInput {
   readonly clearancePackage: Phase3ClearancePackage;
   readonly traceabilityPrecondition?: Phase3ClearanceTraceabilityPrecondition;
+  readonly commandValidation?: Phase3CommandValidationRecordValidation;
   readonly handoffRecordState?: Phase3HandoffGateState;
   readonly handoffRecordValidation?: Phase3HandoffRecordValidation;
 }
@@ -221,6 +224,40 @@ function canTrustTraceability(
   traceabilityPrecondition: Phase3ClearanceTraceabilityPrecondition | undefined
 ): boolean {
   return traceabilityPrecondition?.canTrustTrace === true;
+}
+
+function hasReadyCommandValidation(
+  commandValidation: Phase3CommandValidationRecordValidation | undefined
+): boolean {
+  return commandValidation?.state === "ready";
+}
+
+function commandValidationItem(
+  commandValidation: Phase3CommandValidationRecordValidation | undefined
+): Phase3HandoffGateItem {
+  if (!commandValidation) {
+    return {
+      id: `${GATE_ID}:command-validation`,
+      label: "CLI validation boundary",
+      kind: "command-validation",
+      status: "waiting",
+      detail: "Phase 3 CLI smoke validation is not attached to the handoff gate.",
+      nextAction:
+        "Attach fresh Phase 3 CLI smoke validation before recording or advancing the owner handoff."
+    };
+  }
+
+  return {
+    id: `${GATE_ID}:command-validation`,
+    label: "CLI validation boundary",
+    kind: "command-validation",
+    status: commandValidation.state,
+    detail: commandValidation.detail,
+    nextAction:
+      commandValidation.state === "ready"
+        ? "Keep fresh Phase 3 CLI smoke validation attached through owner handoff."
+        : commandValidation.nextAction
+  };
 }
 
 function formatFingerprint(value: string | undefined): string {
@@ -391,6 +428,7 @@ function handoffRecordItem(
 function providerBoundaryItem(
   clearancePackage: Phase3ClearancePackage,
   traceabilityPrecondition: Phase3ClearanceTraceabilityPrecondition | undefined,
+  commandValidation: Phase3CommandValidationRecordValidation | undefined,
   handoffRecordState: Phase3HandoffGateState | undefined,
   handoffRecordValidation: Phase3HandoffRecordValidation | undefined
 ): Phase3HandoffGateItem {
@@ -443,6 +481,21 @@ function providerBoundaryItem(
     };
   }
 
+  if (!hasReadyCommandValidation(commandValidation)) {
+    return {
+      id: `${GATE_ID}:provider-boundary`,
+      label: "Provider boundary",
+      kind: "provider-boundary",
+      status: commandValidation?.state ?? "waiting",
+      detail: commandValidation
+        ? `Provider integration remains held because ${commandValidation.detail}`
+        : "Provider integration remains held until fresh Phase 3 CLI smoke validation is attached.",
+      nextAction:
+        commandValidation?.nextAction ??
+        "Attach fresh Phase 3 CLI smoke validation before advancing provider integration."
+    };
+  }
+
   if (validatedRecordState !== "ready") {
     return {
       id: `${GATE_ID}:provider-boundary`,
@@ -486,8 +539,13 @@ function buildOwnerReviewSummary(
   input: Phase3HandoffGateInput,
   canAdvanceProviderIntegration: boolean
 ): string {
-  const { clearancePackage, handoffRecordState, handoffRecordValidation, traceabilityPrecondition } =
-    input;
+  const {
+    clearancePackage,
+    commandValidation,
+    handoffRecordState,
+    handoffRecordValidation,
+    traceabilityPrecondition
+  } = input;
   const validatedRecordState = resolveHandoffRecordStatus(
     clearancePackage,
     handoffRecordState,
@@ -513,6 +571,13 @@ function buildOwnerReviewSummary(
     return `Owner handoff held: ${publicText(
       traceabilityPrecondition?.detail,
       "Phase 3 current-goal and PM traceability is not trusted yet."
+    )}`;
+  }
+
+  if (!hasReadyCommandValidation(commandValidation)) {
+    return `Owner handoff held: ${publicText(
+      commandValidation?.detail,
+      "Phase 3 CLI smoke validation is not attached yet."
     )}`;
   }
 
@@ -558,6 +623,7 @@ export function buildPhase3HandoffGate(
     desktopProofItem(input.clearancePackage),
     blockerVisibilityItem(input.clearancePackage),
     traceabilityBoundaryItem(input.traceabilityPrecondition),
+    commandValidationItem(input.commandValidation),
     handoffRecordItem(
       input.clearancePackage,
       input.handoffRecordState,
@@ -566,6 +632,7 @@ export function buildPhase3HandoffGate(
     providerBoundaryItem(
       input.clearancePackage,
       input.traceabilityPrecondition,
+      input.commandValidation,
       input.handoffRecordState,
       input.handoffRecordValidation
     )
@@ -579,6 +646,7 @@ export function buildPhase3HandoffGate(
     state === "ready" &&
     input.clearancePackage.canExit &&
     canTrustTraceability(input.traceabilityPrecondition) &&
+    hasReadyCommandValidation(input.commandValidation) &&
     hasReadyHandoffValidation(input.handoffRecordValidation);
   const draft = {
     id: GATE_ID,

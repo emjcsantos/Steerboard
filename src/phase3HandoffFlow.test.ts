@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildPhase3ClearancePackage } from "./phase3ClearancePackage";
 import { buildPhase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
+import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import { buildPhase3ExitGateEvidence } from "./phase3ExitGateEvidence";
 import { buildPhase3HandoffGate } from "./phase3HandoffGate";
 import {
@@ -153,6 +154,19 @@ function provenanceEnvelope() {
   };
 }
 
+function readyCommandValidation(): Phase3CommandValidationRecordValidation {
+  return {
+    state: "ready",
+    statusLabel: "Ready",
+    detail:
+      "Phase 3 CLI smoke validation is fresh and matches current desktop smoke proof rows.",
+    nextAction:
+      "Keep the CLI smoke validation attached for owner review without using it to unlock handoff.",
+    isFresh: true,
+    hasSmokeBundleProvenance: true
+  };
+}
+
 function saveReadyPanelEvidence() {
   const slashEvidence = buildSlashCommandExecutionEvidence({
     submittedMessage: "/plan Phase 3 handoff",
@@ -260,7 +274,8 @@ describe("phase 3 handoff flow", () => {
     });
     const heldHandoffGate = buildPhase3HandoffGate({
       clearancePackage,
-      traceabilityPrecondition
+      traceabilityPrecondition,
+      commandValidation: readyCommandValidation()
     });
 
     expect(clearancePackage).toMatchObject({
@@ -300,6 +315,7 @@ describe("phase 3 handoff flow", () => {
     const readyLookingHandoffGate = buildPhase3HandoffGate({
       clearancePackage,
       traceabilityPrecondition,
+      commandValidation: readyCommandValidation(),
       handoffRecordState: "ready",
       handoffRecordValidation: handoffValidationWithoutAge
     });
@@ -312,6 +328,7 @@ describe("phase 3 handoff flow", () => {
     const readyHandoffGate = buildPhase3HandoffGate({
       clearancePackage,
       traceabilityPrecondition,
+      commandValidation: readyCommandValidation(),
       handoffRecordValidation: handoffValidation
     });
 

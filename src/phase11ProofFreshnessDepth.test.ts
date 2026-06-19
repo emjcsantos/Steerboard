@@ -210,6 +210,7 @@ describe("phase 11 proof freshness depth", () => {
     const result = snapshot({
       phase3HandoffGate: buildPhase3HandoffGate({
         clearancePackage: clearance(),
+        commandValidation: commandValidation(),
         handoffRecordState: "ready",
         handoffRecordValidation: {
           state: "ready",

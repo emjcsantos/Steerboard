@@ -290,11 +290,6 @@ function buildReadyPhase3Props(input: {
     expectedFingerprint,
     { evaluatedAt: "2026-06-18T07:58:30.000Z" }
   );
-  const phase3HandoffGate = buildPhase3HandoffGate({
-    clearancePackage: phase3ClearancePackage,
-    traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition,
-    handoffRecordValidation: phase3HandoffRecordValidation
-  });
   const phase3CommandValidationRecord = {
     ...createPhase3CommandValidationRecord(
       phase3ClearanceCommandPlan.command,
@@ -307,6 +302,12 @@ function buildReadyPhase3Props(input: {
       evaluatedAt,
       expectedCommand: phase3ClearanceCommandPlan.command
     });
+  const phase3HandoffGate = buildPhase3HandoffGate({
+    clearancePackage: phase3ClearancePackage,
+    traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition,
+    commandValidation: phase3CommandValidationRecordValidation,
+    handoffRecordValidation: phase3HandoffRecordValidation
+  });
   const phase3ClearanceTraceability = buildPhase3ClearanceTraceability({
     clearancePackage: phase3ClearancePackage,
     commandPlan: phase3ClearanceCommandPlan,
@@ -456,15 +457,16 @@ function buildPhase3PropsWithSmokeProofs(input: {
   });
   const phase3ClearanceTraceabilityPrecondition =
     buildPhase3ClearanceTraceabilityPrecondition();
-  const phase3HandoffGate = buildPhase3HandoffGate({
-    clearancePackage: phase3ClearancePackage,
-    traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition
-  });
   const phase3CommandValidationRecordValidation =
     derivePhase3CommandValidationRecordValidation(props.phase3CommandValidationRecord, {
       evaluatedAt: input.evaluatedAt ?? evaluatedAt,
       expectedCommand: phase3ClearanceCommandPlan.command
     });
+  const phase3HandoffGate = buildPhase3HandoffGate({
+    clearancePackage: phase3ClearancePackage,
+    traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition,
+    commandValidation: phase3CommandValidationRecordValidation
+  });
   const phase3ClearanceTraceability = buildPhase3ClearanceTraceability({
     clearancePackage: phase3ClearancePackage,
     commandPlan: phase3ClearanceCommandPlan,
@@ -540,15 +542,16 @@ function buildPhase3PropsWithForeignPanelProvenance() {
   });
   const phase3ClearanceTraceabilityPrecondition =
     buildPhase3ClearanceTraceabilityPrecondition();
-  const phase3HandoffGate = buildPhase3HandoffGate({
-    clearancePackage: phase3ClearancePackage,
-    traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition
-  });
   const phase3CommandValidationRecordValidation =
     derivePhase3CommandValidationRecordValidation(props.phase3CommandValidationRecord, {
       evaluatedAt,
       expectedCommand: phase3ClearanceCommandPlan.command
     });
+  const phase3HandoffGate = buildPhase3HandoffGate({
+    clearancePackage: phase3ClearancePackage,
+    traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition,
+    commandValidation: phase3CommandValidationRecordValidation
+  });
   const phase3ClearanceTraceability = buildPhase3ClearanceTraceability({
     clearancePackage: phase3ClearancePackage,
     commandPlan: phase3ClearanceCommandPlan,
@@ -664,10 +667,10 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Owner handoff current");
     expect(html).toContain("Phase 3 handoff gate");
     expect(html).toContain(
-      'aria-label="Phase 3 handoff gate: Ready; 100% ready; 5 ready, 0 review, 0 blocked, 0 waiting; 0 exact blockers; owner review: Owner handoff current: fingerprint, clearance snapshot, and age metadata match; Phase 4 remains behind owner review.; next action:'
+      'aria-label="Phase 3 handoff gate: Ready; 100% ready; 6 ready, 0 review, 0 blocked, 0 waiting; 0 exact blockers; owner review: Owner handoff current: fingerprint, clearance snapshot, and age metadata match; Phase 4 remains behind owner review.; next action:'
     );
     expect(html).toContain(
-      'aria-label="Phase 3 handoff gate counts"><div><dt>Ready</dt><dd>5</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>State</dt><dd>Ready</dd></div></dl>'
+      'aria-label="Phase 3 handoff gate counts"><div><dt>Ready</dt><dd>6</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>State</dt><dd>Ready</dd></div></dl>'
     );
     expect(html).toContain("PM Links");
     expect(html).toContain("<dt>PM Links</dt><dd>3</dd>");
@@ -961,6 +964,7 @@ describe("phase 3 owner-visible proof panel", () => {
     const heldHandoffGate = buildPhase3HandoffGate({
       clearancePackage: props.phase3ClearancePackage,
       traceabilityPrecondition: untrustedTraceability,
+      commandValidation: props.phase3CommandValidationRecordValidation,
       handoffRecordState: "ready",
       handoffRecordValidation: handoffValidation
     });
@@ -973,10 +977,10 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Advance held");
     expect(html).toContain("Traceability boundary");
     expect(html).toContain(
-      'aria-label="Phase 3 handoff gate: Review; 86% ready; 3 ready, 2 review, 0 blocked, 0 waiting; 0 exact blockers; owner review: Owner handoff held: 2 current active remaining goals are set.; next action: Keep exactly one current active remaining goal before Phase 3 handoff can advance."'
+      'aria-label="Phase 3 handoff gate: Review; 88% ready; 4 ready, 2 review, 0 blocked, 0 waiting; 0 exact blockers; owner review: Owner handoff held: 2 current active remaining goals are set.; next action: Keep exactly one current active remaining goal before Phase 3 handoff can advance."'
     );
     expect(html).toContain(
-      'aria-label="Phase 3 handoff gate counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>State</dt><dd>Review</dd></div></dl>'
+      'aria-label="Phase 3 handoff gate counts"><div><dt>Ready</dt><dd>4</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>State</dt><dd>Review</dd></div></dl>'
     );
     expect(html).toContain(
       "Keep exactly one current active remaining goal before Phase 3 handoff can advance."
@@ -1073,6 +1077,7 @@ describe("phase 3 owner-visible proof panel", () => {
     const staleGate = buildPhase3HandoffGate({
       clearancePackage: props.phase3ClearancePackage,
       traceabilityPrecondition: props.phase3ClearanceTraceabilityPrecondition,
+      commandValidation: props.phase3CommandValidationRecordValidation,
       handoffRecordValidation: staleValidation
     });
     const html = renderOwnerTestingReadinessPanel({
@@ -1083,10 +1088,10 @@ describe("phase 3 owner-visible proof panel", () => {
 
     expect(html).toContain("Advance held");
     expect(html).toContain(
-      'aria-label="Phase 3 handoff gate: Review; 86% ready; 3 ready, 2 review, 0 blocked, 0 waiting; 0 exact blockers; owner review: Owner handoff review: Owner handoff record no longer matches'
+      'aria-label="Phase 3 handoff gate: Review; 88% ready; 4 ready, 2 review, 0 blocked, 0 waiting; 0 exact blockers; owner review: Owner handoff review: Owner handoff record no longer matches'
     );
     expect(html).toContain(
-      'aria-label="Phase 3 handoff gate counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>State</dt><dd>Review</dd></div></dl>'
+      'aria-label="Phase 3 handoff gate counts"><div><dt>Ready</dt><dd>4</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>State</dt><dd>Review</dd></div></dl>'
     );
     expect(html).toContain("Current evidence review 100%");
     expect(html).toContain(expectedFingerprint);

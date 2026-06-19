@@ -2647,11 +2647,13 @@ export function App() {
       buildPhase3HandoffGate({
         clearancePackage: phase3ClearancePackage,
         traceabilityPrecondition: phase3ClearanceTraceabilityPrecondition,
+        commandValidation: phase3CommandValidationRecordValidation,
         handoffRecordState: phase3HandoffRecordState,
         handoffRecordValidation: phase3HandoffRecordValidation
       }),
     [
       phase3ClearanceTraceabilityPrecondition,
+      phase3CommandValidationRecordValidation,
       phase3ClearancePackage,
       phase3HandoffRecordState,
       phase3HandoffRecordValidation

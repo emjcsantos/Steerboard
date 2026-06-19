@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3ClearanceTraceabilityPrecondition } from "./phase3ClearanceTraceability";
+import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import { buildPhase3HandoffGate } from "./phase3HandoffGate";
 
 function clearancePackage(
@@ -50,9 +51,32 @@ function readyHandoffValidation() {
   };
 }
 
+function readyCommandValidation(
+  overrides: Partial<Phase3CommandValidationRecordValidation> = {}
+): Phase3CommandValidationRecordValidation {
+  return {
+    state: "ready",
+    statusLabel: "Ready",
+    detail:
+      "Phase 3 CLI smoke validation is fresh and matches current desktop smoke proof rows.",
+    nextAction:
+      "Keep the CLI smoke validation attached for owner review without using it to unlock handoff.",
+    isFresh: true,
+    hasSmokeBundleProvenance: true,
+    ...overrides
+  };
+}
+
+function buildGate(input: Parameters<typeof buildPhase3HandoffGate>[0]) {
+  return buildPhase3HandoffGate({
+    commandValidation: readyCommandValidation(),
+    ...input
+  });
+}
+
 describe("phase 3 handoff gate", () => {
   it("advances provider integration only after clearance and owner handoff are ready", () => {
-    const result = buildPhase3HandoffGate({
+    const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "ready",
@@ -93,8 +117,56 @@ describe("phase 3 handoff gate", () => {
     expect(result.ariaLabel).toContain("0 exact blockers");
   });
 
+  it("holds provider integration when CLI smoke validation is missing or needs review", () => {
+    const missing = buildPhase3HandoffGate({
+      clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
+      handoffRecordState: "ready",
+      handoffRecordValidation: readyHandoffValidation()
+    });
+    const review = buildGate({
+      clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
+      commandValidation: readyCommandValidation({
+        state: "review",
+        statusLabel: "Review",
+        detail:
+          "Phase 3 CLI smoke validation record no longer matches the current desktop smoke proof rows.",
+        nextAction:
+          "Load or import the matching Phase 3 smoke proof bundle before owner handoff.",
+        isFresh: true
+      }),
+      handoffRecordState: "ready",
+      handoffRecordValidation: readyHandoffValidation()
+    });
+
+    expect(missing).toMatchObject({
+      state: "waiting",
+      canAdvanceProviderIntegration: false
+    });
+    expect(missing.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "CLI validation boundary",
+          status: "waiting"
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          status: "waiting",
+          detail: expect.stringContaining("CLI smoke validation")
+        })
+      ])
+    );
+    expect(review).toMatchObject({
+      state: "review",
+      canAdvanceProviderIntegration: false
+    });
+    expect(review.nextAction).toContain("matching Phase 3 smoke proof bundle");
+    expect(review.ownerReviewSummary).toContain("no longer matches");
+  });
+
   it("holds provider integration when Phase 3 traceability is not trusted", () => {
-    const result = buildPhase3HandoffGate({
+    const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability({
         state: "review",
@@ -128,7 +200,7 @@ describe("phase 3 handoff gate", () => {
   });
 
   it("holds provider integration when fingerprint-matched handoff lacks age metadata", () => {
-    const result = buildPhase3HandoffGate({
+    const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "ready",
@@ -171,7 +243,7 @@ describe("phase 3 handoff gate", () => {
   });
 
   it("holds provider integration when raw ready state is not fingerprint validated", () => {
-    const result = buildPhase3HandoffGate({
+    const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "ready"
@@ -200,7 +272,7 @@ describe("phase 3 handoff gate", () => {
   });
 
   it("reviews ready handoff validation that does not prove a current fingerprint match", () => {
-    const result = buildPhase3HandoffGate({
+    const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "ready",
@@ -234,14 +306,14 @@ describe("phase 3 handoff gate", () => {
   });
 
   it("holds provider integration when clearance is ready but owner handoff is not recorded", () => {
-    const result = buildPhase3HandoffGate({
+    const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability()
     });
 
     expect(result.state).toBe("waiting");
     expect(result.canAdvanceProviderIntegration).toBe(false);
-    expect(result.readyCount).toBe(3);
+    expect(result.readyCount).toBe(4);
     expect(result.waitingCount).toBe(2);
     expect(result.items).toEqual(
       expect.arrayContaining([
@@ -258,7 +330,7 @@ describe("phase 3 handoff gate", () => {
   });
 
   it("blocks provider advance when the owner handoff record fingerprint is stale", () => {
-    const result = buildPhase3HandoffGate({
+    const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "review",
@@ -295,7 +367,7 @@ describe("phase 3 handoff gate", () => {
   });
 
   it("blocks provider advance when the owner handoff record age is stale", () => {
-    const result = buildPhase3HandoffGate({
+    const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "review",
@@ -332,7 +404,7 @@ describe("phase 3 handoff gate", () => {
   });
 
   it("blocks provider advance when the owner handoff snapshot no longer matches", () => {
-    const result = buildPhase3HandoffGate({
+    const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),
       handoffRecordState: "review",
@@ -369,7 +441,7 @@ describe("phase 3 handoff gate", () => {
   });
 
   it("routes exact blockers from the clearance package before handoff", () => {
-    const result = buildPhase3HandoffGate({
+    const result = buildGate({
       clearancePackage: clearancePackage({
         state: "blocked",
         statusLabel: "Blocked",
@@ -417,7 +489,7 @@ describe("phase 3 handoff gate", () => {
   });
 
   it("keeps handoff text public-safe", () => {
-    const result = buildPhase3HandoffGate({
+    const result = buildGate({
       clearancePackage: clearancePackage({
         state: "blocked",
         canExit: false,
