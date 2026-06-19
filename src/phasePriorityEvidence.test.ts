@@ -108,7 +108,13 @@ describe("phase priority evidence", () => {
         waiting: 0
       }
     });
-    expect(result.items.find((item) => item.id === "phase-6-pm-board")?.detail).toContain("12 Epics");
+    const phase6 = result.items.find((item) => item.id === "phase-6-pm-board");
+
+    expect(phase6?.detail).toContain("12 Epics");
+    expect(phase6?.detail).toContain("staged Epic/Parent/Child package coverage");
+    expect(phase6?.nextAction).toBe(
+      "Use row-level Run buttons to stage Arena review packages while keeping execution locked."
+    );
   });
 
   it("keeps live and isolation proof waiting in browser-only state while PM staging is ready", () => {
