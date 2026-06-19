@@ -2526,10 +2526,18 @@ export function App() {
         phase3CommandValidationRecord,
         {
           evaluatedAt: phase3ProofEvaluationTime,
-          expectedCommand: phase3ClearanceCommandPlan.command
+          expectedCommand: phase3ClearanceCommandPlan.command,
+          currentSmokeProofBundle: {
+            liveControlSmoke: codexLiveControlSmokeProof,
+            activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
+            activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof
+          }
         }
       ),
     [
+      codexActiveTurnControlSmokeProof,
+      codexActiveTurnSteerSmokeProof,
+      codexLiveControlSmokeProof,
       phase3ClearanceCommandPlan.command,
       phase3CommandValidationRecord,
       phase3ProofEvaluationTime

@@ -1,4 +1,8 @@
-import { PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE } from "./phase3SmokeProofStorage";
+import {
+  createPhase3SmokeProofFingerprint,
+  PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE,
+  type Phase3SmokeProofBundle
+} from "./phase3SmokeProofStorage";
 
 export type Phase3CommandValidationStatus = "passed" | "failed";
 export type Phase3CommandValidationReadinessState =
@@ -51,6 +55,7 @@ export interface Phase3CommandValidationRecordValidationOptions {
   readonly expectedCommand?: string;
   readonly evaluatedAt?: string | Date;
   readonly maxRecordAgeMs?: number;
+  readonly currentSmokeProofBundle?: Phase3SmokeProofBundle;
 }
 
 export const PHASE3_COMMAND_VALIDATION_RECORD_STORAGE_KEY =
@@ -197,6 +202,36 @@ function summarizeSmokeBundleProvenance(
     artifactPath: record.smokeBundle.artifactPath,
     rowFingerprintCount
   };
+}
+
+function smokeBundleFingerprintsMatchCurrentProofRows(
+  record: Phase3CommandValidationRecord,
+  currentSmokeProofBundle: Phase3SmokeProofBundle | undefined
+): boolean {
+  if (!record.smokeBundle || !currentSmokeProofBundle) {
+    return true;
+  }
+
+  const currentFingerprints = {
+    liveControlSmoke: createPhase3SmokeProofFingerprint(
+      currentSmokeProofBundle.liveControlSmoke
+    ),
+    activeTurnInterruptSmoke: createPhase3SmokeProofFingerprint(
+      currentSmokeProofBundle.activeTurnInterruptSmoke
+    ),
+    activeTurnSteerSmoke: createPhase3SmokeProofFingerprint(
+      currentSmokeProofBundle.activeTurnSteerSmoke
+    )
+  };
+
+  return (
+    record.smokeBundle.rowFingerprints.liveControlSmoke ===
+      currentFingerprints.liveControlSmoke &&
+    record.smokeBundle.rowFingerprints.activeTurnInterruptSmoke ===
+      currentFingerprints.activeTurnInterruptSmoke &&
+    record.smokeBundle.rowFingerprints.activeTurnSteerSmoke ===
+      currentFingerprints.activeTurnSteerSmoke
+  );
 }
 
 function toTimestamp(value: string | Date | undefined): number | undefined {
@@ -408,6 +443,25 @@ export function derivePhase3CommandValidationRecordValidation(
       nextAction:
         "Rerun npm.cmd run smoke:phase3 manually, then record a fresh local CLI pass.",
       isFresh: false,
+      hasSmokeBundleProvenance,
+      ...(smokeBundleProvenance ? { smokeBundleProvenance } : {})
+    };
+  }
+
+  if (
+    !smokeBundleFingerprintsMatchCurrentProofRows(
+      record,
+      options?.currentSmokeProofBundle
+    )
+  ) {
+    return {
+      state: "review",
+      statusLabel: STATUS_LABELS.review,
+      detail:
+        "Phase 3 CLI smoke validation record no longer matches the current desktop smoke proof rows.",
+      nextAction:
+        "Load or import the matching Phase 3 smoke proof bundle, or rerun npm.cmd run smoke:phase3:record before owner handoff.",
+      isFresh: true,
       hasSmokeBundleProvenance,
       ...(smokeBundleProvenance ? { smokeBundleProvenance } : {})
     };

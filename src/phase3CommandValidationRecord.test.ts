@@ -9,7 +9,11 @@ import {
   PHASE3_COMMAND_VALIDATION_RECORD_STORAGE_KEY,
   savePhase3CommandValidationRecord
 } from "./phase3CommandValidationRecord";
-import { PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE } from "./phase3SmokeProofStorage";
+import {
+  createPhase3SmokeProofFingerprint,
+  PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE,
+  type Phase3SmokeProofBundle
+} from "./phase3SmokeProofStorage";
 
 const smokeBundle = {
   source: PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE,
@@ -21,6 +25,77 @@ const smokeBundle = {
     activeTurnSteerSmoke: "phase3-smoke-proof-steer"
   }
 };
+
+const currentSmokeProofBundle = {
+  liveControlSmoke: {
+    source: "desktop",
+    checkedAt: "1781769450476",
+    executed: true,
+    ok: true,
+    completed: true,
+    unsupported: false,
+    detail: "Live-control proof passed.",
+    sourceDetected: true,
+    appServerReady: true,
+    protocolReady: true,
+    requiredMethods: [],
+    supportedMethodCount: 0,
+    unsupportedMethodCount: 0,
+    totalMethodCount: 0
+  },
+  activeTurnInterruptSmoke: {
+    source: "desktop",
+    checkedAt: "1781769429511",
+    completed: true,
+    controls: [],
+    detail: "Active-turn interrupt command was sent.",
+    eventCount: 1,
+    executed: true,
+    failed: false,
+    interruptObserved: false,
+    interruptSent: true,
+    ok: true,
+    sessionStarted: true,
+    transcriptLength: 1,
+    turnIdSeen: true,
+    unsupported: false
+  },
+  activeTurnSteerSmoke: {
+    source: "desktop",
+    checkedAt: "1781769438295",
+    completed: false,
+    controls: [],
+    detail: "Active-turn steer command was sent.",
+    eventCount: 1,
+    executed: true,
+    expectedTokenSeen: false,
+    failed: false,
+    ok: true,
+    sessionStarted: true,
+    steerObserved: false,
+    steerSent: true,
+    transcriptLength: 0,
+    turnIdSeen: true,
+    unsupported: false
+  }
+} as unknown as Phase3SmokeProofBundle;
+
+function smokeBundleMetadataForRows(bundle: Phase3SmokeProofBundle) {
+  return {
+    source: PHASE3_SMOKE_PROOF_BUNDLE_PROVENANCE_SOURCE,
+    runId: "phase3-smoke-record:2026-06-18T07:57:30.551Z",
+    artifactPath: "local_private/phase3-smoke-proof-bundle.json",
+    rowFingerprints: {
+      liveControlSmoke: createPhase3SmokeProofFingerprint(bundle.liveControlSmoke),
+      activeTurnInterruptSmoke: createPhase3SmokeProofFingerprint(
+        bundle.activeTurnInterruptSmoke
+      ),
+      activeTurnSteerSmoke: createPhase3SmokeProofFingerprint(
+        bundle.activeTurnSteerSmoke
+      )
+    }
+  };
+}
 
 describe("phase 3 command validation record", () => {
   afterEach(() => {
@@ -114,6 +189,52 @@ describe("phase 3 command validation record", () => {
       },
       detail: expect.stringContaining("Smoke bundle provenance is attached"),
       nextAction: expect.stringContaining("without using it to unlock handoff")
+    });
+  });
+
+  it("reviews fresh CLI smoke validation when current proof rows drift from recorded fingerprints", () => {
+    const parsed = parseStoredPhase3CommandValidationRecord(
+      JSON.stringify({
+        id: "phase3-command-validation:2026-06-18T07:30:00.000Z",
+        createdAt: "2026-06-18T07:30:00.000Z",
+        command: "npm.cmd run smoke:phase3",
+        status: "passed",
+        passedTestCount: 3,
+        failedTestCount: 0,
+        smokeBundle: smokeBundleMetadataForRows(currentSmokeProofBundle),
+        detail:
+          "Phase 3 CLI smoke validation passed locally via npm.cmd run smoke:phase3."
+      })
+    );
+
+    const matchingValidation = derivePhase3CommandValidationRecordValidation(parsed, {
+      evaluatedAt: "2026-06-18T07:31:00.000Z",
+      expectedCommand: "npm.cmd run smoke:phase3",
+      currentSmokeProofBundle
+    });
+    const driftedValidation = derivePhase3CommandValidationRecordValidation(parsed, {
+      evaluatedAt: "2026-06-18T07:31:00.000Z",
+      expectedCommand: "npm.cmd run smoke:phase3",
+      currentSmokeProofBundle: {
+        ...currentSmokeProofBundle,
+        activeTurnSteerSmoke: {
+          ...currentSmokeProofBundle.activeTurnSteerSmoke,
+          detail: "Active-turn steer proof drifted after CLI validation."
+        }
+      }
+    });
+
+    expect(matchingValidation).toMatchObject({
+      state: "ready",
+      isFresh: true,
+      hasSmokeBundleProvenance: true
+    });
+    expect(driftedValidation).toMatchObject({
+      state: "review",
+      isFresh: true,
+      hasSmokeBundleProvenance: true,
+      detail: expect.stringContaining("no longer matches"),
+      nextAction: expect.stringContaining("matching Phase 3 smoke proof bundle")
     });
   });
 
