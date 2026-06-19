@@ -117,6 +117,8 @@ describe("phase priority evidence", () => {
     });
 
     expect(result.state).toBe("waiting");
+    expect(result.statusLabel).toBe("Waiting");
+    expect(result.readiness).toBe(57);
     expect(result.counts).toMatchObject({
       ready: 1,
       waiting: 2
@@ -157,6 +159,12 @@ describe("phase priority evidence", () => {
     const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
 
     expect(result.state).toBe("blocked");
+    expect(result.statusLabel).toBe("Blocked");
+    expect(result.readiness).toBe(72);
+    expect(result.counts).toMatchObject({
+      ready: 2,
+      blocked: 1
+    });
     expect(phase2).toMatchObject({
       state: "blocked"
     });
