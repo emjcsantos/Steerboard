@@ -454,12 +454,17 @@ describe("remaining goal plan", () => {
 
   it("keeps the Phase 4 provider surfaces target linked to traceability and surface depth", () => {
     const phase4Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-4-provider-surfaces");
+    const phase4Epic = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-provider-surfaces"
+    );
 
     expect(phase4Goal).toMatchObject({
       target: "Provider integration surfaces",
       priority: "high",
-      status: "next"
+      status: "next",
+      completionPercent: 64
     });
+    expect(phase4Epic?.completionPercent).toBe(64);
     expect(phase4Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-04-child-command-skill",
