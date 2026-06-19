@@ -199,7 +199,7 @@ function desktopSmokeItem(
       phase3SmokeProofReadiness.state === "ready"
         ? "Keep desktop smoke proof rows fresh and storage-proof attested across reload and while the app remains open."
         : phase3SmokeProofReadiness.storageReviewCount > 0
-          ? "Import or rerun desktop smoke proof rows until each required row is storage-proof attested."
+          ? "Import the recorded proof artifacts or rerun desktop smoke proof rows until each required row is storage-proof attested."
           : "Use the Phase 3 command plan to refresh only the missing desktop smoke rows."
   };
 }

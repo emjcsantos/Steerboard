@@ -396,11 +396,11 @@ describe("phase 11 proof freshness depth", () => {
     expect(result.state).toBe("review");
     expect(result.canTrustOwnerProof).toBe(false);
     expect(result.nextAction).toBe(
-      "Import or rerun desktop smoke proof rows until each required row is storage-proof attested."
+      "Import the recorded proof artifacts or rerun desktop smoke proof rows until each required row is storage-proof attested."
     );
     expect(desktopSmoke?.detail).toContain("2/3 storage-proof attested, 1 storage review");
     expect(desktopSmoke?.nextAction).toBe(
-      "Import or rerun desktop smoke proof rows until each required row is storage-proof attested."
+      "Import the recorded proof artifacts or rerun desktop smoke proof rows until each required row is storage-proof attested."
     );
   });
 

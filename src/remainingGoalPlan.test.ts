@@ -33,7 +33,7 @@ describe("remaining goal plan", () => {
       averageCompletionPercent: 72,
       currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
-        "Use the Phase 3 command plan, visible CLI validation record actions and provenance, PM-link and evidence-key counted exit gate, slash/session-first blocker-priority queue, row-specific slash/session/smoke exit actions, traceability rows, storage-attested current-panel smoke proof rows, fail-closed proof export/offline verification, and visible handoff record-gate reason with compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, current active goal/PM traceability is trusted, CLI validation is fresh and matching, and proof-export preflight only needs that handoff record, then keep Phase 4 review behind owner review plus proof-export/offline verification.",
+        "Use the Phase 3 command plan, visible CLI validation record actions and provenance, PM-link and evidence-key counted exit gate, slash/session-first blocker-priority queue, row-specific slash/session exit actions, traceability rows, the combined CLI validation plus smoke-proof artifact loader, storage-attested current-panel smoke proof rows, fail-closed proof export/offline verification, and visible handoff record-gate reason with compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, load the recorded CLI validation and desktop smoke proof bundle into UI storage before owner review, capture real current-panel slash/session evidence without manufacturing it, record fresh owner handoff only after current evidence is exit-ready, current active goal/PM traceability is trusted, CLI validation and smoke proof are fresh and matching, and proof-export preflight only needs that handoff record, then keep Phase 4 review behind owner review plus proof-export/offline verification.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -222,7 +222,12 @@ describe("remaining goal plan", () => {
     expect(phase3Goal?.nextAction).toContain("clearance-snapshot");
     expect(phase3Goal?.nextAction).toContain("visible CLI validation record actions and provenance");
     expect(phase3Goal?.nextAction).toContain("PM-link and evidence-key counted exit gate");
-    expect(phase3Goal?.nextAction).toContain("row-specific slash/session/smoke exit actions");
+    expect(phase3Goal?.nextAction).toContain("row-specific slash/session exit actions");
+    expect(phase3Goal?.nextAction).toContain("combined CLI validation plus smoke-proof artifact loader");
+    expect(phase3Goal?.nextAction).toContain(
+      "load the recorded CLI validation and desktop smoke proof bundle into UI storage"
+    );
+    expect(phase3Goal?.nextAction).toContain("capture real current-panel slash/session evidence");
     expect(phase3Goal?.nextAction).toContain("storage-attested current-panel smoke proof rows");
     expect(phase3Goal?.goal).toContain("fail-closed proof-export rows");
     expect(phase3Goal?.nextAction).toContain("fail-closed proof export/offline verification");
@@ -295,7 +300,7 @@ describe("remaining goal plan", () => {
     const summary = summarizeRemainingGoalPlan();
 
     expect(summary.currentTarget).toBe("Phase 3 desktop proof clearance");
-    expect(summary.currentNextAction).toContain("Phase 3 command plan");
+    expect(summary.currentNextAction).toContain("combined CLI validation plus smoke-proof artifact loader");
     expect(summary.ownerHoldTarget).toBe("Unblock Phase 1/2/6 publishing");
     expect(summary.ownerHoldNextAction).toContain("owner says to push");
     expect(summary.priorityGoalTraces[0]).toMatchObject({
@@ -365,7 +370,7 @@ describe("remaining goal plan", () => {
     const summary = summarizeRemainingGoalPlan(staleCurrentGoals);
 
     expect(summary.currentTarget).toBe("Phase 3 desktop proof clearance");
-    expect(summary.currentNextAction).toContain("Phase 3 command plan");
+    expect(summary.currentNextAction).toContain("combined CLI validation plus smoke-proof artifact loader");
   });
 
   it("keeps the Phase 9 runner approval target linked to traceability, approval depth, and blocker priority", () => {
