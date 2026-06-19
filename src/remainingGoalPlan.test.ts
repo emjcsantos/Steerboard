@@ -580,7 +580,7 @@ describe("remaining goal plan", () => {
       (task) => task.id === "phase-11-child-proof-freshness-depth"
     );
 
-    expect(phase11Epic?.completionPercent).toBe(56);
+    expect(phase11Epic?.completionPercent).toBe(60);
     expect(ownerTestingParent?.completionPercent).toBe(62);
     expect(ownerChecklistChild?.completionPercent).toBe(58);
     expect(proofFreshnessChild?.completionPercent).toBe(52);
@@ -590,6 +590,10 @@ describe("remaining goal plan", () => {
       status: "next",
       completionPercent: 54
     });
+    const releasePackagingParent = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-11-parent-release-packaging"
+    );
+    expect(releasePackagingParent?.completionPercent).toBe(54);
     expect(releaseGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-11-child-package-validation",

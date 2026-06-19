@@ -871,7 +871,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-11-owner-packaging",
     title: "Phase 11: Owner Testing and Release Readiness",
     description: "Prepare owner-facing pass/fail command gates, proof-freshness depth, structured evidence records, fresh checkout instructions, packaging locks, known-limit review, final security closure capability, and release-decision proof.",
-    completionPercent: 56,
+    completionPercent: 60,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -919,7 +919,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-11-parent-release-packaging",
         title: "Release Readiness Gate",
         description: "Keep fresh checkout, clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability and handoff proof, packaging lock, docs, known limits, evidence records, visible Security 100% final closure guidance, and release-decision top-prerequisite detail visible while packaging stays paused.",
-        completionPercent: 52,
+        completionPercent: 54,
         complexity: "high",
         sourceDocument: "Phase 11 release readiness",
         children: [
