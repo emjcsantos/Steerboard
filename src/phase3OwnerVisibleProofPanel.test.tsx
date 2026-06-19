@@ -692,7 +692,7 @@ describe("phase 3 owner-visible proof panel", () => {
         buildPhase3ProofExportArtifact({
           currentPanelId,
           evaluatedAt,
-          exportedAt: evaluatedAt,
+          exportedAt: phase3ProofExportedAt,
           handoffEvidenceFingerprint: props.phase3HandoffGate.handoffEvidenceReview.expectedFingerprint,
           slashEvidenceByPanel: loadPhase3SlashEvidenceByPanel(),
           sessionControlEvidenceByPanel: loadPhase3SessionControlEvidenceByPanel(),
@@ -718,8 +718,13 @@ describe("phase 3 owner-visible proof panel", () => {
     });
 
     expect(html).toContain("Imported proof artifact");
+    expect(html).toContain(
+      'aria-label="Imported Phase 3 proof artifact verifier Ready; 100% ready"'
+    );
     expect(html).toContain("Phase 3 proof export artifact contains current-panel panel proof");
     expect(html).toContain("Panel proof 2/2");
+    expect(html).toContain("Desktop 3/3");
+    expect(html).toContain("CLI attached");
     expect(html).toContain("Handoff attached");
     expect(html).toContain("Phase 3 proof export");
   });
