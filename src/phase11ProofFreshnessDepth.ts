@@ -2,7 +2,10 @@ import type { Phase3ClearanceCommandPlan } from "./phase3ClearanceCommandPlan";
 import type { Phase3ClearancePackage } from "./phase3ClearancePackage";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffGate } from "./phase3HandoffGate";
-import type { Phase3ProofExportVerification } from "./phase3ProofExport";
+import {
+  canRecordPhase3OwnerHandoffFromProofExportPreflight,
+  type Phase3ProofExportVerification
+} from "./phase3ProofExport";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
 
@@ -237,6 +240,11 @@ function commandValidationItem(
 function proofExportItem(
   phase3ProofExportVerification: Phase3ProofExportVerification
 ): Phase11ProofFreshnessDepthItem {
+  const preflightDetail =
+    canRecordPhase3OwnerHandoffFromProofExportPreflight(phase3ProofExportVerification)
+      ? " Owner handoff can be recorded from this complete proof-export preflight before final offline-verifiable export."
+      : "";
+
   return {
     id: `${SNAPSHOT_ID}:proof-export`,
     label: "Phase 3 proof export",
@@ -252,7 +260,8 @@ function proofExportItem(
       `record fingerprint ${formatHandoffFingerprint(phase3ProofExportVerification.ownerHandoffRecordFingerprint)}, ` +
       `PM trace ${phase3ProofExportVerification.pmTaskId} / ${phase3ProofExportVerification.evidenceKey}, ` +
       `clearance snapshot ${phase3ProofExportVerification.ownerHandoffClearanceReadiness ?? 0}% with ` +
-      `${phase3ProofExportVerification.ownerHandoffExactBlockerCount ?? 0} open blocker${phase3ProofExportVerification.ownerHandoffExactBlockerCount === 1 ? "" : "s"}.`,
+      `${phase3ProofExportVerification.ownerHandoffExactBlockerCount ?? 0} open blocker${phase3ProofExportVerification.ownerHandoffExactBlockerCount === 1 ? "" : "s"}.` +
+      preflightDetail,
     nextAction: phase3ProofExportVerification.canVerifyOffline
       ? "Keep the offline-verifiable Phase 3 proof export attached before release readiness resumes."
       : phase3ProofExportVerification.nextAction

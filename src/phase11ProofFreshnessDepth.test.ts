@@ -272,7 +272,7 @@ describe("phase 11 proof freshness depth", () => {
         readiness: 65,
         canVerifyOffline: false,
         hasOwnerHandoffRecord: false,
-        handoffEvidenceFingerprint: undefined,
+        handoffEvidenceFingerprint: "current",
         ownerHandoffRecordFingerprint: undefined,
         ownerHandoffClearanceReadiness: undefined,
         ownerHandoffExactBlockerCount: undefined,
@@ -295,7 +295,11 @@ describe("phase 11 proof freshness depth", () => {
         }),
         expect.objectContaining({
           label: "Phase 3 proof export",
-          detail: expect.stringContaining("expected fingerprint missing")
+          detail: expect.stringContaining("expected fingerprint current")
+        }),
+        expect.objectContaining({
+          label: "Phase 3 proof export",
+          detail: expect.stringContaining("Owner handoff can be recorded from this complete proof-export preflight")
         }),
         expect.objectContaining({
           label: "Phase 3 proof export",
