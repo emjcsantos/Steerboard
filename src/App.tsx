@@ -1732,11 +1732,48 @@ function hasDesktopRuntime(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
+function hasLocalDevArtifactAccess(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const hostname = window.location.hostname;
+  return (
+    import.meta.env.DEV &&
+    window.location.protocol === "http:" &&
+    (hostname === "127.0.0.1" || hostname === "localhost")
+  );
+}
+
+function hasPhase3RecordedArtifactLoadAccess(): boolean {
+  return hasDesktopRuntime() || hasLocalDevArtifactAccess();
+}
+
 const PHASE3_PROOF_EVALUATION_REFRESH_MS = 60 * 1000;
 
 async function invokeDesktopCommand<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   const { invoke } = await import("@tauri-apps/api/core");
   return invoke<T>(command, args);
+}
+
+async function readPhase3RecordedArtifact(
+  artifactName: "phase3-command-validation-record.json" | "phase3-smoke-proof-bundle.json",
+  desktopCommand: string
+): Promise<string> {
+  if (hasDesktopRuntime()) {
+    return invokeDesktopCommand<string>(desktopCommand);
+  }
+
+  if (!hasLocalDevArtifactAccess()) {
+    throw new Error("phase3_recorded_artifact_load_unavailable");
+  }
+
+  const response = await fetch(`/local_private/${artifactName}`, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`phase3_recorded_artifact_fetch_failed:${artifactName}:${response.status}`);
+  }
+
+  return response.text();
 }
 
 const adaptiveProjectTemplateOptions: Array<{
@@ -2752,7 +2789,8 @@ export function App() {
   }, []);
   const loadRecordedPhase3CommandValidation = useCallback(async () => {
     try {
-      const serializedRecord = await invokeDesktopCommand<string>(
+      const serializedRecord = await readPhase3RecordedArtifact(
+        "phase3-command-validation-record.json",
         "phase3_command_validation_artifact_read"
       );
       importPhase3CommandValidation(serializedRecord);
@@ -2764,7 +2802,8 @@ export function App() {
   }, [importPhase3CommandValidation]);
   const loadRecordedPhase3SmokeProofBundle = useCallback(async () => {
     try {
-      const serializedBundle = await invokeDesktopCommand<string>(
+      const serializedBundle = await readPhase3RecordedArtifact(
+        "phase3-smoke-proof-bundle.json",
         "phase3_smoke_proof_bundle_artifact_read"
       );
       importPhase3SmokeProofBundle(serializedBundle);
@@ -2779,7 +2818,8 @@ export function App() {
     let smokeState: Phase3RecordedArtifactLoadState = "unavailable";
 
     try {
-      const serializedRecord = await invokeDesktopCommand<string>(
+      const serializedRecord = await readPhase3RecordedArtifact(
+        "phase3-command-validation-record.json",
         "phase3_command_validation_artifact_read"
       );
       commandState = importPhase3CommandValidation(serializedRecord).imported
@@ -2790,7 +2830,8 @@ export function App() {
     }
 
     try {
-      const serializedBundle = await invokeDesktopCommand<string>(
+      const serializedBundle = await readPhase3RecordedArtifact(
+        "phase3-smoke-proof-bundle.json",
         "phase3_smoke_proof_bundle_artifact_read"
       );
       smokeState = importPhase3SmokeProofBundle(serializedBundle).imported
@@ -4736,7 +4777,7 @@ export function App() {
             phase3ProofExportVerification={phase3ProofExportVerification}
             phase3OwnerTestingActions={phase3OwnerTestingDisplayActions}
             phase3SmokeProofReadiness={phase3SmokeProofReadiness}
-            phase3RecordedArtifactLoadAvailable={hasDesktopRuntime()}
+            phase3RecordedArtifactLoadAvailable={hasPhase3RecordedArtifactLoadAccess()}
             phase11EvidenceEvaluationTime={phase11EvidenceEvaluationTime}
             phase11EvidenceRecordInputs={phase11EvidenceRecordInputs}
             projectManagementTasks={projectManagementTasks}
@@ -13827,7 +13868,7 @@ export function OwnerTestingReadinessPanel({
                   onClick={onLoadRecordedPhase3CommandValidation}
                   title={
                     phase3RecordedArtifactLoadAvailable
-                      ? "Load local_private/phase3-command-validation-record.json from the desktop workspace."
+                      ? "Load local_private/phase3-command-validation-record.json from the desktop workspace or local dev server."
                       : "Open Steerboard in desktop mode or use Import to attach this local artifact."
                   }
                   type="button"
@@ -13840,7 +13881,7 @@ export function OwnerTestingReadinessPanel({
                   onClick={onLoadRecordedPhase3ProofArtifacts}
                   title={
                     phase3RecordedArtifactLoadAvailable
-                      ? "Load both local_private/phase3-command-validation-record.json and local_private/phase3-smoke-proof-bundle.json from the desktop workspace."
+                      ? "Load both local_private/phase3-command-validation-record.json and local_private/phase3-smoke-proof-bundle.json from the desktop workspace or local dev server."
                       : "Open Steerboard in desktop mode or use the Import buttons to attach both local Phase 3 artifacts."
                   }
                   type="button"
@@ -14164,7 +14205,7 @@ export function OwnerTestingReadinessPanel({
                   onClick={onLoadRecordedPhase3SmokeProofBundle}
                   title={
                     phase3RecordedArtifactLoadAvailable
-                      ? "Load local_private/phase3-smoke-proof-bundle.json from the desktop workspace."
+                      ? "Load local_private/phase3-smoke-proof-bundle.json from the desktop workspace or local dev server."
                       : "Open Steerboard in desktop mode or use Import to attach this local artifact."
                   }
                   type="button"

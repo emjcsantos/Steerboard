@@ -742,7 +742,7 @@ describe("phase 3 owner-visible proof panel", () => {
     );
     expect(html).toContain("Load proof artifacts");
     expect(html).toContain(
-      "Load both local_private/phase3-command-validation-record.json and local_private/phase3-smoke-proof-bundle.json from the desktop workspace."
+      "Load both local_private/phase3-command-validation-record.json and local_private/phase3-smoke-proof-bundle.json from the desktop workspace or local dev server."
     );
     expect(html).toContain("Export proof");
     expect(html).toContain("Import proof");
