@@ -64,7 +64,8 @@ function proofSnapshot(
         label: "Phase 3 proof export",
         kind: "proof-export",
         status: "ready",
-        detail: "Proof export is ready for offline verification.",
+        detail:
+          "Proof export is ready for offline verification. PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification.",
         nextAction: "Keep the offline-verifiable Phase 3 proof export attached."
       },
       {
@@ -368,6 +369,7 @@ describe("phase 11 owner release traceability", () => {
     expect(phase3Trace?.detail).toContain("phase-03-child-blocker-priority");
     expect(phase3Trace?.detail).toContain("phase-03-child-traceability");
     expect(phase3Trace?.detail).toContain("phase-03-child-proof-export-boundary");
+    expect(phase3Trace?.detail).toContain("phase3.proof-export.offline-verification");
     expect(phase3Trace?.detail).toContain("phase-03-child-handoff-gate");
     expect(phase3Trace?.detail).toContain("proof export ready");
     expect(phase3Trace?.detail).toContain("Proof export is ready for offline verification.");

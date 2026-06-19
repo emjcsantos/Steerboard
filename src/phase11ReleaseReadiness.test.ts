@@ -87,7 +87,7 @@ function proofSnapshot(
         kind: "proof-export",
         status: "ready",
         detail:
-          "Proof export is ready at 100% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff attached, expected fingerprint current, record fingerprint current, clearance snapshot 100% with 0 open blockers.",
+          "Proof export is ready at 100% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff attached, expected fingerprint current, record fingerprint current, PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification, clearance snapshot 100% with 0 open blockers.",
         nextAction:
           "Keep the offline-verifiable Phase 3 proof export attached before release readiness resumes."
       },
@@ -269,6 +269,7 @@ describe("phase 11 release readiness", () => {
     expect(phase3Trace?.detail).toContain("expected fingerprint current");
     expect(phase3Trace?.detail).toContain("proof export ready");
     expect(phase3Trace?.detail).toContain("proof export: Proof export is ready at 100% ready");
+    expect(phase3Trace?.detail).toContain("phase3.proof-export.offline-verification");
     expect(phase3Trace?.detail).toContain("phase-03-child-blocker-priority");
     expect(phase3Trace?.detail).toContain("phase-03-child-traceability");
     expect(phase3Trace?.detail).toContain("phase-03-child-proof-export-boundary");
@@ -295,7 +296,7 @@ describe("phase 11 release readiness", () => {
             kind: "proof-export",
             status: "review",
             detail:
-              "Proof export is review at 65% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff missing, expected fingerprint missing, record fingerprint missing, clearance snapshot 0% with 0 open blockers.",
+              "Proof export is review at 65% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff missing, expected fingerprint missing, record fingerprint missing, PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification, clearance snapshot 0% with 0 open blockers.",
             nextAction: "Record the owner-reviewed Phase 3 handoff before exporting."
           },
           {
@@ -346,6 +347,7 @@ describe("phase 11 release readiness", () => {
     );
     expect(phase3Trace?.detail).toContain("proof freshness not trusted");
     expect(phase3Trace?.detail).toContain("proof export: Proof export is review at 65% ready");
+    expect(phase3Trace?.detail).toContain("phase3.proof-export.offline-verification");
     expect(phase3Trace?.detail).toContain("expected fingerprint missing");
     expect(smokeProof?.detail).toContain("proof freshness is review at 84%");
     expect(smokeProof?.detail).toContain("handoff missing");
@@ -378,7 +380,7 @@ describe("phase 11 release readiness", () => {
             kind: "proof-export",
             status: "review",
             detail:
-              "Proof export is review at 65% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff attached, expected fingerprint current, record fingerprint current, clearance snapshot 100% with 0 open blockers.",
+              "Proof export is review at 65% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff attached, expected fingerprint current, record fingerprint current, PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification, clearance snapshot 100% with 0 open blockers.",
             nextAction: "Refresh Phase 3 proof export before release readiness."
           },
           {
@@ -406,6 +408,7 @@ describe("phase 11 release readiness", () => {
       })
     );
     expect(phase3Trace?.detail).toContain("Proof export is review at 65% ready");
+    expect(phase3Trace?.detail).toContain("phase3.proof-export.offline-verification");
     expect(phase3Trace?.nextAction).toContain("proof-export evidence");
   });
 
