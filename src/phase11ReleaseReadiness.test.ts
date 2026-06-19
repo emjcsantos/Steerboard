@@ -24,7 +24,7 @@ function ownerSnapshot(
           status: "active" as const,
           completionPercent: 100,
           current: true,
-          nextAction: "Keep the completed Phase 3 handoff proof attached."
+          nextAction: "Keep the completed Phase 3 handoff proof and proof-export evidence attached."
         }
       : trace
   );
@@ -446,7 +446,8 @@ describe("phase 11 release readiness", () => {
                 status: "next" as const,
                 completionPercent: 100,
                 current: false,
-                nextAction: "Keep the completed Phase 3 handoff proof attached."
+                nextAction:
+                  "Keep the completed Phase 3 handoff proof and proof-export evidence attached."
               }
             : trace
         )
@@ -481,7 +482,8 @@ describe("phase 11 release readiness", () => {
                 status: "next" as const,
                 completionPercent: 100,
                 current: true,
-                nextAction: "Keep the completed Phase 3 handoff proof attached."
+                nextAction:
+                  "Keep the completed Phase 3 handoff proof and proof-export evidence attached."
               }
             : trace
         )
