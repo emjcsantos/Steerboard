@@ -588,7 +588,7 @@ function buildOwnerReviewSummary(
   }
 
   if (!handoffRecordValidation) {
-    return "Owner handoff recordable: clearance is exit-ready and Phase 3 PM traceability is trusted; record the owner-reviewed handoff locally.";
+    return "Owner handoff recordable: clearance is exit-ready, Phase 3 PM traceability is trusted, CLI validation is ready, and proof-export offline verification is trusted; record the owner-reviewed handoff locally.";
   }
 
   if (

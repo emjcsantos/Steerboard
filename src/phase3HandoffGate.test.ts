@@ -431,6 +431,8 @@ describe("phase 3 handoff gate", () => {
       "Record the owner-reviewed Phase 3 handoff before Phase 4 review resumes and proof-export offline verification is trusted."
     );
     expect(result.ownerReviewSummary).toContain("Owner handoff recordable");
+    expect(result.ownerReviewSummary).toContain("CLI validation is ready");
+    expect(result.ownerReviewSummary).toContain("proof-export offline verification is trusted");
     expect(result.ariaLabel).toContain("Owner handoff recordable");
   });
 
