@@ -94,6 +94,7 @@ describe("phase 3 proof export", () => {
       hasCommandValidationRecord: true,
       hasOwnerHandoffRecord: true
     });
+    expect(verification.detail).toContain("handoff fingerprint phase3-handoff-current");
     expect(serializePhase3ProofExportArtifact(artifact)).toContain(currentPanelId);
   });
 
