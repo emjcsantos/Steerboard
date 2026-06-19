@@ -7,6 +7,10 @@ import {
 import type { Phase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import { buildPhase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
+import {
+  PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
+  PHASE3_PROOF_EXPORT_PM_TASK_ID
+} from "./phase3ProofExportTrace";
 import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import {
   buildRemainingGoalPriorityTraces,
@@ -210,7 +214,7 @@ function snapshot(
 function underThresholdPhase3ProjectManagementPlan() {
   return createDefaultProjectManagementPhasePlan().map((task) =>
     task.id === "phase-03-child-blocker-priority" ||
-    task.id === "phase-03-child-proof-export-boundary" ||
+    task.id === PHASE3_PROOF_EXPORT_PM_TASK_ID ||
     task.id === "phase-03-child-handoff-gate"
       ? { ...task, completionPercent: 82 }
       : task
@@ -269,10 +273,10 @@ describe("phase 11 release readiness", () => {
     expect(phase3Trace?.detail).toContain("expected fingerprint current");
     expect(phase3Trace?.detail).toContain("proof export ready");
     expect(phase3Trace?.detail).toContain("proof export: Proof export is ready at 100% ready");
-    expect(phase3Trace?.detail).toContain("phase3.proof-export.offline-verification");
+    expect(phase3Trace?.detail).toContain(PHASE3_PROOF_EXPORT_EVIDENCE_KEY);
     expect(phase3Trace?.detail).toContain("phase-03-child-blocker-priority");
     expect(phase3Trace?.detail).toContain("phase-03-child-traceability");
-    expect(phase3Trace?.detail).toContain("phase-03-child-proof-export-boundary");
+    expect(phase3Trace?.detail).toContain(PHASE3_PROOF_EXPORT_PM_TASK_ID);
     expect(phase3Trace?.detail).toContain("phase-03-child-handoff-gate");
     expect(phase3Trace?.detail).toContain("age 600000ms of 86400000ms window");
     expect(result.ariaLabel).toContain("0 holds");
@@ -347,7 +351,7 @@ describe("phase 11 release readiness", () => {
     );
     expect(phase3Trace?.detail).toContain("proof freshness not trusted");
     expect(phase3Trace?.detail).toContain("proof export: Proof export is review at 65% ready");
-    expect(phase3Trace?.detail).toContain("phase3.proof-export.offline-verification");
+    expect(phase3Trace?.detail).toContain(PHASE3_PROOF_EXPORT_EVIDENCE_KEY);
     expect(phase3Trace?.detail).toContain("expected fingerprint missing");
     expect(smokeProof?.detail).toContain("proof freshness is review at 84%");
     expect(smokeProof?.detail).toContain("handoff missing");
@@ -408,7 +412,7 @@ describe("phase 11 release readiness", () => {
       })
     );
     expect(phase3Trace?.detail).toContain("Proof export is review at 65% ready");
-    expect(phase3Trace?.detail).toContain("phase3.proof-export.offline-verification");
+    expect(phase3Trace?.detail).toContain(PHASE3_PROOF_EXPORT_EVIDENCE_KEY);
     expect(phase3Trace?.nextAction).toContain("proof-export evidence");
   });
 
