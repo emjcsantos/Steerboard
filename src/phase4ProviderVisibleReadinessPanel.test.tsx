@@ -25,6 +25,10 @@ import {
   derivePhase4ProviderRollbackRecordValidation
 } from "./phase4ProviderRollbackRecord";
 import {
+  buildCatalogRefreshProviderFingerprint,
+  buildCatalogRefreshProviderSmoke
+} from "./catalogRefreshProviderSmoke";
+import {
   createPhase4ProviderPermissionRecord,
   derivePhase4ProviderPermissionRecordValidation,
   EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
@@ -37,7 +41,7 @@ import {
 } from "./phase4ProviderReviewArtifact";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
 import { buildPhase4ProviderTraceabilitySummary } from "./phase4ProviderTraceability";
-import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
+import { buildPhase4RefreshSafetyDepth } from "./phase4RefreshSafetyDepth";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
 
 const surfaces: readonly CatalogSurface[] = [
@@ -48,6 +52,34 @@ const surfaces: readonly CatalogSurface[] = [
   "automation",
   "personalization"
 ];
+
+const snapshotPayloads = {
+  commandCatalogSnapshot: {
+    source: "provider-live",
+    entries: [{ command: "/alpha", label: "Alpha", detail: "Alpha.", state: "live", scopes: ["panel"] }]
+  },
+  skillCatalogSnapshot: {
+    source: "provider-live",
+    entries: [{ id: "alpha-skill", label: "Alpha Skill", source: "builtin", trigger: "slash", invocationLabel: "Alpha", state: "live" }]
+  },
+  pluginCatalogSnapshot: {
+    source: "provider-live",
+    entries: [{ id: "alpha-plugin", label: "Alpha Plugin", detail: "Alpha.", state: "live" }]
+  },
+  mcpCatalogSnapshot: {
+    source: "provider-live",
+    entries: [{ id: "alpha-mcp", label: "Alpha MCP", transport: "stdio", state: "live", toolPolicy: "read-only" }]
+  },
+  automationCatalogSnapshot: {
+    source: "provider-live",
+    entries: [{ id: "alpha-automation", label: "Alpha Automation", lifecycle: "active", trigger: "manual", approvalPosture: "manual", state: "live" }]
+  },
+  personalizationCatalogSnapshot: {
+    source: "provider-live",
+    entries: [{ id: "alpha-personalization", label: "Alpha Personalization", layer: "ui", source: "builtin", privacyPosture: "device-only", state: "live" }]
+  }
+} as const;
+const phase4CatalogFingerprint = buildCatalogRefreshProviderFingerprint(snapshotPayloads);
 
 function surfaceFixture(
   surface: CatalogSurface,
@@ -87,16 +119,15 @@ function validationFixture(): CatalogRefreshOwnerValidationResult {
   };
 }
 
-const readyRefreshSafety: Phase4RefreshSafetyDepthSummary = {
-  id: "phase-4-refresh-safety-depth",
-  label: "Phase 4 refresh safety depth",
-  records: [],
-  readyCount: 7,
-  previewCount: 0,
-  blockedCount: 0,
-  nextAction: "Keep refresh safety attached.",
-  ariaLabel: "Refresh safety ready."
-};
+const readyRefreshSafety = buildPhase4RefreshSafetyDepth(
+  buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+    checkedAt: "2026-06-18T10:35:00.000Z"
+  }),
+  {
+    evaluatedAt: "2026-06-18T10:35:00.000Z",
+    expectedCatalogFingerprint: phase4CatalogFingerprint
+  }
+);
 
 describe("phase 4 provider visible readiness panel", () => {
   it("renders catalog evidence, execution locks, totals, and next actions for owner review", () => {
@@ -133,19 +164,19 @@ describe("phase 4 provider visible readiness panel", () => {
   it("renders approval record actions and evidence keys without provider execution", () => {
     const readiness = buildProviderIntegrationReadiness(validationFixture());
     const record = createPhase4ProviderApprovalRecord({
-      catalogFingerprint: "phase4-catalog-current",
+      catalogFingerprint: phase4CatalogFingerprint,
       createdAt: "2026-06-18T10:00:00.000Z"
     });
     const approvalValidation = derivePhase4ProviderApprovalRecordValidation({
       record,
-      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedCatalogFingerprint: phase4CatalogFingerprint,
       refreshSafety: readyRefreshSafety,
       options: { evaluatedAt: "2026-06-18T10:05:00.000Z" }
     });
     const auditRecord = createPhase4ProviderAuditRecord({
       approvalRecord: record,
       auditEvidenceFingerprint: "phase4-provider-audit-current",
-      catalogFingerprint: "phase4-catalog-current",
+      catalogFingerprint: phase4CatalogFingerprint,
       createdAt: "2026-06-18T10:10:00.000Z"
     });
     const auditValidation = derivePhase4ProviderAuditRecordValidation({
@@ -153,13 +184,13 @@ describe("phase 4 provider visible readiness panel", () => {
       approvalRecord: record,
       approvalValidation,
       expectedAuditEvidenceFingerprint: "phase4-provider-audit-current",
-      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedCatalogFingerprint: phase4CatalogFingerprint,
       options: { evaluatedAt: "2026-06-18T10:15:00.000Z" }
     });
     const rollbackRecord = createPhase4ProviderRollbackRecord({
       approvalRecord: record,
       auditRecord,
-      catalogFingerprint: "phase4-catalog-current",
+      catalogFingerprint: phase4CatalogFingerprint,
       createdAt: "2026-06-18T10:20:00.000Z",
       surfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current"
     });
@@ -168,7 +199,7 @@ describe("phase 4 provider visible readiness panel", () => {
       approvalRecord: record,
       auditRecord,
       auditValidation,
-      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedCatalogFingerprint: phase4CatalogFingerprint,
       expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
       options: { evaluatedAt: "2026-06-18T10:25:00.000Z" }
     });
@@ -176,7 +207,7 @@ describe("phase 4 provider visible readiness panel", () => {
       approvalRecord: record,
       auditRecord,
       rollbackRecord,
-      catalogFingerprint: "phase4-catalog-current",
+      catalogFingerprint: phase4CatalogFingerprint,
       createdAt: "2026-06-18T10:30:00.000Z",
       surfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
       permissionEvidenceFingerprint: "phase4-provider-permission-current",
@@ -188,7 +219,7 @@ describe("phase 4 provider visible readiness panel", () => {
       auditRecord,
       rollbackRecord,
       rollbackValidation,
-      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedCatalogFingerprint: phase4CatalogFingerprint,
       expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
       expectedPermissionEvidenceFingerprint: "phase4-provider-permission-current",
       options: { evaluatedAt: "2026-06-18T10:35:00.000Z" }
@@ -216,7 +247,7 @@ describe("phase 4 provider visible readiness panel", () => {
       buildPhase4ProviderReviewArtifact({
         exportedAt: "2026-06-18T10:35:00.000Z",
         evaluatedAt: "2026-06-18T10:35:00.000Z",
-        currentCatalogFingerprint: "phase4-catalog-current",
+        currentCatalogFingerprint: phase4CatalogFingerprint,
         catalogDepth,
         refreshSafety: readyRefreshSafety,
         surfaceDepth,
@@ -233,7 +264,7 @@ describe("phase 4 provider visible readiness panel", () => {
       }),
       {
         verifiedAt: "2026-06-18T10:35:00.000Z",
-        expectedCatalogFingerprint: "phase4-catalog-current"
+        expectedCatalogFingerprint: phase4CatalogFingerprint
       }
     );
     const html = renderToStaticMarkup(
@@ -279,10 +310,10 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("Provider review artifact");
     expect(html).toContain("Imported provider review");
     expect(html).toContain("Catalog fingerprint");
-    expect(html).toContain("phase4-catalog-current");
+    expect(html).toContain(phase4CatalogFingerprint);
     expect(html).toContain("matched");
-    expect(html).toContain("Phase 4 provider review artifact is missing refresh-safety records");
-    expect(html).toContain("Attach metadata-only refresh-safety proof before exporting");
+    expect(html).toContain("Phase 4 provider review artifact is valid but still has 1 open blocker");
+    expect(html).toContain("owner-visible provider readiness check");
     expect(html).toContain("Export review");
     expect(html).toContain("Import review");
     expect(html).toContain("Record approval");
