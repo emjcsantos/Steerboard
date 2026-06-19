@@ -84,6 +84,7 @@ export interface Phase4ProviderReviewArtifactBuildInput {
 export interface Phase4ProviderReviewArtifactVerifyOptions {
   readonly verifiedAt?: string | Date;
   readonly maxArtifactAgeMs?: number;
+  readonly expectedCatalogFingerprint?: string;
 }
 
 const STATUS_LABELS: Record<Phase4ProviderReviewArtifactState, string> = {
@@ -281,6 +282,19 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       "Phase 4 provider review artifact is missing the current six-surface catalog fingerprint.",
       "Run the metadata-only provider catalog review, then export again with the current fingerprint attached."
+    );
+  }
+
+  const expectedCatalogFingerprint = options.expectedCatalogFingerprint?.trim();
+  if (
+    expectedCatalogFingerprint &&
+    artifact.currentCatalogFingerprint.trim() !== expectedCatalogFingerprint
+  ) {
+    return result(
+      "review",
+      artifact,
+      "Phase 4 provider review artifact catalog fingerprint does not match the current six-surface catalog.",
+      "Re-export Phase 4 provider review evidence after the current metadata-only provider catalog refresh."
     );
   }
 

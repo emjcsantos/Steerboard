@@ -166,6 +166,12 @@ describe("phase 4 provider review artifact", () => {
       )
     ).toMatchObject({ state: "review", detail: expect.stringContaining("fingerprint") });
     expect(
+      verifyPhase4ProviderReviewArtifact(artifact, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: "phase4-catalog-new"
+      })
+    ).toMatchObject({ state: "review", detail: expect.stringContaining("does not match") });
+    expect(
       verifyPhase4ProviderReviewArtifact(
         {
           ...artifact,
