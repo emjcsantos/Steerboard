@@ -819,7 +819,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Import desktop proof");
     expect(html).toContain("Load recorded");
     expect(html).toContain("Open Steerboard in desktop mode or use Import");
-    expect(html).toContain("disabled");
+    expect(html).toContain(
+      '<button disabled="" title="Open Steerboard in desktop mode or use Import to attach this local artifact." type="button">'
+    );
   });
 
   it("does not borrow another panel's slash or session-control proof for Phase 3 exit", () => {
