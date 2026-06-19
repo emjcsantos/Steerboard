@@ -109,7 +109,9 @@ describe("phase 1/2/6 publish hold blocker priority", () => {
     const result = priority();
 
     expect(result.state).toBe("blocked");
+    expect(result.readiness).toBe(0);
     expect(result.openBlockerCount).toBe(2);
+    expect(result.ownerReviewAddressableCount).toBe(2);
     expect(result.ownerReviewCanAddressTopBlocker).toBe(true);
     expect(result.topPriorityLabel).toBe("Publish hold");
     expect(result.ariaLabel).toContain(
@@ -146,6 +148,8 @@ describe("phase 1/2/6 publish hold blocker priority", () => {
       "Publish hold goal",
       "Phase 6 PM phase board"
     ]);
+    expect(result.readiness).toBe(22);
+    expect(result.ownerReviewAddressableCount).toBe(3);
     expect(result.ariaLabel).toContain(
       "Phase 1/2/6 publish hold blocker priority: Blocked; 3 open blockers; 3 owner-review addressable; top priority Publish hold; next action:"
     );
@@ -169,7 +173,9 @@ describe("phase 1/2/6 publish hold blocker priority", () => {
     });
 
     expect(result.state).toBe("ready");
+    expect(result.readiness).toBe(100);
     expect(result.openBlockerCount).toBe(0);
+    expect(result.ownerReviewAddressableCount).toBe(0);
     expect(result.topPriorityLabel).toBe("No open Phase 1/2/6 publish-hold blocker");
     expect(result.ariaLabel).toBe(
       "Phase 1/2/6 publish hold blocker priority: Ready; 0 open blockers; 0 owner-review addressable; top priority No open Phase 1/2/6 publish-hold blocker; next action: No Phase 1/2/6 publish-hold blockers remain; keep publishing held until owner approval."
