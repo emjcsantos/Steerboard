@@ -120,7 +120,7 @@ describe("phase 3 clearance package", () => {
       blockerCount: 0,
       reviewCount: 0,
       waitingCount: 0,
-      nextAction: "Record the Phase 3 handoff and advance provider integration only after owner review."
+      nextAction: "Record the Phase 3 handoff before Phase 4 review resumes after owner review."
     });
     expect(result.blockers).toEqual([]);
     expect(result.safety).toContain("evidence-only");

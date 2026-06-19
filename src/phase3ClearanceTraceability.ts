@@ -483,7 +483,7 @@ function goalHonestyItem(
       label: "Goal completion honesty",
       kind: "goal-honesty",
       status: "blocked",
-      detail: "Phase 3 is marked complete before the owner handoff can advance provider integration.",
+      detail: "Phase 3 is marked complete before the owner handoff can resume Phase 4 review.",
       nextAction: "Lower Phase 3 completion or attach the owner-reviewed handoff before reporting completion."
     };
   }
@@ -494,7 +494,7 @@ function goalHonestyItem(
       label: "Goal completion honesty",
       kind: "goal-honesty",
       status: "ready",
-      detail: `Phase 3 remains ${goal.status} at ${goal.completionPercent}% with owner-reviewed handoff ready for provider advance.`,
+      detail: `Phase 3 remains ${goal.status} at ${goal.completionPercent}% with owner-reviewed handoff ready for Phase 4 review.`,
       nextAction: "Phase 3 completion can be reported after owner review keeps the handoff boundary attached."
     };
   }

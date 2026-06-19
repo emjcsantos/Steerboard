@@ -421,7 +421,7 @@ describe("phase 3 clearance traceability", () => {
     expect(result.nextAction).toContain("Link missing Phase 3 PM rows");
   });
 
-  it("keeps goal completion honest until owner handoff can advance provider integration", () => {
+  it("keeps goal completion honest until owner handoff can resume Phase 4 review", () => {
     const result = snapshot({
       goals: [phase3Goal({ completionPercent: 100 })],
       clearancePackage: clearance({ canExit: true }),

@@ -250,7 +250,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-handoff-gate",
             title: "Owner Handoff Gate",
-            description: "Show desktop proof clearance, exact blocker visibility, trusted current-goal and PM traceability precondition, visible handoff record-gate reason, local owner handoff record actions gated by fresh CLI validation, fail-closed proof-export offline verification, export-ready current-evidence fingerprint, clearance snapshot, age matching, and the provider-integration boundary before Phase 4 advances.",
+            description: "Show desktop proof clearance, exact blocker visibility, trusted current-goal and PM traceability precondition, visible handoff record-gate reason, local owner handoff record actions gated by fresh CLI validation, fail-closed proof-export offline verification, export-ready current-evidence fingerprint, clearance snapshot, age matching, and the Phase 4 review boundary before Phase 4 review resumes.",
             completionPercent: 99,
             complexity: "high",
             sourceDocument: "Phase 3 handoff gate"

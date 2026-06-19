@@ -126,7 +126,7 @@ function nextActionForState(
   action: Phase3OwnerTestingAction | undefined
 ): string {
   if (state === "ready") {
-    return "Record the Phase 3 handoff and advance provider integration only after owner review.";
+    return "Record the Phase 3 handoff before Phase 4 review resumes after owner review.";
   }
 
   if (action) {

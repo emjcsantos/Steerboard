@@ -13,7 +13,7 @@ function clearancePackage(
     readiness: 100,
     canExit: true,
     detail: "Phase 3 has complete evidence.",
-    nextAction: "Record the Phase 3 handoff and advance provider integration only after owner review.",
+    nextAction: "Record the Phase 3 handoff before Phase 4 review resumes after owner review.",
     readyCount: 5,
     openCount: 0,
     blockerCount: 0,
@@ -75,7 +75,7 @@ function buildGate(input: Parameters<typeof buildPhase3HandoffGate>[0]) {
 }
 
 describe("phase 3 handoff gate", () => {
-  it("advances provider integration only after clearance and owner handoff are ready", () => {
+  it("resumes Phase 4 review only after clearance and owner handoff are ready", () => {
     const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),
@@ -425,7 +425,7 @@ describe("phase 3 handoff gate", () => {
     expect(result.ariaLabel).toContain("Owner handoff recordable");
   });
 
-  it("blocks provider advance when the owner handoff record fingerprint is stale", () => {
+  it("blocks Phase 4 review when the owner handoff record fingerprint is stale", () => {
     const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),
@@ -462,7 +462,7 @@ describe("phase 3 handoff gate", () => {
     );
   });
 
-  it("blocks provider advance when the owner handoff record age is stale", () => {
+  it("blocks Phase 4 review when the owner handoff record age is stale", () => {
     const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),
@@ -499,7 +499,7 @@ describe("phase 3 handoff gate", () => {
     );
   });
 
-  it("blocks provider advance when the owner handoff snapshot no longer matches", () => {
+  it("blocks Phase 4 review when the owner handoff snapshot no longer matches", () => {
     const result = buildGate({
       clearancePackage: clearancePackage(),
       traceabilityPrecondition: trustedTraceability(),

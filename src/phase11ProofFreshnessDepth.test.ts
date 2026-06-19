@@ -95,7 +95,7 @@ function handoff(
     blockedCount: 0,
     waitingCount: 0,
     exactBlockerCount: 0,
-    nextAction: "Advance Phase 4 provider integration from the reviewed handoff.",
+    nextAction: "Resume Phase 4 review from the reviewed handoff.",
     ownerReviewSummary:
       "Owner handoff current: fingerprint, clearance snapshot, and age metadata match; Phase 4 remains behind owner review.",
     safety: "Evidence only.",
@@ -551,7 +551,7 @@ describe("phase 11 proof freshness depth", () => {
     expect(combinedText).not.toContain(">");
   });
 
-  it("keeps owner proof waiting until the handoff gate can advance provider integration", () => {
+  it("keeps owner proof waiting until the handoff gate can resume Phase 4 review", () => {
     const result = snapshot({
       phase3HandoffGate: handoff({
         state: "waiting",

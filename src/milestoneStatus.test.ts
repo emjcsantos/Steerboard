@@ -268,7 +268,7 @@ describe("milestone status model", () => {
     );
   });
 
-  it("ties the current Platform milestone to the active Phase 3 goal before Phase 4 advances", () => {
+  it("ties the current Platform milestone to the active Phase 3 goal before Phase 4 review resumes", () => {
     const platform = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Platform capabilities"
     );

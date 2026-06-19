@@ -76,7 +76,7 @@ export interface Phase3HandoffGateInput {
 const GATE_ID = "phase-3-handoff-gate";
 const GATE_LABEL = "Phase 3 handoff gate";
 const SAFETY =
-  "Phase 3 handoff gate is evidence-only. It does not run smoke actions, mutate runtime state, launch providers, push branches, or advance provider integration automatically.";
+  "Phase 3 handoff gate is evidence-only. It does not run smoke actions, mutate runtime state, launch providers, push branches, or resume Phase 4 review automatically.";
 
 const STATUS_LABELS: Record<Phase3HandoffGateState, string> = {
   ready: "Ready",
@@ -530,9 +530,9 @@ function providerBoundaryItem(
     kind: "provider-boundary",
     status: "ready",
     detail:
-      "Provider integration can be advanced after owner review with current active goal and PM traceability trusted.",
+      "Phase 4 review can resume after owner review with current active goal and PM traceability trusted.",
     nextAction:
-      "Advance Phase 4 provider integration from the reviewed handoff while keeping current active goal and PM traceability trusted."
+      "Resume Phase 4 review from the reviewed handoff while keeping current active goal and PM traceability trusted."
   };
 }
 
