@@ -642,7 +642,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-08-permissions-audit",
     title: "Phase 8: Permissions and Audit",
     description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, current owner audit-review fingerprints, and record-specific rollback evidence before mutation-capable paths expand.",
-    completionPercent: 62,
+    completionPercent: 65,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [

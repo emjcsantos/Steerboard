@@ -428,6 +428,9 @@ describe("remaining goal plan", () => {
 
   it("keeps the Phase 8 permission audit target linked to traceability and audit persistence", () => {
     const phase8Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-8-permission-audit");
+    const phase8Epic = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-08-permissions-audit"
+    );
 
     expect(phase8Goal).toMatchObject({
       target: "Permission and audit depth",
@@ -435,6 +438,7 @@ describe("remaining goal plan", () => {
       status: "next",
       completionPercent: 65
     });
+    expect(phase8Epic?.completionPercent).toBe(65);
     expect(phase8Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-08-child-permission-labels",
