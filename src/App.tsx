@@ -2619,9 +2619,16 @@ export function App() {
   const phase3ProofExportVerification = useMemo(
     () =>
       verifyPhase3ProofExportArtifact(phase3ProofExportArtifact, {
-        verifiedAt: phase3ProofEvaluationTime
+        verifiedAt: phase3ProofEvaluationTime,
+        expectedCurrentPanelId: focusedPanelId,
+        expectedHandoffEvidenceFingerprint: phase3HandoffEvidenceFingerprint
       }),
-    [phase3ProofExportArtifact, phase3ProofEvaluationTime]
+    [
+      focusedPanelId,
+      phase3HandoffEvidenceFingerprint,
+      phase3ProofEvaluationTime,
+      phase3ProofExportArtifact
+    ]
   );
   const phase3HandoffRecordState = useMemo(
     () =>
@@ -2791,7 +2798,9 @@ export function App() {
       ownerHandoffRecord: phase3OwnerHandoffRecord
     });
     const { verification, serializedArtifact } = preparePhase3ProofExportDownload(artifact, {
-      verifiedAt: now
+      verifiedAt: now,
+      expectedCurrentPanelId: focusedPanelId,
+      expectedHandoffEvidenceFingerprint: phase3HandoffEvidenceFingerprint
     });
     if (!serializedArtifact) {
       setAppNotice(`Phase 3 proof export ${verification.statusLabel}: ${verification.detail}`);

@@ -384,4 +384,19 @@ describe("phase 3 proof export", () => {
     });
     expect(heldDownload.serializedArtifact).toBeUndefined();
   });
+
+  it("does not prepare downloadable proof export JSON for a stale current context", () => {
+    const download = preparePhase3ProofExportDownload(readyArtifact(), {
+      verifiedAt,
+      expectedCurrentPanelId: currentPanelId,
+      expectedHandoffEvidenceFingerprint: "phase3-handoff-new-owner-context"
+    });
+
+    expect(download.verification).toMatchObject({
+      state: "review",
+      canVerifyOffline: false
+    });
+    expect(download.verification.detail).toContain("current owner-visible handoff fingerprint");
+    expect(download.serializedArtifact).toBeUndefined();
+  });
 });
