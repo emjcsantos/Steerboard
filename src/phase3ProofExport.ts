@@ -14,6 +14,7 @@ import {
 } from "./phase3PanelEvidenceStorage";
 import {
   loadPhase3SmokeProofBundleWithStorageProof,
+  getFallbackPhase3SmokeProofBundle,
   type Phase3PersistedDesktopProofs,
   type Phase3PersistedDesktopProofReviewReasons,
   type Phase3SmokeProofBundle
@@ -104,6 +105,11 @@ const STATUS_LABELS: Record<Phase3ProofExportState, string> = {
 };
 const DEFAULT_MAX_ARTIFACT_AGE_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_MAX_HANDOFF_AGE_MS = 24 * 60 * 60 * 1000;
+const EMPTY_PERSISTED_DESKTOP_PROOFS: Phase3PersistedDesktopProofs = {
+  liveControlSmoke: false,
+  activeTurnInterruptSmoke: false,
+  activeTurnSteerSmoke: false
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -244,13 +250,27 @@ export function buildPhase3ProofExportArtifact(
   const ownerHandoffRecord = hasOwnerHandoffRecordInput
     ? input.ownerHandoffRecord
     : loadPhase3OwnerHandoffRecord();
-  const smokeProofLoad = input.smokeProofBundle && input.persistedDesktopProofs
+  const hasSmokeProofBundleInput = Object.prototype.hasOwnProperty.call(
+    input,
+    "smokeProofBundle"
+  );
+  const hasPersistedDesktopProofsInput = Object.prototype.hasOwnProperty.call(
+    input,
+    "persistedDesktopProofs"
+  );
+  const smokeProofLoad = !hasSmokeProofBundleInput && !hasPersistedDesktopProofsInput
+    ? loadPhase3SmokeProofBundleWithStorageProof()
+    : input.smokeProofBundle && input.persistedDesktopProofs
     ? {
         bundle: input.smokeProofBundle,
         persistedDesktopProofs: input.persistedDesktopProofs,
         storageReviewReasons: input.storageReviewReasons ?? {}
       }
-    : loadPhase3SmokeProofBundleWithStorageProof();
+    : {
+        bundle: input.smokeProofBundle ?? getFallbackPhase3SmokeProofBundle(),
+        persistedDesktopProofs: input.persistedDesktopProofs ?? EMPTY_PERSISTED_DESKTOP_PROOFS,
+        storageReviewReasons: input.storageReviewReasons ?? {}
+      };
   const now = new Date().toISOString();
 
   return {

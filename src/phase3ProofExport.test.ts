@@ -19,6 +19,7 @@ import {
   verifySerializedPhase3ProofExportArtifact
 } from "./phase3ProofExport";
 import type { Phase3SmokeProofBundle } from "./phase3SmokeProofStorage";
+import { savePhase3SmokeProofBundle } from "./phase3SmokeProofStorage";
 import { buildSessionControlReadinessEvidence } from "./sessionControlReadinessEvidence";
 import { buildSlashCommandExecutionEvidence } from "./slashCommandExecutionEvidence";
 
@@ -366,6 +367,26 @@ describe("phase 3 proof export", () => {
     expect(verification.hasOwnerHandoffRecord).toBe(false);
     expect(verification.detail).toContain("missing the owner handoff record");
     expect(canRecordPhase3OwnerHandoffFromProofExportPreflight(verification)).toBe(true);
+  });
+
+  it("respects explicit current smoke state instead of pulling stored desktop proof readiness", () => {
+    createStore();
+    savePhase3SmokeProofBundle(smokeProofBundle);
+
+    const artifact = readyArtifact({
+      persistedDesktopProofs: undefined
+    });
+    const verification = verifyPhase3ProofExportArtifact(artifact, { verifiedAt });
+
+    expect(artifact.smokeProofBundle).toEqual(smokeProofBundle);
+    expect(artifact.persistedDesktopProofs).toEqual({
+      liveControlSmoke: false,
+      activeTurnInterruptSmoke: false,
+      activeTurnSteerSmoke: false
+    });
+    expect(verification.state).toBe("review");
+    expect(verification.storageAttestedDesktopProofCount).toBe(0);
+    expect(verification.detail).toContain("does not include all storage-attested desktop proof rows");
   });
 
   it("keeps self-consistent but non-current handoff fingerprints in review", () => {
