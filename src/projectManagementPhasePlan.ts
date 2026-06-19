@@ -436,7 +436,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-preview-metadata",
             title: "Metadata Preview",
             description: "Show migration impact and review-gate previews without copying private content or executing external actions.",
-            completionPercent: 45,
+            completionPercent: 58,
             sourceDocument: "Migration Center"
           }
         ]

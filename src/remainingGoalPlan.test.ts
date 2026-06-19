@@ -411,14 +411,18 @@ describe("remaining goal plan", () => {
     const rollbackAuditParent = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-05-parent-rollback-audit"
     );
+    const previewMetadataChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-05-child-preview-metadata"
+    );
 
     expect(phase5Goal).toMatchObject({
       target: "Migration Center hardening",
       priority: "high",
       status: "next",
-      completionPercent: 64
+      completionPercent: 65
     });
     expect(phase5Epic?.completionPercent).toBe(64);
+    expect(previewMetadataChild?.completionPercent).toBe(58);
     expect(rollbackAuditParent?.completionPercent).toBe(62);
     expect(phase5Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([

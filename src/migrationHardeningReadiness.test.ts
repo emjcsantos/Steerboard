@@ -88,6 +88,10 @@ describe("migration hardening readiness", () => {
     expect(readiness.canCreateDraft).toBe(true);
     expect(readiness.canStageApplyIntent).toBe(false);
     expect(readiness.items.find((item) => item.id === "draft-created")?.status).toBe("waiting");
+    expect(readiness.items.find((item) => item.id === "metadata-impact-preview")).toMatchObject({
+      status: "ready",
+      detail: expect.stringContaining("selected metadata categories")
+    });
   });
 
   it("keeps a ready draft stageable until apply-review staging is recorded", () => {
@@ -132,6 +136,10 @@ describe("migration hardening readiness", () => {
 
     expect(readiness.state).toBe("ready");
     expect(readiness.readiness).toBe(100);
+    expect(readiness.items.find((item) => item.id === "metadata-impact-preview")).toMatchObject({
+      status: "ready",
+      detail: expect.stringContaining("reviewed draft")
+    });
     expect(readiness.canRollback).toBe(true);
     expect(readiness.canStageApplyIntent).toBe(true);
     expect(readiness.openReviewRecordCount).toBe(0);
@@ -316,5 +324,6 @@ describe("migration hardening readiness", () => {
     expect(combinedText).not.toMatch(/[\\/](Users|Projects|Documents|Desktop)[\\/]/i);
     expect(combinedText).not.toContain("<");
     expect(combinedText).not.toContain(">");
+    expect(combinedText).toContain("Metadata impact preview");
   });
 });

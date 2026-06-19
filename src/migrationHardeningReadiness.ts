@@ -259,6 +259,34 @@ function sensitiveExclusionStatus(
   return hasSecret && hasTranscript && hasSourceBoundary ? "ready" : "review";
 }
 
+function metadataPreviewStatus(input: {
+  effectiveSelectedCategoryCount: number;
+  selectedUnsupported: number;
+  draftUnsupported: number;
+}): MigrationHardeningReadinessState {
+  if (input.selectedUnsupported > 0 || input.draftUnsupported > 0) {
+    return "blocked";
+  }
+
+  return input.effectiveSelectedCategoryCount > 0 ? "ready" : "waiting";
+}
+
+function metadataPreviewDetail(input: {
+  counts: ReturnType<typeof buildMigrationPreviewCounts>;
+  effectiveSelectedCategoryCount: number;
+  latestDraft?: MigrationProfileDraft;
+}): string {
+  if (input.effectiveSelectedCategoryCount === 0) {
+    return "Metadata impact preview is waiting for selected categories or a reviewed draft.";
+  }
+
+  const source = input.latestDraft
+    ? `reviewed draft ${input.latestDraft.id}`
+    : "current preview";
+
+  return `${source} shows ${input.effectiveSelectedCategoryCount} selected metadata categories, ${input.counts.reviewRequired} review-gate categories, ${input.counts.unsupported} unsupported categories kept visible, and ${input.counts.excluded} excluded categories without copying private content.`;
+}
+
 function buildMigrationReviewDepthItems(input: {
   latestDraft?: MigrationProfileDraft;
   latestAuditAction?: MigrationProfileDraftAuditAction;
@@ -379,6 +407,11 @@ export function buildMigrationHardeningReadiness(
   const applyStatus = applyIntentStatus(applyIntentState);
   const canRollback = input.draftHistory.length > 0;
   const sensitiveStatus = sensitiveExclusionStatus(excludedSecretsSummary);
+  const metadataPreview = {
+    effectiveSelectedCategoryCount,
+    selectedUnsupported,
+    draftUnsupported
+  };
 
   const items: MigrationHardeningReadinessItem[] = [
     {
@@ -390,6 +423,16 @@ export function buildMigrationHardeningReadiness(
         : latestDraft
           ? `${latestDraft.selectedCategories.length} categories are captured in the existing reviewed draft.`
           : "No migration categories are selected for draft review."
+    },
+    {
+      id: "metadata-impact-preview",
+      label: "Metadata impact preview",
+      status: metadataPreviewStatus(metadataPreview),
+      detail: metadataPreviewDetail({
+        counts,
+        effectiveSelectedCategoryCount,
+        latestDraft
+      })
     },
     {
       id: "unsupported-exclusion",

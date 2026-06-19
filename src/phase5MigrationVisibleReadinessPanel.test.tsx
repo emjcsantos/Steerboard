@@ -49,6 +49,8 @@ describe("phase 5 migration visible readiness panel", () => {
     );
 
     expect(html).toContain("Migration review gate");
+    expect(html).toContain("Metadata impact preview");
+    expect(html).toContain("selected metadata categories");
     expect(html).toContain("Apply review staging");
     expect(html).toContain("apply-review-staged");
     expect(html).toContain("phase5.apply-review-staged-audit");
