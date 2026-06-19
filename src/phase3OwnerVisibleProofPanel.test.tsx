@@ -740,6 +740,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("CLI attached");
     expect(html).toContain("Handoff attached");
     expect(html).toContain("handoff fingerprint phase3-handoff-");
+    expect(html).toContain("Expected fingerprint phase3-handoff-");
+    expect(html).toContain("Record fingerprint phase3-handoff-");
+    expect(html).toContain("Handoff snapshot 100% / 0 open");
     expect(html).toContain(
       "Keep the exported Phase 3 proof package attached while Phase 4 remains gated by owner review."
     );
@@ -817,6 +820,9 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("CLI attached");
     expect(html).toContain("Handoff attached");
     expect(html).toContain("handoff fingerprint phase3-handoff-");
+    expect(html).toContain("Expected fingerprint phase3-handoff-");
+    expect(html).toContain("Record fingerprint phase3-handoff-");
+    expect(html).toContain("Handoff snapshot 100% / 0 open");
     expect(html).toContain("Phase 3 proof export");
   });
 
@@ -839,6 +845,47 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Desktop 0/3");
     expect(html).toContain("CLI missing");
     expect(html).toContain("Handoff missing");
+    expect(html).toContain("Expected fingerprint missing");
+    expect(html).toContain("Record fingerprint missing");
+    expect(html).toContain("Handoff snapshot 0% / 0 open");
+  });
+
+  it("keeps Phase 3 proof export held until offline verification is ready", () => {
+    const props = buildReadyPhase3Props();
+    const html = renderOwnerTestingReadinessPanel({
+      ...props,
+      phase3ProofExportVerification: verifyPhase3ProofExportArtifact(
+        buildPhase3ProofExportArtifact({
+          currentPanelId,
+          evaluatedAt,
+          exportedAt: phase3ProofExportedAt,
+          slashEvidenceByPanel: loadPhase3SlashEvidenceByPanel(),
+          sessionControlEvidenceByPanel: loadPhase3SessionControlEvidenceByPanel(),
+          smokeProofBundle: {
+            liveControlSmoke,
+            activeTurnInterruptSmoke,
+            activeTurnSteerSmoke
+          } as Phase3SmokeProofBundle,
+          persistedDesktopProofs: {
+            liveControlSmoke: true,
+            activeTurnInterruptSmoke: true,
+            activeTurnSteerSmoke: true
+          },
+          commandValidationRecord: props.phase3CommandValidationRecord
+        }),
+        { verifiedAt: phase3ProofExportedAt }
+      )
+    });
+
+    expect(html).toContain(
+      'aria-label="Phase 3 proof export verifier Review; 65% ready; next action: Record the owner-reviewed Phase 3 handoff before exporting."'
+    );
+    expect(html).toContain(
+      '<button disabled="" title="Export held: Record the owner-reviewed Phase 3 handoff before exporting." type="button">'
+    );
+    expect(html).toContain("Handoff missing");
+    expect(html).toContain("Expected fingerprint missing");
+    expect(html).toContain("Record fingerprint missing");
   });
 
   it("does not run proof persistence or live-action callbacks while rendering imported proof verification", () => {

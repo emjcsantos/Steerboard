@@ -2788,8 +2788,13 @@ export function App() {
       commandValidationRecord: phase3CommandValidationRecord,
       ownerHandoffRecord: phase3OwnerHandoffRecord
     });
-    const serializedArtifact = serializePhase3ProofExportArtifact(artifact);
     const verification = verifyPhase3ProofExportArtifact(artifact, { verifiedAt: now });
+    if (!verification.canVerifyOffline) {
+      setAppNotice(`Phase 3 proof export ${verification.statusLabel}: ${verification.detail}`);
+      return;
+    }
+
+    const serializedArtifact = serializePhase3ProofExportArtifact(artifact);
 
     if (typeof document !== "undefined" && typeof URL !== "undefined" && typeof Blob !== "undefined") {
       const blob = new Blob([serializedArtifact], { type: "application/json" });
@@ -12912,6 +12917,18 @@ function ToolEvidenceReadinessPanel({
   );
 }
 
+function phase3ProofExportHandoffSummary(
+  verification: Phase3ProofExportVerification
+): string {
+  return [
+    `Expected fingerprint ${verification.handoffEvidenceFingerprint ?? "missing"}`,
+    `Record fingerprint ${verification.ownerHandoffRecordFingerprint ?? "missing"}`,
+    `Handoff snapshot ${verification.ownerHandoffClearanceReadiness ?? 0}% / ${
+      verification.ownerHandoffExactBlockerCount ?? 0
+    } open`
+  ].join(" | ");
+}
+
 export function OwnerTestingReadinessPanel({
   catalogRefreshOwnerValidation,
   checklist,
@@ -13923,9 +13940,17 @@ export function OwnerTestingReadinessPanel({
                 {phase3ProofExportVerification.hasCommandValidationRecord ? "attached" : "missing"} | Handoff{" "}
                 {phase3ProofExportVerification.hasOwnerHandoffRecord ? "attached" : "missing"}
               </small>
+              <small title={phase3ProofExportHandoffSummary(phase3ProofExportVerification)}>
+                {phase3ProofExportHandoffSummary(phase3ProofExportVerification)}
+              </small>
               <button
+                disabled={!phase3ProofExportVerification.canVerifyOffline}
                 onClick={onExportPhase3ProofArtifact}
-                title="Export a Phase 3 proof package for offline owner review without running live actions."
+                title={
+                  phase3ProofExportVerification.canVerifyOffline
+                    ? "Export a Phase 3 proof package for offline owner review without running live actions."
+                    : `Export held: ${phase3ProofExportVerification.nextAction}`
+                }
                 type="button"
               >
                 <ClipboardList size={12} />
@@ -13962,6 +13987,9 @@ export function OwnerTestingReadinessPanel({
                   {importedPhase3ProofExportVerification.storageAttestedDesktopProofCount}/3 | CLI{" "}
                   {importedPhase3ProofExportVerification.hasCommandValidationRecord ? "attached" : "missing"} | Handoff{" "}
                   {importedPhase3ProofExportVerification.hasOwnerHandoffRecord ? "attached" : "missing"}
+                </small>
+                <small title={phase3ProofExportHandoffSummary(importedPhase3ProofExportVerification)}>
+                  {phase3ProofExportHandoffSummary(importedPhase3ProofExportVerification)}
                 </small>
               </div>
             ) : null}

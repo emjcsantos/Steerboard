@@ -49,6 +49,10 @@ export interface Phase3ProofExportVerification {
   readonly storageAttestedDesktopProofCount: number;
   readonly hasCommandValidationRecord: boolean;
   readonly hasOwnerHandoffRecord: boolean;
+  readonly handoffEvidenceFingerprint?: string;
+  readonly ownerHandoffRecordFingerprint?: string;
+  readonly ownerHandoffClearanceReadiness?: number;
+  readonly ownerHandoffExactBlockerCount?: number;
 }
 
 export interface Phase3ProofExportBuildInput {
@@ -178,7 +182,11 @@ function result(
     readyPanelEvidenceCount: counts.readyPanelEvidenceCount ?? 0,
     storageAttestedDesktopProofCount: counts.storageAttestedDesktopProofCount ?? 0,
     hasCommandValidationRecord: counts.hasCommandValidationRecord ?? false,
-    hasOwnerHandoffRecord: counts.hasOwnerHandoffRecord ?? false
+    hasOwnerHandoffRecord: counts.hasOwnerHandoffRecord ?? false,
+    handoffEvidenceFingerprint: artifact?.handoffEvidenceFingerprint,
+    ownerHandoffRecordFingerprint: artifact?.ownerHandoffRecord?.evidenceFingerprint,
+    ownerHandoffClearanceReadiness: artifact?.ownerHandoffRecord?.clearanceReadiness,
+    ownerHandoffExactBlockerCount: artifact?.ownerHandoffRecord?.exactBlockerCount
   };
 }
 
