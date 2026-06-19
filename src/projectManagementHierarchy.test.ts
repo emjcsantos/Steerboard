@@ -98,6 +98,7 @@ describe("project management hierarchy", () => {
     expect(byId.get("phase-03-child-traceability")?.description).toContain("handoff-review details");
     expect(byId.get(PHASE3_PROOF_EXPORT_PM_TASK_ID)?.description).toContain("offline verification");
     expect(byId.get(PHASE3_PROOF_EXPORT_PM_TASK_ID)?.description).toContain("Phase 4 review can advance");
+    expect(byId.get(PHASE3_PROOF_EXPORT_PM_TASK_ID)?.description).toContain("complete proof-export preflight");
     expect(byId.get("phase-03-child-slash-ready")?.description).toContain("current-panel storage provenance");
     expect(byId.get("phase-03-child-control-ready")?.description).toContain("honestly unsupported");
     expect(byId.get("phase-11-parent-owner-testing")?.description).toContain("proof freshness depth");

@@ -251,7 +251,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: PHASE3_PROOF_EXPORT_PM_TASK_ID,
             title: "Proof Export Boundary",
-            description: "Keep Phase 3 proof export fail-closed until offline verification, current evidence fingerprint, expected and recorded handoff fingerprints, clearance snapshot, open blocker count, and fresh handoff age all match before Phase 4 review can advance.",
+            description: "Keep Phase 3 proof export fail-closed until offline verification, current evidence fingerprint, expected and recorded handoff fingerprints, clearance snapshot, open blocker count, and fresh handoff age all match before Phase 4 review can advance, while allowing owner handoff recording from complete proof-export preflight when the handoff record is the only missing item.",
             completionPercent: 99,
             complexity: "high",
             sourceDocument: "Phase 3 proof export"
