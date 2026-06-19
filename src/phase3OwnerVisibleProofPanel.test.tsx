@@ -667,14 +667,23 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Desktop proof clearance");
     expect(html).toContain("Exact blocker visibility");
     expect(html).toContain(
+      'aria-label="Phase 3 blocker priority: Ready; 0 open blockers; top priority No open Phase 3 blocker; evidence phase3.clearance.none; command addressable no; next action: No Phase 3 blockers remain; record the owner-reviewed handoff before provider integration advances."'
+    );
+    expect(html).toContain(
       'aria-label="Phase 3 blocker priority counts"><div><dt>Open</dt><dd>0</dd></div><div><dt>Command</dt><dd>0</dd></div><div><dt>State</dt><dd>Ready</dd></div><div><dt>Ready</dt><dd>100%</dd></div></dl>'
     );
     expect(html).toContain("Traceability boundary");
     expect(html).toContain("goal-phase-3-proof-clearance");
     expect(html).toContain(
+      'aria-label="Phase 3 clearance traceability: Ready; 100% ready; 11/11 PM rows linked; 0 open trace rows; next action: Keep the current active Phase 3 goal, PM rows, clearance evidence, and owner handoff trace linked until Phase 3 exits."'
+    );
+    expect(html).toContain(
       'aria-label="Phase 3 clearance traceability counts"><div><dt>PM Rows</dt><dd>11/11</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>State</dt><dd>Ready</dd></div><div><dt>Ready</dt><dd>100%</dd></div></dl>'
     );
     expect(html).toContain("npm.cmd run smoke:phase3");
+    expect(html).toContain(
+      'aria-label="Phase 3 desktop smoke command plan: Ready; command held; 3/3 smoke proofs ready; next action: Desktop smoke command is no longer needed; record Phase 3 handoff after owner review."'
+    );
     expect(html).toContain(
       'aria-label="Phase 3 command plan smoke counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Covers</dt><dd>3</dd></div><div><dt>State</dt><dd>Ready</dd></div></dl>'
     );
