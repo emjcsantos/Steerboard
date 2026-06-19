@@ -665,10 +665,14 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Owner handoff record");
     expect(html).toContain("Provider boundary");
     expect(html).toContain("Phase 3 proof export");
+    expect(html).toContain(
+      'aria-label="Phase 3 proof export verifier Review; 65% ready"'
+    );
     expect(html).toContain("Export proof");
     expect(html).toContain("Import proof");
     expect(html).toContain("Load recorded");
     expect(html).toContain("Panel proof 2/2");
+    expect(html).toContain("Desktop 3/3");
     expect(html).toContain("CLI attached");
     expect(html).toContain("Handoff attached");
     expect(html).toContain("Record handoff");
