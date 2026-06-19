@@ -483,7 +483,7 @@ describe("phase 11 owner release traceability", () => {
         readyCount: 5,
         reviewCount: 1,
         openProofCount: 1,
-        nextAction: "Refresh Phase 3 CLI validation before release readiness."
+        nextAction: "Refresh Phase 3 CLI validation and proof-export evidence before release readiness."
       })
     });
 
@@ -500,7 +500,7 @@ describe("phase 11 owner release traceability", () => {
         expect.objectContaining({
           kind: "proof-freshness",
           status: "review",
-          nextAction: "Refresh Phase 3 CLI validation before release readiness."
+          nextAction: "Refresh Phase 3 CLI validation and proof-export evidence before release readiness."
         })
       ])
     );

@@ -113,7 +113,7 @@ function firstNextAction(
     items.find((item) => item.status === "blocked")?.nextAction ??
     items.find((item) => item.status === "review")?.nextAction ??
     items.find((item) => item.status === "waiting")?.nextAction ??
-    `Run ${OWNER_VISIBLE_PHASE3_PROOF_COMMAND} to verify imported desktop proof, current-panel provenance, and fresh handoff text remain owner-visible before release readiness is resumed.`
+    `Run ${OWNER_VISIBLE_PHASE3_PROOF_COMMAND} to verify imported desktop proof, current-panel provenance, proof-export evidence, and fresh handoff text remain owner-visible before release readiness is resumed.`
   );
 }
 
