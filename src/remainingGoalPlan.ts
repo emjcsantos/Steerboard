@@ -131,6 +131,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-03-child-command-plan",
       "phase-03-child-blocker-priority",
       "phase-03-child-traceability",
+      "phase-03-child-proof-export-boundary",
       "phase-03-child-handoff-gate",
       "phase-03-parent-slash-controls",
       "phase-03-child-slash-ready",

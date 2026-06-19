@@ -215,6 +215,7 @@ describe("remaining goal plan", () => {
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-exit-gate");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-blocker-priority");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-traceability");
+    expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-proof-export-boundary");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-handoff-gate");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-slash-ready");
     expect(phase3Goal?.nextAction).toContain("clearance-snapshot");
@@ -237,6 +238,9 @@ describe("remaining goal plan", () => {
     const handoffGateChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-03-child-handoff-gate"
     );
+    const proofExportChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-03-child-proof-export-boundary"
+    );
 
     expect(traceabilityChild).toMatchObject({
       title: "Clearance Traceability",
@@ -246,6 +250,14 @@ describe("remaining goal plan", () => {
     expect(traceabilityChild?.description).toContain("required PM rows");
     expect(traceabilityChild?.description).toContain("proof-export offline verification");
     expect(traceabilityChild?.description).toContain("handoff-review details");
+    expect(proofExportChild).toMatchObject({
+      title: "Proof Export Boundary",
+      completionPercent: 99,
+      sourceDocument: "Phase 3 proof export"
+    });
+    expect(proofExportChild?.description).toContain("fail-closed");
+    expect(proofExportChild?.description).toContain("offline verification");
+    expect(proofExportChild?.description).toContain("Phase 4 review can advance");
     expect(handoffGateChild?.description).toContain("fail-closed proof-export offline verification");
   });
 
@@ -271,6 +283,7 @@ describe("remaining goal plan", () => {
     expect(taskCompletionById.get("phase-03-child-exit-gate")).toBe(94);
     expect(taskCompletionById.get("phase-03-child-command-plan")).toBe(90);
     expect(taskCompletionById.get("phase-03-child-blocker-priority")).toBe(90);
+    expect(taskCompletionById.get("phase-03-child-proof-export-boundary")).toBe(99);
     expect(taskCompletionById.get("phase-03-child-handoff-gate")).toBe(99);
     expect(taskCompletionById.get("phase-03-parent-slash-controls")).toBe(90);
     expect(taskCompletionById.get("phase-03-child-slash-ready")).toBe(90);

@@ -248,6 +248,14 @@ const phaseSpecs: PhaseSpec[] = [
             sourceDocument: "Phase 3 clearance traceability"
           },
           {
+            id: "phase-03-child-proof-export-boundary",
+            title: "Proof Export Boundary",
+            description: "Keep Phase 3 proof export fail-closed until offline verification, current evidence fingerprint, expected and recorded handoff fingerprints, clearance snapshot, open blocker count, and fresh handoff age all match before Phase 4 review can advance.",
+            completionPercent: 99,
+            complexity: "high",
+            sourceDocument: "Phase 3 proof export"
+          },
+          {
             id: "phase-03-child-handoff-gate",
             title: "Owner Handoff Gate",
             description: "Show desktop proof clearance, exact blocker visibility, trusted current-goal and PM traceability precondition, visible handoff record-gate reason, local owner handoff record actions gated by fresh CLI validation, fail-closed proof-export offline verification, export-ready current-evidence fingerprint, clearance snapshot, age matching, and the Phase 4 review boundary before Phase 4 review resumes.",

@@ -61,6 +61,7 @@ describe("project management hierarchy", () => {
       "phase-03-child-command-plan",
       "phase-03-child-blocker-priority",
       "phase-03-child-traceability",
+      "phase-03-child-proof-export-boundary",
       "phase-03-child-handoff-gate",
       "phase-03-parent-slash-controls",
       "phase-03-child-slash-ready",
@@ -72,6 +73,7 @@ describe("project management hierarchy", () => {
       "phase-03-child-command-plan",
       "phase-03-child-blocker-priority",
       "phase-03-child-traceability",
+      "phase-03-child-proof-export-boundary",
       "phase-03-child-handoff-gate"
     ]);
   });
@@ -93,6 +95,8 @@ describe("project management hierarchy", () => {
     expect(byId.get("phase-03-child-command-plan")?.description).toContain("visible CLI validation record actions and provenance");
     expect(byId.get("phase-03-child-blocker-priority")?.description).toContain("visible row-specific detail plus exit action");
     expect(byId.get("phase-03-child-traceability")?.description).toContain("handoff-review details");
+    expect(byId.get("phase-03-child-proof-export-boundary")?.description).toContain("offline verification");
+    expect(byId.get("phase-03-child-proof-export-boundary")?.description).toContain("Phase 4 review can advance");
     expect(byId.get("phase-03-child-slash-ready")?.description).toContain("current-panel storage provenance");
     expect(byId.get("phase-03-child-control-ready")?.description).toContain("honestly unsupported");
     expect(byId.get("phase-11-parent-owner-testing")?.description).toContain("proof freshness depth");
@@ -156,7 +160,7 @@ describe("project management hierarchy", () => {
       complexity: "Extra High",
       executionMode: "staged_review"
     });
-    expect(result?.payload.children).toHaveLength(6);
+    expect(result?.payload.children).toHaveLength(7);
     expect(result?.dispatchPackage.status).toBe("staged");
     expect(result?.dispatchPackage.scope.join(" ")).toContain("Runtime execution is locked");
 
