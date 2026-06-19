@@ -263,6 +263,7 @@ describe("phase 11 release readiness", () => {
       ])
     );
     expect(phase3Trace?.detail).toContain("expected fingerprint current");
+    expect(phase3Trace?.detail).toContain("proof export ready");
     expect(phase3Trace?.detail).toContain("proof export: Proof export is ready at 100% ready");
     expect(phase3Trace?.detail).toContain("phase-03-child-blocker-priority");
     expect(phase3Trace?.detail).toContain("phase-03-child-traceability");
@@ -343,6 +344,64 @@ describe("phase 11 release readiness", () => {
     expect(phase3Trace?.detail).toContain("expected fingerprint missing");
     expect(smokeProof?.detail).toContain("proof freshness is review at 84%");
     expect(smokeProof?.detail).toContain("handoff missing");
+  });
+
+  it("reviews release readiness when proof export is not ready despite handoff proof", () => {
+    const result = snapshot({
+      proofFreshnessDepth: proofSnapshot({
+        state: "review",
+        statusLabel: "Review",
+        readiness: 91,
+        canTrustOwnerProof: true,
+        readyCount: 2,
+        reviewCount: 1,
+        openProofCount: 1,
+        nextAction: "Refresh Phase 3 proof export before release readiness.",
+        items: [
+          {
+            id: "phase-11-proof-freshness-depth:desktop-smoke",
+            label: "Desktop smoke proof",
+            kind: "desktop-smoke",
+            status: "ready",
+            detail:
+              "3/3 desktop smoke rows are ready; 0 review, 0 blocked, and 0 waiting; 3/3 storage-proof attested, 0 storage review; freshness evaluated at 2026-06-11T00:10:00.000Z.",
+            nextAction: "Keep desktop smoke proof rows fresh and storage-proof attested."
+          },
+          {
+            id: "phase-11-proof-freshness-depth:proof-export",
+            label: "Phase 3 proof export",
+            kind: "proof-export",
+            status: "review",
+            detail:
+              "Proof export is review at 65% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff attached, expected fingerprint current, record fingerprint current, clearance snapshot 100% with 0 open blockers.",
+            nextAction: "Refresh Phase 3 proof export before release readiness."
+          },
+          {
+            id: "phase-11-proof-freshness-depth:handoff-proof",
+            label: "Owner handoff proof",
+            kind: "handoff-proof",
+            status: "ready",
+            detail:
+              "4 handoff rows are ready; 0 exact blockers remain; expected fingerprint current, record fingerprint current, current evidence matched, age 600000ms of 86400000ms window, evaluated at 2026-06-11T00:10:00.000Z; clearance snapshot ready at 100% with 5 ready, 0 open, 0 review, 0 blocked, and 0 waiting.",
+            nextAction: "Keep the owner handoff record attached."
+          }
+        ]
+      })
+    });
+
+    const phase3Trace = result.items.find((item) => item.label === "Current Phase 3 trace");
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(phase3Trace).toEqual(
+      expect.objectContaining({
+        status: "review",
+        detail: expect.stringContaining("proof export not ready"),
+        nextAction: expect.stringContaining("phase-11-proof-freshness-depth:proof-export")
+      })
+    );
+    expect(phase3Trace?.detail).toContain("Proof export is review at 65% ready");
+    expect(phase3Trace?.nextAction).toContain("proof-export evidence");
   });
 
   it("reviews release readiness when owner proof lacks Phase 3 clearance traceability", () => {

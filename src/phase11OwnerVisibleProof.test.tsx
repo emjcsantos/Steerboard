@@ -350,9 +350,9 @@ function releaseReadinessSnapshot(
         kind: "phase3-trace",
         status: "review",
         detail:
-          "Current active Phase 3 clearance PM traceability with handoff proof needs owner review.",
+          "Current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence needs owner review.",
         nextAction:
-          "Attach current active Phase 3 clearance PM traceability with handoff proof before release readiness."
+          "Attach current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence before release readiness."
       },
       {
         id: "phase-11-release-readiness:release-decision",
