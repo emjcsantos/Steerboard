@@ -29,7 +29,7 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 66,
+      averageCompletionPercent: 67,
       currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
         "Use the Phase 3 command plan, visible CLI validation record actions and provenance, PM-link and evidence-key counted exit gate, slash/session-first blocker-priority queue, row-specific slash/session/smoke exit actions, traceability rows, storage-attested current-panel smoke proof rows, and visible handoff record-gate reason with compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, current active goal/PM traceability is trusted, and CLI validation is fresh and matching, and keep Phase 4 held behind the provider boundary.",
@@ -353,7 +353,7 @@ describe("remaining goal plan", () => {
       target: "Desktop-backed runner approval",
       priority: "high",
       status: "next",
-      completionPercent: 58
+      completionPercent: 64
     });
     expect(phase9Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([

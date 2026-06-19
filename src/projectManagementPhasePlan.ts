@@ -413,7 +413,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-05-migration-center",
     title: "Phase 5: Migration Center",
     description: "Turn the metadata-only migration foundations into a guarded, review-first migration workflow with apply-intent locks, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, and sensitive exclusions.",
-    completionPercent: 58,
+    completionPercent: 64,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -421,7 +421,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-05-parent-draft-workflow",
         title: "Migration Draft Workflow",
         description: "Create, persist, preview, review, and stage metadata-only apply intent for migration profile drafts before any mutation-capable action.",
-        completionPercent: 58,
+        completionPercent: 64,
         complexity: "high",
         sourceDocument: "Migration Center",
         children: [
@@ -460,7 +460,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-review-depth",
             title: "Migration Review Depth",
             description: "Show apply-intent lock, local apply-review-staged audit proof, rollback evidence, fingerprint-matched audit consistency, sensitive exclusions, and profile activation lock as separate owner-review records.",
-            completionPercent: 54,
+            completionPercent: 60,
             complexity: "high",
             sourceDocument: "Migration review gate"
           },
@@ -742,7 +742,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-09-child-runner-observability",
             title: "Runner Observability",
             description: "Show request readiness, approval window, validation output, audit count, local runner-review evidence, current runner evidence fingerprint, rollback evidence, direct-handler blocks, and final state for the selected probe.",
-            completionPercent: 56,
+            completionPercent: 62,
             complexity: "high",
             sourceDocument: "Live action runner"
           },
@@ -750,7 +750,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-09-child-traceability",
             title: "Runner Traceability",
             description: "Link Phase 9 remaining-goal status, current active goal trust, PM child rows, complete Phase 8 owner audit review proof, runner approval depth, local runner-review records, current runner evidence fingerprints, Phase 9 request gate evidence, evidence keys, and mutation locks before the desktop runner can advance.",
-            completionPercent: 56,
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Phase 9 runner traceability"
           },
@@ -758,7 +758,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-09-child-blocker-priority",
             title: "Runner Blocker Priority",
             description: "Rank exact Phase 9 blockers across the Phase 8 gate, owner permission, approval window, request preview, validation output, audit record, local runner-review record, current runner evidence fingerprint, rollback evidence, request-gate enforcement, traceability, and mutation locks while separating owner-action blockers from runner-review-addressable blockers before the desktop runner can advance.",
-            completionPercent: 54,
+            completionPercent: 64,
             complexity: "medium",
             sourceDocument: "Phase 9 runner blocker priority"
           }
@@ -768,7 +768,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-09-parent-approval-flow",
         title: "Approval and Rollback Flow",
         description: "Require owner approval, request preview, validation result, audit record, local runner-review record, current runner evidence fingerprint, rollback evidence, and Phase 9 request-gate enforcement before runner expansion.",
-        completionPercent: 56,
+        completionPercent: 64,
         complexity: "extra_high",
         sourceDocument: "Permissions and audit",
         children: [
@@ -776,14 +776,14 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-09-child-approval-record",
             title: "Approval Record",
             description: "Record terminal request, approval, Phase 9 held blocks, fallback, failure, execution, local runner-review fingerprints, and rollback-safe evidence in the owner-visible audit path.",
-            completionPercent: 56,
+            completionPercent: 64,
             sourceDocument: "Audit trail"
           },
           {
             id: "phase-09-child-approval-depth",
             title: "Runner Approval Depth",
             description: "Show fixed probe selection, owner approval, request preview, validation output, audit record, local runner-review record, current runner evidence fingerprint, rollback evidence, Phase 9 request-gate enforcement, and the desktop execution lock as separate depth records.",
-            completionPercent: 56,
+            completionPercent: 66,
             complexity: "high",
             sourceDocument: "Phase 9 runner approval depth"
           }

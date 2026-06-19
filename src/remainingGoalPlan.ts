@@ -251,7 +251,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Allow the fixed terminal read-only desktop probe only after permission, audit, validation, rollback, complete Phase 8 owner-review fingerprint and reviewed-blocker proof, current runner evidence fingerprints, trusted Phase 9 traceability/current active goal proof, and persisted runner-review gates pass.",
     status: "next",
     priority: "high",
-    completionPercent: 58,
+    completionPercent: 64,
     pmTaskIds: [
       "phase-09-desktop-runner",
       "phase-09-parent-runner-probe",

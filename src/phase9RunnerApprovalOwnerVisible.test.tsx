@@ -293,11 +293,11 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("Ready");
     expect(html).toContain("Request");
     expect(html).toContain(
-      '<dd title="goal-phase-9-runner is next at 58% with 9 PM task links and 1 current active goal.'
+      '<dd title="goal-phase-9-runner is next at 64% with 9 PM task links and 1 current active goal.'
     );
     expect(html).toContain(">Held</dd>");
     expect(html).toContain("Desktop probe gate");
-    expect(html).toContain("goal-phase-9-runner is next at 58% with 9 PM task links and 1 current active goal.");
+    expect(html).toContain("goal-phase-9-runner is next at 64% with 9 PM task links and 1 current active goal.");
     expect(html).toContain("Records");
     expect(html).toContain("Phase 9 runner review record ready");
     expect(html).toContain(
