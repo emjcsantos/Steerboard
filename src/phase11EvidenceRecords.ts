@@ -87,6 +87,14 @@ const READY_NEXT_ACTIONS: Record<Phase11EvidenceGate, string> = {
   "release-decision": "Keep owner release-decision evidence attached while current active Phase 3 clearance PM traceability with handoff proof stays attached and packaging remains locked for explicit owner resume."
 };
 
+const FRESH_CHECKOUT_REQUIRED_DETAIL_TERMS = [
+  "install",
+  "test",
+  "build",
+  "desktop",
+  "proof-panel"
+];
+
 function normalizeState(value: unknown): Phase11EvidenceRecordState | undefined {
   if (typeof value !== "string") {
     return undefined;
@@ -129,6 +137,18 @@ function validDate(value: unknown): Date | undefined {
 
 function ageHours(recordedAt: Date, now: Date): number {
   return Math.max(0, Math.round((now.getTime() - recordedAt.getTime()) / 36_000) / 100);
+}
+
+function missingFreshCheckoutTerms(detail: string): string[] {
+  const normalized = detail.toLowerCase().replace(/\s+/g, " ");
+
+  return FRESH_CHECKOUT_REQUIRED_DETAIL_TERMS.filter((term) => {
+    if (term === "proof-panel") {
+      return !normalized.includes("proof-panel") && !normalized.includes("proof panel");
+    }
+
+    return !normalized.includes(term);
+  });
 }
 
 function stateWeight(state: Phase11EvidenceRecordState): number {
@@ -270,6 +290,26 @@ export function evaluatePhase11EvidenceRecord(
 
   const source = publicText(input.source, "local evidence");
   const detail = publicText(input.detail, `${label} evidence recorded.`);
+  const missingFreshTerms =
+    gate === "fresh-checkout" && state === "ready"
+      ? missingFreshCheckoutTerms(detail)
+      : [];
+
+  if (missingFreshTerms.length > 0) {
+    return {
+      gate,
+      label,
+      state: "review",
+      freshness: "fresh",
+      source,
+      recordedAt: recordedAtDate.toISOString(),
+      detail: `${label} evidence is fresh but missing checklist coverage for ${missingFreshTerms.join(", ")}.`,
+      nextAction:
+        "Attach fresh-checkout install, test, build, desktop run, and proof-panel evidence metadata before release readiness can proceed.",
+      ageHours: hours,
+      safety: SAFETY
+    };
+  }
 
   return {
     gate,

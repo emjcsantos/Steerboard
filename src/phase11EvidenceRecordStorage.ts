@@ -20,7 +20,7 @@ const PHASE11_EVIDENCE_GATES: Phase11EvidenceGate[] = [
 
 const DEFAULT_RECORD_DETAILS: Record<Phase11EvidenceGate, string> = {
   "fresh-checkout":
-    "Owner attached fresh-checkout evidence metadata for Phase 11 release review.",
+    "Owner attached fresh-checkout install, test, build, desktop run, and proof-panel evidence metadata for Phase 11 release review.",
   "clean-checkout":
     "Owner attached clean-checkout evidence metadata for Phase 11 release review.",
   "build-test":

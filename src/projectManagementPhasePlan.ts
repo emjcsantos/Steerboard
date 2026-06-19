@@ -909,7 +909,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-11-child-fresh-checkout",
             title: "Fresh Checkout Install Run",
             description: "Track fresh-checkout install, test, build, desktop run, and expected proof-panel evidence as a held release gate.",
-            completionPercent: 45,
+            completionPercent: 58,
             complexity: "high",
             sourceDocument: "Packaging checklist"
           }
@@ -919,7 +919,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-11-parent-release-packaging",
         title: "Release Readiness Gate",
         description: "Keep fresh checkout, clean checkout, build/test, smoke proof, current active Phase 3 clearance PM traceability and handoff proof, packaging lock, docs, known limits, evidence records, visible Security 100% final closure guidance, and release-decision top-prerequisite detail visible while packaging stays paused.",
-        completionPercent: 54,
+        completionPercent: 56,
         complexity: "high",
         sourceDocument: "Phase 11 release readiness",
         children: [

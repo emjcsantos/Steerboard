@@ -606,6 +606,9 @@ describe("remaining goal plan", () => {
     const proofFreshnessChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-11-child-proof-freshness-depth"
     );
+    const freshCheckoutChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-11-child-fresh-checkout"
+    );
 
     expect(phase11Epic?.completionPercent).toBe(61);
     expect(ownerTestingParent?.completionPercent).toBe(64);
@@ -615,16 +618,17 @@ describe("remaining goal plan", () => {
       (task) => task.id === "phase-11-child-evidence-records"
     );
     expect(evidenceRecordsChild?.completionPercent).toBe(58);
+    expect(freshCheckoutChild?.completionPercent).toBe(58);
     expect(releaseGoal).toMatchObject({
       target: "Release readiness pass",
       priority: "high",
       status: "next",
-      completionPercent: 54
+      completionPercent: 56
     });
     const releasePackagingParent = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-11-parent-release-packaging"
     );
-    expect(releasePackagingParent?.completionPercent).toBe(54);
+    expect(releasePackagingParent?.completionPercent).toBe(56);
     expect(releaseGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-11-child-package-validation",

@@ -165,7 +165,7 @@ function snapshot(
         state: "ready",
         source: "owner checkout",
         recordedAt: "2026-06-17T10:00:00.000Z",
-        detail: "Fresh checkout install, test, build, and desktop run passed."
+        detail: "Fresh checkout install, test, build, desktop run, and proof-panel evidence passed."
       },
       "2026-06-17T12:00:00.000Z"
     ),
@@ -293,7 +293,7 @@ describe("phase 11 owner command center", () => {
           state: "ready",
           source: "owner checkout",
           recordedAt: "2026-06-17T10:00:00.000Z",
-          detail: "Fresh checkout install, test, build, and desktop run passed."
+          detail: "Fresh checkout install, test, build, desktop run, and proof-panel evidence passed."
         },
         "2026-06-17T12:00:00.000Z"
       )

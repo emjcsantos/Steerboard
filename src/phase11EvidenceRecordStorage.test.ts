@@ -19,6 +19,17 @@ describe("phase 11 evidence record storage", () => {
     });
   });
 
+  it("creates complete owner-local fresh-checkout evidence metadata", () => {
+    expect(createPhase11EvidenceRecordInput("fresh-checkout", "2026-06-18T00:00:00.000Z")).toEqual({
+      gate: "fresh-checkout",
+      state: "ready",
+      source: "owner local evidence record",
+      recordedAt: "2026-06-18T00:00:00.000Z",
+      detail:
+        "Owner attached fresh-checkout install, test, build, desktop run, and proof-panel evidence metadata for Phase 11 release review."
+    });
+  });
+
   it("creates owner-local release-decision evidence metadata", () => {
     expect(
       createPhase11EvidenceRecordInput(

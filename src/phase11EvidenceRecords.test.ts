@@ -65,6 +65,48 @@ describe("phase 11 evidence records", () => {
     expect(record.nextAction).toContain("Refresh or re-review clean checkout evidence");
   });
 
+  it("moves incomplete fresh-checkout evidence into review even when fresh", () => {
+    const record = evaluatePhase11EvidenceRecord(
+      "fresh-checkout",
+      {
+        gate: "fresh-checkout",
+        state: "ready",
+        source: "owner fresh checkout",
+        recordedAt: "2026-06-17T11:00:00.000Z",
+        detail: "Fresh checkout install and test passed."
+      },
+      NOW
+    );
+
+    expect(record).toMatchObject({
+      state: "review",
+      freshness: "fresh",
+      ageHours: 1
+    });
+    expect(record.detail).toContain("missing checklist coverage");
+    expect(record.detail).toContain("build");
+    expect(record.detail).toContain("desktop");
+    expect(record.detail).toContain("proof-panel");
+    expect(record.nextAction).toContain("install, test, build, desktop run, and proof-panel");
+  });
+
+  it("keeps complete fresh-checkout evidence ready", () => {
+    const record = evaluatePhase11EvidenceRecord(
+      "fresh-checkout",
+      {
+        gate: "fresh-checkout",
+        state: "ready",
+        source: "owner fresh checkout",
+        recordedAt: "2026-06-17T11:00:00.000Z",
+        detail: "Fresh checkout install, test, build, desktop run, and proof-panel evidence passed."
+      },
+      NOW
+    );
+
+    expect(record.state).toBe("ready");
+    expect(record.nextAction).toContain("Keep fresh-checkout evidence attached");
+  });
+
   it("blocks malformed evidence metadata", () => {
     const record = evaluatePhase11EvidenceRecord(
       "docs-known-limits",
@@ -186,17 +228,17 @@ describe("phase 11 evidence records", () => {
 
     expect(summary.state).toBe("blocked");
     expect(summary.statusLabel).toBe("Blocked");
-    expect(summary.readiness).toBe(60);
+    expect(summary.readiness).toBe(53);
     expect(summary.totalGateCount).toBe(5);
-    expect(summary.openGateCount).toBe(3);
-    expect(summary.readyCount).toBe(2);
-    expect(summary.reviewCount).toBe(1);
+    expect(summary.openGateCount).toBe(4);
+    expect(summary.readyCount).toBe(1);
+    expect(summary.reviewCount).toBe(2);
     expect(summary.blockedCount).toBe(1);
     expect(summary.waitingCount).toBe(1);
     expect(summary.missingCount).toBe(1);
     expect(summary.malformedCount).toBe(1);
     expect(summary.nextAction).toContain("Repair docs and known limits evidence metadata");
-    expect(summary.ariaLabel).toContain("3 open evidence gates");
+    expect(summary.ariaLabel).toContain("4 open evidence gates");
   });
 
   it("keeps evidence text public-safe", () => {

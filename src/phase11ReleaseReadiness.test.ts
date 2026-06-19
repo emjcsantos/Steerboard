@@ -156,6 +156,11 @@ function remainingSummary(
 }
 
 function readyEvidence(gate: Phase11EvidenceGate) {
+  const detail =
+    gate === "fresh-checkout"
+      ? "Fresh checkout install, test, build, desktop run, and proof-panel evidence passed."
+      : `${gate} passed.`;
+
   return evaluatePhase11EvidenceRecord(
     gate,
     {
@@ -163,7 +168,7 @@ function readyEvidence(gate: Phase11EvidenceGate) {
       state: "ready",
       source: `owner ${gate}`,
       recordedAt: "2026-06-17T10:00:00.000Z",
-      detail: `${gate} passed.`
+      detail
     },
     "2026-06-17T12:00:00.000Z"
   );
