@@ -427,6 +427,48 @@ describe("phase 11 owner release blocker priority", () => {
     );
   });
 
+  it("carries proof-export preflight next action into blocker priority rows", () => {
+    const proofFreshnessDepth = proofSnapshot({
+      state: "review",
+      statusLabel: "Review",
+      readiness: 86,
+      canTrustOwnerProof: false,
+      readyCount: 6,
+      reviewCount: 1,
+      openProofCount: 1,
+      nextAction: "Record the owner-reviewed Phase 3 handoff before exporting.",
+      items: [
+        {
+          id: "phase-11-proof-freshness-depth:proof-export",
+          label: "Phase 3 proof export",
+          kind: "proof-export",
+          status: "review",
+          detail:
+            "Proof export is review at 65% ready. Owner handoff can be recorded from this complete proof-export preflight.",
+          nextAction: "Record the owner-reviewed Phase 3 handoff before exporting."
+        }
+      ]
+    });
+    const result = priority({ proofFreshnessDepth });
+
+    expect(result.topPriorityLabel).toBe("Phase 3 proof export");
+    expect(result.topPriorityAction).toContain(
+      "Record the owner-reviewed Phase 3 handoff before exporting."
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "proof-freshness",
+          label: "Phase 3 proof export",
+          detail: expect.stringContaining("proof-export preflight"),
+          nextAction: expect.stringContaining(
+            "Record the owner-reviewed Phase 3 handoff before exporting."
+          )
+        })
+      ])
+    );
+  });
+
   it("ranks blocked Phase 3 clearance owner rows above stale proof and evidence rows", () => {
     const result = priority({
       ownerCommandCenter: ownerSnapshot({
