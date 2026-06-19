@@ -509,6 +509,7 @@ import {
 } from "./milestoneStatus";
 import {
   buildRemainingGoalPriorityQueue,
+  isCurrentActiveRemainingGoal,
   remainingGoalPlan,
   summarizeRemainingGoalPlan,
   type RemainingGoalPlanItem,
@@ -7907,7 +7908,7 @@ function RemainingGoalsPanel({
             className={classNames(
               "remaining-goal-card",
               `remaining-goal-${goal.status}`,
-              goal.current && "is-current"
+              isCurrentActiveRemainingGoal(goal) && "is-current"
             )}
             key={goal.id}
             title={`${goal.target} - ${goal.phases.join(", ")}`}
