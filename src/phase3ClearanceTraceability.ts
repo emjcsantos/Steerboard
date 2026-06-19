@@ -6,6 +6,7 @@ import type {
 } from "./phase3ClearancePackage";
 import type { Phase3CommandValidationRecordValidation } from "./phase3CommandValidationRecord";
 import type { Phase3HandoffGate } from "./phase3HandoffGate";
+import { PHASE3_PROOF_EXPORT_PM_TASK_ID } from "./phase3ProofExportTrace";
 import {
   createDefaultProjectManagementPhasePlan
 } from "./projectManagementPhasePlan";
@@ -86,7 +87,7 @@ export const REQUIRED_PHASE3_CLEARANCE_CHILD_PM_TASK_IDS = [
   "phase-03-child-command-plan",
   "phase-03-child-blocker-priority",
   "phase-03-child-traceability",
-  "phase-03-child-proof-export-boundary",
+  PHASE3_PROOF_EXPORT_PM_TASK_ID,
   "phase-03-child-handoff-gate"
 ] as const;
 export const REQUIRED_PHASE3_CLEARANCE_PM_TASK_IDS = [

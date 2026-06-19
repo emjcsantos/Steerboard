@@ -2,6 +2,7 @@ import {
   currentProjectManagementPhaseEpicIds,
   currentProjectManagementPhasePlanTaskIds
 } from "./projectManagementPhasePlan";
+import { PHASE3_PROOF_EXPORT_PM_TASK_ID } from "./phase3ProofExportTrace";
 
 export type RemainingGoalStatus = "blocked" | "active" | "next" | "planned" | "paused";
 export type RemainingGoalPriority = "critical" | "high" | "medium";
@@ -131,7 +132,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-03-child-command-plan",
       "phase-03-child-blocker-priority",
       "phase-03-child-traceability",
-      "phase-03-child-proof-export-boundary",
+      PHASE3_PROOF_EXPORT_PM_TASK_ID,
       "phase-03-child-handoff-gate",
       "phase-03-parent-slash-controls",
       "phase-03-child-slash-ready",

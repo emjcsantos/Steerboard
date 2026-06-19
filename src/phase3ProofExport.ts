@@ -18,6 +18,15 @@ import {
   type Phase3PersistedDesktopProofReviewReasons,
   type Phase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
+import {
+  PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
+  PHASE3_PROOF_EXPORT_PM_TASK_ID
+} from "./phase3ProofExportTrace";
+
+export {
+  PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
+  PHASE3_PROOF_EXPORT_PM_TASK_ID
+} from "./phase3ProofExportTrace";
 
 export type Phase3ProofExportState = "ready" | "review" | "blocked" | "waiting";
 
@@ -90,8 +99,6 @@ const STATUS_LABELS: Record<Phase3ProofExportState, string> = {
 };
 const DEFAULT_MAX_ARTIFACT_AGE_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_MAX_HANDOFF_AGE_MS = 24 * 60 * 60 * 1000;
-export const PHASE3_PROOF_EXPORT_PM_TASK_ID = "phase-03-child-proof-export-boundary";
-export const PHASE3_PROOF_EXPORT_EVIDENCE_KEY = "phase3.proof-export.offline-verification";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

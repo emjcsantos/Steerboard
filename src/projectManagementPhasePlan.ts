@@ -3,6 +3,7 @@ import type {
   ProjectManagementTaskComplexity,
   ProjectManagementTaskStatus
 } from "./projectManagementHierarchy";
+import { PHASE3_PROOF_EXPORT_PM_TASK_ID } from "./phase3ProofExportTrace";
 
 interface PhaseChildSpec {
   id: string;
@@ -248,7 +249,7 @@ const phaseSpecs: PhaseSpec[] = [
             sourceDocument: "Phase 3 clearance traceability"
           },
           {
-            id: "phase-03-child-proof-export-boundary",
+            id: PHASE3_PROOF_EXPORT_PM_TASK_ID,
             title: "Proof Export Boundary",
             description: "Keep Phase 3 proof export fail-closed until offline verification, current evidence fingerprint, expected and recorded handoff fingerprints, clearance snapshot, open blocker count, and fresh handoff age all match before Phase 4 review can advance.",
             completionPercent: 99,
