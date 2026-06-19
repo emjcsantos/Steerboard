@@ -482,7 +482,7 @@ export function derivePhase3HandoffRecordValidation(
     return {
       state: "ready",
       detail: "Owner-reviewed Phase 3 handoff record matches the current evidence fingerprint.",
-      nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+      nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 review resumes.",
       expectedFingerprint,
       recordFingerprint: record.evidenceFingerprint,
       ...freshnessMetadata,

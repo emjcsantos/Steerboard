@@ -419,7 +419,7 @@ function handoffRecordItem(
         ? "Attach current handoff validation before advancing provider integration."
         : undefined) ??
       (status === "ready"
-        ? "Keep the owner-reviewed handoff record attached before Phase 4 work advances."
+        ? "Keep the owner-reviewed handoff record attached before Phase 4 review resumes."
         : clearancePackage.canExit
           ? "Record the owner-reviewed Phase 3 handoff before advancing provider integration."
           : "Wait for the clearance package to reach exit-ready before recording handoff.")

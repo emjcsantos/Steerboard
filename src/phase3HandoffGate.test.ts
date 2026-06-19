@@ -41,7 +41,7 @@ function readyHandoffValidation() {
   return {
     state: "ready" as const,
     detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
-    nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+    nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 review resumes.",
     expectedFingerprint: "current",
     recordFingerprint: "current",
     evaluatedAt: "2026-06-11T00:10:00.000Z",
@@ -235,7 +235,7 @@ describe("phase 3 handoff gate", () => {
       handoffRecordValidation: {
         state: "ready",
         detail: "Owner-reviewed Phase 3 handoff record matches current evidence.",
-        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 review resumes.",
         expectedFingerprint: "current",
         recordFingerprint: "current",
         matchesCurrentEvidence: true
@@ -307,7 +307,7 @@ describe("phase 3 handoff gate", () => {
       handoffRecordValidation: {
         state: "ready",
         detail: "Owner-reviewed Phase 3 handoff record is attached.",
-        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 work advances.",
+        nextAction: "Keep the owner-reviewed handoff record attached before Phase 4 review resumes.",
         recordFingerprint: "phase3-handoff-existing",
         matchesCurrentEvidence: true
       }
