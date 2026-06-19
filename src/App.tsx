@@ -13939,6 +13939,9 @@ export function OwnerTestingReadinessPanel({
               <small>{phase3ProofExportVerification.detail}</small>
               <small>{phase3ProofExportVerification.nextAction}</small>
               <small>
+                {phase3ProofExportVerification.pmTaskId} / {phase3ProofExportVerification.evidenceKey}
+              </small>
+              <small>
                 Panel proof {phase3ProofExportVerification.readyPanelEvidenceCount}/2 | Desktop{" "}
                 {phase3ProofExportVerification.storageAttestedDesktopProofCount}/3 | CLI{" "}
                 {phase3ProofExportVerification.hasCommandValidationRecord ? "attached" : "missing"} | Handoff{" "}
@@ -13986,6 +13989,9 @@ export function OwnerTestingReadinessPanel({
                 <span>{importedPhase3ProofExportVerification.statusLabel}</span>
                 <small>{importedPhase3ProofExportVerification.detail}</small>
                 <small>{importedPhase3ProofExportVerification.nextAction}</small>
+                <small>
+                  {importedPhase3ProofExportVerification.pmTaskId} / {importedPhase3ProofExportVerification.evidenceKey}
+                </small>
                 <small>
                   Panel proof {importedPhase3ProofExportVerification.readyPanelEvidenceCount}/2 | Desktop{" "}
                   {importedPhase3ProofExportVerification.storageAttestedDesktopProofCount}/3 | CLI{" "}

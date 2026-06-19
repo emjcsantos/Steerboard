@@ -91,7 +91,9 @@ function readyProofExportVerification(
     ownerHandoffRecordFingerprint: "current",
     ownerHandoffClearanceReadiness: 100,
     ownerHandoffExactBlockerCount: 0,
-    ...overrides
+    ...overrides,
+    pmTaskId: "phase-03-child-proof-export-boundary",
+    evidenceKey: "phase3.proof-export.offline-verification"
   };
 }
 

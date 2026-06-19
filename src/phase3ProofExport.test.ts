@@ -90,6 +90,8 @@ describe("phase 3 proof export", () => {
       state: "ready",
       readiness: 100,
       canVerifyOffline: true,
+      pmTaskId: "phase-03-child-proof-export-boundary",
+      evidenceKey: "phase3.proof-export.offline-verification",
       readyPanelEvidenceCount: 2,
       storageAttestedDesktopProofCount: 3,
       hasCommandValidationRecord: true,
