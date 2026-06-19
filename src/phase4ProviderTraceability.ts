@@ -6,6 +6,7 @@ import type {
 } from "./phase4ProviderSurfaceDepth";
 import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
 import {
+  findCurrentActiveRemainingGoals,
   isCurrentActiveRemainingGoal,
   remainingGoalPlan,
   type RemainingGoalPlanItem
@@ -164,7 +165,10 @@ function phase4Goal(goals: readonly RemainingGoalPlanItem[]): RemainingGoalPlanI
   return goals.find((goal) => goal.id === PHASE4_GOAL_ID);
 }
 
-function goalItem(goal: RemainingGoalPlanItem | undefined): Phase4ProviderTraceabilityItem {
+function goalItem(
+  goal: RemainingGoalPlanItem | undefined,
+  currentActiveGoalIds: readonly string[]
+): Phase4ProviderTraceabilityItem {
   if (!goal) {
     return {
       id: `${TRACE_ID}:active-goal`,
@@ -187,6 +191,10 @@ function goalItem(goal: RemainingGoalPlanItem | undefined): Phase4ProviderTracea
     };
   }
 
+  const exactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
+  const isTrustedPhase4Goal =
+    isCurrentActiveRemainingGoal(goal) && exactlyOneCurrentActiveGoal;
+
   return {
     id: `${TRACE_ID}:active-goal`,
     label: "Remaining goal link",
@@ -194,16 +202,20 @@ function goalItem(goal: RemainingGoalPlanItem | undefined): Phase4ProviderTracea
     status:
       goal.status === "blocked"
         ? "blocked"
-        : isCurrentActiveRemainingGoal(goal)
+        : isTrustedPhase4Goal
           ? "ready"
           : goal.status === "active"
             ? "preview"
             : "preview",
-    detail: `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links.`,
-    nextAction: publicText(
-      goal.nextAction,
-      "Make Phase 4 the current active goal before provider review can be trusted."
-    )
+    detail:
+      `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links ` +
+      `and ${currentActiveGoalIds.length} current active goal${currentActiveGoalIds.length === 1 ? "" : "s"}.`,
+    nextAction: exactlyOneCurrentActiveGoal
+      ? publicText(
+          goal.nextAction,
+          "Make Phase 4 the current active goal before provider review can be trusted."
+        )
+      : `Keep exactly one current active remaining goal before Phase 4 provider review can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
   };
 }
 
@@ -373,8 +385,9 @@ export function buildPhase4ProviderTraceabilitySummary({
   const missingPmTaskIds = Array.from(
     new Set([...missingPlanPmTaskIds, ...missingGoalPmTaskIds])
   );
+  const currentActiveGoalIds = findCurrentActiveRemainingGoals(goals).map((item) => item.id);
   const items = [
-    goalItem(goal),
+    goalItem(goal, currentActiveGoalIds),
     pmCoverageItem(goal, missingPmTaskIds),
     catalogDepthItem(catalogDepth),
     refreshSafetyItem(refreshSafety),
@@ -399,6 +412,7 @@ export function buildPhase4ProviderTraceabilitySummary({
     canTrustProviderReview:
       state === "ready" &&
       isCurrentActiveRemainingGoal(goal) &&
+      currentActiveGoalIds.length === 1 &&
       missingPmTaskIds.length === 0 &&
       catalogDepth.executionLockCount >= 6 &&
       !surfaceDepth.canEnableExecution,

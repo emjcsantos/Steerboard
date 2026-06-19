@@ -125,6 +125,14 @@ function withCurrentNextPhase4Goal() {
   );
 }
 
+function withDuplicateCurrentActivePhase4Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-4-provider-surfaces"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal
+  );
+}
+
 describe("phase 4 provider traceability", () => {
   it("links the Phase 4 remaining goal, PM rows, depth records, refresh safety, and execution locks", () => {
     const summary = traceability();
@@ -176,6 +184,23 @@ describe("phase 4 provider traceability", () => {
     expect(summary.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "active-goal", status: "preview" })
+      ])
+    );
+  });
+
+  it("does not trust provider review when Phase 4 duplicates the current active goal", () => {
+    const summary = traceability({ goals: withDuplicateCurrentActivePhase4Goal() });
+
+    expect(summary.state).toBe("preview");
+    expect(summary.canTrustProviderReview).toBe(false);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "active-goal",
+          status: "preview",
+          detail: expect.stringContaining("2 current active goals"),
+          nextAction: expect.stringContaining("exactly one current active remaining goal")
+        })
       ])
     );
   });
