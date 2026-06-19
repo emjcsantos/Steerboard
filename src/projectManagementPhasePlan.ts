@@ -558,7 +558,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-07-dispatch-loop",
     title: "Phase 7: Orchestrator-Worker Dispatch",
     description: "Move from local dispatch previews to saved, reviewable orchestrator-worker handoff records with explicit dispatch review, handoff packet integrity, evidence freshness, and main integration ownership depth.",
-    completionPercent: 57,
+    completionPercent: 64,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -566,7 +566,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-07-parent-role-panels",
         title: "Role-Panel Dispatch Plan",
         description: "Define and record orchestrator, implementer, validator, and integration roles with clear attempt limits and ownership.",
-        completionPercent: 45,
+        completionPercent: 58,
         complexity: "high",
         sourceDocument: "Dispatch role-panel plan",
         children: [
@@ -574,21 +574,21 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-07-child-worker-preview",
             title: "Worker Preview Cards",
             description: "Show worker objective, files owned, validation plan, retry limit, role counts, handoff expectation, and local no-runtime boundary before launch.",
-            completionPercent: 52,
+            completionPercent: 58,
             sourceDocument: "Dispatch controls"
           },
           {
             id: "phase-07-child-integration-owner",
             title: "Main Integration Ownership",
             description: "Keep final integration, validation, commit, push, reporting, and dispatch-review traceability owned by the main Arena path.",
-            completionPercent: 50,
+            completionPercent: 58,
             sourceDocument: "Dispatch safety rules"
           },
           {
             id: "phase-07-child-integration-ownership-depth",
             title: "Integration Ownership Depth",
             description: "Show integration owner, final validation owner, commit/push/reporting owner, traceability links, and closure boundary as separate review rows.",
-            completionPercent: 50,
+            completionPercent: 62,
             complexity: "high",
             sourceDocument: "Phase 7 integration ownership depth"
           }
@@ -598,7 +598,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-07-parent-observed-loop",
         title: "Observed Dispatch-to-Handoff Loop",
         description: "Record role-panel plan, attempts, validation gates, handoff tasks, packet integrity, evidence freshness, closure, and final merge review in one trace.",
-        completionPercent: 50,
+        completionPercent: 62,
         complexity: "extra_high",
         sourceDocument: "Orchestrator-worker dispatch",
         children: [
@@ -606,7 +606,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-07-child-handoff-trace",
             title: "Handoff Trace",
             description: "Show what each worker is expected to own, validate, retry, depend on, and hand back without polluting the main context.",
-            completionPercent: 45,
+            completionPercent: 58,
             complexity: "high",
             sourceDocument: "Worker handoff"
           },
@@ -614,7 +614,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-07-child-review-depth",
             title: "Dispatch Review Depth",
             description: "Audit visible role counts, max attempt limits, handoff task depth, per-role handoff packet integrity, current evidence fingerprint freshness, validation gate depth, and the no-live-worker execution lock for staged PM Run outputs.",
-            completionPercent: 58,
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Dispatch review records"
           },
@@ -622,7 +622,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-07-child-traceability",
             title: "Dispatch Traceability",
             description: "Link Phase 7 remaining-goal status, PM child rows, dispatch review depth, evidence freshness, integration ownership depth, and live-worker locks before any worker spawning can be trusted.",
-            completionPercent: 48,
+            completionPercent: 62,
             complexity: "high",
             sourceDocument: "Phase 7 dispatch traceability"
           },
