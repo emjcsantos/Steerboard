@@ -141,7 +141,7 @@ const phaseSpecs: PhaseSpec[] = [
     title: "Phase 2: Multi-Panel Session Isolation",
     description: "Verify multiple Arena panels can run independently without cross-talk in identity, stream, or control state; local isolation proof remains ongoing while publishing is owner-held by the Phase 1/2/6 publish blocker.",
     status: "ongoing",
-    completionPercent: 55,
+    completionPercent: 57,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -150,7 +150,7 @@ const phaseSpecs: PhaseSpec[] = [
         title: "Panel Identity Isolation",
         description: "Keep each panel's session id, role, branch, runtime, stream, and transcript scoped to that panel.",
         status: "ongoing",
-        completionPercent: 60,
+        completionPercent: 62,
         complexity: "high",
         sourceDocument: "Arena chat lanes",
         children: [
@@ -795,7 +795,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-10-adaptive-arena",
     title: "Phase 10: Adaptive Magnetic Arena",
     description: "Polish adaptive Arena layout regression, evaluate a FlexLayout-backed docking spike, density, keyboard controls, focus state, terminology, and acceptance gates.",
-    completionPercent: 55,
+    completionPercent: 57,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -803,7 +803,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-10-parent-layout-foundation",
         title: "Adaptive Layout Foundation",
         description: "Keep drag, drop, keyboard adjustment, saved-state repair, project stack drop, panel capacity rules, and the FlexLayout docking feasibility spike visible in Phase 10 readiness.",
-        completionPercent: 60,
+        completionPercent: 62,
         sourceDocument: "Adaptive Arena layout",
         children: [
           {
@@ -824,7 +824,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-10-child-flexlayout-spike",
             title: "FlexLayout Docking Spike",
             description: "Evaluate caplin/FlexLayout as an MIT-licensed React docking layout option for Arena tabsets, splitters, saved layout JSON, and dockable panels before replacing custom adaptive-grid behavior.",
-            completionPercent: 0,
+            completionPercent: 35,
             complexity: "medium",
             sourceDocument: "caplin/FlexLayout MIT license review"
           }

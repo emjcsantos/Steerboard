@@ -95,25 +95,28 @@ function sourceRank(sourceId: string): number {
   if (normalized.includes("density")) {
     return 1;
   }
-  if (normalized.includes("keyboard")) {
+  if (normalized.includes("docking-spike")) {
     return 2;
   }
-  if (normalized.includes("focus")) {
+  if (normalized.includes("keyboard")) {
     return 3;
   }
-  if (normalized.includes("terminology")) {
+  if (normalized.includes("focus")) {
     return 4;
   }
-  if (normalized.includes("acceptance")) {
+  if (normalized.includes("terminology")) {
     return 5;
   }
-  if (normalized.includes("pm-coverage")) {
+  if (normalized.includes("acceptance")) {
     return 6;
   }
-  if (normalized.includes("traceability")) {
+  if (normalized.includes("pm-coverage")) {
     return 7;
   }
-  return 8;
+  if (normalized.includes("traceability")) {
+    return 8;
+  }
+  return 9;
 }
 
 function severityForState(

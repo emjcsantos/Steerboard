@@ -1,12 +1,14 @@
 import type { CockpitAcceptancePass } from "./cockpitAcceptancePass";
 import type { CockpitInteractionReadiness } from "./cockpitInteractionReadiness";
 import type { CockpitLayoutCapacity } from "./cockpitLayoutCapacity";
+import type { Phase10FlexLayoutSpikeSummary } from "./phase10FlexLayoutSpike";
 
 export type Phase10ArenaPolishState = "ready" | "review" | "blocked" | "waiting";
 
 export type Phase10ArenaPolishItemKind =
   | "layout-regression"
   | "density"
+  | "docking-spike"
   | "keyboard"
   | "focus"
   | "terminology"
@@ -51,6 +53,7 @@ export interface Phase10ArenaPolishInput {
   hasKeyboardAdjustment: boolean;
   hasDropPreview: boolean;
   hasSavedLayoutRepair: boolean;
+  flexLayoutSpike: Phase10FlexLayoutSpikeSummary;
   terminologyIssues?: readonly string[];
 }
 
@@ -236,6 +239,17 @@ function densityItem(input: Phase10ArenaPolishInput): Phase10ArenaPolishItem {
   };
 }
 
+function dockingSpikeItem(input: Phase10ArenaPolishInput): Phase10ArenaPolishItem {
+  return {
+    id: `${SNAPSHOT_ID}:docking-spike`,
+    label: "FlexLayout docking spike",
+    kind: "docking-spike",
+    status: input.flexLayoutSpike.state,
+    detail: input.flexLayoutSpike.detail,
+    nextAction: input.flexLayoutSpike.nextAction
+  };
+}
+
 function keyboardItem(input: Phase10ArenaPolishInput): Phase10ArenaPolishItem {
   if (!input.hasKeyboardAdjustment) {
     return {
@@ -404,6 +418,7 @@ export function buildPhase10ArenaPolishSnapshot(
   const items = [
     layoutRegressionItem(normalizedInput),
     densityItem(normalizedInput),
+    dockingSpikeItem(normalizedInput),
     keyboardItem(normalizedInput),
     focusItem(normalizedInput),
     terminologyItem(normalizedInput),

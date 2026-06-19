@@ -3,6 +3,7 @@ import type { CockpitAcceptancePass } from "./cockpitAcceptancePass";
 import type { CockpitInteractionReadiness } from "./cockpitInteractionReadiness";
 import type { CockpitLayoutCapacity } from "./cockpitLayoutCapacity";
 import { buildPhase10ArenaPolishSnapshot } from "./phase10ArenaPolish";
+import { buildPhase10FlexLayoutSpikeSummary } from "./phase10FlexLayoutSpike";
 
 function layout(overrides: Partial<CockpitLayoutCapacity> = {}): CockpitLayoutCapacity {
   return {
@@ -61,13 +62,25 @@ function snapshot(
     hasKeyboardAdjustment: true,
     hasDropPreview: true,
     hasSavedLayoutRepair: true,
+    flexLayoutSpike: buildPhase10FlexLayoutSpikeSummary({
+      repositoryName: "caplin/FlexLayout",
+      expectedLicense: "MIT",
+      hasMitLicenseNotice: true,
+      supportsTabsets: true,
+      supportsSplitters: true,
+      supportsSavedLayoutJson: true,
+      supportsDockablePanels: true,
+      dependencyInstalled: true,
+      preservesCustomLayoutFallback: true,
+      ownerApprovedDependency: true
+    }),
     terminologyIssues: [],
     ...overrides
   });
 }
 
 describe("phase 10 Arena polish", () => {
-  it("is ready when adaptive layout, density, keyboard, focus, terminology, and acceptance gates pass", () => {
+  it("is ready when adaptive layout, density, docking, keyboard, focus, terminology, and acceptance gates pass", () => {
     const result = snapshot();
 
     expect(result.state).toBe("ready");
@@ -75,7 +88,37 @@ describe("phase 10 Arena polish", () => {
     expect(result.visiblePanelCount).toBe(3);
     expect(result.hiddenPanelCount).toBe(1);
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
+    expect(result.items.map((item) => item.kind)).toContain("docking-spike");
     expect(result.ariaLabel).toContain("3/4 adaptive panels visible");
+  });
+
+  it("keeps FlexLayout docking spike review visible without blocking the whole polish pass", () => {
+    const result = snapshot({
+      flexLayoutSpike: buildPhase10FlexLayoutSpikeSummary({
+        repositoryName: "caplin/FlexLayout",
+        expectedLicense: "MIT",
+        hasMitLicenseNotice: true,
+        supportsTabsets: true,
+        supportsSplitters: true,
+        supportsSavedLayoutJson: true,
+        supportsDockablePanels: true,
+        dependencyInstalled: false,
+        preservesCustomLayoutFallback: true,
+        ownerApprovedDependency: false
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.reviewCount).toBe(1);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "FlexLayout docking spike",
+          kind: "docking-spike",
+          status: "review"
+        })
+      ])
+    );
   });
 
   it("waits for an adaptive-mode regression pass when fixed layout is active", () => {

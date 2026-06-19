@@ -672,6 +672,7 @@ import {
   buildPhase10ArenaPolishSnapshot,
   type Phase10ArenaPolishSnapshot
 } from "./phase10ArenaPolish";
+import { buildPhase10FlexLayoutSpikeSummary } from "./phase10FlexLayoutSpike";
 import { buildPhase10ArenaPolishTraceability } from "./phase10ArenaPolishTraceability";
 import { buildPhase10ArenaPolishBlockerPriority } from "./phase10ArenaPolishBlockerPriority";
 import {
@@ -9987,6 +9988,18 @@ function RightPanel({
         hasKeyboardAdjustment: true,
         hasDropPreview: true,
         hasSavedLayoutRepair: true,
+        flexLayoutSpike: buildPhase10FlexLayoutSpikeSummary({
+          repositoryName: "caplin/FlexLayout",
+          expectedLicense: "MIT",
+          hasMitLicenseNotice: true,
+          supportsTabsets: true,
+          supportsSplitters: true,
+          supportsSavedLayoutJson: true,
+          supportsDockablePanels: true,
+          dependencyInstalled: false,
+          preservesCustomLayoutFallback: true,
+          ownerApprovedDependency: false
+        }),
         terminologyIssues: []
       }),
     [

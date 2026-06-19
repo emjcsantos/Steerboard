@@ -4,6 +4,7 @@ import type { CockpitInteractionReadiness } from "./cockpitInteractionReadiness"
 import type { CockpitLayoutCapacity } from "./cockpitLayoutCapacity";
 import { buildPhase10ArenaPolishSnapshot } from "./phase10ArenaPolish";
 import { buildPhase10ArenaPolishTraceability } from "./phase10ArenaPolishTraceability";
+import { buildPhase10FlexLayoutSpikeSummary } from "./phase10FlexLayoutSpike";
 import { remainingGoalPlan } from "./remainingGoalPlan";
 
 function layout(overrides: Partial<CockpitLayoutCapacity> = {}): CockpitLayoutCapacity {
@@ -63,6 +64,18 @@ function polishSnapshot(
     hasKeyboardAdjustment: true,
     hasDropPreview: true,
     hasSavedLayoutRepair: true,
+    flexLayoutSpike: buildPhase10FlexLayoutSpikeSummary({
+      repositoryName: "caplin/FlexLayout",
+      expectedLicense: "MIT",
+      hasMitLicenseNotice: true,
+      supportsTabsets: true,
+      supportsSplitters: true,
+      supportsSavedLayoutJson: true,
+      supportsDockablePanels: true,
+      dependencyInstalled: true,
+      preservesCustomLayoutFallback: true,
+      ownerApprovedDependency: true
+    }),
     terminologyIssues: [],
     ...overrides
   });

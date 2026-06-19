@@ -29,7 +29,7 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 68,
+      averageCompletionPercent: 69,
       currentTarget: "Phase 3 desktop proof clearance",
       currentNextAction:
         "Use the Phase 3 command plan, visible CLI validation record actions and provenance, PM-link and evidence-key counted exit gate, slash/session-first blocker-priority queue, row-specific slash/session/smoke exit actions, traceability rows, storage-attested current-panel smoke proof rows, and visible handoff record-gate reason with compact fingerprint-plus-clearance-snapshot-plus-age matched handoff gate to clear the exact top blocker, keep the current active goal linked to every required PM child, run the held desktop smoke command only when it matches the blocker, record fresh owner handoff only after current evidence is exit-ready, current active goal/PM traceability is trusted, and CLI validation is fresh and matching, and keep Phase 4 held behind the provider boundary.",
@@ -534,7 +534,8 @@ describe("remaining goal plan", () => {
     expect(phase10Goal).toMatchObject({
       target: "Adaptive Arena polish",
       priority: "medium",
-      status: "next"
+      status: "next",
+      completionPercent: 57
     });
     expect(phase10Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -548,6 +549,18 @@ describe("remaining goal plan", () => {
     );
     expect(phase10Goal?.nextAction).toContain("traceability rows");
     expect(phase10Goal?.nextAction).toContain("blocker-priority queue");
+    const phase10Epic = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-10-adaptive-arena"
+    );
+    const layoutFoundationParent = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-10-parent-layout-foundation"
+    );
+    const flexLayoutSpikeChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-10-child-flexlayout-spike"
+    );
+    expect(phase10Epic?.completionPercent).toBe(57);
+    expect(layoutFoundationParent?.completionPercent).toBe(62);
+    expect(flexLayoutSpikeChild?.completionPercent).toBe(35);
   });
 
   it("keeps the Phase 11 owner and release targets linked to traceability and blocker priority", () => {

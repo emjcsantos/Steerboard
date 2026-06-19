@@ -5,6 +5,7 @@ import type { CockpitLayoutCapacity } from "./cockpitLayoutCapacity";
 import { buildPhase10ArenaPolishBlockerPriority } from "./phase10ArenaPolishBlockerPriority";
 import { buildPhase10ArenaPolishSnapshot } from "./phase10ArenaPolish";
 import { buildPhase10ArenaPolishTraceability } from "./phase10ArenaPolishTraceability";
+import { buildPhase10FlexLayoutSpikeSummary } from "./phase10FlexLayoutSpike";
 import { remainingGoalPlan } from "./remainingGoalPlan";
 
 function layout(overrides: Partial<CockpitLayoutCapacity> = {}): CockpitLayoutCapacity {
@@ -65,6 +66,18 @@ function priority(options: {
     hasKeyboardAdjustment: true,
     hasDropPreview: true,
     hasSavedLayoutRepair: true,
+    flexLayoutSpike: buildPhase10FlexLayoutSpikeSummary({
+      repositoryName: "caplin/FlexLayout",
+      expectedLicense: "MIT",
+      hasMitLicenseNotice: true,
+      supportsTabsets: true,
+      supportsSplitters: true,
+      supportsSavedLayoutJson: true,
+      supportsDockablePanels: true,
+      dependencyInstalled: true,
+      preservesCustomLayoutFallback: true,
+      ownerApprovedDependency: true
+    }),
     terminologyIssues: [],
     ...options.snapshotOverrides
   });
@@ -125,6 +138,33 @@ describe("phase 10 Arena polish blocker priority", () => {
       nextAction: expect.stringContaining("missing Phase 10 PM")
     });
     expect(summary.arenaReviewCanAddressTopBlocker).toBe(false);
+  });
+
+  it("ranks FlexLayout docking review after layout and density blockers", () => {
+    const summary = priority({
+      snapshotOverrides: {
+        flexLayoutSpike: buildPhase10FlexLayoutSpikeSummary({
+          repositoryName: "caplin/FlexLayout",
+          expectedLicense: "MIT",
+          hasMitLicenseNotice: true,
+          supportsTabsets: true,
+          supportsSplitters: true,
+          supportsSavedLayoutJson: true,
+          supportsDockablePanels: true,
+          dependencyInstalled: false,
+          preservesCustomLayoutFallback: true,
+          ownerApprovedDependency: false
+        })
+      }
+    });
+
+    expect(summary.state).toBe("review");
+    expect(summary.topPriorityLabel).toBe("FlexLayout docking spike");
+    expect(summary.items[0]).toMatchObject({
+      sourceId: "phase-10-adaptive-arena-polish:docking-spike",
+      status: "review",
+      canUseArenaReview: true
+    });
   });
 
   it("surfaces FlexLayout docking spike coverage before Arena polish can be trusted", () => {

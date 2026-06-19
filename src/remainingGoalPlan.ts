@@ -275,7 +275,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Polish adaptive layout, evaluate a FlexLayout-backed docking spike, density, keyboard controls, focus state, Arena terminology, traceability, and blocker priority after core live proof clears.",
     status: "next",
     priority: "medium",
-    completionPercent: 55,
+    completionPercent: 57,
     pmTaskIds: [
       "phase-10-adaptive-arena",
       "phase-10-parent-layout-foundation",
