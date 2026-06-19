@@ -1054,6 +1054,9 @@ describe("phase 3 owner-visible proof panel", () => {
     const html = renderOwnerTestingReadinessPanel(props);
 
     expect(html).toContain("Desktop smoke bundle");
+    expect(html).toContain(
+      'aria-label="Phase 3 desktop smoke proof readiness 35% ready; 1 storage-proof attested; 2 storage review"'
+    );
     expect(html).toContain("Storage 1/");
     expect(html).toContain("Transient 2 review");
     expect(html).toContain("Transient passed smoke runs stay in review");
@@ -1083,6 +1086,9 @@ describe("phase 3 owner-visible proof panel", () => {
     const html = renderOwnerTestingReadinessPanel(props);
 
     expect(html).toContain("Desktop smoke bundle");
+    expect(html).toContain(
+      'aria-label="Phase 3 desktop smoke proof readiness 65% ready; 0 storage-proof attested; 3 storage review"'
+    );
     expect(html).toContain("Storage 0/3 attested");
     expect(html).toContain("Transient 3 review");
     expect(html).toContain("storage review");
@@ -1119,6 +1125,9 @@ describe("phase 3 owner-visible proof panel", () => {
     });
     const html = renderOwnerTestingReadinessPanel(props);
 
+    expect(html).toContain(
+      'aria-label="Phase 3 desktop smoke proof readiness 65% ready; 3 storage-proof attested; 0 storage review"'
+    );
     expect(html).toContain("Live-control desktop smoke proof");
     expect(html).toContain("dated after the current evaluation timestamp");
     expect(html).toContain("Current evidence review");
