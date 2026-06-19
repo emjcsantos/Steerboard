@@ -303,7 +303,8 @@ function hasCurrentFingerprintMatch(
   return (
     validation?.state === "ready" &&
     validation.matchesCurrentEvidence === true &&
-    Boolean(validation.expectedFingerprint)
+    Boolean(validation.expectedFingerprint) &&
+    validation.recordFingerprint === validation.expectedFingerprint
   );
 }
 

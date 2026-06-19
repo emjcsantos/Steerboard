@@ -199,6 +199,34 @@ describe("phase 3 handoff gate", () => {
     );
   });
 
+  it("holds provider integration when Phase 3 traceability precondition is missing", () => {
+    const result = buildGate({
+      clearancePackage: clearancePackage(),
+      handoffRecordState: "ready",
+      handoffRecordValidation: readyHandoffValidation()
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canAdvanceProviderIntegration).toBe(false);
+    expect(result.nextAction).toContain("Attach Phase 3 traceability precondition");
+    expect(result.ownerReviewSummary).toContain("Phase 3 current-goal and PM traceability");
+    expect(result.ariaLabel).toContain("Phase 3 current-goal and PM traceability");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Traceability boundary",
+          status: "review",
+          detail: expect.stringContaining("not attached")
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          status: "review",
+          detail: expect.stringContaining("traceability precondition is attached")
+        })
+      ])
+    );
+  });
+
   it("holds provider integration when fingerprint-matched handoff lacks age metadata", () => {
     const result = buildGate({
       clearancePackage: clearancePackage(),
@@ -305,6 +333,73 @@ describe("phase 3 handoff gate", () => {
     );
   });
 
+  it("reviews ready handoff validation when the record fingerprint is missing", () => {
+    const result = buildGate({
+      clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
+      handoffRecordState: "ready",
+      handoffRecordValidation: {
+        ...readyHandoffValidation(),
+        recordFingerprint: undefined,
+        matchesCurrentEvidence: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canAdvanceProviderIntegration).toBe(false);
+    expect(result.handoffEvidenceReview).toMatchObject({
+      expectedFingerprint: "current",
+      matchesCurrentEvidence: true,
+      hasFreshAgeMetadata: true
+    });
+    expect(result.nextAction).toBe(
+      "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
+    );
+    expect(result.ownerReviewSummary).toContain("must prove both");
+    expect(result.ariaLabel).toContain("must prove both");
+  });
+
+  it("reviews ready handoff validation when the record fingerprint differs from the expected fingerprint", () => {
+    const result = buildGate({
+      clearancePackage: clearancePackage(),
+      traceabilityPrecondition: trustedTraceability(),
+      handoffRecordState: "ready",
+      handoffRecordValidation: {
+        ...readyHandoffValidation(),
+        expectedFingerprint: "current",
+        recordFingerprint: "previous",
+        matchesCurrentEvidence: true
+      }
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canAdvanceProviderIntegration).toBe(false);
+    expect(result.handoffEvidenceReview).toMatchObject({
+      expectedFingerprint: "current",
+      recordFingerprint: "previous",
+      matchesCurrentEvidence: true,
+      hasFreshAgeMetadata: true
+    });
+    expect(result.nextAction).toBe(
+      "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
+    );
+    expect(result.ownerReviewSummary).toContain("must prove both");
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Owner handoff record",
+          status: "review",
+          detail: expect.stringContaining("current evidence fingerprint match")
+        }),
+        expect.objectContaining({
+          label: "Provider boundary",
+          status: "review",
+          detail: expect.stringContaining("current evidence fingerprint match")
+        })
+      ])
+    );
+  });
+
   it("holds provider integration when clearance is ready but owner handoff is not recorded", () => {
     const result = buildGate({
       clearancePackage: clearancePackage(),
@@ -327,6 +422,7 @@ describe("phase 3 handoff gate", () => {
       "Record the owner-reviewed Phase 3 handoff before advancing provider integration."
     );
     expect(result.ownerReviewSummary).toContain("Owner handoff recordable");
+    expect(result.ariaLabel).toContain("Owner handoff recordable");
   });
 
   it("blocks provider advance when the owner handoff record fingerprint is stale", () => {
