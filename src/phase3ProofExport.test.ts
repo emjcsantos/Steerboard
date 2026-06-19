@@ -1,6 +1,12 @@
-import { describe, expect, it } from "vitest";
-import type { Phase3CommandValidationRecord } from "./phase3CommandValidationRecord";
-import type { Phase3OwnerHandoffRecord } from "./phase3HandoffRecord";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  savePhase3CommandValidationRecord,
+  type Phase3CommandValidationRecord
+} from "./phase3CommandValidationRecord";
+import {
+  savePhase3OwnerHandoffRecord,
+  type Phase3OwnerHandoffRecord
+} from "./phase3HandoffRecord";
 import {
   PHASE3_PROOF_EXPORT_EVIDENCE_KEY,
   PHASE3_PROOF_EXPORT_PM_TASK_ID,
@@ -64,6 +70,23 @@ const ownerHandoffRecord: Phase3OwnerHandoffRecord = {
   detail: "Owner-reviewed Phase 3 handoff is recorded."
 };
 
+function createStore() {
+  const store = new Map<string, string>();
+  vi.stubGlobal("window", {
+    localStorage: {
+      getItem: vi.fn((key: string) => store.get(key) ?? null),
+      setItem: vi.fn((key: string, value: string) => {
+        store.set(key, value);
+      }),
+      removeItem: vi.fn((key: string) => {
+        store.delete(key);
+      })
+    }
+  });
+
+  return store;
+}
+
 function readyArtifact(overrides: Parameters<typeof buildPhase3ProofExportArtifact>[0] = {}) {
   return buildPhase3ProofExportArtifact({
     currentPanelId,
@@ -85,6 +108,10 @@ function readyArtifact(overrides: Parameters<typeof buildPhase3ProofExportArtifa
 }
 
 describe("phase 3 proof export", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("verifies a fresh complete Phase 3 proof export without live actions", () => {
     const artifact = readyArtifact();
     const verification = verifyPhase3ProofExportArtifact(artifact, { verifiedAt });
@@ -285,6 +312,60 @@ describe("phase 3 proof export", () => {
     expect(verification.detail).toContain("missing the owner handoff record");
     expect(canRecordPhase3OwnerHandoffFromProofExportPreflight(verification)).toBe(true);
     expect(canRecordPhase3OwnerHandoffFromProofExportPreflight(stale)).toBe(false);
+  });
+
+  it("respects explicit current-state absence instead of pulling stored command validation", () => {
+    createStore();
+    savePhase3CommandValidationRecord(commandValidationRecord);
+
+    const artifact = readyArtifact({
+      commandValidationRecord: undefined
+    });
+    const verification = verifyPhase3ProofExportArtifact(artifact, { verifiedAt });
+
+    expect(artifact.commandValidationRecord).toBeUndefined();
+    expect(verification.state).toBe("review");
+    expect(verification.hasCommandValidationRecord).toBe(false);
+    expect(verification.detail).toContain("missing the CLI smoke validation record");
+  });
+
+  it("loads stored command validation only when the build input omits the field", () => {
+    createStore();
+    savePhase3CommandValidationRecord(commandValidationRecord);
+
+    const artifact = buildPhase3ProofExportArtifact({
+      currentPanelId,
+      evaluatedAt,
+      exportedAt,
+      handoffEvidenceFingerprint: handoffFingerprint,
+      slashEvidenceByPanel: { [currentPanelId]: slashEvidence },
+      sessionControlEvidenceByPanel: { [currentPanelId]: sessionControlEvidence },
+      smokeProofBundle,
+      persistedDesktopProofs: {
+        liveControlSmoke: true,
+        activeTurnInterruptSmoke: true,
+        activeTurnSteerSmoke: true
+      },
+      ownerHandoffRecord
+    });
+
+    expect(artifact.commandValidationRecord).toEqual(commandValidationRecord);
+  });
+
+  it("respects explicit current-state absence instead of pulling a stored owner handoff", () => {
+    createStore();
+    savePhase3OwnerHandoffRecord(ownerHandoffRecord);
+
+    const artifact = readyArtifact({
+      ownerHandoffRecord: undefined
+    });
+    const verification = verifyPhase3ProofExportArtifact(artifact, { verifiedAt });
+
+    expect(artifact.ownerHandoffRecord).toBeUndefined();
+    expect(verification.state).toBe("review");
+    expect(verification.hasOwnerHandoffRecord).toBe(false);
+    expect(verification.detail).toContain("missing the owner handoff record");
+    expect(canRecordPhase3OwnerHandoffFromProofExportPreflight(verification)).toBe(true);
   });
 
   it("keeps self-consistent but non-current handoff fingerprints in review", () => {

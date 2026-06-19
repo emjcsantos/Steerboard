@@ -230,6 +230,20 @@ export function canRecordPhase3OwnerHandoffFromProofExportPreflight(
 export function buildPhase3ProofExportArtifact(
   input: Phase3ProofExportBuildInput = {}
 ): Phase3ProofExportArtifact {
+  const hasCommandValidationRecordInput = Object.prototype.hasOwnProperty.call(
+    input,
+    "commandValidationRecord"
+  );
+  const hasOwnerHandoffRecordInput = Object.prototype.hasOwnProperty.call(
+    input,
+    "ownerHandoffRecord"
+  );
+  const commandValidationRecord = hasCommandValidationRecordInput
+    ? input.commandValidationRecord
+    : loadPhase3CommandValidationRecord();
+  const ownerHandoffRecord = hasOwnerHandoffRecordInput
+    ? input.ownerHandoffRecord
+    : loadPhase3OwnerHandoffRecord();
   const smokeProofLoad = input.smokeProofBundle && input.persistedDesktopProofs
     ? {
         bundle: input.smokeProofBundle,
@@ -256,11 +270,11 @@ export function buildPhase3ProofExportArtifact(
     ...(Object.keys(smokeProofLoad.storageReviewReasons).length > 0
       ? { storageReviewReasons: smokeProofLoad.storageReviewReasons }
       : {}),
-    ...(input.commandValidationRecord ?? loadPhase3CommandValidationRecord()
-      ? { commandValidationRecord: input.commandValidationRecord ?? loadPhase3CommandValidationRecord() }
+    ...(commandValidationRecord
+      ? { commandValidationRecord }
       : {}),
-    ...(input.ownerHandoffRecord ?? loadPhase3OwnerHandoffRecord()
-      ? { ownerHandoffRecord: input.ownerHandoffRecord ?? loadPhase3OwnerHandoffRecord() }
+    ...(ownerHandoffRecord
+      ? { ownerHandoffRecord }
       : {})
   };
 }
