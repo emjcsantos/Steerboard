@@ -619,6 +619,48 @@ describe("phase 11 owner release blocker priority", () => {
     );
   });
 
+  it("surfaces traceability packaging holds when release-readiness rows are absent", () => {
+    const result = priority({
+      releaseReadiness: releaseSnapshot({
+        state: "review",
+        statusLabel: "Review",
+        canRecommendRelease: false,
+        releaseHoldCount: 1,
+        items: []
+      }),
+      traceability: traceabilitySnapshot({
+        state: "review",
+        statusLabel: "Review",
+        canTrustOwnerReleaseGate: false,
+        releaseHoldStatus: "review",
+        items: [
+          {
+            id: "phase-11-owner-release-traceability:packaging-hold",
+            label: "Packaging hold",
+            kind: "packaging-hold",
+            status: "review",
+            detail: "Packaging hold evidence is missing from release readiness.",
+            nextAction: "Keep packaging locked until the owner explicitly resumes release actions."
+          }
+        ]
+      })
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.topPriorityLabel).toBe("Packaging hold");
+    expect(result.ownerReviewCanAddressTopBlocker).toBe(true);
+    expect(result.items[0]).toMatchObject({
+      kind: "traceability",
+      label: "Packaging hold",
+      status: "review",
+      ownerReviewAddressable: true,
+      detail: "Packaging hold evidence is missing from release readiness.",
+      nextAction: expect.stringContaining(
+        "Keep packaging locked until the owner explicitly resumes release actions."
+      )
+    });
+  });
+
   it("ranks open packaging holds above proof and evidence blockers", () => {
     const result = priority({
       ownerCommandCenter: ownerSnapshot({

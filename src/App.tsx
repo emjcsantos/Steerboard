@@ -13057,6 +13057,17 @@ export function OwnerTestingReadinessPanel({
     phasePriorityEvidence,
     traceability: phase126PublishHoldTraceability
   });
+  const phase6PmBoardEvidence = phasePriorityEvidence.items.find((item) => item.id === "phase-6-pm-board");
+  const handleReviewPhase6PmBoard = () => {
+    const target =
+      document.querySelector('[data-testid="pm-run-parent-phase-06-parent-phase-board"]') ??
+      document.querySelector('[data-testid="pm-run-epic-phase-06-planning-lane"]');
+
+    if (target instanceof HTMLElement) {
+      target.scrollIntoView({ block: "center", inline: "nearest" });
+      target.focus();
+    }
+  };
   const runPhase3Action = (actionId: string) => {
     if (actionId === "phase3-owner-testing:live-control-smoke") {
       onRunCodexLiveControlSmokeProof();
@@ -13182,6 +13193,15 @@ export function OwnerTestingReadinessPanel({
             >
               <span>{codexTwoPanelSmokeLoading ? "Running panels..." : "Run two-panel smoke"}</span>
               <strong>Phase 2</strong>
+            </button>
+            <button
+              className="owner-testing-priority-action"
+              onClick={handleReviewPhase6PmBoard}
+              title={`${phase6PmBoardEvidence?.detail ?? "Review Phase 6 PM phase board evidence."} ${phase6PmBoardEvidence?.nextAction ?? "Use row-level Run buttons to stage Arena review packages while keeping execution locked."}`}
+              type="button"
+            >
+              <span>Review PM board</span>
+              <strong>Phase 6</strong>
             </button>
           </div>
           <div
