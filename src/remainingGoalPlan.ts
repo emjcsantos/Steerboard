@@ -299,7 +299,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Make Owner Testing the single pass-fail release gate for proof freshness depth, blockers, phase readiness, owner release traceability, blocker priority, and next actions.",
     status: "next",
     priority: "high",
-    completionPercent: 60,
+    completionPercent: 62,
     pmTaskIds: [
       "phase-11-owner-packaging",
       "phase-11-parent-owner-testing",

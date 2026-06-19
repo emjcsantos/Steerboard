@@ -6,6 +6,7 @@ export type Phase11EvidenceGate =
   | "release-decision";
 
 export type Phase11EvidenceRecordState = "ready" | "review" | "blocked" | "waiting";
+export type Phase11EvidenceRecordsState = Phase11EvidenceRecordState;
 export type Phase11EvidenceRecordFreshness = "fresh" | "stale" | "missing" | "malformed";
 
 export interface Phase11EvidenceRecordInput {
@@ -32,7 +33,12 @@ export interface Phase11EvidenceRecordSnapshot {
 export interface Phase11EvidenceRecordsSnapshot {
   readonly id: string;
   readonly label: string;
+  readonly state: Phase11EvidenceRecordsState;
+  readonly statusLabel: string;
+  readonly readiness: number;
   readonly records: Record<Phase11EvidenceGate, Phase11EvidenceRecordSnapshot>;
+  readonly totalGateCount: number;
+  readonly openGateCount: number;
   readonly readyCount: number;
   readonly reviewCount: number;
   readonly blockedCount: number;
@@ -40,6 +46,8 @@ export interface Phase11EvidenceRecordsSnapshot {
   readonly staleCount: number;
   readonly missingCount: number;
   readonly malformedCount: number;
+  readonly nextAction: string;
+  readonly ariaLabel: string;
 }
 
 const SNAPSHOT_ID = "phase-11-evidence-records";
@@ -47,6 +55,13 @@ const SNAPSHOT_LABEL = "Phase 11 evidence records";
 const SAFETY =
   "Phase 11 evidence records are metadata-only. They do not run tests, install dependencies, build packages, execute smoke flows, write files, push branches, call networks, or resume release actions.";
 const STALE_AFTER_HOURS = 72;
+
+const STATUS_LABELS: Record<Phase11EvidenceRecordsState, string> = {
+  ready: "Ready",
+  review: "Review",
+  blocked: "Blocked",
+  waiting: "Waiting"
+};
 
 const GATE_LABELS: Record<Phase11EvidenceGate, string> = {
   "fresh-checkout": "Fresh checkout",
@@ -114,6 +129,71 @@ function validDate(value: unknown): Date | undefined {
 
 function ageHours(recordedAt: Date, now: Date): number {
   return Math.max(0, Math.round((now.getTime() - recordedAt.getTime()) / 36_000) / 100);
+}
+
+function stateWeight(state: Phase11EvidenceRecordState): number {
+  switch (state) {
+    case "ready":
+      return 100;
+    case "review":
+      return 65;
+    case "waiting":
+      return 35;
+    case "blocked":
+    default:
+      return 0;
+  }
+}
+
+function scoreRecords(records: readonly Phase11EvidenceRecordSnapshot[]): number {
+  if (records.length === 0) {
+    return 0;
+  }
+
+  return Math.round(
+    records.reduce((sum, record) => sum + stateWeight(record.state), 0) / records.length
+  );
+}
+
+function resolveRecordsState(
+  records: readonly Phase11EvidenceRecordSnapshot[]
+): Phase11EvidenceRecordsState {
+  if (records.some((record) => record.state === "blocked")) {
+    return "blocked";
+  }
+  if (records.some((record) => record.state === "review")) {
+    return "review";
+  }
+  if (records.some((record) => record.state === "waiting")) {
+    return "waiting";
+  }
+  return "ready";
+}
+
+function firstRecordNextAction(records: readonly Phase11EvidenceRecordSnapshot[]): string {
+  return (
+    records.find((record) => record.state === "blocked")?.nextAction ??
+    records.find((record) => record.state === "review")?.nextAction ??
+    records.find((record) => record.state === "waiting")?.nextAction ??
+    "Keep all Phase 11 evidence records attached while release packaging remains held."
+  );
+}
+
+function buildAriaLabel(input: {
+  label: string;
+  statusLabel: string;
+  readiness: number;
+  openGateCount: number;
+  missingCount: number;
+  staleCount: number;
+  malformedCount: number;
+  nextAction: string;
+}): string {
+  return (
+    `${input.label}: ${input.statusLabel}; ${input.readiness}% ready; ` +
+    `${input.openGateCount} open evidence gates; ${input.missingCount} missing; ` +
+    `${input.staleCount} stale; ${input.malformedCount} malformed; next action: ${input.nextAction}`
+  );
 }
 
 export function evaluatePhase11EvidenceRecord(
@@ -224,17 +304,31 @@ export function buildPhase11EvidenceRecords(
     "release-decision": evaluatePhase11EvidenceRecord("release-decision", inputs["release-decision"], nowIso)
   };
   const values = Object.values(records);
-
-  return {
+  const state = resolveRecordsState(values);
+  const readiness = scoreRecords(values);
+  const openGateCount = values.filter((record) => record.state !== "ready").length;
+  const nextAction = firstRecordNextAction(values);
+  const draft = {
     id: SNAPSHOT_ID,
     label: SNAPSHOT_LABEL,
+    state,
+    statusLabel: STATUS_LABELS[state],
+    readiness,
     records,
+    totalGateCount: values.length,
+    openGateCount,
     readyCount: values.filter((record) => record.state === "ready").length,
     reviewCount: values.filter((record) => record.state === "review").length,
     blockedCount: values.filter((record) => record.state === "blocked").length,
     waitingCount: values.filter((record) => record.state === "waiting").length,
     staleCount: values.filter((record) => record.freshness === "stale").length,
     missingCount: values.filter((record) => record.freshness === "missing").length,
-    malformedCount: values.filter((record) => record.freshness === "malformed").length
+    malformedCount: values.filter((record) => record.freshness === "malformed").length,
+    nextAction
+  };
+
+  return {
+    ...draft,
+    ariaLabel: buildAriaLabel(draft)
   };
 }

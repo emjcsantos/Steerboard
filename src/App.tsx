@@ -15579,9 +15579,16 @@ export function Phase11EvidenceRecordsPanel({
     <section className="panel-section">
       <h4>Phase 11 Evidence Records</h4>
       <div
+        aria-label={snapshot.ariaLabel}
         className="phase11-evidence-records"
-        title="Phase 11 evidence records are metadata-only and do not run release actions."
+        title={snapshot.nextAction}
       >
+        <div className="phase11-evidence-records-header">
+          <span>{snapshot.statusLabel}</span>
+          <strong>{snapshot.label}</strong>
+          <b>{snapshot.readiness}%</b>
+        </div>
+        <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
         <div className="phase11-evidence-record-actions" aria-label="Phase 11 evidence record actions">
           <button
             onClick={() => importInputRef.current?.click()}
@@ -15600,6 +15607,10 @@ export function Phase11EvidenceRecordsPanel({
           />
         </div>
         <dl className="phase11-evidence-records-grid" aria-label="Phase 11 evidence record counts">
+          <div>
+            <dt>Open</dt>
+            <dd>{snapshot.openGateCount}</dd>
+          </div>
           <div>
             <dt>Ready</dt>
             <dd>{snapshot.readyCount}</dd>

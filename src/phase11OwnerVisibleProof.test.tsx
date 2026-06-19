@@ -162,6 +162,11 @@ function evidenceRecordsSnapshot(
   return {
     id: "phase-11-evidence-records",
     label: "Phase 11 evidence records",
+    state: "blocked",
+    statusLabel: "Blocked",
+    readiness: 47,
+    totalGateCount: 5,
+    openGateCount: 4,
     readyCount: 1,
     reviewCount: 1,
     blockedCount: 1,
@@ -169,6 +174,9 @@ function evidenceRecordsSnapshot(
     staleCount: 1,
     missingCount: 2,
     malformedCount: 1,
+    nextAction: "Repair docs and known limits evidence metadata before release readiness.",
+    ariaLabel:
+      "Phase 11 evidence records: Blocked; 47% ready; 4 open evidence gates; 2 missing; 1 stale; 1 malformed; next action: Repair docs and known limits evidence metadata before release readiness.",
     records: {
       "fresh-checkout": {
         gate: "fresh-checkout",
@@ -412,6 +420,9 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("CLI smoke validation record");
     expect(html).toContain("Owner handoff proof");
     expect(html).toContain("Phase 11 Evidence Records");
+    expect(html).toContain("Phase 11 evidence records: Blocked; 47% ready; 4 open evidence gates");
+    expect(html).toContain("<b>47%</b>");
+    expect(html).toContain("<dt>Open</dt><dd>4</dd>");
     expect(html).toContain("<dt>Ready</dt><dd>1</dd>");
     expect(html).toContain("<dt>Waiting</dt><dd>2</dd>");
     expect(html).toContain("<dt>Stale</dt><dd>1</dd>");
@@ -513,6 +524,11 @@ describe("phase 11 owner-visible proof", () => {
       }))
     });
     const evidence = evidenceRecordsSnapshot({
+      state: "ready",
+      statusLabel: "Ready",
+      readiness: 100,
+      totalGateCount: 5,
+      openGateCount: 0,
       readyCount: 5,
       reviewCount: 0,
       blockedCount: 0,
@@ -520,6 +536,9 @@ describe("phase 11 owner-visible proof", () => {
       staleCount: 0,
       missingCount: 0,
       malformedCount: 0,
+      nextAction: "Keep all Phase 11 evidence records attached while release packaging remains held.",
+      ariaLabel:
+        "Phase 11 evidence records: Ready; 100% ready; 0 open evidence gates; 0 missing; 0 stale; 0 malformed; next action: Keep all Phase 11 evidence records attached while release packaging remains held.",
       records: Object.fromEntries(
         Object.entries(evidenceRecordsSnapshot().records).map(([gate, record]) => [
           gate,

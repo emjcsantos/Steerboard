@@ -184,12 +184,19 @@ describe("phase 11 evidence records", () => {
       NOW
     );
 
+    expect(summary.state).toBe("blocked");
+    expect(summary.statusLabel).toBe("Blocked");
+    expect(summary.readiness).toBe(60);
+    expect(summary.totalGateCount).toBe(5);
+    expect(summary.openGateCount).toBe(3);
     expect(summary.readyCount).toBe(2);
     expect(summary.reviewCount).toBe(1);
     expect(summary.blockedCount).toBe(1);
     expect(summary.waitingCount).toBe(1);
     expect(summary.missingCount).toBe(1);
     expect(summary.malformedCount).toBe(1);
+    expect(summary.nextAction).toContain("Repair docs and known limits evidence metadata");
+    expect(summary.ariaLabel).toContain("3 open evidence gates");
   });
 
   it("keeps evidence text public-safe", () => {

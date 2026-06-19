@@ -871,7 +871,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-11-owner-packaging",
     title: "Phase 11: Owner Testing and Release Readiness",
     description: "Prepare owner-facing pass/fail command gates, proof-freshness depth, structured evidence records, fresh checkout instructions, packaging locks, known-limit review, final security closure capability, and release-decision proof.",
-    completionPercent: 60,
+    completionPercent: 61,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -879,7 +879,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-11-parent-owner-testing",
         title: "Owner Testing Flow",
         description: "Turn owner testing actions into one command-center pass/fail path for proof freshness depth, blockers, phase readiness, evidence records, and next action.",
-        completionPercent: 62,
+        completionPercent: 64,
         sourceDocument: "Owner testing panel",
         children: [
           {
@@ -901,7 +901,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-11-child-evidence-records",
             title: "Structured Evidence Records",
             description: "Represent fresh checkout, clean checkout, build/test, and docs/known-limits proof as source/timestamp/detail records with missing, stale, malformed, waiting, review, blocked, and ready states.",
-            completionPercent: 45,
+            completionPercent: 58,
             complexity: "high",
             sourceDocument: "Phase 11 evidence records"
           },

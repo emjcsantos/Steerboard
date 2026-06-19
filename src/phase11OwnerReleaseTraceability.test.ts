@@ -78,6 +78,11 @@ function evidenceSnapshot(
   return {
     id: "phase-11-evidence-records",
     label: "Phase 11 evidence records",
+    state: "ready",
+    statusLabel: "Ready",
+    readiness: 100,
+    totalGateCount: 5,
+    openGateCount: 0,
     records: {
       "fresh-checkout": {
         gate: "fresh-checkout",
@@ -142,6 +147,9 @@ function evidenceSnapshot(
     staleCount: 0,
     missingCount: 0,
     malformedCount: 0,
+    nextAction: "Keep all Phase 11 evidence records attached while release packaging remains held.",
+    ariaLabel:
+      "Phase 11 evidence records: Ready; 100% ready; 0 open evidence gates; 0 missing; 0 stale; 0 malformed; next action: Keep all Phase 11 evidence records attached while release packaging remains held.",
     ...overrides
   };
 }

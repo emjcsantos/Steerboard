@@ -575,7 +575,7 @@ describe("remaining goal plan", () => {
       target: "Owner Testing command center",
       priority: "high",
       status: "next",
-      completionPercent: 60
+      completionPercent: 62
     });
     expect(ownerGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -607,10 +607,14 @@ describe("remaining goal plan", () => {
       (task) => task.id === "phase-11-child-proof-freshness-depth"
     );
 
-    expect(phase11Epic?.completionPercent).toBe(60);
-    expect(ownerTestingParent?.completionPercent).toBe(62);
+    expect(phase11Epic?.completionPercent).toBe(61);
+    expect(ownerTestingParent?.completionPercent).toBe(64);
     expect(ownerChecklistChild?.completionPercent).toBe(58);
     expect(proofFreshnessChild?.completionPercent).toBe(52);
+    const evidenceRecordsChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-11-child-evidence-records"
+    );
+    expect(evidenceRecordsChild?.completionPercent).toBe(58);
     expect(releaseGoal).toMatchObject({
       target: "Release readiness pass",
       priority: "high",
