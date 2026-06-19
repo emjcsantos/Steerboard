@@ -11,6 +11,7 @@ import {
   parseStoredPhase3SmokeProofBundle,
   savePhase3SmokeProofBundle,
   type Phase3PersistedDesktopProofs,
+  type Phase3PersistedDesktopProofReviewReasons,
   type Phase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
 
@@ -19,6 +20,7 @@ export interface Phase3SmokeProofImportResult {
   readonly notice: string;
   readonly bundle?: Phase3SmokeProofBundle;
   readonly persistedDesktopProofs?: Phase3PersistedDesktopProofs;
+  readonly storageReviewReasons?: Phase3PersistedDesktopProofReviewReasons;
   readonly evaluatedAt?: string;
   readonly readiness?: Phase3SmokeProofReadinessResult;
 }
@@ -77,6 +79,7 @@ export function importPhase3SmokeProofBundleArtifact(
     activeTurnInterruptSmoke: persistedBundle.activeTurnInterruptSmoke,
     activeTurnSteerSmoke: persistedBundle.activeTurnSteerSmoke,
     persistedDesktopProofs: persistedLoad.persistedDesktopProofs,
+    storageReviewReasons: persistedLoad.storageReviewReasons,
     evaluatedAt
   });
 
@@ -88,6 +91,7 @@ export function importPhase3SmokeProofBundleArtifact(
     }),
     bundle: persistedBundle,
     persistedDesktopProofs: persistedLoad.persistedDesktopProofs,
+    storageReviewReasons: persistedLoad.storageReviewReasons,
     evaluatedAt,
     readiness
   };

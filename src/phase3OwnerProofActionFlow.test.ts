@@ -191,6 +191,7 @@ describe("phase 3 owner proof action flow", () => {
       setActiveTurnInterruptSmokeProof: vi.fn(),
       setActiveTurnSteerSmokeProof: vi.fn(),
       setPersistedDesktopProofs: vi.fn(),
+      setStorageReviewReasons: vi.fn(),
       setProofEvaluationTime: vi.fn(),
       setAppNotice: vi.fn()
     };
@@ -218,6 +219,7 @@ describe("phase 3 owner proof action flow", () => {
       activeTurnInterruptSmoke: true,
       activeTurnSteerSmoke: true
     });
+    expect(effects.setStorageReviewReasons).toHaveBeenCalledWith({});
     expect(effects.setProofEvaluationTime).toHaveBeenCalledWith(
       "2026-06-18T07:58:00.000Z"
     );

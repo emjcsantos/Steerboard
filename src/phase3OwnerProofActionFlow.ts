@@ -12,6 +12,7 @@ import {
 } from "./phase3SmokeProofImport";
 import type {
   Phase3PersistedDesktopProofs,
+  Phase3PersistedDesktopProofReviewReasons,
   Phase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
 
@@ -26,6 +27,9 @@ export interface Phase3SmokeProofBundleImportActionEffects {
     proof: Phase3SmokeProofBundle["activeTurnSteerSmoke"]
   ) => void;
   readonly setPersistedDesktopProofs: (proofs: Phase3PersistedDesktopProofs) => void;
+  readonly setStorageReviewReasons?: (
+    reasons: Phase3PersistedDesktopProofReviewReasons
+  ) => void;
   readonly setProofEvaluationTime: (evaluatedAt: string) => void;
   readonly setAppNotice: (notice: string) => void;
 }
@@ -74,6 +78,7 @@ export function runPhase3SmokeProofBundleImportAction(
   effects.setActiveTurnInterruptSmokeProof(result.bundle.activeTurnInterruptSmoke);
   effects.setActiveTurnSteerSmokeProof(result.bundle.activeTurnSteerSmoke);
   effects.setPersistedDesktopProofs(result.persistedDesktopProofs);
+  effects.setStorageReviewReasons?.(result.storageReviewReasons ?? {});
   effects.setProofEvaluationTime(result.evaluatedAt ?? new Date().toISOString());
   effects.setAppNotice(result.notice);
 

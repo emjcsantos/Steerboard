@@ -38,6 +38,12 @@ export interface Phase3PersistedDesktopProofs {
   readonly activeTurnSteerSmoke: boolean;
 }
 
+export interface Phase3PersistedDesktopProofReviewReasons {
+  readonly liveControlSmoke?: string;
+  readonly activeTurnInterruptSmoke?: string;
+  readonly activeTurnSteerSmoke?: string;
+}
+
 export interface Phase3SmokeProofStorageProof {
   readonly source: typeof PHASE3_SMOKE_PROOF_STORAGE_PROOF_SOURCE;
   readonly proof: keyof Phase3SmokeProofBundle;
@@ -48,6 +54,7 @@ export interface Phase3SmokeProofStorageProof {
 export interface Phase3SmokeProofBundleWithStorageProof {
   readonly bundle: Phase3SmokeProofBundle;
   readonly persistedDesktopProofs: Phase3PersistedDesktopProofs;
+  readonly storageReviewReasons: Phase3PersistedDesktopProofReviewReasons;
 }
 
 type MutablePhase3SmokeProofBundle = {
@@ -80,6 +87,10 @@ function emptyPersistedDesktopProofs(): Phase3PersistedDesktopProofs {
     activeTurnInterruptSmoke: false,
     activeTurnSteerSmoke: false
   };
+}
+
+function emptyPersistedDesktopProofReviewReasons(): Phase3PersistedDesktopProofReviewReasons {
+  return {};
 }
 
 function stableJson(value: unknown): string {
@@ -232,20 +243,51 @@ function hasValidStorageProof(
   rawValue: unknown,
   normalizedValue: Phase3SmokeProofBundle[keyof Phase3SmokeProofBundle]
 ): boolean {
+  return storageProofReviewReason(proof, rawValue, normalizedValue) === undefined;
+}
+
+function storageProofReviewReason(
+  proof: keyof Phase3SmokeProofBundle,
+  rawValue: unknown,
+  normalizedValue: Phase3SmokeProofBundle[keyof Phase3SmokeProofBundle]
+): string | undefined {
+  if (!isPersistableDesktopExecutedProof(normalizedValue)) {
+    return "Only desktop-executed proof rows can be storage-attested.";
+  }
+
   const storageProof = getStorageProof(rawValue);
   const checkedAt =
     isRecord(normalizedValue) && typeof normalizedValue.checkedAt === "string"
       ? Date.parse(normalizedValue.checkedAt)
       : Number.NaN;
   const createdAt = storageProof ? Date.parse(storageProof.createdAt) : Number.NaN;
+  const expectedFingerprint = createPhase3SmokeProofFingerprint(normalizedValue);
 
-  return (
-    storageProof?.proof === proof &&
-    storageProof.proofFingerprint === createPhase3SmokeProofFingerprint(normalizedValue) &&
-    Number.isFinite(checkedAt) &&
-    Number.isFinite(createdAt) &&
-    createdAt >= checkedAt
-  );
+  if (!storageProof) {
+    return "Storage proof is missing or malformed; reload a recorded desktop smoke proof bundle.";
+  }
+
+  if (storageProof.proof !== proof) {
+    return `Storage proof is for ${storageProof.proof}, not ${proof}; reload the matching desktop smoke proof row.`;
+  }
+
+  if (storageProof.proofFingerprint !== expectedFingerprint) {
+    return "Storage proof fingerprint no longer matches this desktop proof row; reload the recorded desktop smoke proof bundle.";
+  }
+
+  if (!Number.isFinite(checkedAt)) {
+    return "Desktop proof row has no valid checkedAt timestamp; rerun the desktop smoke proof.";
+  }
+
+  if (!Number.isFinite(createdAt)) {
+    return "Storage proof has no valid createdAt timestamp; reload the recorded desktop smoke proof bundle.";
+  }
+
+  if (createdAt < checkedAt) {
+    return "Storage proof was created before the desktop proof row it attests; reload the recorded desktop smoke proof bundle.";
+  }
+
+  return undefined;
 }
 
 function stampStorageProof<Key extends keyof Phase3SmokeProofBundle>(
@@ -281,6 +323,33 @@ function attestPersistedDesktopProofs(
         raw.activeTurnSteerSmoke,
         bundle.activeTurnSteerSmoke
       )
+  };
+}
+
+function buildPersistedDesktopProofReviewReasons(
+  raw: Record<string, unknown>,
+  bundle: Phase3SmokeProofBundle
+): Phase3PersistedDesktopProofReviewReasons {
+  const liveControlSmoke = storageProofReviewReason(
+    "liveControlSmoke",
+    raw.liveControlSmoke,
+    bundle.liveControlSmoke
+  );
+  const activeTurnInterruptSmoke = storageProofReviewReason(
+    "activeTurnInterruptSmoke",
+    raw.activeTurnInterruptSmoke,
+    bundle.activeTurnInterruptSmoke
+  );
+  const activeTurnSteerSmoke = storageProofReviewReason(
+    "activeTurnSteerSmoke",
+    raw.activeTurnSteerSmoke,
+    bundle.activeTurnSteerSmoke
+  );
+
+  return {
+    ...(liveControlSmoke ? { liveControlSmoke } : {}),
+    ...(activeTurnInterruptSmoke ? { activeTurnInterruptSmoke } : {}),
+    ...(activeTurnSteerSmoke ? { activeTurnSteerSmoke } : {})
   };
 }
 
@@ -341,7 +410,8 @@ export function parseStoredPhase3SmokeProofBundleWithStorageProof(
   if (!serialized) {
     return {
       bundle: getFallbackPhase3SmokeProofBundle(),
-      persistedDesktopProofs: emptyPersistedDesktopProofs()
+      persistedDesktopProofs: emptyPersistedDesktopProofs(),
+      storageReviewReasons: emptyPersistedDesktopProofReviewReasons()
     };
   }
 
@@ -350,7 +420,8 @@ export function parseStoredPhase3SmokeProofBundleWithStorageProof(
     if (!isRecord(parsed)) {
       return {
         bundle: getFallbackPhase3SmokeProofBundle(),
-        persistedDesktopProofs: emptyPersistedDesktopProofs()
+        persistedDesktopProofs: emptyPersistedDesktopProofs(),
+        storageReviewReasons: emptyPersistedDesktopProofReviewReasons()
       };
     }
 
@@ -363,12 +434,14 @@ export function parseStoredPhase3SmokeProofBundleWithStorageProof(
 
     return {
       bundle,
-      persistedDesktopProofs: attestPersistedDesktopProofs(parsed, bundle)
+      persistedDesktopProofs: attestPersistedDesktopProofs(parsed, bundle),
+      storageReviewReasons: buildPersistedDesktopProofReviewReasons(parsed, bundle)
     };
   } catch {
     return {
       bundle: getFallbackPhase3SmokeProofBundle(),
-      persistedDesktopProofs: emptyPersistedDesktopProofs()
+      persistedDesktopProofs: emptyPersistedDesktopProofs(),
+      storageReviewReasons: emptyPersistedDesktopProofReviewReasons()
     };
   }
 }

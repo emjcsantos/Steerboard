@@ -142,7 +142,8 @@ describe("phase 3 smoke proof storage", () => {
     expect(loadPhase3SmokeProofBundle()).toEqual(fallbackBundle);
     expect(loadPhase3SmokeProofBundleWithStorageProof()).toEqual({
       bundle: fallbackBundle,
-      persistedDesktopProofs: noPersistedDesktopProofs
+      persistedDesktopProofs: noPersistedDesktopProofs,
+      storageReviewReasons: {}
     });
   });
 
@@ -156,11 +157,13 @@ describe("phase 3 smoke proof storage", () => {
     expect(loadPhase3SmokeProofBundle()).toEqual(fallbackBundle);
     expect(loadPhase3SmokeProofBundleWithStorageProof()).toEqual({
       bundle: fallbackBundle,
-      persistedDesktopProofs: noPersistedDesktopProofs
+      persistedDesktopProofs: noPersistedDesktopProofs,
+      storageReviewReasons: {}
     });
     expect(parseStoredPhase3SmokeProofBundleWithStorageProof("{")).toEqual({
       bundle: fallbackBundle,
-      persistedDesktopProofs: noPersistedDesktopProofs
+      persistedDesktopProofs: noPersistedDesktopProofs,
+      storageReviewReasons: {}
     });
   });
 
@@ -412,7 +415,8 @@ describe("phase 3 smoke proof storage", () => {
     expect(persistedBundle).toEqual(fallbackBundle);
     expect(loadPhase3SmokeProofBundleWithStorageProof()).toEqual({
       bundle: fallbackBundle,
-      persistedDesktopProofs: noPersistedDesktopProofs
+      persistedDesktopProofs: noPersistedDesktopProofs,
+      storageReviewReasons: {}
     });
   });
 
@@ -556,6 +560,9 @@ describe("phase 3 smoke proof storage", () => {
 
     expect(result.bundle.liveControlSmoke).toEqual(desktopLiveControlSmoke);
     expect(result.persistedDesktopProofs.liveControlSmoke).toBe(false);
+    expect(result.storageReviewReasons.liveControlSmoke).toContain(
+      "created before the desktop proof row it attests"
+    );
   });
 
   it("returns existing persisted state when no desktop-executed row can be saved", () => {
@@ -753,7 +760,8 @@ describe("phase 3 smoke proof storage", () => {
         liveControlSmoke: true,
         activeTurnInterruptSmoke: true,
         activeTurnSteerSmoke: true
-      }
+      },
+      storageReviewReasons: {}
     });
 
     const expectedStoredBundle = {

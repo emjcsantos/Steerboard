@@ -54,6 +54,11 @@ export interface Phase3ExitGateEvidenceInput {
     readonly activeTurnInterruptSmoke?: boolean;
     readonly activeTurnSteerSmoke?: boolean;
   };
+  readonly storageReviewReasons?: {
+    readonly liveControlSmoke?: string;
+    readonly activeTurnInterruptSmoke?: string;
+    readonly activeTurnSteerSmoke?: string;
+  };
   readonly evaluatedAt?: string | Date;
   readonly maxProofAgeMs?: number;
   readonly maxPanelEvidenceAgeMs?: number;
@@ -613,6 +618,7 @@ export function buildPhase3ExitGateEvidence(
     activeTurnInterruptSmoke: input.activeTurnInterruptSmoke,
     activeTurnSteerSmoke: input.activeTurnSteerSmoke,
     persistedDesktopProofs: input.persistedDesktopProofs,
+    storageReviewReasons: input.storageReviewReasons,
     evaluatedAt: input.evaluatedAt,
     maxProofAgeMs: input.maxProofAgeMs
   });

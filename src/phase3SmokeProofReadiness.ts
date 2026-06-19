@@ -37,6 +37,11 @@ export interface Phase3SmokeProofReadinessInput {
     readonly activeTurnInterruptSmoke?: boolean;
     readonly activeTurnSteerSmoke?: boolean;
   };
+  readonly storageReviewReasons?: {
+    readonly liveControlSmoke?: string;
+    readonly activeTurnInterruptSmoke?: string;
+    readonly activeTurnSteerSmoke?: string;
+  };
   readonly evaluatedAt?: string | Date;
   readonly maxProofAgeMs?: number;
 }
@@ -199,7 +204,8 @@ function applyStorageProof(
   state: Phase3SmokeProofReadinessState,
   source: string,
   persisted: boolean,
-  detail: string
+  detail: string,
+  storageReviewReason?: string
 ): { state: Phase3SmokeProofReadinessState; detail: string } {
   if (state !== "ready" || source !== "desktop" || persisted) {
     return { state, detail };
@@ -207,7 +213,9 @@ function applyStorageProof(
 
   return {
     state: "review",
-    detail: `${label} must be loaded from persisted/imported desktop proof storage before Phase 3 handoff.`
+    detail: storageReviewReason
+      ? `${label} storage proof needs review: ${storageReviewReason}`
+      : `${label} must be loaded from persisted/imported desktop proof storage before Phase 3 handoff.`
   };
 }
 
@@ -303,6 +311,7 @@ function buildItem(
   label: string,
   evaluate: (record: Record<string, unknown>) => Phase3SmokeProofReadinessState,
   persisted: boolean,
+  storageReviewReason: string | undefined,
   evaluatedAt: string | Date | undefined,
   maxProofAgeMs: number
 ): Phase3SmokeProofReadinessItem {
@@ -334,7 +343,8 @@ function buildItem(
     freshness.state,
     source,
     persisted,
-    freshness.detail
+    freshness.detail,
+    storageReviewReason
   );
 
   return {
@@ -397,6 +407,7 @@ export function buildPhase3SmokeProofReadiness(
       PROOF_LABELS.liveControl,
       evaluateLiveControlSmokeState,
       input.persistedDesktopProofs?.liveControlSmoke === true,
+      input.storageReviewReasons?.liveControlSmoke,
       input.evaluatedAt,
       maxProofAgeMs
     ),
@@ -406,6 +417,7 @@ export function buildPhase3SmokeProofReadiness(
       PROOF_LABELS.activeTurnInterrupt,
       evaluateActiveTurnInterruptSmokeState,
       input.persistedDesktopProofs?.activeTurnInterruptSmoke === true,
+      input.storageReviewReasons?.activeTurnInterruptSmoke,
       input.evaluatedAt,
       maxProofAgeMs
     ),
@@ -415,6 +427,7 @@ export function buildPhase3SmokeProofReadiness(
       PROOF_LABELS.activeTurnSteer,
       evaluateActiveTurnSteerSmokeState,
       input.persistedDesktopProofs?.activeTurnSteerSmoke === true,
+      input.storageReviewReasons?.activeTurnSteerSmoke,
       input.evaluatedAt,
       maxProofAgeMs
     )

@@ -1834,6 +1834,8 @@ export function App() {
     useState<CodexLiveControlSmokeProof>(() => phase3SmokeProofInitialLoad.bundle.liveControlSmoke);
   const [phase3PersistedDesktopProofs, setPhase3PersistedDesktopProofs] =
     useState(() => phase3SmokeProofInitialLoad.persistedDesktopProofs);
+  const [phase3SmokeProofStorageReviewReasons, setPhase3SmokeProofStorageReviewReasons] =
+    useState(() => phase3SmokeProofInitialLoad.storageReviewReasons);
   const [codexTwoPanelSmokeProof, setCodexTwoPanelSmokeProof] = useState<CodexTwoPanelSmokeProof>(() =>
     phasePrioritySmokeProofInitialBundle.twoPanelSmoke
   );
@@ -2431,6 +2433,7 @@ export function App() {
         activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
         activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof,
         persistedDesktopProofs: phase3PersistedDesktopProofs,
+        storageReviewReasons: phase3SmokeProofStorageReviewReasons,
         evaluatedAt: phase3ProofEvaluationTime
       }),
     [
@@ -2438,6 +2441,7 @@ export function App() {
       codexActiveTurnControlSmokeProof,
       codexActiveTurnSteerSmokeProof,
       phase3PersistedDesktopProofs,
+      phase3SmokeProofStorageReviewReasons,
       phase3ProofEvaluationTime
     ]
   );
@@ -2450,6 +2454,7 @@ export function App() {
         activeTurnInterruptSmoke: codexActiveTurnControlSmokeProof,
         activeTurnSteerSmoke: codexActiveTurnSteerSmokeProof,
         persistedDesktopProofs: phase3PersistedDesktopProofs,
+        storageReviewReasons: phase3SmokeProofStorageReviewReasons,
         evaluatedAt: phase3ProofEvaluationTime,
         currentPanelId: focusedPanelId
       }),
@@ -2460,6 +2465,7 @@ export function App() {
       codexActiveTurnControlSmokeProof,
       codexActiveTurnSteerSmokeProof,
       phase3PersistedDesktopProofs,
+      phase3SmokeProofStorageReviewReasons,
       phase3ProofEvaluationTime,
       focusedPanelId
     ]
@@ -2717,6 +2723,7 @@ export function App() {
       setActiveTurnInterruptSmokeProof: setCodexActiveTurnControlSmokeProof,
       setActiveTurnSteerSmokeProof: setCodexActiveTurnSteerSmokeProof,
       setPersistedDesktopProofs: setPhase3PersistedDesktopProofs,
+      setStorageReviewReasons: setPhase3SmokeProofStorageReviewReasons,
       setProofEvaluationTime: setPhase3ProofEvaluationTime,
       setAppNotice
     });
@@ -3850,6 +3857,7 @@ export function App() {
     setCodexActiveTurnControlSmokeProof(persistedBundle.activeTurnInterruptSmoke);
     setCodexActiveTurnSteerSmokeProof(persistedBundle.activeTurnSteerSmoke);
     setPhase3PersistedDesktopProofs(persistedLoad.persistedDesktopProofs);
+    setPhase3SmokeProofStorageReviewReasons(persistedLoad.storageReviewReasons);
     setCodexActiveTurnControlSmokeLoading(false);
     setCodexConnectionRequested(true);
     setAppNotice(
@@ -3876,6 +3884,7 @@ export function App() {
     setCodexActiveTurnControlSmokeProof(persistedBundle.activeTurnInterruptSmoke);
     setCodexActiveTurnSteerSmokeProof(persistedBundle.activeTurnSteerSmoke);
     setPhase3PersistedDesktopProofs(persistedLoad.persistedDesktopProofs);
+    setPhase3SmokeProofStorageReviewReasons(persistedLoad.storageReviewReasons);
     setCodexActiveTurnSteerSmokeLoading(false);
     setCodexConnectionRequested(true);
     setAppNotice(
@@ -3902,6 +3911,7 @@ export function App() {
     setCodexActiveTurnControlSmokeProof(persistedBundle.activeTurnInterruptSmoke);
     setCodexActiveTurnSteerSmokeProof(persistedBundle.activeTurnSteerSmoke);
     setPhase3PersistedDesktopProofs(persistedLoad.persistedDesktopProofs);
+    setPhase3SmokeProofStorageReviewReasons(persistedLoad.storageReviewReasons);
     setCodexLiveControlSmokeLoading(false);
     setCodexConnectionRequested(true);
     setAppNotice(

@@ -442,6 +442,54 @@ describe("phase 3 smoke proof readiness", () => {
     expect(result.storageReviewCount).toBe(1);
   });
 
+  it("surfaces storage proof review reasons on otherwise ready desktop proof rows", () => {
+    const result = buildPhase3SmokeProofReadiness({
+      evaluatedAt: "2026-06-06T00:01:00.000Z",
+      persistedDesktopProofs: {
+        liveControlSmoke: false,
+        activeTurnInterruptSmoke: true,
+        activeTurnSteerSmoke: true
+      },
+      storageReviewReasons: {
+        liveControlSmoke:
+          "Storage proof was created before the desktop proof row it attests; reload the recorded desktop smoke proof bundle."
+      },
+      liveControlSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.000Z",
+        executed: true,
+        ok: true,
+        completed: true,
+        supportedMethodCount: 3,
+        totalMethodCount: 3
+      },
+      activeTurnInterruptSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.001Z",
+        executed: true,
+        completed: true,
+        interruptObserved: true
+      },
+      activeTurnSteerSmoke: {
+        source: "desktop",
+        checkedAt: "2026-06-06T00:00:00.002Z",
+        executed: true,
+        completed: true,
+        steerObserved: true
+      }
+    });
+
+    expect(result.items[0]).toMatchObject({
+      proof: "live-control",
+      state: "review",
+      persisted: false,
+      detail: expect.stringContaining("storage proof needs review")
+    });
+    expect(result.items[0].detail).toContain(
+      "created before the desktop proof row it attests"
+    );
+  });
+
   it("returns blocked when executed proof is unsupported-after-execution", () => {
     const result = buildPhase3SmokeProofReadiness({
       evaluatedAt: "2026-06-06T00:01:00.000Z",
