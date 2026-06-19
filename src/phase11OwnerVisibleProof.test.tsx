@@ -152,7 +152,7 @@ function proofFreshnessSnapshot(
         kind: "proof-export",
         status: "ready",
         detail:
-          "Proof export is ready at 100% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff attached, expected fingerprint current, record fingerprint current, clearance snapshot 100% with 0 open blockers.",
+          "Proof export is ready at 100% ready; panel proof 2/2, desktop proof 3/3, CLI attached, handoff attached, expected fingerprint current, record fingerprint current, PM trace phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification, clearance snapshot 100% with 0 open blockers.",
         nextAction:
           "Keep the offline-verifiable Phase 3 proof export attached before release readiness resumes."
       },
@@ -473,6 +473,7 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Desktop smoke command plan");
     expect(html).toContain("CLI smoke validation record");
     expect(html).toContain("Phase 3 proof export");
+    expect(html).toContain("phase3.proof-export.offline-verification");
     expect(html).toContain("Owner handoff proof");
     expect(html).toContain("handoff proof and proof-export evidence");
     expect(html).toContain("Phase 11 Evidence Records");
