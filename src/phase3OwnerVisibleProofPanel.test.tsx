@@ -684,7 +684,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Record");
     expect(html).toContain("Fresh 25000ms");
     expect(html).toContain("Current evidence match 100%");
-    expect(html).toContain("Advance ready");
+    expect(html).toContain("Handoff ready");
     expect(html).toContain("Owner handoff current");
     expect(html).toContain("Phase 3 handoff gate");
     expect(html).toContain(
@@ -990,7 +990,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Session controls");
     expect(html).toContain("Submit a provider-routed slash command from an Arena panel");
     expect(html).toContain("Collect Arena session-control evidence");
-    expect(html).toContain("Advance held");
+    expect(html).toContain("Handoff held");
     expect(html).toContain(
       'aria-label="Phase 3 exit gate counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Review</dt><dd>0</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>Waiting</dt><dd>2</dd></div><div><dt>Panel</dt><dd title="panel-phase3-owner-visible">panel-phase3-owner-visible</dd></div><div><dt>PM Links</dt><dd>3</dd></div><div><dt>Evidence Keys</dt><dd>5</dd></div></dl>'
     );
@@ -1021,7 +1021,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain(
       "Refresh session-control evidence from the current Arena panel/session"
     );
-    expect(html).toContain("Advance held");
+    expect(html).toContain("Handoff held");
     expect(html).toContain(
       'aria-label="Phase 3 exit gate counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Review</dt><dd>2</dd></div><div><dt>Blocked</dt><dd>0</dd></div><div><dt>Waiting</dt><dd>0</dd></div><div><dt>Panel</dt><dd title="panel-phase3-owner-visible">panel-phase3-owner-visible</dd></div><div><dt>PM Links</dt><dd>3</dd></div><div><dt>Evidence Keys</dt><dd>5</dd></div></dl>'
     );
@@ -1061,7 +1061,7 @@ describe("phase 3 owner-visible proof panel", () => {
       phase3HandoffGate: heldHandoffGate
     });
 
-    expect(html).toContain("Advance held");
+    expect(html).toContain("Handoff held");
     expect(html).toContain("Traceability boundary");
     expect(html).toContain(
       'aria-label="Phase 3 handoff gate: Review; 88% ready; 4 ready, 2 review, 0 blocked, 0 waiting; 0 exact blockers; owner review: Owner handoff held: 2 current active remaining goals are set.; next action: Keep exactly one current active remaining goal before Phase 3 handoff can advance."'
@@ -1078,7 +1078,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain(
       "Record gate: Keep exactly one current active remaining goal before Phase 3 handoff can advance."
     );
-    expect(html).not.toContain("Advance ready");
+    expect(html).not.toContain("Handoff ready");
   });
 
   it("keeps stale CLI smoke validation visible without replacing desktop proof or handoff evidence", () => {
@@ -1103,7 +1103,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain(
       "Record gate: Rerun npm.cmd run smoke:phase3 manually, then record a fresh local CLI pass."
     );
-    expect(html).not.toContain("Advance ready");
+    expect(html).not.toContain("Handoff ready");
     expect(html).not.toContain("Owner handoff current");
   });
 
@@ -1126,7 +1126,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain(
       "Record gate: Rerun npm.cmd run smoke:phase3 manually, then record a fresh local CLI pass."
     );
-    expect(html).not.toContain("Advance ready");
+    expect(html).not.toContain("Handoff ready");
   });
 
   it("keeps mismatched CLI smoke validation in review with current command-plan text", () => {
@@ -1149,7 +1149,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain(
       "Record gate: Clear and record the Phase 3 CLI smoke validation again with the current command plan."
     );
-    expect(html).not.toContain("Advance ready");
+    expect(html).not.toContain("Handoff ready");
   });
 
   it("keeps stale Phase 3 handoff records visibly in review", () => {
@@ -1182,7 +1182,7 @@ describe("phase 3 owner-visible proof panel", () => {
       phase3OwnerHandoffRecord: staleRecord
     });
 
-    expect(html).toContain("Advance held");
+    expect(html).toContain("Handoff held");
     expect(html).toContain(
       'aria-label="Phase 3 handoff gate: Review; 88% ready; 4 ready, 2 review, 0 blocked, 0 waiting; 0 exact blockers; owner review: Owner handoff review: Owner handoff record no longer matches'
     );
@@ -1253,7 +1253,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain(
       'aria-label="Phase 3 desktop smoke command plan: Review; command available; 0/3 smoke proofs ready; next action: Run npm.cmd run smoke:phase3 locally to refresh live-control, active-turn interrupt, and active-turn steer proofs."'
     );
-    expect(html).toContain("Advance held");
+    expect(html).toContain("Handoff held");
     expect(html).toContain("Record gate: Run Live-control smoke from Owner Testing.");
     expect(html).toContain("Record handoff");
   });
@@ -1291,7 +1291,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("npm.cmd run smoke:phase3 can refresh this blocker.");
     expect(html).toContain("Run npm.cmd run smoke:phase3 locally when desktop session start is available.");
     expect(html).toContain("Record gate: Run Live-control smoke from Owner Testing.");
-    expect(html).toContain("Advance held");
+    expect(html).toContain("Handoff held");
     expect(html).not.toContain("Storage 3/3 attested");
     expect(html).not.toContain("Smoke verified");
   });
@@ -1330,6 +1330,6 @@ describe("phase 3 owner-visible proof panel", () => {
       'aria-label="Phase 3 desktop smoke command plan: Review; command available; 2/3 smoke proofs ready; next action: Run npm.cmd run smoke:phase3 locally to refresh live-control, active-turn interrupt, and active-turn steer proofs."'
     );
     expect(html).toContain("Current evidence review");
-    expect(html).toContain("Advance held");
+    expect(html).toContain("Handoff held");
   });
 });

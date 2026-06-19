@@ -13812,7 +13812,7 @@ export function OwnerTestingReadinessPanel({
           >
             <div className="owner-testing-phase3-handoff-header">
               <strong>{phase3HandoffGate.label}</strong>
-              <span>{phase3HandoffGate.canAdvanceProviderIntegration ? "Advance ready" : "Advance held"}</span>
+              <span>{phase3HandoffGate.canAdvanceProviderIntegration ? "Handoff ready" : "Handoff held"}</span>
             </div>
             <p title={phase3HandoffGate.nextAction}>{phase3HandoffGate.nextAction}</p>
             <small
