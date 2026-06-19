@@ -165,6 +165,24 @@ describe("remaining goal plan", () => {
     });
   });
 
+  it("reports only current active goals as current in priority traces", () => {
+    const staleCurrentNextGoals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-4-provider-surfaces"
+        ? { ...goal, current: true }
+        : goal
+    );
+    const traces = buildRemainingGoalPriorityTraces(staleCurrentNextGoals);
+
+    expect(traces.find((trace) => trace.goalId === "goal-phase-3-proof-clearance")).toMatchObject({
+      current: true,
+      status: "active"
+    });
+    expect(traces.find((trace) => trace.goalId === "goal-phase-4-provider-surfaces")).toMatchObject({
+      current: false,
+      status: "next"
+    });
+  });
+
   it("keeps the owner hold and Phase 3 proof target explicit", () => {
     const publishGoal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-1-2-6-publish");
     const phase3Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-3-proof-clearance");

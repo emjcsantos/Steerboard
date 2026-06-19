@@ -395,7 +395,7 @@ export function buildRemainingGoalPriorityTraces(
       phaseIds: [...goal.phaseIds],
       pmTaskIds: [...goal.pmTaskIds],
       nextAction: goal.nextAction,
-      current: Boolean(goal.current)
+      current: isCurrentActiveRemainingGoal(goal)
     }));
 }
 
