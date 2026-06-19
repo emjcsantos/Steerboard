@@ -623,7 +623,7 @@ describe("remaining goal plan", () => {
       target: "Release readiness pass",
       priority: "high",
       status: "next",
-      completionPercent: 58
+      completionPercent: 59
     });
     const releasePackagingParent = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-11-parent-release-packaging"
@@ -631,8 +631,8 @@ describe("remaining goal plan", () => {
     const packageValidationChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-11-child-package-validation"
     );
-    expect(releasePackagingParent?.completionPercent).toBe(58);
-    expect(packageValidationChild?.completionPercent).toBe(55);
+    expect(releasePackagingParent?.completionPercent).toBe(59);
+    expect(packageValidationChild?.completionPercent).toBe(56);
     expect(releaseGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-11-child-package-validation",

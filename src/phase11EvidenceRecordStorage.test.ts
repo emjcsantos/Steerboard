@@ -43,7 +43,7 @@ describe("phase 11 evidence record storage", () => {
       source: "owner local evidence record",
       recordedAt: "2026-06-18T00:00:00.000Z",
       detail:
-        "Owner attached owner release-decision evidence metadata while packaging locked and Phase 3 handoff proof remains attached for Phase 11 release review."
+        "Owner attached owner release-decision evidence metadata while packaging locked, Phase 3 handoff proof remains attached, and security closure proof is ready for Phase 11 release review."
     });
   });
 

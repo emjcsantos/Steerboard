@@ -162,7 +162,7 @@ function readyEvidence(gate: Phase11EvidenceGate) {
     "build-test": "Final test, build, and output evidence passed.",
     "docs-known-limits": "Release docs, owner checklist, packaging limits, and known limits reviewed.",
     "release-decision":
-      "Owner release decision recorded while packaging locked and Phase 3 handoff proof stayed attached."
+      "Owner release decision recorded while packaging locked, Phase 3 handoff proof stayed attached, and security closure proof was ready."
   };
 
   return evaluatePhase11EvidenceRecord(
@@ -578,7 +578,8 @@ describe("phase 11 release readiness", () => {
           state: "ready",
           source: "owner release review",
           recordedAt: "2026-06-12T10:00:00.000Z",
-          detail: "Owner approved release."
+          detail:
+            "Owner approved release decision while packaging locked, Phase 3 handoff proof stayed attached, and security closure proof was ready."
         },
         "2026-06-17T12:00:00.000Z"
       )
@@ -603,6 +604,35 @@ describe("phase 11 release readiness", () => {
           label: "Release decision",
           status: "review",
           detail: expect.stringContaining("stale")
+        })
+      ])
+    );
+  });
+
+  it("does not recommend release when release-decision evidence omits security closure proof", () => {
+    const result = snapshot({
+      releaseDecisionEvidence: evaluatePhase11EvidenceRecord(
+        "release-decision",
+        {
+          gate: "release-decision",
+          state: "ready",
+          source: "owner release review",
+          recordedAt: "2026-06-17T10:00:00.000Z",
+          detail:
+            "Owner release decision recorded while packaging locked and Phase 3 handoff proof stayed attached."
+        },
+        "2026-06-17T12:00:00.000Z"
+      )
+    });
+
+    expect(result.state).toBe("review");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Release decision",
+          status: "review",
+          detail: expect.stringContaining("security closure")
         })
       ])
     );

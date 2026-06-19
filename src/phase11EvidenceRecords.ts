@@ -92,7 +92,7 @@ const REQUIRED_DETAIL_TERMS: Record<Phase11EvidenceGate, readonly string[]> = {
   "clean-checkout": ["install", "dependency", "startup"],
   "build-test": ["test", "build", "output"],
   "docs-known-limits": ["docs", "owner checklist", "packaging limits", "known limits"],
-  "release-decision": ["owner", "release-decision", "packaging locked", "phase 3"]
+  "release-decision": ["owner", "release-decision", "packaging locked", "phase 3", "security closure"]
 };
 
 const REQUIRED_DETAIL_COVERAGE_COPY: Record<Phase11EvidenceGate, string> = {
@@ -100,7 +100,7 @@ const REQUIRED_DETAIL_COVERAGE_COPY: Record<Phase11EvidenceGate, string> = {
   "clean-checkout": "install, dependency verification, and startup proof",
   "build-test": "test, build, and output",
   "docs-known-limits": "docs, owner checklist, packaging limits, and known limits",
-  "release-decision": "owner release-decision evidence, packaging locked, and Phase 3 handoff proof"
+  "release-decision": "owner release-decision evidence, packaging locked, Phase 3 handoff proof, and security closure"
 };
 
 function normalizeState(value: unknown): Phase11EvidenceRecordState | undefined {
