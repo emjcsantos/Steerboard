@@ -296,7 +296,8 @@ function handoffReviewDetail(phase3HandoffGate: Phase3HandoffGate): string {
     `${review.clearanceSnapshot.exactBlockerCount} open, ` +
     `${review.clearanceSnapshot.reviewCount} review, ` +
     `${review.clearanceSnapshot.blockedCount} blocked, and ` +
-    `${review.clearanceSnapshot.waitingCount} waiting.`
+    `${review.clearanceSnapshot.waitingCount} waiting; owner review summary: ` +
+    `${phase3HandoffGate.ownerReviewSummary}`
   );
 }
 

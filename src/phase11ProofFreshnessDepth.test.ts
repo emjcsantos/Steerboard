@@ -248,6 +248,7 @@ describe("phase 11 proof freshness depth", () => {
     expect(handoffProof?.detail).toContain("record fingerprint current");
     expect(handoffProof?.detail).toContain("age 600000ms of 86400000ms window");
     expect(handoffProof?.detail).toContain("clearance snapshot ready at 100%");
+    expect(handoffProof?.detail).toContain("proof-export offline verification");
     expect(result.ariaLabel).toContain("0 open proof rows");
   });
 
