@@ -180,5 +180,34 @@ describe("project management hierarchy", () => {
     expect(childResult?.dispatchPackage.risk).toBe("medium");
     expect(childResult?.dispatchPackage.scope.join(" ")).toContain("Completion: 60%");
     expect(childResult?.dispatchPackage.scope.join(" ")).toContain("Source: Arena dispatch package");
+
+    const epicResult = buildProjectManagementArenaDispatch(
+      createDefaultProjectManagementTasks(),
+      "phase-06-planning-lane",
+      { id: "website-refresh", name: "Website Refresh" },
+      "2026-06-06T08:10:00.000Z"
+    );
+
+    expect(epicResult?.payload).toMatchObject({
+      taskId: "phase-06-planning-lane",
+      taskType: "Epic",
+      completion: 55,
+      sourceDocument: "Phase completion map",
+      relationshipContext: {
+        epic: { id: "phase-06-planning-lane", title: "Phase 6: Project and Program Planning Lane" }
+      }
+    });
+    expect(epicResult?.payload.children.map((child) => child.id)).toEqual([
+      "phase-06-parent-phase-board",
+      "phase-06-child-current-phase-map",
+      "phase-06-child-saved-state-upgrade",
+      "phase-06-parent-arena-staging",
+      "phase-06-child-run-context",
+      "phase-06-child-publish-hold-traceability",
+      "phase-06-child-publish-hold-blocker-priority"
+    ]);
+    expect(epicResult?.dispatchPackage.risk).toBe("high");
+    expect(epicResult?.dispatchPackage.scope.join(" ")).toContain("Descendant Parent: Phase Board Hierarchy");
+    expect(epicResult?.dispatchPackage.scope.join(" ")).toContain("Descendant Child: Publish Hold Blocker Priority");
   });
 });
