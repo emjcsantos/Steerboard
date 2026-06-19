@@ -700,7 +700,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Desktop proof clearance");
     expect(html).toContain("Exact blocker visibility");
     expect(html).toContain(
-      'aria-label="Phase 3 blocker priority: Ready; 0 open blockers; top priority No open Phase 3 blocker; evidence phase3.clearance.none; command addressable no; next action: No Phase 3 blockers remain; record the owner-reviewed handoff before provider integration advances."'
+      'aria-label="Phase 3 blocker priority: Ready; 0 open blockers; top priority No open Phase 3 blocker; evidence phase3.clearance.none; command addressable no; next action: No Phase 3 blockers remain; record the owner-reviewed handoff before Phase 4 review resumes."'
     );
     expect(html).toContain(
       'aria-label="Phase 3 blocker priority counts"><div><dt>Open</dt><dd>0</dd></div><div><dt>Command</dt><dd>0</dd></div><div><dt>State</dt><dd>Ready</dd></div><div><dt>Ready</dt><dd>100%</dd></div></dl>'

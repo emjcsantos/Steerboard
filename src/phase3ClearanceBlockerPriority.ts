@@ -266,7 +266,7 @@ export function buildPhase3ClearanceBlockerPriority(
     commandCanAddressTopBlocker: topItem?.canUseSmokeCommand === true,
     nextAction:
       topItem?.nextAction ??
-      "No Phase 3 blockers remain; record the owner-reviewed handoff before provider integration advances.",
+      "No Phase 3 blockers remain; record the owner-reviewed handoff before Phase 4 review resumes.",
     safety: SAFETY,
     items
   };

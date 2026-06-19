@@ -390,7 +390,7 @@ export function derivePhase3HandoffRecordValidation(
     return {
       state: "waiting",
       detail: "Owner-reviewed Phase 3 handoff record is not attached yet.",
-      nextAction: "Record the owner-reviewed Phase 3 handoff before advancing provider integration.",
+      nextAction: "Record the owner-reviewed Phase 3 handoff before Phase 4 review resumes.",
       expectedFingerprint,
       matchesCurrentEvidence: false
     };
@@ -419,7 +419,7 @@ export function derivePhase3HandoffRecordValidation(
         state: "review",
         detail:
           "Owner handoff record cannot be validated because the current Phase 3 evidence fingerprint is missing.",
-        nextAction: "Attach the current Phase 3 evidence fingerprint before advancing provider integration.",
+        nextAction: "Attach the current Phase 3 evidence fingerprint before Phase 4 review resumes.",
         recordFingerprint: record.evidenceFingerprint,
         ...recordFreshnessMetadata(record, options),
         matchesCurrentEvidence: false
@@ -458,7 +458,7 @@ export function derivePhase3HandoffRecordValidation(
         state: "review",
         detail:
           "Owner handoff record cannot be freshness-checked without the current Phase 3 evaluation timestamp.",
-        nextAction: "Review the owner handoff record with the current evaluation time before advancing provider integration.",
+        nextAction: "Review the owner handoff record with the current evaluation time before Phase 4 review resumes.",
         expectedFingerprint,
         recordFingerprint: record.evidenceFingerprint,
         ...freshnessMetadata,

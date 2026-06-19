@@ -202,7 +202,7 @@ function traceabilityBoundaryItem(
       kind: "traceability-boundary",
       status: "review",
       detail: "Phase 3 current-goal and PM traceability precondition is not attached.",
-      nextAction: "Attach Phase 3 traceability precondition before advancing provider integration."
+      nextAction: "Attach Phase 3 traceability precondition before Phase 4 review resumes."
     };
   }
 
@@ -215,7 +215,7 @@ function traceabilityBoundaryItem(
       : traceabilityPrecondition.state,
     detail: traceabilityPrecondition.detail,
     nextAction: traceabilityPrecondition.canTrustTrace
-      ? "Keep Phase 3 traceability trusted before advancing provider integration."
+      ? "Keep Phase 3 traceability trusted before Phase 4 review resumes."
       : traceabilityPrecondition.nextAction
   };
 }
@@ -412,16 +412,16 @@ function handoffRecordItem(
       handoffValidationMetadata(handoffRecordValidation),
     nextAction:
       (invalidReadyValidation
-        ? "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
+        ? "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
         : undefined) ??
       handoffRecordValidation?.nextAction ??
       (missingValidation
-        ? "Attach current handoff validation before advancing provider integration."
+        ? "Attach current handoff validation before Phase 4 review resumes."
         : undefined) ??
       (status === "ready"
         ? "Keep the owner-reviewed handoff record attached before Phase 4 review resumes."
         : clearancePackage.canExit
-          ? "Record the owner-reviewed Phase 3 handoff before advancing provider integration."
+          ? "Record the owner-reviewed Phase 3 handoff before Phase 4 review resumes."
           : "Wait for the clearance package to reach exit-ready before recording handoff.")
   };
 }
@@ -448,7 +448,7 @@ function providerBoundaryItem(
       detail: "Provider integration remains blocked because Phase 3 evidence is blocked.",
       nextAction: publicText(
         clearancePackage.nextAction,
-        "Clear the blocked Phase 3 evidence before advancing provider integration."
+        "Clear the blocked Phase 3 evidence before Phase 4 review resumes."
       )
     };
   }
@@ -462,7 +462,7 @@ function providerBoundaryItem(
       detail: "Provider integration remains held until Phase 3 clearance reaches exit-ready.",
       nextAction: publicText(
         clearancePackage.nextAction,
-        "Complete Phase 3 clearance before advancing provider integration."
+        "Complete Phase 3 clearance before Phase 4 review resumes."
       )
     };
   }
@@ -478,7 +478,7 @@ function providerBoundaryItem(
         : "Provider integration remains held until Phase 3 traceability precondition is attached.",
       nextAction:
         traceabilityPrecondition?.nextAction ??
-        "Attach Phase 3 traceability precondition before advancing provider integration."
+        "Attach Phase 3 traceability precondition before Phase 4 review resumes."
     };
   }
 
@@ -493,7 +493,7 @@ function providerBoundaryItem(
         : "Provider integration remains held until fresh Phase 3 CLI smoke validation is attached.",
       nextAction:
         commandValidation?.nextAction ??
-        "Attach fresh Phase 3 CLI smoke validation before advancing provider integration."
+        "Attach fresh Phase 3 CLI smoke validation before Phase 4 review resumes."
     };
   }
 
@@ -517,10 +517,10 @@ function providerBoundaryItem(
           ? handoffRecordValidation.nextAction
           : handoffRecordValidation?.state === "ready" &&
               !hasReadyHandoffValidation(handoffRecordValidation)
-            ? "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
+            ? "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
           : !handoffRecordValidation && handoffRecordState === "ready"
-            ? "Attach current handoff validation before advancing provider integration."
-          : "Attach the owner-reviewed Phase 3 handoff before advancing provider integration."
+            ? "Attach current handoff validation before Phase 4 review resumes."
+          : "Attach the owner-reviewed Phase 3 handoff before Phase 4 review resumes."
     };
   }
 
@@ -600,7 +600,7 @@ function buildOwnerReviewSummary(
   if (validatedRecordState !== "ready") {
     return `Owner handoff review: ${publicText(
       handoffRecordValidation.detail,
-      "The owner handoff record needs review before provider integration advances."
+      "The owner handoff record needs review before Phase 4 review resumes."
     )}`;
   }
 

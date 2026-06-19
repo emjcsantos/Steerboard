@@ -251,7 +251,7 @@ describe("phase 3 handoff gate", () => {
       hasFreshAgeMetadata: false
     });
     expect(result.nextAction).toBe(
-      "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
+      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
     );
     expect(result.ownerReviewSummary).toContain("must prove both");
     expect(result.items).toEqual(
@@ -280,7 +280,7 @@ describe("phase 3 handoff gate", () => {
     expect(result.state).toBe("review");
     expect(result.canAdvanceProviderIntegration).toBe(false);
     expect(result.nextAction).toBe(
-      "Attach current handoff validation before advancing provider integration."
+      "Attach current handoff validation before Phase 4 review resumes."
     );
     expect(result.ownerReviewSummary).toContain("fingerprint validation is missing");
     expect(result.items).toEqual(
@@ -316,7 +316,7 @@ describe("phase 3 handoff gate", () => {
     expect(result.state).toBe("review");
     expect(result.canAdvanceProviderIntegration).toBe(false);
     expect(result.nextAction).toBe(
-      "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
+      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
     );
     expect(result.items).toEqual(
       expect.arrayContaining([
@@ -353,7 +353,7 @@ describe("phase 3 handoff gate", () => {
       hasFreshAgeMetadata: true
     });
     expect(result.nextAction).toBe(
-      "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
+      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
     );
     expect(result.ownerReviewSummary).toContain("must prove both");
     expect(result.ariaLabel).toContain("must prove both");
@@ -381,7 +381,7 @@ describe("phase 3 handoff gate", () => {
       hasFreshAgeMetadata: true
     });
     expect(result.nextAction).toBe(
-      "Attach current fingerprint-matched and age-checked handoff validation before advancing provider integration."
+      "Attach current fingerprint-matched and age-checked handoff validation before Phase 4 review resumes."
     );
     expect(result.ownerReviewSummary).toContain("must prove both");
     expect(result.items).toEqual(
@@ -419,7 +419,7 @@ describe("phase 3 handoff gate", () => {
       ])
     );
     expect(result.nextAction).toBe(
-      "Record the owner-reviewed Phase 3 handoff before advancing provider integration."
+      "Record the owner-reviewed Phase 3 handoff before Phase 4 review resumes."
     );
     expect(result.ownerReviewSummary).toContain("Owner handoff recordable");
     expect(result.ariaLabel).toContain("Owner handoff recordable");
