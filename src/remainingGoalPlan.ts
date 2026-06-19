@@ -349,8 +349,11 @@ const STATUS_ORDER: Record<RemainingGoalStatus, number> = {
 };
 
 function compareGoalPriority(a: RemainingGoalPlanItem, b: RemainingGoalPlanItem): number {
-  if (Boolean(a.current) !== Boolean(b.current)) {
-    return a.current ? -1 : 1;
+  const aCurrentActive = isCurrentActiveRemainingGoal(a);
+  const bCurrentActive = isCurrentActiveRemainingGoal(b);
+
+  if (aCurrentActive !== bCurrentActive) {
+    return aCurrentActive ? -1 : 1;
   }
 
   const priorityDelta = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];

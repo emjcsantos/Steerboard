@@ -145,6 +145,26 @@ describe("remaining goal plan", () => {
     });
   });
 
+  it("keeps stale current next goals below the critical owner hold", () => {
+    const staleCurrentNextGoals = remainingGoalPlan.map((goal) =>
+      goal.id === "goal-phase-4-provider-surfaces"
+        ? { ...goal, current: true }
+        : goal
+    );
+    const queue = buildRemainingGoalPriorityQueue(staleCurrentNextGoals);
+
+    expect(queue.map((goal) => goal.id).slice(0, 3)).toEqual([
+      "goal-phase-3-proof-clearance",
+      "goal-phase-1-2-6-publish",
+      "goal-phase-4-provider-surfaces"
+    ]);
+    expect(isCurrentActiveRemainingGoal(queue[0])).toBe(true);
+    expect(queue[1]).toMatchObject({
+      priority: "critical",
+      status: "blocked"
+    });
+  });
+
   it("keeps the owner hold and Phase 3 proof target explicit", () => {
     const publishGoal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-1-2-6-publish");
     const phase3Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-3-proof-clearance");
