@@ -311,7 +311,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 11 Owner Command, Proof Freshness Depth, Evidence Records, owner release traceability, blocker-priority panels, and owner-visible Phase 11 proof to review checklist coverage, command-plan freshness, CLI-validation freshness, handoff proof depth, blockers, phase readiness, PM coverage, packaging holds, exact top blocker, next action, and fresh-checkout evidence."
+      "Use the Phase 11 Owner Command, Proof Freshness Depth, Evidence Records, owner release traceability, blocker-priority panels, and owner-visible Phase 11 proof to review checklist coverage, command-plan freshness, CLI-validation freshness, proof-export depth, handoff proof depth, blockers, phase readiness, PM coverage, packaging holds, exact top blocker, next action, and fresh-checkout evidence."
   },
   {
     id: "goal-phase-11-release-readiness",

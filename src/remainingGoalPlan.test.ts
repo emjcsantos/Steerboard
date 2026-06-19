@@ -598,6 +598,7 @@ describe("remaining goal plan", () => {
     expect(ownerGoal?.goal).toContain("proof freshness depth");
     expect(ownerGoal?.nextAction).toContain("Proof Freshness Depth");
     expect(ownerGoal?.nextAction).toContain("CLI-validation freshness");
+    expect(ownerGoal?.nextAction).toContain("proof-export depth");
     expect(ownerGoal?.nextAction).toContain("handoff proof depth");
     expect(ownerGoal?.nextAction).toContain("owner release traceability");
     expect(ownerGoal?.nextAction).toContain("blocker-priority panels");
