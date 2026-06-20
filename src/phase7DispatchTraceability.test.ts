@@ -126,7 +126,17 @@ function withCurrentPhase7Goal() {
 function withCurrentNextPhase7Goal() {
   return remainingGoalPlan.map((goal) =>
     goal.id === "goal-phase-7-dispatch-loop"
-      ? { ...goal, current: true }
+      ? { ...goal, status: "next" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
+function withNextPhase7Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-7-dispatch-loop"
+      ? { ...goal, status: "next" as const, current: false }
       : goal.current
         ? { ...goal, current: false }
         : goal
@@ -135,7 +145,7 @@ function withCurrentNextPhase7Goal() {
 
 function withDuplicateCurrentActivePhase7Goal() {
   return remainingGoalPlan.map((goal) =>
-    goal.id === "goal-phase-7-dispatch-loop"
+    goal.id === "goal-phase-5-migration-hardening"
       ? { ...goal, status: "active" as const, current: true }
       : goal
   );
@@ -144,7 +154,7 @@ function withDuplicateCurrentActivePhase7Goal() {
 describe("phase 7 dispatch traceability", () => {
   it("keeps Phase 7 dispatch traceability waiting while Phase 7 is only next", () => {
     const { record, run } = buildRecordBundle();
-    const summary = traceability({ record, run });
+    const summary = traceability({ record, run, goals: withNextPhase7Goal() });
 
     expect(summary.linkedGoalId).toBe("goal-phase-7-dispatch-loop");
     expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(10);

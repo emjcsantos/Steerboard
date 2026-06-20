@@ -177,10 +177,9 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-05-migration-center"],
     goal:
       "Finish preview, apply-intent lock, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, and review-depth records for metadata-only migration work.",
-    status: "active",
+    status: "next",
     priority: "high",
     completionPercent: 72,
-    current: true,
     pmTaskIds: [
       "phase-05-migration-center",
       "phase-05-parent-draft-workflow",
@@ -202,9 +201,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-07-dispatch-loop"],
     goal:
       "Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits, dispatch review depth, handoff packet integrity, current evidence freshness, main integration ownership, validation gates, traceability, blocker priority, and live-worker locks.",
-    status: "next",
+    status: "active",
     priority: "high",
-    completionPercent: 65,
+    completionPercent: 66,
+    current: true,
     pmTaskIds: [
       "phase-07-dispatch-loop",
       "phase-07-parent-role-panels",
@@ -218,7 +218,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-07-child-blocker-priority"
     ],
     nextAction:
-      "Use dispatch review records, review-depth checks, per-role handoff packet integrity, current evidence fingerprint matching, integration ownership rows, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof to audit role counts, attempt limits, handoff tasks, validation dependencies, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, and live-worker execution locks before any live worker session spawning."
+      "Use dispatch review records as the current active implementation target with review-depth checks, per-role handoff packet integrity, current evidence fingerprint matching, integration ownership rows, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof to audit role counts, attempt limits, handoff tasks, validation dependencies, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, and live-worker execution locks before any live worker session spawning."
   },
   {
     id: "goal-phase-8-permission-audit",

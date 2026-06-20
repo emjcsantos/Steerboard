@@ -109,6 +109,16 @@ function withCurrentPhase7Goal() {
   );
 }
 
+function withNextPhase7Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-7-dispatch-loop"
+      ? { ...goal, status: "next" as const, current: false }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 7 dispatch blocker priority", () => {
   it("ranks role coverage ahead of later dispatch review blockers", () => {
     const record = {
@@ -170,7 +180,7 @@ describe("phase 7 dispatch blocker priority", () => {
 
   it("keeps non-current Phase 7 traceability as an open blocker", () => {
     const { record, run } = buildRecordBundle();
-    const summary = priority({ record, run });
+    const summary = priority({ record, run, goals: withNextPhase7Goal() });
 
     expect(summary.state).toBe("waiting");
     expect(summary.openBlockerCount).toBe(1);

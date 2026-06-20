@@ -225,11 +225,11 @@ describe("project management phase plan", () => {
     expect(integrationOwnerChild?.completionPercent).toBeGreaterThanOrEqual(
       integrationDepthChild?.completionPercent ?? 0
     );
-    expect(phase7Epic?.completionPercent).toBe(65);
-    expect(rolePanelParent?.completionPercent).toBe(65);
-    expect(workerPreviewChild?.completionPercent).toBe(65);
-    expect(integrationOwnerChild?.completionPercent).toBe(65);
-    expect(integrationDepthChild?.completionPercent).toBe(65);
+    expect(phase7Epic?.completionPercent).toBe(66);
+    expect(rolePanelParent?.completionPercent).toBe(66);
+    expect(workerPreviewChild?.completionPercent).toBe(66);
+    expect(integrationOwnerChild?.completionPercent).toBe(66);
+    expect(integrationDepthChild?.completionPercent).toBe(66);
     expect(rolePanelParent?.description).toContain("handoff packet integrity");
     expect(rolePanelParent?.description).toContain("PM coverage");
     expect(rolePanelParent?.description).toContain("integrationOwnershipProof");

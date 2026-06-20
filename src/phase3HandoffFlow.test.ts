@@ -414,17 +414,17 @@ describe("phase 3 handoff flow", () => {
     });
 
     const currentGoals = findCurrentActiveRemainingGoals();
-    const phase5Goal = remainingGoalPlan.find(
-      (goal) => goal.id === "goal-phase-5-migration-hardening"
+    const phase7Goal = remainingGoalPlan.find(
+      (goal) => goal.id === "goal-phase-7-dispatch-loop"
     );
 
     expect(currentGoals.map((goal) => goal.id)).toEqual([
-      "goal-phase-5-migration-hardening"
+      "goal-phase-7-dispatch-loop"
     ]);
-    expect(phase5Goal).toMatchObject({
+    expect(phase7Goal).toMatchObject({
       status: "active",
       priority: "high"
     });
-    expect(phase5Goal?.current).toBe(true);
+    expect(phase7Goal?.current).toBe(true);
   });
 });

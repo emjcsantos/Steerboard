@@ -687,14 +687,14 @@ describe("phase 11 owner release traceability", () => {
     expect(result.state).toBe("review");
     expect(result.canTrustOwnerReleaseGate).toBe(false);
     expect(result.nextAction).toContain("goal-phase-3-proof-clearance");
-    expect(result.nextAction).toContain("goal-phase-5-migration-hardening");
+    expect(result.nextAction).toContain("goal-phase-7-dispatch-loop");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           kind: "phase3-trace",
           status: "review",
           detail: expect.stringContaining("current active goals 2"),
-          nextAction: expect.stringContaining("goal-phase-5-migration-hardening")
+          nextAction: expect.stringContaining("goal-phase-7-dispatch-loop")
         })
       ])
     );

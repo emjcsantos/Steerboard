@@ -261,31 +261,32 @@ describe("milestone status model", () => {
     expect(platform?.completionPercent).toBe(62);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution, Phase 3 exit-package clearance now has recorded CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, and proof-export readiness, Phase 4 provider integration now holds completed metadata-only recorded provider-review proof at next/99, and Phase 5 migration hardening is the current active implementation goal."
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution, Phase 3 exit-package clearance now has recorded CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, and proof-export readiness, Phase 4 provider integration now holds completed metadata-only recorded provider-review proof at next/99, Phase 5 migration hardening now holds proof-backed migration review at next/72, and Phase 7 dispatch loop is the current active implementation goal."
     );
     expect(platform?.nextStep).toBe(
-      "Advance Phase 5 migration hardening with the Migration review gate as the current active implementation target, keep Phase 4 provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, and migration apply paths behind owner-reviewed locks."
+      "Advance Phase 7 dispatch loop with dispatch review records as the current active implementation target, keep live worker spawning and Phase 4 provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, migration apply paths, and worker spawning behind owner-reviewed locks."
     );
   });
 
-  it("ties the current Platform milestone to the active Phase 5 goal after Phase 4 proof alignment", () => {
+  it("ties the current Platform milestone to the active Phase 7 goal after Phase 5 proof alignment", () => {
     const platform = steerboardMilestoneStatuses.find(
       (milestone) => milestone.target === "Platform capabilities"
     );
     const activeGoal = remainingGoalPlan.find((goal) => goal.current === true);
-    const migrationGoal = remainingGoalPlan.find(
-      (goal) => goal.id === "goal-phase-5-migration-hardening"
+    const dispatchGoal = remainingGoalPlan.find(
+      (goal) => goal.id === "goal-phase-7-dispatch-loop"
     );
 
     expect(platform?.current).toBe(true);
-    expect(activeGoal?.id).toBe("goal-phase-5-migration-hardening");
+    expect(activeGoal?.id).toBe("goal-phase-7-dispatch-loop");
     expect(activeGoal?.status).toBe("active");
-    expect(activeGoal?.target).toBe("Migration Center hardening");
-    expect(migrationGoal?.status).toBe("active");
+    expect(activeGoal?.target).toBe("Planning and dispatch loop");
+    expect(dispatchGoal?.status).toBe("active");
     expect(platform?.latestNote).toContain("Phase 3 exit-package clearance now has recorded CLI validation");
     expect(platform?.latestNote).toContain("Phase 4 provider integration now holds completed metadata-only recorded provider-review proof at next/99");
-    expect(platform?.latestNote).toContain("Phase 5 migration hardening is the current active implementation goal");
-    expect(platform?.nextStep).toContain("Advance Phase 5 migration hardening");
+    expect(platform?.latestNote).toContain("Phase 5 migration hardening now holds proof-backed migration review at next/72");
+    expect(platform?.latestNote).toContain("Phase 7 dispatch loop is the current active implementation goal");
+    expect(platform?.nextStep).toContain("Advance Phase 7 dispatch loop");
   });
 
   it("tracks Migration Center as an active metadata-only transition milestone", () => {
@@ -328,7 +329,7 @@ describe("milestone status model", () => {
       averageCompletionPercent: 52,
       nextTarget: "Platform capabilities",
       nextStep:
-        "Advance Phase 5 migration hardening with the Migration review gate as the current active implementation target, keep Phase 4 provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, and migration apply paths behind owner-reviewed locks.",
+        "Advance Phase 7 dispatch loop with dispatch review records as the current active implementation target, keep live worker spawning and Phase 4 provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, migration apply paths, and worker spawning behind owner-reviewed locks.",
       nextCompletionPercent: 62
     });
   });

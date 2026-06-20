@@ -101,9 +101,11 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("liveWorkerLocks=2/2");
     expect(html).toContain("Phase 7 dispatch blocker priority");
     expect(html).toContain("Remaining goal link");
-    expect(html).toContain("Review");
+    expect(html).toContain("Ready");
     expect(html).toContain("Status");
-    expect(html).toContain("open=1 dispatchReviewAddressable=0");
+    expect(html).toContain("open=0 dispatchReviewAddressable=0");
+    expect(html).toContain("trust=ready");
+    expect(html).toContain("No open Phase 7 dispatch blocker");
     expect(html).toContain("local metadata only");
   });
 
