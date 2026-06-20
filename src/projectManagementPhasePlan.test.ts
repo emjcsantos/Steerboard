@@ -283,6 +283,37 @@ describe("project management phase plan", () => {
     expect(freshCheckoutChild?.description).toContain("held release-gate actions");
   });
 
+  it("keeps Phase 10 Arena polish blocker rows aligned with evidence-only proof depth", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const phase10Epic = byId.get("phase-10-adaptive-arena");
+    const layoutFoundationParent = byId.get("phase-10-parent-layout-foundation");
+    const arenaIdentityParent = byId.get("phase-10-parent-arena-identity");
+    const flexLayoutSpikeChild = byId.get("phase-10-child-flexlayout-spike");
+    const traceabilityChild = byId.get("phase-10-child-traceability");
+    const blockerPriorityChild = byId.get("phase-10-child-blocker-priority");
+
+    expect(phase10Epic?.completionPercent).toBeGreaterThanOrEqual(
+      blockerPriorityChild?.completionPercent ?? 0
+    );
+    expect(layoutFoundationParent?.completionPercent).toBeGreaterThanOrEqual(
+      flexLayoutSpikeChild?.completionPercent ?? 0
+    );
+    expect(arenaIdentityParent?.completionPercent).toBeGreaterThanOrEqual(
+      blockerPriorityChild?.completionPercent ?? 0
+    );
+    expect(traceabilityChild?.completionPercent).toBeGreaterThanOrEqual(
+      blockerPriorityChild?.completionPercent ?? 0
+    );
+    expect(flexLayoutSpikeChild?.completionPercent).toBe(55);
+    expect(flexLayoutSpikeChild?.description).toContain("dependency-install status");
+    expect(flexLayoutSpikeChild?.description).toContain("custom adaptive-grid fallback");
+    expect(blockerPriorityChild?.completionPercent).toBe(55);
+    expect(blockerPriorityChild?.description).toContain("open blocker count");
+    expect(blockerPriorityChild?.description).toContain("Arena-review addressable count");
+    expect(blockerPriorityChild?.description).toContain("top-priority action detail");
+  });
+
   it("keeps Phase 5 migration review rows aligned with review-depth proof", () => {
     const tasks = createDefaultProjectManagementPhasePlan();
     const byId = new Map(tasks.map((task) => [task.id, task]));

@@ -832,8 +832,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-10-child-flexlayout-spike",
             title: "FlexLayout Docking Spike",
-            description: "Evaluate caplin/FlexLayout as an MIT-licensed React docking layout option for Arena tabsets, splitters, saved layout JSON, and dockable panels before replacing custom adaptive-grid behavior.",
-            completionPercent: 35,
+            description: "Evaluate caplin/FlexLayout as an MIT-licensed React docking layout option for Arena tabsets, splitters, saved layout JSON, dockable panels, dependency-install status, owner approval, and custom adaptive-grid fallback before replacing custom adaptive-grid behavior.",
+            completionPercent: 55,
             complexity: "medium",
             sourceDocument: "caplin/FlexLayout MIT license review"
           }
@@ -867,8 +867,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-10-child-blocker-priority",
             title: "Arena Polish Blocker Priority",
-            description: "Rank exact Phase 10 blockers across layout regression, density, keyboard controls, focus state, terminology, acceptance gates, PM coverage, and traceability before packaging resumes.",
-            completionPercent: 35,
+            description: "Rank exact Phase 10 blockers across layout regression, density, keyboard controls, focus state, terminology, acceptance gates, PM coverage, and traceability with open blocker count, Arena-review addressable count, and top-priority action detail before packaging resumes.",
+            completionPercent: 55,
             complexity: "medium",
             sourceDocument: "Phase 10 Arena polish blocker priority"
           }

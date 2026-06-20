@@ -679,9 +679,17 @@ describe("remaining goal plan", () => {
     const flexLayoutSpikeChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-10-child-flexlayout-spike"
     );
+    const blockerPriorityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-10-child-blocker-priority"
+    );
     expect(phase10Epic?.completionPercent).toBe(57);
     expect(layoutFoundationParent?.completionPercent).toBe(62);
-    expect(flexLayoutSpikeChild?.completionPercent).toBe(35);
+    expect(flexLayoutSpikeChild?.completionPercent).toBe(55);
+    expect(flexLayoutSpikeChild?.description).toContain("dependency-install status");
+    expect(flexLayoutSpikeChild?.description).toContain("custom adaptive-grid fallback");
+    expect(blockerPriorityChild?.completionPercent).toBe(55);
+    expect(blockerPriorityChild?.description).toContain("Arena-review addressable count");
+    expect(blockerPriorityChild?.description).toContain("top-priority action detail");
   });
 
   it("keeps the Phase 11 owner and release targets linked to traceability and blocker priority", () => {
