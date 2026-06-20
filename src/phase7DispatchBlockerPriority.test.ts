@@ -204,6 +204,7 @@ describe("phase 7 dispatch blocker priority", () => {
     expect(summary.dispatchBlockerPriorityProof).toContain("open=0");
     expect(summary.dispatchBlockerPriorityProof).toContain("dispatchReviewAddressable=0");
     expect(summary.dispatchBlockerPriorityProof).toContain("traceability=ready");
+    expect(summary.dispatchBlockerPriorityProof).toContain("pmLinks=16/16");
     expect(summary.dispatchBlockerPriorityProof).toContain("execution=locked");
   });
 

@@ -377,6 +377,12 @@ describe("project management phase plan", () => {
     const integrationDepthChild = byId.get("phase-07-child-integration-ownership-depth");
     const traceabilityChild = byId.get("phase-07-child-traceability");
     const blockerPriorityChild = byId.get("phase-07-child-blocker-priority");
+    const artifactVerificationChild = byId.get("phase-07-child-artifact-verification");
+    const launchGateChild = byId.get("phase-07-child-launch-gate");
+    const closureGateChild = byId.get("phase-07-child-closure-gate");
+    const closeoutProofChild = byId.get("phase-07-child-closeout-proof");
+    const ownerHandoffChild = byId.get("phase-07-child-owner-handoff-report");
+    const completionGateChild = byId.get("phase-07-child-completion-gate");
 
     expect(phase7Epic?.completionPercent).toBeGreaterThanOrEqual(
       rolePanelParent?.completionPercent ?? 0
@@ -440,6 +446,19 @@ describe("project management phase plan", () => {
     expect(traceabilityChild?.description).toContain("dispatchTraceabilityProof");
     expect(blockerPriorityChild?.description).toContain("PM coverage");
     expect(blockerPriorityChild?.description).toContain("dispatchBlockerPriorityProof");
+    expect(artifactVerificationChild?.description).toContain("dispatchReviewDepthProof");
+    expect(artifactVerificationChild?.description).toContain("dispatchTraceabilityProof");
+    expect(artifactVerificationChild?.description).toContain("dispatchBlockerPriorityProof");
+    expect(launchGateChild?.description).toContain("phase7LiveWorkerLaunchGate");
+    expect(launchGateChild?.description).toContain("canSpawn=no");
+    expect(closureGateChild?.description).toContain("phase7DispatchClosureGate");
+    expect(closureGateChild?.description).toContain("canClose=yes");
+    expect(closeoutProofChild?.description).toContain("phase7DispatchCloseoutProof");
+    expect(closeoutProofChild?.description).toContain("canSpawn");
+    expect(ownerHandoffChild?.description).toContain("phase7DispatchOwnerHandoffReport");
+    expect(ownerHandoffChild?.description).toContain("pushApproval=required");
+    expect(completionGateChild?.description).toContain("phase7DispatchCompletionGate");
+    expect(completionGateChild?.description).toContain("phaseComplete");
   });
 
   it("keeps Phase 7 handoff trace progress aligned with dispatch packet proof", () => {

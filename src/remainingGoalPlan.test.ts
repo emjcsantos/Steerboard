@@ -946,7 +946,13 @@ describe("remaining goal plan", () => {
         "phase-07-child-handoff-trace",
         "phase-07-child-review-depth",
         "phase-07-child-traceability",
-        "phase-07-child-blocker-priority"
+        "phase-07-child-blocker-priority",
+        "phase-07-child-artifact-verification",
+        "phase-07-child-launch-gate",
+        "phase-07-child-closure-gate",
+        "phase-07-child-closeout-proof",
+        "phase-07-child-owner-handoff-report",
+        "phase-07-child-completion-gate"
       ])
     );
     expect(phase7Goal?.nextAction).toContain("traceability rows");

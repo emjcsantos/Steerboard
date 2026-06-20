@@ -188,7 +188,7 @@ describe("phase 7 dispatch traceability", () => {
     expect(summary.canTrustDispatchReview).toBe(true);
     expect(summary.readyCount).toBe(5);
     expect(summary.dispatchTraceabilityProof).toContain("items=5/5");
-    expect(summary.dispatchTraceabilityProof).toContain("pmLinks=10/10");
+    expect(summary.dispatchTraceabilityProof).toContain("pmLinks=16/16");
     expect(summary.dispatchTraceabilityProof).toContain("liveWorkerLocks=2/2");
     expect(summary.dispatchTraceabilityProof).toContain("trust=ready");
   });

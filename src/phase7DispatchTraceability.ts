@@ -70,7 +70,13 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-07-child-handoff-trace",
   "phase-07-child-review-depth",
   "phase-07-child-traceability",
-  "phase-07-child-blocker-priority"
+  "phase-07-child-blocker-priority",
+  "phase-07-child-artifact-verification",
+  "phase-07-child-launch-gate",
+  "phase-07-child-closure-gate",
+  "phase-07-child-closeout-proof",
+  "phase-07-child-owner-handoff-report",
+  "phase-07-child-completion-gate"
 ];
 const SAFETY =
   "Phase 7 dispatch traceability is evidence-only. It links the remaining goal, Project Management rows, dispatch review depth, integration ownership depth, and live-worker lock without spawning workers, launching runtime sessions, running tools, mutating files, or pushing branches.";
@@ -346,7 +352,7 @@ function buildDispatchTraceabilityProof(input: {
     `review=${input.items.filter((item) => item.status === "review").length} ` +
     `blocked=${input.items.filter((item) => item.status === "blocked").length} ` +
     `waiting=${input.items.filter((item) => item.status === "waiting").length} ` +
-    `itemKinds=${itemKinds} pmLinks=${input.linkedPmTaskCount}/10 ` +
+    `itemKinds=${itemKinds} pmLinks=${input.linkedPmTaskCount}/16 ` +
     `missingPm=${input.missingPmTaskIds.length} liveWorkerLocks=${input.liveWorkerLockCount}/2 ` +
     `trust=${input.canTrustDispatchReview ? "ready" : "review"} execution=locked`
   );

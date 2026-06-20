@@ -97,7 +97,7 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("PM");
     expect(html).toContain("Locks");
     expect(html).toContain("Open");
-    expect(html).toContain("pmLinks=10/10");
+    expect(html).toContain("pmLinks=16/16");
     expect(html).toContain("liveWorkerLocks=2/2");
     expect(html).toContain("Phase 7 dispatch blocker priority");
     expect(html).toContain("Remaining goal link");

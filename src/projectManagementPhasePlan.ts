@@ -698,6 +698,54 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 100,
             complexity: "medium",
             sourceDocument: "Phase 7 dispatch blocker priority"
+          },
+          {
+            id: "phase-07-child-artifact-verification",
+            title: "Dispatch Artifact Verification",
+            description: "Verify the offline Phase 7 dispatch-review artifact with current evidence fingerprint matching, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, packet integrity, validation gate counts, live-worker locks, and no-runtime execution proof before review evidence can be trusted.",
+            completionPercent: 100,
+            complexity: "high",
+            sourceDocument: "Phase 7 dispatch review artifact"
+          },
+          {
+            id: "phase-07-child-launch-gate",
+            title: "Live Worker Launch Gate",
+            description: "Show phase7LiveWorkerLaunchGate proof with artifact verification readiness, owner approval required, canSpawn=no, execution=locked, packet counts, live-worker lock counts, and open blocker counts before any worker session can spawn.",
+            completionPercent: 100,
+            complexity: "high",
+            sourceDocument: "Phase 7 live worker launch gate"
+          },
+          {
+            id: "phase-07-child-closure-gate",
+            title: "Dispatch Closure Gate",
+            description: "Show phase7DispatchClosureGate proof with closure ready-to-close state, artifact verification readiness, launch-gate lock, canClose=yes metadata proof, canSpawn=no, approval required, traceability link counts, and open blocker counts before the dispatch review can close.",
+            completionPercent: 100,
+            complexity: "high",
+            sourceDocument: "Phase 7 dispatch closure gate"
+          },
+          {
+            id: "phase-07-child-closeout-proof",
+            title: "Dispatch Closeout Proof",
+            description: "Show phase7DispatchCloseoutProof with artifact verification, launch-gate, closure-gate, canClose, canSpawn, approval-required, and open-blocker counts so Phase 7 can close locally while live worker spawning stays locked.",
+            completionPercent: 100,
+            complexity: "high",
+            sourceDocument: "Phase 7 dispatch closeout proof"
+          },
+          {
+            id: "phase-07-child-owner-handoff-report",
+            title: "Dispatch Owner Handoff Report",
+            description: "Show phase7DispatchOwnerHandoffReport with closeout readiness, final validation owner, commit/push/reporting owner, pushApproval=required, canClose, canSpawn=no, packet counts, validation gates, and traceability links for owner review.",
+            completionPercent: 100,
+            complexity: "high",
+            sourceDocument: "Phase 7 dispatch owner handoff report"
+          },
+          {
+            id: "phase-07-child-completion-gate",
+            title: "Dispatch Completion Gate",
+            description: "Show phase7DispatchCompletionGate proof with phaseComplete, owner handoff state, canClose, canSpawn=no, pushApproval=required, packet counts, validation gates, and traceability link counts before Phase 7 completion can be trusted.",
+            completionPercent: 100,
+            complexity: "high",
+            sourceDocument: "Phase 7 dispatch completion gate"
           }
         ]
       }

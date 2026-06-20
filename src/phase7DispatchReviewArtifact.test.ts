@@ -137,7 +137,7 @@ describe("phase 7 dispatch review artifact", () => {
       openDepthCount: 0,
       openOwnershipCount: 0,
       openBlockerCount: 0,
-      linkedPmTaskCount: 10,
+      linkedPmTaskCount: 16,
       liveWorkerLockCount: 2,
       recordEvidenceFingerprint: currentArtifact.record.reviewEvidenceFingerprint,
       currentEvidenceFingerprint: currentArtifact.record.reviewEvidenceFingerprint,

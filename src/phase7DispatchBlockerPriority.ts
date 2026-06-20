@@ -320,7 +320,7 @@ function buildDispatchBlockerPriorityProof(
     `open=${summary.openBlockerCount} dispatchReviewAddressable=${summary.dispatchReviewAddressableCount} ` +
     `top=${summary.topPriorityLabel} topActionable=${summary.dispatchReviewCanAddressTopBlocker ? "yes" : "no"} ` +
     `traceability=${traceability.canTrustDispatchReview ? "ready" : traceability.state} ` +
-    `pmLinks=${traceability.linkedPmTaskCount}/10 liveWorkerLocks=${traceability.liveWorkerLockCount}/2 execution=locked`
+    `pmLinks=${traceability.linkedPmTaskCount}/16 liveWorkerLocks=${traceability.liveWorkerLockCount}/2 execution=locked`
   );
 }
 

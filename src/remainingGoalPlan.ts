@@ -221,7 +221,13 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-07-child-handoff-trace",
       "phase-07-child-review-depth",
       "phase-07-child-traceability",
-      "phase-07-child-blocker-priority"
+      "phase-07-child-blocker-priority",
+      "phase-07-child-artifact-verification",
+      "phase-07-child-launch-gate",
+      "phase-07-child-closure-gate",
+      "phase-07-child-closeout-proof",
+      "phase-07-child-owner-handoff-report",
+      "phase-07-child-completion-gate"
     ],
     nextAction:
       "Keep the Phase 7 completion gate, dispatch review records, per-role handoff packet integrity, current evidence fingerprint matching, offline dispatch-review artifact verification, owner-visible artifact verification counts, integration ownership rows, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof attached as local metadata handoff evidence while Phase 9 runner dependency review remains the current active implementation target."

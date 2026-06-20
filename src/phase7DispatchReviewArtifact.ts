@@ -88,7 +88,7 @@ const REQUIRED_OWNERSHIP_PROOF_TERMS = [
 const REQUIRED_TRACEABILITY_PROOF_TERMS = [
   "items=5/5",
   "ready=5",
-  "pmLinks=10/10",
+  "pmLinks=16/16",
   "missingPm=0",
   "liveWorkerLocks=2/2",
   "trust=ready",
@@ -98,7 +98,7 @@ const REQUIRED_BLOCKER_PRIORITY_PROOF_TERMS = [
   "open=0",
   "dispatchReviewAddressable=0",
   "traceability=ready",
-  "pmLinks=10/10",
+  "pmLinks=16/16",
   "liveWorkerLocks=2/2",
   "execution=locked"
 ] as const;

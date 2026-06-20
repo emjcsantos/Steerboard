@@ -19,7 +19,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 | Phase 4: Provider Integration Surfaces | Next | Provider catalog depth, surface depth, approval, audit, rollback, permission, traceability, blocker priority, and Phase 4 provider completion status proof remain metadata-only and execution-locked. |
 | Phase 5: Migration Center | Next | Migration review, apply-intent lock, rollback evidence, sensitive exclusions, traceability, blocker priority, and `phase5MigrationCompletionGate` remain metadata-only until review gates pass. |
 | Phase 6: Project and Program Planning Lane | In progress | The Project Management board carries the current Phase 0-11 Epic, Parent, and Child hierarchy, saved-state upgrades, staged Arena review packages, publish-hold traceability, blocker-priority, closeout-status rows, and `phase126PublishHoldCloseoutStatusProof`. |
-| Phase 7: Orchestrator-Worker Dispatch | Next | Dispatch review depth, role packet staging, integration ownership, traceability, blocker priority, `phase7DispatchCompletionGate`, and live-worker locks remain staged for review. |
+| Phase 7: Orchestrator-Worker Dispatch | Next | Dispatch review depth, role packet staging, integration ownership, traceability, blocker priority, artifact verification, launch gate, closure gate, closeout proof, owner handoff, `phase7DispatchCompletionGate`, and live-worker locks remain staged for review across 16 PM rows. |
 | Phase 8: Permissions and Audit | Next | Permission labels, risk blockers, risk exceptions, audit persistence, traceability, blocker priority, and `phase8CloseoutStatusProof` remain prerequisites before mutation paths grow. |
 | Phase 9: Desktop-Backed Runner | In progress | The fixed terminal read-only probe is the current active implementation target and remains behind permission, audit, validation, rollback, traceability, runner-review, visible desktop-probe gate status, request-gate, completion-gate, closeout, and owner approval gates. |
 | Phase 10: Adaptive Magnetic Arena | Next | Adaptive layout regression, density, keyboard controls, focus state, Arena terminology, traceability, blocker priority, and `phase10ArenaPolishCloseoutStatusProof` remain polish work after core proof clears. |
@@ -81,7 +81,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 
 - Role-panel plan scaffolds for orchestrator, implementer, validator, and integration ownership.
 - Dispatch review depth for role coverage, max attempts, handoff task depth, packet integrity, validation gates, and closure boundaries.
-- Current evidence fingerprint matching, traceability, blocker priority, `phase7DispatchCompletionGate`, and no-live-worker execution lock before worker spawning.
+- Current evidence fingerprint matching, traceability, blocker priority, artifact verification, launch gate, closure gate, closeout proof, owner handoff, `phase7DispatchCompletionGate`, and no-live-worker execution lock before worker spawning.
 
 ## Phase 8: Permissions and Audit
 
