@@ -108,10 +108,11 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-06-parent-arena-staging",
       "phase-06-child-run-context",
       "phase-06-child-publish-hold-traceability",
-      "phase-06-child-publish-hold-blocker-priority"
+      "phase-06-child-publish-hold-blocker-priority",
+      "phase-06-child-publish-hold-closeout-status"
     ],
     nextAction:
-      "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push."
+      "Use the Phase 1/2/6 priority evidence, publish-hold traceability, blocker-priority queue, and phase126PublishHoldCloseoutStatusProof to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push."
   },
   {
     id: "goal-phase-3-proof-clearance",

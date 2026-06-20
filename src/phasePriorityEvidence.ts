@@ -457,7 +457,8 @@ function buildPhase6PmBoardItem(
 ): PhasePriorityEvidenceItem {
   const requiredPhase6AcceptanceChildIds = [
     "phase-06-child-publish-hold-traceability",
-    "phase-06-child-publish-hold-blocker-priority"
+    "phase-06-child-publish-hold-blocker-priority",
+    "phase-06-child-publish-hold-closeout-status"
   ];
   const safeTasks = tasks ?? [];
   const epics = safeTasks.filter((task) => task.type === "epic");

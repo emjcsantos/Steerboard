@@ -14,12 +14,18 @@ describe("project management phase plan", () => {
       "phase-02-parent-session-persistence",
       "phase-06-planning-lane",
       "phase-06-parent-phase-board",
-      "phase-06-parent-arena-staging"
+      "phase-06-parent-arena-staging",
+      "phase-06-child-publish-hold-traceability",
+      "phase-06-child-publish-hold-blocker-priority",
+      "phase-06-child-publish-hold-closeout-status"
     ];
 
     for (const rowId of priorityProgressRows) {
-      expect(byId.get(rowId)?.completionPercent, rowId).toBeGreaterThanOrEqual(65);
+      expect(byId.get(rowId)?.completionPercent, rowId).toBe(100);
     }
+    expect(byId.get("phase-06-child-publish-hold-closeout-status")?.description).toContain(
+      "phase126PublishHoldCloseoutStatusProof"
+    );
   });
 
   it("keeps Phase 4 catalog and refresh rows aligned with structured proof depth", () => {

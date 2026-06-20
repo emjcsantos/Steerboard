@@ -679,7 +679,7 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("<span>Review PM board</span><strong>Phase 6</strong>");
     expect(html).toContain("Repair saved PM state so Phase 0 through Phase 11 are present.");
     expect(html).toContain(
-      'aria-label="Phase 1 2 6 publish hold traceability counts"><div><dt>Phases</dt><dd>3</dd></div><div title="goal=goal-phase-1-2-6-publish phases=3/3 pm=20/20 trustedPm=20/20 epics=3 parents=6 children=11 priority=0/3 hold=blocked trust=review"><dt>PM</dt><dd>20/20</dd></div><div title="goal=goal-phase-1-2-6-publish phases=3/3 pm=20/20 trustedPm=20/20 epics=3 parents=6 children=11 priority=0/3 hold=blocked trust=review"><dt>Proof</dt><dd>0/3</dd></div><div><dt>Hold</dt><dd>blocked</dd></div></dl>'
+      'aria-label="Phase 1 2 6 publish hold traceability counts"><div><dt>Phases</dt><dd>3</dd></div><div title="goal=goal-phase-1-2-6-publish phases=3/3 pm=21/21 trustedPm=21/21 epics=3 parents=6 children=12 priority=0/3 hold=blocked trust=review"><dt>PM</dt><dd>21/21</dd></div><div title="goal=goal-phase-1-2-6-publish phases=3/3 pm=21/21 trustedPm=21/21 epics=3 parents=6 children=12 priority=0/3 hold=blocked trust=review"><dt>Proof</dt><dd>0/3</dd></div><div><dt>Hold</dt><dd>blocked</dd></div></dl>'
     );
     expect(html).toContain(
       'aria-label="Phase 1 2 6 publish hold blocker priority counts"><div><dt>Open</dt><dd>8</dd></div><div><dt>Review</dt><dd>7</dd></div><div><dt>Status</dt><dd>Blocked</dd></div></dl>'

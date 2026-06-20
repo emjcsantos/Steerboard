@@ -513,6 +513,10 @@ import {
 import { buildPhase126PublishHoldTraceability } from "./phase126PublishHoldTraceability";
 import { buildPhase126PublishHoldBlockerPriority } from "./phase126PublishHoldBlockerPriority";
 import {
+  buildPhase126PublishHoldCloseoutStatus,
+  type Phase126PublishHoldCloseoutStatus
+} from "./phase126PublishHoldCloseoutStatus";
+import {
   loadPhase3SmokeProofBundleWithStorageProof,
   savePhase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
@@ -14256,6 +14260,11 @@ export function OwnerTestingReadinessPanel({
     phasePriorityEvidence,
     traceability: phase126PublishHoldTraceability
   });
+  const phase126PublishHoldCloseoutStatus = buildPhase126PublishHoldCloseoutStatus({
+    phasePriorityEvidence,
+    traceability: phase126PublishHoldTraceability,
+    blockerPriority: phase126PublishHoldBlockerPriority
+  });
   const phase6PmBoardEvidence = phasePriorityEvidence.items.find((item) => item.id === "phase-6-pm-board");
   const handleReviewPhase6PmBoard = () => {
     const target =
@@ -14524,6 +14533,7 @@ export function OwnerTestingReadinessPanel({
               )}
             </ol>
           </div>
+          <Phase126PublishHoldCloseoutStatusPanel status={phase126PublishHoldCloseoutStatus} />
         </div>
         <div
           aria-label={`Session control readiness evidence ${sessionControlReadinessEvidence.statusLabel}; ${sessionControlReadinessEvidence.readiness}% ready`}
@@ -15717,6 +15727,48 @@ function SecurityPrivacyThreatModelPanel({
         </div>
       </div>
     </section>
+  );
+}
+
+function Phase126PublishHoldCloseoutStatusPanel({
+  status
+}: {
+  status: Phase126PublishHoldCloseoutStatus;
+}) {
+  return (
+    <div
+      aria-label={status.ariaLabel}
+      className={classNames(
+        "owner-testing-publish-hold-blocker-priority",
+        `owner-testing-publish-hold-blocker-priority-${status.state}`
+      )}
+      title={status.safety}
+    >
+      <div className="owner-testing-publish-hold-blocker-priority-header">
+        <strong>{status.label}</strong>
+        <span>{status.statusLabel}</span>
+        <b>{status.readiness}%</b>
+      </div>
+      <dl
+        className="owner-testing-publish-hold-blocker-priority-grid"
+        aria-label="Phase 1 2 6 publish hold closeout status counts"
+      >
+        <div>
+          <dt>PM</dt>
+          <dd>{status.linkedPmTaskCount}/{status.requiredPmTaskCount}</dd>
+        </div>
+        <div>
+          <dt>Proof</dt>
+          <dd>{status.readyPriorityEvidenceCount}/{status.requiredPriorityEvidenceCount}</dd>
+        </div>
+        <div>
+          <dt>Push</dt>
+          <dd>{status.pushPaused ? "Paused" : "Review"}</dd>
+        </div>
+      </dl>
+      <small>{status.phase126PublishHoldCloseoutStatusProof}</small>
+      <small title={status.nextAction}>{status.nextAction}</small>
+    </div>
   );
 }
 

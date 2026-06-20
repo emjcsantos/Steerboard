@@ -95,7 +95,8 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-06-parent-arena-staging",
   "phase-06-child-run-context",
   "phase-06-child-publish-hold-traceability",
-  "phase-06-child-publish-hold-blocker-priority"
+  "phase-06-child-publish-hold-blocker-priority",
+  "phase-06-child-publish-hold-closeout-status"
 ];
 const SAFETY =
   "Phase 1/2/6 publish hold traceability is evidence-only. It links local proof, Project Management rows, the remaining publish-hold goal, and the owner/remote push blocker without running live prompts, mutating files, changing saved sessions, pushing branches, or publishing release artifacts.";

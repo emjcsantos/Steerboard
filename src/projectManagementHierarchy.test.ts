@@ -154,7 +154,8 @@ describe("project management hierarchy", () => {
       "phase-06-parent-arena-staging",
       "phase-06-child-run-context",
       "phase-06-child-publish-hold-traceability",
-      "phase-06-child-publish-hold-blocker-priority"
+      "phase-06-child-publish-hold-blocker-priority",
+      "phase-06-child-publish-hold-closeout-status"
     ]);
   });
 
@@ -187,7 +188,7 @@ describe("project management hierarchy", () => {
     expect(childResult?.payload).toMatchObject({
       taskId: "phase-06-child-run-context",
       taskType: "Child",
-      completion: 65,
+      completion: 100,
       sourceDocument: "Arena dispatch package",
       relationshipContext: {
         epic: { id: "phase-06-planning-lane", title: "Phase 6: Project and Program Planning Lane" },
@@ -196,10 +197,10 @@ describe("project management hierarchy", () => {
       children: []
     });
     expect(childResult?.dispatchPackage.risk).toBe("medium");
-    expect(childResult?.dispatchPackage.scope.join(" ")).toContain("Completion: 65%");
+    expect(childResult?.dispatchPackage.scope.join(" ")).toContain("Completion: 100%");
     expect(childResult?.dispatchPackage.scope.join(" ")).toContain("Source: Arena dispatch package");
     expect(childResult?.dispatchPackage.scope).toContain(
-      'Run Context: runContextProof=task=phase-06-child-run-context type=Child epic=phase-06-planning-lane parent=phase-06-parent-arena-staging descendants=0 descendantParents=0 descendantChildren=0 completion=65 source="Arena dispatch package" risk=medium mode=staged_review'
+      'Run Context: runContextProof=task=phase-06-child-run-context type=Child epic=phase-06-planning-lane parent=phase-06-parent-arena-staging descendants=0 descendantParents=0 descendantChildren=0 completion=100 source="Arena dispatch package" risk=medium mode=staged_review'
     );
 
     const epicResult = buildProjectManagementArenaDispatch(
@@ -212,7 +213,7 @@ describe("project management hierarchy", () => {
     expect(epicResult?.payload).toMatchObject({
       taskId: "phase-06-planning-lane",
       taskType: "Epic",
-      completion: 65,
+      completion: 100,
       sourceDocument: "Phase completion map",
       relationshipContext: {
         epic: { id: "phase-06-planning-lane", title: "Phase 6: Project and Program Planning Lane" }
@@ -225,13 +226,15 @@ describe("project management hierarchy", () => {
       "phase-06-parent-arena-staging",
       "phase-06-child-run-context",
       "phase-06-child-publish-hold-traceability",
-      "phase-06-child-publish-hold-blocker-priority"
+      "phase-06-child-publish-hold-blocker-priority",
+      "phase-06-child-publish-hold-closeout-status"
     ]);
     expect(epicResult?.dispatchPackage.risk).toBe("high");
     expect(epicResult?.dispatchPackage.scope).toContain(
-      'Run Context: runContextProof=task=phase-06-planning-lane type=Epic epic=phase-06-planning-lane parent=none descendants=7 descendantParents=2 descendantChildren=5 completion=65 source="Phase completion map" risk=high mode=staged_review'
+      'Run Context: runContextProof=task=phase-06-planning-lane type=Epic epic=phase-06-planning-lane parent=none descendants=8 descendantParents=2 descendantChildren=6 completion=100 source="Phase completion map" risk=high mode=staged_review'
     );
     expect(epicResult?.dispatchPackage.scope.join(" ")).toContain("Descendant Parent: Phase Board Hierarchy");
     expect(epicResult?.dispatchPackage.scope.join(" ")).toContain("Descendant Child: Publish Hold Blocker Priority");
+    expect(epicResult?.dispatchPackage.scope.join(" ")).toContain("Descendant Child: Publish Hold Closeout Status");
   });
 });

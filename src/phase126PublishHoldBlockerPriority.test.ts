@@ -59,19 +59,19 @@ function traceability(
     missingPmTaskIds: [],
     linkedGoalId: "goal-phase-1-2-6-publish",
     linkedPhaseCount: 3,
-    linkedPmTaskCount: 20,
-    requiredPmTaskCount: 20,
-    linkedRequiredPmTaskCount: 20,
+    linkedPmTaskCount: 21,
+    requiredPmTaskCount: 21,
+    linkedRequiredPmTaskCount: 21,
     linkedRequiredPmTaskKindCounts: {
       epic: 3,
       parent: 6,
-      child: 11
+      child: 12
     },
     requiredPriorityEvidenceCount: 3,
     readyPriorityEvidenceCount: 3,
     publishHoldStatus: "blocked",
     localHoldEvidenceKey:
-      "goal=goal-phase-1-2-6-publish phases=3/3 pm=20/20 trustedPm=20/20 epics=3 parents=6 children=11 priority=3/3 hold=blocked",
+      "goal=goal-phase-1-2-6-publish phases=3/3 pm=21/21 trustedPm=21/21 epics=3 parents=6 children=12 priority=3/3 hold=blocked trust=ready",
     nextAction: "Keep the branch local and push only after the owner says to push.",
     safety: "Evidence only.",
     ariaLabel: "Traceability blocked.",

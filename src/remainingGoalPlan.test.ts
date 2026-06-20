@@ -37,7 +37,7 @@ describe("remaining goal plan", () => {
         "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof artifactState/fingerprintCurrent/reviewedBlocker gates, phase8PermissionAuditCompletionGate handoff-ready/fingerprint-current proof, phase8ClosureAuditStatusProof blocked-category counts, phase8OwnerActionHandoffProof owner-action clearance, phase8AuditReviewBlockerHandoffProof reviewable-blocker handoff, phase8OwnerReviewClosureReadinessProof owner-review closure gates, phase8FinalCompletionHandoffProof Phase 9 handoff readiness, phase8CloseoutStatusProof closeout status, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, blocker closure proof, owner-review handoff proof, completion-gate closure proof, closure-audit status, owner-action handoff, audit-review blocker handoff, owner-review closure readiness, final completion handoff, closeout status, and the exact top blocker before mutation paths grow.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
-        "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
+        "Use the Phase 1/2/6 priority evidence, publish-hold traceability, blocker-priority queue, and phase126PublishHoldCloseoutStatusProof to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
       coveredPhaseCount: 11,
       remainingPhaseCount: 11,
       priorityGoalTraceCount: 9,
@@ -219,11 +219,13 @@ describe("remaining goal plan", () => {
         "phase-06-child-saved-state-upgrade",
         "phase-06-child-run-context",
         "phase-06-child-publish-hold-traceability",
-        "phase-06-child-publish-hold-blocker-priority"
+        "phase-06-child-publish-hold-blocker-priority",
+        "phase-06-child-publish-hold-closeout-status"
       ])
     );
     expect(publishGoal?.nextAction).toContain("publish-hold traceability");
     expect(publishGoal?.nextAction).toContain("blocker-priority queue");
+    expect(publishGoal?.nextAction).toContain("phase126PublishHoldCloseoutStatusProof");
     expect(phase3Goal?.target).toBe("Phase 3 desktop proof clearance");
     expect(phase3Goal?.current).toBeUndefined();
     expect(phase3Goal?.completionPercent).toBe(100);

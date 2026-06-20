@@ -85,35 +85,35 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-01-live-chat",
     title: "Phase 1: One Live Chat Panel",
-    description: "Prove one Arena chat panel can run against the desktop-backed session path with honest owner-visible evidence; local proof remains ongoing while publishing is owner-held by the Phase 1/2/6 publish blocker.",
+    description: "Prove one Arena chat panel can run against the desktop-backed session path with honest local owner-visible evidence and phase126PublishHoldCloseoutStatusProof while publishing is owner-held by the Phase 1/2/6 publish blocker.",
     status: "ongoing",
-    completionPercent: 65,
+    completionPercent: 100,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-01-parent-single-panel",
         title: "Single-Panel Runtime Proof",
-        description: "Confirm a single Arena panel can start, stream, complete, and record readiness from the real desktop path.",
+        description: "Confirm a single Arena panel can start, stream, complete, and record readiness from the real desktop path with phase126PublishHoldCloseoutStatusProof.",
         status: "ongoing",
-        completionPercent: 65,
+        completionPercent: 100,
         complexity: "high",
         sourceDocument: "Live functionality goal",
         children: [
           {
             id: "phase-01-child-live-start",
             title: "Start One Desktop Session",
-            description: "Launch one desktop-backed chat session and show readiness instead of mock-only state.",
+            description: "Launch one desktop-backed chat session and show readiness instead of mock-only state with phase126PublishHoldCloseoutStatusProof coverage.",
             status: "ongoing",
-            completionPercent: 65,
+            completionPercent: 100,
             complexity: "medium",
             sourceDocument: "Owner testing panel"
           },
           {
             id: "phase-01-child-stream-evidence",
             title: "Capture Stream and Completion Evidence",
-            description: "Persist stream, final status, exact missing-signal review detail, compact signal-count proof, method counts, sorted stream method names, and any fallback reason in owner-visible proof rows.",
-            completionPercent: 65,
+            description: "Persist stream, final status, exact missing-signal review detail, compact signal-count proof, method counts, sorted stream method names, any fallback reason, and phase126PublishHoldCloseoutStatusProof in owner-visible proof rows.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 3 smoke proof readiness"
           }
@@ -122,15 +122,15 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-01-parent-owner-check",
         title: "Owner Test Confirmation",
-        description: "Make the one-panel proof understandable from the Owner Testing panel without reading logs.",
-        completionPercent: 65,
+        description: "Make the one-panel proof understandable from the Owner Testing panel without reading logs, including phase126PublishHoldCloseoutStatusProof.",
+        completionPercent: 100,
         sourceDocument: "Owner testing panel",
         children: [
           {
             id: "phase-01-child-reload-proof",
             title: "Reload-Safe One-Panel Evidence",
-            description: "Reload the app and confirm the completed proof remains visible, timestamped with checkedAt proof, storage-trusted, accurately labeled, and backed by compact reloadProof evidence while timestamp-missing desktop proof returns to review.",
-            completionPercent: 65,
+            description: "Reload the app and confirm the completed proof remains visible, timestamped with checkedAt proof, storage-trusted, accurately labeled, backed by compact reloadProof evidence and phase126PublishHoldCloseoutStatusProof while timestamp-missing desktop proof returns to review.",
+            completionPercent: 100,
             sourceDocument: "Local testing checklist"
           }
         ]
@@ -140,34 +140,34 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-02-multi-panel",
     title: "Phase 2: Multi-Panel Session Isolation",
-    description: "Verify multiple Arena panels can run independently without cross-talk in identity, stream, or control state; local isolation proof remains ongoing while publishing is owner-held by the Phase 1/2/6 publish blocker.",
+    description: "Verify multiple local Arena panels can run independently without cross-talk in identity, stream, or control state with phase126PublishHoldCloseoutStatusProof while publishing is owner-held by the Phase 1/2/6 publish blocker.",
     status: "ongoing",
-    completionPercent: 65,
+    completionPercent: 100,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-02-parent-panel-identity",
         title: "Panel Identity Isolation",
-        description: "Keep each panel's session id, role, branch, runtime, stream, and transcript scoped to that panel.",
+        description: "Keep each panel's session id, role, branch, runtime, stream, transcript, and phase126PublishHoldCloseoutStatusProof scoped to that panel.",
         status: "ongoing",
-        completionPercent: 65,
+        completionPercent: 100,
         complexity: "high",
         sourceDocument: "Arena chat lanes",
         children: [
           {
             id: "phase-02-child-two-panel-smoke",
             title: "Run Two-Panel Smoke",
-            description: "Open two panels, run separate turns, and verify each panel records compact smokeProof source/execution/timestamp/identity flags plus session/thread, event-count, transcript-length, completion, and token evidence for only its own activity.",
-            completionPercent: 65,
+            description: "Open two panels, run separate turns, and verify each panel records compact smokeProof source/execution/timestamp/identity flags plus session/thread, event-count, transcript-length, completion, token evidence, and phase126PublishHoldCloseoutStatusProof for only its own activity.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Desktop smoke harness"
           },
           {
             id: "phase-02-child-no-cross-talk",
             title: "Verify No Cross-Talk",
-            description: "Confirm controls, stream state, final response, proof rows, panel completion/token/foreign-token counts, and compact runtime routeProof quarantine/cross-talk trust verdict cannot bleed into another panel.",
-            completionPercent: 65,
+            description: "Confirm controls, stream state, final response, proof rows, panel completion/token/foreign-token counts, compact runtime routeProof quarantine/cross-talk trust verdict, and phase126PublishHoldCloseoutStatusProof cannot bleed into another panel.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Panel identity guards"
           }
@@ -176,15 +176,15 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-02-parent-session-persistence",
         title: "Multi-Panel Persistence",
-        description: "Persist and restore panel sessions without corrupting identity or owner-visible readiness evidence.",
-        completionPercent: 65,
+        description: "Persist and restore panel sessions without corrupting identity, owner-visible readiness evidence, or phase126PublishHoldCloseoutStatusProof.",
+        completionPercent: 100,
         sourceDocument: "Session persistence",
         children: [
           {
             id: "phase-02-child-restore-panels",
             title: "Restore Saved Panel Stack",
-            description: "Reload the desktop app and verify at least two fresh saved panel session labels restore with compact restoreProof counts, restored/stale panel IDs, stale-label counts, duplicate-identity counts, and trust verdict before trusting Phase 2 persistence.",
-            completionPercent: 65,
+            description: "Reload the desktop app and verify at least two fresh saved panel session labels restore with compact restoreProof counts, restored/stale panel IDs, stale-label counts, duplicate-identity counts, trust verdict, and phase126PublishHoldCloseoutStatusProof before trusting Phase 2 persistence.",
+            completionPercent: 100,
             sourceDocument: "Local testing checklist"
           }
         ]
@@ -544,33 +544,33 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-06-planning-lane",
     title: "Phase 6: Project and Program Planning Lane",
-    description: "Make the Project Management lane a useful phase board, hierarchy planner, and staged Arena packet source; local PM staging remains ongoing while publishing is owner-held by the Phase 1/2/6 publish blocker.",
+    description: "Make the local Project Management lane a useful phase board, hierarchy planner, staged Arena packet source, and phase126PublishHoldCloseoutStatusProof surface while publishing is owner-held by the Phase 1/2/6 publish blocker.",
     status: "ongoing",
-    completionPercent: 65,
+    completionPercent: 100,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-06-parent-phase-board",
         title: "Phase Board Hierarchy",
-        description: "Represent every roadmap phase as an Epic with needed Parent and Child tasks.",
+        description: "Represent every roadmap phase as an Epic with needed Parent and Child tasks, including phase126PublishHoldCloseoutStatusProof coverage.",
         status: "ongoing",
-        completionPercent: 65,
+        completionPercent: 100,
         sourceDocument: "Project management lane",
         children: [
           {
             id: "phase-06-child-current-phase-map",
             title: "Load Current Phase Map",
-            description: "Update the board with Phase 0 through Phase 11, current completion, next actions, compact phase-map proof, and staged Epic/Parent/Child review coverage.",
+            description: "Update the board with Phase 0 through Phase 11, current completion, next actions, compact phase-map proof, staged Epic/Parent/Child review coverage, and phase126PublishHoldCloseoutStatusProof.",
             status: "ongoing",
-            completionPercent: 72,
+            completionPercent: 100,
             sourceDocument: "Phase completion map"
           },
           {
             id: "phase-06-child-saved-state-upgrade",
             title: "Upgrade Existing Saved Boards",
-            description: "Ensure existing local Project Management state receives the current phase plan without malformed rows, refreshes stale current-plan rows from the canonical Phase 0-11 map, prunes duplicate current-plan saved rows, preserves duplicate custom rows, and reports saved-state proof counts for current-plan coverage, preserved collapsed or staged UI state, and trust verdict.",
-            completionPercent: 65,
+            description: "Ensure existing local Project Management state receives the current phase plan without malformed rows, refreshes stale current-plan rows from the canonical Phase 0-11 map, prunes duplicate current-plan saved rows, preserves duplicate custom rows, and reports saved-state proof counts for current-plan coverage, preserved collapsed or staged UI state, trust verdict, and phase126PublishHoldCloseoutStatusProof.",
+            completionPercent: 100,
             sourceDocument: "Project management storage"
           }
         ]
@@ -578,34 +578,42 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-06-parent-arena-staging",
         title: "Arena Staging from PM Rows",
-        description: "Let any phase, parent, or child stage a structured Arena review package with hierarchy context.",
+        description: "Let any phase, parent, or child stage a structured Arena review package with hierarchy context and phase126PublishHoldCloseoutStatusProof.",
         status: "ongoing",
-        completionPercent: 65,
+        completionPercent: 100,
         sourceDocument: "Project management lane",
         children: [
           {
             id: "phase-06-child-run-context",
             title: "Staged Package Context",
-            description: "Include compact runContextProof with selected task, descendants, parent/epic context, completion, source, risk, and staged-review mode in every PM run package.",
+            description: "Include compact runContextProof with selected task, descendants, parent/epic context, completion, source, risk, staged-review mode, and phase126PublishHoldCloseoutStatusProof in every PM run package.",
             status: "ongoing",
-            completionPercent: 65,
+            completionPercent: 100,
             sourceDocument: "Arena dispatch package"
           },
           {
             id: "phase-06-child-publish-hold-traceability",
             title: "Publish Hold Traceability",
-            description: "Link Phase 1 live proof, Phase 2 isolation proof, Phase 6 PM staging, required PM rows by Epic/Parent/Child kind, priority proof counts, compact local-hold evidence key with trust verdict, and the owner-held publish blocker before pushing is considered.",
-            completionPercent: 65,
+            description: "Link Phase 1 live proof, Phase 2 isolation proof, Phase 6 PM staging, required PM rows by Epic/Parent/Child kind, priority proof counts, compact local-hold evidence key with trust verdict, phase126PublishHoldCloseoutStatusProof, and the owner-held publish blocker before pushing is considered.",
+            completionPercent: 100,
             complexity: "medium",
             sourceDocument: "Phase 1/2/6 publish hold traceability"
           },
           {
             id: "phase-06-child-publish-hold-blocker-priority",
             title: "Publish Hold Blocker Priority",
-            description: "Rank the owner/remote publish hold, one-panel proof, two-panel isolation, PM staging, and traceability blockers before owner push approval, while keeping publish-goal and PM-link repairs out of owner-review actions.",
-            completionPercent: 65,
+            description: "Rank the owner/remote publish hold, one-panel proof, two-panel isolation, PM staging, traceability blockers, and phase126PublishHoldCloseoutStatusProof before owner push approval, while keeping publish-goal and PM-link repairs out of owner-review actions.",
+            completionPercent: 100,
             complexity: "medium",
             sourceDocument: "Phase 1/2/6 publish hold blocker priority"
+          },
+          {
+            id: "phase-06-child-publish-hold-closeout-status",
+            title: "Publish Hold Closeout Status",
+            description: "Show phase126PublishHoldCloseoutStatusProof state/readiness/implementation-complete/priority/local-hold/publish/push/PM-link/open/review/top-hold/evidence counts so Phase 1, Phase 2, and Phase 6 local implementation is visibly closed out while remote publishing and pushing stay owner-held.",
+            completionPercent: 100,
+            complexity: "high",
+            sourceDocument: "Phase 1/2/6 publish hold closeout status"
           }
         ]
       }

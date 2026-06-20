@@ -122,7 +122,7 @@ describe("project management hierarchy storage", () => {
       title: "Load Current Phase Map",
       description: expect.stringContaining("compact phase-map proof"),
       status: "ongoing",
-      completionPercent: 72,
+      completionPercent: 100,
       complexity: "medium",
       sourceDocument: "Phase completion map",
       parentId: "phase-06-parent-phase-board",
@@ -180,7 +180,7 @@ describe("project management hierarchy storage", () => {
     expect(tasks.some((task) => task.id.startsWith("phase-06-planning-lane-"))).toBe(false);
     expect(tasks.find((task) => task.id === "phase-06-planning-lane")).toMatchObject({
       title: "Phase 6: Project and Program Planning Lane",
-      completionPercent: 65
+      completionPercent: 100
     });
     expect(tasks.find((task) => task.id === "custom-owner-note")).toMatchObject({
       title: "Owner Note"

@@ -62,7 +62,8 @@ function readyPublishGoal(): RemainingGoalPlanItem[] {
             "phase-06-parent-arena-staging",
             "phase-06-child-run-context",
             "phase-06-child-publish-hold-traceability",
-            "phase-06-child-publish-hold-blocker-priority"
+            "phase-06-child-publish-hold-blocker-priority",
+            "phase-06-child-publish-hold-closeout-status"
           ]))
         }
       : goal
@@ -88,21 +89,21 @@ describe("phase 1/2/6 publish hold traceability", () => {
     expect(result.linkedGoalId).toBe("goal-phase-1-2-6-publish");
     expect(result.linkedPhaseCount).toBe(3);
     expect(result.missingPmTaskIds).toEqual([]);
-    expect(result.requiredPmTaskCount).toBe(20);
-    expect(result.linkedRequiredPmTaskCount).toBe(20);
+    expect(result.requiredPmTaskCount).toBe(21);
+    expect(result.linkedRequiredPmTaskCount).toBe(21);
     expect(result.linkedRequiredPmTaskKindCounts).toEqual({
       epic: 3,
       parent: 6,
-      child: 11
+      child: 12
     });
     expect(result.readyPriorityEvidenceCount).toBe(3);
     expect(result.requiredPriorityEvidenceCount).toBe(3);
     expect(result.localHoldEvidenceKey).toBe(
-      "goal=goal-phase-1-2-6-publish phases=3/3 pm=20/20 trustedPm=20/20 epics=3 parents=6 children=11 priority=3/3 hold=blocked trust=ready"
+      "goal=goal-phase-1-2-6-publish phases=3/3 pm=21/21 trustedPm=21/21 epics=3 parents=6 children=12 priority=3/3 hold=blocked trust=ready"
     );
     expect(result.publishHoldStatus).toBe("blocked");
     expect(result.ariaLabel).toContain(
-      "Phase 1/2/6 publish hold traceability: Blocked; 67% ready; 3 phases; 20 PM links; 20/20 trusted PM links; 3 Epics, 6 Parents, 11 Children; 3/3 priority proofs; 2 blocked; 0 waiting; publish hold blocked; local hold evidence goal=goal-phase-1-2-6-publish phases=3/3 pm=20/20 trustedPm=20/20 epics=3 parents=6 children=11 priority=3/3 hold=blocked trust=ready; next action:"
+      "Phase 1/2/6 publish hold traceability: Blocked; 67% ready; 3 phases; 21 PM links; 21/21 trusted PM links; 3 Epics, 6 Parents, 12 Children; 3/3 priority proofs; 2 blocked; 0 waiting; publish hold blocked; local hold evidence goal=goal-phase-1-2-6-publish phases=3/3 pm=21/21 trustedPm=21/21 epics=3 parents=6 children=12 priority=3/3 hold=blocked trust=ready; next action:"
     );
     expect(result.items.map((item) => item.kind)).toEqual([
       "publish-goal",
@@ -131,14 +132,14 @@ describe("phase 1/2/6 publish hold traceability", () => {
 
     expect(result.state).toBe("blocked");
     expect(result.canTrustLocalHold).toBe(false);
-    expect(result.linkedRequiredPmTaskCount).toBe(18);
+    expect(result.linkedRequiredPmTaskCount).toBe(19);
     expect(result.linkedRequiredPmTaskKindCounts).toEqual({
       epic: 3,
       parent: 6,
-      child: 9
+      child: 10
     });
     expect(result.ariaLabel).toContain(
-      "Phase 1/2/6 publish hold traceability: Blocked; 50% ready; 3 phases; 18 PM links; 18/20 trusted PM links; 3 Epics, 6 Parents, 9 Children; 3/3 priority proofs; 3 blocked; 0 waiting; publish hold blocked; local hold evidence goal=goal-phase-1-2-6-publish phases=3/3 pm=18/20 trustedPm=18/20 epics=3 parents=6 children=9 priority=3/3 hold=blocked trust=review; next action:"
+      "Phase 1/2/6 publish hold traceability: Blocked; 50% ready; 3 phases; 19 PM links; 19/21 trusted PM links; 3 Epics, 6 Parents, 10 Children; 3/3 priority proofs; 3 blocked; 0 waiting; publish hold blocked; local hold evidence goal=goal-phase-1-2-6-publish phases=3/3 pm=19/21 trustedPm=19/21 epics=3 parents=6 children=10 priority=3/3 hold=blocked trust=review; next action:"
     );
     expect(result.missingPmTaskIds).toEqual(
       expect.arrayContaining([
@@ -176,7 +177,7 @@ describe("phase 1/2/6 publish hold traceability", () => {
     expect(result.state).toBe("blocked");
     expect(result.canTrustLocalHold).toBe(false);
     expect(result.ariaLabel).toContain(
-      "Phase 1/2/6 publish hold traceability: Blocked; 56% ready; 3 phases; 20 PM links; 20/20 trusted PM links; 3 Epics, 6 Parents, 11 Children; 2/3 priority proofs; 2 blocked; 1 waiting; publish hold blocked; local hold evidence goal=goal-phase-1-2-6-publish phases=3/3 pm=20/20 trustedPm=20/20 epics=3 parents=6 children=11 priority=2/3 hold=blocked trust=review; next action:"
+      "Phase 1/2/6 publish hold traceability: Blocked; 56% ready; 3 phases; 21 PM links; 21/21 trusted PM links; 3 Epics, 6 Parents, 12 Children; 2/3 priority proofs; 2 blocked; 1 waiting; publish hold blocked; local hold evidence goal=goal-phase-1-2-6-publish phases=3/3 pm=21/21 trustedPm=21/21 epics=3 parents=6 children=12 priority=2/3 hold=blocked trust=review; next action:"
     );
     expect(result.items).toEqual(
       expect.arrayContaining([
@@ -196,7 +197,7 @@ describe("phase 1/2/6 publish hold traceability", () => {
     expect(result.state).toBe("blocked");
     expect(result.canTrustLocalHold).toBe(false);
     expect(result.ariaLabel).toContain(
-      "Phase 1/2/6 publish hold traceability: Blocked; 50% ready; 3 phases; 20 PM links; 20/20 trusted PM links; 3 Epics, 6 Parents, 11 Children; 2/3 priority proofs; 3 blocked; 0 waiting; publish hold blocked; local hold evidence goal=goal-phase-1-2-6-publish phases=3/3 pm=20/20 trustedPm=20/20 epics=3 parents=6 children=11 priority=2/3 hold=blocked trust=review; next action:"
+      "Phase 1/2/6 publish hold traceability: Blocked; 50% ready; 3 phases; 21 PM links; 21/21 trusted PM links; 3 Epics, 6 Parents, 12 Children; 2/3 priority proofs; 3 blocked; 0 waiting; publish hold blocked; local hold evidence goal=goal-phase-1-2-6-publish phases=3/3 pm=21/21 trustedPm=21/21 epics=3 parents=6 children=12 priority=2/3 hold=blocked trust=review; next action:"
     );
     expect(result.items).toEqual(
       expect.arrayContaining([
