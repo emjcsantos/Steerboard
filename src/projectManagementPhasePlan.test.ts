@@ -132,4 +132,31 @@ describe("project management phase plan", () => {
     expect(packageValidationChild?.description).toContain("safety-disabled live actions");
     expect(packageValidationChild?.description).toContain("without executing packaging");
   });
+
+  it("keeps Phase 11 owner checklist and fresh checkout aligned with owner command proof", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const ownerTestingParent = byId.get("phase-11-parent-owner-testing");
+    const ownerChecklistChild = byId.get("phase-11-child-owner-checklist");
+    const freshCheckoutChild = byId.get("phase-11-child-fresh-checkout");
+    const proofFreshnessChild = byId.get("phase-11-child-proof-freshness-depth");
+
+    expect(ownerTestingParent?.completionPercent).toBeGreaterThanOrEqual(
+      ownerChecklistChild?.completionPercent ?? 0
+    );
+    expect(ownerTestingParent?.completionPercent).toBeGreaterThanOrEqual(
+      freshCheckoutChild?.completionPercent ?? 0
+    );
+    expect(ownerChecklistChild?.completionPercent).toBeGreaterThanOrEqual(
+      proofFreshnessChild?.completionPercent ?? 0
+    );
+    expect(freshCheckoutChild?.completionPercent).toBeGreaterThanOrEqual(
+      proofFreshnessChild?.completionPercent ?? 0
+    );
+    expect(ownerChecklistChild?.description).toContain("ready/total owner checklist counts");
+    expect(ownerChecklistChild?.description).toContain("priority goal traces");
+    expect(freshCheckoutChild?.description).toContain("structured evidence record states");
+    expect(freshCheckoutChild?.description).toContain("owner checkout source");
+    expect(freshCheckoutChild?.description).toContain("held release-gate actions");
+  });
 });

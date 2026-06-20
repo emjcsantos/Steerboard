@@ -894,8 +894,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-owner-checklist",
             title: "Owner Checklist",
-            description: "Show checklist coverage, proof freshness depth, blockers, phase readiness, next action, and safety boundaries in the Phase 11 command center.",
-            completionPercent: 58,
+            description: "Show checklist coverage, ready/total owner checklist counts, proof freshness depth, blockers, phase readiness, next action, priority goal traces, and safety boundaries in the Phase 11 command center.",
+            completionPercent: 64,
             sourceDocument: "Owner testing docs"
           },
           {
@@ -917,8 +917,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-fresh-checkout",
             title: "Fresh Checkout Install Run",
-            description: "Track fresh-checkout install, test, build, desktop run, and expected proof-panel evidence as a held release gate.",
-            completionPercent: 58,
+            description: "Track fresh-checkout install, test, build, desktop run, proof-panel evidence, structured evidence record states, owner checkout source, recorded timestamp, freshness, and held release-gate actions.",
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Packaging checklist"
           }

@@ -659,7 +659,9 @@ describe("remaining goal plan", () => {
 
     expect(phase11Epic?.completionPercent).toBe(64);
     expect(ownerTestingParent?.completionPercent).toBe(64);
-    expect(ownerChecklistChild?.completionPercent).toBe(58);
+    expect(ownerChecklistChild?.completionPercent).toBe(64);
+    expect(ownerChecklistChild?.description).toContain("ready/total owner checklist counts");
+    expect(ownerChecklistChild?.description).toContain("priority goal traces");
     expect(proofFreshnessChild?.completionPercent).toBe(64);
     expect(proofFreshnessChild?.description).toContain("seven-row readiness");
     expect(proofFreshnessChild?.description).toContain("open-proof counts");
@@ -667,7 +669,9 @@ describe("remaining goal plan", () => {
       (task) => task.id === "phase-11-child-evidence-records"
     );
     expect(evidenceRecordsChild?.completionPercent).toBe(64);
-    expect(freshCheckoutChild?.completionPercent).toBe(58);
+    expect(freshCheckoutChild?.completionPercent).toBe(64);
+    expect(freshCheckoutChild?.description).toContain("structured evidence record states");
+    expect(freshCheckoutChild?.description).toContain("held release-gate actions");
     expect(releaseGoal).toMatchObject({
       target: "Release readiness pass",
       priority: "high",
