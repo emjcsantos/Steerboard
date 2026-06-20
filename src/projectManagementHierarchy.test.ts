@@ -64,6 +64,7 @@ describe("project management hierarchy", () => {
       "phase-03-child-traceability",
       PHASE3_PROOF_EXPORT_PM_TASK_ID,
       "phase-03-child-handoff-gate",
+      "phase-03-child-clearance-completion-status",
       "phase-03-parent-slash-controls",
       "phase-03-child-slash-ready",
       "phase-03-child-control-ready"
@@ -75,7 +76,8 @@ describe("project management hierarchy", () => {
       "phase-03-child-blocker-priority",
       "phase-03-child-traceability",
       PHASE3_PROOF_EXPORT_PM_TASK_ID,
-      "phase-03-child-handoff-gate"
+      "phase-03-child-handoff-gate",
+      "phase-03-child-clearance-completion-status"
     ]);
   });
 
@@ -171,7 +173,7 @@ describe("project management hierarchy", () => {
       complexity: "Extra High",
       executionMode: "staged_review"
     });
-    expect(result?.payload.children).toHaveLength(7);
+    expect(result?.payload.children).toHaveLength(8);
     expect(result?.dispatchPackage.status).toBe("staged");
     expect(result?.dispatchPackage.scope.join(" ")).toContain("Runtime execution is locked");
 

@@ -242,6 +242,46 @@ describe("project management phase plan", () => {
     expect(riskClosureChild?.description).toContain("phase8RiskClosureProof");
   });
 
+  it("keeps Phase 3 clearance PM rows aligned with completion status proof", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const phase3Epic = byId.get("phase-03-controls-slash");
+    const proofParent = byId.get("phase-03-parent-proof-clearance");
+    const smokeRowsChild = byId.get("phase-03-child-smoke-rows");
+    const exitGateChild = byId.get("phase-03-child-exit-gate");
+    const commandPlanChild = byId.get("phase-03-child-command-plan");
+    const blockerPriorityChild = byId.get("phase-03-child-blocker-priority");
+    const traceabilityChild = byId.get("phase-03-child-traceability");
+    const proofExportChild = byId.get("phase-03-child-proof-export-boundary");
+    const handoffGateChild = byId.get("phase-03-child-handoff-gate");
+    const completionStatusChild = byId.get("phase-03-child-clearance-completion-status");
+    const slashParent = byId.get("phase-03-parent-slash-controls");
+    const slashReadyChild = byId.get("phase-03-child-slash-ready");
+    const controlReadyChild = byId.get("phase-03-child-control-ready");
+
+    for (const row of [
+      phase3Epic,
+      proofParent,
+      smokeRowsChild,
+      exitGateChild,
+      commandPlanChild,
+      blockerPriorityChild,
+      traceabilityChild,
+      proofExportChild,
+      handoffGateChild,
+      completionStatusChild,
+      slashParent,
+      slashReadyChild,
+      controlReadyChild
+    ]) {
+      expect(row?.completionPercent, row?.id).toBe(100);
+      expect(row?.description, row?.id).toContain("phase3ClearanceCompletionStatusProof");
+    }
+    expect(completionStatusChild?.description).toContain("phase4");
+    expect(completionStatusChild?.description).toContain("pmLinks");
+    expect(completionStatusChild?.description).toContain("execution and pushing stay owner-held");
+  });
+
   it("keeps Phase 8 traceability and blocker priority aligned with risk proof depth", () => {
     const tasks = createDefaultProjectManagementPhasePlan();
     const byId = new Map(tasks.map((task) => [task.id, task]));

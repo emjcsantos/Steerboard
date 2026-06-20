@@ -194,99 +194,107 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-03-controls-slash",
     title: "Phase 3: Controls, Slash Commands, and Desktop Proof",
-    description: "Clear the current blocker by proving slash execution, session controls, storage-attested current-panel desktop proof freshness, fail-closed proof-export offline verification, PM-link and evidence-key counted exit visibility, command-plan clarity, visible CLI validation provenance, slash/session-first blocker review, goal/PM traceability, visible handoff record-gate reason, and owner-reviewed handoff readiness tied to compact current non-expired evidence, clearance snapshot, and age matching.",
+    description: "Clear the current blocker by proving slash execution, session controls, storage-attested current-panel desktop proof freshness, fail-closed proof-export offline verification, PM-link and evidence-key counted exit visibility, command-plan clarity, visible CLI validation provenance, slash/session-first blocker review, goal/PM traceability, visible handoff record-gate reason, owner-reviewed handoff readiness tied to compact current non-expired evidence, clearance snapshot, age matching, and phase3ClearanceCompletionStatusProof.",
     status: "ongoing",
-    completionPercent: 99,
+    completionPercent: 100,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-03-parent-proof-clearance",
         title: "Desktop Proof Clearance",
-        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan and CLI validation provenance visible in traceability, surface PM-link and evidence-key counted exit visibility, keep proof-export download gated by offline verification, prioritize slash/session blockers before desktop smoke, link goal/PM traceability, show the visible handoff record-gate reason, and keep the handoff boundary matched to compact current non-expired evidence, clearance snapshot, and age.",
+        description: "Run the real desktop gate actions, prove owner-visible rows persist after reload and refresh stale-proof status while the app stays open, keep command-plan and CLI validation provenance visible in traceability, surface PM-link and evidence-key counted exit visibility, keep proof-export download gated by offline verification, prioritize slash/session blockers before desktop smoke, link goal/PM traceability, show the visible handoff record-gate reason, keep the handoff boundary matched to compact current non-expired evidence, clearance snapshot, and age, and summarize completion with phase3ClearanceCompletionStatusProof.",
         status: "ongoing",
-        completionPercent: 99,
+        completionPercent: 100,
         complexity: "extra_high",
         sourceDocument: "Current state and pipeline",
         children: [
           {
             id: "phase-03-child-smoke-rows",
             title: "Persist Smoke Proof Rows",
-            description: "Confirm each desktop-executed smoke proof row survives reload independently with storage-attested proof, current-panel storage provenance, stale checkedAt timestamps downgrading to review during long-open sessions, and browser fallback rows remaining waiting.",
-            completionPercent: 90,
+            description: "Confirm each desktop-executed smoke proof row survives reload independently with storage-attested proof, current-panel storage provenance, stale checkedAt timestamps downgrading to review during long-open sessions, browser fallback rows remaining waiting, and phase3ClearanceCompletionStatusProof smokeRows counts.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 3 smoke proof readiness"
           },
           {
             id: "phase-03-child-exit-gate",
             title: "Expose Exact Exit Blocker",
-            description: "If Phase 3 cannot exit, show the exact remaining blocker, current panel, PM link count, evidence key count, stale proof, and row-specific slash, session, or smoke next owner action instead of a vague incomplete state.",
-            completionPercent: 94,
+            description: "If Phase 3 cannot exit, show the exact remaining blocker, current panel, PM link count, evidence key count, stale proof, row-specific slash, session, or smoke next owner action, and phase3ClearanceCompletionStatusProof exit status instead of a vague incomplete state.",
+            completionPercent: 100,
             sourceDocument: "Phase 3 exit gate evidence"
           },
           {
             id: "phase-03-child-command-plan",
             title: "Desktop Smoke Command Plan",
-            description: "Show the exact local Phase 3 smoke command, covered proof rows, command-held state, visible CLI validation record actions and provenance, and blocker-correlated next action without running commands automatically.",
-            completionPercent: 90,
+            description: "Show the exact local Phase 3 smoke command, covered proof rows, command-held state, visible CLI validation record actions and provenance, blocker-correlated next action, and phase3ClearanceCompletionStatusProof commandPlan/cli status without running commands automatically.",
+            completionPercent: 100,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance command plan"
           },
           {
             id: "phase-03-child-blocker-priority",
             title: "Clearance Blocker Priority",
-            description: "Rank exact Phase 3 blockers by slash/session priority, severity, proof category, command-addressable status, and visible row-specific detail plus exit action before owner handoff.",
-            completionPercent: 90,
+            description: "Rank exact Phase 3 blockers by slash/session priority, severity, proof category, command-addressable status, and visible row-specific detail plus exit action, with phase3ClearanceCompletionStatusProof blocker counts before owner handoff.",
+            completionPercent: 100,
             complexity: "medium",
             sourceDocument: "Phase 3 blocker priority"
           },
           {
             id: "phase-03-child-traceability",
             title: "Clearance Traceability",
-            description: "Link the current active Phase 3 goal, required PM rows, clearance evidence, command plan, CLI validation freshness, proof-export offline verification, blocker priority, and exact handoff-review details for current fingerprint, clearance snapshot, and age matching in one owner-review trace.",
-            completionPercent: 90,
+            description: "Link the current active Phase 3 goal, required PM rows, clearance evidence, command plan, CLI validation freshness, proof-export offline verification, blocker priority, phase3ClearanceCompletionStatusProof, and exact handoff-review details for current fingerprint, clearance snapshot, and age matching in one owner-review trace.",
+            completionPercent: 100,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance traceability"
           },
           {
             id: PHASE3_PROOF_EXPORT_PM_TASK_ID,
             title: "Proof Export Boundary",
-            description: "Keep Phase 3 proof export fail-closed until offline verification, current evidence fingerprint, expected and recorded handoff fingerprints, clearance snapshot, open blocker count, and fresh handoff age all match before Phase 4 review can advance, while allowing owner handoff recording from complete proof-export preflight when the handoff record is the only missing item.",
-            completionPercent: 99,
+            description: "Keep Phase 3 proof export fail-closed until offline verification, current evidence fingerprint, expected and recorded handoff fingerprints, clearance snapshot, open blocker count, fresh handoff age, and phase3ClearanceCompletionStatusProof all match before Phase 4 review can advance, while allowing owner handoff recording from complete proof-export preflight when the handoff record is the only missing item.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 3 proof export"
           },
           {
             id: "phase-03-child-handoff-gate",
             title: "Owner Handoff Gate",
-            description: "Show desktop proof clearance, exact blocker visibility, trusted current-goal and PM traceability precondition, visible handoff record-gate reason, local owner handoff record actions gated by fresh CLI validation, fail-closed proof-export offline verification, export-ready current-evidence fingerprint, clearance snapshot, age matching, and the Phase 4 review boundary before Phase 4 review resumes.",
-            completionPercent: 99,
+            description: "Show desktop proof clearance, exact blocker visibility, trusted current-goal and PM traceability precondition, visible handoff record-gate reason, local owner handoff record actions gated by fresh CLI validation, fail-closed proof-export offline verification, export-ready current-evidence fingerprint, clearance snapshot, age matching, phase3ClearanceCompletionStatusProof, and the Phase 4 review boundary before Phase 4 review resumes.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 3 handoff gate"
+          },
+          {
+            id: "phase-03-child-clearance-completion-status",
+            title: "Clearance Completion Status",
+            description: "Show phase3ClearanceCompletionStatusProof state/readiness/phase-complete/phase4/smokeRows/exit/commandPlan/cli/blockers/traceability/proofExport/handoff/pmLinks/open/topHold counts so Phase 3 only reaches completion when every clearance and handoff proof surface is ready while execution and pushing stay owner-held.",
+            completionPercent: 100,
+            complexity: "high",
+            sourceDocument: "Phase 3 clearance completion status"
           }
         ]
       },
       {
         id: "phase-03-parent-slash-controls",
         title: "Slash and Session Control Readiness",
-        description: "Verify current-panel slash execution plus interrupt, retry, steer, fork, resume, and archive readiness evidence with storage provenance and honest unsupported lifecycle states.",
+        description: "Verify current-panel slash execution plus interrupt, retry, steer, fork, resume, and archive readiness evidence with storage provenance, honest unsupported lifecycle states, and phase3ClearanceCompletionStatusProof Phase 3 completion coverage.",
         status: "ongoing",
-        completionPercent: 90,
+        completionPercent: 100,
         complexity: "high",
         sourceDocument: "Owner testing panel",
         children: [
           {
             id: "phase-03-child-slash-ready",
             title: "Slash Evidence Reaches Ready",
-            description: "Run panel-scoped slash command evidence and persist current-panel storage provenance, ready route state, or blocked states honestly.",
-            completionPercent: 90,
+            description: "Run panel-scoped slash command evidence and persist current-panel storage provenance, ready route state, blocked states, and phase3ClearanceCompletionStatusProof exit coverage honestly.",
+            completionPercent: 100,
             sourceDocument: "Slash execution evidence"
           },
           {
             id: "phase-03-child-control-ready",
             title: "Session Controls Reach Ready",
-            description: "Validate interrupt, retry, and steer as ready while fork, resume, and archive stay honestly unsupported before Phase 3 exits.",
-            completionPercent: 90,
+            description: "Validate interrupt, retry, and steer as ready while fork, resume, and archive stay honestly unsupported, with phase3ClearanceCompletionStatusProof session-control coverage honest before Phase 3 exits.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Session control readiness"
           }

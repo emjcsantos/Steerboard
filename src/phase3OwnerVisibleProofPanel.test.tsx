@@ -6,6 +6,7 @@ import { buildFailureStateFixtures, summarizeFailureStateFixtures } from "./fail
 import { buildOwnerTestingChecklist } from "./ownerTestingChecklist";
 import { buildPhase3ClearanceBlockerPriority } from "./phase3ClearanceBlockerPriority";
 import { buildPhase3ClearanceCommandPlan } from "./phase3ClearanceCommandPlan";
+import { buildPhase3ClearanceCompletionStatus } from "./phase3ClearanceCompletionStatus";
 import { buildPhase3ClearancePackage } from "./phase3ClearancePackage";
 import {
   buildPhase3ClearanceTraceability,
@@ -332,6 +333,17 @@ function buildReadyPhase3Props(input: {
     blockerPriority: phase3ClearanceBlockerPriority,
     handoffGate: phase3HandoffGate
   });
+  const phase3ClearanceCompletionStatus = buildPhase3ClearanceCompletionStatus({
+    smokeReadiness: phase3SmokeProofReadiness,
+    exitGate: phase3ExitGateEvidence,
+    clearancePackage: phase3ClearancePackage,
+    commandPlan: phase3ClearanceCommandPlan,
+    commandValidation: phase3CommandValidationRecordValidation,
+    blockerPriority: phase3ClearanceBlockerPriority,
+    traceability: phase3ClearanceTraceability,
+    proofExport: phase3ProofExportVerification,
+    handoffGate: phase3HandoffGate
+  });
   const failureFixtures = buildFailureStateFixtures();
 
   return {
@@ -341,6 +353,7 @@ function buildReadyPhase3Props(input: {
     failureSummary: summarizeFailureStateFixtures(failureFixtures),
     phasePriorityEvidence: buildPhasePriorityEvidence(),
     phase3ClearanceBlockerPriority,
+    phase3ClearanceCompletionStatus,
     phase3ClearanceTraceability,
     phase3ClearanceTraceabilityPrecondition,
     phase3ClearanceCommandPlan,
@@ -370,9 +383,22 @@ type OwnerVisiblePhase3Props = Omit<
 };
 
 function renderOwnerTestingReadinessPanel(props: OwnerVisiblePhase3Props) {
+  const phase3ClearanceCompletionStatus = buildPhase3ClearanceCompletionStatus({
+    smokeReadiness: props.phase3SmokeProofReadiness,
+    exitGate: props.phase3ExitGateEvidence,
+    clearancePackage: props.phase3ClearancePackage,
+    commandPlan: props.phase3ClearanceCommandPlan,
+    commandValidation: props.phase3CommandValidationRecordValidation,
+    blockerPriority: props.phase3ClearanceBlockerPriority,
+    traceability: props.phase3ClearanceTraceability,
+    proofExport: props.phase3ProofExportVerification,
+    handoffGate: props.phase3HandoffGate
+  });
+
   return renderToStaticMarkup(
     <OwnerTestingReadinessPanel
       {...props}
+      phase3ClearanceCompletionStatus={phase3ClearanceCompletionStatus}
       codexCanStartSession={true}
       codexLiveSmokeLoading={false}
       codexTwoPanelSmokeLoading={false}
@@ -716,10 +742,10 @@ describe("phase 3 owner-visible proof panel", () => {
       "<strong>Handoff boundary</strong><span>ready</span><small>phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification</small>"
     );
     expect(html).toContain(
-      'aria-label="Phase 3 clearance traceability: Ready; 100% ready; 12/12 PM rows linked; 0 open trace rows; next action: Keep the current active Phase 3 goal, PM rows, clearance evidence, and owner handoff trace linked until Phase 3 exits."'
+      'aria-label="Phase 3 clearance traceability: Ready; 100% ready; 13/13 PM rows linked; 0 open trace rows; next action: Keep the current active Phase 3 goal, PM rows, clearance evidence, and owner handoff trace linked until Phase 3 exits."'
     );
     expect(html).toContain(
-      'aria-label="Phase 3 clearance traceability counts"><div><dt>PM Rows</dt><dd>12/12</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>State</dt><dd>Ready</dd></div><div><dt>Ready</dt><dd>100%</dd></div></dl>'
+      'aria-label="Phase 3 clearance traceability counts"><div><dt>PM Rows</dt><dd>13/13</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>State</dt><dd>Ready</dd></div><div><dt>Ready</dt><dd>100%</dd></div></dl>'
     );
     expect(html).toContain("npm.cmd run smoke:phase3");
     expect(html).toContain(
@@ -751,6 +777,11 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("Desktop 3/3");
     expect(html).toContain("CLI attached");
     expect(html).toContain("Handoff attached");
+    expect(html).toContain("Phase 3 clearance completion status");
+    expect(html).toContain("phase3ClearanceCompletionStatusProof");
+    expect(html).toContain("phaseComplete=yes");
+    expect(html).toContain("phase4=ready");
+    expect(html).toContain("pmLinks=13/13");
     expect(html).toContain(
       "phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification"
     );

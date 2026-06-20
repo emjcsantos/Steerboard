@@ -231,12 +231,15 @@ describe("remaining goal plan", () => {
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-traceability");
     expect(phase3Goal?.pmTaskIds).toContain(PHASE3_PROOF_EXPORT_PM_TASK_ID);
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-handoff-gate");
+    expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-clearance-completion-status");
     expect(phase3Goal?.pmTaskIds).toContain("phase-03-child-slash-ready");
     expect(phase3Goal?.nextAction).toContain("CLI validation");
     expect(phase3Goal?.nextAction).toContain("desktop smoke proof");
     expect(phase3Goal?.nextAction).toContain("current-panel slash/session storage proof");
     expect(phase3Goal?.goal).toContain("fail-closed proof-export rows");
     expect(phase3Goal?.nextAction).toContain("proof-export offline verification");
+    expect(phase3Goal?.goal).toContain("phase3ClearanceCompletionStatusProof");
+    expect(phase3Goal?.nextAction).toContain("phase3ClearanceCompletionStatusProof");
     expect(phase3Goal?.nextAction).toContain("Phase 4 provider integration becomes the current active implementation target");
   });
 
@@ -250,6 +253,9 @@ describe("remaining goal plan", () => {
     const proofExportChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === PHASE3_PROOF_EXPORT_PM_TASK_ID
     );
+    const completionStatusChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-03-child-clearance-completion-status"
+    );
 
     expect(traceabilityChild).toMatchObject({
       title: "Clearance Traceability",
@@ -258,16 +264,27 @@ describe("remaining goal plan", () => {
     expect(traceabilityChild?.description).toContain("current active Phase 3 goal");
     expect(traceabilityChild?.description).toContain("required PM rows");
     expect(traceabilityChild?.description).toContain("proof-export offline verification");
+    expect(traceabilityChild?.description).toContain("phase3ClearanceCompletionStatusProof");
     expect(traceabilityChild?.description).toContain("handoff-review details");
     expect(proofExportChild).toMatchObject({
       title: "Proof Export Boundary",
-      completionPercent: 99,
+      completionPercent: 100,
       sourceDocument: "Phase 3 proof export"
     });
     expect(proofExportChild?.description).toContain("fail-closed");
     expect(proofExportChild?.description).toContain("offline verification");
+    expect(proofExportChild?.description).toContain("phase3ClearanceCompletionStatusProof");
     expect(proofExportChild?.description).toContain("Phase 4 review can advance");
     expect(handoffGateChild?.description).toContain("fail-closed proof-export offline verification");
+    expect(handoffGateChild?.description).toContain("phase3ClearanceCompletionStatusProof");
+    expect(completionStatusChild).toMatchObject({
+      title: "Clearance Completion Status",
+      completionPercent: 100,
+      sourceDocument: "Phase 3 clearance completion status"
+    });
+    expect(completionStatusChild?.description).toContain("phase3ClearanceCompletionStatusProof");
+    expect(completionStatusChild?.description).toContain("smokeRows");
+    expect(completionStatusChild?.description).toContain("execution and pushing stay owner-held");
   });
 
   it("keeps active Phase 3 PM rows at or above the release-trace trust threshold", () => {
@@ -287,15 +304,19 @@ describe("remaining goal plan", () => {
       completionPercent: 100
     });
     expect(incompleteTaskIds).toEqual([]);
-    expect(taskCompletionById.get("phase-03-child-smoke-rows")).toBe(90);
-    expect(taskCompletionById.get("phase-03-child-exit-gate")).toBe(94);
-    expect(taskCompletionById.get("phase-03-child-command-plan")).toBe(90);
-    expect(taskCompletionById.get("phase-03-child-blocker-priority")).toBe(90);
-    expect(taskCompletionById.get(PHASE3_PROOF_EXPORT_PM_TASK_ID)).toBe(99);
-    expect(taskCompletionById.get("phase-03-child-handoff-gate")).toBe(99);
-    expect(taskCompletionById.get("phase-03-parent-slash-controls")).toBe(90);
-    expect(taskCompletionById.get("phase-03-child-slash-ready")).toBe(90);
-    expect(taskCompletionById.get("phase-03-child-control-ready")).toBe(90);
+    expect(taskCompletionById.get("phase-03-controls-slash")).toBe(100);
+    expect(taskCompletionById.get("phase-03-parent-proof-clearance")).toBe(100);
+    expect(taskCompletionById.get("phase-03-child-smoke-rows")).toBe(100);
+    expect(taskCompletionById.get("phase-03-child-exit-gate")).toBe(100);
+    expect(taskCompletionById.get("phase-03-child-command-plan")).toBe(100);
+    expect(taskCompletionById.get("phase-03-child-blocker-priority")).toBe(100);
+    expect(taskCompletionById.get("phase-03-child-traceability")).toBe(100);
+    expect(taskCompletionById.get(PHASE3_PROOF_EXPORT_PM_TASK_ID)).toBe(100);
+    expect(taskCompletionById.get("phase-03-child-handoff-gate")).toBe(100);
+    expect(taskCompletionById.get("phase-03-child-clearance-completion-status")).toBe(100);
+    expect(taskCompletionById.get("phase-03-parent-slash-controls")).toBe(100);
+    expect(taskCompletionById.get("phase-03-child-slash-ready")).toBe(100);
+    expect(taskCompletionById.get("phase-03-child-control-ready")).toBe(100);
   });
 
   it("separates the blocked owner hold from the active implementation target", () => {

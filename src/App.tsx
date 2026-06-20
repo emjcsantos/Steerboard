@@ -443,6 +443,10 @@ import {
   type Phase3ClearanceTraceabilitySnapshot
 } from "./phase3ClearanceTraceability";
 import {
+  buildPhase3ClearanceCompletionStatus,
+  type Phase3ClearanceCompletionStatus
+} from "./phase3ClearanceCompletionStatus";
+import {
   buildPhase3HandoffGate,
   type Phase3HandoffGate
 } from "./phase3HandoffGate";
@@ -2807,6 +2811,31 @@ export function App() {
       projectManagementTasks
     ]
   );
+  const phase3ClearanceCompletionStatus = useMemo(
+    () =>
+      buildPhase3ClearanceCompletionStatus({
+        smokeReadiness: phase3SmokeProofReadiness,
+        exitGate: phase3ExitGateEvidence,
+        clearancePackage: phase3ClearancePackage,
+        commandPlan: phase3ClearanceCommandPlan,
+        commandValidation: phase3CommandValidationRecordValidation,
+        blockerPriority: phase3ClearanceBlockerPriority,
+        traceability: phase3ClearanceTraceability,
+        proofExport: phase3ProofExportVerification,
+        handoffGate: phase3HandoffGate
+      }),
+    [
+      phase3ClearanceBlockerPriority,
+      phase3ClearanceCommandPlan,
+      phase3ClearancePackage,
+      phase3ClearanceTraceability,
+      phase3CommandValidationRecordValidation,
+      phase3ExitGateEvidence,
+      phase3HandoffGate,
+      phase3ProofExportVerification,
+      phase3SmokeProofReadiness
+    ]
+  );
   const recordPhase3OwnerHandoff = useCallback(() => {
     runPhase3OwnerHandoffRecordAction({
       clearancePackage: phase3ClearancePackage,
@@ -4941,6 +4970,7 @@ export function App() {
             selectedRun={selectedRun}
             phasePriorityEvidence={phasePriorityEvidence}
             phase3ClearanceBlockerPriority={phase3ClearanceBlockerPriority}
+            phase3ClearanceCompletionStatus={phase3ClearanceCompletionStatus}
             phase3ClearanceTraceability={phase3ClearanceTraceability}
             phase3ClearanceTraceabilityPrecondition={phase3ClearanceTraceabilityPrecondition}
             phase3ClearanceCommandPlan={phase3ClearanceCommandPlan}
@@ -10007,6 +10037,7 @@ function RightPanel({
   selectedRun,
   phasePriorityEvidence,
   phase3ClearanceBlockerPriority,
+  phase3ClearanceCompletionStatus,
   phase3ClearanceTraceability,
   phase3ClearanceTraceabilityPrecondition,
   phase3ClearanceCommandPlan,
@@ -10116,6 +10147,7 @@ function RightPanel({
   selectedRun?: MockOrchestratorRun;
   phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ClearanceBlockerPriority: Phase3ClearanceBlockerPrioritySnapshot;
+  phase3ClearanceCompletionStatus: Phase3ClearanceCompletionStatus;
   phase3ClearanceTraceability: Phase3ClearanceTraceabilitySnapshot;
   phase3ClearanceTraceabilityPrecondition: Phase3ClearanceTraceabilityPrecondition;
   phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
@@ -11555,6 +11587,7 @@ function RightPanel({
         failureSummary={failureStateFixtureSummary}
         phasePriorityEvidence={phasePriorityEvidence}
         phase3ClearanceBlockerPriority={phase3ClearanceBlockerPriority}
+        phase3ClearanceCompletionStatus={phase3ClearanceCompletionStatus}
         phase3ClearanceTraceability={phase3ClearanceTraceability}
         phase3ClearanceTraceabilityPrecondition={phase3ClearanceTraceabilityPrecondition}
         phase3ClearanceCommandPlan={phase3ClearanceCommandPlan}
@@ -13986,6 +14019,7 @@ export function OwnerTestingReadinessPanel({
   failureSummary,
   phasePriorityEvidence,
   phase3ClearanceBlockerPriority,
+  phase3ClearanceCompletionStatus,
   phase3ClearanceTraceability,
   phase3ClearanceTraceabilityPrecondition,
   phase3ClearanceCommandPlan,
@@ -14028,6 +14062,7 @@ export function OwnerTestingReadinessPanel({
   failureSummary: FailureStateFixtureSummary;
   phasePriorityEvidence: PhasePriorityEvidenceResult;
   phase3ClearanceBlockerPriority: Phase3ClearanceBlockerPrioritySnapshot;
+  phase3ClearanceCompletionStatus: Phase3ClearanceCompletionStatus;
   phase3ClearanceTraceability: Phase3ClearanceTraceabilitySnapshot;
   phase3ClearanceTraceabilityPrecondition: Phase3ClearanceTraceabilityPrecondition;
   phase3ClearanceCommandPlan: Phase3ClearanceCommandPlan;
@@ -15083,6 +15118,19 @@ export function OwnerTestingReadinessPanel({
                 </small>
               </div>
             ) : null}
+            <div
+              className={`owner-testing-phase3-proof-export owner-testing-phase3-proof-export-${phase3ClearanceCompletionStatus.state}`}
+              aria-label={phase3ClearanceCompletionStatus.ariaLabel}
+              title={phase3ClearanceCompletionStatus.safety}
+            >
+              <strong>{phase3ClearanceCompletionStatus.label}</strong>
+              <span>
+                {phase3ClearanceCompletionStatus.statusLabel} / Phase 4{" "}
+                {phase3ClearanceCompletionStatus.canAdvancePhase4Review ? "ready" : "held"}
+              </span>
+              <small>{phase3ClearanceCompletionStatus.nextAction}</small>
+              <small>{phase3ClearanceCompletionStatus.phase3ClearanceCompletionStatusProof}</small>
+            </div>
             <ol
               className="owner-testing-phase3-handoff-list"
               aria-label="Phase 3 handoff gate rows"
