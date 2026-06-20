@@ -734,6 +734,10 @@ import {
   type Phase9RunnerCloseoutStatus
 } from "./phase9RunnerCloseoutStatus";
 import {
+  buildPermissionedToolEvidenceGate,
+  type PermissionedToolEvidenceGate
+} from "./permissionedToolEvidenceGate";
+import {
   buildPhase9DesktopProbeGate,
   buildPhase9RunnerTraceabilitySummary
 } from "./phase9RunnerTraceability";
@@ -16597,6 +16601,7 @@ export function Phase9RunnerApprovalPanel({
     requestGate: desktopProbeGate,
     completionGate
   });
+  const permissionedToolEvidenceGate = buildPermissionedToolEvidenceGate(closeoutStatus);
 
   return (
     <section className="panel-section">
@@ -16737,6 +16742,7 @@ export function Phase9RunnerApprovalPanel({
           <small>{completionGate.completionGateProof}</small>
         </div>
         <Phase9RunnerCloseoutStatusPanel status={closeoutStatus} />
+        <PermissionedToolEvidenceGatePanel gate={permissionedToolEvidenceGate} />
         <ol className="phase9-runner-items" aria-label="Phase 9 runner approval targets">
           {snapshot.items.map((item) => (
             <li
@@ -16909,6 +16915,51 @@ export function Phase9RunnerCloseoutStatusPanel({
       <span>{status.statusLabel} / {status.readiness}%</span>
       <small>{status.nextAction}</small>
       <small>{status.phase9RunnerCloseoutStatusProof}</small>
+    </div>
+  );
+}
+
+export function PermissionedToolEvidenceGatePanel({
+  gate
+}: {
+  gate: PermissionedToolEvidenceGate;
+}) {
+  return (
+    <div
+      aria-label={`${gate.label}: ${gate.statusLabel}; ${gate.readiness}% ready; capture ${
+        gate.canRequestCapture ? "ready" : "held"
+      }; ${gate.nextAction}`}
+      className={classNames(
+        "phase9-desktop-probe-gate",
+        `phase9-desktop-probe-gate-${gate.state}`,
+        gate.canRequestCapture
+          ? "phase9-desktop-probe-gate-ready"
+          : "phase9-desktop-probe-gate-held"
+      )}
+      title={gate.safety}
+    >
+      <strong>{gate.label}</strong>
+      <span>
+        {gate.statusLabel} / Capture {gate.canRequestCapture ? "ready" : "held"}
+      </span>
+      <small>{gate.detail}</small>
+      <small>{gate.permissionedToolEvidenceGateProof}</small>
+      <ol className="phase9-runner-items" aria-label="Permissioned Terminal and Git evidence gates">
+        {gate.items.map((item) => (
+          <li
+            className={classNames("phase9-runner-item", `phase9-runner-item-${item.state}`)}
+            key={item.id}
+            title={`${item.detail} ${item.nextAction}`}
+          >
+            <span>{item.surface}</span>
+            <div>
+              <strong>{item.label}</strong>
+              <small>{item.nextAction}</small>
+            </div>
+            <b>{item.state}</b>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

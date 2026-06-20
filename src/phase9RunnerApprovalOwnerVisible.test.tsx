@@ -261,6 +261,11 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("runnerExpansion=locked");
     expect(html).toContain("Phase 9 runner closeout status");
     expect(html).toContain("phase9RunnerCloseoutStatusProof");
+    expect(html).toContain("Permissioned Terminal/Git evidence gate");
+    expect(html).toContain("permissionedToolEvidenceGate");
+    expect(html).toContain("readOnlyProof=held");
+    expect(html).toContain("approvals=0/2");
+    expect(html).toContain("canRequest=no");
     expect(html).toContain("Open");
     expect(html).toContain("Reviewable");
     expect(html).toContain("Status");
@@ -317,6 +322,10 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("runnerExpansion=locked");
     expect(html).toContain("Phase 9 runner closeout status");
     expect(html).toContain("phase9RunnerCloseoutStatusProof");
+    expect(html).toContain("Permissioned Terminal/Git evidence gate");
+    expect(html).toContain("readOnlyProof=ready");
+    expect(html).toContain("approvals=0/2");
+    expect(html).toContain("Capture held");
     expect(html).toContain("Records");
     expect(html).toContain("Phase 9 runner review record ready");
     expect(html).toContain(
