@@ -112,8 +112,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-01-child-stream-evidence",
             title: "Capture Stream and Completion Evidence",
-            description: "Persist stream, final status, and any fallback reason in owner-visible proof rows.",
-            completionPercent: 45,
+            description: "Persist stream, final status, exact missing-signal review detail, and any fallback reason in owner-visible proof rows.",
+            completionPercent: 52,
             complexity: "high",
             sourceDocument: "Phase 3 smoke proof readiness"
           }

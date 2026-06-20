@@ -27,6 +27,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm the Owner Testing Phase 1/2/6 publish-hold traceability rows link `goal-phase-1-2-6-publish`, Phase 1 live proof, Phase 2 isolation proof, Phase 6 PM staging, required PM child rows, and the owner/remote push hold without running smoke, Git, push, release, or packaging actions.
    - Confirm the Owner Testing Phase 1/2/6 blocker-priority queue ranks the owner/remote push hold above ordinary proof review when local proof is already ready and keeps publish-goal or PM-link traceability repairs out of owner-review actions.
    - Use the Owner Testing Phase 1 and Phase 2 smoke buttons to rerun live-panel and two-panel proof only after explicitly choosing the action.
+   - Confirm incomplete Phase 1 desktop smoke proof names the exact missing stream/completion signals such as desktop smoke result, thread id, turn id, agent delta, turn completion, or expected token.
    - Reload after successful Phase 1/2 desktop smoke proof and confirm the priority card keeps the desktop-executed proof states without rerunning prompts on startup.
    - Confirm the Environment panel Remaining Goals summary shows all remaining targets, covers Phase 1 through Phase 11, and keeps `Unblock Phase 1/2/6 publishing` blocked until the owner approves pushing.
    - Confirm the Phase 11 Owner Command panel shows checklist coverage, proof freshness, blockers, phase readiness, next action, and fresh-checkout evidence as separate pass/fail gates.

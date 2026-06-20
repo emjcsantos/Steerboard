@@ -182,6 +182,28 @@ describe("phase priority evidence", () => {
     });
   });
 
+  it("names exact missing Phase 1 stream signals after an incomplete desktop proof", () => {
+    const result = buildPhasePriorityEvidence({
+      liveSmokeProof: {
+        ...readyLiveSmoke,
+        ok: false,
+        agentDeltaMethodSeen: false,
+        expectedTokenSeen: false
+      },
+      twoPanelSmokeProof: readyTwoPanelSmoke,
+      projectManagementTasks: createDefaultProjectManagementTasks()
+    });
+    const phase1 = result.items.find((item) => item.id === "phase-1-live-panel");
+
+    expect(result.state).toBe("review");
+    expect(phase1).toMatchObject({
+      state: "review"
+    });
+    expect(phase1?.detail).toContain("desktop smoke result");
+    expect(phase1?.detail).toContain("agent delta");
+    expect(phase1?.detail).toContain("expected token");
+  });
+
   it("blocks Phase 2 when live panel identities are duplicated", () => {
     const result = buildPhasePriorityEvidence({
       liveSmokeProof: readyLiveSmoke,

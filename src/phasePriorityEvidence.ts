@@ -139,14 +139,28 @@ function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenc
 
   const executed = bool(liveSmokeProof.executed);
   const ok = bool(liveSmokeProof.ok);
-  const ready =
-    executed &&
-    ok &&
-    bool(liveSmokeProof.threadIdSeen) &&
-    bool(liveSmokeProof.turnIdSeen) &&
-    bool(liveSmokeProof.agentDeltaMethodSeen) &&
-    bool(liveSmokeProof.turnCompletedSeen) &&
-    bool(liveSmokeProof.expectedTokenSeen);
+  const streamSignalChecks = [
+    { key: "ok", label: "desktop smoke result", ready: ok },
+    { key: "threadIdSeen", label: "thread id", ready: bool(liveSmokeProof.threadIdSeen) },
+    { key: "turnIdSeen", label: "turn id", ready: bool(liveSmokeProof.turnIdSeen) },
+    {
+      key: "agentDeltaMethodSeen",
+      label: "agent delta",
+      ready: bool(liveSmokeProof.agentDeltaMethodSeen)
+    },
+    {
+      key: "turnCompletedSeen",
+      label: "turn completion",
+      ready: bool(liveSmokeProof.turnCompletedSeen)
+    },
+    {
+      key: "expectedTokenSeen",
+      label: "expected token",
+      ready: bool(liveSmokeProof.expectedTokenSeen)
+    }
+  ];
+  const missingStreamSignals = streamSignalChecks.filter((signal) => !signal.ready);
+  const ready = executed && missingStreamSignals.length === 0;
 
   if (ready) {
     return item(
@@ -172,7 +186,7 @@ function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenc
     "phase-1-live-panel",
     "Phase 1 live Arena panel",
     "review",
-    "Live panel proof ran, but one or more thread, turn, stream, completion, or token signals are missing.",
+    `Live panel proof ran, but missing stream/completion signal${missingStreamSignals.length === 1 ? "" : "s"}: ${missingStreamSignals.map((signal) => signal.label).join(", ")}.`,
     "Review the proof detail, rerun the desktop smoke, and keep browser fallback as waiting."
   );
 }
