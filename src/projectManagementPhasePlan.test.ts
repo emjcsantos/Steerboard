@@ -225,11 +225,14 @@ describe("project management phase plan", () => {
     expect(integrationOwnerChild?.completionPercent).toBeGreaterThanOrEqual(
       integrationDepthChild?.completionPercent ?? 0
     );
-    expect(phase7Epic?.completionPercent).toBe(66);
-    expect(rolePanelParent?.completionPercent).toBe(66);
-    expect(workerPreviewChild?.completionPercent).toBe(66);
-    expect(integrationOwnerChild?.completionPercent).toBe(66);
-    expect(integrationDepthChild?.completionPercent).toBe(66);
+    expect(phase7Epic?.completionPercent).toBe(72);
+    expect(rolePanelParent?.completionPercent).toBe(72);
+    expect(workerPreviewChild?.completionPercent).toBe(72);
+    expect(integrationOwnerChild?.completionPercent).toBe(72);
+    expect(integrationDepthChild?.completionPercent).toBe(72);
+    expect(phase7Epic?.description).toContain("offline dispatch-review artifact verification");
+    expect(workerPreviewChild?.description).toContain("offline artifact verification");
+    expect(integrationDepthChild?.description).toContain("artifact verification");
     expect(rolePanelParent?.description).toContain("handoff packet integrity");
     expect(rolePanelParent?.description).toContain("PM coverage");
     expect(rolePanelParent?.description).toContain("integrationOwnershipProof");
@@ -272,10 +275,12 @@ describe("project management phase plan", () => {
       traceabilityChild?.completionPercent ?? 0
     );
     expect(observedLoopParent?.description).toContain("four per-role handoff packets");
+    expect(observedLoopParent?.description).toContain("artifact verification");
     expect(observedLoopParent?.description).toContain("live-worker lock proof");
     expect(handoffTraceChild?.description).toContain("handoff task counts");
     expect(handoffTraceChild?.description).toContain("four per-role packet ownership");
     expect(handoffTraceChild?.description).toContain("dependency order");
+    expect(handoffTraceChild?.description).toContain("offline artifact verification");
     expect(handoffTraceChild?.description).toContain("local no-runtime boundaries");
   });
 

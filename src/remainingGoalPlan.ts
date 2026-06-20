@@ -203,7 +203,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits, dispatch review depth, handoff packet integrity, current evidence freshness, main integration ownership, validation gates, traceability, blocker priority, and live-worker locks.",
     status: "active",
     priority: "high",
-    completionPercent: 66,
+    completionPercent: 72,
     current: true,
     pmTaskIds: [
       "phase-07-dispatch-loop",
@@ -218,7 +218,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-07-child-blocker-priority"
     ],
     nextAction:
-      "Use dispatch review records as the current active implementation target with review-depth checks, per-role handoff packet integrity, current evidence fingerprint matching, integration ownership rows, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof to audit role counts, attempt limits, handoff tasks, validation dependencies, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, and live-worker execution locks before any live worker session spawning."
+      "Use dispatch review records as the current active implementation target with review-depth checks, per-role handoff packet integrity, current evidence fingerprint matching, offline dispatch-review artifact verification, integration ownership rows, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof to audit role counts, attempt limits, handoff tasks, validation dependencies, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, and live-worker execution locks before any live worker session spawning."
   },
   {
     id: "goal-phase-8-permission-audit",

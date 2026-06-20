@@ -261,10 +261,10 @@ describe("milestone status model", () => {
     expect(platform?.completionPercent).toBe(62);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution, Phase 3 exit-package clearance now has recorded CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, and proof-export readiness, Phase 4 provider integration now holds completed metadata-only recorded provider-review proof at next/99, Phase 5 migration hardening now holds proof-backed migration review at next/72, and Phase 7 dispatch loop is the current active implementation goal."
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution, Phase 3 exit-package clearance now has recorded CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, and proof-export readiness, Phase 4 provider integration now holds completed metadata-only recorded provider-review proof at next/99, Phase 5 migration hardening now holds proof-backed migration review at next/72, and Phase 7 dispatch loop is the current active implementation goal with offline dispatch-review artifact verification."
     );
     expect(platform?.nextStep).toBe(
-      "Advance Phase 7 dispatch loop with dispatch review records as the current active implementation target, keep live worker spawning and Phase 4 provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, migration apply paths, and worker spawning behind owner-reviewed locks."
+      "Advance Phase 7 dispatch loop with dispatch review records and offline artifact verification as the current active implementation target, keep live worker spawning and Phase 4 provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, migration apply paths, and worker spawning behind owner-reviewed locks."
     );
   });
 
@@ -286,6 +286,7 @@ describe("milestone status model", () => {
     expect(platform?.latestNote).toContain("Phase 4 provider integration now holds completed metadata-only recorded provider-review proof at next/99");
     expect(platform?.latestNote).toContain("Phase 5 migration hardening now holds proof-backed migration review at next/72");
     expect(platform?.latestNote).toContain("Phase 7 dispatch loop is the current active implementation goal");
+    expect(platform?.latestNote).toContain("offline dispatch-review artifact verification");
     expect(platform?.nextStep).toContain("Advance Phase 7 dispatch loop");
   });
 
@@ -329,7 +330,7 @@ describe("milestone status model", () => {
       averageCompletionPercent: 52,
       nextTarget: "Platform capabilities",
       nextStep:
-        "Advance Phase 7 dispatch loop with dispatch review records as the current active implementation target, keep live worker spawning and Phase 4 provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, migration apply paths, and worker spawning behind owner-reviewed locks.",
+        "Advance Phase 7 dispatch loop with dispatch review records and offline artifact verification as the current active implementation target, keep live worker spawning and Phase 4 provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, migration apply paths, and worker spawning behind owner-reviewed locks.",
       nextCompletionPercent: 62
     });
   });
@@ -475,6 +476,7 @@ describe("milestone status model", () => {
     expect(pmLane?.tone).toBe("active");
     expect(pmLane?.completionPercent).toBe(57);
     expect(pmLane?.latestNote.toLowerCase()).toContain("owner-visible phase 7 dispatch proof");
+    expect(pmLane?.latestNote.toLowerCase()).toContain("offline dispatch-review artifact verification");
     expect(pmLane?.nextStep.toLowerCase()).toContain("test:phase7:owner-visible");
   });
 
