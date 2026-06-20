@@ -23,6 +23,7 @@ export interface Phase4ProviderCatalogDepthRecord {
   readonly readiness: number;
   readonly evidence: string;
   readonly nextAction: string;
+  readonly safety: string;
   readonly executionLocked: boolean;
 }
 
@@ -70,8 +71,9 @@ function buildRecord(
     sourceLabel: surface.sourceLabel,
     total: surface.total,
     readiness: surface.readiness,
-    evidence: `${EVIDENCE_BY_KIND[kind]} ${surface.detail}`,
+    evidence: `${EVIDENCE_BY_KIND[kind]} ${surface.detail} Safety: ${surface.safety}`,
     nextAction: surface.nextAction,
+    safety: surface.safety,
     executionLocked: true
   };
 }

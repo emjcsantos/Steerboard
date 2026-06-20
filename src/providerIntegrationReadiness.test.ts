@@ -79,6 +79,7 @@ describe("provider integration readiness", () => {
     expect(readiness.readiness).toBe(100);
     expect(readiness.counts.ready).toBe(12);
     expect(readiness.counts.blocked).toBe(0);
+    expect(readiness.surfaces.every((surface) => surface.safety === "metadata/status-only")).toBe(true);
   });
 
   it("promotes preview status when any validated provider surface is preview-only", () => {

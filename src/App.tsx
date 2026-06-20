@@ -8177,13 +8177,14 @@ export function ProviderIntegrationReadinessPanel({
                 `provider-catalog-depth-item-${record.status}`
               )}
               key={record.id}
-              title={`${record.evidence} ${record.nextAction}`}
+              title={`${record.evidence} ${record.nextAction} ${record.safety}`}
             >
               <span>{record.statusLabel}</span>
               <div>
                 <strong>{record.label}</strong>
                 <small>{record.sourceLabel}</small>
                 <em>{record.evidence}</em>
+                <small>{record.safety}</small>
                 <small>{record.nextAction}</small>
               </div>
               <b>{record.total}</b>

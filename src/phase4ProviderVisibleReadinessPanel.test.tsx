@@ -144,6 +144,8 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("2");
     expect(html).toContain("scope labels");
     expect(html).toContain("tool policy");
+    expect(html).toContain("non-mutating readiness evidence");
+    expect(html).toContain("metadata/status-only");
     expect(html).toContain("profile-mutation lock");
     expect(html).toContain("Keep provider execution locked");
     expect(html).toContain("approval, audit, rollback, and permission gates");

@@ -85,8 +85,14 @@ describe("phase 4 provider catalog depth", () => {
           evidence: expect.stringContaining("scope labels")
         }),
         expect.objectContaining({
+          kind: "plugin",
+          evidence: expect.stringContaining("non-mutating readiness evidence"),
+          safety: expect.stringContaining("metadata/status-only")
+        }),
+        expect.objectContaining({
           kind: "mcp",
-          evidence: expect.stringContaining("tool policy")
+          evidence: expect.stringContaining("tool policy"),
+          safety: expect.stringContaining("must not execute")
         }),
         expect.objectContaining({
           kind: "personalization",
@@ -180,6 +186,7 @@ describe("phase 4 provider catalog depth", () => {
         record.statusLabel,
         record.sourceLabel,
         record.evidence,
+        record.safety,
         record.nextAction
       ])
     ].join(" ");

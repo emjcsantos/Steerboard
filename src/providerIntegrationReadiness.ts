@@ -35,6 +35,7 @@ export interface ProviderIntegrationReadinessSurface {
   readonly counts: ProviderIntegrationReadinessCounts;
   readonly detail: string;
   readonly nextAction: string;
+  readonly safety: string;
 }
 
 export interface ProviderIntegrationReadiness {
@@ -237,7 +238,8 @@ function buildSurface(
     statusLabel: STATUS_LABELS[state],
     counts,
     detail: `${describeCounts(counts)} Source: ${SOURCE_LABELS[surface.source]}.`,
-    nextAction: NEXT_ACTIONS[state]
+    nextAction: NEXT_ACTIONS[state],
+    safety: surface.safety || CATALOG_REFRESH_OWNER_NO_EXECUTION_SAFETY
   };
 }
 
