@@ -107,7 +107,7 @@ describe("migration traceability", () => {
     expect(summary.reviewDepthCount).toBe(6);
     expect(summary.evidenceKeyCount).toBe(6);
     expect(summary.migrationTraceabilityProof).toContain("items=5/5");
-    expect(summary.migrationTraceabilityProof).toContain("pmLinks=11/11");
+    expect(summary.migrationTraceabilityProof).toContain("pmLinks=12/12");
     expect(summary.migrationTraceabilityProof).toContain("reviewDepth=6/6");
     expect(summary.migrationTraceabilityProof).toContain("trust=held");
     expect(summary.migrationTraceabilityProof).toContain("sourceMutation=locked");

@@ -1626,6 +1626,88 @@ textarea {
   line-height: 1.35;
 }
 
+.migration-apply-implementation-boundary {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #10151b;
+  padding: 8px;
+}
+
+.migration-apply-implementation-boundary-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.migration-apply-implementation-boundary-header strong,
+.migration-apply-implementation-boundary-header span,
+.migration-apply-implementation-boundary p,
+.migration-apply-implementation-boundary-grid dt,
+.migration-apply-implementation-boundary-grid dd {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.migration-apply-implementation-boundary-header strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.migration-apply-implementation-boundary-header span {
+  border: 1px solid #303743;
+  border-radius: 999px;
+  color: #aeb8c4;
+  padding: 2px 7px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.migration-apply-implementation-boundary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  margin: 0;
+}
+
+.migration-apply-implementation-boundary-grid div {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  border: 1px solid #28313b;
+  border-radius: 8px;
+  background: #141a22;
+  padding: 6px;
+}
+
+.migration-apply-implementation-boundary-grid dt {
+  color: #9fa9b4;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.migration-apply-implementation-boundary-grid dd {
+  margin: 0;
+  color: #edf3f8;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.migration-apply-implementation-boundary p {
+  margin: 0;
+  color: #cbd4de;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .migration-review-gate-list {
   display: grid;
   gap: 5px;
@@ -1674,7 +1756,8 @@ textarea {
 .migration-blocker-priority-ready,
 .migration-blocker-priority-item-ready,
 .migration-apply-decision-ready,
-.migration-owner-approval-handoff-ready {
+.migration-owner-approval-handoff-ready,
+.migration-apply-implementation-boundary-ready {
   border-color: #2f6a49;
 }
 
@@ -1685,7 +1768,8 @@ textarea {
 .migration-blocker-priority-review,
 .migration-blocker-priority-item-review,
 .migration-apply-decision-review,
-.migration-owner-approval-handoff-review {
+.migration-owner-approval-handoff-review,
+.migration-apply-implementation-boundary-review {
   border-color: #7a6530;
 }
 
@@ -1696,7 +1780,8 @@ textarea {
 .migration-blocker-priority-waiting,
 .migration-blocker-priority-item-waiting,
 .migration-apply-decision-waiting,
-.migration-owner-approval-handoff-waiting {
+.migration-owner-approval-handoff-waiting,
+.migration-apply-implementation-boundary-waiting {
   border-color: #315977;
 }
 
@@ -1707,7 +1792,8 @@ textarea {
 .migration-blocker-priority-blocked,
 .migration-blocker-priority-item-blocked,
 .migration-apply-decision-blocked,
-.migration-owner-approval-handoff-blocked {
+.migration-owner-approval-handoff-blocked,
+.migration-apply-implementation-boundary-blocked {
   border-color: #633337;
 }
 

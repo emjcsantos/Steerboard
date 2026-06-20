@@ -68,7 +68,8 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-05-child-traceability",
   "phase-05-child-blocker-priority",
   "phase-05-child-apply-decision-gate",
-  "phase-05-child-owner-approval-handoff"
+  "phase-05-child-owner-approval-handoff",
+  "phase-05-child-apply-implementation-boundary"
 ];
 const SAFETY =
   "Phase 5 migration traceability is evidence-only. It links the remaining goal, Project Management rows, migration review-depth evidence keys, sensitive exclusions, rollback/audit coverage, and profile activation lock without applying a migration, changing profiles, copying source data, running commands, or enabling provider execution.";
@@ -224,7 +225,7 @@ function pmCoverageItem(
     label: "PM row coverage",
     kind: "pm-coverage",
     status: "ready",
-    detail: `${goal.pmTaskIds.length} Phase 5 PM task links cover draft workflow, preview metadata, rollback/audit review, review depth, traceability, blocker priority, apply decision, and owner approval handoff rows.`,
+    detail: `${goal.pmTaskIds.length} Phase 5 PM task links cover draft workflow, preview metadata, rollback/audit review, review depth, traceability, blocker priority, apply decision, owner approval handoff, and apply implementation boundary rows.`,
     nextAction: "Keep Phase 5 goal links aligned with the Project Management Epic, Parent, and Child rows."
   };
 }
@@ -361,7 +362,7 @@ function buildMigrationTraceabilityProof(input: {
     `review=${input.items.filter((item) => item.status === "review").length} ` +
     `blocked=${input.items.filter((item) => item.status === "blocked").length} ` +
     `waiting=${input.items.filter((item) => item.status === "waiting").length} ` +
-    `itemKinds=${itemKinds} pmLinks=${input.linkedPmTaskCount}/11 missingPm=${input.missingPmTaskIds.length} ` +
+    `itemKinds=${itemKinds} pmLinks=${input.linkedPmTaskCount}/12 missingPm=${input.missingPmTaskIds.length} ` +
     `reviewDepth=${input.reviewDepthCount}/6 openReview=${input.openReviewRecordCount} ` +
     `evidenceKeys=${input.evidenceKeyCount}/6 trust=${input.canTrustMigrationReview ? "ready" : "held"} ` +
     `sourceMutation=locked profileActivation=locked`

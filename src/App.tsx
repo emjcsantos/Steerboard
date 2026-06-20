@@ -379,6 +379,7 @@ import {
   saveMigrationOwnerApprovalRecord,
   type MigrationOwnerApprovalRecord
 } from "./migrationOwnerApprovalHandoff";
+import { buildMigrationApplyImplementationBoundary } from "./migrationApplyImplementationBoundary";
 import { buildMigrationTraceabilitySummary } from "./migrationTraceability";
 import {
   buildPersonalizationCatalogSnapshot,
@@ -5207,6 +5208,10 @@ export function MigrationReviewGatePanel({
     applyDecisionGate: migrationApplyDecisionGate,
     ownerApprovalRecord: migrationOwnerApprovalRecord
   });
+  const migrationApplyImplementationBoundary = buildMigrationApplyImplementationBoundary({
+    ownerApprovalHandoff: migrationOwnerApprovalHandoff,
+    ownerApprovalRecord: migrationOwnerApprovalRecord
+  });
 
   return (
     <div
@@ -5426,6 +5431,42 @@ export function MigrationReviewGatePanel({
         <p>{migrationOwnerApprovalHandoff.nextAction}</p>
         <small>{migrationOwnerApprovalHandoff.migrationOwnerApprovalHandoffProof}</small>
       </div>
+      <div
+        aria-label={migrationApplyImplementationBoundary.ariaLabel}
+        className={classNames(
+          "migration-apply-implementation-boundary",
+          `migration-apply-implementation-boundary-${migrationApplyImplementationBoundary.state}`
+        )}
+        title={migrationApplyImplementationBoundary.safety}
+      >
+        <div className="migration-apply-implementation-boundary-header">
+          <strong>{migrationApplyImplementationBoundary.label}</strong>
+          <span>{migrationApplyImplementationBoundary.statusLabel}</span>
+        </div>
+        <dl
+          aria-label="Migration apply implementation boundary locks"
+          className="migration-apply-implementation-boundary-grid"
+        >
+          <div>
+            <dt>Enter</dt>
+            <dd>{migrationApplyImplementationBoundary.canEnterApplyImplementation ? "Ready" : "Held"}</dd>
+          </div>
+          <div>
+            <dt>Executor</dt>
+            <dd>{migrationApplyImplementationBoundary.executorAvailable ? "Ready" : "Missing"}</dd>
+          </div>
+          <div>
+            <dt>Apply</dt>
+            <dd>{migrationApplyImplementationBoundary.canApplyMigration ? "Yes" : "No"}</dd>
+          </div>
+          <div>
+            <dt>Mutation</dt>
+            <dd>{migrationApplyImplementationBoundary.sourceMutationLocked ? "Locked" : "Open"}</dd>
+          </div>
+        </dl>
+        <p>{migrationApplyImplementationBoundary.nextAction}</p>
+        <small>{migrationApplyImplementationBoundary.applyImplementationBoundaryProof}</small>
+      </div>
       <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
         {migrationHardeningReadiness.items.map((item) => (
           <li className={`migration-review-item-${item.status}`} key={item.id} title={item.detail}>
@@ -5593,6 +5634,10 @@ function AppDialogSurface({
   });
   const migrationOwnerApprovalHandoff = buildMigrationOwnerApprovalHandoff({
     applyDecisionGate: migrationApplyDecisionGate,
+    ownerApprovalRecord: migrationOwnerApprovalRecord
+  });
+  const migrationApplyImplementationBoundary = buildMigrationApplyImplementationBoundary({
+    ownerApprovalHandoff: migrationOwnerApprovalHandoff,
     ownerApprovalRecord: migrationOwnerApprovalRecord
   });
   const catalogRefreshSafetyDepth = buildPhase4RefreshSafetyDepth(
@@ -6155,6 +6200,42 @@ function AppDialogSurface({
                 </dl>
                 <p>{migrationOwnerApprovalHandoff.nextAction}</p>
                 <small>{migrationOwnerApprovalHandoff.migrationOwnerApprovalHandoffProof}</small>
+              </div>
+              <div
+                aria-label={migrationApplyImplementationBoundary.ariaLabel}
+                className={classNames(
+                  "migration-apply-implementation-boundary",
+                  `migration-apply-implementation-boundary-${migrationApplyImplementationBoundary.state}`
+                )}
+                title={migrationApplyImplementationBoundary.safety}
+              >
+                <div className="migration-apply-implementation-boundary-header">
+                  <strong>{migrationApplyImplementationBoundary.label}</strong>
+                  <span>{migrationApplyImplementationBoundary.statusLabel}</span>
+                </div>
+                <dl
+                  aria-label="Migration apply implementation boundary locks"
+                  className="migration-apply-implementation-boundary-grid"
+                >
+                  <div>
+                    <dt>Enter</dt>
+                    <dd>{migrationApplyImplementationBoundary.canEnterApplyImplementation ? "Ready" : "Held"}</dd>
+                  </div>
+                  <div>
+                    <dt>Executor</dt>
+                    <dd>{migrationApplyImplementationBoundary.executorAvailable ? "Ready" : "Missing"}</dd>
+                  </div>
+                  <div>
+                    <dt>Apply</dt>
+                    <dd>{migrationApplyImplementationBoundary.canApplyMigration ? "Yes" : "No"}</dd>
+                  </div>
+                  <div>
+                    <dt>Mutation</dt>
+                    <dd>{migrationApplyImplementationBoundary.sourceMutationLocked ? "Locked" : "Open"}</dd>
+                  </div>
+                </dl>
+                <p>{migrationApplyImplementationBoundary.nextAction}</p>
+                <small>{migrationApplyImplementationBoundary.applyImplementationBoundaryProof}</small>
               </div>
               <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
                 {migrationHardeningReadiness.items.map((item) => (

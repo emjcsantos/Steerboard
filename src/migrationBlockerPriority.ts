@@ -310,7 +310,7 @@ function buildMigrationBlockerPriorityProof(
     `open=${summary.openBlockerCount} metadataReviewAddressable=${summary.metadataReviewAddressableCount} ` +
     `top=${summary.topPriorityLabel} topActionable=${summary.metadataReviewCanAddressTopBlocker ? "yes" : "no"} ` +
     `traceability=${traceability.canTrustMigrationReview ? "ready" : traceability.state} ` +
-    `pmLinks=${traceability.linkedPmTaskCount}/11 reviewDepth=${traceability.reviewDepthCount}/6 ` +
+    `pmLinks=${traceability.linkedPmTaskCount}/12 reviewDepth=${traceability.reviewDepthCount}/6 ` +
     `evidenceKeys=${traceability.evidenceKeyCount}/6 sourceMutation=locked profileActivation=locked`
   );
 }

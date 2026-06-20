@@ -480,6 +480,9 @@ describe("project management phase plan", () => {
     const blockerPriorityChild = byId.get("phase-05-child-blocker-priority");
     const applyDecisionChild = byId.get("phase-05-child-apply-decision-gate");
     const ownerApprovalHandoffChild = byId.get("phase-05-child-owner-approval-handoff");
+    const applyImplementationBoundaryChild = byId.get(
+      "phase-05-child-apply-implementation-boundary"
+    );
 
     expect(draftParent?.completionPercent).toBeGreaterThanOrEqual(
       profileDraftsChild?.completionPercent ?? 0
@@ -505,19 +508,23 @@ describe("project management phase plan", () => {
     expect(rollbackAuditParent?.completionPercent).toBeGreaterThanOrEqual(
       ownerApprovalHandoffChild?.completionPercent ?? 0
     );
+    expect(rollbackAuditParent?.completionPercent).toBeGreaterThanOrEqual(
+      applyImplementationBoundaryChild?.completionPercent ?? 0
+    );
     expect(previewMetadataChild?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
     );
-    expect(draftParent?.completionPercent).toBe(90);
-    expect(profileDraftsChild?.completionPercent).toBe(90);
-    expect(rollbackAuditParent?.completionPercent).toBe(90);
-    expect(previewMetadataChild?.completionPercent).toBe(90);
-    expect(auditSummaryChild?.completionPercent).toBe(90);
-    expect(reviewDepthChild?.completionPercent).toBe(90);
-    expect(traceabilityChild?.completionPercent).toBe(90);
-    expect(blockerPriorityChild?.completionPercent).toBe(90);
-    expect(applyDecisionChild?.completionPercent).toBe(90);
-    expect(ownerApprovalHandoffChild?.completionPercent).toBe(90);
+    expect(draftParent?.completionPercent).toBe(96);
+    expect(profileDraftsChild?.completionPercent).toBe(96);
+    expect(rollbackAuditParent?.completionPercent).toBe(96);
+    expect(previewMetadataChild?.completionPercent).toBe(96);
+    expect(auditSummaryChild?.completionPercent).toBe(96);
+    expect(reviewDepthChild?.completionPercent).toBe(96);
+    expect(traceabilityChild?.completionPercent).toBe(96);
+    expect(blockerPriorityChild?.completionPercent).toBe(96);
+    expect(applyDecisionChild?.completionPercent).toBe(96);
+    expect(ownerApprovalHandoffChild?.completionPercent).toBe(96);
+    expect(applyImplementationBoundaryChild?.completionPercent).toBe(96);
     expect(profileDraftsChild?.description).toContain("apply-review-staged audit actions");
     expect(profileDraftsChild?.description).toContain("migrationReviewDepthProof");
     expect(profileDraftsChild?.description).toContain("evidenceKeys=6/6");
@@ -541,6 +548,7 @@ describe("project management phase plan", () => {
     expect(previewMetadataChild?.description).toContain("sourceMutation=locked");
     expect(previewMetadataChild?.description).toContain("migrationApplyDecisionProof");
     expect(previewMetadataChild?.description).toContain("migrationOwnerApprovalHandoffProof");
+    expect(previewMetadataChild?.description).toContain("applyImplementationBoundaryProof");
     expect(reviewDepthChild?.description).toContain("six separate ready owner-review records");
     expect(reviewDepthChild?.description).toContain("unique evidence keys");
     expect(reviewDepthChild?.description).toContain("migrationReviewDepthProof");
@@ -558,11 +566,16 @@ describe("project management phase plan", () => {
     expect(blockerPriorityChild?.description).toContain("open=0");
     expect(blockerPriorityChild?.description).toContain("migrationApplyDecisionProof");
     expect(blockerPriorityChild?.description).toContain("migrationOwnerApprovalHandoffProof");
+    expect(blockerPriorityChild?.description).toContain("applyImplementationBoundaryProof");
     expect(applyDecisionChild?.description).toContain("migrationApplyDecisionProof");
     expect(applyDecisionChild?.description).toContain("canApply=no");
     expect(applyDecisionChild?.description).toContain("approval=required");
     expect(ownerApprovalHandoffChild?.description).toContain("migrationOwnerApprovalHandoffProof");
     expect(ownerApprovalHandoffChild?.description).toContain("recorded state");
     expect(ownerApprovalHandoffChild?.description).toContain("canApply=no");
+    expect(applyImplementationBoundaryChild?.description).toContain("applyImplementationBoundaryProof");
+    expect(applyImplementationBoundaryChild?.description).toContain("executor=missing");
+    expect(applyImplementationBoundaryChild?.description).toContain("mutationPath=locked");
+    expect(applyImplementationBoundaryChild?.description).toContain("canApply=no");
   });
 });
