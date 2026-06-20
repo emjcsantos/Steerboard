@@ -311,6 +311,23 @@ const REQUIRED_SURFACE_DEPTH_PROOF_TERMS = [
   "metadataOnly=locked",
   "execution=locked"
 ] as const;
+const REQUIRED_LOCAL_RECORD_VALIDATION_PROOF_TERMS = [
+  "approvalValidation=ready",
+  "auditValidation=ready",
+  "rollbackValidation=ready",
+  "permissionValidation=ready",
+  "approvalChain=present",
+  "auditChain=present",
+  "rollbackChain=present",
+  "permissionChain=present",
+  "auditMutation=locked",
+  "rollbackMutation=locked",
+  "permissionMutation=locked",
+  "permissionSurfaces=6/6",
+  "missingPermissionScopes=none",
+  "metadataOnly=locked",
+  "execution=locked"
+] as const;
 const REQUIRED_APPROVAL_CHAIN_PROOF_TERMS = [
   "catalog=",
   "expectedCatalog=",
@@ -536,6 +553,34 @@ function findSurfaceDepthProofReview(
       detail: `Phase 4 provider review artifact has incomplete surface-depth aggregate proof: missing ${missingTerms.join(", ")}.`,
       nextAction:
         "Re-export Phase 4 provider review evidence after surface-depth aggregate proof includes row status, owner-boundary, metadata-only, and execution-lock terms."
+    };
+  }
+
+  return undefined;
+}
+
+function findLocalRecordValidationProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const localRecordValidationProof =
+    artifact.surfaceDepth.localRecordValidationProof?.trim();
+
+  if (!localRecordValidationProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing local record validation aggregate proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after approval, audit, rollback, and permission validation proof is summarized in surface depth."
+    };
+  }
+
+  const missingTerms = REQUIRED_LOCAL_RECORD_VALIDATION_PROOF_TERMS.filter(
+    (term) => !localRecordValidationProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete local record validation aggregate proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after local record validation proof includes ready validation, chain proof, mutation lock, permission scope, metadata-only, and execution-lock terms."
     };
   }
 
@@ -1132,6 +1177,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       surfaceDepthProofReview.detail,
       surfaceDepthProofReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const localRecordValidationProofReview = findLocalRecordValidationProofReview(artifact);
+  if (localRecordValidationProofReview) {
+    return result(
+      "review",
+      artifact,
+      localRecordValidationProofReview.detail,
+      localRecordValidationProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

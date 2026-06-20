@@ -202,6 +202,23 @@ const requiredSurfaceDepthProofTerms = [
   "metadataOnly=locked",
   "execution=locked"
 ];
+const requiredLocalRecordValidationProofTerms = [
+  "approvalValidation=ready",
+  "auditValidation=ready",
+  "rollbackValidation=ready",
+  "permissionValidation=ready",
+  "approvalChain=present",
+  "auditChain=present",
+  "rollbackChain=present",
+  "permissionChain=present",
+  "auditMutation=locked",
+  "rollbackMutation=locked",
+  "permissionMutation=locked",
+  "permissionSurfaces=6/6",
+  "missingPermissionScopes=none",
+  "metadataOnly=locked",
+  "execution=locked"
+];
 const requiredApprovalChainProofTerms = [
   "catalog=",
   "expectedCatalog=",
@@ -462,6 +479,15 @@ function verifyArtifact(artifact) {
     );
     if (missingTerms.length > 0) {
       throw new Error(`surfaceDepth surfaceDepthProof is missing ${missingTerms.join(", ")}`);
+    }
+  }
+  assertNonEmptyString(surfaceDepth.localRecordValidationProof, "surfaceDepth.localRecordValidationProof");
+  {
+    const missingTerms = requiredLocalRecordValidationProofTerms.filter(
+      (term) => !surfaceDepth.localRecordValidationProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`surfaceDepth localRecordValidationProof is missing ${missingTerms.join(", ")}`);
     }
   }
   for (const requirement of requiredSurfaceOwnerBoundaryProofTerms) {

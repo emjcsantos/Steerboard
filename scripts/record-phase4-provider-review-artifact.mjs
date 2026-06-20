@@ -325,6 +325,11 @@ const surfaceDepthProof =
   "approval=ready audit=ready rollback=ready permission=ready executionLock=ready " +
   "ownerBoundary=present approvalChain=present auditChain=present rollbackChain=present permissionChain=present " +
   "canEnableExecution=locked metadataOnly=locked execution=locked";
+const localRecordValidationProof =
+  "approvalValidation=ready auditValidation=ready rollbackValidation=ready permissionValidation=ready " +
+  "approvalChain=present auditChain=present rollbackChain=present permissionChain=present " +
+  "auditMutation=locked rollbackMutation=locked permissionMutation=locked " +
+  "permissionSurfaces=6/6 missingPermissionScopes=none metadataOnly=locked execution=locked";
 
 const artifact = {
   schemaVersion: 1,
@@ -401,6 +406,7 @@ const artifact = {
     nextAction: "Keep provider execution locked until approval, audit, rollback, permission, and explicit execution gates are implemented.",
     safety: "Recorded Phase 4 surface depth is metadata-only and does not execute provider actions.",
     surfaceDepthProof,
+    localRecordValidationProof,
     ariaLabel: "Phase 4 provider surface depth: Ready; 100% ready.",
     items: [
       surfaceItem("surface-coverage", "Surface coverage", "All six provider surfaces are visible."),

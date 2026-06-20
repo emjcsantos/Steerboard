@@ -297,16 +297,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
-    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate record-chain traceability proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 97,
+    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, and current six-surface fingerprint checks after Phase 3 clears.",
+    completionPercent: 98,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
-        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate record-chain traceability proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 83,
+        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
+        completionPercent: 84,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
@@ -344,32 +344,32 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-approval-record",
             title: "Provider Approval Record",
-            description: "Record and clear local owner approval only when the current six-surface catalog fingerprint, fresh metadata-only refresh-safety proof, structured refresh-safety readiness proof, structured approval-chain proof, mutation lock, and execution lock match, without unlocking audit, rollback, permission, or execution.",
-            completionPercent: 68,
+            description: "Record and clear local owner approval only when the current six-surface catalog fingerprint, fresh metadata-only refresh-safety proof, structured refresh-safety readiness proof, structured approval-chain proof, aggregate local record-validation proof, mutation lock, and execution lock match, without unlocking audit, rollback, permission, or execution.",
+            completionPercent: 70,
             complexity: "high",
             sourceDocument: "Phase 4 provider approval record"
           },
           {
             id: "phase-04-child-audit-record",
             title: "Provider Audit Record",
-            description: "Record and clear local provider audit review only when the current approval record, approval validation state, structured approval-chain proof, current six-surface catalog fingerprint, current surface-depth audit evidence fingerprint, structured audit-chain proof, owner-boundary proof, and mutation lock match, without unlocking rollback, permission, or execution.",
-            completionPercent: 68,
+            description: "Record and clear local provider audit review only when the current approval record, approval validation state, structured approval-chain proof, current six-surface catalog fingerprint, current surface-depth audit evidence fingerprint, structured audit-chain proof, aggregate local record-validation proof, owner-boundary proof, and mutation lock match, without unlocking rollback, permission, or execution.",
+            completionPercent: 70,
             complexity: "high",
             sourceDocument: "Phase 4 provider audit record"
           },
           {
             id: "phase-04-child-rollback-record",
             title: "Provider Rollback Record",
-            description: "Record and clear local provider rollback review only when the current approval record, current audit record, ready audit validation, structured audit-chain proof, current six-surface catalog fingerprint, current audit evidence fingerprint, current surface-depth rollback evidence fingerprint, owner/action evidence, structured rollback-chain proof, and mutation lock match, without unlocking permission or execution.",
-            completionPercent: 68,
+            description: "Record and clear local provider rollback review only when the current approval record, current audit record, ready audit validation, structured audit-chain proof, current six-surface catalog fingerprint, current audit evidence fingerprint, current surface-depth rollback evidence fingerprint, owner/action evidence, structured rollback-chain proof, aggregate local record-validation proof, and mutation lock match, without unlocking permission or execution.",
+            completionPercent: 70,
             complexity: "high",
             sourceDocument: "Phase 4 provider rollback record"
           },
           {
             id: "phase-04-child-permission-record",
             title: "Provider Permission Record",
-            description: "Record and clear local provider permission review only when the current approval, audit, rollback, ready rollback validation, structured rollback-chain proof, six-surface catalog, audit evidence, rollback evidence, surface-depth, permission evidence, owner/scope/action evidence, structured permission-chain proof, and every provider surface scope match while mutation remains locked.",
-            completionPercent: 68,
+            description: "Record and clear local provider permission review only when the current approval, audit, rollback, ready rollback validation, structured rollback-chain proof, six-surface catalog, audit evidence, rollback evidence, surface-depth, permission evidence, owner/scope/action evidence, structured permission-chain proof, aggregate local record-validation proof, and every provider surface scope match while mutation remains locked.",
+            completionPercent: 70,
             complexity: "high",
             sourceDocument: "Phase 4 provider permission record"
           },

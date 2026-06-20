@@ -111,6 +111,12 @@ describe("phase 4 provider surface depth", () => {
     expect(depth.surfaceDepthProof).toContain("setupBlockers=setup-required");
     expect(depth.surfaceDepthProof).toContain("ownerBoundary=review");
     expect(depth.surfaceDepthProof).toContain("metadataOnly=locked execution=locked");
+    expect(depth.localRecordValidationProof).toContain(
+      "approvalValidation=review auditValidation=review rollbackValidation=review permissionValidation=review"
+    );
+    expect(depth.localRecordValidationProof).toContain(
+      "permissionSurfaces=0/6 missingPermissionScopes=none metadataOnly=locked execution=locked"
+    );
     expect(depth.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: "Setup blockers", status: "setup-required" }),
@@ -402,6 +408,16 @@ describe("phase 4 provider surface depth", () => {
     expect(depth.surfaceDepthProof).toContain(
       "canEnableExecution=locked metadataOnly=locked execution=locked"
     );
+    expect(depth.localRecordValidationProof).toContain(
+      "approvalValidation=ready auditValidation=ready rollbackValidation=ready permissionValidation=ready"
+    );
+    expect(depth.localRecordValidationProof).toContain(
+      "approvalChain=present auditChain=present rollbackChain=present permissionChain=present"
+    );
+    expect(depth.localRecordValidationProof).toContain(
+      "auditMutation=locked rollbackMutation=locked permissionMutation=locked permissionSurfaces=6/6 missingPermissionScopes=none"
+    );
+    expect(depth.localRecordValidationProof).toContain("metadataOnly=locked execution=locked");
     expect(depth.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: "Permission gate", status: "ready" }),

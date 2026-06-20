@@ -47,6 +47,7 @@ export interface Phase4ProviderSurfaceDepthSnapshot {
   readonly nextAction: string;
   readonly safety: string;
   readonly surfaceDepthProof: string;
+  readonly localRecordValidationProof: string;
   readonly ariaLabel: string;
   readonly items: readonly Phase4ProviderSurfaceDepthItem[];
 }
@@ -202,6 +203,45 @@ function buildSurfaceDepthProof(input: {
     `rollbackChain=${ownerBoundaryChainState(input.items, "rollback-gate", ["auditValidation=ready", "auditChain=present", "mutation=locked", "execution=locked"])} ` +
     `permissionChain=${ownerBoundaryChainState(input.items, "permission-gate", ["rollbackValidation=ready", "rollbackChain=present", "mutation=locked", "execution=locked"])} ` +
     `canEnableExecution=${input.canEnableExecution ? "enabled" : "locked"} ` +
+    "metadataOnly=locked execution=locked"
+  );
+}
+
+function proofPresent(value: string | undefined): "present" | "review" {
+  return value?.trim() ? "present" : "review";
+}
+
+function stateOrReview(
+  validation:
+    | Phase4ProviderApprovalRecordValidation
+    | Phase4ProviderAuditRecordValidation
+    | Phase4ProviderRollbackRecordValidation
+    | Phase4ProviderPermissionRecordValidation
+    | undefined
+): Phase4ProviderApprovalRecordValidation["state"] {
+  return validation?.state ?? "review";
+}
+
+function buildLocalRecordValidationProof(input: {
+  readonly approvalValidation?: Phase4ProviderApprovalRecordValidation;
+  readonly auditValidation?: Phase4ProviderAuditRecordValidation;
+  readonly rollbackValidation?: Phase4ProviderRollbackRecordValidation;
+  readonly permissionValidation?: Phase4ProviderPermissionRecordValidation;
+}): string {
+  return (
+    `approvalValidation=${stateOrReview(input.approvalValidation)} ` +
+    `auditValidation=${stateOrReview(input.auditValidation)} ` +
+    `rollbackValidation=${stateOrReview(input.rollbackValidation)} ` +
+    `permissionValidation=${stateOrReview(input.permissionValidation)} ` +
+    `approvalChain=${proofPresent(input.approvalValidation?.approvalChainProof)} ` +
+    `auditChain=${proofPresent(input.auditValidation?.auditChainProof)} ` +
+    `rollbackChain=${proofPresent(input.rollbackValidation?.rollbackChainProof)} ` +
+    `permissionChain=${proofPresent(input.permissionValidation?.permissionChainProof)} ` +
+    `auditMutation=${input.auditValidation?.mutationLocked ? "locked" : "review"} ` +
+    `rollbackMutation=${input.rollbackValidation?.mutationLocked ? "locked" : "review"} ` +
+    `permissionMutation=${input.permissionValidation?.mutationLocked ? "locked" : "review"} ` +
+    `permissionSurfaces=${input.permissionValidation?.coveredSurfaceCount ?? 0}/6 ` +
+    `missingPermissionScopes=${input.permissionValidation?.missingSurfaceScopes.join(",") || "none"} ` +
     "metadataOnly=locked execution=locked"
   );
 }
@@ -556,6 +596,12 @@ export function buildPhase4ProviderSurfaceDepth(
       setupRequiredCount,
       heldCount,
       canEnableExecution: false
+    }),
+    localRecordValidationProof: buildLocalRecordValidationProof({
+      approvalValidation,
+      auditValidation,
+      rollbackValidation,
+      permissionValidation
     }),
     items
   };

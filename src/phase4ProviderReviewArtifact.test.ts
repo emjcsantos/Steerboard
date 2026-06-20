@@ -257,6 +257,11 @@ function withReadyLocalRecords(
       "approval=ready audit=ready rollback=ready permission=ready executionLock=ready " +
       "ownerBoundary=present approvalChain=present auditChain=present rollbackChain=present permissionChain=present " +
       "canEnableExecution=locked metadataOnly=locked execution=locked",
+    localRecordValidationProof:
+      "approvalValidation=ready auditValidation=ready rollbackValidation=ready permissionValidation=ready " +
+      "approvalChain=present auditChain=present rollbackChain=present permissionChain=present " +
+      "auditMutation=locked rollbackMutation=locked permissionMutation=locked " +
+      "permissionSurfaces=6/6 missingPermissionScopes=none metadataOnly=locked execution=locked",
     items: artifact.surfaceDepth.items.map((item) => {
       if (item.kind === "approval-gate") {
         return {
@@ -554,6 +559,29 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("surface-depth aggregate proof"),
       nextAction: expect.stringContaining("surface-depth aggregate proof")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing local record validation aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutLocalRecordValidationProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      surfaceDepth: { ...artifact.surfaceDepth, localRecordValidationProof: "" }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutLocalRecordValidationProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("local record validation aggregate proof"),
+      nextAction: expect.stringContaining("approval, audit, rollback, and permission validation proof")
     });
   });
 

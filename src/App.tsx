@@ -8613,6 +8613,7 @@ export function Phase4ProviderSurfaceDepthPanel({
         </ol>
         <small title={snapshot.safety}>{snapshot.safety}</small>
         <small>{snapshot.surfaceDepthProof}</small>
+        <small>{snapshot.localRecordValidationProof}</small>
       </div>
     </section>
   );

@@ -366,6 +366,9 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("items=9/9 ready=9 preview=0 setupRequired=0 held=0");
     expect(html).toContain("ownerBoundary=present approvalChain=present auditChain=present rollbackChain=present permissionChain=present");
     expect(html).toContain("canEnableExecution=locked metadataOnly=locked execution=locked");
+    expect(html).toContain("approvalValidation=ready auditValidation=ready rollbackValidation=ready permissionValidation=ready");
+    expect(html).toContain("approvalChain=present auditChain=present rollbackChain=present permissionChain=present");
+    expect(html).toContain("permissionSurfaces=6/6 missingPermissionScopes=none metadataOnly=locked execution=locked");
     expect(html).toContain("Expected rollback phase4-provider-rollback:2026-06-18T10:20:00.000Z");
     expect(html).toContain("Covered surfaces 6/6; missing scopes none.");
     expect(html).toContain("refreshSafety=ready ready=8 preview=0 blocked=0");
