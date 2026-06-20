@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   buildInitialPanelChat,
+  buildPanelLiveTurnEvidence,
   codexSessionStateToPanelMessages,
   createPanelLiveErrorMessage,
+  createPanelLiveRecoveryMessage,
   createPanelLiveStatusMessage,
+  createPanelLiveTurnEvidenceMessage,
   createPanelSlashCommandStatusMessage,
   panelSlashCommands,
   createPanelReplyMessage,
@@ -274,6 +277,92 @@ describe("panel chat helpers", () => {
       label: "Codex connection",
       body: "Transport failed",
       meta: "live error"
+    });
+  });
+
+  it("summarizes live turn stream evidence and recovery guidance", () => {
+    const evidence = buildPanelLiveTurnEvidence({
+      source: "desktop",
+      panelId: "panel-1",
+      sessionId: "session-1",
+      threadId: "thread-1",
+      turnId: "turn-1",
+      completed: true,
+      interrupted: false,
+      failed: false,
+      events: [
+        {
+          method: "codex.event",
+          eventType: "agent_delta",
+          turnId: "turn-1",
+          status: null,
+          delta: "hello",
+          message: null
+        },
+        {
+          method: "codex.event",
+          eventType: "turn_status",
+          turnId: "turn-1",
+          status: "completed",
+          delta: null,
+          message: "done"
+        }
+      ],
+      transcript: "hello",
+      detail: "Completed."
+    });
+
+    expect(evidence).toMatchObject({
+      state: "ready",
+      eventCount: 2,
+      agentDeltaCount: 1,
+      turnStatusCount: 1,
+      transcriptLength: 5,
+      completed: true
+    });
+    expect(createPanelLiveTurnEvidenceMessage(session, 20, evidence)).toMatchObject({
+      role: "system",
+      label: "Live evidence",
+      meta: "live evidence ready",
+      body: expect.stringContaining("streamProof")
+    });
+  });
+
+  it("marks failed live turns blocked and creates scoped recovery evidence", () => {
+    const evidence = buildPanelLiveTurnEvidence({
+      source: "desktop",
+      panelId: "panel-1",
+      sessionId: "session-1",
+      threadId: "thread-1",
+      turnId: "turn-1",
+      completed: false,
+      interrupted: false,
+      failed: true,
+      events: [
+        {
+          method: "codex.event",
+          eventType: "error",
+          turnId: "turn-1",
+          status: "failed",
+          delta: null,
+          message: "network reset"
+        }
+      ],
+      transcript: "",
+      detail: "Failed."
+    });
+
+    expect(evidence).toMatchObject({
+      state: "blocked",
+      errorCount: 1,
+      failed: true,
+      nextAction: expect.stringContaining("retry")
+    });
+    expect(createPanelLiveRecoveryMessage(session, 21, "network reset", "retry me")).toMatchObject({
+      role: "system",
+      label: "Recovery",
+      meta: "live recovery",
+      body: expect.stringContaining("original prompt preserved")
     });
   });
 

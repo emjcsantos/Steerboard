@@ -328,9 +328,12 @@ import {
   createPanelSlashCommandStatusMessage,
   getPanelSlashCommandDecision,
   getPanelSlashCommandSuggestions,
+  buildPanelLiveTurnEvidence,
   loadPanelChatMessages,
   panelSlashCommands,
   savePanelChatMessages,
+  createPanelLiveRecoveryMessage,
+  createPanelLiveTurnEvidenceMessage,
   type PanelChatMessage,
   type PanelSlashCommandDecision,
   type PanelSlashCommand
@@ -7019,6 +7022,12 @@ function SessionCell({
         normalizeCodexPanelTurnResultEvents(result, trimmedMessage)
       );
       const nextMessages = codexSessionStateToPanelMessages(session, state, liveMessageSequenceStart);
+      const turnEvidence = buildPanelLiveTurnEvidence(result);
+      const turnEvidenceMessage = createPanelLiveTurnEvidenceMessage(
+        session,
+        liveMessageSequenceStart + nextMessages.length,
+        turnEvidence
+      );
       const statusMessages = result.failed || result.interrupted || nextMessages.length === 0
         ? [
             result.failed
@@ -7054,6 +7063,7 @@ function SessionCell({
       setChatMessages((currentMessages) => [
         ...currentMessages.filter((message) => message.id !== pendingMessage.id),
         ...nextMessages,
+        turnEvidenceMessage,
         ...statusMessages
       ]);
     } catch (error) {
@@ -7063,7 +7073,13 @@ function SessionCell({
       onPanelSessionStatus?.(session.id, "error", message);
       setChatMessages((currentMessages) => [
         ...currentMessages.filter((item) => item.id !== pendingMessage.id),
-        createPanelLiveErrorMessage(session, liveMessageSequenceStart, message)
+        createPanelLiveErrorMessage(session, liveMessageSequenceStart, message),
+        createPanelLiveRecoveryMessage(
+          session,
+          liveMessageSequenceStart + 1,
+          message,
+          trimmedMessage
+        )
       ]);
     }
   }

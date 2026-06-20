@@ -55,8 +55,8 @@ Do not proceed to the next section until the current item is at least `review`.
    - Optionally run `npm.cmd run smoke:phase3` to execute the opt-in live-control, active-turn interrupt, and active-turn steer desktop smoke tests. This can send tiny read-only prompts through the local runtime and is intentionally excluded from normal tests.
    - Optionally run `npm.cmd run smoke:phase3:record:all` to execute the Phase 3 smoke command, write `local_private/phase3-command-validation-record.json`, `local_private/phase3-smoke-proof-bundle.json`, and record `local_private/phase3-panel-evidence-record.json` from a real local app-server panel turn for Owner Testing review. Run `npm.cmd run smoke:phase3:verify` before owner review to confirm the command and smoke bundle artifacts are present, passed, and backed by three desktop-executed proof rows. In desktop mode, or in a local browser preview served from `127.0.0.1` or `localhost`, use the Owner Testing `Load proof artifacts` button to read those known local artifacts directly; otherwise use the file import controls. The command-validation artifact records CLI validation only; the smoke-proof bundle carries the desktop-executed proof rows; the panel-evidence artifact carries slash/session evidence into the focused Arena panel through the normal storage-proof filter.
 3. `Chat`
-   - Send a test message and verify response capture and interruption controls.
-   - Confirm the same session can continue after transient stalls.
+   - Send a test message and verify response capture, interruption controls, and the live evidence row with stream counts, terminal status/error counts, transcript length, and completion/interruption/failure flags.
+   - Confirm the same session can continue after transient stalls and that failed live turns show a recovery row with preserved prompt status and panel-scoped retry guidance.
 4. `Multi-Panel`
    - Open two or more panels and switch focus repeatedly.
    - Verify each panel preserves its own session context and activity state.

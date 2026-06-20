@@ -1,5 +1,10 @@
 import type { SessionSummary } from "./fixtures";
-import type { CodexSessionMessage, CodexSessionState } from "./codexSession";
+import type {
+  CodexPanelEventPayload,
+  CodexPanelTurnResultPayload,
+  CodexSessionMessage,
+  CodexSessionState
+} from "./codexSession";
 import {
   buildCommandExecutionDecision,
   defaultCommandCatalog,
@@ -31,6 +36,24 @@ export interface PanelSlashCommandDecision {
   feedback: CommandExecutionFeedback;
   route: PanelSlashCommandRoute;
   state: CommandCatalogState | "unknown";
+}
+
+export type PanelLiveTurnEvidenceState = "ready" | "review" | "blocked";
+
+export interface PanelLiveTurnEvidence {
+  state: PanelLiveTurnEvidenceState;
+  statusLabel: string;
+  eventCount: number;
+  agentDeltaCount: number;
+  turnStatusCount: number;
+  errorCount: number;
+  unknownEventCount: number;
+  transcriptLength: number;
+  completed: boolean;
+  interrupted: boolean;
+  failed: boolean;
+  detail: string;
+  nextAction: string;
 }
 
 export const PANEL_CHAT_STORAGE_KEY = "steerboard.panel.chat.v1";
@@ -66,6 +89,17 @@ function isPanelChatMessage(value: unknown): value is PanelChatMessage {
     typeof value.body === "string" &&
     typeof value.meta === "string"
   );
+}
+
+function eventType(event: CodexPanelEventPayload): string {
+  return event.eventType || event.method || "unknown";
+}
+
+function countEvents(
+  events: readonly CodexPanelEventPayload[],
+  predicate: (event: CodexPanelEventPayload) => boolean
+): number {
+  return events.filter(predicate).length;
 }
 
 export function buildInitialPanelChat(session: SessionSummary): PanelChatMessage[] {
@@ -261,6 +295,91 @@ export function createPanelLiveErrorMessage(
     label: "Codex connection",
     body,
     meta: "live error"
+  };
+}
+
+export function buildPanelLiveTurnEvidence(
+  result: CodexPanelTurnResultPayload
+): PanelLiveTurnEvidence {
+  const events = result.events;
+  const agentDeltaCount = countEvents(
+    events,
+    (event) => eventType(event) === "agent_delta" && Boolean(event.delta)
+  );
+  const turnStatusCount = countEvents(events, (event) => eventType(event) === "turn_status");
+  const errorCount = countEvents(events, (event) => eventType(event) === "error");
+  const unknownEventCount = countEvents(
+    events,
+    (event) => !["agent_delta", "turn_status", "error"].includes(eventType(event))
+  );
+  const transcriptLength = result.transcript.trim().length;
+  const hasStreamSignal = agentDeltaCount > 0 || transcriptLength > 0;
+  const hasTerminalSignal = turnStatusCount > 0 || result.completed || result.interrupted || result.failed;
+  const state: PanelLiveTurnEvidenceState = result.failed
+    ? "blocked"
+    : result.interrupted || !hasStreamSignal || !hasTerminalSignal
+      ? "review"
+      : "ready";
+  const statusLabel = state === "ready" ? "Ready" : state === "blocked" ? "Blocked" : "Review";
+  const detail =
+    `streamProof events=${events.length} deltas=${agentDeltaCount} turnStatus=${turnStatusCount} ` +
+    `errors=${errorCount} unknown=${unknownEventCount} transcriptChars=${transcriptLength} ` +
+    `completed=${result.completed ? "yes" : "no"} interrupted=${result.interrupted ? "yes" : "no"} failed=${result.failed ? "yes" : "no"}.`;
+  const nextAction = result.failed
+    ? "Keep the failed turn evidence attached, retry only after checking provider/session state, and preserve the original prompt for recovery."
+    : result.interrupted
+      ? "Keep interruption evidence attached and retry or steer only after the owner confirms the next action."
+      : state === "ready"
+        ? "Keep live stream and completion evidence attached to the panel transcript."
+        : "Review stream and completion evidence before treating this panel turn as hardened.";
+
+  return {
+    state,
+    statusLabel,
+    eventCount: events.length,
+    agentDeltaCount,
+    turnStatusCount,
+    errorCount,
+    unknownEventCount,
+    transcriptLength,
+    completed: result.completed,
+    interrupted: result.interrupted,
+    failed: result.failed,
+    detail,
+    nextAction
+  };
+}
+
+export function createPanelLiveTurnEvidenceMessage(
+  session: SessionSummary,
+  sequence: number,
+  evidence: PanelLiveTurnEvidence
+): PanelChatMessage {
+  return {
+    id: `${session.id}:live-evidence:${sequence}`,
+    role: "system",
+    label: "Live evidence",
+    body: `${evidence.statusLabel}: ${evidence.detail} ${evidence.nextAction}`,
+    meta: `live evidence ${evidence.state}`
+  };
+}
+
+export function createPanelLiveRecoveryMessage(
+  session: SessionSummary,
+  sequence: number,
+  errorMessage: string,
+  lastPrompt = ""
+): PanelChatMessage {
+  const promptStatus = lastPrompt.trim().length > 0 ? "original prompt preserved" : "original prompt missing";
+
+  return {
+    id: `${session.id}:live-recovery:${sequence}`,
+    role: "system",
+    label: "Recovery",
+    body:
+      `Recovery evidence: live turn failed with "${errorMessage}". ${promptStatus}; ` +
+      "retry remains gated by session-control readiness and should preserve panel scope.",
+    meta: "live recovery"
   };
 }
 
