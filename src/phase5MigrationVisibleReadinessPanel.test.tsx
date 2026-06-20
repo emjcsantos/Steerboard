@@ -64,7 +64,7 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("Migration hardening is preview/apply-intent metadata only");
     expect(html).toContain("Phase 5 migration traceability");
     expect(html).toContain("pmLinks=9/9");
-    expect(html).toContain("trust=held");
+    expect(html).toContain("trust=ready");
     expect(html).toContain("Phase 5 migration blocker priority");
     expect(html).toContain("metadataReviewAddressable=");
   });
@@ -108,7 +108,7 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("Phase 5 migration traceability");
     expect(html).toContain("Phase 5 migration blocker priority");
     expect(html).toContain("records=6/6");
-    expect(html).toContain("top priority Remaining goal link");
+    expect(html).toContain("top priority No open Phase 5 migration blocker");
     expect(html).not.toContain("has not recorded a local apply-review-staged audit action yet");
     expect(html).not.toContain("top priority Apply review staging");
     expect(html).not.toContain("Review required");

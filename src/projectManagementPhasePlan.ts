@@ -422,7 +422,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-05-migration-center",
     title: "Phase 5: Migration Center",
     description: "Turn the metadata-only migration foundations into a guarded, review-first migration workflow with apply-intent locks, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, migrationReviewDepthProof, migrationTraceabilityProof, and migrationBlockerPriorityProof.",
-    completionPercent: 65,
+    completionPercent: 66,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -430,7 +430,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-05-parent-draft-workflow",
         title: "Migration Draft Workflow",
         description: "Create, persist, preview, review, and stage metadata-only apply intent for migration profile drafts with migrationReviewDepthProof before any mutation-capable action.",
-        completionPercent: 65,
+        completionPercent: 66,
         complexity: "high",
         sourceDocument: "Migration Center",
         children: [
@@ -438,14 +438,14 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-profile-drafts",
             title: "Profile Draft Persistence",
             description: "Persist migration profiles, draft history, import state, evidence fingerprints, apply-review-staged audit actions, rollback notes, audit summaries, and migrationReviewDepthProof locally without changing active profiles or source data.",
-            completionPercent: 65,
+            completionPercent: 66,
             sourceDocument: "Migration model"
           },
           {
             id: "phase-05-child-preview-metadata",
             title: "Metadata Preview",
             description: "Show migration impact, selected metadata category counts, review-gate previews, sensitive-exclusion evidence keys, unsupported category visibility, migrationReviewDepthProof, and no-private-content/no-external-action boundaries.",
-            completionPercent: 65,
+            completionPercent: 66,
             sourceDocument: "Migration Center"
           }
         ]
@@ -454,7 +454,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-05-parent-rollback-audit",
         title: "Rollback and Audit Review",
         description: "Make rollback strategy, review-depth records, fingerprint-matched audit evidence, unique evidence keys, sensitive-boundary traceability, migrationTraceabilityProof, migrationBlockerPriorityProof, and source-mutation locks mandatory before migration work can leave review-only mode.",
-        completionPercent: 65,
+        completionPercent: 66,
         complexity: "high",
         sourceDocument: "Permissions and audit",
         children: [
@@ -462,14 +462,14 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-audit-summary",
             title: "Audit Summary Review",
             description: "Surface who, what, when, risk level, draft/audit fingerprint match, selected/review-required/unsupported category counts, apply-intent lock, rollback path, and migrationReviewDepthProof for every migration draft.",
-            completionPercent: 65,
+            completionPercent: 66,
             sourceDocument: "Migration audit summary"
           },
           {
             id: "phase-05-child-review-depth",
             title: "Migration Review Depth",
             description: "Show apply-intent lock, local apply-review-staged audit proof, rollback evidence, fingerprint-matched audit consistency, sensitive exclusions, profile activation lock, and migrationReviewDepthProof as six separate owner-review records with unique evidence keys.",
-            completionPercent: 65,
+            completionPercent: 66,
             complexity: "high",
             sourceDocument: "Migration review gate"
           },
@@ -477,7 +477,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-traceability",
             title: "Migration Traceability",
             description: "Link Phase 5 remaining-goal status, PM child rows, migration review-depth evidence keys, draft/audit fingerprint coverage, sensitive exclusions, rollback/audit coverage, migrationTraceabilityProof, source-mutation locks, and the profile activation lock before apply review can advance.",
-            completionPercent: 65,
+            completionPercent: 66,
             complexity: "high",
             sourceDocument: "Phase 5 migration traceability"
           },
@@ -485,7 +485,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-blocker-priority",
             title: "Migration Blocker Priority",
             description: "Rank exact Phase 5 blockers across migration hardening, review-depth records, traceability, apply intent, rollback, fingerprint-matched audit, sensitive exclusions, migrationBlockerPriorityProof, source-mutation locks, and profile activation lock before apply review advances, while keeping remaining-goal and PM traceability repairs out of metadata-review actions.",
-            completionPercent: 65,
+            completionPercent: 66,
             complexity: "medium",
             sourceDocument: "Phase 5 migration blocker priority"
           }

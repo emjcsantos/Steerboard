@@ -358,7 +358,8 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("kindOrder=command|skill|plugin|mcp|automation|personalization");
     expect(html).toContain("pairOrder=command|skill");
     expect(html).toContain("pairOrder=plugin|mcp");
-    expect(html).toContain("Phase 4 provider review artifact contains current catalog depth");
+    expect(html).toContain("Keep Phase 4 provider review held");
+    expect(html).toContain("current active goal is goal-phase-5-migration-hardening");
     expect(html).toContain("owner-visible provider readiness check");
     expect(html).toContain("Export review");
     expect(html).toContain("Import review");
@@ -411,16 +412,16 @@ describe("phase 4 provider visible readiness panel", () => {
       "recordFreshness=fresh owner=present scope=present action=present mutation=locked execution=locked"
     );
     expect(html).toContain("active-goal");
-    expect(html).toContain("items=7/7 ready=7 preview=0 setupRequired=0 held=0");
+    expect(html).toContain("items=7/7 ready=6 preview=1 setupRequired=0 held=0");
     expect(html).toContain(
       "itemKinds=active-goal|pm-coverage|catalog-depth|refresh-safety|surface-depth|record-chain|execution-lock"
     );
     expect(html).toContain("pmLinks=15/15 missingPm=0");
-    expect(html).toContain("recordChain=ready executionLocks=6/6 trust=ready");
-    expect(html).toContain("open=0 catalogSmokeAddressable=0");
-    expect(html).toContain("topSource=phase4.provider-blocker.none topKind=none");
-    expect(html).toContain("topStatus=ready topEvidence=phase-04-provider-blocker:none");
-    expect(html).toContain("catalogSmokeTop=no recordChain=ready traceability=ready");
+    expect(html).toContain("recordChain=ready executionLocks=6/6 trust=review");
+    expect(html).toContain("open=1 catalogSmokeAddressable=0");
+    expect(html).toContain("topSource=phase-04-provider-traceability:active-goal topKind=traceability");
+    expect(html).toContain("topStatus=preview topEvidence=phase-04-traceability:active-goal");
+    expect(html).toContain("catalogSmokeTop=no recordChain=ready traceability=review");
     expect(html).toContain("Phase 4 provider blocker priority");
     expect(html).toContain("Remaining goal link");
     expect(html).toContain("phase4-provider-permission-current");
@@ -431,15 +432,15 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("does not execute commands");
     expect(html).toContain("without running provider actions");
     expect(html).toContain("metadata-only");
-    expect(traceability.canTrustProviderReview).toBe(true);
+    expect(traceability.canTrustProviderReview).toBe(false);
     expect(traceability.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: "active-goal", status: "ready" })
+        expect.objectContaining({ kind: "active-goal", status: "preview" })
       ])
     );
-    expect(blockerPriority.state).toBe("ready");
+    expect(blockerPriority.state).toBe("preview");
     expect(reviewArtifactVerification).toMatchObject({
-      state: "ready",
+      state: "review",
       executionLocked: true
     });
   });

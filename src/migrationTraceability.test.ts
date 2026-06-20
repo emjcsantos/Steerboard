@@ -65,7 +65,17 @@ function withCurrentPhase5Goal() {
 function withCurrentNextPhase5Goal() {
   return remainingGoalPlan.map((goal) =>
     goal.id === "goal-phase-5-migration-hardening"
-      ? { ...goal, current: true }
+      ? { ...goal, status: "next" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
+function withNextPhase5Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-5-migration-hardening"
+      ? { ...goal, status: "next" as const, current: false }
       : goal.current
         ? { ...goal, current: false }
         : goal
@@ -74,7 +84,7 @@ function withCurrentNextPhase5Goal() {
 
 function withDuplicateCurrentActivePhase5Goal() {
   return remainingGoalPlan.map((goal) =>
-    goal.id === "goal-phase-5-migration-hardening"
+    goal.id === "goal-phase-4-provider-surfaces"
       ? { ...goal, status: "active" as const, current: true }
       : goal
   );
@@ -82,7 +92,10 @@ function withDuplicateCurrentActivePhase5Goal() {
 
 describe("migration traceability", () => {
   it("keeps Phase 5 migration traceability waiting while Phase 5 is only next", () => {
-    const summary = buildMigrationTraceabilitySummary({ readiness: readyReadiness() });
+    const summary = buildMigrationTraceabilitySummary({
+      readiness: readyReadiness(),
+      goals: withNextPhase5Goal()
+    });
 
     expect(summary.state).toBe("waiting");
     expect(summary.canTrustMigrationReview).toBe(false);

@@ -78,6 +78,16 @@ function withCurrentPhase5Goal() {
   );
 }
 
+function withNextPhase5Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-5-migration-hardening"
+      ? { ...goal, status: "next" as const, current: false }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("migration blocker priority", () => {
   it("ranks apply-intent review-depth blockers ahead of related waiting evidence", () => {
     const snapshot = priority();
@@ -184,14 +194,15 @@ describe("migration blocker priority", () => {
     const snapshot = priority({
       preview: selectedPreview(),
       draftHistory: historyForStagedAcceptedDraft(),
-      excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded", "Source mutation excluded"]
+      excludedSecretsSummary: ["Credentials excluded", "Raw transcripts excluded", "Source mutation excluded"],
+      goals: withNextPhase5Goal()
     });
 
     expect(snapshot.state).toBe("waiting");
     expect(snapshot.topPriorityLabel).toBe("Remaining goal link");
     expect(snapshot.metadataReviewCanAddressTopBlocker).toBe(false);
     expect(snapshot.topPriorityAction).not.toContain("Run metadata review");
-    expect(snapshot.topPriorityAction).toContain("Migration review gate");
+    expect(snapshot.topPriorityAction).toContain("exactly one current active remaining goal");
     expect(snapshot.items[0]).toMatchObject({
       kind: "traceability",
       status: "waiting",

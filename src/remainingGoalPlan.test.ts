@@ -32,9 +32,9 @@ describe("remaining goal plan", () => {
       planned: 0,
       paused: 0,
       averageCompletionPercent: 77,
-      currentTarget: "Provider integration surfaces",
+      currentTarget: "Migration Center hardening",
       currentNextAction:
-        "Use the Phase 4 Provider Readiness catalog depth, structured catalog-depth aggregate proof, structured command/skill aggregate proof, command/skill catalog item-order, source, metadata, evidence-key, scoped command, skill invocation, and execution-lock proof, structured plugin/MCP aggregate proof, plugin/MCP item-order, source, metadata-only surface, scoped plugin surface, scoped MCP transport/tool-policy, and execution-lock proof, owner-visible plugin/MCP metadata-only safety evidence, Refresh Safety depth, structured all-catalog refresh-smoke proof with compact per-surface state proof, structured refresh-safety depth aggregate proof, reload-safe recorded metadata-only proof, Surface Depth owner-boundary proof, structured surface-depth aggregate proof with record-chain coverage, aggregate local record-validation proof, local approval, structured approval-chain, structured audit-chain with approval-validation linkage, structured rollback-chain with audit-validation linkage, structured permission-chain with rollback-validation linkage, and permission record validation, owner-visible rollback and permission record-chain evidence, visible record-enable gates, explicit aggregate record-chain traceability proof, tested recorded provider-review artifact loading with offline fingerprint verification, attached local record evidence, missing-record review enforcement, owner-visible missing-record proof, catalog-depth aggregate artifact enforcement, command/skill aggregate artifact enforcement with item-order/source/metadata proof, plugin/MCP aggregate artifact enforcement with item-order/source/metadata proof, refresh-smoke artifact enforcement, refresh-safety depth aggregate artifact enforcement, approval validation chain-proof artifact enforcement, audit validation chain-proof artifact enforcement, rollback validation chain-proof artifact enforcement, permission validation chain-proof artifact enforcement, local record-validation aggregate artifact enforcement, surface-depth aggregate chain artifact enforcement, surface owner-boundary artifact enforcement, compact top-blocker source/evidence/status proof with record-chain detail, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered.",
+        "Use the Migration review gate as the current active implementation target with migrationReviewDepthProof, migrationTraceabilityProof, migrationBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, and keep profile activation locked before any migration apply path.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -49,7 +49,7 @@ describe("remaining goal plan", () => {
     const traces = buildRemainingGoalPriorityTraces();
 
     expect(traces.map((trace) => trace.goalId).slice(0, 2)).toEqual([
-      "goal-phase-4-provider-surfaces",
+      "goal-phase-5-migration-hardening",
       "goal-phase-1-2-6-publish"
     ]);
     expect(traces).toEqual(
@@ -131,10 +131,10 @@ describe("remaining goal plan", () => {
     const queue = buildRemainingGoalPriorityQueue();
 
     expect(queue.map((goal) => goal.id).slice(0, 4)).toEqual([
-      "goal-phase-4-provider-surfaces",
+      "goal-phase-5-migration-hardening",
       "goal-phase-1-2-6-publish",
       "goal-phase-3-proof-clearance",
-      "goal-phase-11-release-readiness"
+      "goal-phase-4-provider-surfaces"
     ]);
     expect(queue[0]).toMatchObject({
       current: true,
@@ -156,7 +156,7 @@ describe("remaining goal plan", () => {
     const queue = buildRemainingGoalPriorityQueue(staleCurrentNextGoals);
 
     expect(queue.map((goal) => goal.id).slice(0, 3)).toEqual([
-      "goal-phase-4-provider-surfaces",
+      "goal-phase-5-migration-hardening",
       "goal-phase-1-2-6-publish",
       "goal-phase-3-proof-clearance"
     ]);
@@ -179,7 +179,7 @@ describe("remaining goal plan", () => {
       current: false,
       status: "next"
     });
-    expect(traces.find((trace) => trace.goalId === "goal-phase-4-provider-surfaces")).toMatchObject({
+    expect(traces.find((trace) => trace.goalId === "goal-phase-5-migration-hardening")).toMatchObject({
       current: true,
       status: "active"
     });
@@ -290,12 +290,12 @@ describe("remaining goal plan", () => {
   it("separates the blocked owner hold from the active implementation target", () => {
     const summary = summarizeRemainingGoalPlan();
 
-    expect(summary.currentTarget).toBe("Provider integration surfaces");
-    expect(summary.currentNextAction).toContain("Phase 4 Provider Readiness catalog depth");
+    expect(summary.currentTarget).toBe("Migration Center hardening");
+    expect(summary.currentNextAction).toContain("current active implementation target");
     expect(summary.ownerHoldTarget).toBe("Unblock Phase 1/2/6 publishing");
     expect(summary.ownerHoldNextAction).toContain("owner says to push");
     expect(summary.priorityGoalTraces[0]).toMatchObject({
-      goalId: "goal-phase-4-provider-surfaces",
+      goalId: "goal-phase-5-migration-hardening",
       current: true
     });
     expect(summary.priorityGoalTraces[1]).toMatchObject({
@@ -306,13 +306,13 @@ describe("remaining goal plan", () => {
   });
 
   it("identifies only the current active remaining goal as implementation-trustable", () => {
-    const phase4Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-4-provider-surfaces");
+    const phase5Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-5-migration-hardening");
 
-    expect(findCurrentActiveRemainingGoals()).toEqual([phase4Goal]);
-    expect(isCurrentActiveRemainingGoal(phase4Goal)).toBe(true);
-    expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, current: false })).toBe(false);
-    expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, status: "next" })).toBe(false);
-    expect(isCurrentActiveRemainingGoal({ ...phase4Goal!, status: "active", current: true })).toBe(true);
+    expect(findCurrentActiveRemainingGoals()).toEqual([phase5Goal]);
+    expect(isCurrentActiveRemainingGoal(phase5Goal)).toBe(true);
+    expect(isCurrentActiveRemainingGoal({ ...phase5Goal!, current: false })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase5Goal!, status: "next" })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase5Goal!, status: "active", current: true })).toBe(true);
     expect(isCurrentActiveRemainingGoal(undefined)).toBe(false);
   });
 
@@ -325,10 +325,10 @@ describe("remaining goal plan", () => {
 
     expect(findCurrentActiveRemainingGoals(duplicateCurrentGoals).map((goal) => goal.id)).toEqual([
       "goal-phase-3-proof-clearance",
-      "goal-phase-4-provider-surfaces"
+      "goal-phase-5-migration-hardening"
     ]);
     expect(findRemainingGoalPlanIssues(duplicateCurrentGoals)).toContain(
-      "Remaining goals must have exactly one current active goal; found 2: goal-phase-3-proof-clearance, goal-phase-4-provider-surfaces."
+      "Remaining goals must have exactly one current active goal; found 2: goal-phase-3-proof-clearance, goal-phase-5-migration-hardening."
     );
   });
 
@@ -340,7 +340,7 @@ describe("remaining goal plan", () => {
     );
 
     expect(findCurrentActiveRemainingGoals(staleCurrentGoals).map((goal) => goal.id)).toEqual([
-      "goal-phase-4-provider-surfaces"
+      "goal-phase-5-migration-hardening"
     ]);
     expect(findRemainingGoalPlanIssues(staleCurrentGoals)).toContain(
       "Remaining goal goal-phase-3-proof-clearance is marked current but has status next; current goals must be active."
@@ -351,14 +351,16 @@ describe("remaining goal plan", () => {
     const staleCurrentGoals = remainingGoalPlan.map((goal) =>
       goal.id === "goal-phase-3-proof-clearance"
         ? { ...goal, current: false }
-        : goal.id === "goal-phase-4-provider-surfaces"
-          ? { ...goal, current: true }
-          : goal
+        : goal.id === "goal-phase-5-migration-hardening"
+          ? { ...goal, current: false }
+          : goal.id === "goal-phase-4-provider-surfaces"
+            ? { ...goal, current: true }
+            : goal
     );
     const summary = summarizeRemainingGoalPlan(staleCurrentGoals);
 
-    expect(summary.currentTarget).toBe("Provider integration surfaces");
-    expect(summary.currentNextAction).toContain("Phase 4 Provider Readiness catalog depth");
+    expect(summary.currentTarget).toBe("Migration Center hardening");
+    expect(summary.currentNextAction).toContain("current active implementation target");
   });
 
   it("keeps the Phase 9 runner approval target linked to traceability, approval depth, and blocker priority", () => {
@@ -464,34 +466,35 @@ describe("remaining goal plan", () => {
     expect(phase5Goal).toMatchObject({
       target: "Migration Center hardening",
       priority: "high",
-      status: "next",
-      completionPercent: 65
+      status: "active",
+      current: true,
+      completionPercent: 66
     });
-    expect(phase5Epic?.completionPercent).toBe(65);
+    expect(phase5Epic?.completionPercent).toBe(66);
     expect(phase5Epic?.description).toContain("migrationReviewDepthProof");
     expect(phase5Epic?.description).toContain("migrationTraceabilityProof");
     expect(phase5Epic?.description).toContain("migrationBlockerPriorityProof");
-    expect(profileDraftsChild?.completionPercent).toBe(65);
+    expect(profileDraftsChild?.completionPercent).toBe(66);
     expect(profileDraftsChild?.description).toContain("apply-review-staged audit actions");
     expect(profileDraftsChild?.description).toContain("migrationReviewDepthProof");
     expect(profileDraftsChild?.description).toContain("without changing active profiles or source data");
-    expect(previewMetadataChild?.completionPercent).toBe(65);
+    expect(previewMetadataChild?.completionPercent).toBe(66);
     expect(previewMetadataChild?.description).toContain("sensitive-exclusion evidence keys");
     expect(previewMetadataChild?.description).toContain("migrationReviewDepthProof");
-    expect(auditSummaryChild?.completionPercent).toBe(65);
+    expect(auditSummaryChild?.completionPercent).toBe(66);
     expect(auditSummaryChild?.description).toContain("draft/audit fingerprint match");
     expect(auditSummaryChild?.description).toContain("migrationReviewDepthProof");
-    expect(reviewDepthChild?.completionPercent).toBe(65);
+    expect(reviewDepthChild?.completionPercent).toBe(66);
     expect(reviewDepthChild?.description).toContain("six separate owner-review records");
     expect(reviewDepthChild?.description).toContain("unique evidence keys");
     expect(reviewDepthChild?.description).toContain("migrationReviewDepthProof");
-    expect(traceabilityChild?.completionPercent).toBe(65);
+    expect(traceabilityChild?.completionPercent).toBe(66);
     expect(traceabilityChild?.description).toContain("source-mutation locks");
     expect(traceabilityChild?.description).toContain("migrationTraceabilityProof");
-    expect(blockerPriorityChild?.completionPercent).toBe(65);
+    expect(blockerPriorityChild?.completionPercent).toBe(66);
     expect(blockerPriorityChild?.description).toContain("source-mutation locks");
     expect(blockerPriorityChild?.description).toContain("migrationBlockerPriorityProof");
-    expect(rollbackAuditParent?.completionPercent).toBe(65);
+    expect(rollbackAuditParent?.completionPercent).toBe(66);
     expect(rollbackAuditParent?.description).toContain("sensitive-boundary traceability");
     expect(rollbackAuditParent?.description).toContain("migrationTraceabilityProof");
     expect(phase5Goal?.pmTaskIds).toEqual(
@@ -505,6 +508,7 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase5Goal?.nextAction).toContain("blocker-priority queue");
+    expect(phase5Goal?.nextAction).toContain("current active implementation target");
     expect(phase5Goal?.nextAction).toContain("migrationReviewDepthProof");
     expect(phase5Goal?.nextAction).toContain("migrationTraceabilityProof");
     expect(phase5Goal?.nextAction).toContain("migrationBlockerPriorityProof");
@@ -629,7 +633,7 @@ describe("remaining goal plan", () => {
     expect(phase4Goal).toMatchObject({
       target: "Provider integration surfaces",
       priority: "high",
-      status: "active",
+      status: "next",
       completionPercent: 99
     });
     expect(phase4Epic?.completionPercent).toBe(99);

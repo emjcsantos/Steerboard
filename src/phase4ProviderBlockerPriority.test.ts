@@ -519,7 +519,8 @@ describe("phase 4 provider blocker priority", () => {
     expect(snapshot.topPriorityLabel).toBe("Remaining goal link");
     expect(snapshot.catalogSmokeCanAddressTopBlocker).toBe(false);
     expect(snapshot.topPriorityAction).not.toContain("catalog smoke");
-    expect(snapshot.topPriorityAction).toContain("owner-visible provider readiness check");
+    expect(snapshot.topPriorityAction).toContain("exactly one current active remaining goal");
+    expect(snapshot.topPriorityAction).toContain("goal-phase-5-migration-hardening");
     expect(snapshot.items[0]).toMatchObject({
       kind: "traceability",
       status: "preview",

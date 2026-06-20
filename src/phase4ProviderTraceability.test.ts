@@ -154,9 +154,8 @@ describe("phase 4 provider traceability", () => {
     expect(summary.traceabilityProof).toContain("catalogRecords=6/6 refreshRecords=8/8 surfaceItems=9/9");
     expect(summary.traceabilityProof).toContain("executionLocks=6/6 trust=review");
     expect(summary.traceabilityProof).toContain("metadataOnly=locked execution=locked");
-    expect(summary.nextAction).toContain(
-      "Rerun catalog smoke from the explicit owner action to attach reload-safe timestamp evidence"
-    );
+    expect(summary.nextAction).toContain("single current active remaining goal");
+    expect(summary.nextAction).toContain("goal-phase-5-migration-hardening");
     expect(summary.items.map((item) => item.kind)).toEqual([
       "active-goal",
       "pm-coverage",
@@ -170,7 +169,7 @@ describe("phase 4 provider traceability", () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: "active-goal",
-          status: "ready",
+          status: "preview",
           detail: expect.stringContaining("1 current active goal")
         }),
         expect.objectContaining({ kind: "surface-depth", status: "preview" }),

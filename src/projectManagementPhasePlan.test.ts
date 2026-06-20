@@ -465,14 +465,14 @@ describe("project management phase plan", () => {
     expect(previewMetadataChild?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
     );
-    expect(draftParent?.completionPercent).toBe(65);
-    expect(profileDraftsChild?.completionPercent).toBe(65);
-    expect(rollbackAuditParent?.completionPercent).toBe(65);
-    expect(previewMetadataChild?.completionPercent).toBe(65);
-    expect(auditSummaryChild?.completionPercent).toBe(65);
-    expect(reviewDepthChild?.completionPercent).toBe(65);
-    expect(traceabilityChild?.completionPercent).toBe(65);
-    expect(blockerPriorityChild?.completionPercent).toBe(65);
+    expect(draftParent?.completionPercent).toBe(66);
+    expect(profileDraftsChild?.completionPercent).toBe(66);
+    expect(rollbackAuditParent?.completionPercent).toBe(66);
+    expect(previewMetadataChild?.completionPercent).toBe(66);
+    expect(auditSummaryChild?.completionPercent).toBe(66);
+    expect(reviewDepthChild?.completionPercent).toBe(66);
+    expect(traceabilityChild?.completionPercent).toBe(66);
+    expect(blockerPriorityChild?.completionPercent).toBe(66);
     expect(profileDraftsChild?.description).toContain("apply-review-staged audit actions");
     expect(profileDraftsChild?.description).toContain("migrationReviewDepthProof");
     expect(profileDraftsChild?.description).toContain("without changing active profiles or source data");

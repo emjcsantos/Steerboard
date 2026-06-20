@@ -147,10 +147,9 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-04-provider-surfaces"],
     goal:
       "Harden command, skill, plugin, MCP, automation, and personalization readiness states while keeping refresh proof metadata-only, fresh, and tied to the current six-surface catalog fingerprint.",
-    status: "active",
+    status: "next",
     priority: "high",
     completionPercent: 99,
-    current: true,
     pmTaskIds: [
       "phase-04-provider-surfaces",
       "phase-04-parent-catalogs",
@@ -178,9 +177,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-05-migration-center"],
     goal:
       "Finish preview, apply-intent lock, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, and review-depth records for metadata-only migration work.",
-    status: "next",
+    status: "active",
     priority: "high",
-    completionPercent: 65,
+    completionPercent: 66,
+    current: true,
     pmTaskIds: [
       "phase-05-migration-center",
       "phase-05-parent-draft-workflow",
@@ -193,7 +193,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-05-child-blocker-priority"
     ],
     nextAction:
-      "Use the Migration review gate, migrationReviewDepthProof, migrationTraceabilityProof, migrationBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, and keep profile activation locked before any migration apply path."
+      "Use the Migration review gate as the current active implementation target with migrationReviewDepthProof, migrationTraceabilityProof, migrationBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, and keep profile activation locked before any migration apply path."
   },
   {
     id: "goal-phase-7-dispatch-loop",
