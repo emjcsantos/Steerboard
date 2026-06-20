@@ -168,6 +168,14 @@ function sumPanelProofNumbers(panels: readonly unknown[], key: string): number {
 }
 
 function buildTwoPanelSmokeProofSummary(twoPanelSmokeProof: Record<string, unknown>, panels: readonly unknown[]): string {
+  const source =
+    typeof twoPanelSmokeProof.source === "string" && twoPanelSmokeProof.source.trim()
+      ? twoPanelSmokeProof.source.trim()
+      : "unknown";
+  const executed = bool(twoPanelSmokeProof.executed);
+  const timestamped =
+    typeof twoPanelSmokeProof.checkedAt === "string" && twoPanelSmokeProof.checkedAt.trim().length > 0;
+  const ok = bool(twoPanelSmokeProof.ok);
   const panelCount = nonNegativeNumber(twoPanelSmokeProof.panelCount);
   const completedPanels = countReadyPanels(panels, (panel) => bool(panel.completed));
   const sessionIdPanels = countReadyPanels(panels, (panel) => bool(panel.sessionIdSeen));
@@ -179,6 +187,11 @@ function buildTwoPanelSmokeProofSummary(twoPanelSmokeProof: Record<string, unkno
   const expectedPanels = Math.max(panelCount, panels.length);
 
   return (
+    `smokeProof=source:${source} executed=${executed} timestamped=${timestamped} ok=${ok} ` +
+    `distinctSessions=${bool(twoPanelSmokeProof.distinctSessionIds)} ` +
+    `distinctThreads=${bool(twoPanelSmokeProof.distinctThreadIds)} ` +
+    `bothCompleted=${bool(twoPanelSmokeProof.bothCompleted)} ` +
+    `crossTalk=${bool(twoPanelSmokeProof.crossTalkDetected)} ` +
     `panelProof=${completedPanels}/${expectedPanels} ` +
     `sessionIdPanels=${sessionIdPanels}/${expectedPanels} ` +
     `threadIdPanels=${threadIdPanels}/${expectedPanels} ` +

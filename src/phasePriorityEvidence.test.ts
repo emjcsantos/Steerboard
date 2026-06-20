@@ -138,6 +138,9 @@ describe("phase priority evidence", () => {
       "reloadProof=source:desktop executed=true timestamped=true storageTrusted=true"
     );
     const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
+    expect(phase2?.detail).toContain(
+      "smokeProof=source:desktop executed=true timestamped=true ok=true distinctSessions=true distinctThreads=true bothCompleted=true crossTalk=false"
+    );
     expect(phase2?.detail).toContain("panelProof=2/2");
     expect(phase2?.detail).toContain("sessionIdPanels=2/2");
     expect(phase2?.detail).toContain("threadIdPanels=2/2");
@@ -380,6 +383,9 @@ describe("phase priority evidence", () => {
     expect(phase2).toMatchObject({
       state: "review"
     });
+    expect(phase2?.detail).toContain(
+      "smokeProof=source:desktop executed=true timestamped=true ok=false distinctSessions=true distinctThreads=true bothCompleted=false crossTalk=false"
+    );
     expect(phase2?.detail).toContain("panelProof=1/2");
     expect(phase2?.detail).toContain("sessionIdPanels=1/2");
     expect(phase2?.detail).toContain("threadIdPanels=1/2");
