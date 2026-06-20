@@ -82,7 +82,14 @@ describe("phase 4 provider catalog depth", () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: "command",
-          evidence: expect.stringContaining("scope labels")
+          evidenceKey: "phase-04-provider-catalog:command",
+          evidence: expect.stringMatching(/scope labels.*Catalog item order/),
+          ownerSafeProof: expect.stringContaining("scoped slash-command labels")
+        }),
+        expect.objectContaining({
+          kind: "skill",
+          evidenceKey: "phase-04-provider-catalog:skill",
+          ownerSafeProof: expect.stringContaining("source, trigger, invocation metadata")
         }),
         expect.objectContaining({
           kind: "plugin",
@@ -111,6 +118,7 @@ describe("phase 4 provider catalog depth", () => {
     expect(depth.heldCount).toBe(0);
     expect(depth.nextAction).toContain("execution locked");
     expect(depth.records.every((record) => record.status === "ready")).toBe(true);
+    expect(depth.records.every((record) => record.itemOrder.length === 2)).toBe(true);
   });
 
   it("keeps preview, setup, and held provider states visible per catalog", () => {
@@ -185,7 +193,9 @@ describe("phase 4 provider catalog depth", () => {
         record.kind,
         record.statusLabel,
         record.sourceLabel,
+        record.evidenceKey,
         record.evidence,
+        record.ownerSafeProof,
         record.safety,
         record.nextAction
       ])

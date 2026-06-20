@@ -125,6 +125,23 @@ function verifyArtifact(artifact) {
     throw new Error(`expected at least ${requiredSurfaceCount} catalog records, found ${catalogRecords.length}`);
   }
   assertReadyRows(catalogRecords, "catalogDepth");
+  for (const surface of ["command", "skill", "plugin", "mcp", "automation", "personalization"]) {
+    const record = catalogRecords.find((item) => item.kind === surface);
+    if (!record) {
+      throw new Error(`catalogDepth is missing ${surface}`);
+    }
+    if (record.evidenceKey !== `phase-04-provider-catalog:${surface}`) {
+      throw new Error(`catalogDepth ${surface} evidenceKey is not current`);
+    }
+    const itemOrder = assertArray(record.itemOrder, `catalogDepth.${surface}.itemOrder`);
+    if (itemOrder.length === 0) {
+      throw new Error(`catalogDepth ${surface} itemOrder is empty`);
+    }
+    assertNonEmptyString(record.ownerSafeProof, `catalogDepth.${surface}.ownerSafeProof`);
+    if (record.executionLocked !== true) {
+      throw new Error(`catalogDepth ${surface} execution lock is missing`);
+    }
+  }
 
   const refreshRecords = assertArray(refreshSafety.records, "refreshSafety.records");
   if (refreshRecords.length < requiredSurfaceCount + 2) {

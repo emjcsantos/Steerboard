@@ -298,7 +298,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 76,
+    completionPercent: 77,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -306,15 +306,15 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
         description: "Render provider catalogs, readiness labels, current catalog fingerprints, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 60,
+        completionPercent: 63,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
           {
             id: "phase-04-child-command-skill",
             title: "Command and Skill Catalogs",
-            description: "Show command and skill entries with scope, fallback guidance, and owner-safe readiness status.",
-            completionPercent: 52,
+            description: "Show command and skill entries with scoped item-order proof, fallback/source guidance, evidence keys, owner-safe readiness proof, and execution locks.",
+            completionPercent: 62,
             sourceDocument: "Command and skill catalogs"
           },
           {
@@ -328,8 +328,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-catalog-depth",
             title: "Provider Catalog Detail Depth",
-            description: "Show command, skill, plugin, MCP, automation, and personalization catalog records with visible source, totals, readiness state, evidence expectations, next actions, and execution locks.",
-            completionPercent: 63,
+            description: "Show command, skill, plugin, MCP, automation, and personalization catalog records with visible source, totals, item-order proof, readiness state, evidence keys, owner-safe proof, next actions, and execution locks.",
+            completionPercent: 66,
             complexity: "high",
             sourceDocument: "Phase 4 provider catalog depth"
           },

@@ -20,8 +20,11 @@ export interface Phase4ProviderCatalogDepthRecord {
   readonly statusLabel: string;
   readonly sourceLabel: string;
   readonly total: number;
+  readonly itemOrder: readonly string[];
+  readonly evidenceKey: string;
   readonly readiness: number;
   readonly evidence: string;
+  readonly ownerSafeProof: string;
   readonly nextAction: string;
   readonly safety: string;
   readonly executionLocked: boolean;
@@ -53,6 +56,35 @@ const EVIDENCE_BY_KIND: Record<Phase4ProviderCatalogDepthKind, string> = {
     "Personalization entries need layer, source, privacy posture, and profile-mutation lock evidence."
 };
 
+const OWNER_SAFE_PROOF_BY_KIND: Record<Phase4ProviderCatalogDepthKind, string> = {
+  command:
+    "Command catalog proof includes scoped slash-command labels, fallback metadata source, readiness state, and execution lock.",
+  skill:
+    "Skill catalog proof includes source, trigger, invocation metadata, readiness state, and execution lock.",
+  plugin:
+    "Plugin catalog proof includes connection/source metadata, readiness state, and execution lock.",
+  mcp:
+    "MCP catalog proof includes transport/tool-policy metadata, readiness state, and execution lock.",
+  automation:
+    "Automation catalog proof includes lifecycle/trigger metadata, approval posture, readiness state, and execution lock.",
+  personalization:
+    "Personalization catalog proof includes layer/source metadata, privacy posture, readiness state, and execution lock."
+};
+
+function evidenceKey(kind: Phase4ProviderCatalogDepthKind): string {
+  return `phase-04-provider-catalog:${kind}`;
+}
+
+function summarizeItemOrder(itemOrder: readonly string[]): string {
+  if (itemOrder.length === 0) {
+    return "No catalog item ids are attached.";
+  }
+
+  const visibleItems = itemOrder.slice(0, 4).join(", ");
+  const suffix = itemOrder.length > 4 ? `, +${itemOrder.length - 4} more` : "";
+  return `Catalog item order: ${visibleItems}${suffix}.`;
+}
+
 function heldStatus(status: ProviderIntegrationReadinessState): boolean {
   return status === "blocked" || status === "unsupported" || status === "unavailable";
 }
@@ -70,8 +102,11 @@ function buildRecord(
     statusLabel: surface.statusLabel,
     sourceLabel: surface.sourceLabel,
     total: surface.total,
+    itemOrder: surface.itemOrder,
+    evidenceKey: evidenceKey(kind),
     readiness: surface.readiness,
-    evidence: `${EVIDENCE_BY_KIND[kind]} ${surface.detail} Safety: ${surface.safety}`,
+    evidence: `${EVIDENCE_BY_KIND[kind]} ${surface.detail} ${summarizeItemOrder(surface.itemOrder)} Safety: ${surface.safety}`,
+    ownerSafeProof: OWNER_SAFE_PROOF_BY_KIND[kind],
     nextAction: surface.nextAction,
     safety: surface.safety,
     executionLocked: true

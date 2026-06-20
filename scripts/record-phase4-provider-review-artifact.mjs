@@ -14,8 +14,24 @@ const auditEvidenceFingerprint = `phase4-provider-audit-recorded-${createdAt.rep
 const surfaceDepthEvidenceFingerprint = `phase4-provider-surface-depth-recorded-${createdAt.replace(/[:.]/g, "-")}`;
 const rollbackEvidenceFingerprint = `phase4-provider-rollback-recorded-${createdAt.replace(/[:.]/g, "-")}`;
 const permissionEvidenceFingerprint = `phase4-provider-permission-recorded-${createdAt.replace(/[:.]/g, "-")}`;
+const ownerSafeProofBySurface = {
+  command:
+    "Command catalog proof includes scoped slash-command labels, fallback metadata source, readiness state, and execution lock.",
+  skill:
+    "Skill catalog proof includes source, trigger, invocation metadata, readiness state, and execution lock.",
+  plugin:
+    "Plugin catalog proof includes connection/source metadata, readiness state, and execution lock.",
+  mcp:
+    "MCP catalog proof includes transport/tool-policy metadata, readiness state, and execution lock.",
+  automation:
+    "Automation catalog proof includes lifecycle/trigger metadata, approval posture, readiness state, and execution lock.",
+  personalization:
+    "Personalization catalog proof includes layer/source metadata, privacy posture, readiness state, and execution lock."
+};
 
 function catalogRecord(surface) {
+  const itemOrder = [`${surface}-recorded-primary`, `${surface}-recorded-secondary`];
+
   return {
     id: `phase-04-catalog-depth:${surface}`,
     label: `${surface[0].toUpperCase()}${surface.slice(1)} provider catalog`,
@@ -23,7 +39,9 @@ function catalogRecord(surface) {
     status: "ready",
     detail: `${surface} provider metadata is visible from the recorded Phase 4 review artifact.`,
     nextAction: "Keep provider execution locked while metadata review evidence stays attached.",
-    evidenceKey: `phase4.catalog.${surface}`,
+    evidenceKey: `phase-04-provider-catalog:${surface}`,
+    itemOrder,
+    ownerSafeProof: ownerSafeProofBySurface[surface],
     executionLocked: true
   };
 }
