@@ -94,17 +94,17 @@ describe("phase 4 provider rollback record", () => {
   });
 
   it("validates only fresh records tied to current approval, audit, catalog, and surface evidence", () => {
-    expect(
-      derivePhase4ProviderRollbackRecordValidation({
-        record: rollbackRecord(),
-        approvalRecord,
-        auditRecord,
-        auditValidation,
-        expectedCatalogFingerprint: "phase4-catalog-current",
-        expectedSurfaceDepthEvidenceFingerprint: surfaceDepthEvidenceFingerprint,
-        options: { evaluatedAt: "2026-06-18T10:25:00.000Z" }
-      })
-    ).toMatchObject({
+    const validation = derivePhase4ProviderRollbackRecordValidation({
+      record: rollbackRecord(),
+      approvalRecord,
+      auditRecord,
+      auditValidation,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedSurfaceDepthEvidenceFingerprint: surfaceDepthEvidenceFingerprint,
+      options: { evaluatedAt: "2026-06-18T10:25:00.000Z" }
+    });
+
+    expect(validation).toMatchObject({
       state: "ready",
       matchesCurrentCatalog: true,
       matchesCurrentApproval: true,
@@ -117,19 +117,20 @@ describe("phase 4 provider rollback record", () => {
       ),
       recordAgeMs: 300_000
     });
+    expect(validation.rollbackChainProof).toContain("auditValidation=ready auditChain=present");
   });
 
   it("returns preview when no rollback record is attached", () => {
-    expect(
-      derivePhase4ProviderRollbackRecordValidation({
-        approvalRecord,
-        auditRecord,
-        auditValidation,
-        expectedCatalogFingerprint: "phase4-catalog-current",
-        expectedSurfaceDepthEvidenceFingerprint: surfaceDepthEvidenceFingerprint,
-        options: { evaluatedAt: "2026-06-18T10:25:00.000Z" }
-      })
-    ).toMatchObject({
+    const validation = derivePhase4ProviderRollbackRecordValidation({
+      approvalRecord,
+      auditRecord,
+      auditValidation,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedSurfaceDepthEvidenceFingerprint: surfaceDepthEvidenceFingerprint,
+      options: { evaluatedAt: "2026-06-18T10:25:00.000Z" }
+    });
+
+    expect(validation).toMatchObject({
       state: "preview",
       detail: expect.stringContaining("not attached"),
       matchesCurrentCatalog: false,
@@ -140,6 +141,7 @@ describe("phase 4 provider rollback record", () => {
       mutationLocked: false,
       rollbackChainProof: expect.stringContaining("mutation=review execution=locked")
     });
+    expect(validation.rollbackChainProof).toContain("auditValidation=ready auditChain=present");
   });
 
   it("reviews stale, future-dated, mismatched, and mutation-unlocked rollback records", () => {

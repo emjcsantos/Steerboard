@@ -131,6 +131,7 @@ function rollbackChainProof(input: {
   readonly record?: Phase4ProviderRollbackRecord;
   readonly approvalRecord?: Phase4ProviderApprovalRecord;
   readonly auditRecord?: Phase4ProviderAuditRecord;
+  readonly auditValidation: Phase4ProviderAuditRecordValidation;
   readonly expectedCatalogFingerprint?: string;
   readonly expectedSurfaceDepthEvidenceFingerprint?: string;
   readonly matchesCurrentCatalog: boolean;
@@ -147,6 +148,8 @@ function rollbackChainProof(input: {
     `expectedApproval=${valueOrMissing(input.approvalRecord?.id)} ` +
     `audit=${valueOrMissing(input.record?.auditRecordId)} ` +
     `expectedAudit=${valueOrMissing(input.auditRecord?.id)} ` +
+    `auditValidation=${input.auditValidation.state} ` +
+    `auditChain=${input.auditValidation.auditChainProof.trim() ? "present" : "missing"} ` +
     `catalog=${valueOrMissing(input.record?.catalogFingerprint)} ` +
     `expectedCatalog=${valueOrMissing(input.expectedCatalogFingerprint)} ` +
     `auditEvidence=${valueOrMissing(input.record?.auditEvidenceFingerprint)} ` +
@@ -423,6 +426,7 @@ export function derivePhase4ProviderRollbackRecordValidation(input: {
       rollbackChainProof: rollbackChainProof({
         approvalRecord: input.approvalRecord,
         auditRecord: input.auditRecord,
+        auditValidation: input.auditValidation,
         expectedCatalogFingerprint: input.expectedCatalogFingerprint,
         expectedSurfaceDepthEvidenceFingerprint: input.expectedSurfaceDepthEvidenceFingerprint,
         matchesCurrentCatalog,
@@ -474,6 +478,7 @@ export function derivePhase4ProviderRollbackRecordValidation(input: {
       record: input.record,
       approvalRecord: input.approvalRecord,
       auditRecord: input.auditRecord,
+      auditValidation: input.auditValidation,
       expectedCatalogFingerprint: input.expectedCatalogFingerprint,
       expectedSurfaceDepthEvidenceFingerprint: input.expectedSurfaceDepthEvidenceFingerprint,
       matchesCurrentCatalog,

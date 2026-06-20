@@ -244,6 +244,7 @@ const rollbackValidation = {
   rollbackChainProof:
     `approval=${approvalRecordId} expectedApproval=${approvalRecordId} ` +
     `audit=${auditRecordId} expectedAudit=${auditRecordId} ` +
+    "auditValidation=ready auditChain=present " +
     `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
     `auditEvidence=${auditEvidenceFingerprint} expectedAuditEvidence=${auditEvidenceFingerprint} ` +
     `surfaceDepth=${surfaceDepthEvidenceFingerprint} expectedSurfaceDepth=${surfaceDepthEvidenceFingerprint} ` +
