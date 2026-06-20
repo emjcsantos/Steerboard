@@ -136,6 +136,22 @@ describe("migration traceability", () => {
     expect(summary.migrationTraceabilityProof).toContain("trust=ready");
   });
 
+  it("trusts completed Phase 5 migration handoff while Phase 9 remains active", () => {
+    const summary = buildMigrationTraceabilitySummary({
+      readiness: readyReadiness(),
+      goals: remainingGoalPlan
+    });
+
+    expect(summary.state).toBe("ready");
+    expect(summary.canTrustMigrationReview).toBe(true);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "active-goal", status: "ready" })
+      ])
+    );
+    expect(summary.migrationTraceabilityProof).toContain("trust=ready");
+  });
+
   it("does not trust migration review when Phase 5 is current but still next", () => {
     const summary = buildMigrationTraceabilitySummary({
       readiness: readyReadiness(),
