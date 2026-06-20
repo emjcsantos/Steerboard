@@ -40,7 +40,10 @@ export interface Phase126PublishHoldTraceabilitySummary {
   readonly linkedGoalId: string;
   readonly linkedPhaseCount: number;
   readonly linkedPmTaskCount: number;
+  readonly requiredPriorityEvidenceCount: number;
+  readonly readyPriorityEvidenceCount: number;
   readonly publishHoldStatus: Phase126PublishHoldTraceabilityState;
+  readonly localHoldEvidenceKey: string;
   readonly nextAction: string;
   readonly safety: string;
   readonly ariaLabel: string;
@@ -291,14 +294,38 @@ function hasReadyPriorityEvidence(items: readonly PhasePriorityEvidenceItem[]): 
   );
 }
 
+function countReadyPriorityEvidence(items: readonly PhasePriorityEvidenceItem[]): number {
+  return REQUIRED_PRIORITY_EVIDENCE_IDS.filter((id) =>
+    items.some((item) => item.id === id && item.state === "ready")
+  ).length;
+}
+
+function buildLocalHoldEvidenceKey(
+  goal: RemainingGoalPlanItem | undefined,
+  linkedPhaseCount: number,
+  linkedPmTaskCount: number,
+  readyPriorityEvidenceCount: number,
+  publishHoldStatus: Phase126PublishHoldTraceabilityState
+): string {
+  const goalId = goal?.id ?? "missing-goal";
+  return (
+    `goal=${goalId} phases=${linkedPhaseCount}/${REQUIRED_PHASE_IDS.length} ` +
+    `pm=${linkedPmTaskCount}/${REQUIRED_PM_TASK_IDS.length} ` +
+    `priority=${readyPriorityEvidenceCount}/${REQUIRED_PRIORITY_EVIDENCE_IDS.length} ` +
+    `hold=${publishHoldStatus}`
+  );
+}
+
 function buildAriaLabel(
   summary: Omit<Phase126PublishHoldTraceabilitySummary, "ariaLabel">
 ): string {
   return (
     `${summary.label}: ${summary.statusLabel}; ${summary.readiness}% ready; ` +
     `${summary.linkedPhaseCount} phases; ${summary.linkedPmTaskCount} PM links; ` +
+    `${summary.readyPriorityEvidenceCount}/${summary.requiredPriorityEvidenceCount} priority proofs; ` +
     `${summary.blockedCount} blocked; ${summary.waitingCount} waiting; ` +
-    `publish hold ${summary.publishHoldStatus}; next action: ${summary.nextAction}`
+    `publish hold ${summary.publishHoldStatus}; local hold evidence ${summary.localHoldEvidenceKey}; ` +
+    `next action: ${summary.nextAction}`
   );
 }
 
@@ -324,6 +351,9 @@ export function buildPhase126PublishHoldTraceability(
   ];
   const state = resolveState(items);
   const publishHoldStatus = items.find((item) => item.kind === "publish-hold")?.status ?? "blocked";
+  const readyPriorityEvidenceCount = countReadyPriorityEvidence(input.phasePriorityEvidence.items);
+  const linkedPhaseCount = goal?.phaseIds.length ?? 0;
+  const linkedPmTaskCount = goal?.pmTaskIds.length ?? 0;
   const draft = {
     id: TRACE_ID,
     label: TRACE_LABEL,
@@ -341,9 +371,18 @@ export function buildPhase126PublishHoldTraceability(
     waitingCount: items.filter((item) => item.status === "waiting").length,
     missingPmTaskIds,
     linkedGoalId: goal?.id ?? "",
-    linkedPhaseCount: goal?.phaseIds.length ?? 0,
-    linkedPmTaskCount: goal?.pmTaskIds.length ?? 0,
+    linkedPhaseCount,
+    linkedPmTaskCount,
+    requiredPriorityEvidenceCount: REQUIRED_PRIORITY_EVIDENCE_IDS.length,
+    readyPriorityEvidenceCount,
     publishHoldStatus,
+    localHoldEvidenceKey: buildLocalHoldEvidenceKey(
+      goal,
+      linkedPhaseCount,
+      linkedPmTaskCount,
+      readyPriorityEvidenceCount,
+      publishHoldStatus
+    ),
     nextAction: firstNextAction(items),
     safety: SAFETY,
     items

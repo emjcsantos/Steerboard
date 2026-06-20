@@ -60,7 +60,11 @@ function traceability(
     linkedGoalId: "goal-phase-1-2-6-publish",
     linkedPhaseCount: 3,
     linkedPmTaskCount: 20,
+    requiredPriorityEvidenceCount: 3,
+    readyPriorityEvidenceCount: 3,
     publishHoldStatus: "blocked",
+    localHoldEvidenceKey:
+      "goal=goal-phase-1-2-6-publish phases=3/3 pm=20/20 priority=3/3 hold=blocked",
     nextAction: "Keep the branch local and push only after the owner says to push.",
     safety: "Evidence only.",
     ariaLabel: "Traceability blocked.",

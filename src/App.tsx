@@ -13545,6 +13545,13 @@ export function OwnerTestingReadinessPanel({
                 <dt>PM</dt>
                 <dd>{phase126PublishHoldTraceability.linkedPmTaskCount}</dd>
               </div>
+              <div title={phase126PublishHoldTraceability.localHoldEvidenceKey}>
+                <dt>Proof</dt>
+                <dd>
+                  {phase126PublishHoldTraceability.readyPriorityEvidenceCount}/
+                  {phase126PublishHoldTraceability.requiredPriorityEvidenceCount}
+                </dd>
+              </div>
               <div>
                 <dt>Hold</dt>
                 <dd>{phase126PublishHoldTraceability.publishHoldStatus}</dd>

@@ -7502,7 +7502,7 @@ textarea {
 .owner-testing-publish-hold-traceability-grid,
 .owner-testing-publish-hold-blocker-priority-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
   gap: 4px;
   margin: 0;
 }
