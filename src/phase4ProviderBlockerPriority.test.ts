@@ -364,6 +364,35 @@ describe("phase 4 provider blocker priority", () => {
     );
   });
 
+  it("surfaces aggregate record-chain proof in traceability blocker detail", () => {
+    const snapshot = priority({
+      validation: validationFixture(),
+      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads)
+    });
+
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Local record chain",
+          kind: "traceability",
+          status: "preview",
+          evidenceKey: "phase-04-traceability:record-chain",
+          detail: expect.stringContaining(
+            "Record-chain proof: ownerBoundary=review approvalChain=review auditChain=review rollbackChain=review permissionChain=review metadataOnly=present execution=present"
+          )
+        })
+      ])
+    );
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Local record chain",
+          detail: expect.stringContaining("aggregate approval/audit/rollback/permission chain proof")
+        })
+      ])
+    );
+  });
+
   it("moves blocker priority to audit after current approval evidence is attached", () => {
     const approvalValidation = readyApprovalValidation();
     const snapshot = priority({

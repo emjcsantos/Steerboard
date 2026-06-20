@@ -354,6 +354,33 @@ const RECORD_CHAIN_KINDS = [
   "rollback-gate",
   "permission-gate"
 ] as const;
+const RECORD_CHAIN_PROOF_TERMS = [
+  "ownerBoundary=present",
+  "approvalChain=present",
+  "auditChain=present",
+  "rollbackChain=present",
+  "permissionChain=present",
+  "metadataOnly=locked",
+  "execution=locked"
+] as const;
+
+function recordChainProof(surfaceDepth: Phase4ProviderSurfaceDepthSnapshot): {
+  readonly complete: boolean;
+  readonly proof: string;
+} {
+  const proof = RECORD_CHAIN_PROOF_TERMS.map((term) => {
+    const [key] = term.split("=");
+
+    return `${key}=${surfaceDepth.surfaceDepthProof.includes(term) ? "present" : "review"}`;
+  }).join(" ");
+
+  return {
+    complete: RECORD_CHAIN_PROOF_TERMS.every((term) =>
+      surfaceDepth.surfaceDepthProof.includes(term)
+    ),
+    proof
+  };
+}
 
 function recordChainItem(
   surfaceDepth: Phase4ProviderSurfaceDepthSnapshot
@@ -363,18 +390,26 @@ function recordChainItem(
   );
   const readyGateItems = gateItems.filter((item) => item.status === "ready");
   const firstOpenGate = gateItems.find((item) => item.status !== "ready");
+  const chainProof = recordChainProof(surfaceDepth);
 
   return {
     id: `${TRACE_ID}:record-chain`,
     label: "Local record chain",
     kind: "record-chain",
-    status: firstOpenGate?.status ?? (readyGateItems.length === RECORD_CHAIN_KINDS.length ? "ready" : "preview"),
+    status:
+      firstOpenGate?.status ??
+      (readyGateItems.length === RECORD_CHAIN_KINDS.length && chainProof.complete
+        ? "ready"
+        : "preview"),
     detail:
       `${readyGateItems.length}/${RECORD_CHAIN_KINDS.length} local approval, audit, rollback, and permission record gates are ready.` +
+      ` Record-chain proof: ${chainProof.proof}.` +
       (firstOpenGate ? ` Next open gate: ${firstOpenGate.label}. ${firstOpenGate.detail}` : ""),
     nextAction: firstOpenGate
       ? publicText(firstOpenGate.nextAction, "Complete the next local provider record gate.")
-      : "Keep the local approval, audit, rollback, and permission record chain attached while provider execution remains locked."
+      : chainProof.complete
+        ? "Keep the local approval, audit, rollback, and permission record chain attached while provider execution remains locked."
+        : "Restore the surface-depth aggregate record-chain proof before trusting Phase 4 provider review."
   };
 }
 

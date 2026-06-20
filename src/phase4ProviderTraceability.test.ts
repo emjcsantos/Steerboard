@@ -170,6 +170,12 @@ describe("phase 4 provider traceability", () => {
           status: "preview",
           detail: expect.stringContaining("0/4 local approval, audit, rollback, and permission record gates are ready")
         }),
+        expect.objectContaining({
+          kind: "record-chain",
+          detail: expect.stringContaining(
+            "Record-chain proof: ownerBoundary=review approvalChain=review auditChain=review rollbackChain=review permissionChain=review metadataOnly=present execution=present"
+          )
+        }),
         expect.objectContaining({ kind: "execution-lock", status: "ready" })
       ])
     );

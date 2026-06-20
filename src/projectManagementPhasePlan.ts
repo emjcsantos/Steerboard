@@ -297,16 +297,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
-    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 96,
+    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate record-chain traceability proof, and current six-surface fingerprint checks after Phase 3 clears.",
+    completionPercent: 97,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
-        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 82,
+        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate record-chain traceability proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
+        completionPercent: 83,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
@@ -376,16 +376,16 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-traceability",
             title: "Provider Traceability",
-            description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval, audit, rollback, and permission records, and execution locks before provider execution is considered.",
-            completionPercent: 68,
+            description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval, audit, rollback, permission records, aggregate record-chain proof, and execution locks before provider execution is considered.",
+            completionPercent: 70,
             complexity: "high",
             sourceDocument: "Phase 4 provider traceability"
           },
           {
             id: "phase-04-child-blocker-priority",
             title: "Provider Blocker Priority",
-            description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action, show compact top-blocker source, kind, status, and evidence-key proof, while keeping remaining-goal and PM traceability repairs out of catalog-smoke actions.",
-            completionPercent: 68,
+            description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action, show compact top-blocker source, kind, status, evidence-key, and aggregate record-chain proof, while keeping remaining-goal and PM traceability repairs out of catalog-smoke actions.",
+            completionPercent: 70,
             complexity: "high",
             sourceDocument: "Phase 4 provider blocker priority"
           }

@@ -339,7 +339,9 @@ function buildItemFromTraceability(
     severity: severityForState(item.status),
     priority: 0,
     canUseCatalogSmoke: smokeAddressable,
-    detail: `${item.label} trace is ${STATUS_LABELS[item.status]}; ${item.detail}`,
+    detail:
+      `${item.label} trace is ${STATUS_LABELS[item.status]}; ${item.detail}` +
+      (item.kind === "record-chain" ? " This trace carries the aggregate approval/audit/rollback/permission chain proof." : ""),
     nextAction: smokeAddressable
       ? `${CATALOG_SMOKE_ACTION} from the explicit owner action, then review provider traceability again.`
       : publicText(item.nextAction, "Resolve this Phase 4 traceability blocker.")
