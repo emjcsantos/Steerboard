@@ -134,10 +134,19 @@ function auditChainProof(input: {
   readonly approvalValidation: Phase4ProviderApprovalRecordValidation;
   readonly expectedCatalogFingerprint?: string;
   readonly expectedAuditEvidenceFingerprint?: string;
+  readonly recordAgeMs?: number;
+  readonly maxRecordAgeMs: number;
   readonly matchesCurrentCatalog: boolean;
   readonly matchesCurrentApproval: boolean;
   readonly matchesCurrentAuditEvidence: boolean;
 }): string {
+  const recordFreshness =
+    input.recordAgeMs === undefined
+      ? "missing"
+      : input.recordAgeMs >= 0 && input.recordAgeMs <= input.maxRecordAgeMs
+        ? "fresh"
+        : "review";
+
   return (
     `approval=${valueOrMissing(input.record?.approvalRecordId)} ` +
     `expectedApproval=${valueOrMissing(input.approvalRecord?.id)} ` +
@@ -150,6 +159,7 @@ function auditChainProof(input: {
     `approvalMatch=${input.matchesCurrentApproval ? "matched" : "review"} ` +
     `catalogMatch=${input.matchesCurrentCatalog ? "matched" : "review"} ` +
     `auditMatch=${input.matchesCurrentAuditEvidence ? "matched" : "review"} ` +
+    `recordFreshness=${recordFreshness} ` +
     `mutation=${input.record?.mutationLocked ? "locked" : "review"} execution=locked`
   );
 }
@@ -351,6 +361,7 @@ export function derivePhase4ProviderAuditRecordValidation(input: {
         approvalValidation: input.approvalValidation,
         expectedCatalogFingerprint: input.expectedCatalogFingerprint,
         expectedAuditEvidenceFingerprint: input.expectedAuditEvidenceFingerprint,
+        maxRecordAgeMs,
         matchesCurrentCatalog,
         matchesCurrentApproval,
         matchesCurrentAuditEvidence
@@ -387,6 +398,8 @@ export function derivePhase4ProviderAuditRecordValidation(input: {
       approvalValidation: input.approvalValidation,
       expectedCatalogFingerprint: input.expectedCatalogFingerprint,
       expectedAuditEvidenceFingerprint: input.expectedAuditEvidenceFingerprint,
+      recordAgeMs: ageMs,
+      maxRecordAgeMs,
       matchesCurrentCatalog,
       matchesCurrentApproval,
       matchesCurrentAuditEvidence

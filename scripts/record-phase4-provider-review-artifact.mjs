@@ -213,7 +213,7 @@ const auditValidation = {
     "approvalValidation=ready approvalChain=present " +
     `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
     `auditEvidence=${auditEvidenceFingerprint} expectedAuditEvidence=${auditEvidenceFingerprint} ` +
-    `approvalMatch=matched catalogMatch=matched auditMatch=matched mutation=locked execution=locked`
+    `approvalMatch=matched catalogMatch=matched auditMatch=matched recordFreshness=fresh mutation=locked execution=locked`
 };
 const rollbackRecord = {
   id: rollbackRecordId,

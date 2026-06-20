@@ -352,8 +352,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-audit-record",
             title: "Provider Audit Record",
-            description: "Record and clear local provider audit review only when the current approval record, approval validation state, structured approval-chain proof, current six-surface catalog fingerprint, current surface-depth audit evidence fingerprint, structured audit-chain proof, aggregate local record-validation proof, owner-boundary proof, and mutation lock match, without unlocking rollback, permission, or execution.",
-            completionPercent: 70,
+            description: "Record and clear local provider audit review only when the current approval record, approval validation state, structured approval-chain proof, current six-surface catalog fingerprint, current surface-depth audit evidence fingerprint, structured audit-chain proof with compact record-freshness verdict, aggregate local record-validation proof, owner-boundary proof, and mutation lock match, without unlocking rollback, permission, or execution.",
+            completionPercent: 72,
             complexity: "high",
             sourceDocument: "Phase 4 provider audit record"
           },

@@ -226,7 +226,9 @@ describe("phase 4 provider surface depth", () => {
           status: "ready",
           evidenceKey: "phase-04-surface-depth:audit-gate",
           detail: expect.stringContaining("matches the current approval record"),
-          ownerBoundaryProof: expect.stringContaining("auditMatch=matched mutation=locked execution=locked")
+          ownerBoundaryProof: expect.stringContaining(
+            "auditMatch=matched recordFreshness=fresh mutation=locked execution=locked"
+          )
         }),
         expect.objectContaining({ label: "Rollback gate", status: "preview" }),
         expect.objectContaining({ label: "Permission gate", status: "preview" }),

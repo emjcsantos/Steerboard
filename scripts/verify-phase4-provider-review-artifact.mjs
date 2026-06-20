@@ -172,6 +172,7 @@ const requiredAuditChainProofTerms = [
   "approvalMatch=",
   "catalogMatch=",
   "auditMatch=",
+  "recordFreshness=fresh",
   "mutation=locked",
   "execution=locked"
 ];

@@ -281,6 +281,7 @@ const REQUIRED_AUDIT_CHAIN_PROOF_TERMS = [
   "approvalMatch=",
   "catalogMatch=",
   "auditMatch=",
+  "recordFreshness=fresh",
   "mutation=locked",
   "execution=locked"
 ] as const;
