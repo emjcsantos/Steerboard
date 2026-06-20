@@ -235,6 +235,16 @@ function withCurrentPhase9Goal() {
   );
 }
 
+function withCurrentNextPhase9Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-9-runner"
+      ? { ...goal, status: "next" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 9 runner blocker priority", () => {
   it("keeps Phase 8 audit gate blockers ahead of runner approval rows", () => {
     const summary = priority({
@@ -337,13 +347,14 @@ describe("phase 9 runner blocker priority", () => {
           detail: "Executed fixed terminal read-only probe command for audit trail."
         }),
         auditRecords: [terminalAuditRecord("approved"), terminalAuditRecord("executed")]
-      })
+      }),
+      goals: withCurrentNextPhase9Goal()
     });
 
     expect(summary.state).toBe("waiting");
     expect(summary.topPriorityLabel).toBe("Remaining goal link");
     expect(summary.topPrioritySourceId).toBe("phase-09-runner-traceability:active-goal");
-    expect(summary.topPriorityAction).toContain("terminal-readonly-probe");
+    expect(summary.topPriorityAction).toContain("exactly one current active remaining goal");
     expect(summary.runnerReviewCanAddressTopBlocker).toBe(false);
     expect(summary.items[0]).toMatchObject({
       kind: "traceability",

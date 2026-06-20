@@ -228,7 +228,7 @@ function withCurrentPhase9Goal() {
 function withCurrentNextPhase9Goal() {
   return remainingGoalPlan.map((goal) =>
     goal.id === "goal-phase-9-runner"
-      ? { ...goal, current: true }
+      ? { ...goal, status: "next" as const, current: true }
       : goal.current
         ? { ...goal, current: false }
         : goal
@@ -237,7 +237,7 @@ function withCurrentNextPhase9Goal() {
 
 function withDuplicateCurrentActivePhase9Goal() {
   return remainingGoalPlan.map((goal) =>
-    goal.id === "goal-phase-9-runner"
+    goal.id === "goal-phase-8-permission-audit"
       ? { ...goal, status: "active" as const, current: true }
       : goal
   );

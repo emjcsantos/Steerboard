@@ -520,7 +520,7 @@ describe("phase 4 provider blocker priority", () => {
     expect(snapshot.catalogSmokeCanAddressTopBlocker).toBe(false);
     expect(snapshot.topPriorityAction).not.toContain("catalog smoke");
     expect(snapshot.topPriorityAction).toContain("exactly one current active remaining goal");
-    expect(snapshot.topPriorityAction).toContain("goal-phase-8-permission-audit");
+    expect(snapshot.topPriorityAction).toContain("goal-phase-9-runner");
     expect(snapshot.items[0]).toMatchObject({
       kind: "traceability",
       status: "preview",

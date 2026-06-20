@@ -155,7 +155,7 @@ describe("phase 4 provider traceability", () => {
     expect(summary.traceabilityProof).toContain("executionLocks=6/6 trust=review");
     expect(summary.traceabilityProof).toContain("metadataOnly=locked execution=locked");
     expect(summary.nextAction).toContain("single current active remaining goal");
-    expect(summary.nextAction).toContain("goal-phase-8-permission-audit");
+    expect(summary.nextAction).toContain("goal-phase-9-runner");
     expect(summary.items.map((item) => item.kind)).toEqual([
       "active-goal",
       "pm-coverage",

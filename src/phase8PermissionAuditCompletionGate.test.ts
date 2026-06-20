@@ -13,6 +13,7 @@ import { buildPhase8PermissionAuditCompletionGate } from "./phase8PermissionAudi
 import { buildPhase8PermissionAuditDepth } from "./phase8PermissionAuditDepth";
 import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
+import { remainingGoalPlan } from "./remainingGoalPlan";
 
 function liveSummary(
   provider: string,
@@ -121,6 +122,16 @@ const readyProfileRequest: RuntimeProfilePermissionRequestRecord = {
   profileLabel: "Profile"
 };
 
+function withCurrentPhase8Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-8-permission-audit"
+      ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 function readySnapshot() {
   const baseInput = {
     liveActionSummaries: [
@@ -136,7 +147,10 @@ function readySnapshot() {
     runtimeProfilePermissionRequestHistory: [readyProfileRequest]
   };
   const baseSnapshot = buildPhase8PermissionAuditDepth(baseInput);
-  const baseTraceability = buildPhase8RiskTraceabilitySummary({ snapshot: baseSnapshot });
+  const baseTraceability = buildPhase8RiskTraceabilitySummary({
+    snapshot: baseSnapshot,
+    goals: withCurrentPhase8Goal()
+  });
   const baseBlockerPriority = buildPhase8RiskBlockerPriority({
     snapshot: baseSnapshot,
     traceability: baseTraceability
@@ -150,7 +164,10 @@ function readySnapshot() {
     ...baseInput,
     ownerAuditReviewRecord: reviewRecord
   });
-  const traceability = buildPhase8RiskTraceabilitySummary({ snapshot });
+  const traceability = buildPhase8RiskTraceabilitySummary({
+    snapshot,
+    goals: withCurrentPhase8Goal()
+  });
   const blockerPriority = buildPhase8RiskBlockerPriority({ snapshot, traceability });
 
   return {

@@ -32,9 +32,9 @@ describe("remaining goal plan", () => {
       planned: 0,
       paused: 0,
       averageCompletionPercent: 100,
-      currentTarget: "Permission and audit depth",
+      currentTarget: "Desktop-backed runner approval",
       currentNextAction:
-        "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof artifactState/fingerprintCurrent/reviewedBlocker gates, phase8PermissionAuditCompletionGate handoff-ready/fingerprint-current proof, phase8ClosureAuditStatusProof blocked-category counts, phase8OwnerActionHandoffProof owner-action clearance, phase8AuditReviewBlockerHandoffProof reviewable-blocker handoff, phase8OwnerReviewClosureReadinessProof owner-review closure gates, phase8FinalCompletionHandoffProof Phase 9 handoff readiness, phase8CloseoutStatusProof closeout status, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, blocker closure proof, owner-review handoff proof, completion-gate closure proof, closure-audit status, owner-action handoff, audit-review blocker handoff, owner-review closure readiness, final completion handoff, closeout status, and the exact top blocker before mutation paths grow.",
+        "Use the Phase 9 runner closeout status proof as the current active implementation target with approval, approval-depth, traceability, blocker-priority, complete Phase 8 dependency proof, phase9RequestGateProof, phase9RunnerCompletionGateProof, PM-link, and runner-expansion lock evidence visible. Phase 9 runner closeout status proof attached. Only the fixed terminal-readonly-probe may advance after live gates are ready; broader runner actions remain locked.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, blocker-priority queue, and phase126PublishHoldCloseoutStatusProof to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -49,7 +49,7 @@ describe("remaining goal plan", () => {
     const traces = buildRemainingGoalPriorityTraces();
 
     expect(traces.map((trace) => trace.goalId).slice(0, 2)).toEqual([
-      "goal-phase-8-permission-audit",
+      "goal-phase-9-runner",
       "goal-phase-1-2-6-publish"
     ]);
     expect(traces).toEqual(
@@ -135,7 +135,7 @@ describe("remaining goal plan", () => {
     const queue = buildRemainingGoalPriorityQueue();
 
     expect(queue.map((goal) => goal.id).slice(0, 4)).toEqual([
-      "goal-phase-8-permission-audit",
+      "goal-phase-9-runner",
       "goal-phase-1-2-6-publish",
       "goal-phase-3-proof-clearance",
       "goal-phase-4-provider-surfaces"
@@ -160,7 +160,7 @@ describe("remaining goal plan", () => {
     const queue = buildRemainingGoalPriorityQueue(staleCurrentNextGoals);
 
     expect(queue.map((goal) => goal.id).slice(0, 3)).toEqual([
-      "goal-phase-8-permission-audit",
+      "goal-phase-9-runner",
       "goal-phase-1-2-6-publish",
       "goal-phase-3-proof-clearance"
     ]);
@@ -192,6 +192,10 @@ describe("remaining goal plan", () => {
       status: "next"
     });
     expect(traces.find((trace) => trace.goalId === "goal-phase-8-permission-audit")).toMatchObject({
+      current: false,
+      status: "next"
+    });
+    expect(traces.find((trace) => trace.goalId === "goal-phase-9-runner")).toMatchObject({
       current: true,
       status: "active"
     });
@@ -325,12 +329,12 @@ describe("remaining goal plan", () => {
   it("separates the blocked owner hold from the active implementation target", () => {
     const summary = summarizeRemainingGoalPlan();
 
-    expect(summary.currentTarget).toBe("Permission and audit depth");
+    expect(summary.currentTarget).toBe("Desktop-backed runner approval");
     expect(summary.currentNextAction).toContain("current active implementation target");
     expect(summary.ownerHoldTarget).toBe("Unblock Phase 1/2/6 publishing");
     expect(summary.ownerHoldNextAction).toContain("owner says to push");
     expect(summary.priorityGoalTraces[0]).toMatchObject({
-      goalId: "goal-phase-8-permission-audit",
+      goalId: "goal-phase-9-runner",
       current: true
     });
     expect(summary.priorityGoalTraces[1]).toMatchObject({
@@ -341,13 +345,13 @@ describe("remaining goal plan", () => {
   });
 
   it("identifies only the current active remaining goal as implementation-trustable", () => {
-    const phase8Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-8-permission-audit");
+    const phase9Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-9-runner");
 
-    expect(findCurrentActiveRemainingGoals()).toEqual([phase8Goal]);
-    expect(isCurrentActiveRemainingGoal(phase8Goal)).toBe(true);
-    expect(isCurrentActiveRemainingGoal({ ...phase8Goal!, current: false })).toBe(false);
-    expect(isCurrentActiveRemainingGoal({ ...phase8Goal!, status: "next" })).toBe(false);
-    expect(isCurrentActiveRemainingGoal({ ...phase8Goal!, status: "active", current: true })).toBe(true);
+    expect(findCurrentActiveRemainingGoals()).toEqual([phase9Goal]);
+    expect(isCurrentActiveRemainingGoal(phase9Goal)).toBe(true);
+    expect(isCurrentActiveRemainingGoal({ ...phase9Goal!, current: false })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase9Goal!, status: "next" })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase9Goal!, status: "active", current: true })).toBe(true);
     expect(isCurrentActiveRemainingGoal(undefined)).toBe(false);
   });
 
@@ -360,10 +364,10 @@ describe("remaining goal plan", () => {
 
     expect(findCurrentActiveRemainingGoals(duplicateCurrentGoals).map((goal) => goal.id)).toEqual([
       "goal-phase-3-proof-clearance",
-      "goal-phase-8-permission-audit"
+      "goal-phase-9-runner"
     ]);
     expect(findRemainingGoalPlanIssues(duplicateCurrentGoals)).toContain(
-      "Remaining goals must have exactly one current active goal; found 2: goal-phase-3-proof-clearance, goal-phase-8-permission-audit."
+      "Remaining goals must have exactly one current active goal; found 2: goal-phase-3-proof-clearance, goal-phase-9-runner."
     );
   });
 
@@ -375,7 +379,7 @@ describe("remaining goal plan", () => {
     );
 
     expect(findCurrentActiveRemainingGoals(staleCurrentGoals).map((goal) => goal.id)).toEqual([
-      "goal-phase-8-permission-audit"
+      "goal-phase-9-runner"
     ]);
     expect(findRemainingGoalPlanIssues(staleCurrentGoals)).toContain(
       "Remaining goal goal-phase-3-proof-clearance is marked current but has status next; current goals must be active."
@@ -394,7 +398,7 @@ describe("remaining goal plan", () => {
     );
     const summary = summarizeRemainingGoalPlan(staleCurrentGoals);
 
-    expect(summary.currentTarget).toBe("Permission and audit depth");
+    expect(summary.currentTarget).toBe("Desktop-backed runner approval");
     expect(summary.currentNextAction).toContain("current active implementation target");
   });
 
@@ -404,7 +408,8 @@ describe("remaining goal plan", () => {
     expect(phase9Goal).toMatchObject({
       target: "Desktop-backed runner approval",
       priority: "high",
-      status: "next",
+      status: "active",
+      current: true,
       completionPercent: 100
     });
     expect(phase9Goal?.pmTaskIds).toEqual(
@@ -691,8 +696,7 @@ describe("remaining goal plan", () => {
     expect(phase8Goal).toMatchObject({
       target: "Permission and audit depth",
       priority: "high",
-      status: "active",
-      current: true,
+      status: "next",
       completionPercent: 100
     });
     expect(phase8Epic?.completionPercent).toBe(100);

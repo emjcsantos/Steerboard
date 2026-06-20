@@ -233,10 +233,9 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-08-permissions-audit"],
     goal:
       "Expand approval gates, risk exceptions, disabled-path explanations, blocker closure proof, owner audit-review persistence with current-fingerprint proof, owner-review handoff proof, current audit evidence fingerprints, record-specific rollback evidence, completion-gate proof, closure-audit status, owner-action handoff proof, audit-review blocker handoff proof, owner-review closure readiness proof, final completion handoff proof, and closeout status proof before mutation paths grow.",
-    status: "active",
+    status: "next",
     priority: "high",
     completionPercent: 100,
-    current: true,
     pmTaskIds: [
       "phase-08-permissions-audit",
       "phase-08-parent-risk-gates",
@@ -258,7 +257,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-08-child-closeout-status"
     ],
     nextAction:
-      "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof artifactState/fingerprintCurrent/reviewedBlocker gates, phase8PermissionAuditCompletionGate handoff-ready/fingerprint-current proof, phase8ClosureAuditStatusProof blocked-category counts, phase8OwnerActionHandoffProof owner-action clearance, phase8AuditReviewBlockerHandoffProof reviewable-blocker handoff, phase8OwnerReviewClosureReadinessProof owner-review closure gates, phase8FinalCompletionHandoffProof Phase 9 handoff readiness, phase8CloseoutStatusProof closeout status, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, blocker closure proof, owner-review handoff proof, completion-gate closure proof, closure-audit status, owner-action handoff, audit-review blocker handoff, owner-review closure readiness, final completion handoff, closeout status, and the exact top blocker before mutation paths grow."
+      "Keep the completed Phase 8 Audit Depth attached as Phase 9 dependency evidence, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof artifactState/fingerprintCurrent/reviewedBlocker gates, phase8PermissionAuditCompletionGate handoff-ready/fingerprint-current proof, phase8ClosureAuditStatusProof blocked-category counts, closure-audit status, phase8OwnerActionHandoffProof owner-action clearance, owner-action handoff, phase8AuditReviewBlockerHandoffProof reviewable-blocker handoff, audit-review blocker handoff, phase8OwnerReviewClosureReadinessProof owner-review closure gates, owner-review closure readiness, phase8FinalCompletionHandoffProof Phase 9 handoff readiness, final completion handoff, phase8CloseoutStatusProof closeout status, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, PM closeout row alignment, and owner-visible Phase 8 audit proof while Phase 9 runner dependency review is the current active implementation target."
   },
   {
     id: "goal-phase-9-runner",
@@ -267,9 +266,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-09-desktop-runner"],
     goal:
       "Allow the fixed terminal read-only desktop probe only after permission, audit, validation, rollback, complete Phase 8 owner-review fingerprint and reviewed-blocker proof, owner-visible Phase 9 proof summaries, phase9RequestGateProof, phase9RunnerCompletionGateProof, current runner evidence fingerprints, trusted Phase 9 traceability/current active goal proof, and persisted runner-review gates pass.",
-    status: "next",
+    status: "active",
     priority: "high",
     completionPercent: 100,
+    current: true,
     pmTaskIds: [
       "phase-09-desktop-runner",
       "phase-09-parent-runner-probe",
@@ -284,7 +284,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-09-child-closeout-status"
     ],
     nextAction:
-      "Keep the Phase 9 runner closeout status proof attached with approval, approval-depth, traceability, blocker-priority, phase9RequestGateProof, phase9RunnerCompletionGateProof, PM-link, and runner-expansion lock evidence visible. Only the fixed terminal-readonly-probe may advance after live gates are ready; broader runner actions remain locked."
+      "Use the Phase 9 runner closeout status proof as the current active implementation target with approval, approval-depth, traceability, blocker-priority, complete Phase 8 dependency proof, phase9RequestGateProof, phase9RunnerCompletionGateProof, PM-link, and runner-expansion lock evidence visible. Phase 9 runner closeout status proof attached. Only the fixed terminal-readonly-probe may advance after live gates are ready; broader runner actions remain locked."
   },
   {
     id: "goal-phase-10-arena-polish",

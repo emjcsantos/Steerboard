@@ -307,14 +307,11 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("2 audit records");
     expect(html).toContain("Ready");
     expect(html).toContain("Request");
-    expect(html).toContain(
-      '<dd title="goal-phase-9-runner is next at 100% with 11 PM task links and 1 current active goal.'
-    );
-    expect(html).toContain(">Held</dd>");
+    expect(html).toContain(">Ready</dd>");
     expect(html).toContain("Phase 9 request gate");
     expect(html).toContain("phase9RequestGateProof");
-    expect(html).toContain("traceability=held");
-    expect(html).toContain("goal-phase-9-runner is next at 100% with 11 PM task links and 1 current active goal.");
+    expect(html).toContain("traceability=ready");
+    expect(html).toContain("goal-phase-9-runner is active at 100% with 11 PM task links and 1 current active goal.");
     expect(html).toContain("Phase 9 runner completion gate");
     expect(html).toContain("phase9RunnerCompletionGateProof");
     expect(html).toContain("runnerExpansion=locked");
@@ -328,10 +325,7 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("Desktop terminal read-only probe executed through the approved runner contract");
     expect(html).toContain("Phase 9 remains limited to terminal-readonly-probe");
     expect(html).toContain("broad terminal, Git, MCP, plugin, automation, runtime, profile, and external-service mutation paths stay locked");
-    expect(html).toContain("Owner action");
-    expect(html).toContain(
-      "phase-09-runner-traceability:active-goal / traceability / waiting"
-    );
+    expect(html).toContain("No open Phase 9 runner blocker");
     expect(html).toContain("Clear");
   });
 

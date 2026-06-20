@@ -180,7 +180,7 @@ function traceability(options: {
 } = {}) {
   return buildPhase8RiskTraceabilitySummary({
     snapshot: options.snapshot ?? depth(),
-    goals: options.goals ?? remainingGoalPlan
+    goals: options.goals ?? withCurrentPhase8Goal()
   });
 }
 

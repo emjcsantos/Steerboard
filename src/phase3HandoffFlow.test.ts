@@ -418,11 +418,11 @@ describe("phase 3 handoff flow", () => {
       (goal) => goal.id === "goal-phase-5-migration-hardening"
     );
     const phase8Goal = remainingGoalPlan.find(
-      (goal) => goal.id === "goal-phase-8-permission-audit"
+      (goal) => goal.id === "goal-phase-9-runner"
     );
 
     expect(currentGoals.map((goal) => goal.id)).toEqual([
-      "goal-phase-8-permission-audit"
+      "goal-phase-9-runner"
     ]);
     expect(phase5Goal).toMatchObject({
       status: "next",
