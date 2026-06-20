@@ -261,6 +261,10 @@ import {
   type Phase7LiveWorkerLaunchGate
 } from "./phase7LiveWorkerLaunchGate";
 import {
+  buildPhase7DispatchClosureGate,
+  type Phase7DispatchClosureGate
+} from "./phase7DispatchClosureGate";
+import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
 } from "./pipelineItemRunLink";
@@ -7159,6 +7163,11 @@ export function DispatchReviewRecordCard({
     verifiedAt: record.createdAt
   });
   const liveWorkerLaunchGate = buildPhase7LiveWorkerLaunchGate(artifactVerification);
+  const dispatchClosureGate = buildPhase7DispatchClosureGate({
+    record,
+    artifactVerification,
+    launchGate: liveWorkerLaunchGate
+  });
 
   return (
     <article
@@ -7344,8 +7353,53 @@ export function DispatchReviewRecordCard({
       </div>
       <DispatchReviewArtifactVerificationSummary verification={artifactVerification} />
       <DispatchLiveWorkerLaunchGateSummary gate={liveWorkerLaunchGate} />
+      <DispatchClosureGateSummary gate={dispatchClosureGate} />
       <small>{record.noRuntimeExecutionNote}</small>
     </article>
+  );
+}
+
+function DispatchClosureGateSummary({
+  gate
+}: {
+  gate: Phase7DispatchClosureGate;
+}) {
+  return (
+    <div
+      aria-label={`Phase 7 dispatch closure gate: ${gate.statusLabel}; can close ${gate.canCloseDispatchReview ? "yes" : "no"}; can spawn ${gate.canSpawnLiveWorker ? "yes" : "no"}; approval ${gate.approvalRequired ? "required" : "recorded"}; next action: ${gate.nextAction}`}
+      className={classNames(
+        "dispatch-closure-gate",
+        `dispatch-closure-gate-${gate.state}`
+      )}
+      title={gate.detail}
+    >
+      <div className="dispatch-closure-gate-header">
+        <strong>Dispatch closure gate</strong>
+        <span>{gate.statusLabel}</span>
+        <b>{gate.readiness}%</b>
+      </div>
+      <dl className="dispatch-closure-gate-grid" aria-label="Phase 7 dispatch closure gate counts">
+        <div>
+          <dt>Close</dt>
+          <dd>{gate.canCloseDispatchReview ? "Yes" : "No"}</dd>
+        </div>
+        <div>
+          <dt>Spawn</dt>
+          <dd>{gate.canSpawnLiveWorker ? "Yes" : "No"}</dd>
+        </div>
+        <div>
+          <dt>Links</dt>
+          <dd>{gate.traceabilityLinkCount}</dd>
+        </div>
+        <div>
+          <dt>Open</dt>
+          <dd>{gate.openBlockerCount}</dd>
+        </div>
+      </dl>
+      <p>{gate.detail}</p>
+      <small>{gate.nextAction}</small>
+      <small>{gate.closureGateProof}</small>
+    </div>
   );
 }
 
