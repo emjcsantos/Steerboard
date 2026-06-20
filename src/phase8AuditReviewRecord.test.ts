@@ -82,10 +82,12 @@ describe("phase 8 audit review record", () => {
       disabledPathCount: 8,
       mutationLocked: true,
       auditEvidenceFingerprint: buildPhase8AuditEvidenceFingerprint(auditDepthSnapshot()),
+      auditPersistenceProof:
+        `auditPersistenceProof=state=review readiness=65 records=2 openExceptions=4 disabledPaths=8 mutationLocked=yes fingerprint=${buildPhase8AuditEvidenceFingerprint(auditDepthSnapshot())} topBlocker=none topStatus=ready`,
       rollbackEvidence:
         "Runtime, profile, terminal, Git, MCP, plugin, automation, and external-service mutation paths remain locked; rollback evidence is required before future executed or failed mutation records can advance.",
       detail:
-        "Owner-reviewed Phase 8 audit depth recorded locally at 65% readiness with 4 open exceptions; mutation paths remain locked."
+        `Owner-reviewed Phase 8 audit depth recorded locally at 65% readiness with 4 open exceptions; mutation paths remain locked. auditPersistenceProof=state=review readiness=65 records=2 openExceptions=4 disabledPaths=8 mutationLocked=yes fingerprint=${buildPhase8AuditEvidenceFingerprint(auditDepthSnapshot())} topBlocker=none topStatus=ready`
     });
   });
 
@@ -101,7 +103,10 @@ describe("phase 8 audit review record", () => {
       topBlockerSourceId: "phase8-live-action-terminal:permission",
       topBlockerKind: "audit-depth",
       topBlockerStatus: "waiting",
-      topBlockerAction: "Review terminal action before mutation paths grow."
+      topBlockerAction: "Review terminal action before mutation paths grow.",
+      auditPersistenceProof: expect.stringContaining(
+        "topBlocker=phase8-live-action-terminal:permission topStatus=waiting"
+      )
     });
   });
 
@@ -133,6 +138,8 @@ describe("phase 8 audit review record", () => {
       disabledPathCount: 9
     });
     expect(parsed?.auditEvidenceFingerprint).toBe("");
+    expect(parsed?.auditPersistenceProof).toContain("auditPersistenceProof=state=ready");
+    expect(parsed?.auditPersistenceProof).toContain("fingerprint=missing");
     expect(parsed?.detail).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(parsed?.rollbackEvidence).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(parsed?.detail).not.toContain("sk-ABCDEF1234567890");

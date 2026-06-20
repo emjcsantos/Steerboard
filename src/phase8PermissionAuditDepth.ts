@@ -693,6 +693,10 @@ function ownerAuditReviewItem(
     };
   }
 
+  const auditPersistenceProof =
+    record.auditPersistenceProof ??
+    `auditPersistenceProof=state=${record.state} readiness=${record.readiness} records=${record.auditRecordCount} openExceptions=${record.openExceptionCount} disabledPaths=${record.disabledPathCount} mutationLocked=${record.mutationLocked ? "yes" : "no"} fingerprint=${record.auditEvidenceFingerprint || "missing"} topBlocker=${record.topBlockerSourceId || "none"} topStatus=${record.topBlockerStatus || "ready"}`;
+
   if (!record.mutationLocked) {
     return {
       id: `${SNAPSHOT_ID}:owner-audit-review`,
@@ -726,7 +730,7 @@ function ownerAuditReviewItem(
       kind: "rollback",
       status: "review",
       detail:
-        `Owner audit review fingerprint ${record.auditEvidenceFingerprint} does not match current audit evidence ${currentAuditEvidenceFingerprint}. ${record.rollbackEvidence}`,
+        `Owner audit review fingerprint ${record.auditEvidenceFingerprint} does not match current audit evidence ${currentAuditEvidenceFingerprint}. ${auditPersistenceProof} ${record.rollbackEvidence}`,
       nextAction:
         "Re-record owner audit review after checking the current Phase 8 permission, audit, rollback, exception, and disabled-path evidence."
     };
@@ -739,7 +743,7 @@ function ownerAuditReviewItem(
       kind: "rollback",
       status: "review",
       detail:
-        `${record.openExceptionCount} open exception${record.openExceptionCount === 1 ? "" : "s"} were present when owner audit review was recorded. ${record.rollbackEvidence}`,
+        `${record.openExceptionCount} open exception${record.openExceptionCount === 1 ? "" : "s"} were present when owner audit review was recorded. ${auditPersistenceProof} ${record.rollbackEvidence}`,
       nextAction:
         "Resolve or explicitly re-review open exceptions before treating Phase 8 audit depth as trusted."
     };
@@ -751,7 +755,7 @@ function ownerAuditReviewItem(
       label: "Owner audit review",
       kind: "rollback",
       status: "blocked",
-      detail: `Owner audit review was recorded while Phase 8 was blocked. ${record.rollbackEvidence}`,
+      detail: `Owner audit review was recorded while Phase 8 was blocked. ${auditPersistenceProof} ${record.rollbackEvidence}`,
       nextAction:
         "Clear blocked owner review evidence, resolve the blocker, and record review again."
     };
@@ -763,7 +767,7 @@ function ownerAuditReviewItem(
     kind: "rollback",
     status: "ready",
     detail:
-      `Owner audit review is recorded at ${record.readiness}% readiness with ${record.auditRecordCount} audit records and ${record.disabledPathCount} disabled paths. ${record.rollbackEvidence}`,
+      `Owner audit review is recorded at ${record.readiness}% readiness with ${record.auditRecordCount} audit records and ${record.disabledPathCount} disabled paths. ${auditPersistenceProof} ${record.rollbackEvidence}`,
     nextAction:
       "Keep the local owner audit review record attached while mutation-capable paths remain locked."
   };

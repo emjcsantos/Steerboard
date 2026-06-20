@@ -714,8 +714,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-audit-persistence",
             title: "Audit Persistence",
-            description: "Persist audit entries and owner audit-review records locally while keeping malformed or stale audit state from hiding permission, evidence, mutation-lock, fingerprint, or rollback blockers.",
-            completionPercent: 58,
+            description: "Persist audit entries and owner audit-review records locally while keeping malformed or stale audit state from hiding permission, evidence, mutation-lock, fingerprint, rollback blockers, and compact auditPersistenceProof counts.",
+            completionPercent: 63,
             complexity: "high",
             sourceDocument: "Audit storage"
           }

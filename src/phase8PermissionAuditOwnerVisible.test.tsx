@@ -298,6 +298,7 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("Jun 18");
     expect(html).toContain("0 open exceptions");
     expect(html).toContain("Phase 8 audit review record ready");
+    expect(html).toContain("auditPersistenceProof=state=ready readiness=100");
     expect(html).toContain("audit evidence fingerprint");
     expect(html).toContain("current audit evidence");
     expect(html).toContain("Audit review artifact");

@@ -23,6 +23,7 @@ export interface Phase8AuditReviewRecord {
   readonly topBlockerKind?: Phase8RiskBlockerPriorityKind | "none";
   readonly topBlockerStatus?: Phase8RiskBlockerPriorityState | "ready";
   readonly topBlockerAction?: string;
+  readonly auditPersistenceProof?: string;
   readonly rollbackEvidence: string;
   readonly detail: string;
 }
@@ -116,6 +117,26 @@ function shortHash(value: string): string {
 
 function isOwnerAuditReviewEvidence(id: string): boolean {
   return id.includes("owner-audit-review");
+}
+
+function buildAuditPersistenceProof(input: {
+  state: Phase8PermissionAuditDepthState;
+  readiness: number;
+  auditRecordCount: number;
+  openExceptionCount: number;
+  disabledPathCount: number;
+  mutationLocked: boolean;
+  auditEvidenceFingerprint: string;
+  topBlockerSourceId?: string;
+  topBlockerStatus?: Phase8RiskBlockerPriorityState | "ready";
+}): string {
+  return (
+    `auditPersistenceProof=state=${input.state} readiness=${input.readiness} ` +
+    `records=${input.auditRecordCount} openExceptions=${input.openExceptionCount} ` +
+    `disabledPaths=${input.disabledPathCount} mutationLocked=${input.mutationLocked ? "yes" : "no"} ` +
+    `fingerprint=${input.auditEvidenceFingerprint || "missing"} ` +
+    `topBlocker=${input.topBlockerSourceId || "none"} topStatus=${input.topBlockerStatus || "ready"}`
+  );
 }
 
 export function buildPhase8AuditEvidenceFingerprint(
@@ -258,6 +279,28 @@ export function parseStoredPhase8AuditReviewRecord(
       topBlockerAction: nonEmptyString(parsed.topBlockerAction)
         ? publicText(parsed.topBlockerAction, "")
         : undefined,
+      auditPersistenceProof: publicText(
+        nonEmptyString(parsed.auditPersistenceProof)
+          ? parsed.auditPersistenceProof
+          : undefined,
+        buildAuditPersistenceProof({
+          state,
+          readiness,
+          auditRecordCount,
+          openExceptionCount,
+          disabledPathCount,
+          mutationLocked: parsed.mutationLocked,
+          auditEvidenceFingerprint: nonEmptyString(parsed.auditEvidenceFingerprint)
+            ? parsed.auditEvidenceFingerprint
+            : "",
+          topBlockerSourceId: nonEmptyString(parsed.topBlockerSourceId)
+            ? parsed.topBlockerSourceId
+            : undefined,
+          topBlockerStatus: nonEmptyString(parsed.topBlockerStatus)
+            ? parsed.topBlockerStatus as Phase8RiskBlockerPriorityState | "ready"
+            : undefined
+        })
+      ),
       rollbackEvidence: publicText(
         parsed.rollbackEvidence,
         "Rollback evidence remains required before mutation paths can unlock."
@@ -295,6 +338,18 @@ export function createPhase8AuditReviewRecord(
     : snapshot.openExceptionCount;
   const state = ownerReviewMissingOnly ? "ready" : snapshot.state;
   const readiness = ownerReviewMissingOnly ? 100 : snapshot.readiness;
+  const auditEvidenceFingerprint = buildPhase8AuditEvidenceFingerprint(snapshot);
+  const auditPersistenceProof = buildAuditPersistenceProof({
+    state,
+    readiness,
+    auditRecordCount: snapshot.auditRecordCount,
+    openExceptionCount,
+    disabledPathCount: snapshot.disabledPathCount,
+    mutationLocked: true,
+    auditEvidenceFingerprint,
+    topBlockerSourceId: blockerPriority?.topPrioritySourceId,
+    topBlockerStatus: blockerPriority?.topPriorityStatus
+  });
 
   return {
     id: `phase8-audit-review:${createdAt}`,
@@ -305,16 +360,17 @@ export function createPhase8AuditReviewRecord(
     openExceptionCount,
     disabledPathCount: snapshot.disabledPathCount,
     mutationLocked: true,
-    auditEvidenceFingerprint: buildPhase8AuditEvidenceFingerprint(snapshot),
+    auditEvidenceFingerprint,
     topBlockerLabel: blockerPriority?.topPriorityLabel,
     topBlockerSourceId: blockerPriority?.topPrioritySourceId,
     topBlockerKind: blockerPriority?.topPriorityKind,
     topBlockerStatus: blockerPriority?.topPriorityStatus,
     topBlockerAction: blockerPriority?.topPriorityAction,
+    auditPersistenceProof,
     rollbackEvidence:
       "Runtime, profile, terminal, Git, MCP, plugin, automation, and external-service mutation paths remain locked; rollback evidence is required before future executed or failed mutation records can advance.",
     detail: publicText(
-      `Owner-reviewed Phase 8 audit depth recorded locally at ${readiness}% readiness with ${openExceptionCount} open exceptions; mutation paths remain locked.`,
+      `Owner-reviewed Phase 8 audit depth recorded locally at ${readiness}% readiness with ${openExceptionCount} open exceptions; mutation paths remain locked. ${auditPersistenceProof}`,
       "Phase 8 owner audit review record is available."
     )
   };
@@ -339,6 +395,10 @@ export function savePhase8AuditReviewRecord(record: Phase8AuditReviewRecord): vo
     topBlockerAction: record.topBlockerAction
       ? publicText(record.topBlockerAction, "")
       : undefined,
+    auditPersistenceProof: publicText(
+      record.auditPersistenceProof,
+      "auditPersistenceProof=state=review readiness=0 records=0 openExceptions=0 disabledPaths=0 mutationLocked=yes fingerprint=missing topBlocker=none topStatus=ready"
+    ),
     rollbackEvidence: publicText(
       record.rollbackEvidence,
       "Rollback evidence remains required before mutation paths can unlock."
