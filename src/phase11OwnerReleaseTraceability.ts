@@ -80,7 +80,8 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-11-parent-release-packaging",
   "phase-11-child-package-validation",
   "phase-11-child-traceability",
-  "phase-11-child-blocker-priority"
+  "phase-11-child-blocker-priority",
+  "phase-11-child-release-closeout-status"
 ];
 const SAFETY =
   "Phase 11 owner release traceability is evidence-only. It links Owner Testing, proof freshness, evidence records, release readiness, Project Management rows, and packaging holds without installing dependencies, running tests, building packages, pushing branches, or resuming release actions.";

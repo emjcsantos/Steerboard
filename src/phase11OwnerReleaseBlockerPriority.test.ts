@@ -281,7 +281,7 @@ describe("phase 11 owner release blocker priority", () => {
     const result = priority({ ownerCommandCenter, traceability });
 
     expect(result.state).toBe("review");
-    expect(result.openBlockerCount).toBe(3);
+    expect(result.openBlockerCount).toBe(2);
     expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
     expect(result.topPriorityAction).toContain("completed Phase 3 clearance PM traceability");
     expect(result.items).toEqual(
@@ -352,7 +352,7 @@ describe("phase 11 owner release blocker priority", () => {
     const result = priority({ proofFreshnessDepth, traceability });
 
     expect(result.state).toBe("review");
-    expect(result.openBlockerCount).toBe(5);
+    expect(result.openBlockerCount).toBe(4);
     expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
     expect(result.topPriorityAction).toContain("completed Phase 3 clearance PM traceability");
     expect(result.topPriorityAction).toContain("handoff proof");

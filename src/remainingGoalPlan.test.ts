@@ -31,7 +31,7 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 91,
+      averageCompletionPercent: 94,
       currentTarget: "Permission and audit depth",
       currentNextAction:
         "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof artifactState/fingerprintCurrent/reviewedBlocker gates, phase8PermissionAuditCompletionGate handoff-ready/fingerprint-current proof, phase8ClosureAuditStatusProof blocked-category counts, phase8OwnerActionHandoffProof owner-action clearance, phase8AuditReviewBlockerHandoffProof reviewable-blocker handoff, phase8OwnerReviewClosureReadinessProof owner-review closure gates, phase8FinalCompletionHandoffProof Phase 9 handoff readiness, phase8CloseoutStatusProof closeout status, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, blocker closure proof, owner-review handoff proof, completion-gate closure proof, closure-audit status, owner-action handoff, audit-review blocker handoff, owner-review closure readiness, final completion handoff, closeout status, and the exact top blocker before mutation paths grow.",
@@ -1051,7 +1051,7 @@ describe("remaining goal plan", () => {
       (task) => task.id === "phase-11-child-blocker-priority"
     );
 
-    expect(phase11Epic?.completionPercent).toBe(74);
+    expect(phase11Epic?.completionPercent).toBe(100);
     expect(ownerTestingParent?.completionPercent).toBe(72);
     expect(ownerChecklistChild?.completionPercent).toBe(72);
     expect(ownerChecklistChild?.description).toContain("ready/total owner checklist counts");
@@ -1066,15 +1066,15 @@ describe("remaining goal plan", () => {
     expect(freshCheckoutChild?.completionPercent).toBe(72);
     expect(freshCheckoutChild?.description).toContain("structured evidence record states");
     expect(freshCheckoutChild?.description).toContain("held release-gate actions");
-    expect(traceabilityChild?.completionPercent).toBe(74);
-    expect(blockerPriorityChild?.completionPercent).toBe(74);
+    expect(traceabilityChild?.completionPercent).toBe(100);
+    expect(blockerPriorityChild?.completionPercent).toBe(100);
     expect(blockerPriorityChild?.description).toContain("open blocker count");
     expect(blockerPriorityChild?.description).toContain("top-priority action detail");
     expect(releaseGoal).toMatchObject({
       target: "Release readiness pass",
       priority: "high",
       status: "next",
-      completionPercent: 74
+      completionPercent: 100
     });
     const releasePackagingParent = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-11-parent-release-packaging"
@@ -1082,15 +1082,21 @@ describe("remaining goal plan", () => {
     const packageValidationChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-11-child-package-validation"
     );
-    expect(releasePackagingParent?.completionPercent).toBe(74);
-    expect(packageValidationChild?.completionPercent).toBe(74);
+    const releaseCloseoutChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-11-child-release-closeout-status"
+    );
+    expect(releasePackagingParent?.completionPercent).toBe(100);
+    expect(packageValidationChild?.completionPercent).toBe(100);
+    expect(releaseCloseoutChild?.completionPercent).toBe(100);
     expect(packageValidationChild?.description).toContain("packaging lock readiness");
     expect(packageValidationChild?.description).toContain("release-decision prerequisite detail");
+    expect(releaseCloseoutChild?.description).toContain("phase11ReleaseCloseoutStatusProof");
     expect(releaseGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-11-child-package-validation",
         "phase-11-child-traceability",
-        "phase-11-child-blocker-priority"
+        "phase-11-child-blocker-priority",
+        "phase-11-child-release-closeout-status"
       ])
     );
     expect(releaseGoal?.goal).toContain("structured evidence records");
@@ -1101,20 +1107,11 @@ describe("remaining goal plan", () => {
     expect(releaseGoal?.goal).toContain(
       "current non-ready proof freshness row actions for handoff/proof-export review"
     );
-    expect(releaseGoal?.nextAction).toContain("Evidence Records");
-    expect(releaseGoal?.nextAction).toContain("structured fresh-checkout");
-    expect(releaseGoal?.nextAction).toContain("structured clean-checkout");
-    expect(releaseGoal?.nextAction).toContain(
-      "current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence/detail"
-    );
-    expect(releaseGoal?.nextAction).toContain(
-      "current non-ready proof freshness row actions for handoff/proof-export review"
-    );
+    expect(releaseGoal?.nextAction).toContain("Phase 11 release closeout status proof attached");
+    expect(releaseGoal?.nextAction).toContain("evidence records");
     expect(releaseGoal?.nextAction).toContain("owner release traceability");
-    expect(releaseGoal?.nextAction).toContain("blocker-priority panels");
-    expect(releaseGoal?.nextAction).toContain("owner-visible Phase 11 proof");
-    expect(releaseGoal?.nextAction).toContain("visible Security 100% final closure guidance");
-    expect(releaseGoal?.nextAction).toContain("visible release-decision top-prerequisite detail");
+    expect(releaseGoal?.nextAction).toContain("packaging-paused evidence");
+    expect(releaseGoal?.nextAction).toContain("Release actions remain paused");
   });
 
   it("keeps remaining goal text public-safe", () => {

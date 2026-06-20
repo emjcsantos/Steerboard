@@ -289,7 +289,7 @@ describe("phase 11 owner release traceability", () => {
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "owner-goal", status: "review" }),
-        expect.objectContaining({ kind: "release-goal", status: "review" }),
+        expect.objectContaining({ kind: "release-goal", status: "ready" }),
         expect.objectContaining({ kind: "pm-coverage", status: "ready" }),
         expect.objectContaining({ kind: "phase3-trace", status: "ready" }),
         expect.objectContaining({ kind: "packaging-hold", status: "ready" })

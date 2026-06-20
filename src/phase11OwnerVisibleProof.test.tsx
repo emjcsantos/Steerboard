@@ -415,7 +415,8 @@ function completedPhase11Goals(): RemainingGoalPlanItem[] {
             "phase-11-parent-release-packaging",
             "phase-11-child-package-validation",
             "phase-11-child-traceability",
-            "phase-11-child-blocker-priority"
+            "phase-11-child-blocker-priority",
+            "phase-11-child-release-closeout-status"
           ]))
         }
       : goal.id === "goal-phase-11-release-readiness"
@@ -431,7 +432,8 @@ function completedPhase11Goals(): RemainingGoalPlanItem[] {
               "phase-11-child-evidence-records",
               "phase-11-child-fresh-checkout",
               "phase-11-child-traceability",
-              "phase-11-child-blocker-priority"
+              "phase-11-child-blocker-priority",
+              "phase-11-child-release-closeout-status"
             ]))
           }
         : goal
@@ -460,6 +462,8 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Prioritized remaining goal traces");
     expect(html).toContain("Phase 11 owner release traceability");
     expect(html).toContain("Phase 11 owner release blocker priority");
+    expect(html).toContain("Phase 11 release closeout status");
+    expect(html).toContain("phase11ReleaseCloseoutStatusProof");
     expect(html).toContain("Current Phase 3 trace");
     expect(html).toContain("Packaging lock");
     expect(html).toContain("Phase 11 Proof Freshness");

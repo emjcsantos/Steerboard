@@ -770,6 +770,10 @@ import {
 import { buildPhase11OwnerReleaseTraceability } from "./phase11OwnerReleaseTraceability";
 import { buildPhase11OwnerReleaseBlockerPriority } from "./phase11OwnerReleaseBlockerPriority";
 import {
+  buildPhase11ReleaseCloseoutStatus,
+  type Phase11ReleaseCloseoutStatus
+} from "./phase11ReleaseCloseoutStatus";
+import {
   createReleasePrivacyReadiness,
   type ReleasePrivacyReadinessItemStatus,
   type ReleasePrivacyReadinessSnapshot
@@ -16876,6 +16880,14 @@ export function Phase11OwnerCommandCenterPanel({
     releaseReadiness,
     traceability
   });
+  const closeoutStatus = buildPhase11ReleaseCloseoutStatus({
+    ownerCommandCenter: snapshot,
+    proofFreshnessDepth,
+    evidenceRecords,
+    releaseReadiness,
+    traceability,
+    blockerPriority
+  });
 
   return (
     <section className="panel-section">
@@ -17051,9 +17063,49 @@ export function Phase11OwnerCommandCenterPanel({
             )}
           </ol>
         </div>
+        <Phase11ReleaseCloseoutStatusPanel status={closeoutStatus} />
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
     </section>
+  );
+}
+
+export function Phase11ReleaseCloseoutStatusPanel({
+  status
+}: {
+  status: Phase11ReleaseCloseoutStatus;
+}) {
+  return (
+    <div
+      aria-label={status.ariaLabel}
+      className={classNames(
+        "phase11-owner-blocker-priority",
+        `phase11-owner-blocker-priority-${status.state}`
+      )}
+      title={status.safety}
+    >
+      <div className="phase11-owner-blocker-priority-header">
+        <strong>{status.label}</strong>
+        <span>{status.statusLabel}</span>
+        <b>{status.readiness}%</b>
+      </div>
+      <dl className="phase11-owner-blocker-priority-grid" aria-label="Phase 11 release closeout status counts">
+        <div>
+          <dt>PM</dt>
+          <dd>{status.linkedPmTaskCount}/{status.requiredPmTaskCount}</dd>
+        </div>
+        <div>
+          <dt>Holds</dt>
+          <dd>{status.releaseHoldCount}</dd>
+        </div>
+        <div>
+          <dt>Package</dt>
+          <dd>{status.packagingPaused ? "Paused" : "Review"}</dd>
+        </div>
+      </dl>
+      <small>{status.phase11ReleaseCloseoutStatusProof}</small>
+      <small title={status.nextAction}>{status.nextAction}</small>
+    </div>
   );
 }
 
