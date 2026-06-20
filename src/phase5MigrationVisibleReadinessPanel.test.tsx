@@ -53,6 +53,9 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("selected metadata categories");
     expect(html).toContain("Apply review staging");
     expect(html).toContain("apply-review-staged");
+    expect(html).toContain("records=6/6");
+    expect(html).toContain("evidenceKeys=6/6");
+    expect(html).toContain("sourceMutation=locked");
     expect(html).toContain("phase5.apply-review-staged-audit");
     expect(html).toContain("Local apply-review-staged audit action");
     expect(html).toContain("active-profile lock");
@@ -60,7 +63,10 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("Profile activation lock");
     expect(html).toContain("Migration hardening is preview/apply-intent metadata only");
     expect(html).toContain("Phase 5 migration traceability");
+    expect(html).toContain("pmLinks=9/9");
+    expect(html).toContain("trust=held");
     expect(html).toContain("Phase 5 migration blocker priority");
+    expect(html).toContain("metadataReviewAddressable=");
   });
 
   it("renders staged apply-review evidence after saved draft history reload", () => {
@@ -101,6 +107,7 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("Profile activation lock");
     expect(html).toContain("Phase 5 migration traceability");
     expect(html).toContain("Phase 5 migration blocker priority");
+    expect(html).toContain("records=6/6");
     expect(html).toContain("top priority Remaining goal link");
     expect(html).not.toContain("has not recorded a local apply-review-staged audit action yet");
     expect(html).not.toContain("top priority Apply review staging");

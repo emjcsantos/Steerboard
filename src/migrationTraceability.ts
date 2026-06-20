@@ -46,6 +46,7 @@ export interface MigrationTraceabilitySummary {
   reviewDepthCount: number;
   openReviewRecordCount: number;
   evidenceKeyCount: number;
+  migrationTraceabilityProof: string;
   nextAction: string;
   safety: string;
   ariaLabel: string;
@@ -342,6 +343,29 @@ function buildAriaLabel(summary: Omit<MigrationTraceabilitySummary, "ariaLabel">
   );
 }
 
+function buildMigrationTraceabilityProof(input: {
+  readonly items: readonly MigrationTraceabilityItem[];
+  readonly missingPmTaskIds: readonly string[];
+  readonly linkedPmTaskCount: number;
+  readonly reviewDepthCount: number;
+  readonly openReviewRecordCount: number;
+  readonly evidenceKeyCount: number;
+  readonly canTrustMigrationReview: boolean;
+}): string {
+  const itemKinds = input.items.map((item) => item.kind).join("|");
+
+  return (
+    `items=${input.items.length}/5 ready=${input.items.filter((item) => item.status === "ready").length} ` +
+    `review=${input.items.filter((item) => item.status === "review").length} ` +
+    `blocked=${input.items.filter((item) => item.status === "blocked").length} ` +
+    `waiting=${input.items.filter((item) => item.status === "waiting").length} ` +
+    `itemKinds=${itemKinds} pmLinks=${input.linkedPmTaskCount}/9 missingPm=${input.missingPmTaskIds.length} ` +
+    `reviewDepth=${input.reviewDepthCount}/6 openReview=${input.openReviewRecordCount} ` +
+    `evidenceKeys=${input.evidenceKeyCount}/6 trust=${input.canTrustMigrationReview ? "ready" : "held"} ` +
+    `sourceMutation=locked profileActivation=locked`
+  );
+}
+
 export function buildMigrationTraceabilitySummary({
   readiness,
   goals = remainingGoalPlan
@@ -373,19 +397,20 @@ export function buildMigrationTraceabilitySummary({
   const reviewCount = items.filter((item) => item.status === "review").length;
   const blockedCount = items.filter((item) => item.status === "blocked").length;
   const waitingCount = items.filter((item) => item.status === "waiting").length;
+  const canTrustMigrationReview =
+    state === "ready" &&
+    isCurrentActiveRemainingGoal(goal) &&
+    currentActiveGoalIds.length === 1 &&
+    missingPmTaskIds.length === 0 &&
+    readiness.openReviewRecordCount === 0 &&
+    evidenceKeyCount === readiness.reviewDepthItems.length;
   const draft = {
     id: TRACE_ID,
     label: TRACE_LABEL,
     state,
     statusLabel: STATUS_LABELS[state],
     readiness: readinessScore,
-    canTrustMigrationReview:
-      state === "ready" &&
-      isCurrentActiveRemainingGoal(goal) &&
-      currentActiveGoalIds.length === 1 &&
-      missingPmTaskIds.length === 0 &&
-      readiness.openReviewRecordCount === 0 &&
-      evidenceKeyCount === readiness.reviewDepthItems.length,
+    canTrustMigrationReview,
     readyCount,
     reviewCount,
     blockedCount,
@@ -396,6 +421,15 @@ export function buildMigrationTraceabilitySummary({
     reviewDepthCount: readiness.reviewDepthItems.length,
     openReviewRecordCount: readiness.openReviewRecordCount,
     evidenceKeyCount,
+    migrationTraceabilityProof: buildMigrationTraceabilityProof({
+      items,
+      missingPmTaskIds,
+      linkedPmTaskCount: goal?.pmTaskIds.length ?? 0,
+      reviewDepthCount: readiness.reviewDepthItems.length,
+      openReviewRecordCount: readiness.openReviewRecordCount,
+      evidenceKeyCount,
+      canTrustMigrationReview
+    }),
     nextAction: firstNextAction(items),
     safety: SAFETY,
     items

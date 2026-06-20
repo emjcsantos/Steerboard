@@ -59,6 +59,9 @@ describe("migration hardening readiness", () => {
     expect(readiness.applyIntentState).toBe("waiting");
     expect(readiness.reviewRecordCount).toBe(6);
     expect(readiness.openReviewRecordCount).toBeGreaterThan(0);
+    expect(readiness.migrationReviewDepthProof).toContain("records=6/6");
+    expect(readiness.migrationReviewDepthProof).toContain("latestDraft=missing");
+    expect(readiness.migrationReviewDepthProof).toContain("sourceMutation=locked");
     expect(readiness.nextAction).toContain("Select safe metadata categories");
     expect(readiness.reviewDepthItems).toEqual(
       expect.arrayContaining([
@@ -143,6 +146,11 @@ describe("migration hardening readiness", () => {
     expect(readiness.canRollback).toBe(true);
     expect(readiness.canStageApplyIntent).toBe(true);
     expect(readiness.openReviewRecordCount).toBe(0);
+    expect(readiness.migrationReviewDepthProof).toContain("records=6/6");
+    expect(readiness.migrationReviewDepthProof).toContain("ready=6");
+    expect(readiness.migrationReviewDepthProof).toContain("open=0");
+    expect(readiness.migrationReviewDepthProof).toContain("evidenceKeys=6/6");
+    expect(readiness.migrationReviewDepthProof).toContain("applyIntent=ready-for-review");
     expect(readiness.reviewDepthItems.every((item) => item.status === "ready")).toBe(true);
     expect(new Set(readiness.reviewDepthItems.map((item) => item.evidenceKey)).size).toBe(
       readiness.reviewDepthItems.length

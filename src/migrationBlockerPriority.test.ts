@@ -85,6 +85,10 @@ describe("migration blocker priority", () => {
     expect(snapshot.state).toBe("waiting");
     expect(snapshot.openBlockerCount).toBeGreaterThan(0);
     expect(snapshot.topPriorityLabel).toBe("Apply intent lock");
+    expect(snapshot.migrationBlockerPriorityProof).toContain("open=");
+    expect(snapshot.migrationBlockerPriorityProof).toContain("metadataReviewAddressable=");
+    expect(snapshot.migrationBlockerPriorityProof).toContain("traceability=");
+    expect(snapshot.migrationBlockerPriorityProof).toContain("sourceMutation=locked");
     expect(snapshot.metadataReviewCanAddressTopBlocker).toBe(true);
     expect(snapshot.items[0]).toMatchObject({
       kind: "review-depth",
@@ -207,6 +211,10 @@ describe("migration blocker priority", () => {
     expect(snapshot.openBlockerCount).toBe(0);
     expect(snapshot.readiness).toBe(100);
     expect(snapshot.topPriorityLabel).toBe("No open Phase 5 migration blocker");
+    expect(snapshot.migrationBlockerPriorityProof).toContain("open=0");
+    expect(snapshot.migrationBlockerPriorityProof).toContain("metadataReviewAddressable=0");
+    expect(snapshot.migrationBlockerPriorityProof).toContain("traceability=ready");
+    expect(snapshot.migrationBlockerPriorityProof).toContain("evidenceKeys=6/6");
   });
 
   it("keeps migration blocker-priority text public-safe", () => {

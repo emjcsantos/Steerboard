@@ -63,6 +63,7 @@ export interface MigrationHardeningReadiness {
   readonly applyIntentState: MigrationApplyIntentState;
   readonly applyIntentLabel: string;
   readonly latestDraftId?: string;
+  readonly migrationReviewDepthProof: string;
   readonly nextAction: string;
   readonly items: readonly MigrationHardeningReadinessItem[];
   readonly reviewDepthItems: readonly MigrationReviewDepthItem[];
@@ -388,6 +389,25 @@ function buildMigrationReviewDepthItems(input: {
   ];
 }
 
+function buildMigrationReviewDepthProof(input: {
+  readonly selectedCategoryCount: number;
+  readonly reviewDepthItems: readonly MigrationReviewDepthItem[];
+  readonly openReviewRecordCount: number;
+  readonly applyIntentState: MigrationApplyIntentState;
+  readonly latestDraftId?: string;
+}): string {
+  const readyCount = input.reviewDepthItems.filter((item) => item.status === "ready").length;
+  const evidenceKeyCount = new Set(input.reviewDepthItems.map((item) => item.evidenceKey)).size;
+  const kinds = input.reviewDepthItems.map((item) => item.kind).join("|");
+
+  return (
+    `records=${input.reviewDepthItems.length}/6 ready=${readyCount} open=${input.openReviewRecordCount} ` +
+    `selected=${input.selectedCategoryCount} applyIntent=${input.applyIntentState} ` +
+    `evidenceKeys=${evidenceKeyCount}/6 latestDraft=${input.latestDraftId ?? "missing"} ` +
+    `kinds=${kinds} sourceMutation=locked profileActivation=locked`
+  );
+}
+
 export function buildMigrationHardeningReadiness(
   input: MigrationHardeningReadinessInput
 ): MigrationHardeningReadiness {
@@ -532,6 +552,13 @@ export function buildMigrationHardeningReadiness(
     applyIntentState,
     applyIntentLabel: applyIntentLabels[applyIntentState],
     latestDraftId: latestDraft?.id,
+    migrationReviewDepthProof: buildMigrationReviewDepthProof({
+      selectedCategoryCount: effectiveSelectedCategoryCount,
+      reviewDepthItems,
+      openReviewRecordCount,
+      applyIntentState,
+      latestDraftId: latestDraft?.id
+    }),
     nextAction: nextActionForStatus(state),
     items,
     reviewDepthItems

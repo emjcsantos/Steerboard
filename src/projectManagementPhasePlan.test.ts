@@ -437,14 +437,30 @@ describe("project management phase plan", () => {
     expect(previewMetadataChild?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
     );
+    expect(draftParent?.completionPercent).toBe(65);
+    expect(profileDraftsChild?.completionPercent).toBe(65);
+    expect(rollbackAuditParent?.completionPercent).toBe(65);
+    expect(previewMetadataChild?.completionPercent).toBe(65);
+    expect(auditSummaryChild?.completionPercent).toBe(65);
+    expect(reviewDepthChild?.completionPercent).toBe(65);
+    expect(traceabilityChild?.completionPercent).toBe(65);
+    expect(blockerPriorityChild?.completionPercent).toBe(65);
     expect(profileDraftsChild?.description).toContain("apply-review-staged audit actions");
+    expect(profileDraftsChild?.description).toContain("migrationReviewDepthProof");
     expect(profileDraftsChild?.description).toContain("without changing active profiles or source data");
     expect(rollbackAuditParent?.description).toContain("sensitive-boundary traceability");
+    expect(rollbackAuditParent?.description).toContain("migrationTraceabilityProof");
+    expect(rollbackAuditParent?.description).toContain("migrationBlockerPriorityProof");
     expect(auditSummaryChild?.description).toContain("draft/audit fingerprint match");
+    expect(auditSummaryChild?.description).toContain("migrationReviewDepthProof");
     expect(previewMetadataChild?.description).toContain("sensitive-exclusion evidence keys");
+    expect(previewMetadataChild?.description).toContain("migrationReviewDepthProof");
     expect(reviewDepthChild?.description).toContain("six separate owner-review records");
     expect(reviewDepthChild?.description).toContain("unique evidence keys");
+    expect(reviewDepthChild?.description).toContain("migrationReviewDepthProof");
     expect(traceabilityChild?.description).toContain("source-mutation locks");
+    expect(traceabilityChild?.description).toContain("migrationTraceabilityProof");
     expect(blockerPriorityChild?.description).toContain("source-mutation locks");
+    expect(blockerPriorityChild?.description).toContain("migrationBlockerPriorityProof");
   });
 });

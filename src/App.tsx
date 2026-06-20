@@ -5150,6 +5150,7 @@ export function MigrationReviewGatePanel({
         </span>
       </div>
       <p>{migrationHardeningReadiness.nextAction}</p>
+      <small>{migrationHardeningReadiness.migrationReviewDepthProof}</small>
       <ol className="migration-review-depth-list" aria-label="Migration review depth records">
         {migrationHardeningReadiness.reviewDepthItems.map((item) => (
           <li className={`migration-review-depth-${item.status}`} key={item.id} title={`${item.detail} ${item.evidence} ${item.nextAction}`}>
@@ -5187,6 +5188,7 @@ export function MigrationReviewGatePanel({
             </li>
           ))}
         </ol>
+        <small>{migrationTraceability.migrationTraceabilityProof}</small>
       </div>
       <div
         aria-label={migrationBlockerPriority.ariaLabel}
@@ -5260,6 +5262,7 @@ export function MigrationReviewGatePanel({
             </li>
           )}
         </ol>
+        <small>{migrationBlockerPriority.migrationBlockerPriorityProof}</small>
       </div>
       <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
         {migrationHardeningReadiness.items.map((item) => (
@@ -5790,6 +5793,7 @@ function AppDialogSurface({
                 </span>
               </div>
               <p>{migrationHardeningReadiness.nextAction}</p>
+              <small>{migrationHardeningReadiness.migrationReviewDepthProof}</small>
               <ol className="migration-review-depth-list" aria-label="Migration review depth records">
                 {migrationHardeningReadiness.reviewDepthItems.map((item) => (
                   <li className={`migration-review-depth-${item.status}`} key={item.id} title={`${item.detail} ${item.evidence} ${item.nextAction}`}>
@@ -5827,6 +5831,7 @@ function AppDialogSurface({
                     </li>
                   ))}
                 </ol>
+                <small>{migrationTraceability.migrationTraceabilityProof}</small>
               </div>
               <div
                 aria-label={migrationBlockerPriority.ariaLabel}
@@ -5900,6 +5905,7 @@ function AppDialogSurface({
                     </li>
                   )}
                 </ol>
+                <small>{migrationBlockerPriority.migrationBlockerPriorityProof}</small>
               </div>
               <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
                 {migrationHardeningReadiness.items.map((item) => (

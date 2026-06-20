@@ -42,6 +42,7 @@ export interface MigrationBlockerPrioritySummary {
   readonly topPriorityLabel: string;
   readonly topPriorityAction: string;
   readonly metadataReviewCanAddressTopBlocker: boolean;
+  readonly migrationBlockerPriorityProof: string;
   readonly nextAction: string;
   readonly safety: string;
   readonly ariaLabel: string;
@@ -301,6 +302,19 @@ function buildAriaLabel(
   );
 }
 
+function buildMigrationBlockerPriorityProof(
+  summary: Omit<MigrationBlockerPrioritySummary, "ariaLabel" | "migrationBlockerPriorityProof">,
+  traceability: MigrationTraceabilitySummary
+): string {
+  return (
+    `open=${summary.openBlockerCount} metadataReviewAddressable=${summary.metadataReviewAddressableCount} ` +
+    `top=${summary.topPriorityLabel} topActionable=${summary.metadataReviewCanAddressTopBlocker ? "yes" : "no"} ` +
+    `traceability=${traceability.canTrustMigrationReview ? "ready" : traceability.state} ` +
+    `pmLinks=${traceability.linkedPmTaskCount}/9 reviewDepth=${traceability.reviewDepthCount}/6 ` +
+    `evidenceKeys=${traceability.evidenceKeyCount}/6 sourceMutation=locked profileActivation=locked`
+  );
+}
+
 export function buildMigrationBlockerPriority(
   input: MigrationBlockerPriorityInput
 ): MigrationBlockerPrioritySummary {
@@ -320,7 +334,7 @@ export function buildMigrationBlockerPriority(
   const state = resolveState(items, input.traceability);
   const topItem = items[0];
   const metadataReviewAddressableCount = items.filter((item) => item.canUseMetadataReview).length;
-  const draft = {
+  const draftWithoutProof = {
     id: SNAPSHOT_ID,
     label: SNAPSHOT_LABEL,
     state,
@@ -338,6 +352,13 @@ export function buildMigrationBlockerPriority(
       "No Phase 5 migration blockers remain; keep apply intent behind explicit owner review and mutation locks.",
     safety: SAFETY,
     items
+  };
+  const draft = {
+    ...draftWithoutProof,
+    migrationBlockerPriorityProof: buildMigrationBlockerPriorityProof(
+      draftWithoutProof,
+      input.traceability
+    )
   };
 
   return {

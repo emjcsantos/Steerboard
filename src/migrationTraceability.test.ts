@@ -91,6 +91,11 @@ describe("migration traceability", () => {
     expect(summary.missingPmTaskIds).toEqual([]);
     expect(summary.reviewDepthCount).toBe(6);
     expect(summary.evidenceKeyCount).toBe(6);
+    expect(summary.migrationTraceabilityProof).toContain("items=5/5");
+    expect(summary.migrationTraceabilityProof).toContain("pmLinks=9/9");
+    expect(summary.migrationTraceabilityProof).toContain("reviewDepth=6/6");
+    expect(summary.migrationTraceabilityProof).toContain("trust=held");
+    expect(summary.migrationTraceabilityProof).toContain("sourceMutation=locked");
     expect(summary.items.map((item) => item.kind)).toEqual([
       "active-goal",
       "pm-coverage",
@@ -109,6 +114,9 @@ describe("migration traceability", () => {
     expect(summary.state).toBe("ready");
     expect(summary.canTrustMigrationReview).toBe(true);
     expect(summary.readyCount).toBe(5);
+    expect(summary.migrationTraceabilityProof).toContain("ready=5");
+    expect(summary.migrationTraceabilityProof).toContain("openReview=0");
+    expect(summary.migrationTraceabilityProof).toContain("trust=ready");
   });
 
   it("does not trust migration review when Phase 5 is current but still next", () => {
