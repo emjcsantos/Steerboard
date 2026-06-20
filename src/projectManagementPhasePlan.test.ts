@@ -21,4 +21,16 @@ describe("project management phase plan", () => {
       expect(byId.get(rowId)?.completionPercent, rowId).toBeGreaterThanOrEqual(65);
     }
   });
+
+  it("keeps Phase 8 audit parent progress aligned with proof depth", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const auditParent = byId.get("phase-08-parent-audit-log");
+    const auditPersistenceChild = byId.get("phase-08-child-audit-persistence");
+
+    expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
+      auditPersistenceChild?.completionPercent ?? 0
+    );
+    expect(auditParent?.description).toContain("auditPersistenceProof");
+  });
 });

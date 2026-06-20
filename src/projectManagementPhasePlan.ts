@@ -706,8 +706,8 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-08-parent-audit-log",
         title: "Owner-Visible Audit Trail",
-        description: "Record attempted actions, owner audit reviews, approvals, blocked states, validation outcomes, record-specific rollback reviews, and audit persistence depth.",
-        completionPercent: 56,
+        description: "Record attempted actions, owner audit reviews, approvals, blocked states, validation outcomes, record-specific rollback reviews, audit persistence depth, and compact auditPersistenceProof counts for local owner-review persistence.",
+        completionPercent: 63,
         complexity: "high",
         sourceDocument: "Audit requirements",
         children: [
