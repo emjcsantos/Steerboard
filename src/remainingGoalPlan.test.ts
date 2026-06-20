@@ -31,10 +31,10 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 81,
+      averageCompletionPercent: 82,
       currentTarget: "Migration Center hardening",
       currentNextAction:
-        "Use the Migration review gate as the current active implementation target with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, traceability rows, blocker-priority queue, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, and keep profile activation locked before any migration apply path.",
+        "Use the Migration review gate as the current active implementation target with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, traceability rows, blocker-priority queue, apply-decision gate, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, and keep profile activation locked before any migration apply path.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -472,42 +472,49 @@ describe("remaining goal plan", () => {
       priority: "high",
       status: "active",
       current: true,
-      completionPercent: 72
+      completionPercent: 78
     });
-    expect(phase5Epic?.completionPercent).toBe(72);
+    expect(phase5Epic?.completionPercent).toBe(78);
     expect(phase5Epic?.description).toContain("migrationReviewDepthProof");
     expect(phase5Epic?.description).toContain("migrationTraceabilityProof");
     expect(phase5Epic?.description).toContain("trust=ready");
     expect(phase5Epic?.description).toContain("migrationBlockerPriorityProof");
     expect(phase5Epic?.description).toContain("open=0");
-    expect(profileDraftsChild?.completionPercent).toBe(72);
+    expect(phase5Epic?.description).toContain("migrationApplyDecisionProof");
+    expect(phase5Epic?.description).toContain("canApply=no");
+    expect(profileDraftsChild?.completionPercent).toBe(78);
     expect(profileDraftsChild?.description).toContain("apply-review-staged audit actions");
     expect(profileDraftsChild?.description).toContain("migrationReviewDepthProof");
     expect(profileDraftsChild?.description).toContain("evidenceKeys=6/6");
     expect(profileDraftsChild?.description).toContain("without changing active profiles or source data");
-    expect(previewMetadataChild?.completionPercent).toBe(72);
+    expect(profileDraftsChild?.description).toContain("migrationApplyDecisionProof");
+    expect(previewMetadataChild?.completionPercent).toBe(78);
     expect(previewMetadataChild?.description).toContain("sensitive-exclusion evidence keys");
     expect(previewMetadataChild?.description).toContain("migrationReviewDepthProof");
     expect(previewMetadataChild?.description).toContain("sourceMutation=locked");
-    expect(auditSummaryChild?.completionPercent).toBe(72);
+    expect(previewMetadataChild?.description).toContain("migrationApplyDecisionProof");
+    expect(auditSummaryChild?.completionPercent).toBe(78);
     expect(auditSummaryChild?.description).toContain("draft/audit fingerprint match");
     expect(auditSummaryChild?.description).toContain("migrationReviewDepthProof");
     expect(auditSummaryChild?.description).toContain("records=6/6");
-    expect(reviewDepthChild?.completionPercent).toBe(72);
+    expect(auditSummaryChild?.description).toContain("migrationApplyDecisionProof");
+    expect(reviewDepthChild?.completionPercent).toBe(78);
     expect(reviewDepthChild?.description).toContain("six separate ready owner-review records");
     expect(reviewDepthChild?.description).toContain("unique evidence keys");
     expect(reviewDepthChild?.description).toContain("migrationReviewDepthProof");
     expect(reviewDepthChild?.description).toContain("ready owner-review records");
-    expect(traceabilityChild?.completionPercent).toBe(72);
+    expect(reviewDepthChild?.description).toContain("migrationApplyDecisionProof");
+    expect(traceabilityChild?.completionPercent).toBe(78);
     expect(traceabilityChild?.description).toContain("source-mutation locks");
     expect(traceabilityChild?.description).toContain("migrationTraceabilityProof");
     expect(traceabilityChild?.description).toContain("trust=ready");
     expect(traceabilityChild?.description).toContain("openReview=0");
-    expect(blockerPriorityChild?.completionPercent).toBe(72);
+    expect(blockerPriorityChild?.completionPercent).toBe(78);
     expect(blockerPriorityChild?.description).toContain("source-mutation locks");
     expect(blockerPriorityChild?.description).toContain("migrationBlockerPriorityProof");
     expect(blockerPriorityChild?.description).toContain("open=0");
-    expect(rollbackAuditParent?.completionPercent).toBe(72);
+    expect(blockerPriorityChild?.description).toContain("migrationApplyDecisionProof");
+    expect(rollbackAuditParent?.completionPercent).toBe(78);
     expect(rollbackAuditParent?.description).toContain("sensitive-boundary traceability");
     expect(rollbackAuditParent?.description).toContain("migrationTraceabilityProof");
     expect(rollbackAuditParent?.description).toContain("openReview=0");
@@ -518,7 +525,8 @@ describe("remaining goal plan", () => {
         "phase-05-child-audit-summary",
         "phase-05-child-review-depth",
         "phase-05-child-traceability",
-        "phase-05-child-blocker-priority"
+        "phase-05-child-blocker-priority",
+        "phase-05-child-apply-decision-gate"
       ])
     );
     expect(phase5Goal?.nextAction).toContain("blocker-priority queue");
@@ -529,6 +537,8 @@ describe("remaining goal plan", () => {
     expect(phase5Goal?.nextAction).toContain("openReview=0");
     expect(phase5Goal?.nextAction).toContain("migrationBlockerPriorityProof");
     expect(phase5Goal?.nextAction).toContain("open=0");
+    expect(phase5Goal?.nextAction).toContain("migrationApplyDecisionProof");
+    expect(phase5Goal?.nextAction).toContain("canApply=no");
     expect(phase5Goal?.nextAction).toContain("owner-visible Phase 5 check");
     expect(phase5Goal?.nextAction).toContain("apply-review-staged audit record");
   });

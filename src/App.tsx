@@ -370,6 +370,7 @@ import {
 import {
   buildMigrationBlockerPriority
 } from "./migrationBlockerPriority";
+import { buildMigrationApplyDecisionGate } from "./migrationApplyDecisionGate";
 import { buildMigrationTraceabilitySummary } from "./migrationTraceability";
 import {
   buildPersonalizationCatalogSnapshot,
@@ -5142,6 +5143,11 @@ export function MigrationReviewGatePanel({
     readiness: migrationHardeningReadiness,
     traceability: migrationTraceability
   });
+  const migrationApplyDecisionGate = buildMigrationApplyDecisionGate({
+    readiness: migrationHardeningReadiness,
+    traceability: migrationTraceability,
+    blockerPriority: migrationBlockerPriority
+  });
 
   return (
     <div
@@ -5288,6 +5294,42 @@ export function MigrationReviewGatePanel({
           )}
         </ol>
         <small>{migrationBlockerPriority.migrationBlockerPriorityProof}</small>
+      </div>
+      <div
+        aria-label={migrationApplyDecisionGate.ariaLabel}
+        className={classNames(
+          "migration-apply-decision",
+          `migration-apply-decision-${migrationApplyDecisionGate.state}`
+        )}
+        title={migrationApplyDecisionGate.safety}
+      >
+        <div className="migration-apply-decision-header">
+          <strong>{migrationApplyDecisionGate.label}</strong>
+          <span>{migrationApplyDecisionGate.statusLabel}</span>
+        </div>
+        <dl
+          aria-label="Migration apply decision locks"
+          className="migration-apply-decision-grid"
+        >
+          <div>
+            <dt>Stage review</dt>
+            <dd>{migrationApplyDecisionGate.canStageApplyReview ? "Yes" : "No"}</dd>
+          </div>
+          <div>
+            <dt>Apply</dt>
+            <dd>{migrationApplyDecisionGate.canApplyMigration ? "Yes" : "No"}</dd>
+          </div>
+          <div>
+            <dt>Profile</dt>
+            <dd>{migrationApplyDecisionGate.profileActivationLocked ? "Locked" : "Open"}</dd>
+          </div>
+          <div>
+            <dt>Approval</dt>
+            <dd>{migrationApplyDecisionGate.ownerApprovalRequired ? "Required" : "Clear"}</dd>
+          </div>
+        </dl>
+        <p>{migrationApplyDecisionGate.nextAction}</p>
+        <small>{migrationApplyDecisionGate.migrationApplyDecisionProof}</small>
       </div>
       <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
         {migrationHardeningReadiness.items.map((item) => (
@@ -5442,6 +5484,11 @@ function AppDialogSurface({
   const migrationBlockerPriority = buildMigrationBlockerPriority({
     readiness: migrationHardeningReadiness,
     traceability: migrationTraceability
+  });
+  const migrationApplyDecisionGate = buildMigrationApplyDecisionGate({
+    readiness: migrationHardeningReadiness,
+    traceability: migrationTraceability,
+    blockerPriority: migrationBlockerPriority
   });
   const catalogRefreshSafetyDepth = buildPhase4RefreshSafetyDepth(
     catalogRefreshProviderSmokeProof,
@@ -5931,6 +5978,42 @@ function AppDialogSurface({
                   )}
                 </ol>
                 <small>{migrationBlockerPriority.migrationBlockerPriorityProof}</small>
+              </div>
+              <div
+                aria-label={migrationApplyDecisionGate.ariaLabel}
+                className={classNames(
+                  "migration-apply-decision",
+                  `migration-apply-decision-${migrationApplyDecisionGate.state}`
+                )}
+                title={migrationApplyDecisionGate.safety}
+              >
+                <div className="migration-apply-decision-header">
+                  <strong>{migrationApplyDecisionGate.label}</strong>
+                  <span>{migrationApplyDecisionGate.statusLabel}</span>
+                </div>
+                <dl
+                  aria-label="Migration apply decision locks"
+                  className="migration-apply-decision-grid"
+                >
+                  <div>
+                    <dt>Stage review</dt>
+                    <dd>{migrationApplyDecisionGate.canStageApplyReview ? "Yes" : "No"}</dd>
+                  </div>
+                  <div>
+                    <dt>Apply</dt>
+                    <dd>{migrationApplyDecisionGate.canApplyMigration ? "Yes" : "No"}</dd>
+                  </div>
+                  <div>
+                    <dt>Profile</dt>
+                    <dd>{migrationApplyDecisionGate.profileActivationLocked ? "Locked" : "Open"}</dd>
+                  </div>
+                  <div>
+                    <dt>Approval</dt>
+                    <dd>{migrationApplyDecisionGate.ownerApprovalRequired ? "Required" : "Clear"}</dd>
+                  </div>
+                </dl>
+                <p>{migrationApplyDecisionGate.nextAction}</p>
+                <small>{migrationApplyDecisionGate.migrationApplyDecisionProof}</small>
               </div>
               <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
                 {migrationHardeningReadiness.items.map((item) => (

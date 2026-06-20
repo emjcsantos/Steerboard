@@ -63,10 +63,16 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("Profile activation lock");
     expect(html).toContain("Migration hardening is preview/apply-intent metadata only");
     expect(html).toContain("Phase 5 migration traceability");
-    expect(html).toContain("pmLinks=9/9");
+    expect(html).toContain("pmLinks=10/10");
     expect(html).toContain("trust=ready");
     expect(html).toContain("Phase 5 migration blocker priority");
     expect(html).toContain("metadataReviewAddressable=");
+    expect(html).toContain("Phase 5 migration apply decision gate");
+    expect(html).toContain("stageApplyReview=yes");
+    expect(html).toContain("canApply=no");
+    expect(html).toContain("profileActivation=locked");
+    expect(html).toContain("sourceMutation=locked");
+    expect(html).toContain("approval=required");
   });
 
   it("renders staged apply-review evidence after saved draft history reload", () => {
@@ -110,6 +116,11 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("records=6/6");
     expect(html).toContain("No open Phase 5 migration blocker");
     expect(html).toContain("open=0 metadataReviewAddressable=0");
+    expect(html).toContain("Phase 5 migration apply decision gate");
+    expect(html).toContain("stageApplyReview=yes");
+    expect(html).toContain("canApply=no");
+    expect(html).toContain("profileActivation=locked");
+    expect(html).toContain("approval=required");
     expect(html).not.toContain("has not recorded a local apply-review-staged audit action yet");
     expect(html).not.toContain("top priority Apply review staging");
     expect(html).not.toContain("Review required");
@@ -136,5 +147,9 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("has not recorded a local apply-review-staged audit action yet");
     expect(html).toContain("Stage apply review as a local audit record only");
     expect(html).toContain("Review required");
+    expect(html).toContain("Phase 5 migration apply decision gate");
+    expect(html).toContain("stageApplyReview=no");
+    expect(html).toContain("canApply=no");
+    expect(html).toContain("localAudit=held");
   });
 });

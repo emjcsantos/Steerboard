@@ -421,31 +421,31 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-05-migration-center",
     title: "Phase 5: Migration Center",
-    description: "Turn the metadata-only migration foundations into a guarded, review-first migration workflow with apply-intent locks, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, migrationReviewDepthProof, migrationTraceabilityProof trust=ready/openReview=0, migrationBlockerPriorityProof open=0, and owner-visible no-open-blocker proof.",
-    completionPercent: 72,
+    description: "Turn the metadata-only migration foundations into a guarded, review-first migration workflow with apply-intent locks, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, migrationReviewDepthProof, migrationTraceabilityProof trust=ready/openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, and owner-visible no-open-blocker/no-apply proof.",
+    completionPercent: 78,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-05-parent-draft-workflow",
         title: "Migration Draft Workflow",
-        description: "Create, persist, preview, review, and stage metadata-only apply intent for migration profile drafts with migrationReviewDepthProof records=6/6 ready=6 before any mutation-capable action.",
-        completionPercent: 72,
+        description: "Create, persist, preview, review, and stage metadata-only apply intent for migration profile drafts with migrationReviewDepthProof records=6/6 ready=6 and migrationApplyDecisionProof canApply=no before any mutation-capable action.",
+        completionPercent: 78,
         complexity: "high",
         sourceDocument: "Migration Center",
         children: [
           {
             id: "phase-05-child-profile-drafts",
             title: "Profile Draft Persistence",
-            description: "Persist migration profiles, draft history, import state, evidence fingerprints, apply-review-staged audit actions, rollback notes, audit summaries, and migrationReviewDepthProof evidenceKeys=6/6 locally without changing active profiles or source data.",
-            completionPercent: 72,
+            description: "Persist migration profiles, draft history, import state, evidence fingerprints, apply-review-staged audit actions, rollback notes, audit summaries, migrationReviewDepthProof evidenceKeys=6/6, and migrationApplyDecisionProof localAudit=ready locally without changing active profiles or source data.",
+            completionPercent: 78,
             sourceDocument: "Migration model"
           },
           {
             id: "phase-05-child-preview-metadata",
             title: "Metadata Preview",
-            description: "Show migration impact, selected metadata category counts, review-gate previews, sensitive-exclusion evidence keys, unsupported category visibility, migrationReviewDepthProof sourceMutation=locked, and no-private-content/no-external-action boundaries.",
-            completionPercent: 72,
+            description: "Show migration impact, selected metadata category counts, review-gate previews, sensitive-exclusion evidence keys, unsupported category visibility, migrationReviewDepthProof sourceMutation=locked, migrationApplyDecisionProof sourceMutation=locked, and no-private-content/no-external-action boundaries.",
+            completionPercent: 78,
             sourceDocument: "Migration Center"
           }
         ]
@@ -453,41 +453,49 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-05-parent-rollback-audit",
         title: "Rollback and Audit Review",
-        description: "Make rollback strategy, review-depth records, fingerprint-matched audit evidence, unique evidence keys, sensitive-boundary traceability, migrationTraceabilityProof trust=ready/openReview=0, migrationBlockerPriorityProof open=0, and source-mutation locks mandatory before migration work can leave review-only mode.",
-        completionPercent: 72,
+        description: "Make rollback strategy, review-depth records, fingerprint-matched audit evidence, unique evidence keys, sensitive-boundary traceability, migrationTraceabilityProof trust=ready/openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof approval=required/canApply=no, and source-mutation locks mandatory before migration work can leave review-only mode.",
+        completionPercent: 78,
         complexity: "high",
         sourceDocument: "Permissions and audit",
         children: [
           {
             id: "phase-05-child-audit-summary",
             title: "Audit Summary Review",
-            description: "Surface who, what, when, risk level, draft/audit fingerprint match, selected/review-required/unsupported category counts, apply-intent lock, rollback path, and migrationReviewDepthProof records=6/6 for every migration draft.",
-            completionPercent: 72,
+            description: "Surface who, what, when, risk level, draft/audit fingerprint match, selected/review-required/unsupported category counts, apply-intent lock, rollback path, migrationReviewDepthProof records=6/6, and migrationApplyDecisionProof localAudit=ready for every migration draft.",
+            completionPercent: 78,
             sourceDocument: "Migration audit summary"
           },
           {
             id: "phase-05-child-review-depth",
             title: "Migration Review Depth",
-            description: "Show apply-intent lock, local apply-review-staged audit proof, rollback evidence, fingerprint-matched audit consistency, sensitive exclusions, profile activation lock, and migrationReviewDepthProof as six separate ready owner-review records with unique evidence keys.",
-            completionPercent: 72,
+            description: "Show apply-intent lock, local apply-review-staged audit proof, rollback evidence, fingerprint-matched audit consistency, sensitive exclusions, profile activation lock, migrationReviewDepthProof, and migrationApplyDecisionProof as six separate ready owner-review records with unique evidence keys.",
+            completionPercent: 78,
             complexity: "high",
             sourceDocument: "Migration review gate"
           },
           {
             id: "phase-05-child-traceability",
             title: "Migration Traceability",
-            description: "Link Phase 5 remaining-goal status, PM child rows, migration review-depth evidence keys, draft/audit fingerprint coverage, sensitive exclusions, rollback/audit coverage, migrationTraceabilityProof trust=ready/openReview=0, source-mutation locks, and the profile activation lock before apply review can advance.",
-            completionPercent: 72,
+            description: "Link Phase 5 remaining-goal status, PM child rows including the apply-decision gate, migration review-depth evidence keys, draft/audit fingerprint coverage, sensitive exclusions, rollback/audit coverage, migrationTraceabilityProof trust=ready/openReview=0, source-mutation locks, and the profile activation lock before apply review can advance.",
+            completionPercent: 78,
             complexity: "high",
             sourceDocument: "Phase 5 migration traceability"
           },
           {
             id: "phase-05-child-blocker-priority",
             title: "Migration Blocker Priority",
-            description: "Rank exact Phase 5 blockers across migration hardening, review-depth records, traceability, apply intent, rollback, fingerprint-matched audit, sensitive exclusions, migrationBlockerPriorityProof open=0, source-mutation locks, and profile activation lock before apply review advances, while keeping remaining-goal and PM traceability repairs out of metadata-review actions.",
-            completionPercent: 72,
+            description: "Rank exact Phase 5 blockers across migration hardening, review-depth records, traceability, apply intent, rollback, fingerprint-matched audit, sensitive exclusions, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof openBlockers=0, source-mutation locks, and profile activation lock before apply review advances, while keeping remaining-goal and PM traceability repairs out of metadata-review actions.",
+            completionPercent: 78,
             complexity: "medium",
             sourceDocument: "Phase 5 migration blocker priority"
+          },
+          {
+            id: "phase-05-child-apply-decision-gate",
+            title: "Migration Apply Decision Gate",
+            description: "Show the owner-visible apply-decision proof that migration review can be staged locally while migrationApplyDecisionProof keeps canApply=no, profileActivation=locked, sourceMutation=locked, approval=required, rollback=ready, sensitiveExclusions=ready, and active profile changes locked.",
+            completionPercent: 78,
+            complexity: "high",
+            sourceDocument: "Phase 5 migration apply decision gate"
           }
         ]
       }
