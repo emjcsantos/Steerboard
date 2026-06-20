@@ -110,7 +110,7 @@ function withDuplicateCurrentActivePhase10Goal() {
 }
 
 describe("phase 10 Arena polish traceability", () => {
-  it("keeps Phase 10 Arena polish traceability waiting while Phase 10 is only next", () => {
+  it("trusts completed Phase 10 Arena polish traceability while Phase 9 remains active", () => {
     const summary = buildPhase10ArenaPolishTraceability({ snapshot: polishSnapshot() });
 
     expect(summary.linkedGoalId).toBe("goal-phase-10-arena-polish");
@@ -123,8 +123,9 @@ describe("phase 10 Arena polish traceability", () => {
       "layout-evidence",
       "acceptance-gate"
     ]);
-    expect(summary.state).toBe("waiting");
-    expect(summary.canTrustArenaPolish).toBe(false);
+    expect(summary.state).toBe("ready");
+    expect(summary.canTrustArenaPolish).toBe(true);
+    expect(summary.readyCount).toBe(5);
     expect(summary.acceptanceGateStatus).toBe("ready");
     expect(summary.safety).toContain("evidence-only");
   });

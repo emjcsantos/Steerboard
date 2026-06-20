@@ -344,6 +344,43 @@ describe("phase 8 risk traceability", () => {
     expect(summary.openExceptionCount).toBe(0);
   });
 
+  it("trusts completed Phase 8 permission audit while Phase 9 remains active", () => {
+    const readyDepth = depth({
+      summaries: [
+        liveSummary("terminal", "approved"),
+        liveSummary("git", "approved"),
+        liveSummary("plugin", "approved")
+      ],
+      liveAuditRecords: [liveAuditRecord],
+      runtimeExecutionAudit: readyRuntimeExecutionAudit,
+      runtimeExecutionAuditHistory: [executionRecord],
+      runtimeProfilePermissionRequestHistory: [profileRequest],
+      ownerAuditReviewRecord: ownerReviewFor({
+        summaries: [
+          liveSummary("terminal", "approved"),
+          liveSummary("git", "approved"),
+          liveSummary("plugin", "approved")
+        ],
+        liveAuditRecords: [liveAuditRecord],
+        runtimeExecutionAudit: readyRuntimeExecutionAudit,
+        runtimeExecutionAuditHistory: [executionRecord],
+        runtimeProfilePermissionRequestHistory: [profileRequest]
+      })
+    });
+    const summary = buildPhase8RiskTraceabilitySummary({
+      snapshot: readyDepth,
+      goals: remainingGoalPlan
+    });
+
+    expect(summary.state).toBe("ready");
+    expect(summary.canTrustPermissionAudit).toBe(true);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "active-goal", status: "ready" })
+      ])
+    );
+  });
+
   it("does not trust permission audit when Phase 8 is current but still next", () => {
     const summary = traceability({
       snapshot: depth({

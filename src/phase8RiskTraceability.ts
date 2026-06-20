@@ -154,6 +154,15 @@ function phase8Goal(goals: readonly RemainingGoalPlanItem[]): RemainingGoalPlanI
   return goals.find((goal) => goal.id === PHASE8_GOAL_ID);
 }
 
+function isCompletedPhase8Goal(goal: RemainingGoalPlanItem | undefined): boolean {
+  return (
+    goal?.id === PHASE8_GOAL_ID &&
+    goal.status !== "blocked" &&
+    goal.completionPercent === 100 &&
+    goal.phaseIds.includes(PHASE8_PHASE_ID)
+  );
+}
+
 function activeGoalItem(
   goal: RemainingGoalPlanItem | undefined,
   currentActiveGoalIds: readonly string[]
@@ -182,7 +191,8 @@ function activeGoalItem(
 
   const exactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
   const isTrustedPhase8Goal =
-    isCurrentActiveRemainingGoal(goal) && exactlyOneCurrentActiveGoal;
+    (isCurrentActiveRemainingGoal(goal) || isCompletedPhase8Goal(goal)) &&
+    exactlyOneCurrentActiveGoal;
 
   return {
     id: `${TRACE_ID}:active-goal`,
@@ -202,7 +212,7 @@ function activeGoalItem(
     nextAction: exactlyOneCurrentActiveGoal
       ? publicText(
           goal.nextAction,
-          "Make Phase 8 the current active goal before permission audit can be trusted."
+          "Keep Phase 8 completed permission-audit evidence attached before permission audit can be trusted."
         )
       : `Keep exactly one current active remaining goal before Phase 8 permission audit can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
   };
@@ -406,7 +416,7 @@ export function buildPhase8RiskTraceabilitySummary({
   const waitingCount = items.filter((item) => item.status === "waiting").length;
   const canTrustPermissionAudit =
     state === "ready" &&
-    isCurrentActiveRemainingGoal(goal) &&
+    Boolean(goal && (isCurrentActiveRemainingGoal(goal) || isCompletedPhase8Goal(goal))) &&
     currentActiveGoalIds.length === 1 &&
     missingPmTaskIds.length === 0 &&
     snapshot.openExceptionCount === 0 &&

@@ -145,6 +145,15 @@ function phase10Goal(goals: readonly RemainingGoalPlanItem[]): RemainingGoalPlan
   return goals.find((goal) => goal.id === PHASE10_GOAL_ID);
 }
 
+function isCompletedPhase10Goal(goal: RemainingGoalPlanItem | undefined): boolean {
+  return (
+    goal?.id === PHASE10_GOAL_ID &&
+    goal.status !== "blocked" &&
+    goal.completionPercent === 100 &&
+    goal.phaseIds.includes(PHASE10_PHASE_ID)
+  );
+}
+
 function activeGoalItem(
   goal: RemainingGoalPlanItem | undefined,
   currentActiveGoalIds: readonly string[]
@@ -173,7 +182,8 @@ function activeGoalItem(
 
   const exactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
   const isTrustedPhase10Goal =
-    isCurrentActiveRemainingGoal(goal) && exactlyOneCurrentActiveGoal;
+    (isCurrentActiveRemainingGoal(goal) || isCompletedPhase10Goal(goal)) &&
+    exactlyOneCurrentActiveGoal;
 
   return {
     id: `${TRACE_ID}:active-goal`,
@@ -193,7 +203,7 @@ function activeGoalItem(
     nextAction: exactlyOneCurrentActiveGoal
       ? publicText(
           goal.nextAction,
-          "Make Phase 10 the current active goal before Arena polish can be trusted."
+          "Keep Phase 10 completed Arena polish evidence attached before Arena polish can be trusted."
         )
       : `Keep exactly one current active remaining goal before Phase 10 Arena polish can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
   };
@@ -331,7 +341,7 @@ export function buildPhase10ArenaPolishTraceability(
     readiness: scoreItems(items),
     canTrustArenaPolish:
       state === "ready" &&
-      isCurrentActiveRemainingGoal(goal) &&
+      Boolean(goal && (isCurrentActiveRemainingGoal(goal) || isCompletedPhase10Goal(goal))) &&
       currentActiveGoalIds.length === 1 &&
       input.snapshot.state === "ready" &&
       missingPmTaskIds.length === 0,
