@@ -951,8 +951,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-blocker-priority",
             title: "Owner Release Blocker Priority",
-            description: "Rank exact Phase 11 blockers across owner proof, evidence freshness, fresh-checkout release readiness, visible Security 100% final closure guidance, PM coverage, and packaging hold state before packaging resumes, while keeping goal, PM, and Phase 3 trace repairs out of owner-review actions.",
-            completionPercent: 62,
+            description: "Rank exact Phase 11 blockers across owner proof, evidence freshness, fresh-checkout release readiness, visible Security 100% final closure guidance, PM coverage, and packaging hold state with open blocker count, owner-review addressable count, and top-priority action detail before packaging resumes, while keeping goal, PM, and Phase 3 trace repairs out of owner-review actions.",
+            completionPercent: 64,
             complexity: "medium",
             sourceDocument: "Phase 11 owner release blocker priority"
           }

@@ -727,6 +727,9 @@ describe("remaining goal plan", () => {
     const freshCheckoutChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-11-child-fresh-checkout"
     );
+    const blockerPriorityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-11-child-blocker-priority"
+    );
 
     expect(phase11Epic?.completionPercent).toBe(64);
     expect(ownerTestingParent?.completionPercent).toBe(64);
@@ -743,6 +746,9 @@ describe("remaining goal plan", () => {
     expect(freshCheckoutChild?.completionPercent).toBe(64);
     expect(freshCheckoutChild?.description).toContain("structured evidence record states");
     expect(freshCheckoutChild?.description).toContain("held release-gate actions");
+    expect(blockerPriorityChild?.completionPercent).toBe(64);
+    expect(blockerPriorityChild?.description).toContain("open blocker count");
+    expect(blockerPriorityChild?.description).toContain("top-priority action detail");
     expect(releaseGoal).toMatchObject({
       target: "Release readiness pass",
       priority: "high",

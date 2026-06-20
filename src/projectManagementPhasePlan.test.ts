@@ -103,6 +103,7 @@ describe("project management phase plan", () => {
     const phase11Epic = byId.get("phase-11-owner-packaging");
     const releaseParent = byId.get("phase-11-parent-release-packaging");
     const traceabilityChild = byId.get("phase-11-child-traceability");
+    const blockerPriorityChild = byId.get("phase-11-child-blocker-priority");
 
     expect(phase11Epic?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
@@ -110,9 +111,16 @@ describe("project management phase plan", () => {
     expect(releaseParent?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
     );
+    expect(releaseParent?.completionPercent).toBeGreaterThanOrEqual(
+      blockerPriorityChild?.completionPercent ?? 0
+    );
     expect(releaseParent?.description).toContain("owner release traceability status counts");
     expect(traceabilityChild?.description).toContain("linked goal and PM row coverage");
     expect(traceabilityChild?.description).toContain("release hold status");
+    expect(blockerPriorityChild?.completionPercent).toBe(64);
+    expect(blockerPriorityChild?.description).toContain("open blocker count");
+    expect(blockerPriorityChild?.description).toContain("owner-review addressable count");
+    expect(blockerPriorityChild?.description).toContain("top-priority action detail");
   });
 
   it("keeps Phase 7 role-panel progress aligned with dispatch review proof depth", () => {
