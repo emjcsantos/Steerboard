@@ -4,7 +4,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 ## Current Pipeline
 
-The current implementation target is Phase 9 desktop-backed runner approval, using the fixed `terminal-readonly-probe` only after the Phase 9 request, completion, closeout, traceability, blocker-priority, and Phase 8 dependency gates are ready. Phase 1, Phase 2, and Phase 6 are held locally behind the owner/remote publish hold until the Steerboard public remote is restored and the owner explicitly approves pushing. The Project Management board, Remaining Goals summary, Owner Testing surfaces, and release-readiness gates all use the current Phase 0-11 plan below.
+The current implementation target is Phase 9 desktop-backed runner approval, using the fixed `terminal-readonly-probe` only after visible desktop-probe gate status, Phase 9 request, completion, closeout, traceability, blocker-priority, and Phase 8 dependency gates are ready. Phase 1, Phase 2, and Phase 6 are held locally behind the owner/remote publish hold until the Steerboard public remote is restored and the owner explicitly approves pushing. The Project Management board, Remaining Goals summary, Owner Testing surfaces, and release-readiness gates all use the current Phase 0-11 plan below.
 
 The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md). The Project Management lane details are maintained in [Project Management Lane](product/project-management-lane.md).
 
