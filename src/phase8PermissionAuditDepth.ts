@@ -63,6 +63,7 @@ export interface Phase8PermissionAuditException {
   auditSource: string;
   pmTaskId: string;
   evidenceKey: string;
+  riskExceptionProof?: string;
 }
 
 type Phase8PermissionAuditDepthItemDraft = Omit<
@@ -85,6 +86,7 @@ export interface Phase8PermissionAuditDepthSnapshot {
   blockedCount: number;
   waitingCount: number;
   permissionLabelSummaryProof?: string;
+  riskExceptionSummaryProof?: string;
   nextAction: string;
   safety: string;
   ariaLabel: string;
@@ -340,8 +342,36 @@ function buildExceptionRecords(
     rollbackExpectation: rollbackExpectationForItem(item),
     auditSource: auditSourceForItem(item),
     pmTaskId: item.pmTaskId,
-    evidenceKey: `${item.evidenceKey}.exception`
+    evidenceKey: `${item.evidenceKey}.exception`,
+    riskExceptionProof:
+      `riskExceptionProof=source=${item.id} status=${item.status} severity=${exceptionSeverity(item)} ` +
+      `pm=${item.pmTaskId} evidence=${item.evidenceKey}.exception auditSource=${evidenceSlug(auditSourceForItem(item))}`
   }));
+}
+
+function buildRiskExceptionSummaryProof(
+  exceptions: readonly Phase8PermissionAuditException[]
+): string {
+  const counts = {
+    blocked: 0,
+    critical: 0,
+    high: 0,
+    medium: 0,
+    ready: 0,
+    review: 0,
+    waiting: 0
+  };
+
+  for (const exception of exceptions) {
+    counts[exception.status] += 1;
+    counts[exception.severity] += 1;
+  }
+
+  return (
+    `riskExceptionSummaryProof=total=${exceptions.length} ready=${counts.ready} ` +
+    `review=${counts.review} blocked=${counts.blocked} waiting=${counts.waiting} ` +
+    `critical=${counts.critical} high=${counts.high} medium=${counts.medium}`
+  );
 }
 
 function liveActionItem(
@@ -816,6 +846,7 @@ function buildAriaLabel(snapshot: Omit<Phase8PermissionAuditDepthSnapshot, "aria
     `${snapshot.blockedCount} blocked, ${snapshot.waitingCount} waiting; ` +
     `${snapshot.openExceptionCount} open exceptions across ${snapshot.disabledPathCount} disabled paths; ` +
     `${snapshot.permissionLabelSummaryProof ?? "permissionLabelSummaryProof=unavailable"}; ` +
+    `${snapshot.riskExceptionSummaryProof ?? "riskExceptionSummaryProof=unavailable"}; ` +
     `next action: ${snapshot.nextAction}`
   );
 }
@@ -840,6 +871,7 @@ export function buildPhase8PermissionAuditDepth(
     rollbackRequirementItem(input)
   ].map(withTraceability);
   const baseExceptions = buildExceptionRecords(baseItems);
+  const baseRiskExceptionSummaryProof = buildRiskExceptionSummaryProof(baseExceptions);
   const baseState = resolveSnapshotState(baseItems);
   const baseReadyCount = baseItems.filter((item) => item.status === "ready").length;
   const baseReviewCount = baseItems.filter((item) => item.status === "review").length;
@@ -865,6 +897,7 @@ export function buildPhase8PermissionAuditDepth(
     blockedCount: baseBlockedCount,
     waitingCount: baseWaitingCount,
     permissionLabelSummaryProof,
+    riskExceptionSummaryProof: baseRiskExceptionSummaryProof,
     nextAction: findNextAction(baseItems),
     safety: PHASE8_AUDIT_SAFETY,
     ariaLabel: "",
@@ -884,6 +917,7 @@ export function buildPhase8PermissionAuditDepth(
   const blockedCount = items.filter((item) => item.status === "blocked").length;
   const waitingCount = items.filter((item) => item.status === "waiting").length;
   const exceptions = buildExceptionRecords(items);
+  const riskExceptionSummaryProof = buildRiskExceptionSummaryProof(exceptions);
   const openExceptionCount = exceptions.filter(
     (exception) => exception.status !== "ready"
   ).length;
@@ -903,6 +937,7 @@ export function buildPhase8PermissionAuditDepth(
     blockedCount,
     waitingCount,
     permissionLabelSummaryProof,
+    riskExceptionSummaryProof,
     nextAction,
     safety: PHASE8_AUDIT_SAFETY,
     items,

@@ -15185,7 +15185,7 @@ export function Phase8PermissionAuditDepthPanel({
                 `phase8-exception-${exception.status}`
               )}
               key={exception.id}
-              title={`${exception.disabledPath} ${exception.evidenceRequired} ${exception.rollbackExpectation}`}
+              title={`${exception.disabledPath} ${exception.evidenceRequired} ${exception.rollbackExpectation} ${exception.riskExceptionProof ?? ""}`}
             >
               <span>{exception.severity}</span>
               <div>

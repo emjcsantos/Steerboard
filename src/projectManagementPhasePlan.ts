@@ -680,8 +680,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-risk-exceptions",
             title: "Risk Exceptions and Disabled Paths",
-            description: "Show each permission, approval, evidence, owner-review, and rollback exception with disabled-path copy, required evidence, rollback expectation, record-specific rollback review, and audit source.",
-            completionPercent: 58,
+            description: "Show each permission, approval, evidence, owner-review, and rollback exception with disabled-path copy, required evidence, rollback expectation, record-specific rollback review, audit source, compact riskExceptionProof rows, and aggregate riskExceptionSummaryProof severity/status counts.",
+            completionPercent: 63,
             complexity: "high",
             sourceDocument: "Phase 8 risk exception register"
           },

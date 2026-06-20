@@ -201,7 +201,10 @@ describe("phase 8 permission and audit depth", () => {
     expect(snapshot.permissionLabelSummaryProof).toBe(
       "permissionLabelSummaryProof=total=3 previewOnly=3 approvalRequired=0 blocked=0 ready=0"
     );
+    expect(snapshot.riskExceptionSummaryProof).toContain("riskExceptionSummaryProof=");
+    expect(snapshot.riskExceptionSummaryProof).toContain("total=");
     expect(snapshot.ariaLabel).toContain("permissionLabelSummaryProof=");
+    expect(snapshot.ariaLabel).toContain("riskExceptionSummaryProof=");
     expect(snapshot.nextAction).toContain("Request permission");
     expect(snapshot.items).toEqual(
       expect.arrayContaining([
@@ -227,7 +230,10 @@ describe("phase 8 permission and audit depth", () => {
           rollbackExpectation: expect.stringContaining("rollback evidence"),
           auditSource: "permission review record",
           pmTaskId: "phase-08-child-permission-labels",
-          evidenceKey: expect.stringContaining("phase8.permission-scope")
+          evidenceKey: expect.stringContaining("phase8.permission-scope"),
+          riskExceptionProof: expect.stringContaining(
+            "riskExceptionProof=source=phase8-live-action-terminal:permission status=waiting"
+          )
         })
       ])
     );
@@ -266,6 +272,7 @@ describe("phase 8 permission and audit depth", () => {
     expect(snapshot.permissionLabelSummaryProof).toBe(
       "permissionLabelSummaryProof=total=3 previewOnly=0 approvalRequired=0 blocked=0 ready=3"
     );
+    expect(snapshot.riskExceptionSummaryProof).toContain("ready=");
     expect(snapshot.items.every((item) => item.status === "ready")).toBe(true);
     expect(snapshot.exceptions.every((exception) => exception.status === "ready")).toBe(true);
     expect(snapshot.items).toEqual(
@@ -400,7 +407,8 @@ describe("phase 8 permission and audit depth", () => {
           severity: "critical",
           status: "blocked",
           disabledPath: expect.stringContaining("approval state"),
-          evidenceRequired: expect.stringContaining("Approval decision")
+          evidenceRequired: expect.stringContaining("Approval decision"),
+          riskExceptionProof: expect.stringContaining("severity=critical")
         })
       ])
     );

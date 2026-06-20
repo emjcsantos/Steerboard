@@ -165,7 +165,7 @@ Do not proceed to the next section until the current item is at least `review`.
     - Trigger at least one sensitive action.
     - Verify approval and block branches are explicit and safe.
     - Confirm the Phase 8 Audit Depth panel lists missing permission, approval, evidence, audit persistence, and rollback requirements for risky or blocked actions, including compact `permissionLabelProof` provider/label/state/risk/requester evidence and aggregate `permissionLabelSummaryProof` label counts for permission state labels.
-    - Confirm at least one Phase 8 risk exception explains why the path is exceptional, what evidence is required, and which audit source owns the proof.
+    - Confirm at least one Phase 8 risk exception explains why the path is exceptional, what evidence is required, which audit source owns the proof, compact `riskExceptionProof` source/status/severity/PM/evidence/audit-source detail, and aggregate `riskExceptionSummaryProof` severity/status counts.
     - Confirm executed or failed audit records keep Rollback requirement in review until each record carries rollback owner, rollback path, or rollback review notes.
     - Confirm Phase 8 audit-depth rows and disabled-path exceptions show linked PM child rows and unique evidence keys.
     - Confirm stale owner audit-review records fall back to review when their saved audit evidence fingerprint no longer matches current Phase 8 evidence.
