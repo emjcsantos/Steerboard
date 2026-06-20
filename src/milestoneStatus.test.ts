@@ -261,10 +261,10 @@ describe("milestone status model", () => {
     expect(platform?.completionPercent).toBe(62);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution, Phase 3 exit-package clearance now has recorded CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, and proof-export readiness, Phase 4 provider integration now holds completed metadata-only recorded provider-review proof at next/100, Phase 7 dispatch loop now holds completion-gate proof at next/100, Phase 5 migration hardening now holds completed migration review evidence at next/100, Phase 8 permission and audit depth now supplies completed dependency proof with PM closeout row alignment at next/100, and Phase 9 runner dependency review is the current active implementation goal with complete Phase 8 owner-review proof, phase9RequestGateProof, phase9RunnerCompletionGateProof, and phase9RunnerCloseoutStatusProof at active/100."
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution, Phase 3 exit-package clearance now has recorded CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, and proof-export readiness, Phase 4 provider integration now holds completed metadata-only recorded provider-review proof at next/100, Phase 7 dispatch loop now holds completion-gate proof at next/100, Phase 5 migration hardening now holds completed migration review evidence at next/100, Phase 8 permission and audit depth now supplies completed dependency proof with PM closeout row alignment at next/100, and Phase 9 runner dependency review is the current active implementation goal with complete Phase 8 owner-review proof, visible desktop-probe gate status, phase9RequestGateProof, phase9RunnerCompletionGateProof, and phase9RunnerCloseoutStatusProof at active/100."
     );
     expect(platform?.nextStep).toBe(
-      "Use the Phase 8 closeout and PM row alignment to advance the Phase 9 runner dependency review with complete Phase 8 owner-review proof, phase9RequestGateProof, phase9RunnerCompletionGateProof, and phase9RunnerCloseoutStatusProof, while keeping live worker spawning, Phase 4 provider execution, arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, migration apply paths, packaging, pushing, and worker spawning behind owner-reviewed locks."
+      "Use the Phase 8 closeout and PM row alignment to advance the Phase 9 runner dependency review with complete Phase 8 owner-review proof, visible desktop-probe gate status, phase9RequestGateProof, phase9RunnerCompletionGateProof, and phase9RunnerCloseoutStatusProof, while keeping live worker spawning, Phase 4 provider execution, arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, migration apply paths, packaging, pushing, and worker spawning behind owner-reviewed locks."
     );
   });
 
@@ -296,7 +296,9 @@ describe("milestone status model", () => {
     expect(platform?.latestNote).toContain("Phase 5 migration hardening now holds completed migration review evidence at next/100");
     expect(platform?.latestNote).toContain("Phase 8 permission and audit depth now supplies completed dependency proof with PM closeout row alignment at next/100");
     expect(platform?.latestNote).toContain("Phase 9 runner dependency review is the current active implementation goal");
+    expect(platform?.latestNote).toContain("visible desktop-probe gate status");
     expect(platform?.nextStep).toContain("advance the Phase 9 runner dependency review");
+    expect(platform?.nextStep).toContain("visible desktop-probe gate status");
   });
 
   it("tracks Migration Center as an active metadata-only transition milestone", () => {
@@ -339,7 +341,7 @@ describe("milestone status model", () => {
       averageCompletionPercent: 52,
       nextTarget: "Platform capabilities",
       nextStep:
-        "Use the Phase 8 closeout and PM row alignment to advance the Phase 9 runner dependency review with complete Phase 8 owner-review proof, phase9RequestGateProof, phase9RunnerCompletionGateProof, and phase9RunnerCloseoutStatusProof, while keeping live worker spawning, Phase 4 provider execution, arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, migration apply paths, packaging, pushing, and worker spawning behind owner-reviewed locks.",
+        "Use the Phase 8 closeout and PM row alignment to advance the Phase 9 runner dependency review with complete Phase 8 owner-review proof, visible desktop-probe gate status, phase9RequestGateProof, phase9RunnerCompletionGateProof, and phase9RunnerCloseoutStatusProof, while keeping live worker spawning, Phase 4 provider execution, arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, external-service actions, migration apply paths, packaging, pushing, and worker spawning behind owner-reviewed locks.",
       nextCompletionPercent: 62
     });
   });
