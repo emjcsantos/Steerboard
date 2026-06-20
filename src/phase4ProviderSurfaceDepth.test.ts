@@ -286,6 +286,16 @@ describe("phase 4 provider surface depth", () => {
         expect.objectContaining({ label: "Execution lock", status: "ready" })
       ])
     );
+    const rollbackGate = depth.items.find((item) => item.kind === "rollback-gate");
+    expect(rollbackGate?.detail).toContain(
+      "Expected approval phase4-provider-approval:2026-06-18T10:00:00.000Z"
+    );
+    expect(rollbackGate?.detail).toContain(
+      "Expected audit phase4-provider-audit:2026-06-18T10:10:00.000Z"
+    );
+    expect(rollbackGate?.detail).toContain(
+      "Expected audit evidence phase4-provider-audit-current"
+    );
   });
 
   it("marks permission ready while provider execution remains explicitly locked", () => {
@@ -372,6 +382,17 @@ describe("phase 4 provider surface depth", () => {
         expect.objectContaining({ label: "Execution lock", status: "ready" })
       ])
     );
+    const permissionGate = depth.items.find((item) => item.kind === "permission-gate");
+    expect(permissionGate?.detail).toContain(
+      "Expected approval phase4-provider-approval:2026-06-18T10:00:00.000Z"
+    );
+    expect(permissionGate?.detail).toContain(
+      "Expected audit phase4-provider-audit:2026-06-18T10:10:00.000Z"
+    );
+    expect(permissionGate?.detail).toContain(
+      "Expected rollback phase4-provider-rollback:2026-06-18T10:20:00.000Z"
+    );
+    expect(permissionGate?.detail).toContain("Covered surfaces 6/6; missing scopes none.");
   });
 
   it("surfaces preview rows as a separate owner-review hold", () => {

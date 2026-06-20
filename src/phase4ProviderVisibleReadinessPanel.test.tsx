@@ -335,6 +335,8 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("phase-04-surface-depth:audit-gate");
     expect(html).toContain("phase-04-surface-depth:rollback-gate");
     expect(html).toContain("phase-04-surface-depth:permission-gate");
+    expect(html).toContain("Expected rollback phase4-provider-rollback:2026-06-18T10:20:00.000Z");
+    expect(html).toContain("Covered surfaces 6/6; missing scopes none.");
     expect(html).toContain("active-goal");
     expect(html).toContain("Phase 4 provider blocker priority");
     expect(html).toContain("Remaining goal link");

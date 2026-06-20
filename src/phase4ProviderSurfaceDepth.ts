@@ -354,7 +354,10 @@ function rollbackGateItem(
       evidenceKey: surfaceEvidenceKey("rollback-gate"),
       detail:
         `${rollbackValidation.detail} Expected surface ${rollbackValidation.expectedSurfaceDepthEvidenceFingerprint ?? "missing"}, ` +
-        `record surface ${rollbackValidation.recordSurfaceDepthEvidenceFingerprint ?? "missing"}.`,
+        `record surface ${rollbackValidation.recordSurfaceDepthEvidenceFingerprint ?? "missing"}. ` +
+        `Expected approval ${rollbackValidation.expectedApprovalRecordId ?? "missing"}, record approval ${rollbackValidation.recordApprovalRecordId ?? "missing"}. ` +
+        `Expected audit ${rollbackValidation.expectedAuditRecordId ?? "missing"}, record audit ${rollbackValidation.recordAuditRecordId ?? "missing"}. ` +
+        `Expected audit evidence ${rollbackValidation.expectedAuditEvidenceFingerprint ?? "missing"}, record audit evidence ${rollbackValidation.recordAuditEvidenceFingerprint ?? "missing"}.`,
       nextAction: rollbackValidation.nextAction
     };
   }
@@ -375,6 +378,7 @@ function permissionGateItem(
 ): Phase4ProviderSurfaceDepthItem {
   if (permissionValidation) {
     const status = phase4StateFromRecordValidation(permissionValidation.state);
+    const missingScopes = permissionValidation.missingSurfaceScopes.join(", ") || "none";
 
     return {
       id: `${SNAPSHOT_ID}:permission-gate`,
@@ -384,7 +388,11 @@ function permissionGateItem(
       evidenceKey: surfaceEvidenceKey("permission-gate"),
       detail:
         `${permissionValidation.detail} Expected permission ${permissionValidation.expectedPermissionEvidenceFingerprint ?? "missing"}, ` +
-        `record permission ${permissionValidation.recordPermissionEvidenceFingerprint ?? "missing"}.`,
+        `record permission ${permissionValidation.recordPermissionEvidenceFingerprint ?? "missing"}. ` +
+        `Expected approval ${permissionValidation.expectedApprovalRecordId ?? "missing"}, record approval ${permissionValidation.recordApprovalRecordId ?? "missing"}. ` +
+        `Expected audit ${permissionValidation.expectedAuditRecordId ?? "missing"}, record audit ${permissionValidation.recordAuditRecordId ?? "missing"}. ` +
+        `Expected rollback ${permissionValidation.expectedRollbackRecordId ?? "missing"}, record rollback ${permissionValidation.recordRollbackRecordId ?? "missing"}. ` +
+        `Covered surfaces ${permissionValidation.coveredSurfaceCount}/6; missing scopes ${missingScopes}.`,
       nextAction: permissionValidation.nextAction
     };
   }
