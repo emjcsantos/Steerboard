@@ -30,10 +30,10 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 74,
+      averageCompletionPercent: 75,
       currentTarget: "Provider integration surfaces",
       currentNextAction:
-        "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, Surface Depth, local approval, audit, rollback, and permission record validation, tested recorded provider-review artifact loading with offline fingerprint verification, attached local record evidence, and missing-record review enforcement, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered.",
+        "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, Surface Depth, local approval, audit, rollback, and permission record validation, tested recorded provider-review artifact loading with offline fingerprint verification, attached local record evidence, missing-record review enforcement, and owner-visible missing-record proof, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -493,9 +493,9 @@ describe("remaining goal plan", () => {
       target: "Provider integration surfaces",
       priority: "high",
       status: "active",
-      completionPercent: 84
+      completionPercent: 86
     });
-    expect(phase4Epic?.completionPercent).toBe(64);
+    expect(phase4Epic?.completionPercent).toBe(66);
     expect(phase4Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-04-child-command-skill",
@@ -517,6 +517,7 @@ describe("remaining goal plan", () => {
     );
     expect(phase4Goal?.nextAction).toContain("owner-visible provider readiness check");
     expect(phase4Goal?.nextAction).toContain("missing-record review enforcement");
+    expect(phase4Goal?.nextAction).toContain("owner-visible missing-record proof");
     expect(phase4Goal?.nextAction).toContain("approval, audit, rollback, permission");
   });
 

@@ -37,6 +37,8 @@ import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
 import { buildPhase4ProviderBlockerPriority } from "./phase4ProviderBlockerPriority";
 import {
   buildPhase4ProviderReviewArtifact,
+  serializePhase4ProviderReviewArtifact,
+  verifyRecordedPhase4ProviderReviewArtifact,
   verifyPhase4ProviderReviewArtifact
 } from "./phase4ProviderReviewArtifact";
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
@@ -353,5 +355,76 @@ describe("phase 4 provider visible readiness panel", () => {
       state: "ready",
       executionLocked: true
     });
+  });
+
+  it("shows recorded provider review artifacts missing local record evidence as review", () => {
+    const readiness = buildProviderIntegrationReadiness(validationFixture());
+    const readyRefreshSafety = buildPhase4RefreshSafetyDepth(
+      buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+        checkedAt: "2026-06-18T10:00:00.000Z"
+      }),
+      {
+        evaluatedAt: "2026-06-18T10:35:00.000Z",
+        expectedCatalogFingerprint: phase4CatalogFingerprint
+      }
+    );
+    const surfaceDepth = buildPhase4ProviderSurfaceDepth(readiness);
+    const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
+    const traceability = buildPhase4ProviderTraceabilitySummary({
+      catalogDepth,
+      refreshSafety: readyRefreshSafety,
+      surfaceDepth
+    });
+    const noOpenBlockerPriority = {
+      ...buildPhase4ProviderBlockerPriority({
+        catalogDepth,
+        refreshSafety: readyRefreshSafety,
+        surfaceDepth,
+        traceability
+      }),
+      openBlockerCount: 0,
+      topPriorityAction: "No Phase 4 provider blockers remain.",
+      topPriorityLabel: "No open Phase 4 provider blocker"
+    };
+    const recordedMissingLocalEvidence =
+      verifyRecordedPhase4ProviderReviewArtifact(
+        serializePhase4ProviderReviewArtifact(
+          buildPhase4ProviderReviewArtifact({
+            exportedAt: "2026-06-18T10:35:00.000Z",
+            evaluatedAt: "2026-06-18T10:35:00.000Z",
+            currentCatalogFingerprint: phase4CatalogFingerprint,
+            catalogDepth,
+            refreshSafety: readyRefreshSafety,
+            surfaceDepth,
+            traceability: { ...traceability, canTrustProviderReview: true },
+            blockerPriority: noOpenBlockerPriority
+          })
+        ),
+        { verifiedAt: "2026-06-18T10:35:00.000Z" }
+      );
+
+    const html = renderToStaticMarkup(
+      <Phase4ProviderSurfaceDepthPanel
+        importedReviewArtifactVerification={recordedMissingLocalEvidence}
+        recordedArtifactLoadAvailable={true}
+        reviewArtifactVerification={recordedMissingLocalEvidence}
+        snapshot={surfaceDepth}
+      />
+    );
+
+    expect(recordedMissingLocalEvidence).toMatchObject({
+      state: "review",
+      hasApprovalRecord: false,
+      hasAuditRecord: false,
+      hasRollbackRecord: false,
+      hasPermissionRecord: false
+    });
+    expect(html).toContain("Imported provider review");
+    expect(html).toContain("missing approval local record evidence");
+    expect(html).toContain("Approval missing");
+    expect(html).toContain("Audit missing");
+    expect(html).toContain("Rollback missing");
+    expect(html).toContain("Permission missing");
+    expect(html).toContain("matched");
   });
 });

@@ -298,7 +298,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 64,
+    completionPercent: 66,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -306,7 +306,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
         description: "Render provider catalogs, readiness labels, current catalog fingerprints, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 55,
+        completionPercent: 57,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
@@ -337,7 +337,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-surface-depth",
             title: "Provider Surface Depth",
             description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, and execution lock before provider execution is considered.",
-            completionPercent: 56,
+            completionPercent: 60,
             complexity: "high",
             sourceDocument: "Phase 4 provider surface depth"
           },
@@ -377,7 +377,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-traceability",
             title: "Provider Traceability",
             description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval, audit, rollback, and permission records, and execution locks before provider execution is considered.",
-            completionPercent: 60,
+            completionPercent: 62,
             complexity: "high",
             sourceDocument: "Phase 4 provider traceability"
           },
