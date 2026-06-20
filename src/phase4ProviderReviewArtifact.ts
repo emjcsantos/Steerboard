@@ -343,6 +343,7 @@ const REQUIRED_PERMISSION_CHAIN_PROOF_TERMS = [
 ] as const;
 const REQUIRED_SURFACE_DEPTH_PROOF_TERMS = [
   "items=9/9",
+  "itemKinds=surface-coverage|setup-blockers|capability-gaps|preview-review|approval-gate|audit-gate|rollback-gate|permission-gate|execution-lock",
   "surfaceCoverage=ready",
   "setupBlockers=ready",
   "capabilityGaps=ready",

@@ -336,8 +336,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-surface-depth",
             title: "Provider Surface Depth",
-            description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, owner-boundary proof including structured approval/audit/rollback/permission chain proof coverage, structured surface-depth aggregate proof, and execution lock before provider execution is considered.",
-            completionPercent: 70,
+            description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, explicit nine-gate item-kind proof, owner-boundary proof including structured approval/audit/rollback/permission chain proof coverage, structured surface-depth aggregate proof, and execution lock before provider execution is considered.",
+            completionPercent: 72,
             complexity: "high",
             sourceDocument: "Phase 4 provider surface depth"
           },

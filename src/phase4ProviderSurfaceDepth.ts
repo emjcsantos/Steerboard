@@ -185,9 +185,12 @@ function buildSurfaceDepthProof(input: {
   readonly heldCount: number;
   readonly canEnableExecution: boolean;
 }): string {
+  const itemKinds = input.items.map((item) => item.kind).join("|");
+
   return (
     `items=${input.items.length}/9 ready=${input.readyCount} preview=${input.previewCount} ` +
     `setupRequired=${input.setupRequiredCount} held=${input.heldCount} ` +
+    `itemKinds=${itemKinds} ` +
     `surfaceCoverage=${itemStatus(input.items, "surface-coverage")} ` +
     `setupBlockers=${itemStatus(input.items, "setup-blockers")} ` +
     `capabilityGaps=${itemStatus(input.items, "capability-gaps")} ` +

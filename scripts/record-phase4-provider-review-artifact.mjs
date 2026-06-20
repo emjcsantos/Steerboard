@@ -331,6 +331,7 @@ const permissionValidation = {
 };
 const surfaceDepthProof =
   "items=9/9 ready=9 preview=0 setupRequired=0 held=0 " +
+  "itemKinds=surface-coverage|setup-blockers|capability-gaps|preview-review|approval-gate|audit-gate|rollback-gate|permission-gate|execution-lock " +
   "surfaceCoverage=ready setupBlockers=ready capabilityGaps=ready previewReview=ready " +
   "approval=ready audit=ready rollback=ready permission=ready executionLock=ready " +
   "ownerBoundary=present approvalChain=present auditChain=present rollbackChain=present permissionChain=present " +

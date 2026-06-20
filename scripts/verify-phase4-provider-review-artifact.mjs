@@ -234,6 +234,7 @@ const requiredPermissionChainProofTerms = [
 ];
 const requiredSurfaceDepthProofTerms = [
   "items=9/9",
+  "itemKinds=surface-coverage|setup-blockers|capability-gaps|preview-review|approval-gate|audit-gate|rollback-gate|permission-gate|execution-lock",
   "surfaceCoverage=ready",
   "setupBlockers=ready",
   "capabilityGaps=ready",

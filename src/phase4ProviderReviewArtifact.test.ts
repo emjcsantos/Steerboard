@@ -266,6 +266,7 @@ function withReadyLocalRecords(
     nextSurfaceLabel: "Execution lock",
     surfaceDepthProof:
       "items=9/9 ready=9 preview=0 setupRequired=0 held=0 " +
+      "itemKinds=surface-coverage|setup-blockers|capability-gaps|preview-review|approval-gate|audit-gate|rollback-gate|permission-gate|execution-lock " +
       "surfaceCoverage=ready setupBlockers=ready capabilityGaps=ready previewReview=ready " +
       "approval=ready audit=ready rollback=ready permission=ready executionLock=ready " +
       "ownerBoundary=present approvalChain=present auditChain=present rollbackChain=present permissionChain=present " +
@@ -583,6 +584,35 @@ describe("phase 4 provider review artifact", () => {
 
     expect(
       verifyPhase4ProviderReviewArtifact(withoutSurfaceDepthChainProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("surface-depth aggregate proof"),
+      nextAction: expect.stringContaining("surface-depth aggregate proof")
+    });
+  });
+
+  it("reviews no-blocker artifacts with incomplete surface-depth aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const incompleteSurfaceDepthProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      surfaceDepth: {
+        ...artifact.surfaceDepth,
+        surfaceDepthProof: artifact.surfaceDepth.surfaceDepthProof.replace(
+          "itemKinds=surface-coverage|setup-blockers|capability-gaps|preview-review|approval-gate|audit-gate|rollback-gate|permission-gate|execution-lock ",
+          ""
+        )
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(incompleteSurfaceDepthProof, {
         verifiedAt: "2026-06-18T10:05:00.000Z",
         expectedCatalogFingerprint: artifact.currentCatalogFingerprint
       })

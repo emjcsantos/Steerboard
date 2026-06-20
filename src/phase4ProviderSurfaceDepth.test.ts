@@ -397,6 +397,9 @@ describe("phase 4 provider surface depth", () => {
     expect(depth.nextSurfaceLabel).toBe("Execution lock");
     expect(depth.nextAction).toContain("provider execution locked");
     expect(depth.surfaceDepthProof).toContain(
+      "itemKinds=surface-coverage|setup-blockers|capability-gaps|preview-review|approval-gate|audit-gate|rollback-gate|permission-gate|execution-lock"
+    );
+    expect(depth.surfaceDepthProof).toContain(
       "surfaceCoverage=ready setupBlockers=ready capabilityGaps=ready previewReview=ready"
     );
     expect(depth.surfaceDepthProof).toContain(

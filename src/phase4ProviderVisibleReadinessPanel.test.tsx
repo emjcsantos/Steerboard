@@ -376,6 +376,9 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("phase-04-surface-depth:rollback-gate");
     expect(html).toContain("phase-04-surface-depth:permission-gate");
     expect(html).toContain("items=9/9 ready=9 preview=0 setupRequired=0 held=0");
+    expect(html).toContain(
+      "itemKinds=surface-coverage|setup-blockers|capability-gaps|preview-review|approval-gate|audit-gate|rollback-gate|permission-gate|execution-lock"
+    );
     expect(html).toContain("ownerBoundary=present approvalChain=present auditChain=present rollbackChain=present permissionChain=present");
     expect(html).toContain("canEnableExecution=locked metadataOnly=locked execution=locked");
     expect(html).toContain("approvalValidation=ready auditValidation=ready rollbackValidation=ready permissionValidation=ready");
