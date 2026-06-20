@@ -51,6 +51,7 @@ import {
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
 import { buildPhase4ProviderTraceabilitySummary } from "./phase4ProviderTraceability";
 import { buildPhase4RefreshSafetyDepth } from "./phase4RefreshSafetyDepth";
+import { buildProviderExecutionGate } from "./providerExecutionGate";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
 
 const surfaces: readonly CatalogSurface[] = [
@@ -154,8 +155,13 @@ describe("phase 4 provider visible readiness panel", () => {
   it("renders catalog evidence, execution locks, totals, and next actions for owner review", () => {
     const readiness = buildProviderIntegrationReadiness(validationFixture());
     const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
+    const executionGate = buildProviderExecutionGate(readiness);
     const html = renderToStaticMarkup(
-      <ProviderIntegrationReadinessPanel catalogDepth={catalogDepth} readiness={readiness} />
+      <ProviderIntegrationReadinessPanel
+        catalogDepth={catalogDepth}
+        executionGate={executionGate}
+        readiness={readiness}
+      />
     );
 
     expect(html).toContain("Phase 4 Provider Readiness");
@@ -185,20 +191,33 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("profile-mutation lock");
     expect(html).toContain("Keep provider execution locked");
     expect(html).toContain("approval, audit, rollback, and permission gates");
+    expect(html).toContain("Provider execution gate");
+    expect(html).toContain("providerExecutionGate");
+    expect(html).toContain("support=4/4");
+    expect(html).toContain("approval=0/4");
+    expect(html).toContain("canRequest=no");
+    expect(html).toContain("Record explicit owner approval");
     expect(html).toContain("Source: Provider live");
   });
 
   it("renders setup-required fallback action text without live provider execution", () => {
     const readiness = buildProviderIntegrationReadiness(buildCatalogRefreshOwnerValidation());
     const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
+    const executionGate = buildProviderExecutionGate(readiness);
     const html = renderToStaticMarkup(
-      <ProviderIntegrationReadinessPanel catalogDepth={catalogDepth} readiness={readiness} />
+      <ProviderIntegrationReadinessPanel
+        catalogDepth={catalogDepth}
+        executionGate={executionGate}
+        readiness={readiness}
+      />
     );
 
     expect(html).toContain("Setup required");
     expect(html).toContain("Fallback metadata");
     expect(html).toContain("Resolve setup-required or disconnected rows");
     expect(html).toContain("must not execute commands");
+    expect(html).toContain("Provider execution gate");
+    expect(html).toContain("support=0/4");
   });
 
   it("renders approval record actions and evidence keys without provider execution", () => {

@@ -87,6 +87,10 @@ import {
   type ProviderIntegrationReadiness
 } from "./providerIntegrationReadiness";
 import {
+  buildProviderExecutionGate,
+  type ProviderExecutionGate
+} from "./providerExecutionGate";
+import {
   buildPhase4ProviderSurfaceDepth,
   type Phase4ProviderSurfaceDepthSnapshot
 } from "./phase4ProviderSurfaceDepth";
@@ -2140,6 +2144,10 @@ export function App() {
   const providerIntegrationReadiness = useMemo(
     () => buildProviderIntegrationReadiness(catalogRefreshOwnerValidation),
     [catalogRefreshOwnerValidation]
+  );
+  const providerExecutionGate = useMemo(
+    () => buildProviderExecutionGate(providerIntegrationReadiness),
+    [providerIntegrationReadiness]
   );
   const phase4ProviderCatalogDepth = useMemo(
     () => buildPhase4ProviderCatalogDepth(providerIntegrationReadiness),
@@ -9015,9 +9023,11 @@ function RemainingGoalsPanel({
 
 export function ProviderIntegrationReadinessPanel({
   catalogDepth,
+  executionGate,
   readiness
 }: {
   catalogDepth: Phase4ProviderCatalogDepthSummary;
+  executionGate?: ProviderExecutionGate;
   readiness: ProviderIntegrationReadiness;
 }) {
   return (
@@ -9052,6 +9062,46 @@ export function ProviderIntegrationReadinessPanel({
         </div>
       </div>
       <p className="provider-readiness-next">{readiness.nextAction}</p>
+      {executionGate ? (
+        <div
+          className={classNames(
+            "provider-catalog-depth",
+            `provider-readiness-surface-${executionGate.state}`
+          )}
+          title={`${executionGate.detail} ${executionGate.nextAction} ${executionGate.safety}`}
+        >
+          <div className="provider-catalog-depth-header">
+            <strong>{executionGate.label}</strong>
+            <span>
+              {executionGate.statusLabel} / {executionGate.readiness}%
+            </span>
+          </div>
+          <small>{executionGate.detail}</small>
+          <small>{executionGate.executionGateProof}</small>
+          <ol className="provider-catalog-depth-list" aria-label="Provider execution gates">
+            {executionGate.items.map((item) => (
+              <li
+                className={classNames(
+                  "provider-catalog-depth-item",
+                  `provider-catalog-depth-item-${item.state}`
+                )}
+                key={item.surface}
+                title={`${item.detail} ${item.nextAction}`}
+              >
+                <span>{item.statusLabel}</span>
+                <div>
+                  <strong>{item.label}</strong>
+                  <small>{item.sourceLabel}</small>
+                  <em>{item.detail}</em>
+                  <small>{item.nextAction}</small>
+                </div>
+                <b>{item.canRequestExecution ? "Ready" : "Held"}</b>
+              </li>
+            ))}
+          </ol>
+          <small>{executionGate.safety}</small>
+        </div>
+      ) : null}
       <div className="provider-catalog-depth" aria-label={catalogDepth.ariaLabel}>
         <div className="provider-catalog-depth-header">
           <strong>{catalogDepth.label}</strong>
@@ -10380,6 +10430,10 @@ function RightPanel({
   const blocked = sessions.filter((session) => session.state === "blocked").length;
   const complete = sessions.filter((session) => session.state === "complete").length;
   const taskSummary = summarizeTasks(tasks);
+  const providerExecutionGate = useMemo(
+    () => buildProviderExecutionGate(providerIntegrationReadiness),
+    [providerIntegrationReadiness]
+  );
   const selectedRunTasks = selectedRun?.tasks ?? [];
   const workerHandoffSummary = useMemo(
     () => summarizeWorkerHandoff(selectedRunTasks),
@@ -11735,6 +11789,7 @@ function RightPanel({
 
       <ProviderIntegrationReadinessPanel
         catalogDepth={phase4ProviderCatalogDepth}
+        executionGate={providerExecutionGate}
         readiness={providerIntegrationReadiness}
       />
 
