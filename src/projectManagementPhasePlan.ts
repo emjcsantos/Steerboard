@@ -402,8 +402,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-refresh-smoke",
             title: "All-Catalog Refresh Smoke",
-            description: "Refresh and classify catalog status with checkedAt, all-six-surface execution count, catalog fingerprint, metadata-only contract, reload-safe proof, and execution-lock proof without running commands, tools, automations, or mutations.",
-            completionPercent: 66,
+            description: "Refresh and classify catalog status with checkedAt, all-six-surface execution count, explicit six-surface order proof, catalog fingerprint, metadata-only contract, reload-safe proof, and execution-lock proof without running commands, tools, automations, or mutations.",
+            completionPercent: 70,
             sourceDocument: "Catalog refresh owner validation"
           },
           {

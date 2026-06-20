@@ -127,6 +127,8 @@ const REQUIRED_REFRESH_SMOKE_PROOF_TERMS = [
   "checkedAt=",
   "catalog=",
   "expectedCatalog=",
+  "surfaceOrder=command|skill|plugin|mcp|automation|personalization",
+  "reloadSafe=ready",
   "metadataOnly=locked",
   "execution=locked"
 ] as const;

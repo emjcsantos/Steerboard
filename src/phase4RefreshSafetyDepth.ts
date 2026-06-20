@@ -313,7 +313,8 @@ function executionLockRecord(): Phase4RefreshSafetyDepthRecord {
 
 function refreshSmokeProof(
   smoke: CatalogRefreshProviderSmokeResult,
-  options: Phase4RefreshSafetyDepthOptions
+  options: Phase4RefreshSafetyDepthOptions,
+  records: readonly Phase4RefreshSafetyDepthRecord[]
 ): string {
   const surfaceCount = smoke.surfaces.length;
   const executedCount = smoke.surfaces.filter((surface) => surface.executed).length;
@@ -323,11 +324,14 @@ function refreshSmokeProof(
   const metadataOnly = smoke.safety.includes("must not execute") ? "locked" : "review";
   const fingerprint = smoke.catalogFingerprint ?? "missing";
   const expectedFingerprint = options.expectedCatalogFingerprint ?? fingerprint;
+  const reloadSafe = records.find((record) => record.kind === "reload-safe-proof")?.status ?? "missing";
+  const surfaceOrder = smoke.surfaces.map((surface) => surface.surface).join("|");
 
   return (
     `surfaces=${surfaceCount}/6 executed=${executedCount}/6 ready=${readyCount} ` +
     `preview=${previewCount} blocked=${blockedCount} checkedAt=${smoke.checkedAt ?? "missing"} ` +
-    `catalog=${fingerprint} expectedCatalog=${expectedFingerprint} ` +
+    `catalog=${fingerprint} expectedCatalog=${expectedFingerprint} surfaceOrder=${surfaceOrder} ` +
+    `reloadSafe=${reloadSafe} ` +
     `metadataOnly=${metadataOnly} execution=locked`
   );
 }
@@ -392,7 +396,7 @@ export function buildPhase4RefreshSafetyDepth(
     reloadSafeProofRecord(smoke, options),
     executionLockRecord()
   ];
-  const smokeProof = refreshSmokeProof(smoke, options);
+  const smokeProof = refreshSmokeProof(smoke, options, records);
   const draft = {
     id: SUMMARY_ID,
     label: SUMMARY_LABEL,

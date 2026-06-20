@@ -106,6 +106,10 @@ describe("phase 4 refresh safety depth", () => {
       ])
     );
     expect(depth.refreshSmokeProof).toContain("surfaces=6/6 executed=0/6");
+    expect(depth.refreshSmokeProof).toContain(
+      "surfaceOrder=command|skill|plugin|mcp|automation|personalization"
+    );
+    expect(depth.refreshSmokeProof).toContain("reloadSafe=preview");
     expect(depth.refreshSmokeProof).toContain("metadataOnly=locked execution=locked");
     expect(depth.refreshSafetyDepthProof).toContain("records=8/8");
     expect(depth.refreshSafetyDepthProof).toContain("refreshSmoke=present reloadSafe=preview");
@@ -161,6 +165,10 @@ describe("phase 4 refresh safety depth", () => {
     expect(depth.refreshSmokeProof).toContain(
       `catalog=${buildCatalogRefreshProviderFingerprint(snapshotPayloads)}`
     );
+    expect(depth.refreshSmokeProof).toContain(
+      "surfaceOrder=command|skill|plugin|mcp|automation|personalization"
+    );
+    expect(depth.refreshSmokeProof).toContain("reloadSafe=ready");
     expect(depth.refreshSmokeProof).toContain("metadataOnly=locked execution=locked");
     expect(depth.refreshSafetyDepthProof).toContain("records=8/8 ready=8 preview=0 blocked=0");
     expect(depth.refreshSafetyDepthProof).toContain("refreshSmoke=present reloadSafe=ready");

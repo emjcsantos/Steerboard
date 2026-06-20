@@ -612,6 +612,34 @@ describe("phase 4 provider review artifact", () => {
     });
   });
 
+  it("reviews no-blocker artifacts with incomplete all-catalog refresh smoke proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const incompleteRefreshSmokeProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      refreshSafety: {
+        ...artifact.refreshSafety,
+        refreshSmokeProof: artifact.refreshSafety.refreshSmokeProof
+          .replace("surfaceOrder=command|skill|plugin|mcp|automation|personalization ", "")
+          .replace("reloadSafe=ready ", "")
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(incompleteRefreshSmokeProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("all-catalog refresh smoke proof"),
+      nextAction: expect.stringContaining("surface, timestamp, fingerprint")
+    });
+  });
+
   it("reviews no-blocker artifacts missing refresh-safety depth aggregate proof", () => {
     const artifact = withReadyLocalRecords(
       reviewArtifact({

@@ -6,9 +6,11 @@ const source = "steerboard.phase4.provider-review.v1";
 const surfaceNames = ["command", "skill", "plugin", "mcp", "automation", "personalization"];
 const createdAt = new Date().toISOString();
 const currentCatalogFingerprint = `phase4-catalog-recorded-${createdAt.replace(/[:.]/g, "-")}`;
+const surfaceOrderProof = surfaceNames.join("|");
 const refreshSmokeProof =
   `surfaces=6/6 executed=6/6 ready=6 preview=0 blocked=0 checkedAt=${createdAt} ` +
   `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
+  `surfaceOrder=${surfaceOrderProof} reloadSafe=ready ` +
   "metadataOnly=locked execution=locked";
 const refreshSafetyDepthProof =
   "records=8/8 ready=8 preview=0 blocked=0 refreshSmoke=present reloadSafe=ready " +
