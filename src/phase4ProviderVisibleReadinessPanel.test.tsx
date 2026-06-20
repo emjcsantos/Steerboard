@@ -160,6 +160,8 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("scope labels");
     expect(html).toContain("records=6/6");
     expect(html).toContain("metadataProof=6/6 scopedExecution=6/6 ownerSafe=6/6");
+    expect(html).toContain("commandScopeProof=present");
+    expect(html).toContain("skillInvocationProof=present");
     expect(html).toContain("commandScopeProof=");
     expect(html).toContain("skillInvocationProof=");
     expect(html).toContain("tool policy");

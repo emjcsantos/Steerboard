@@ -149,6 +149,20 @@ const REQUIRED_CATALOG_DEPTH_PROOF_TERMS = [
   "metadataOnly=locked",
   "execution=locked"
 ] as const;
+const REQUIRED_COMMAND_SKILL_PROOF_TERMS = [
+  "command=ready",
+  "skill=ready",
+  "commandItems=",
+  "skillItems=",
+  "commandEvidence=phase-04-provider-catalog:command",
+  "skillEvidence=phase-04-provider-catalog:skill",
+  "commandScopeProof=present",
+  "skillInvocationProof=present",
+  "commandLock=locked",
+  "skillLock=locked",
+  "metadataOnly=locked",
+  "execution=locked"
+] as const;
 const REQUIRED_SURFACE_OWNER_BOUNDARY_PROOF_TERMS: ReadonlyArray<{
   readonly kind: string;
   readonly terms: readonly string[];
@@ -527,6 +541,33 @@ function findCatalogDepthProofReview(
   return undefined;
 }
 
+function findCommandSkillProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const commandSkillProof = artifact.catalogDepth.commandSkillProof?.trim();
+
+  if (!commandSkillProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing command/skill aggregate proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after command and skill catalog rows summarize item order, evidence keys, scoped command proof, skill invocation proof, and execution locks."
+    };
+  }
+
+  const missingTerms = REQUIRED_COMMAND_SKILL_PROOF_TERMS.filter(
+    (term) => !commandSkillProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete command/skill aggregate proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after command/skill aggregate proof includes item-order, evidence-key, scoped command, skill invocation, metadata-only, and execution-lock terms."
+    };
+  }
+
+  return undefined;
+}
+
 function findAuditValidationChainProofReview(
   artifact: Phase4ProviderReviewArtifact
 ): { detail: string; nextAction: string } | undefined {
@@ -842,6 +883,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       catalogDepthProofReview.detail,
       catalogDepthProofReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const commandSkillProofReview = findCommandSkillProofReview(artifact);
+  if (commandSkillProofReview) {
+    return result(
+      "review",
+      artifact,
+      commandSkillProofReview.detail,
+      commandSkillProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

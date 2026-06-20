@@ -43,6 +43,7 @@ export interface Phase4ProviderCatalogDepthSummary {
   readonly executionLockCount: number;
   readonly nextAction: string;
   readonly catalogDepthProof: string;
+  readonly commandSkillProof: string;
   readonly ariaLabel: string;
 }
 
@@ -220,6 +221,24 @@ function buildCatalogDepthProof(input: {
   );
 }
 
+function buildCommandSkillProof(
+  records: readonly Phase4ProviderCatalogDepthRecord[]
+): string {
+  const command = records.find((record) => record.kind === "command");
+  const skill = records.find((record) => record.kind === "skill");
+
+  return (
+    `command=${command?.status ?? "missing"} skill=${skill?.status ?? "missing"} ` +
+    `commandItems=${command?.itemOrder.length ?? 0} skillItems=${skill?.itemOrder.length ?? 0} ` +
+    `commandEvidence=${command?.evidenceKey ?? "missing"} skillEvidence=${skill?.evidenceKey ?? "missing"} ` +
+    `commandScopeProof=${command?.scopedExecutionProof.includes("commandScopeProof=") ? "present" : "missing"} ` +
+    `skillInvocationProof=${skill?.scopedExecutionProof.includes("skillInvocationProof=") ? "present" : "missing"} ` +
+    `commandLock=${command?.executionLocked ? "locked" : "review"} ` +
+    `skillLock=${skill?.executionLocked ? "locked" : "review"} ` +
+    "metadataOnly=locked execution=locked"
+  );
+}
+
 function buildAriaLabel(
   summary: Omit<Phase4ProviderCatalogDepthSummary, "ariaLabel">
 ): string {
@@ -256,7 +275,8 @@ export function buildPhase4ProviderCatalogDepth(
       setupRequiredCount,
       heldCount,
       executionLockCount
-    })
+    }),
+    commandSkillProof: buildCommandSkillProof(records)
   };
 
   return {

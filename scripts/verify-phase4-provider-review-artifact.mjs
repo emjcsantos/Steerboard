@@ -61,6 +61,20 @@ const requiredCatalogDepthProofTerms = [
   "metadataOnly=locked",
   "execution=locked"
 ];
+const requiredCommandSkillProofTerms = [
+  "command=ready",
+  "skill=ready",
+  "commandItems=",
+  "skillItems=",
+  "commandEvidence=phase-04-provider-catalog:command",
+  "skillEvidence=phase-04-provider-catalog:skill",
+  "commandScopeProof=present",
+  "skillInvocationProof=present",
+  "commandLock=locked",
+  "skillLock=locked",
+  "metadataOnly=locked",
+  "execution=locked"
+];
 const requiredAuditChainProofTerms = [
   "approval=",
   "expectedApproval=",
@@ -259,6 +273,15 @@ function verifyArtifact(artifact) {
     );
     if (missingTerms.length > 0) {
       throw new Error(`catalogDepth catalogDepthProof is missing ${missingTerms.join(", ")}`);
+    }
+  }
+  assertNonEmptyString(catalogDepth.commandSkillProof, "catalogDepth.commandSkillProof");
+  {
+    const missingTerms = requiredCommandSkillProofTerms.filter(
+      (term) => !catalogDepth.commandSkillProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`catalogDepth commandSkillProof is missing ${missingTerms.join(", ")}`);
     }
   }
   assertReadyRows(catalogRecords, "catalogDepth");

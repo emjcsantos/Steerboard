@@ -72,6 +72,11 @@ const catalogDepthProof =
   "metadataProof=6/6 scopedExecution=6/6 ownerSafe=6/6 " +
   "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready " +
   "metadataOnly=locked execution=locked";
+const commandSkillProof =
+  "command=ready skill=ready commandItems=2 skillItems=2 " +
+  "commandEvidence=phase-04-provider-catalog:command skillEvidence=phase-04-provider-catalog:skill " +
+  "commandScopeProof=present skillInvocationProof=present " +
+  "commandLock=locked skillLock=locked metadataOnly=locked execution=locked";
 
 function catalogRecord(surface) {
   const itemOrder = [`${surface}-recorded-primary`, `${surface}-recorded-secondary`];
@@ -317,6 +322,7 @@ const artifact = {
     blockedCount: 0,
     executionLockCount: surfaceNames.length,
     catalogDepthProof,
+    commandSkillProof,
     nextAction: "Keep provider execution locked while recorded catalog metadata stays attached.",
     safety: "Metadata-only Phase 4 provider catalog review; no provider actions are executed.",
     ariaLabel: "Phase 4 provider catalog depth: Ready; 100% ready.",

@@ -84,6 +84,11 @@ describe("phase 4 provider catalog depth", () => {
     expect(depth.catalogDepthProof).toContain("scopedExecution=6/6");
     expect(depth.catalogDepthProof).toContain("ownerSafe=6/6");
     expect(depth.catalogDepthProof).toContain("metadataOnly=locked execution=locked");
+    expect(depth.commandSkillProof).toContain("commandEvidence=phase-04-provider-catalog:command");
+    expect(depth.commandSkillProof).toContain("skillEvidence=phase-04-provider-catalog:skill");
+    expect(depth.commandSkillProof).toContain("commandScopeProof=present");
+    expect(depth.commandSkillProof).toContain("skillInvocationProof=present");
+    expect(depth.commandSkillProof).toContain("commandLock=locked skillLock=locked");
     expect(depth.records.every((record) => record.executionLocked)).toBe(true);
     expect(depth.records).toEqual(
       expect.arrayContaining([
@@ -147,6 +152,7 @@ describe("phase 4 provider catalog depth", () => {
     expect(depth.catalogDepthProof).toContain(
       "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready"
     );
+    expect(depth.commandSkillProof).toContain("command=ready skill=ready");
   });
 
   it("keeps preview, setup, and held provider states visible per catalog", () => {
@@ -219,6 +225,7 @@ describe("phase 4 provider catalog depth", () => {
       depth.label,
       depth.ariaLabel,
       depth.catalogDepthProof,
+      depth.commandSkillProof,
       depth.nextAction,
       ...depth.records.flatMap((record) => [
         record.label,

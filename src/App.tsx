@@ -8190,6 +8190,7 @@ export function ProviderIntegrationReadinessPanel({
           </span>
         </div>
         <small>{catalogDepth.catalogDepthProof}</small>
+        <small>{catalogDepth.commandSkillProof}</small>
         <ol className="provider-catalog-depth-list">
           {catalogDepth.records.map((record) => (
             <li

@@ -129,6 +129,11 @@ function noOpenBlockers(artifact: Phase4ProviderReviewArtifact): Phase4ProviderR
       "metadataProof=6/6 scopedExecution=6/6 ownerSafe=6/6 " +
       "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready " +
       "metadataOnly=locked execution=locked",
+    commandSkillProof:
+      "command=ready skill=ready commandItems=1 skillItems=1 " +
+      "commandEvidence=phase-04-provider-catalog:command skillEvidence=phase-04-provider-catalog:skill " +
+      "commandScopeProof=present skillInvocationProof=present " +
+      "commandLock=locked skillLock=locked metadataOnly=locked execution=locked",
     records: artifact.catalogDepth.records.map((record) => ({
       ...record,
       status: "ready" as const,
@@ -639,6 +644,29 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("command scoped execution proof"),
       nextAction: expect.stringContaining("command, skill, plugin, and MCP catalog rows")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing command/skill aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutCommandSkillProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      catalogDepth: { ...artifact.catalogDepth, commandSkillProof: "" }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutCommandSkillProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("command/skill aggregate proof"),
+      nextAction: expect.stringContaining("command and skill catalog rows")
     });
   });
 
