@@ -100,6 +100,27 @@ const STATUS_LABELS: Record<Phase4ProviderReviewArtifactState, string> = {
 
 const DEFAULT_MAX_ARTIFACT_AGE_MS = 24 * 60 * 60 * 1000;
 const REQUIRED_PROVIDER_SURFACE_COUNT = 6;
+const REQUIRED_SURFACE_OWNER_BOUNDARY_PROOF_TERMS: ReadonlyArray<{
+  readonly kind: string;
+  readonly terms: readonly string[];
+}> = [
+  {
+    kind: "approval-gate",
+    terms: ["catalog=", "recordCatalog=", "catalogMatch=", "execution=locked"]
+  },
+  {
+    kind: "audit-gate",
+    terms: ["approval=", "catalog=", "auditEvidence=", "mutation=locked", "execution=locked"]
+  },
+  {
+    kind: "rollback-gate",
+    terms: ["approval=", "audit=", "auditEvidence=", "surfaceDepth=", "mutation=locked", "execution=locked"]
+  },
+  {
+    kind: "permission-gate",
+    terms: ["approval=", "audit=", "rollback=", "surfaceDepth=", "permissionEvidence=", "surfaces=", "mutation=locked", "execution=locked"]
+  }
+];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -258,6 +279,34 @@ function findRecordValidationReview(
       return {
         detail: `Phase 4 provider review artifact includes a ${item.label} record that is not ready: ${item.validation.detail}`,
         nextAction: item.validation.nextAction
+      };
+    }
+  }
+
+  return undefined;
+}
+
+function findSurfaceOwnerBoundaryProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  for (const requirement of REQUIRED_SURFACE_OWNER_BOUNDARY_PROOF_TERMS) {
+    const item = artifact.surfaceDepth.items.find((surfaceItem) => surfaceItem.kind === requirement.kind);
+    const ownerBoundaryProof = item?.ownerBoundaryProof?.trim();
+
+    if (!item || !ownerBoundaryProof) {
+      return {
+        detail: `Phase 4 provider review artifact is missing ${requirement.kind} owner-boundary proof.`,
+        nextAction:
+          "Re-export Phase 4 provider review evidence after surface-depth rows show owner-boundary proof for approval, audit, rollback, and permission gates."
+      };
+    }
+
+    const missingTerms = requirement.terms.filter((term) => !ownerBoundaryProof.includes(term));
+    if (missingTerms.length > 0) {
+      return {
+        detail: `Phase 4 provider review artifact has incomplete ${requirement.kind} owner-boundary proof: missing ${missingTerms.join(", ")}.`,
+        nextAction:
+          "Re-export Phase 4 provider review evidence after the local record chain proof includes the required owner-boundary terms."
       };
     }
   }
@@ -463,6 +512,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       recordValidationReview.detail,
       recordValidationReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const surfaceOwnerBoundaryProofReview = findSurfaceOwnerBoundaryProofReview(artifact);
+  if (surfaceOwnerBoundaryProofReview) {
+    return result(
+      "review",
+      artifact,
+      surfaceOwnerBoundaryProofReview.detail,
+      surfaceOwnerBoundaryProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

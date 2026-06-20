@@ -27,6 +27,7 @@ export interface Phase4ProviderSurfaceDepthItem {
   readonly status: Phase4ProviderSurfaceDepthState;
   readonly evidenceKey: string;
   readonly detail: string;
+  readonly ownerBoundaryProof?: string;
   readonly nextAction: string;
 }
 
@@ -65,6 +66,10 @@ const STATUS_LABELS: Record<Phase4ProviderSurfaceDepthState, string> = {
 
 function surfaceEvidenceKey(kind: Phase4ProviderSurfaceDepthItemKind): string {
   return `phase-04-surface-depth:${kind}`;
+}
+
+function valueOrMissing(value: string | undefined): string {
+  return value ?? "missing";
 }
 
 function phase4StateFromRecordValidation(
@@ -295,6 +300,10 @@ function approvalGateItem(
       detail:
         `${approvalValidation.detail} Expected catalog ${approvalValidation.expectedCatalogFingerprint ?? "missing"}, ` +
         `record catalog ${approvalValidation.recordCatalogFingerprint ?? "missing"}.`,
+      ownerBoundaryProof:
+        `catalog=${valueOrMissing(approvalValidation.expectedCatalogFingerprint)} ` +
+        `recordCatalog=${valueOrMissing(approvalValidation.recordCatalogFingerprint)} ` +
+        `catalogMatch=${approvalValidation.matchesCurrentCatalog ? "matched" : "review"} execution=locked`,
       nextAction: approvalValidation.nextAction
     };
   }
@@ -325,6 +334,14 @@ function auditGateItem(
       detail:
         `${auditValidation.detail} Expected audit ${auditValidation.expectedAuditEvidenceFingerprint ?? "missing"}, ` +
         `record audit ${auditValidation.recordAuditEvidenceFingerprint ?? "missing"}.`,
+      ownerBoundaryProof:
+        `approval=${valueOrMissing(auditValidation.recordApprovalRecordId)} ` +
+        `catalog=${valueOrMissing(auditValidation.recordCatalogFingerprint)} ` +
+        `auditEvidence=${valueOrMissing(auditValidation.recordAuditEvidenceFingerprint)} ` +
+        `approvalMatch=${auditValidation.matchesCurrentApproval ? "matched" : "review"} ` +
+        `catalogMatch=${auditValidation.matchesCurrentCatalog ? "matched" : "review"} ` +
+        `auditMatch=${auditValidation.matchesCurrentAuditEvidence ? "matched" : "review"} ` +
+        `mutation=locked execution=locked`,
       nextAction: auditValidation.nextAction
     };
   }
@@ -358,6 +375,16 @@ function rollbackGateItem(
         `Expected approval ${rollbackValidation.expectedApprovalRecordId ?? "missing"}, record approval ${rollbackValidation.recordApprovalRecordId ?? "missing"}. ` +
         `Expected audit ${rollbackValidation.expectedAuditRecordId ?? "missing"}, record audit ${rollbackValidation.recordAuditRecordId ?? "missing"}. ` +
         `Expected audit evidence ${rollbackValidation.expectedAuditEvidenceFingerprint ?? "missing"}, record audit evidence ${rollbackValidation.recordAuditEvidenceFingerprint ?? "missing"}.`,
+      ownerBoundaryProof:
+        `approval=${valueOrMissing(rollbackValidation.recordApprovalRecordId)} ` +
+        `audit=${valueOrMissing(rollbackValidation.recordAuditRecordId)} ` +
+        `catalog=${valueOrMissing(rollbackValidation.recordCatalogFingerprint)} ` +
+        `auditEvidence=${valueOrMissing(rollbackValidation.recordAuditEvidenceFingerprint)} ` +
+        `surfaceDepth=${valueOrMissing(rollbackValidation.recordSurfaceDepthEvidenceFingerprint)} ` +
+        `approvalMatch=${rollbackValidation.matchesCurrentApproval ? "matched" : "review"} ` +
+        `auditMatch=${rollbackValidation.matchesCurrentAudit ? "matched" : "review"} ` +
+        `surfaceMatch=${rollbackValidation.matchesCurrentSurfaceDepthEvidence ? "matched" : "review"} ` +
+        `mutation=locked execution=locked`,
       nextAction: rollbackValidation.nextAction
     };
   }
@@ -393,6 +420,16 @@ function permissionGateItem(
         `Expected audit ${permissionValidation.expectedAuditRecordId ?? "missing"}, record audit ${permissionValidation.recordAuditRecordId ?? "missing"}. ` +
         `Expected rollback ${permissionValidation.expectedRollbackRecordId ?? "missing"}, record rollback ${permissionValidation.recordRollbackRecordId ?? "missing"}. ` +
         `Covered surfaces ${permissionValidation.coveredSurfaceCount}/6; missing scopes ${missingScopes}.`,
+      ownerBoundaryProof:
+        `approval=${valueOrMissing(permissionValidation.recordApprovalRecordId)} ` +
+        `audit=${valueOrMissing(permissionValidation.recordAuditRecordId)} ` +
+        `rollback=${valueOrMissing(permissionValidation.recordRollbackRecordId)} ` +
+        `catalog=${valueOrMissing(permissionValidation.recordCatalogFingerprint)} ` +
+        `surfaceDepth=${valueOrMissing(permissionValidation.recordSurfaceDepthEvidenceFingerprint)} ` +
+        `permissionEvidence=${valueOrMissing(permissionValidation.recordPermissionEvidenceFingerprint)} ` +
+        `surfaces=${permissionValidation.coveredSurfaceCount}/6 missingScopes=${missingScopes} ` +
+        `permissionMatch=${permissionValidation.matchesCurrentPermissionEvidence ? "matched" : "review"} ` +
+        `mutation=locked execution=locked`,
       nextAction: permissionValidation.nextAction
     };
   }

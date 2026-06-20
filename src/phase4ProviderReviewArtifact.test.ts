@@ -208,9 +208,63 @@ function withReadyLocalRecords(
     expectedPermissionEvidenceFingerprint: permissionEvidenceFingerprint,
     options: { evaluatedAt: createdAt }
   });
+  const surfaceDepth = {
+    ...artifact.surfaceDepth,
+    items: artifact.surfaceDepth.items.map((item) => {
+      if (item.kind === "approval-gate") {
+        return {
+          ...item,
+          ownerBoundaryProof:
+            `catalog=${approvalValidation.expectedCatalogFingerprint} ` +
+            `recordCatalog=${approvalValidation.recordCatalogFingerprint} catalogMatch=matched execution=locked`
+        };
+      }
+
+      if (item.kind === "audit-gate") {
+        return {
+          ...item,
+          ownerBoundaryProof:
+            `approval=${auditValidation.recordApprovalRecordId} ` +
+            `catalog=${auditValidation.recordCatalogFingerprint} ` +
+            `auditEvidence=${auditValidation.recordAuditEvidenceFingerprint} ` +
+            `approvalMatch=matched catalogMatch=matched auditMatch=matched mutation=locked execution=locked`
+        };
+      }
+
+      if (item.kind === "rollback-gate") {
+        return {
+          ...item,
+          ownerBoundaryProof:
+            `approval=${rollbackValidation.recordApprovalRecordId} ` +
+            `audit=${rollbackValidation.recordAuditRecordId} ` +
+            `catalog=${rollbackValidation.recordCatalogFingerprint} ` +
+            `auditEvidence=${rollbackValidation.recordAuditEvidenceFingerprint} ` +
+            `surfaceDepth=${rollbackValidation.recordSurfaceDepthEvidenceFingerprint} ` +
+            `approvalMatch=matched auditMatch=matched surfaceMatch=matched mutation=locked execution=locked`
+        };
+      }
+
+      if (item.kind === "permission-gate") {
+        return {
+          ...item,
+          ownerBoundaryProof:
+            `approval=${permissionValidation.recordApprovalRecordId} ` +
+            `audit=${permissionValidation.recordAuditRecordId} ` +
+            `rollback=${permissionValidation.recordRollbackRecordId} ` +
+            `catalog=${permissionValidation.recordCatalogFingerprint} ` +
+            `surfaceDepth=${permissionValidation.recordSurfaceDepthEvidenceFingerprint} ` +
+            `permissionEvidence=${permissionValidation.recordPermissionEvidenceFingerprint} ` +
+            `surfaces=6/6 missingScopes=none permissionMatch=matched mutation=locked execution=locked`
+        };
+      }
+
+      return item;
+    })
+  };
 
   return {
     ...noOpenBlockers(artifact),
+    surfaceDepth,
     approvalRecord,
     approvalValidation,
     auditRecord,
@@ -330,20 +384,7 @@ describe("phase 4 provider review artifact", () => {
     const artifact = reviewArtifact({
       refreshSmoke: liveCatalogRefreshSmoke()
     });
-    const readyArtifact: Phase4ProviderReviewArtifact = {
-      ...artifact,
-      traceability: { ...artifact.traceability, canTrustProviderReview: true },
-      blockerPriority: {
-        ...artifact.blockerPriority,
-        openBlockerCount: 0,
-        topPriorityAction: "No Phase 4 provider blockers remain.",
-        topPriorityLabel: "No open Phase 4 provider blocker",
-        topPrioritySourceId: "phase4.provider-blocker.none",
-        topPriorityKind: "none",
-        topPriorityStatus: "ready",
-        topPriorityEvidenceKey: "phase-04-provider-blocker:none"
-      }
-    };
+    const readyArtifact = withReadyLocalRecords(artifact);
 
     expect(
       verifyPhase4ProviderReviewArtifact(readyArtifact, {
@@ -398,6 +439,34 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("missing approval local record evidence"),
       nextAction: expect.stringContaining("approval local record and validation")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing surface owner-boundary proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutAuditOwnerBoundaryProof = {
+      ...artifact,
+      surfaceDepth: {
+        ...artifact.surfaceDepth,
+        items: artifact.surfaceDepth.items.map((item) =>
+          item.kind === "audit-gate" ? { ...item, ownerBoundaryProof: undefined } : item
+        )
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutAuditOwnerBoundaryProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("audit-gate owner-boundary proof"),
+      nextAction: expect.stringContaining("owner-boundary proof")
     });
   });
 

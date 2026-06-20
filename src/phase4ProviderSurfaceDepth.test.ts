@@ -160,7 +160,8 @@ describe("phase 4 provider surface depth", () => {
           label: "Approval gate",
           status: "ready",
           evidenceKey: "phase-04-surface-depth:approval-gate",
-          detail: expect.stringContaining("matches the current catalog fingerprint")
+          detail: expect.stringContaining("matches the current catalog fingerprint"),
+          ownerBoundaryProof: expect.stringContaining("catalogMatch=matched execution=locked")
         }),
         expect.objectContaining({ label: "Audit gate", status: "preview" }),
         expect.objectContaining({ label: "Rollback gate", status: "preview" }),
@@ -210,7 +211,8 @@ describe("phase 4 provider surface depth", () => {
           label: "Audit gate",
           status: "ready",
           evidenceKey: "phase-04-surface-depth:audit-gate",
-          detail: expect.stringContaining("matches the current approval record")
+          detail: expect.stringContaining("matches the current approval record"),
+          ownerBoundaryProof: expect.stringContaining("auditMatch=matched mutation=locked execution=locked")
         }),
         expect.objectContaining({ label: "Rollback gate", status: "preview" }),
         expect.objectContaining({ label: "Permission gate", status: "preview" }),
@@ -281,7 +283,8 @@ describe("phase 4 provider surface depth", () => {
           label: "Rollback gate",
           status: "ready",
           evidenceKey: "phase-04-surface-depth:rollback-gate",
-          detail: expect.stringContaining("matches the current approval record")
+          detail: expect.stringContaining("matches the current approval record"),
+          ownerBoundaryProof: expect.stringContaining("surfaceMatch=matched mutation=locked execution=locked")
         }),
         expect.objectContaining({ label: "Permission gate", status: "preview" }),
         expect.objectContaining({ label: "Execution lock", status: "ready" })
@@ -394,6 +397,9 @@ describe("phase 4 provider surface depth", () => {
       "Expected rollback phase4-provider-rollback:2026-06-18T10:20:00.000Z"
     );
     expect(permissionGate?.detail).toContain("Covered surfaces 6/6; missing scopes none.");
+    expect(permissionGate?.ownerBoundaryProof).toContain(
+      "surfaces=6/6 missingScopes=none permissionMatch=matched mutation=locked execution=locked"
+    );
   });
 
   it("surfaces preview rows as a separate owner-review hold", () => {

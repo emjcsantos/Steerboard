@@ -85,7 +85,7 @@ function refreshRecord(surface) {
   };
 }
 
-function surfaceItem(id, label, detail) {
+function surfaceItem(id, label, detail, ownerBoundaryProof) {
   return {
     id: `phase-04-surface-depth:${id}`,
     label,
@@ -93,7 +93,8 @@ function surfaceItem(id, label, detail) {
     status: "ready",
     detail,
     nextAction: "Keep provider execution locked until owner-reviewed execution gates are implemented.",
-    evidenceKey: `phase-04-surface-depth:${id}`
+    evidenceKey: `phase-04-surface-depth:${id}`,
+    ...(ownerBoundaryProof ? { ownerBoundaryProof } : {})
   };
 }
 
@@ -315,10 +316,30 @@ const artifact = {
       surfaceItem("setup-blockers", "Setup blockers", "No setup-required provider rows remain."),
       surfaceItem("capability-gaps", "Capability gaps", "No provider capability gaps remain."),
       surfaceItem("preview-review", "Preview review", "No provider rows are preview-only."),
-      surfaceItem("approval-gate", "Approval gate", "Provider approval metadata is ready."),
-      surfaceItem("audit-gate", "Audit gate", "Provider audit metadata is ready."),
-      surfaceItem("rollback-gate", "Rollback gate", "Provider rollback metadata is ready."),
-      surfaceItem("permission-gate", "Permission gate", "Provider permission metadata is ready."),
+      surfaceItem(
+        "approval-gate",
+        "Approval gate",
+        "Provider approval metadata is ready.",
+        `catalog=${currentCatalogFingerprint} recordCatalog=${currentCatalogFingerprint} catalogMatch=matched execution=locked`
+      ),
+      surfaceItem(
+        "audit-gate",
+        "Audit gate",
+        "Provider audit metadata is ready.",
+        `approval=${approvalRecordId} catalog=${currentCatalogFingerprint} auditEvidence=${auditEvidenceFingerprint} approvalMatch=matched catalogMatch=matched auditMatch=matched mutation=locked execution=locked`
+      ),
+      surfaceItem(
+        "rollback-gate",
+        "Rollback gate",
+        "Provider rollback metadata is ready.",
+        `approval=${approvalRecordId} audit=${auditRecordId} catalog=${currentCatalogFingerprint} auditEvidence=${auditEvidenceFingerprint} surfaceDepth=${surfaceDepthEvidenceFingerprint} approvalMatch=matched auditMatch=matched surfaceMatch=matched mutation=locked execution=locked`
+      ),
+      surfaceItem(
+        "permission-gate",
+        "Permission gate",
+        "Provider permission metadata is ready.",
+        `approval=${approvalRecordId} audit=${auditRecordId} rollback=${rollbackRecordId} catalog=${currentCatalogFingerprint} surfaceDepth=${surfaceDepthEvidenceFingerprint} permissionEvidence=${permissionEvidenceFingerprint} surfaces=6/6 missingScopes=none permissionMatch=matched mutation=locked execution=locked`
+      ),
       surfaceItem("execution-lock", "Execution lock", "Provider execution remains disabled.")
     ]
   },

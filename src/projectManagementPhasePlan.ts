@@ -298,7 +298,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 78,
+    completionPercent: 79,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -306,7 +306,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
         description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 66,
+        completionPercent: 67,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
@@ -336,8 +336,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-surface-depth",
             title: "Provider Surface Depth",
-            description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, and execution lock before provider execution is considered.",
-            completionPercent: 60,
+            description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, owner-boundary proof, and execution lock before provider execution is considered.",
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Phase 4 provider surface depth"
           },
@@ -352,8 +352,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-audit-record",
             title: "Provider Audit Record",
-            description: "Record and clear local provider audit review only when the current approval record, current six-surface catalog fingerprint, and current surface-depth audit evidence fingerprint match, without unlocking rollback, permission, or execution.",
-            completionPercent: 60,
+            description: "Record and clear local provider audit review only when the current approval record, current six-surface catalog fingerprint, current surface-depth audit evidence fingerprint, owner-boundary proof, and mutation lock match, without unlocking rollback, permission, or execution.",
+            completionPercent: 62,
             complexity: "high",
             sourceDocument: "Phase 4 provider audit record"
           },

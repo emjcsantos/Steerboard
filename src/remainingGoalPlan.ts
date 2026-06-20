@@ -149,7 +149,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Harden command, skill, plugin, MCP, automation, and personalization readiness states while keeping refresh proof metadata-only, fresh, and tied to the current six-surface catalog fingerprint.",
     status: "active",
     priority: "high",
-    completionPercent: 98,
+    completionPercent: 99,
     current: true,
     pmTaskIds: [
       "phase-04-provider-surfaces",
@@ -169,7 +169,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-04-child-refresh-safety-depth"
     ],
     nextAction:
-      "Use the Phase 4 Provider Readiness catalog depth, command/skill catalog item-order and evidence-key proof, plugin/MCP metadata-only surface and transport/tool-policy proof, owner-visible plugin/MCP metadata-only safety evidence, Refresh Safety depth, reload-safe recorded metadata-only proof, Surface Depth, local approval, audit, rollback, and permission record validation, owner-visible rollback and permission record-chain evidence, visible record-enable gates, explicit record-chain traceability row, tested recorded provider-review artifact loading with offline fingerprint verification, attached local record evidence, missing-record review enforcement, owner-visible missing-record proof, compact top-blocker source/evidence/status proof, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered."
+      "Use the Phase 4 Provider Readiness catalog depth, command/skill catalog item-order and evidence-key proof, plugin/MCP metadata-only surface and transport/tool-policy proof, owner-visible plugin/MCP metadata-only safety evidence, Refresh Safety depth, reload-safe recorded metadata-only proof, Surface Depth owner-boundary proof, local approval, audit, rollback, and permission record validation, owner-visible rollback and permission record-chain evidence, visible record-enable gates, explicit record-chain traceability row, tested recorded provider-review artifact loading with offline fingerprint verification, attached local record evidence, missing-record review enforcement, owner-visible missing-record proof, surface owner-boundary artifact enforcement, compact top-blocker source/evidence/status proof, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered."
   },
   {
     id: "goal-phase-5-migration-hardening",

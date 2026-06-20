@@ -15,6 +15,24 @@ const requiredTraceabilityKinds = [
   "record-chain",
   "execution-lock"
 ];
+const requiredSurfaceOwnerBoundaryProofTerms = [
+  {
+    kind: "approval-gate",
+    terms: ["catalog=", "recordCatalog=", "catalogMatch=", "execution=locked"]
+  },
+  {
+    kind: "audit-gate",
+    terms: ["approval=", "catalog=", "auditEvidence=", "mutation=locked", "execution=locked"]
+  },
+  {
+    kind: "rollback-gate",
+    terms: ["approval=", "audit=", "auditEvidence=", "surfaceDepth=", "mutation=locked", "execution=locked"]
+  },
+  {
+    kind: "permission-gate",
+    terms: ["approval=", "audit=", "rollback=", "surfaceDepth=", "permissionEvidence=", "surfaces=", "mutation=locked", "execution=locked"]
+  }
+];
 const maxArtifactAgeMs = 24 * 60 * 60 * 1000;
 
 function fail(message) {
@@ -175,6 +193,17 @@ function verifyArtifact(artifact) {
   assertReadyRows(surfaceItems, "surfaceDepth");
   if (surfaceDepth.canEnableExecution !== false) {
     throw new Error("surfaceDepth canEnableExecution is not false");
+  }
+  for (const requirement of requiredSurfaceOwnerBoundaryProofTerms) {
+    const item = surfaceItems.find((row) => row.kind === requirement.kind);
+    if (!item) {
+      throw new Error(`surfaceDepth is missing ${requirement.kind}`);
+    }
+    assertNonEmptyString(item.ownerBoundaryProof, `surfaceDepth.${requirement.kind}.ownerBoundaryProof`);
+    const missingTerms = requirement.terms.filter((term) => !item.ownerBoundaryProof.includes(term));
+    if (missingTerms.length > 0) {
+      throw new Error(`surfaceDepth ${requirement.kind} ownerBoundaryProof is missing ${missingTerms.join(", ")}`);
+    }
   }
 
   const traceabilityItems = assertArray(traceability.items, "traceability.items");

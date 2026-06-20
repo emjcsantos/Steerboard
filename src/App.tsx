@@ -8584,6 +8584,9 @@ export function Phase4ProviderSurfaceDepthPanel({
               <div>
                 <strong>{item.label}</strong>
                 <em>{item.detail}</em>
+                {item.ownerBoundaryProof ? (
+                  <small>{item.ownerBoundaryProof}</small>
+                ) : null}
                 <small>
                   {item.evidenceKey} / {item.nextAction}
                 </small>
