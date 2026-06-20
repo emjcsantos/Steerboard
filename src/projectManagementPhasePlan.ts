@@ -682,16 +682,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-08-permissions-audit",
     title: "Phase 8: Permissions and Audit",
-    description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, current owner audit-review fingerprints, record-specific rollback evidence, phase8AuditReviewHandoffProof, and phase8PermissionAuditCompletionGate proof before mutation-capable paths expand.",
-    completionPercent: 72,
+    description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, current owner audit-review fingerprints, record-specific rollback evidence, phase8RiskClosureProof, phase8AuditReviewHandoffProof, and phase8PermissionAuditCompletionGate proof before mutation-capable paths expand.",
+    completionPercent: 76,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-08-parent-risk-gates",
         title: "Risk Gate Hardening",
-        description: "Require explicit permission state, action risk, approval scope, fallback behavior, risk exceptions, disabled paths, owner review freshness, permissionLabelSummaryProof, topBlockerProof, blockerQueueProof, and missing-requirement explanations for risky actions.",
-        completionPercent: 65,
+        description: "Require explicit permission state, action risk, approval scope, fallback behavior, risk exceptions, disabled paths, owner review freshness, permissionLabelSummaryProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, and missing-requirement explanations for risky actions.",
+        completionPercent: 76,
         complexity: "high",
         sourceDocument: "Permission risk gates",
         children: [
@@ -732,6 +732,14 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 65,
             complexity: "medium",
             sourceDocument: "Phase 8 risk blocker priority"
+          },
+          {
+            id: "phase-08-child-risk-closure",
+            title: "Risk Closure Proof",
+            description: "Classify Phase 8 blockers into audit-review addressable, owner-action, and closure-ready groups with open exception counts, mutation-lock state, current top blocker source/status, and compact phase8RiskClosureProof before blocker closure can be treated as completion evidence.",
+            completionPercent: 76,
+            complexity: "high",
+            sourceDocument: "Phase 8 risk closure"
           }
         ]
       },

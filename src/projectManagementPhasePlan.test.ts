@@ -131,6 +131,7 @@ describe("project management phase plan", () => {
     const permissionLabelsChild = byId.get("phase-08-child-permission-labels");
     const riskBlockersChild = byId.get("phase-08-child-risk-blockers");
     const blockerPriorityChild = byId.get("phase-08-child-blocker-priority");
+    const riskClosureChild = byId.get("phase-08-child-risk-closure");
 
     expect(riskGateParent?.completionPercent).toBeGreaterThanOrEqual(
       permissionLabelsChild?.completionPercent ?? 0
@@ -144,18 +145,24 @@ describe("project management phase plan", () => {
     expect(riskBlockersChild?.completionPercent).toBeGreaterThanOrEqual(
       blockerPriorityChild?.completionPercent ?? 0
     );
-    expect(riskGateParent?.completionPercent).toBe(65);
+    expect(riskGateParent?.completionPercent).toBeGreaterThanOrEqual(
+      riskClosureChild?.completionPercent ?? 0
+    );
+    expect(riskGateParent?.completionPercent).toBe(76);
     expect(permissionLabelsChild?.completionPercent).toBe(65);
     expect(riskBlockersChild?.completionPercent).toBe(65);
     expect(blockerPriorityChild?.completionPercent).toBe(65);
+    expect(riskClosureChild?.completionPercent).toBe(76);
     expect(riskGateParent?.description).toContain("permissionLabelSummaryProof");
     expect(riskGateParent?.description).toContain("topBlockerProof");
     expect(riskGateParent?.description).toContain("blockerQueueProof");
+    expect(riskGateParent?.description).toContain("phase8RiskClosureProof");
     expect(permissionLabelsChild?.description).toContain("permissionLabelProof");
     expect(permissionLabelsChild?.description).toContain("permissionLabelSummaryProof total");
     expect(riskBlockersChild?.description).toContain("riskBlockerProof");
     expect(riskBlockersChild?.description).toContain("topBlockerProof source/kind/status");
     expect(riskBlockersChild?.description).toContain("blockerQueueProof open/kind/status");
+    expect(riskClosureChild?.description).toContain("phase8RiskClosureProof");
   });
 
   it("keeps Phase 8 traceability and blocker priority aligned with risk proof depth", () => {
@@ -164,6 +171,7 @@ describe("project management phase plan", () => {
     const riskGateParent = byId.get("phase-08-parent-risk-gates");
     const traceabilityChild = byId.get("phase-08-child-traceability");
     const blockerPriorityChild = byId.get("phase-08-child-blocker-priority");
+    const riskClosureChild = byId.get("phase-08-child-risk-closure");
     const riskExceptionsChild = byId.get("phase-08-child-risk-exceptions");
 
     expect(riskGateParent?.completionPercent).toBeGreaterThanOrEqual(
@@ -178,6 +186,9 @@ describe("project management phase plan", () => {
     expect(blockerPriorityChild?.completionPercent).toBeGreaterThanOrEqual(
       riskExceptionsChild?.completionPercent ?? 0
     );
+    expect(riskClosureChild?.completionPercent).toBeGreaterThanOrEqual(
+      riskExceptionsChild?.completionPercent ?? 0
+    );
     expect(traceabilityChild?.description).toContain("traceabilityProof goal/missing-PM/trust");
     expect(traceabilityChild?.description).toContain("traceabilityRowStateProof ready/review/blocked/waiting");
     expect(blockerPriorityChild?.description).toContain("topBlockerProof source/kind/status");
@@ -185,6 +196,7 @@ describe("project management phase plan", () => {
     expect(riskExceptionsChild?.completionPercent).toBe(65);
     expect(traceabilityChild?.completionPercent).toBe(65);
     expect(blockerPriorityChild?.completionPercent).toBe(65);
+    expect(riskClosureChild?.completionPercent).toBe(76);
     expect(riskExceptionsChild?.description).toContain("riskExceptionProof");
     expect(riskExceptionsChild?.description).toContain("riskExceptionSummaryProof severity/status/ready");
   });

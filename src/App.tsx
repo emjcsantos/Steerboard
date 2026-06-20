@@ -695,6 +695,7 @@ import {
   type Phase8AuditReviewArtifactVerification
 } from "./phase8AuditReviewArtifact";
 import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
+import { buildPhase8RiskClosure } from "./phase8RiskClosure";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import {
   buildPhase9RunnerApprovalSnapshot,
@@ -15618,6 +15619,11 @@ export function Phase8PermissionAuditDepthPanel({
     artifactVerification,
     reviewRecord
   });
+  const riskClosure = buildPhase8RiskClosure({
+    snapshot,
+    traceability,
+    blockerPriority
+  });
   const completionGate = buildPhase8PermissionAuditCompletionGate({
     snapshot,
     traceability,
@@ -15797,6 +15803,43 @@ export function Phase8PermissionAuditDepthPanel({
             <small>{auditReviewHandoff.nextAction}</small>
             <small>{auditReviewHandoff.phase8AuditReviewHandoffProof}</small>
           </div>
+        </div>
+        <div
+          aria-label={riskClosure.ariaLabel}
+          className={classNames(
+            "phase8-blocker-priority",
+            `phase8-blocker-priority-${riskClosure.state}`
+          )}
+          title={riskClosure.safety}
+        >
+          <div className="phase8-blocker-priority-header">
+            <strong>{riskClosure.label}</strong>
+            <span>
+              {riskClosure.canCloseBlockers
+                ? "Closure ready"
+                : `${riskClosure.openBlockerCount} open`}
+            </span>
+          </div>
+          <dl className="phase8-blocker-priority-grid" aria-label="Phase 8 risk closure counts">
+            <div>
+              <dt>Audit Review</dt>
+              <dd>{riskClosure.auditReviewAddressableCount}</dd>
+            </div>
+            <div>
+              <dt>Owner Action</dt>
+              <dd>{riskClosure.ownerActionBlockerCount}</dd>
+            </div>
+            <div>
+              <dt>Exceptions</dt>
+              <dd>{riskClosure.openExceptionCount}</dd>
+            </div>
+            <div>
+              <dt>Closure</dt>
+              <dd>{riskClosure.canCloseBlockers ? "Ready" : "Held"}</dd>
+            </div>
+          </dl>
+          <p title={riskClosure.nextAction}>{riskClosure.nextAction}</p>
+          <small>{riskClosure.phase8RiskClosureProof}</small>
         </div>
         {importedArtifactVerification ? (
           <div
