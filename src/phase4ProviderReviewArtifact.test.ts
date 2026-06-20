@@ -124,7 +124,11 @@ function noOpenBlockers(artifact: Phase4ProviderReviewArtifact): Phase4ProviderR
       ...artifact.blockerPriority,
       openBlockerCount: 0,
       topPriorityAction: "No Phase 4 provider blockers remain.",
-      topPriorityLabel: "No open Phase 4 provider blocker"
+      topPriorityLabel: "No open Phase 4 provider blocker",
+      topPrioritySourceId: "phase4.provider-blocker.none",
+      topPriorityKind: "none",
+      topPriorityStatus: "ready",
+      topPriorityEvidenceKey: "phase-04-provider-blocker:none"
     }
   };
 }
@@ -333,7 +337,11 @@ describe("phase 4 provider review artifact", () => {
         ...artifact.blockerPriority,
         openBlockerCount: 0,
         topPriorityAction: "No Phase 4 provider blockers remain.",
-        topPriorityLabel: "No open Phase 4 provider blocker"
+        topPriorityLabel: "No open Phase 4 provider blocker",
+        topPrioritySourceId: "phase4.provider-blocker.none",
+        topPriorityKind: "none",
+        topPriorityStatus: "ready",
+        topPriorityEvidenceKey: "phase-04-provider-blocker:none"
       }
     };
 

@@ -8686,6 +8686,13 @@ export function Phase4ProviderBlockerPriorityPanel({
             {summary.statusLabel} / {summary.openBlockerCount} open
           </span>
         </div>
+        <small
+          className="phase4-provider-blocker-priority-source"
+          title={`${summary.topPrioritySourceId} / ${summary.topPriorityKind} / ${summary.topPriorityStatus} / ${summary.topPriorityEvidenceKey}`}
+        >
+          {summary.topPrioritySourceId} / {summary.topPriorityKind} /{" "}
+          {summary.topPriorityStatus} / {summary.topPriorityEvidenceKey}
+        </small>
         <dl
           className="phase4-provider-blocker-priority-grid"
           aria-label="Phase 4 provider blocker priority counts"

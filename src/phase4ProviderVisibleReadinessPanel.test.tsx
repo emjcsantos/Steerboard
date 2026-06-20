@@ -34,7 +34,10 @@ import {
   EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
 } from "./phase4ProviderPermissionRecord";
 import { buildPhase4ProviderCatalogDepth } from "./phase4ProviderCatalogDepth";
-import { buildPhase4ProviderBlockerPriority } from "./phase4ProviderBlockerPriority";
+import {
+  buildPhase4ProviderBlockerPriority,
+  type Phase4ProviderBlockerPrioritySummary
+} from "./phase4ProviderBlockerPriority";
 import {
   buildPhase4ProviderReviewArtifact,
   serializePhase4ProviderReviewArtifact,
@@ -407,7 +410,7 @@ describe("phase 4 provider visible readiness panel", () => {
       refreshSafety: readyRefreshSafety,
       surfaceDepth
     });
-    const noOpenBlockerPriority = {
+    const noOpenBlockerPriority: Phase4ProviderBlockerPrioritySummary = {
       ...buildPhase4ProviderBlockerPriority({
         catalogDepth,
         refreshSafety: readyRefreshSafety,
@@ -416,7 +419,11 @@ describe("phase 4 provider visible readiness panel", () => {
       }),
       openBlockerCount: 0,
       topPriorityAction: "No Phase 4 provider blockers remain.",
-      topPriorityLabel: "No open Phase 4 provider blocker"
+      topPriorityLabel: "No open Phase 4 provider blocker",
+      topPrioritySourceId: "phase4.provider-blocker.none",
+      topPriorityKind: "none",
+      topPriorityStatus: "ready",
+      topPriorityEvidenceKey: "phase-04-provider-blocker:none"
     };
     const recordedMissingLocalEvidence =
       verifyRecordedPhase4ProviderReviewArtifact(

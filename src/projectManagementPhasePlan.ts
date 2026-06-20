@@ -298,7 +298,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 75,
+    completionPercent: 76,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -384,8 +384,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-blocker-priority",
             title: "Provider Blocker Priority",
-            description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action, while keeping remaining-goal and PM traceability repairs out of catalog-smoke actions.",
-            completionPercent: 62,
+            description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action, show compact top-blocker source, kind, status, and evidence-key proof, while keeping remaining-goal and PM traceability repairs out of catalog-smoke actions.",
+            completionPercent: 68,
             complexity: "high",
             sourceDocument: "Phase 4 provider blocker priority"
           }

@@ -53,6 +53,10 @@ export interface Phase4ProviderBlockerPrioritySummary {
   readonly catalogSmokeAddressableCount: number;
   readonly topPriorityLabel: string;
   readonly topPriorityAction: string;
+  readonly topPrioritySourceId: string;
+  readonly topPriorityKind: Phase4ProviderBlockerPriorityKind | "none";
+  readonly topPriorityStatus: Phase4ProviderBlockerPriorityState | "ready";
+  readonly topPriorityEvidenceKey: string;
   readonly catalogSmokeCanAddressTopBlocker: boolean;
   readonly nextAction: string;
   readonly safety: string;
@@ -384,6 +388,8 @@ function buildAriaLabel(
   return (
     `${snapshot.label}: ${snapshot.statusLabel}; ${snapshot.openBlockerCount} open blockers; ` +
     `${snapshot.catalogSmokeAddressableCount} catalog-smoke addressable; top priority ${snapshot.topPriorityLabel}; ` +
+    `source ${snapshot.topPrioritySourceId}; kind ${snapshot.topPriorityKind}; status ${snapshot.topPriorityStatus}; ` +
+    `evidence ${snapshot.topPriorityEvidenceKey}; ` +
     `next action: ${snapshot.nextAction}`
   );
 }
@@ -420,6 +426,10 @@ export function buildPhase4ProviderBlockerPriority(
     topPriorityAction:
       topItem?.nextAction ??
       "Keep provider execution locked until explicit approval, audit, rollback, and permission gates are implemented.",
+    topPrioritySourceId: topItem?.sourceId ?? "phase4.provider-blocker.none",
+    topPriorityKind: topItem?.kind ?? "none",
+    topPriorityStatus: topItem?.status ?? "ready",
+    topPriorityEvidenceKey: topItem?.evidenceKey ?? "phase-04-provider-blocker:none",
     catalogSmokeCanAddressTopBlocker: topItem?.canUseCatalogSmoke === true,
     nextAction:
       topItem?.nextAction ??

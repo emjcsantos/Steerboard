@@ -290,6 +290,12 @@ describe("phase 4 provider blocker priority", () => {
     expect(snapshot.state).toBe("setup-required");
     expect(snapshot.openBlockerCount).toBeGreaterThan(0);
     expect(snapshot.topPriorityLabel).toBe("Skills");
+    expect(snapshot.topPrioritySourceId).toBe("phase-4-provider-catalog-depth:skill");
+    expect(snapshot.topPriorityKind).toBe("provider-catalog");
+    expect(snapshot.topPriorityStatus).toBe("setup-required");
+    expect(snapshot.topPriorityEvidenceKey).toBe("phase-04-provider-catalog:skill");
+    expect(snapshot.ariaLabel).toContain("source phase-4-provider-catalog-depth:skill");
+    expect(snapshot.ariaLabel).toContain("evidence phase-04-provider-catalog:skill");
     expect(snapshot.catalogSmokeCanAddressTopBlocker).toBe(false);
     expect(snapshot.items[0]).toMatchObject({
       kind: "provider-catalog",
@@ -511,6 +517,10 @@ describe("phase 4 provider blocker priority", () => {
     expect(snapshot.state).toBe("ready");
     expect(snapshot.openBlockerCount).toBe(0);
     expect(snapshot.topPriorityLabel).toBe("No open Phase 4 provider blocker");
+    expect(snapshot.topPrioritySourceId).toBe("phase4.provider-blocker.none");
+    expect(snapshot.topPriorityKind).toBe("none");
+    expect(snapshot.topPriorityStatus).toBe("ready");
+    expect(snapshot.topPriorityEvidenceKey).toBe("phase-04-provider-blocker:none");
     expect(snapshot.catalogSmokeCanAddressTopBlocker).toBe(false);
     expect(snapshot.items).not.toEqual(
       expect.arrayContaining([
