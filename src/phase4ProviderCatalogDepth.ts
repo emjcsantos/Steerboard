@@ -255,9 +255,11 @@ function buildPluginMcpProof(
 ): string {
   const plugin = records.find((record) => record.kind === "plugin");
   const mcp = records.find((record) => record.kind === "mcp");
+  const pairOrder = [plugin?.kind, mcp?.kind].filter(Boolean).join("|") || "missing";
 
   return (
     `plugin=${plugin?.status ?? "missing"} mcp=${mcp?.status ?? "missing"} ` +
+    `pairOrder=${pairOrder} ` +
     `pluginItems=${plugin?.itemOrder.length ?? 0} mcpItems=${mcp?.itemOrder.length ?? 0} ` +
     `pluginEvidence=${plugin?.evidenceKey ?? "missing"} mcpEvidence=${mcp?.evidenceKey ?? "missing"} ` +
     `pluginItemOrder=${plugin && plugin.itemOrder.length > 0 ? "present" : "missing"} ` +

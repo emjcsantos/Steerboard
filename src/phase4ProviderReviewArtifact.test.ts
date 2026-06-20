@@ -138,7 +138,7 @@ function noOpenBlockers(artifact: Phase4ProviderReviewArtifact): Phase4ProviderR
       "commandScopeProof=present skillInvocationProof=present " +
       "commandLock=locked skillLock=locked metadataOnly=locked execution=locked",
     pluginMcpProof:
-      "plugin=ready mcp=ready pluginItems=1 mcpItems=1 " +
+      "plugin=ready mcp=ready pairOrder=plugin|mcp pluginItems=1 mcpItems=1 " +
       "pluginEvidence=phase-04-provider-catalog:plugin mcpEvidence=phase-04-provider-catalog:mcp " +
       "pluginItemOrder=present mcpItemOrder=present pluginMetadata=present mcpMetadata=present " +
       "pluginSource=present mcpSource=present " +
@@ -1159,6 +1159,32 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("plugin/MCP aggregate proof"),
       nextAction: expect.stringContaining("plugin and MCP catalog rows")
+    });
+  });
+
+  it("reviews no-blocker artifacts with incomplete plugin/MCP aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const incompletePluginMcpProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      catalogDepth: {
+        ...artifact.catalogDepth,
+        pluginMcpProof: artifact.catalogDepth.pluginMcpProof.replace("pairOrder=plugin|mcp ", "")
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(incompletePluginMcpProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("plugin/MCP aggregate proof"),
+      nextAction: expect.stringContaining("item-order")
     });
   });
 

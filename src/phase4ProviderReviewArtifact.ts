@@ -227,6 +227,7 @@ const REQUIRED_COMMAND_SKILL_PROOF_TERMS = [
 const REQUIRED_PLUGIN_MCP_PROOF_TERMS = [
   "plugin=ready",
   "mcp=ready",
+  "pairOrder=plugin|mcp",
   "pluginItems=",
   "mcpItems=",
   "pluginEvidence=phase-04-provider-catalog:plugin",

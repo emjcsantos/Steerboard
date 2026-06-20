@@ -139,6 +139,7 @@ const requiredCommandSkillProofTerms = [
 const requiredPluginMcpProofTerms = [
   "plugin=ready",
   "mcp=ready",
+  "pairOrder=plugin|mcp",
   "pluginItems=",
   "mcpItems=",
   "pluginEvidence=phase-04-provider-catalog:plugin",

@@ -320,8 +320,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-plugin-mcp",
             title: "Plugin and MCP Catalogs",
-            description: "Show plugin and MCP entries with structured plugin/MCP aggregate proof including item-order/source/metadata coverage, scoped plugin surface proof, metadata-only surface proof, MCP transport/tool-policy proof, connection state, allowed surfaces, non-mutating readiness evidence, and execution-lock artifact enforcement.",
-            completionPercent: 70,
+            description: "Show plugin and MCP entries with structured plugin/MCP aggregate proof including explicit pair-order, item-order/source/metadata coverage, scoped plugin surface proof, metadata-only surface proof, MCP transport/tool-policy proof, connection state, allowed surfaces, non-mutating readiness evidence, and execution-lock artifact enforcement.",
+            completionPercent: 72,
             complexity: "high",
             sourceDocument: "Plugin and MCP catalogs"
           },

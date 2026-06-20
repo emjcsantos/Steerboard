@@ -99,6 +99,7 @@ describe("phase 4 provider catalog depth", () => {
     expect(depth.commandSkillProof).toContain("commandLock=locked skillLock=locked");
     expect(depth.pluginMcpProof).toContain("pluginEvidence=phase-04-provider-catalog:plugin");
     expect(depth.pluginMcpProof).toContain("mcpEvidence=phase-04-provider-catalog:mcp");
+    expect(depth.pluginMcpProof).toContain("pairOrder=plugin|mcp");
     expect(depth.pluginMcpProof).toContain("pluginItemOrder=present");
     expect(depth.pluginMcpProof).toContain("mcpItemOrder=present");
     expect(depth.pluginMcpProof).toContain("pluginMetadata=present mcpMetadata=present");

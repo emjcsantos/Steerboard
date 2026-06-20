@@ -91,7 +91,7 @@ const commandSkillProof =
   "commandScopeProof=present skillInvocationProof=present " +
   "commandLock=locked skillLock=locked metadataOnly=locked execution=locked";
 const pluginMcpProof =
-  "plugin=ready mcp=ready pluginItems=2 mcpItems=2 " +
+  "plugin=ready mcp=ready pairOrder=plugin|mcp pluginItems=2 mcpItems=2 " +
   "pluginEvidence=phase-04-provider-catalog:plugin mcpEvidence=phase-04-provider-catalog:mcp " +
   "pluginItemOrder=present mcpItemOrder=present pluginMetadata=present mcpMetadata=present " +
   "pluginSource=present mcpSource=present " +
