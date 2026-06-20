@@ -307,6 +307,8 @@ export function buildProjectManagementArenaDispatch(
   }
 
   const descendants = collectProjectManagementDescendants(tasks, task.id);
+  const descendantParentCount = descendants.filter((item) => item.type === "parent").length;
+  const descendantChildCount = descendants.filter((item) => item.type === "child").length;
   const parent = task.parentId ? tasks.find((item) => item.id === task.parentId) : undefined;
   const epic = task.type === "epic"
     ? task
@@ -315,6 +317,13 @@ export function buildProjectManagementArenaDispatch(
       : parent?.parentId
         ? tasks.find((item) => item.id === parent.parentId)
         : undefined;
+  const risk = task.complexity === "low" ? "low" : task.complexity === "medium" ? "medium" : "high";
+  const runContextProof =
+    `runContextProof=task=${task.id} type=${projectManagementTypeLabels[task.type]} ` +
+    `epic=${epic?.id ?? "none"} parent=${parent?.type === "parent" ? parent.id : "none"} ` +
+    `descendants=${descendants.length} descendantParents=${descendantParentCount} ` +
+    `descendantChildren=${descendantChildCount} completion=${task.completionPercent} ` +
+    `source="${task.sourceDocument}" risk=${risk} mode=staged_review`;
 
   const payload: ProjectManagementArenaDispatchPayload = {
     taskId: task.id,
@@ -354,7 +363,7 @@ export function buildProjectManagementArenaDispatch(
       sourceDraftTitle: task.title,
       objective: `Stage ${payload.taskType} "${task.title}" for Arena review.`,
       deployMode: "staged",
-      risk: task.complexity === "low" ? "low" : task.complexity === "medium" ? "medium" : "high",
+      risk,
       scope: [
         `Task ID: ${payload.taskId}`,
         `Task Type: ${payload.taskType}`,
@@ -362,6 +371,7 @@ export function buildProjectManagementArenaDispatch(
         `Completion: ${payload.completion}%`,
         `Complexity: ${payload.complexity}`,
         `Source: ${payload.sourceDocument}`,
+        `Run Context: ${runContextProof}`,
         `Execution: ${payload.executionReason}`,
         ...descendants.map((child) => `Descendant ${projectManagementTypeLabels[child.type]}: ${child.title}`)
       ],

@@ -538,9 +538,9 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-06-child-run-context",
             title: "Staged Package Context",
-            description: "Include selected task, descendants, parent context, completion, source, and risk in every PM run package.",
+            description: "Include compact runContextProof with selected task, descendants, parent/epic context, completion, source, risk, and staged-review mode in every PM run package.",
             status: "ongoing",
-            completionPercent: 60,
+            completionPercent: 65,
             sourceDocument: "Arena dispatch package"
           },
           {

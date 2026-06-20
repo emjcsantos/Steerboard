@@ -185,7 +185,7 @@ describe("project management hierarchy", () => {
     expect(childResult?.payload).toMatchObject({
       taskId: "phase-06-child-run-context",
       taskType: "Child",
-      completion: 60,
+      completion: 65,
       sourceDocument: "Arena dispatch package",
       relationshipContext: {
         epic: { id: "phase-06-planning-lane", title: "Phase 6: Project and Program Planning Lane" },
@@ -194,8 +194,11 @@ describe("project management hierarchy", () => {
       children: []
     });
     expect(childResult?.dispatchPackage.risk).toBe("medium");
-    expect(childResult?.dispatchPackage.scope.join(" ")).toContain("Completion: 60%");
+    expect(childResult?.dispatchPackage.scope.join(" ")).toContain("Completion: 65%");
     expect(childResult?.dispatchPackage.scope.join(" ")).toContain("Source: Arena dispatch package");
+    expect(childResult?.dispatchPackage.scope).toContain(
+      'Run Context: runContextProof=task=phase-06-child-run-context type=Child epic=phase-06-planning-lane parent=phase-06-parent-arena-staging descendants=0 descendantParents=0 descendantChildren=0 completion=65 source="Arena dispatch package" risk=medium mode=staged_review'
+    );
 
     const epicResult = buildProjectManagementArenaDispatch(
       createDefaultProjectManagementTasks(),
@@ -223,6 +226,9 @@ describe("project management hierarchy", () => {
       "phase-06-child-publish-hold-blocker-priority"
     ]);
     expect(epicResult?.dispatchPackage.risk).toBe("high");
+    expect(epicResult?.dispatchPackage.scope).toContain(
+      'Run Context: runContextProof=task=phase-06-planning-lane type=Epic epic=phase-06-planning-lane parent=none descendants=7 descendantParents=2 descendantChildren=5 completion=55 source="Phase completion map" risk=high mode=staged_review'
+    );
     expect(epicResult?.dispatchPackage.scope.join(" ")).toContain("Descendant Parent: Phase Board Hierarchy");
     expect(epicResult?.dispatchPackage.scope.join(" ")).toContain("Descendant Child: Publish Hold Blocker Priority");
   });
