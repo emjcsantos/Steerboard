@@ -106,6 +106,11 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("open=0 dispatchReviewAddressable=0");
     expect(html).toContain("trust=ready");
     expect(html).toContain("No open Phase 7 dispatch blocker");
+    expect(html).toContain("Dispatch artifact verification");
+    expect(html).toContain("Phase 7 dispatch artifact verification");
+    expect(html).toContain("artifactVerification=ready");
+    expect(html).toContain("fingerprint=");
+    expect(html).toContain("match=ready");
     expect(html).toContain("local metadata only");
   });
 
@@ -121,6 +126,9 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("Review evidence freshness");
     expect(html).toContain("does not match current run fingerprint");
     expect(html).toContain("Refresh or restage the dispatch review record");
+    expect(html).toContain("Dispatch artifact verification");
+    expect(html).toContain("artifactVerification=review");
+    expect(html).toContain("Phase 7 dispatch review artifact still has open review-depth or integration-ownership rows");
     expect(html).toContain("Reviewable");
   });
 
@@ -152,6 +160,9 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("Live worker lock");
     expect(html).toContain("Restore the local metadata-only no-runtime-execution note");
     expect(html).toContain("Phase 7 dispatch blocker priority");
+    expect(html).toContain("Dispatch artifact verification");
+    expect(html).toContain("artifactVerification=blocked");
+    expect(html).toContain("execution=unlocked");
     expect(html).toContain("dispatch-review addressable");
   });
 });

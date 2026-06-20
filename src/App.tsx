@@ -252,6 +252,11 @@ import { buildPhase7IntegrationOwnershipDepth } from "./phase7IntegrationOwnersh
 import { buildPhase7DispatchTraceability } from "./phase7DispatchTraceability";
 import { buildPhase7DispatchBlockerPriority } from "./phase7DispatchBlockerPriority";
 import {
+  buildPhase7DispatchReviewArtifact,
+  verifyPhase7DispatchReviewArtifact,
+  type Phase7DispatchReviewArtifactVerification
+} from "./phase7DispatchReviewArtifact";
+import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
 } from "./pipelineItemRunLink";
@@ -7136,6 +7141,19 @@ export function DispatchReviewRecordCard({
     ownership: ownershipDepth,
     traceability
   });
+  const artifact = buildPhase7DispatchReviewArtifact({
+    exportedAt: record.createdAt,
+    evaluatedAt: record.createdAt,
+    record,
+    depth,
+    ownership: ownershipDepth,
+    traceability,
+    blockerPriority
+  });
+  const artifactVerification = verifyPhase7DispatchReviewArtifact(artifact, {
+    expectedEvidenceFingerprint: record.reviewEvidenceFingerprint,
+    verifiedAt: record.createdAt
+  });
 
   return (
     <article
@@ -7319,8 +7337,59 @@ export function DispatchReviewRecordCard({
         </ol>
         <small>{blockerPriority.dispatchBlockerPriorityProof}</small>
       </div>
+      <DispatchReviewArtifactVerificationSummary verification={artifactVerification} />
       <small>{record.noRuntimeExecutionNote}</small>
     </article>
+  );
+}
+
+function DispatchReviewArtifactVerificationSummary({
+  verification
+}: {
+  verification: Phase7DispatchReviewArtifactVerification;
+}) {
+  return (
+    <div
+      aria-label={`Phase 7 dispatch artifact verification: ${verification.statusLabel}; ${verification.readiness}% ready; ${verification.openBlockerCount} open blockers; execution ${verification.executionLocked ? "locked" : "unlocked"}; next action: ${verification.nextAction}`}
+      className={classNames(
+        "dispatch-artifact-verification",
+        `dispatch-artifact-verification-${verification.state}`
+      )}
+      title={verification.detail}
+    >
+      <div className="dispatch-artifact-verification-header">
+        <strong>Dispatch artifact verification</strong>
+        <span>{verification.statusLabel}</span>
+        <b>{verification.readiness}%</b>
+      </div>
+      <dl className="dispatch-artifact-verification-grid" aria-label="Phase 7 dispatch artifact verification counts">
+        <div>
+          <dt>Packets</dt>
+          <dd>{verification.handoffPacketCount}</dd>
+        </div>
+        <div>
+          <dt>PM</dt>
+          <dd>{verification.linkedPmTaskCount}</dd>
+        </div>
+        <div>
+          <dt>Locks</dt>
+          <dd>{verification.liveWorkerLockCount}</dd>
+        </div>
+        <div>
+          <dt>Open</dt>
+          <dd>{verification.openBlockerCount}</dd>
+        </div>
+      </dl>
+      <p>{verification.detail}</p>
+      <small>{verification.nextAction}</small>
+      <small>
+        artifactVerification={verification.state} fingerprint=
+        {verification.recordEvidenceFingerprint ?? "missing"} expected=
+        {verification.expectedEvidenceFingerprint ?? "missing"} match=
+        {verification.matchesExpectedEvidence === false ? "review" : "ready"} execution=
+        {verification.executionLocked ? "locked" : "unlocked"}
+      </small>
+    </div>
   );
 }
 
