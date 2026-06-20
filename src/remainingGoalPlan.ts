@@ -494,8 +494,8 @@ export function summarizeRemainingGoalPlan(
   }
 
   if (summary.total > 0) {
-    summary.averageCompletionPercent = Math.round(
-      summary.averageCompletionPercent / summary.total
+    summary.averageCompletionPercent = Number(
+      (summary.averageCompletionPercent / summary.total).toFixed(1)
     );
   }
 

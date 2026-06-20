@@ -31,7 +31,7 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 100,
+      averageCompletionPercent: 99.9,
       currentTarget: "Desktop-backed runner approval",
       currentNextAction:
         "Use the Phase 9 runner closeout status proof as the current active implementation target with approval, approval-depth, traceability, blocker-priority, visible desktop-probe gate status, complete Phase 8 dependency proof, phase9RequestGateProof, phase9RunnerCompletionGateProof, PM-link, and runner-expansion lock evidence visible. Phase 9 runner closeout status proof attached. Only the fixed terminal-readonly-probe may advance after live gates are ready; broader runner actions remain locked.",
@@ -129,6 +129,10 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(traces.every((trace) => trace.phaseIds.length > 0 && trace.pmTaskIds.length > 0)).toBe(true);
+  });
+
+  it("does not round the owner-held publish blocker into a complete overall score", () => {
+    expect(summarizeRemainingGoalPlan().averageCompletionPercent).toBe(99.9);
   });
 
   it("keeps the visible remaining goal queue priority-first", () => {
