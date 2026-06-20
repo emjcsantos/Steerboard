@@ -556,10 +556,10 @@ describe("milestone status model", () => {
     expect(packagingMilestone?.tone).toBe("paused");
     expect(packagingMilestone?.completionPercent).toBe(20);
     expect(packagingMilestone?.latestNote).toBe(
-      "The Phase 11 Release Readiness gate now tracks clean checkout, build/test, smoke proof with Phase 3 proof-export detail, completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, packaging lock, docs/known limits, final security closure capability, structured release-decision evidence, owner release traceability, and blocker-priority review while packaging remains paused and owner-held."
+      "The Phase 11 Release Readiness gate now tracks clean checkout, build/test, smoke proof with Phase 3 proof-export detail, completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, packaging lock, docs/known limits, final security closure capability, structured release-decision evidence, owner release traceability, blocker-priority review, and phase11ReleaseCloseoutStatusProof while packaging remains paused and owner-held."
     );
     expect(packagingMilestone?.nextStep).toBe(
-      "Use the Phase 11 Release Readiness, owner release traceability, and blocker-priority panels to record the final release proof after live workflow, provider, migration, audit, Phase 3 traceability, final security closure, owner proof, and release-decision evidence holds are clear; do not package, sign, create installers, push, or resume release actions from this gate."
+      "Keep the Phase 11 release closeout status proof attached with release readiness, evidence records, owner release traceability, blocker-priority, PM-link, security closure, and packaging-paused evidence visible; do not package, sign, create installers, push, or resume release actions until the owner explicitly resumes packaging."
     );
   });
 
