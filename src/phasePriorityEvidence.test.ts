@@ -150,7 +150,7 @@ describe("phase priority evidence", () => {
     expect(phase2?.detail).toContain("foreignTokenPanels=0");
     expect(phase2?.detail).toContain("Restored 2/2 saved panel session labels");
     expect(phase2?.detail).toContain(
-      "restoreProof=panels=2 fresh=2 stale=0 duplicateIdentities=0 restored=orchestrator|validator stalePanels=none"
+      "restoreProof=panels=2 fresh=2 stale=0 duplicateIdentities=0 restored=orchestrator|validator stalePanels=none trust=ready"
     );
   });
 
@@ -352,7 +352,7 @@ describe("phase priority evidence", () => {
     });
     expect(phase2?.detail).toContain("No saved panel session labels restored after reload.");
     expect(phase2?.detail).toContain(
-      "restoreProof=panels=0 fresh=0 stale=0 duplicateIdentities=0 restored=none stalePanels=none"
+      "restoreProof=panels=0 fresh=0 stale=0 duplicateIdentities=0 restored=none stalePanels=none trust=review"
     );
   });
 

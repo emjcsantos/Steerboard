@@ -191,7 +191,7 @@ describe("codex panel session state", () => {
     });
     expect(proof.detail).toContain("Restored 1/2 saved panel session labels");
     expect(proof.detail).toContain(
-      "restoreProof=panels=2 fresh=1 stale=1 duplicateIdentities=0 restored=panel-1 stalePanels=panel-2"
+      "restoreProof=panels=2 fresh=1 stale=1 duplicateIdentities=0 restored=panel-1 stalePanels=panel-2 trust=review"
     );
   });
 

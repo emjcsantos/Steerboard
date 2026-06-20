@@ -60,7 +60,7 @@ Do not proceed to the next section until the current item is at least `review`.
 4. `Multi-Panel`
    - Open two or more panels and switch focus repeatedly.
    - Verify each panel preserves its own session context and activity state.
-   - Reload with saved panel sessions and confirm Phase 2 restore proof reports at least two fresh saved panel labels plus compact `restoreProof` counts, restored/stale panel IDs, stale-label counts, and duplicate-identity counts.
+   - Reload with saved panel sessions and confirm Phase 2 restore proof reports at least two fresh saved panel labels plus compact `restoreProof` counts, restored/stale panel IDs, stale-label counts, duplicate-identity counts, and trust verdict.
    - Confirm Phase 2 no-cross-talk evidence includes compact two-panel `smokeProof` source/execution/timestamp/identity flags, session/thread counts, event and transcript totals, panel completion/token/foreign-token counts, runtime `routeProof` with per-panel routed-event counts, zero quarantined stream events, zero mismatched owned events, and a ready route trust verdict before trusting two-panel proof.
    - Confirm corrupted saved panel metadata with duplicate live identities shows a conflict warning and does not send live chat through the duplicated identity.
    - Switch to Adaptive Arena and confirm the Phase 10 Arena Polish panel reports layout regression, density/readability, keyboard controls, focus state, terminology, and acceptance gates separately.
