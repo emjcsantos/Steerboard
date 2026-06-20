@@ -33,13 +33,13 @@ describe("project management phase plan", () => {
     const refreshSmokeChild = byId.get("phase-04-child-refresh-smoke");
     const refreshSafetyDepthChild = byId.get("phase-04-child-refresh-safety-depth");
 
-    expect(catalogParent?.completionPercent).toBe(99);
-    expect(commandSkillChild?.completionPercent).toBe(99);
-    expect(pluginMcpChild?.completionPercent).toBe(99);
-    expect(catalogDepthChild?.completionPercent).toBe(99);
-    expect(refreshParent?.completionPercent).toBe(99);
-    expect(refreshSmokeChild?.completionPercent).toBe(99);
-    expect(refreshSafetyDepthChild?.completionPercent).toBe(99);
+    expect(catalogParent?.completionPercent).toBe(100);
+    expect(commandSkillChild?.completionPercent).toBe(100);
+    expect(pluginMcpChild?.completionPercent).toBe(100);
+    expect(catalogDepthChild?.completionPercent).toBe(100);
+    expect(refreshParent?.completionPercent).toBe(100);
+    expect(refreshSmokeChild?.completionPercent).toBe(100);
+    expect(refreshSafetyDepthChild?.completionPercent).toBe(100);
     expect(catalogParent?.completionPercent).toBeGreaterThanOrEqual(
       catalogDepthChild?.completionPercent ?? 0
     );
@@ -66,6 +66,7 @@ describe("project management phase plan", () => {
     const permissionRecordChild = byId.get("phase-04-child-permission-record");
     const traceabilityChild = byId.get("phase-04-child-traceability");
     const blockerPriorityChild = byId.get("phase-04-child-blocker-priority");
+    const completionStatusChild = byId.get("phase-04-child-completion-status");
 
     for (const row of [
       surfaceDepthChild,
@@ -74,9 +75,10 @@ describe("project management phase plan", () => {
       rollbackRecordChild,
       permissionRecordChild,
       traceabilityChild,
-      blockerPriorityChild
+      blockerPriorityChild,
+      completionStatusChild
     ]) {
-      expect(row?.completionPercent, row?.id).toBe(99);
+      expect(row?.completionPercent, row?.id).toBe(100);
       expect(catalogParent?.completionPercent).toBeGreaterThanOrEqual(row?.completionPercent ?? 0);
     }
     expect(surfaceDepthChild?.description).toContain("surfaceDepthProof");
@@ -87,6 +89,7 @@ describe("project management phase plan", () => {
     expect(permissionRecordChild?.description).toContain("permissionChainProof");
     expect(traceabilityChild?.description).toContain("traceabilityProof");
     expect(blockerPriorityChild?.description).toContain("blockerPriorityProof");
+    expect(completionStatusChild?.description).toContain("phase4ProviderCompletionStatusProof");
   });
 
   it("keeps Phase 8 audit parent progress aligned with proof depth", () => {

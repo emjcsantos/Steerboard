@@ -155,6 +155,10 @@ import {
   type Phase4ProviderBlockerPrioritySummary
 } from "./phase4ProviderBlockerPriority";
 import {
+  buildPhase4ProviderCompletionStatus,
+  type Phase4ProviderCompletionStatus
+} from "./phase4ProviderCompletionStatus";
+import {
   buildPhase4ProviderReviewArtifact,
   verifyRecordedPhase4ProviderReviewArtifact,
   serializePhase4ProviderReviewArtifact,
@@ -2329,6 +2333,23 @@ export function App() {
         traceability: phase4ProviderTraceability
       }),
     [
+      phase4ProviderCatalogDepth,
+      phase4ProviderSurfaceDepth,
+      phase4ProviderTraceability,
+      phase4RefreshSafetyDepth
+    ]
+  );
+  const phase4ProviderCompletionStatus = useMemo(
+    () =>
+      buildPhase4ProviderCompletionStatus({
+        catalogDepth: phase4ProviderCatalogDepth,
+        refreshSafety: phase4RefreshSafetyDepth,
+        surfaceDepth: phase4ProviderSurfaceDepth,
+        traceability: phase4ProviderTraceability,
+        blockerPriority: phase4ProviderBlockerPriority
+      }),
+    [
+      phase4ProviderBlockerPriority,
       phase4ProviderCatalogDepth,
       phase4ProviderSurfaceDepth,
       phase4ProviderTraceability,
@@ -4926,6 +4947,7 @@ export function App() {
             project={project}
             phase4ProviderBlockerPriority={phase4ProviderBlockerPriority}
             phase4ProviderCatalogDepth={phase4ProviderCatalogDepth}
+            phase4ProviderCompletionStatus={phase4ProviderCompletionStatus}
             phase4ProviderApprovalRecord={phase4ProviderApprovalRecord}
             phase4ProviderApprovalRecordEnabled={
               phase4RefreshSafetyDepth.blockedCount === 0 &&
@@ -9564,6 +9586,54 @@ export function Phase4ProviderBlockerPriorityPanel({
   );
 }
 
+export function Phase4ProviderCompletionStatusPanel({
+  status
+}: {
+  status: Phase4ProviderCompletionStatus;
+}) {
+  return (
+    <section className="panel-section">
+      <h4>Phase 4 Completion</h4>
+      <div
+        aria-label={status.ariaLabel}
+        className={classNames(
+          "phase4-provider-completion-status",
+          `phase4-provider-completion-status-${status.state}`
+        )}
+        title={status.safety}
+      >
+        <div className="phase4-provider-blocker-priority-header">
+          <strong>{status.label}</strong>
+          <span>
+            {status.statusLabel} / {status.readiness}%
+          </span>
+        </div>
+        <dl
+          className="phase4-provider-blocker-priority-grid"
+          aria-label="Phase 4 provider completion status counts"
+        >
+          <div>
+            <dt>PM Links</dt>
+            <dd>
+              {status.linkedPmTaskCount}/{status.requiredPmTaskCount}
+            </dd>
+          </div>
+          <div>
+            <dt>Open</dt>
+            <dd>{status.openBlockerCount}</dd>
+          </div>
+          <div>
+            <dt>Lock</dt>
+            <dd>{status.providerExecutionLocked ? "On" : "Review"}</dd>
+          </div>
+        </dl>
+        <small>{status.phase4ProviderCompletionStatusProof}</small>
+        <small title={status.nextAction}>{status.nextAction}</small>
+      </div>
+    </section>
+  );
+}
+
 function PanelPrioritySignal({
   focusTarget,
   onClearFocus,
@@ -10010,6 +10080,7 @@ function RightPanel({
   project,
   phase4ProviderBlockerPriority,
   phase4ProviderCatalogDepth,
+  phase4ProviderCompletionStatus,
   phase4ProviderApprovalRecord,
   phase4ProviderApprovalRecordEnabled,
   phase4ProviderApprovalValidation,
@@ -10120,6 +10191,7 @@ function RightPanel({
   project: ProjectSummary;
   phase4ProviderBlockerPriority: Phase4ProviderBlockerPrioritySummary;
   phase4ProviderCatalogDepth: Phase4ProviderCatalogDepthSummary;
+  phase4ProviderCompletionStatus: Phase4ProviderCompletionStatus;
   phase4ProviderApprovalRecord?: Phase4ProviderApprovalRecord;
   phase4ProviderApprovalRecordEnabled: boolean;
   phase4ProviderApprovalValidation: Phase4ProviderApprovalRecordValidation;
@@ -11579,6 +11651,8 @@ function RightPanel({
       <Phase4ProviderTraceabilityPanel summary={phase4ProviderTraceability} />
 
       <Phase4ProviderBlockerPriorityPanel summary={phase4ProviderBlockerPriority} />
+
+      <Phase4ProviderCompletionStatusPanel status={phase4ProviderCompletionStatus} />
 
       <OwnerTestingReadinessPanel
         catalogRefreshOwnerValidation={catalogRefreshOwnerValidation}

@@ -839,40 +839,45 @@ describe("remaining goal plan", () => {
     const blockerPriorityChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-04-child-blocker-priority"
     );
+    const completionStatusChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-completion-status"
+    );
 
     expect(phase4Goal).toMatchObject({
       target: "Provider integration surfaces",
       priority: "high",
       status: "next",
-      completionPercent: 99
+      completionPercent: 100
     });
-    expect(phase4Epic?.completionPercent).toBe(99);
-    expect(commandSkillChild?.completionPercent).toBe(99);
+    expect(phase4Epic?.completionPercent).toBe(100);
+    expect(commandSkillChild?.completionPercent).toBe(100);
     expect(commandSkillChild?.description).toContain("commandScopeProof");
-    expect(pluginMcpChild?.completionPercent).toBe(99);
+    expect(pluginMcpChild?.completionPercent).toBe(100);
     expect(pluginMcpChild?.description).toContain("mcpToolPolicyProof");
-    expect(catalogDepthChild?.completionPercent).toBe(99);
+    expect(catalogDepthChild?.completionPercent).toBe(100);
     expect(catalogDepthChild?.description).toContain("catalogDepthProof");
-    expect(refreshSafetyParent?.completionPercent).toBe(99);
-    expect(refreshSmokeChild?.completionPercent).toBe(99);
+    expect(refreshSafetyParent?.completionPercent).toBe(100);
+    expect(refreshSmokeChild?.completionPercent).toBe(100);
     expect(refreshSmokeChild?.description).toContain("refreshSmokeProof");
-    expect(refreshSafetyDepthChild?.completionPercent).toBe(99);
+    expect(refreshSafetyDepthChild?.completionPercent).toBe(100);
     expect(refreshSafetyDepthChild?.description).toContain("refreshSafetyDepthProof");
-    expect(surfaceDepthChild?.completionPercent).toBe(99);
+    expect(surfaceDepthChild?.completionPercent).toBe(100);
     expect(surfaceDepthChild?.description).toContain("surfaceDepthProof");
     expect(surfaceDepthChild?.description).toContain("localRecordValidationProof");
-    expect(approvalRecordChild?.completionPercent).toBe(99);
+    expect(approvalRecordChild?.completionPercent).toBe(100);
     expect(approvalRecordChild?.description).toContain("approvalChainProof");
-    expect(auditRecordChild?.completionPercent).toBe(99);
+    expect(auditRecordChild?.completionPercent).toBe(100);
     expect(auditRecordChild?.description).toContain("auditChainProof");
-    expect(rollbackRecordChild?.completionPercent).toBe(99);
+    expect(rollbackRecordChild?.completionPercent).toBe(100);
     expect(rollbackRecordChild?.description).toContain("rollbackChainProof");
-    expect(permissionRecordChild?.completionPercent).toBe(99);
+    expect(permissionRecordChild?.completionPercent).toBe(100);
     expect(permissionRecordChild?.description).toContain("permissionChainProof");
-    expect(traceabilityChild?.completionPercent).toBe(99);
+    expect(traceabilityChild?.completionPercent).toBe(100);
     expect(traceabilityChild?.description).toContain("traceabilityProof");
-    expect(blockerPriorityChild?.completionPercent).toBe(99);
+    expect(blockerPriorityChild?.completionPercent).toBe(100);
     expect(blockerPriorityChild?.description).toContain("blockerPriorityProof");
+    expect(completionStatusChild?.completionPercent).toBe(100);
+    expect(completionStatusChild?.description).toContain("phase4ProviderCompletionStatusProof");
     expect(phase4Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-04-child-command-skill",
@@ -885,44 +890,13 @@ describe("remaining goal plan", () => {
         "phase-04-child-permission-record",
         "phase-04-child-traceability",
         "phase-04-child-blocker-priority",
+        "phase-04-child-completion-status",
         "phase-04-child-refresh-safety-depth"
       ])
     );
-    expect(phase4Goal?.nextAction).toContain("blocker-priority panels");
-    expect(phase4Goal?.nextAction).toContain("structured catalog-depth aggregate proof");
-    expect(phase4Goal?.nextAction).toContain("structured command/skill aggregate proof");
-    expect(phase4Goal?.nextAction).toContain("structured plugin/MCP aggregate proof");
-    expect(phase4Goal?.nextAction).toContain("command/skill catalog item-order, source, metadata, evidence-key, scoped command, skill invocation, and execution-lock proof");
-    expect(phase4Goal?.nextAction).toContain(
-      "plugin/MCP item-order, source, metadata-only surface, scoped plugin surface, scoped MCP transport/tool-policy, and execution-lock proof"
-    );
-    expect(phase4Goal?.nextAction).toContain("owner-visible plugin/MCP metadata-only safety evidence");
-    expect(phase4Goal?.nextAction).toContain("owner-visible rollback and permission record-chain evidence");
-    expect(phase4Goal?.nextAction).toContain("visible record-enable gates");
-    expect(phase4Goal?.nextAction).toContain("explicit aggregate record-chain traceability proof");
-    expect(phase4Goal?.nextAction).toContain("reload-safe recorded metadata-only proof");
-    expect(phase4Goal?.nextAction).toContain("structured surface-depth aggregate proof with record-chain coverage");
-    expect(phase4Goal?.nextAction).toContain("aggregate local record-validation proof");
-    expect(phase4Goal?.nextAction).toContain(
-      "local approval, structured approval-chain, structured audit-chain with approval-validation linkage, structured rollback-chain with audit-validation linkage, structured permission-chain with rollback-validation linkage, and permission record validation"
-    );
-    expect(phase4Goal?.nextAction).toContain("approval validation chain-proof artifact enforcement");
-    expect(phase4Goal?.nextAction).toContain("audit validation chain-proof artifact enforcement");
-    expect(phase4Goal?.nextAction).toContain("structured rollback-chain");
-    expect(phase4Goal?.nextAction).toContain("rollback validation chain-proof artifact enforcement");
-    expect(phase4Goal?.nextAction).toContain("permission validation chain-proof artifact enforcement");
-    expect(phase4Goal?.nextAction).toContain("local record-validation aggregate artifact enforcement");
-    expect(phase4Goal?.nextAction).toContain("surface-depth aggregate chain artifact enforcement");
-    expect(phase4Goal?.nextAction).toContain("structured all-catalog refresh-smoke proof");
-    expect(phase4Goal?.nextAction).toContain("refresh-smoke artifact enforcement");
-    expect(phase4Goal?.nextAction).toContain("owner-visible provider readiness check");
-    expect(phase4Goal?.nextAction).toContain("missing-record review enforcement");
-    expect(phase4Goal?.nextAction).toContain("owner-visible missing-record proof");
-    expect(phase4Goal?.nextAction).toContain("catalog-depth aggregate artifact enforcement");
-    expect(phase4Goal?.nextAction).toContain("command/skill aggregate artifact enforcement with item-order/source/metadata proof");
-    expect(phase4Goal?.nextAction).toContain("plugin/MCP aggregate artifact enforcement with item-order/source/metadata proof");
-    expect(phase4Goal?.nextAction).toContain("compact top-blocker source/evidence/status proof with record-chain detail");
-    expect(phase4Goal?.nextAction).toContain("approval, audit, rollback, permission");
+    expect(phase4Goal?.nextAction).toContain("Phase 4 provider completion status proof attached");
+    expect(phase4Goal?.nextAction).toContain("catalog-depth, refresh-safety, surface-depth, traceability, blocker-priority, PM-link");
+    expect(phase4Goal?.nextAction).toContain("Provider execution remains locked");
   });
 
   it("keeps the Phase 7 dispatch loop target linked to traceability and blocker priority", () => {

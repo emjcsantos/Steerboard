@@ -305,16 +305,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
-    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof with item-order/source/metadata coverage, structured plugin/MCP aggregate proof with item-order/source/metadata coverage, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 99,
+    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof with item-order/source/metadata coverage, structured plugin/MCP aggregate proof with item-order/source/metadata coverage, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, owner-visible phase4ProviderCompletionStatusProof, and current six-surface fingerprint checks after Phase 3 clears.",
+    completionPercent: 100,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
-        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof with item-order/source/metadata coverage, structured plugin/MCP aggregate proof with item-order/source/metadata coverage, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 99,
+        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof with item-order/source/metadata coverage, structured plugin/MCP aggregate proof with item-order/source/metadata coverage, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, phase4ProviderCompletionStatusProof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
+        completionPercent: 100,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
@@ -322,14 +322,14 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-command-skill",
             title: "Command and Skill Catalogs",
             description: "Show command and skill entries with scoped item-order proof, structured command/skill aggregate proof including explicit pair-order, item-order/source/metadata coverage, commandScopeProof, skillInvocationProof, fallback/source guidance, evidence keys, owner-safe readiness proof, and execution locks.",
-            completionPercent: 99,
+            completionPercent: 100,
             sourceDocument: "Command and skill catalogs"
           },
           {
             id: "phase-04-child-plugin-mcp",
             title: "Plugin and MCP Catalogs",
             description: "Show plugin and MCP entries with structured plugin/MCP aggregate proof including explicit pair-order, item-order/source/metadata coverage, pluginSurfaceProof, metadata-only surface proof, mcpToolPolicyProof transport/tool-policy proof, connection state, allowed surfaces, non-mutating readiness evidence, and execution-lock artifact enforcement.",
-            completionPercent: 99,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Plugin and MCP catalogs"
           },
@@ -337,7 +337,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-catalog-depth",
             title: "Provider Catalog Detail Depth",
             description: "Show command, skill, plugin, MCP, automation, and personalization catalog records with visible source, totals, explicit six-surface kind-order proof, item-order proof, metadata proof, structured catalogDepthProof aggregate proof, readiness state, evidence keys, owner-safe proof, next actions, and execution locks.",
-            completionPercent: 99,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 4 provider catalog depth"
           },
@@ -345,7 +345,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-surface-depth",
             title: "Provider Surface Depth",
             description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, explicit nine-gate item-kind proof, owner-boundary proof including structured approval/audit/rollback/permission chain proof coverage, structured surfaceDepthProof aggregate proof, localRecordValidationProof, and execution lock before provider execution is considered.",
-            completionPercent: 99,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 4 provider surface depth"
           },
@@ -353,7 +353,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-approval-record",
             title: "Provider Approval Record",
             description: "Record and clear local owner approval only when the current six-surface catalog fingerprint, fresh metadata-only refresh-safety proof, structured refresh-safety readiness proof, structured approvalChainProof with compact record-freshness verdict, aggregate local record-validation proof, mutation lock, and execution lock match, without unlocking audit, rollback, permission, or execution.",
-            completionPercent: 99,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 4 provider approval record"
           },
@@ -361,7 +361,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-audit-record",
             title: "Provider Audit Record",
             description: "Record and clear local provider audit review only when the current approval record, approval validation state, structured approval-chain proof, current six-surface catalog fingerprint, current surface-depth audit evidence fingerprint, structured auditChainProof with compact record-freshness verdict, aggregate local record-validation proof, owner-boundary proof, and mutation lock match, without unlocking rollback, permission, or execution.",
-            completionPercent: 99,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 4 provider audit record"
           },
@@ -369,7 +369,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-rollback-record",
             title: "Provider Rollback Record",
             description: "Record and clear local provider rollback review only when the current approval record, current audit record, ready audit validation, structured audit-chain proof, current six-surface catalog fingerprint, current audit evidence fingerprint, current surface-depth rollback evidence fingerprint, owner/action evidence, structured rollbackChainProof with compact record-freshness verdict, aggregate local record-validation proof, and mutation lock match, without unlocking permission or execution.",
-            completionPercent: 99,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 4 provider rollback record"
           },
@@ -377,7 +377,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-permission-record",
             title: "Provider Permission Record",
             description: "Record and clear local provider permission review only when the current approval, audit, rollback, ready rollback validation, structured rollback-chain proof, six-surface catalog, audit evidence, rollback evidence, surface-depth, permission evidence, owner/scope/action evidence, structured permissionChainProof with compact record-freshness verdict, aggregate local record-validation proof, and every provider surface scope match while mutation remains locked.",
-            completionPercent: 99,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 4 provider permission record"
           },
@@ -385,7 +385,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-traceability",
             title: "Provider Traceability",
             description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval, audit, rollback, permission records, aggregate traceabilityProof, aggregate record-chain proof, and execution locks before provider execution is considered.",
-            completionPercent: 99,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 4 provider traceability"
           },
@@ -393,9 +393,17 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-blocker-priority",
             title: "Provider Blocker Priority",
             description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action, show compact aggregate blockerPriorityProof with top-blocker source, kind, status, evidence-key, catalog-smoke relevance, traceability trust, and aggregate record-chain proof, while keeping remaining-goal and PM traceability repairs out of catalog-smoke actions.",
-            completionPercent: 99,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 4 provider blocker priority"
+          },
+          {
+            id: "phase-04-child-completion-status",
+            title: "Provider Completion Status",
+            description: "Show owner-visible phase4ProviderCompletionStatusProof that ties catalog-depth, refresh-safety, surface-depth, traceability, blocker-priority, PM links, and provider execution-lock evidence together without unlocking provider execution.",
+            completionPercent: 100,
+            complexity: "high",
+            sourceDocument: "Phase 4 provider completion status"
           }
         ]
       },
@@ -403,7 +411,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-refresh-safety",
         title: "Metadata-Only Refresh Safety",
         description: "Keep refresh and readiness paths read-only, fresh, structured with all-catalog refresh-smoke proof including compact per-surface state proof and refresh-safety depth aggregate proof, and matched to current catalog evidence until provider permissions and approval gates are explicit.",
-        completionPercent: 99,
+        completionPercent: 100,
         complexity: "high",
         sourceDocument: "Provider catalog safety",
         children: [
@@ -411,14 +419,14 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-refresh-smoke",
             title: "All-Catalog Refresh Smoke",
             description: "Refresh and classify catalog status with checkedAt, all-six-surface execution count, explicit six-surface order proof, compact per-surface state proof, refreshSmokeProof, catalog fingerprint, metadata-only contract, reload-safe proof, and execution-lock proof without running commands, tools, automations, or mutations.",
-            completionPercent: 99,
+            completionPercent: 100,
             sourceDocument: "Catalog refresh owner validation"
           },
           {
             id: "phase-04-child-refresh-safety-depth",
             title: "Refresh Safety Depth",
             description: "Show refresh run state, six-surface order, validation result, proof freshness, catalog fingerprint match, structured refreshSafetyDepthProof aggregate proof with explicit review-row kind coverage, metadata-only contract, provider execution lock, and reload-safe metadata-only proof as separate review rows.",
-            completionPercent: 99,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 4 refresh safety depth"
           }

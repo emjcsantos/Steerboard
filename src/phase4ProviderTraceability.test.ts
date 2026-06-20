@@ -140,7 +140,7 @@ describe("phase 4 provider traceability", () => {
     expect(summary.canTrustProviderReview).toBe(false);
     expect(summary.linkedGoalId).toBe("goal-phase-4-provider-surfaces");
     expect(summary.missingPmTaskIds).toEqual([]);
-    expect(summary.linkedPmTaskCount).toBe(15);
+    expect(summary.linkedPmTaskCount).toBe(16);
     expect(summary.catalogDepthRecordCount).toBe(6);
     expect(summary.refreshSafetyRecordCount).toBe(8);
     expect(summary.surfaceDepthItemCount).toBe(9);
@@ -150,7 +150,7 @@ describe("phase 4 provider traceability", () => {
       "itemKinds=active-goal|pm-coverage|catalog-depth|refresh-safety|surface-depth|record-chain|execution-lock"
     );
     expect(summary.traceabilityProof).toContain("activeGoal=goal-phase-4-provider-surfaces");
-    expect(summary.traceabilityProof).toContain("pmLinks=15/15 missingPm=0");
+    expect(summary.traceabilityProof).toContain("pmLinks=16/16 missingPm=0");
     expect(summary.traceabilityProof).toContain("catalogRecords=6/6 refreshRecords=8/8 surfaceItems=9/9");
     expect(summary.traceabilityProof).toContain("executionLocks=6/6 trust=review");
     expect(summary.traceabilityProof).toContain("metadataOnly=locked execution=locked");

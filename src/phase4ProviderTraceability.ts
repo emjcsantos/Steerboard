@@ -74,6 +74,7 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-04-child-permission-record",
   "phase-04-child-traceability",
   "phase-04-child-blocker-priority",
+  "phase-04-child-completion-status",
   "phase-04-parent-refresh-safety",
   "phase-04-child-refresh-smoke",
   "phase-04-child-refresh-safety-depth"
@@ -473,7 +474,7 @@ function traceabilityProof({
   return (
     `items=${items.length}/7 ready=${readyCount} preview=${previewCount} ` +
     `setupRequired=${setupRequiredCount} held=${heldCount} itemKinds=${itemKinds} ` +
-    `activeGoal=${linkedGoalId} pmLinks=${linkedPmTaskCount}/15 missingPm=${missingPmTaskIds.length} ` +
+    `activeGoal=${linkedGoalId} pmLinks=${linkedPmTaskCount}/16 missingPm=${missingPmTaskIds.length} ` +
     `catalogRecords=${catalogDepthRecordCount}/6 refreshRecords=${refreshSafetyRecordCount}/8 ` +
     `surfaceItems=${surfaceDepthItemCount}/9 recordChain=${recordChain} ` +
     `executionLocks=${executionLockCount}/6 trust=${canTrustProviderReview ? "ready" : "review"} ` +

@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
   Phase4ProviderBlockerPriorityPanel,
+  Phase4ProviderCompletionStatusPanel,
   Phase4ProviderSurfaceDepthPanel,
   Phase4ProviderTraceabilityPanel,
   ProviderIntegrationReadinessPanel
@@ -38,6 +39,9 @@ import {
   buildPhase4ProviderBlockerPriority,
   type Phase4ProviderBlockerPrioritySummary
 } from "./phase4ProviderBlockerPriority";
+import {
+  buildPhase4ProviderCompletionStatus
+} from "./phase4ProviderCompletionStatus";
 import {
   buildPhase4ProviderReviewArtifact,
   serializePhase4ProviderReviewArtifact,
@@ -279,6 +283,13 @@ describe("phase 4 provider visible readiness panel", () => {
       surfaceDepth,
       traceability
     });
+    const completionStatus = buildPhase4ProviderCompletionStatus({
+      catalogDepth,
+      refreshSafety: readyRefreshSafety,
+      surfaceDepth,
+      traceability,
+      blockerPriority
+    });
     const reviewArtifactVerification = verifyPhase4ProviderReviewArtifact(
       buildPhase4ProviderReviewArtifact({
         exportedAt: "2026-06-18T10:35:00.000Z",
@@ -340,12 +351,14 @@ describe("phase 4 provider visible readiness panel", () => {
         />
         <Phase4ProviderTraceabilityPanel summary={traceability} />
         <Phase4ProviderBlockerPriorityPanel summary={blockerPriority} />
+        <Phase4ProviderCompletionStatusPanel status={completionStatus} />
       </>
     );
 
     expect(html).toContain("Phase 4 Surface Depth");
     expect(html).toContain("Phase 4 Traceability");
     expect(html).toContain("Phase 4 Blocker Priority");
+    expect(html).toContain("Phase 4 Completion");
     expect(html).toContain("Approval record");
     expect(html).toContain("Audit record");
     expect(html).toContain("Rollback record");
@@ -360,7 +373,7 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("pairOrder=plugin|mcp");
     expect(html).toContain("Keep Phase 4 provider review held");
     expect(html).toContain("current active goal is goal-phase-8-permission-audit");
-    expect(html).toContain("owner-visible provider readiness check");
+    expect(html).toContain("Phase 4 provider completion status proof attached");
     expect(html).toContain("Export review");
     expect(html).toContain("Import review");
     expect(html).toContain("Load recorded");
@@ -416,12 +429,15 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain(
       "itemKinds=active-goal|pm-coverage|catalog-depth|refresh-safety|surface-depth|record-chain|execution-lock"
     );
-    expect(html).toContain("pmLinks=15/15 missingPm=0");
+    expect(html).toContain("pmLinks=16/16 missingPm=0");
     expect(html).toContain("recordChain=ready executionLocks=6/6 trust=review");
     expect(html).toContain("open=1 catalogSmokeAddressable=0");
     expect(html).toContain("topSource=phase-04-provider-traceability:active-goal topKind=traceability");
     expect(html).toContain("topStatus=preview topEvidence=phase-04-traceability:active-goal");
     expect(html).toContain("catalogSmokeTop=no recordChain=ready traceability=review");
+    expect(html).toContain("phase4ProviderCompletionStatusProof=state=review");
+    expect(html).toContain("phase5=held");
+    expect(html).toContain("topHold=traceability");
     expect(html).toContain("Phase 4 provider blocker priority");
     expect(html).toContain("Remaining goal link");
     expect(html).toContain("phase4-provider-permission-current");
