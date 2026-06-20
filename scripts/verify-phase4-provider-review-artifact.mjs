@@ -137,6 +137,22 @@ function verifyArtifact(artifact) {
     if (itemOrder.length === 0) {
       throw new Error(`catalogDepth ${surface} itemOrder is empty`);
     }
+    const metadataProof = assertArray(record.metadataProof, `catalogDepth.${surface}.metadataProof`);
+    if (metadataProof.length === 0) {
+      throw new Error(`catalogDepth ${surface} metadataProof is empty`);
+    }
+    if (
+      surface === "plugin" &&
+      !metadataProof.some((item) => String(item).includes("surface=metadata-only"))
+    ) {
+      throw new Error("catalogDepth plugin metadataProof is missing metadata-only surface proof");
+    }
+    if (
+      surface === "mcp" &&
+      !metadataProof.some((item) => String(item).includes("transport=") && String(item).includes("toolPolicy="))
+    ) {
+      throw new Error("catalogDepth mcp metadataProof is missing transport/toolPolicy proof");
+    }
     assertNonEmptyString(record.ownerSafeProof, `catalogDepth.${surface}.ownerSafeProof`);
     if (record.executionLocked !== true) {
       throw new Error(`catalogDepth ${surface} execution lock is missing`);

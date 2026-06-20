@@ -29,6 +29,7 @@ function surfaceFixture(
     state: "ready",
     pass: true,
     itemOrder: [`${surface}-one`, `${surface}-two`],
+    metadataProof: [`${surface}:metadata-proof-one`, `${surface}:metadata-proof-two`],
     safety: "metadata/status-only",
     summary: {
       total: 2,
@@ -94,11 +95,20 @@ describe("phase 4 provider catalog depth", () => {
         expect.objectContaining({
           kind: "plugin",
           evidence: expect.stringContaining("non-mutating readiness evidence"),
+          metadataProof: expect.arrayContaining([
+            expect.stringContaining("surface=metadata-only")
+          ]),
+          ownerSafeProof: expect.stringContaining("connection/source metadata"),
           safety: expect.stringContaining("metadata/status-only")
         }),
         expect.objectContaining({
           kind: "mcp",
           evidence: expect.stringContaining("tool policy"),
+          metadataProof: expect.arrayContaining([
+            expect.stringContaining("transport="),
+            expect.stringContaining("toolPolicy=")
+          ]),
+          ownerSafeProof: expect.stringContaining("transport/tool-policy metadata"),
           safety: expect.stringContaining("must not execute")
         }),
         expect.objectContaining({
@@ -119,6 +129,7 @@ describe("phase 4 provider catalog depth", () => {
     expect(depth.nextAction).toContain("execution locked");
     expect(depth.records.every((record) => record.status === "ready")).toBe(true);
     expect(depth.records.every((record) => record.itemOrder.length === 2)).toBe(true);
+    expect(depth.records.every((record) => record.metadataProof.length === 2)).toBe(true);
   });
 
   it("keeps preview, setup, and held provider states visible per catalog", () => {
@@ -194,6 +205,7 @@ describe("phase 4 provider catalog depth", () => {
         record.statusLabel,
         record.sourceLabel,
         record.evidenceKey,
+        record.metadataProof.join(" "),
         record.evidence,
         record.ownerSafeProof,
         record.safety,

@@ -246,6 +246,7 @@ describe("phase 4 refresh safety depth", () => {
           state: surface.surface === "mcp" ? "blocked" : "ready",
           pass: surface.surface !== "mcp",
           itemOrder: [],
+          metadataProof: [],
           safety: surface.safety,
           summary: {
             total: surface.total,

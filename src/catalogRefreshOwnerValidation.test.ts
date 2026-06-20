@@ -143,6 +143,14 @@ describe("catalog refresh owner validation", () => {
     expect(result.surfaces[3].itemOrder).toEqual(["alpha-mcp", "beta-mcp"]);
     expect(result.surfaces[4].itemOrder).toEqual(["alpha-auto", "beta-auto"]);
     expect(result.surfaces[5].itemOrder).toEqual(["alpha-pers", "beta-pers"]);
+    expect(result.surfaces[2].metadataProof).toEqual([
+      "alpha-plugin:connection=live:surface=metadata-only",
+      "beta-plugin:connection=preview:surface=metadata-only"
+    ]);
+    expect(result.surfaces[3].metadataProof).toEqual([
+      "alpha-mcp:transport=stdio:toolPolicy=read-only:state=live",
+      "beta-mcp:transport=http:toolPolicy=approval-required:state=preview"
+    ]);
     expect(result.surfaces.every((surface) => surface.pass)).toBe(true);
     expect(result.pass).toBe(true);
   });

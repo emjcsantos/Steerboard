@@ -93,6 +93,7 @@ export interface CatalogRefreshOwnerValidationSurfaceResult {
   readonly state: OwnerValidationState;
   readonly pass: boolean;
   readonly itemOrder: readonly string[];
+  readonly metadataProof: readonly string[];
   readonly safety: string;
   readonly summary: Readonly<Record<string, number>>;
 }
@@ -336,7 +337,8 @@ function buildSurfaceResult(
   total: number,
   summary: Readonly<Record<string, number>>,
   isConsistent: boolean,
-  itemOrder: readonly string[]
+  itemOrder: readonly string[],
+  metadataProof: readonly string[]
 ): CatalogRefreshOwnerValidationSurfaceResult {
   return {
     surface,
@@ -346,9 +348,49 @@ function buildSurfaceResult(
     state: isConsistent ? "ready" : "blocked",
     pass: isConsistent,
     itemOrder,
+    metadataProof,
     safety: CATALOG_REFRESH_OWNER_NO_EXECUTION_SAFETY,
     summary
   };
+}
+
+function commandMetadataProof(snapshot: CommandCatalogSnapshot): readonly string[] {
+  return snapshot.catalog.map(
+    (entry) => `${entry.command}:scopes=${entry.scopes.join("+")}:state=${entry.state}`
+  );
+}
+
+function skillMetadataProof(snapshot: SkillCatalogSnapshot): readonly string[] {
+  return snapshot.catalog.map(
+    (entry) =>
+      `${entry.id}:source=${entry.source}:trigger=${entry.trigger}:invocation=${entry.invocationLabel}:state=${entry.state}`
+  );
+}
+
+function pluginMetadataProof(snapshot: PluginCatalogSnapshot): readonly string[] {
+  return snapshot.catalog.map(
+    (entry) => `${entry.id}:connection=${entry.state}:surface=metadata-only`
+  );
+}
+
+function mcpMetadataProof(snapshot: McpCatalogSnapshot): readonly string[] {
+  return snapshot.catalog.map(
+    (entry) => `${entry.id}:transport=${entry.transport}:toolPolicy=${entry.toolPolicy}:state=${entry.state}`
+  );
+}
+
+function automationMetadataProof(snapshot: AutomationCatalogSnapshot): readonly string[] {
+  return snapshot.catalog.map(
+    (entry) =>
+      `${entry.id}:lifecycle=${entry.lifecycle}:trigger=${entry.trigger}:approval=${entry.approvalPosture}:state=${entry.state}`
+  );
+}
+
+function personalizationMetadataProof(snapshot: PersonalizationCatalogSnapshot): readonly string[] {
+  return snapshot.catalog.map(
+    (entry) =>
+      `${entry.id}:layer=${entry.layer}:source=${entry.source}:privacy=${entry.privacyPosture}:state=${entry.state}`
+  );
 }
 
 function commandSummaryRecord(snapshot: CommandCatalogSnapshot): Readonly<Record<string, number>> {
@@ -418,7 +460,8 @@ export function buildCatalogRefreshOwnerValidation(
       commandSnapshot.summary.total,
       commandSummaryRecord(commandSnapshot),
       commandSummaryConsistent(commandSnapshot),
-      commandSnapshot.catalog.map((entry) => entry.command)
+      commandSnapshot.catalog.map((entry) => entry.command),
+      commandMetadataProof(commandSnapshot)
     ),
     buildSurfaceResult(
       "skill",
@@ -426,7 +469,8 @@ export function buildCatalogRefreshOwnerValidation(
       skillSnapshot.summary.total,
       genericSummaryRecord(skillSnapshot),
       skillSummaryConsistent(skillSnapshot),
-      skillSnapshot.catalog.map((entry) => entry.id)
+      skillSnapshot.catalog.map((entry) => entry.id),
+      skillMetadataProof(skillSnapshot)
     ),
     buildSurfaceResult(
       "plugin",
@@ -434,7 +478,8 @@ export function buildCatalogRefreshOwnerValidation(
       pluginSnapshot.summary.total,
       genericSummaryRecord(pluginSnapshot),
       pluginSummaryConsistent(pluginSnapshot),
-      pluginSnapshot.catalog.map((entry) => entry.id)
+      pluginSnapshot.catalog.map((entry) => entry.id),
+      pluginMetadataProof(pluginSnapshot)
     ),
     buildSurfaceResult(
       "mcp",
@@ -442,7 +487,8 @@ export function buildCatalogRefreshOwnerValidation(
       mcpSnapshot.summary.total,
       genericSummaryRecord(mcpSnapshot),
       mcpSummaryConsistent(mcpSnapshot),
-      mcpSnapshot.catalog.map((entry) => entry.id)
+      mcpSnapshot.catalog.map((entry) => entry.id),
+      mcpMetadataProof(mcpSnapshot)
     ),
     buildSurfaceResult(
       "automation",
@@ -450,7 +496,8 @@ export function buildCatalogRefreshOwnerValidation(
       automationSnapshot.summary.total,
       automationSummaryRecord(automationSnapshot),
       automationSummaryConsistent(automationSnapshot),
-      automationSnapshot.catalog.map((entry) => entry.id)
+      automationSnapshot.catalog.map((entry) => entry.id),
+      automationMetadataProof(automationSnapshot)
     ),
     buildSurfaceResult(
       "personalization",
@@ -458,7 +505,8 @@ export function buildCatalogRefreshOwnerValidation(
       personalizationSnapshot.summary.total,
       genericSummaryRecord(personalizationSnapshot),
       personalizationSummaryConsistent(personalizationSnapshot),
-      personalizationSnapshot.catalog.map((entry) => entry.id)
+      personalizationSnapshot.catalog.map((entry) => entry.id),
+      personalizationMetadataProof(personalizationSnapshot)
     )
   ];
 

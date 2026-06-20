@@ -21,6 +21,7 @@ export interface Phase4ProviderCatalogDepthRecord {
   readonly sourceLabel: string;
   readonly total: number;
   readonly itemOrder: readonly string[];
+  readonly metadataProof: readonly string[];
   readonly evidenceKey: string;
   readonly readiness: number;
   readonly evidence: string;
@@ -85,6 +86,16 @@ function summarizeItemOrder(itemOrder: readonly string[]): string {
   return `Catalog item order: ${visibleItems}${suffix}.`;
 }
 
+function summarizeMetadataProof(metadataProof: readonly string[]): string {
+  if (metadataProof.length === 0) {
+    return "No metadata proof entries are attached.";
+  }
+
+  const visibleItems = metadataProof.slice(0, 3).join("; ");
+  const suffix = metadataProof.length > 3 ? `; +${metadataProof.length - 3} more` : "";
+  return `Metadata proof: ${visibleItems}${suffix}.`;
+}
+
 function heldStatus(status: ProviderIntegrationReadinessState): boolean {
   return status === "blocked" || status === "unsupported" || status === "unavailable";
 }
@@ -103,9 +114,10 @@ function buildRecord(
     sourceLabel: surface.sourceLabel,
     total: surface.total,
     itemOrder: surface.itemOrder,
+    metadataProof: surface.metadataProof,
     evidenceKey: evidenceKey(kind),
     readiness: surface.readiness,
-    evidence: `${EVIDENCE_BY_KIND[kind]} ${surface.detail} ${summarizeItemOrder(surface.itemOrder)} Safety: ${surface.safety}`,
+    evidence: `${EVIDENCE_BY_KIND[kind]} ${surface.detail} ${summarizeItemOrder(surface.itemOrder)} ${summarizeMetadataProof(surface.metadataProof)} Safety: ${surface.safety}`,
     ownerSafeProof: OWNER_SAFE_PROOF_BY_KIND[kind],
     nextAction: surface.nextAction,
     safety: surface.safety,

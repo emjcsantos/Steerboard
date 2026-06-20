@@ -28,6 +28,32 @@ const ownerSafeProofBySurface = {
   personalization:
     "Personalization catalog proof includes layer/source metadata, privacy posture, readiness state, and execution lock."
 };
+const metadataProofBySurface = {
+  command: [
+    "/recorded-command:scopes=panel:state=live",
+    "/recorded-preview:scopes=panel+app:state=preview"
+  ],
+  skill: [
+    "recorded-skill:source=builtin:trigger=slash:invocation=Recorded Skill:state=live",
+    "recorded-handoff:source=extension:trigger=button:invocation=Record Handoff:state=preview"
+  ],
+  plugin: [
+    "recorded-plugin:connection=live:surface=metadata-only",
+    "recorded-plugin-preview:connection=preview:surface=metadata-only"
+  ],
+  mcp: [
+    "recorded-mcp:transport=stdio:toolPolicy=read-only:state=live",
+    "recorded-mcp-review:transport=http:toolPolicy=approval-required:state=preview"
+  ],
+  automation: [
+    "recorded-automation:lifecycle=active:trigger=manual:approval=manual:state=preview",
+    "recorded-check:lifecycle=active:trigger=scheduled:approval=approval-required:state=preview"
+  ],
+  personalization: [
+    "recorded-layout:layer=ui:source=user-config:privacy=device-only:state=preview",
+    "recorded-governance:layer=governance:source=builtin:privacy=local-process-only:state=preview"
+  ]
+};
 
 function catalogRecord(surface) {
   const itemOrder = [`${surface}-recorded-primary`, `${surface}-recorded-secondary`];
@@ -41,6 +67,7 @@ function catalogRecord(surface) {
     nextAction: "Keep provider execution locked while metadata review evidence stays attached.",
     evidenceKey: `phase-04-provider-catalog:${surface}`,
     itemOrder,
+    metadataProof: metadataProofBySurface[surface],
     ownerSafeProof: ownerSafeProofBySurface[surface],
     executionLocked: true
   };

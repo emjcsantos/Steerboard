@@ -98,6 +98,7 @@ function surfaceFixture(
     state: "ready",
     pass: true,
     itemOrder: [`${surface}-one`, `${surface}-two`],
+    metadataProof: [`${surface}:metadata-proof-one`, `${surface}:metadata-proof-two`],
     safety: "metadata/status-only",
     summary: {
       total: 2,

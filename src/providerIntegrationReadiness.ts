@@ -30,6 +30,7 @@ export interface ProviderIntegrationReadinessSurface {
   readonly sourceLabel: string;
   readonly total: number;
   readonly itemOrder: readonly string[];
+  readonly metadataProof: readonly string[];
   readonly readiness: number;
   readonly state: ProviderIntegrationReadinessState;
   readonly statusLabel: string;
@@ -235,6 +236,7 @@ function buildSurface(
     sourceLabel: SOURCE_LABELS[surface.source],
     total: surface.total,
     itemOrder: surface.itemOrder,
+    metadataProof: surface.metadataProof,
     readiness: readinessFromSurface(surface, counts),
     state,
     statusLabel: STATUS_LABELS[state],
