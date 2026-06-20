@@ -134,6 +134,19 @@ const REQUIRED_SURFACE_OWNER_BOUNDARY_PROOF_TERMS: ReadonlyArray<{
     terms: ["approval=", "audit=", "rollback=", "surfaceDepth=", "permissionEvidence=", "surfaces=", "mutation=locked", "execution=locked"]
   }
 ];
+const REQUIRED_AUDIT_CHAIN_PROOF_TERMS = [
+  "approval=",
+  "expectedApproval=",
+  "catalog=",
+  "expectedCatalog=",
+  "auditEvidence=",
+  "expectedAuditEvidence=",
+  "approvalMatch=",
+  "catalogMatch=",
+  "auditMatch=",
+  "mutation=locked",
+  "execution=locked"
+] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -355,6 +368,33 @@ function findCatalogScopedExecutionProofReview(
   return undefined;
 }
 
+function findAuditValidationChainProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const auditChainProof = artifact.auditValidation?.auditChainProof?.trim();
+
+  if (!artifact.auditValidation || !auditChainProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing audit validation chain proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after audit validation chain proof shows approval, catalog, audit evidence, mutation-lock, and execution-lock proof."
+    };
+  }
+
+  const missingTerms = REQUIRED_AUDIT_CHAIN_PROOF_TERMS.filter(
+    (term) => !auditChainProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete audit validation chain proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after audit validation chain proof includes the required record-chain proof terms."
+    };
+  }
+
+  return undefined;
+}
+
 export function buildPhase4ProviderReviewArtifact(
   input: Phase4ProviderReviewArtifactBuildInput
 ): Phase4ProviderReviewArtifact {
@@ -564,6 +604,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       recordValidationReview.detail,
       recordValidationReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const auditValidationChainProofReview = findAuditValidationChainProofReview(artifact);
+  if (auditValidationChainProofReview) {
+    return result(
+      "review",
+      artifact,
+      auditValidationChainProofReview.detail,
+      auditValidationChainProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

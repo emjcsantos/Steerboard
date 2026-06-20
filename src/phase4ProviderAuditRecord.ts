@@ -33,6 +33,8 @@ export interface Phase4ProviderAuditRecordValidation {
   readonly matchesCurrentCatalog: boolean;
   readonly matchesCurrentApproval: boolean;
   readonly matchesCurrentAuditEvidence: boolean;
+  readonly mutationLocked: boolean;
+  readonly auditChainProof: string;
 }
 
 export interface Phase4ProviderAuditRecordValidationOptions {
@@ -120,6 +122,33 @@ function shortHash(value: string): string {
   }
 
   return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function valueOrMissing(value: string | undefined): string {
+  return value ?? "missing";
+}
+
+function auditChainProof(input: {
+  readonly record?: Phase4ProviderAuditRecord;
+  readonly approvalRecord?: Phase4ProviderApprovalRecord;
+  readonly expectedCatalogFingerprint?: string;
+  readonly expectedAuditEvidenceFingerprint?: string;
+  readonly matchesCurrentCatalog: boolean;
+  readonly matchesCurrentApproval: boolean;
+  readonly matchesCurrentAuditEvidence: boolean;
+}): string {
+  return (
+    `approval=${valueOrMissing(input.record?.approvalRecordId)} ` +
+    `expectedApproval=${valueOrMissing(input.approvalRecord?.id)} ` +
+    `catalog=${valueOrMissing(input.record?.catalogFingerprint)} ` +
+    `expectedCatalog=${valueOrMissing(input.expectedCatalogFingerprint)} ` +
+    `auditEvidence=${valueOrMissing(input.record?.auditEvidenceFingerprint)} ` +
+    `expectedAuditEvidence=${valueOrMissing(input.expectedAuditEvidenceFingerprint)} ` +
+    `approvalMatch=${input.matchesCurrentApproval ? "matched" : "review"} ` +
+    `catalogMatch=${input.matchesCurrentCatalog ? "matched" : "review"} ` +
+    `auditMatch=${input.matchesCurrentAuditEvidence ? "matched" : "review"} ` +
+    `mutation=${input.record?.mutationLocked ? "locked" : "review"} execution=locked`
+  );
 }
 
 export function buildPhase4ProviderAuditEvidenceFingerprint(
@@ -297,6 +326,10 @@ export function derivePhase4ProviderAuditRecordValidation(input: {
     input.options?.maxRecordAgeMs ?? DEFAULT_PHASE4_PROVIDER_AUDIT_RECORD_MAX_AGE_MS;
 
   if (!input.record) {
+    const matchesCurrentCatalog = false;
+    const matchesCurrentApproval = false;
+    const matchesCurrentAuditEvidence = false;
+
     return {
       state: "preview",
       detail: "Provider audit record is not attached yet.",
@@ -306,9 +339,18 @@ export function derivePhase4ProviderAuditRecordValidation(input: {
       expectedApprovalRecordId: input.approvalRecord?.id,
       expectedAuditEvidenceFingerprint: input.expectedAuditEvidenceFingerprint,
       maxRecordAgeMs,
-      matchesCurrentCatalog: false,
-      matchesCurrentApproval: false,
-      matchesCurrentAuditEvidence: false
+      matchesCurrentCatalog,
+      matchesCurrentApproval,
+      matchesCurrentAuditEvidence,
+      mutationLocked: false,
+      auditChainProof: auditChainProof({
+        approvalRecord: input.approvalRecord,
+        expectedCatalogFingerprint: input.expectedCatalogFingerprint,
+        expectedAuditEvidenceFingerprint: input.expectedAuditEvidenceFingerprint,
+        matchesCurrentCatalog,
+        matchesCurrentApproval,
+        matchesCurrentAuditEvidence
+      })
     };
   }
 
@@ -333,7 +375,17 @@ export function derivePhase4ProviderAuditRecordValidation(input: {
     maxRecordAgeMs,
     matchesCurrentCatalog,
     matchesCurrentApproval,
-    matchesCurrentAuditEvidence
+    matchesCurrentAuditEvidence,
+    mutationLocked: input.record.mutationLocked,
+    auditChainProof: auditChainProof({
+      record: input.record,
+      approvalRecord: input.approvalRecord,
+      expectedCatalogFingerprint: input.expectedCatalogFingerprint,
+      expectedAuditEvidenceFingerprint: input.expectedAuditEvidenceFingerprint,
+      matchesCurrentCatalog,
+      matchesCurrentApproval,
+      matchesCurrentAuditEvidence
+    })
   };
 
   if (input.approvalValidation.state !== "ready") {

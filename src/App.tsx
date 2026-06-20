@@ -8377,6 +8377,9 @@ export function Phase4ProviderSurfaceDepthPanel({
               Approval {auditValidation?.recordApprovalRecordId ?? "missing"} / expected{" "}
               {auditValidation?.expectedApprovalRecordId ?? "missing"}
             </small>
+            <small>
+              {auditValidation?.auditChainProof ?? "approval=missing catalog=missing auditEvidence=missing mutation=review execution=locked"}
+            </small>
           </div>
           <button
             disabled={!recordAuditEnabled || !onRecordAudit}

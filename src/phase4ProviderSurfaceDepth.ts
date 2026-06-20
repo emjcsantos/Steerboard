@@ -335,14 +335,7 @@ function auditGateItem(
       detail:
         `${auditValidation.detail} Expected audit ${auditValidation.expectedAuditEvidenceFingerprint ?? "missing"}, ` +
         `record audit ${auditValidation.recordAuditEvidenceFingerprint ?? "missing"}.`,
-      ownerBoundaryProof:
-        `approval=${valueOrMissing(auditValidation.recordApprovalRecordId)} ` +
-        `catalog=${valueOrMissing(auditValidation.recordCatalogFingerprint)} ` +
-        `auditEvidence=${valueOrMissing(auditValidation.recordAuditEvidenceFingerprint)} ` +
-        `approvalMatch=${auditValidation.matchesCurrentApproval ? "matched" : "review"} ` +
-        `catalogMatch=${auditValidation.matchesCurrentCatalog ? "matched" : "review"} ` +
-        `auditMatch=${auditValidation.matchesCurrentAuditEvidence ? "matched" : "review"} ` +
-        `mutation=locked execution=locked`,
+      ownerBoundaryProof: auditValidation.auditChainProof,
       nextAction: auditValidation.nextAction
     };
   }

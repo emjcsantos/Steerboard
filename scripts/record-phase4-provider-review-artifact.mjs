@@ -160,7 +160,13 @@ const auditValidation = {
   maxRecordAgeMs: 24 * 60 * 60 * 1000,
   matchesCurrentCatalog: true,
   matchesCurrentApproval: true,
-  matchesCurrentAuditEvidence: true
+  matchesCurrentAuditEvidence: true,
+  mutationLocked: true,
+  auditChainProof:
+    `approval=${approvalRecordId} expectedApproval=${approvalRecordId} ` +
+    `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
+    `auditEvidence=${auditEvidenceFingerprint} expectedAuditEvidence=${auditEvidenceFingerprint} ` +
+    `approvalMatch=matched catalogMatch=matched auditMatch=matched mutation=locked execution=locked`
 };
 const rollbackRecord = {
   id: rollbackRecordId,

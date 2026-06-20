@@ -86,6 +86,10 @@ describe("phase 4 provider audit record", () => {
       matchesCurrentCatalog: true,
       matchesCurrentApproval: true,
       matchesCurrentAuditEvidence: true,
+      mutationLocked: true,
+      auditChainProof: expect.stringContaining(
+        "approvalMatch=matched catalogMatch=matched auditMatch=matched mutation=locked execution=locked"
+      ),
       recordAgeMs: 300_000
     });
   });
@@ -104,7 +108,9 @@ describe("phase 4 provider audit record", () => {
       detail: expect.stringContaining("not attached"),
       matchesCurrentCatalog: false,
       matchesCurrentApproval: false,
-      matchesCurrentAuditEvidence: false
+      matchesCurrentAuditEvidence: false,
+      mutationLocked: false,
+      auditChainProof: expect.stringContaining("mutation=review execution=locked")
     });
   });
 
@@ -195,7 +201,9 @@ describe("phase 4 provider audit record", () => {
       })
     ).toMatchObject({
       state: "review",
-      detail: expect.stringContaining("mutation lock")
+      detail: expect.stringContaining("mutation lock"),
+      mutationLocked: false,
+      auditChainProof: expect.stringContaining("mutation=review execution=locked")
     });
     expect(
       derivePhase4ProviderAuditRecordValidation({

@@ -224,11 +224,7 @@ function withReadyLocalRecords(
       if (item.kind === "audit-gate") {
         return {
           ...item,
-          ownerBoundaryProof:
-            `approval=${auditValidation.recordApprovalRecordId} ` +
-            `catalog=${auditValidation.recordCatalogFingerprint} ` +
-            `auditEvidence=${auditValidation.recordAuditEvidenceFingerprint} ` +
-            `approvalMatch=matched catalogMatch=matched auditMatch=matched mutation=locked execution=locked`
+          ownerBoundaryProof: auditValidation.auditChainProof
         };
       }
 
@@ -468,6 +464,31 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("audit-gate owner-boundary proof"),
       nextAction: expect.stringContaining("owner-boundary proof")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing audit validation chain proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutAuditChainProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      auditValidation: artifact.auditValidation
+        ? { ...artifact.auditValidation, auditChainProof: "" }
+        : artifact.auditValidation
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutAuditChainProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("audit validation chain proof"),
+      nextAction: expect.stringContaining("audit validation chain proof")
     });
   });
 

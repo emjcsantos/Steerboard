@@ -33,6 +33,19 @@ const requiredSurfaceOwnerBoundaryProofTerms = [
     terms: ["approval=", "audit=", "rollback=", "surfaceDepth=", "permissionEvidence=", "surfaces=", "mutation=locked", "execution=locked"]
   }
 ];
+const requiredAuditChainProofTerms = [
+  "approval=",
+  "expectedApproval=",
+  "catalog=",
+  "expectedCatalog=",
+  "auditEvidence=",
+  "expectedAuditEvidence=",
+  "approvalMatch=",
+  "catalogMatch=",
+  "auditMatch=",
+  "mutation=locked",
+  "execution=locked"
+];
 const maxArtifactAgeMs = 24 * 60 * 60 * 1000;
 
 function fail(message) {
@@ -273,6 +286,15 @@ function verifyArtifact(artifact) {
 
   if (audit.record.approvalRecordId !== approval.record.id) {
     throw new Error("audit record does not reference the approval record");
+  }
+  assertNonEmptyString(audit.validation.auditChainProof, "audit validation auditChainProof");
+  {
+    const missingTerms = requiredAuditChainProofTerms.filter(
+      (term) => !audit.validation.auditChainProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`audit validation auditChainProof is missing ${missingTerms.join(", ")}`);
+    }
   }
   if (rollback.record.approvalRecordId !== approval.record.id) {
     throw new Error("rollback record does not reference the approval record");
