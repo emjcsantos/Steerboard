@@ -115,6 +115,9 @@ describe("runtime stream panel router", () => {
       crossTalkDetected: false
     });
     expect(proof.detail).toContain("zero mismatched owned events");
+    expect(proof.detail).toContain(
+      "routeProof=panels=2 active=2 routed=4 quarantined=0 unknownPanel=0 unknownSession=0 staleTurn=0 crossTalk=false trust=ready"
+    );
   });
 
   it("quarantines unknown panel events with explicit reason", () => {
@@ -152,6 +155,9 @@ describe("runtime stream panel router", () => {
       quarantinedEventCount: 1,
       unknownSessionCount: 1
     });
+    expect(buildRuntimeStreamIsolationProof(next).detail).toContain(
+      "routeProof=panels=1 active=0 routed=0 quarantined=1 unknownPanel=0 unknownSession=1 staleTurn=0 crossTalk=false trust=review"
+    );
   });
 
   it("quarantines stale turn batches while preserving current panel log state", () => {

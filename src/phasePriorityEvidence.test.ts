@@ -438,5 +438,8 @@ describe("phase priority evidence", () => {
       nextAction: "Repair panel-keyed stream routing before trusting two-panel isolation proof."
     });
     expect(phase2?.detail).toContain("session/provider");
+    expect(phase2?.detail).toContain(
+      "routeProof=panels=2 active=0 routed=0 quarantined=1 unknownPanel=0 unknownSession=1 staleTurn=0 crossTalk=false trust=review"
+    );
   });
 });

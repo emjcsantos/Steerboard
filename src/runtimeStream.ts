@@ -343,14 +343,24 @@ export function buildRuntimeStreamIsolationProof(
   const quarantinedEventCount = state.quarantinedEvents.length;
   const panelCount = Object.keys(state.panelLogs).length;
   const activePanelCount = Object.values(panelEventCounts).filter((count) => count > 0).length;
+  const trustStatus =
+    panelCount > 0 && activePanelCount === panelCount && quarantinedEventCount === 0 && !crossTalkDetected
+      ? "ready"
+      : "review";
+  const routeProof =
+    `routeProof=panels=${panelCount} active=${activePanelCount} routed=${routedEventCount} ` +
+    `quarantined=${quarantinedEventCount} unknownPanel=${unknownPanelCount} ` +
+    `unknownSession=${unknownSessionCount} staleTurn=${staleTurnCount} ` +
+    `crossTalk=${crossTalkDetected} trust=${trustStatus}`;
 
-  let detail = "No runtime stream panel routes are registered.";
+  let detail = `No runtime stream panel routes are registered. ${routeProof}`;
   if (panelCount > 0) {
     detail =
       `Route isolation proof has ${activePanelCount}/${panelCount} active panels, ` +
       `${routedEventCount} routed events, ${quarantinedEventCount} quarantined events, ` +
       `${unknownPanelCount} unknown-panel, ${unknownSessionCount} session/provider, ` +
-      `${staleTurnCount} stale-turn, and ${crossTalkDetected ? "mismatched" : "zero mismatched"} owned events.`;
+      `${staleTurnCount} stale-turn, and ${crossTalkDetected ? "mismatched" : "zero mismatched"} owned events. ` +
+      routeProof;
   }
 
   return {
