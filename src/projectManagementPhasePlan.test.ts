@@ -93,4 +93,23 @@ describe("project management phase plan", () => {
     expect(reversibleActionChild?.description).toContain("no external call");
     expect(reversibleActionChild?.description).toContain("no profile mutation");
   });
+
+  it("keeps Phase 11 proof freshness progress aligned with owner proof depth", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const ownerTestingParent = byId.get("phase-11-parent-owner-testing");
+    const proofFreshnessChild = byId.get("phase-11-child-proof-freshness-depth");
+    const evidenceRecordsChild = byId.get("phase-11-child-evidence-records");
+
+    expect(ownerTestingParent?.completionPercent).toBeGreaterThanOrEqual(
+      proofFreshnessChild?.completionPercent ?? 0
+    );
+    expect(proofFreshnessChild?.completionPercent).toBeGreaterThanOrEqual(
+      evidenceRecordsChild?.completionPercent ?? 0
+    );
+    expect(proofFreshnessChild?.description).toContain("seven-row readiness");
+    expect(proofFreshnessChild?.description).toContain("open-proof counts");
+    expect(proofFreshnessChild?.description).toContain("owner-visible safety");
+    expect(proofFreshnessChild?.description).toContain("npm.cmd run test:phase3:owner-visible");
+  });
 });

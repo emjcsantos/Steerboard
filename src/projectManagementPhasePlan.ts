@@ -901,8 +901,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-proof-freshness-depth",
             title: "Proof Freshness Depth",
-            description: "Break owner proof freshness into Phase 1/2/6 proof, Phase 3 clearance, desktop smoke, command-plan, CLI validation, proof-export, and handoff proof rows before release readiness.",
-            completionPercent: 52,
+            description: "Break owner proof freshness into Phase 1/2/6 proof, Phase 3 clearance, desktop smoke, command-plan, CLI validation, proof-export, and handoff proof rows with seven-row readiness, open-proof counts, owner-visible safety, and npm.cmd run test:phase3:owner-visible guidance before release readiness.",
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Phase 11 proof freshness depth"
           },
