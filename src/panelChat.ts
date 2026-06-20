@@ -48,6 +48,9 @@ export interface PanelLiveTurnEvidence {
   turnStatusCount: number;
   errorCount: number;
   unknownEventCount: number;
+  knownEventKindCount: number;
+  providerEventCoverageReady: boolean;
+  canExtendStreamingEvidence: boolean;
   transcriptLength: number;
   completed: boolean;
   interrupted: boolean;
@@ -312,9 +315,24 @@ export function buildPanelLiveTurnEvidence(
     events,
     (event) => !["agent_delta", "turn_status", "error"].includes(eventType(event))
   );
+  const knownEventKindCount = new Set(
+    events
+      .map(eventType)
+      .filter((type) => ["agent_delta", "turn_status", "error"].includes(type))
+  ).size;
   const transcriptLength = result.transcript.trim().length;
   const hasStreamSignal = agentDeltaCount > 0 || transcriptLength > 0;
   const hasTerminalSignal = turnStatusCount > 0 || result.completed || result.interrupted || result.failed;
+  const providerEventCoverageReady =
+    events.length > 0 &&
+    agentDeltaCount > 0 &&
+    turnStatusCount > 0 &&
+    errorCount === 0 &&
+    unknownEventCount === 0 &&
+    result.completed &&
+    !result.interrupted &&
+    !result.failed;
+  const canExtendStreamingEvidence = providerEventCoverageReady;
   const state: PanelLiveTurnEvidenceState = result.failed
     ? "blocked"
     : result.interrupted || !hasStreamSignal || !hasTerminalSignal
@@ -323,14 +341,19 @@ export function buildPanelLiveTurnEvidence(
   const statusLabel = state === "ready" ? "Ready" : state === "blocked" ? "Blocked" : "Review";
   const detail =
     `streamProof events=${events.length} deltas=${agentDeltaCount} turnStatus=${turnStatusCount} ` +
-    `errors=${errorCount} unknown=${unknownEventCount} transcriptChars=${transcriptLength} ` +
+    `errors=${errorCount} unknown=${unknownEventCount} knownKinds=${knownEventKindCount} ` +
+    `providerCoverage=${providerEventCoverageReady ? "ready" : "held"} ` +
+    `richerStreaming=${canExtendStreamingEvidence ? "ready" : "held"} ` +
+    `transcriptChars=${transcriptLength} ` +
     `completed=${result.completed ? "yes" : "no"} interrupted=${result.interrupted ? "yes" : "no"} failed=${result.failed ? "yes" : "no"}.`;
   const nextAction = result.failed
     ? "Keep the failed turn evidence attached, retry only after checking provider/session state, and preserve the original prompt for recovery."
     : result.interrupted
       ? "Keep interruption evidence attached and retry or steer only after the owner confirms the next action."
       : state === "ready"
-        ? "Keep live stream and completion evidence attached to the panel transcript."
+        ? canExtendStreamingEvidence
+          ? "Keep live stream, provider event coverage, and completion evidence attached before extending richer streaming evidence."
+          : "Keep live stream and completion evidence attached; richer streaming evidence remains held until provider event coverage is stable."
         : "Review stream and completion evidence before treating this panel turn as hardened.";
 
   return {
@@ -341,6 +364,9 @@ export function buildPanelLiveTurnEvidence(
     turnStatusCount,
     errorCount,
     unknownEventCount,
+    knownEventKindCount,
+    providerEventCoverageReady,
+    canExtendStreamingEvidence,
     transcriptLength,
     completed: result.completed,
     interrupted: result.interrupted,

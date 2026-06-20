@@ -317,6 +317,9 @@ describe("panel chat helpers", () => {
       eventCount: 2,
       agentDeltaCount: 1,
       turnStatusCount: 1,
+      knownEventKindCount: 2,
+      providerEventCoverageReady: true,
+      canExtendStreamingEvidence: true,
       transcriptLength: 5,
       completed: true
     });
@@ -324,8 +327,57 @@ describe("panel chat helpers", () => {
       role: "system",
       label: "Live evidence",
       meta: "live evidence ready",
-      body: expect.stringContaining("streamProof")
+      body: expect.stringContaining("providerCoverage=ready")
     });
+  });
+
+  it("holds richer streaming evidence when provider event kinds are unknown", () => {
+    const evidence = buildPanelLiveTurnEvidence({
+      source: "desktop",
+      panelId: "panel-1",
+      sessionId: "session-1",
+      threadId: "thread-1",
+      turnId: "turn-1",
+      completed: true,
+      interrupted: false,
+      failed: false,
+      events: [
+        {
+          method: "codex.event",
+          eventType: "agent_delta",
+          turnId: "turn-1",
+          status: null,
+          delta: "hello",
+          message: null
+        },
+        {
+          method: "codex.event",
+          eventType: "turn_status",
+          turnId: "turn-1",
+          status: "completed",
+          delta: null,
+          message: "done"
+        },
+        {
+          method: "codex.event",
+          eventType: "provider_metric",
+          turnId: "turn-1",
+          status: "completed",
+          delta: null,
+          message: "metric"
+        }
+      ],
+      transcript: "hello",
+      detail: "Completed."
+    });
+
+    expect(evidence.state).toBe("ready");
+    expect(evidence.unknownEventCount).toBe(1);
+    expect(evidence.providerEventCoverageReady).toBe(false);
+    expect(evidence.canExtendStreamingEvidence).toBe(false);
+    expect(evidence.detail).toContain("providerCoverage=held");
+    expect(evidence.detail).toContain("richerStreaming=held");
+    expect(evidence.nextAction).toContain("richer streaming evidence remains held");
   });
 
   it("marks failed live turns blocked and creates scoped recovery evidence", () => {
