@@ -291,6 +291,10 @@ describe("phase 4 provider visible readiness panel", () => {
           onRecordAudit={() => undefined}
           onRecordPermission={() => undefined}
           onRecordRollback={() => undefined}
+          recordApprovalEnabled={true}
+          recordAuditEnabled={true}
+          recordPermissionEnabled={true}
+          recordRollbackEnabled={true}
           onVerifyImportedReviewArtifact={() => undefined}
           permissionRecord={permissionRecord}
           permissionValidation={permissionValidation}
@@ -359,6 +363,30 @@ describe("phase 4 provider visible readiness panel", () => {
       state: "ready",
       executionLocked: true
     });
+  });
+
+  it("keeps Phase 4 record buttons visibly disabled until prerequisites are ready", () => {
+    const readiness = buildProviderIntegrationReadiness(buildCatalogRefreshOwnerValidation());
+    const surfaceDepth = buildPhase4ProviderSurfaceDepth(readiness);
+    const html = renderToStaticMarkup(
+      <Phase4ProviderSurfaceDepthPanel
+        onRecordApproval={() => undefined}
+        onRecordAudit={() => undefined}
+        onRecordPermission={() => undefined}
+        onRecordRollback={() => undefined}
+        snapshot={surfaceDepth}
+      />
+    );
+
+    expect(html).toContain("Record approval");
+    expect(html).toContain("Record audit");
+    expect(html).toContain("Record rollback");
+    expect(html).toContain("Record permission");
+    expect(html).toContain("Refresh safety proof must be ready before approval can be recorded.");
+    expect(html).toContain("Approval evidence must be ready before audit can be recorded.");
+    expect(html).toContain("Audit evidence must be ready before rollback can be recorded.");
+    expect(html).toContain("Rollback evidence must be ready before permission can be recorded.");
+    expect(html.match(/disabled=""/g)?.length).toBeGreaterThanOrEqual(4);
   });
 
   it("shows recorded provider review artifacts missing local record evidence as review", () => {

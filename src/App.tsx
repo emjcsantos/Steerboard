@@ -4810,12 +4810,31 @@ export function App() {
             phase4ProviderBlockerPriority={phase4ProviderBlockerPriority}
             phase4ProviderCatalogDepth={phase4ProviderCatalogDepth}
             phase4ProviderApprovalRecord={phase4ProviderApprovalRecord}
+            phase4ProviderApprovalRecordEnabled={
+              phase4RefreshSafetyDepth.blockedCount === 0 &&
+              phase4RefreshSafetyDepth.previewCount === 0
+            }
             phase4ProviderApprovalValidation={phase4ProviderApprovalValidation}
             phase4ProviderAuditRecord={phase4ProviderAuditRecord}
+            phase4ProviderAuditRecordEnabled={
+              phase4ProviderApprovalValidation.state === "ready" &&
+              Boolean(phase4ProviderApprovalRecord)
+            }
             phase4ProviderAuditValidation={phase4ProviderAuditValidation}
             phase4ProviderRollbackRecord={phase4ProviderRollbackRecord}
+            phase4ProviderRollbackRecordEnabled={
+              phase4ProviderAuditValidation.state === "ready" &&
+              Boolean(phase4ProviderAuditRecord) &&
+              Boolean(phase4ProviderApprovalRecord)
+            }
             phase4ProviderRollbackValidation={phase4ProviderRollbackValidation}
             phase4ProviderPermissionRecord={phase4ProviderPermissionRecord}
+            phase4ProviderPermissionRecordEnabled={
+              phase4ProviderRollbackValidation.state === "ready" &&
+              Boolean(phase4ProviderRollbackRecord) &&
+              Boolean(phase4ProviderAuditRecord) &&
+              Boolean(phase4ProviderApprovalRecord)
+            }
             phase4ProviderPermissionValidation={phase4ProviderPermissionValidation}
             phase4ProviderReviewArtifactVerification={phase4ProviderReviewArtifactVerification}
             phase4RecordedArtifactLoadAvailable={hasPhase3RecordedArtifactLoadAccess()}
@@ -8231,6 +8250,10 @@ export function Phase4ProviderSurfaceDepthPanel({
   onRecordAudit,
   onRecordPermission,
   onRecordRollback,
+  recordApprovalEnabled = false,
+  recordAuditEnabled = false,
+  recordPermissionEnabled = false,
+  recordRollbackEnabled = false,
   onVerifyImportedReviewArtifact,
   importedReviewArtifactVerification,
   permissionRecord,
@@ -8255,6 +8278,10 @@ export function Phase4ProviderSurfaceDepthPanel({
   onRecordAudit?: () => void;
   onRecordPermission?: () => void;
   onRecordRollback?: () => void;
+  recordApprovalEnabled?: boolean;
+  recordAuditEnabled?: boolean;
+  recordPermissionEnabled?: boolean;
+  recordRollbackEnabled?: boolean;
   onVerifyImportedReviewArtifact?: (serializedArtifact: string) => void;
   importedReviewArtifactVerification?: Phase4ProviderReviewArtifactVerification;
   permissionRecord?: Phase4ProviderPermissionRecord;
@@ -8315,7 +8342,16 @@ export function Phase4ProviderSurfaceDepthPanel({
               {approvalValidation?.expectedCatalogFingerprint ?? "missing"}
             </small>
           </div>
-          <button type="button" onClick={onRecordApproval}>
+          <button
+            disabled={!recordApprovalEnabled || !onRecordApproval}
+            title={
+              recordApprovalEnabled
+                ? "Record local Phase 4 approval evidence."
+                : approvalValidation?.nextAction ?? "Refresh safety proof must be ready before approval can be recorded."
+            }
+            type="button"
+            onClick={onRecordApproval}
+          >
             Record approval
           </button>
           <button type="button" disabled={!record} onClick={onClearApproval}>
@@ -8336,7 +8372,16 @@ export function Phase4ProviderSurfaceDepthPanel({
               {auditValidation?.expectedApprovalRecordId ?? "missing"}
             </small>
           </div>
-          <button type="button" onClick={onRecordAudit}>
+          <button
+            disabled={!recordAuditEnabled || !onRecordAudit}
+            title={
+              recordAuditEnabled
+                ? "Record local Phase 4 audit evidence."
+                : auditValidation?.nextAction ?? "Approval evidence must be ready before audit can be recorded."
+            }
+            type="button"
+            onClick={onRecordAudit}
+          >
             Record audit
           </button>
           <button type="button" disabled={!auditRecord} onClick={onClearAudit}>
@@ -8358,7 +8403,16 @@ export function Phase4ProviderSurfaceDepthPanel({
               {rollbackValidation?.expectedAuditRecordId ?? "missing"}
             </small>
           </div>
-          <button type="button" onClick={onRecordRollback}>
+          <button
+            disabled={!recordRollbackEnabled || !onRecordRollback}
+            title={
+              recordRollbackEnabled
+                ? "Record local Phase 4 rollback evidence."
+                : rollbackValidation?.nextAction ?? "Audit evidence must be ready before rollback can be recorded."
+            }
+            type="button"
+            onClick={onRecordRollback}
+          >
             Record rollback
           </button>
           <button type="button" disabled={!rollbackRecord} onClick={onClearRollback}>
@@ -8381,7 +8435,16 @@ export function Phase4ProviderSurfaceDepthPanel({
               {permissionValidation?.expectedPermissionEvidenceFingerprint ?? "missing"}
             </small>
           </div>
-          <button type="button" onClick={onRecordPermission}>
+          <button
+            disabled={!recordPermissionEnabled || !onRecordPermission}
+            title={
+              recordPermissionEnabled
+                ? "Record local Phase 4 permission evidence."
+                : permissionValidation?.nextAction ?? "Rollback evidence must be ready before permission can be recorded."
+            }
+            type="button"
+            onClick={onRecordPermission}
+          >
             Record permission
           </button>
           <button type="button" disabled={!permissionRecord} onClick={onClearPermission}>
@@ -9128,14 +9191,18 @@ function RightPanel({
   phase4ProviderBlockerPriority,
   phase4ProviderCatalogDepth,
   phase4ProviderApprovalRecord,
+  phase4ProviderApprovalRecordEnabled,
   phase4ProviderApprovalValidation,
   phase4ProviderAuditRecord,
+  phase4ProviderAuditRecordEnabled,
   phase4ProviderAuditValidation,
   phase4ProviderPermissionRecord,
+  phase4ProviderPermissionRecordEnabled,
   phase4ProviderPermissionValidation,
   phase4ProviderReviewArtifactVerification,
   phase4RecordedArtifactLoadAvailable,
   phase4ProviderRollbackRecord,
+  phase4ProviderRollbackRecordEnabled,
   phase4ProviderRollbackValidation,
   phase4ProviderTraceability,
   phase4ProviderSurfaceDepth,
@@ -9233,14 +9300,18 @@ function RightPanel({
   phase4ProviderBlockerPriority: Phase4ProviderBlockerPrioritySummary;
   phase4ProviderCatalogDepth: Phase4ProviderCatalogDepthSummary;
   phase4ProviderApprovalRecord?: Phase4ProviderApprovalRecord;
+  phase4ProviderApprovalRecordEnabled: boolean;
   phase4ProviderApprovalValidation: Phase4ProviderApprovalRecordValidation;
   phase4ProviderAuditRecord?: Phase4ProviderAuditRecord;
+  phase4ProviderAuditRecordEnabled: boolean;
   phase4ProviderAuditValidation: Phase4ProviderAuditRecordValidation;
   phase4ProviderPermissionRecord?: Phase4ProviderPermissionRecord;
+  phase4ProviderPermissionRecordEnabled: boolean;
   phase4ProviderPermissionValidation: Phase4ProviderPermissionRecordValidation;
   phase4ProviderReviewArtifactVerification: Phase4ProviderReviewArtifactVerification;
   phase4RecordedArtifactLoadAvailable: boolean;
   phase4ProviderRollbackRecord?: Phase4ProviderRollbackRecord;
+  phase4ProviderRollbackRecordEnabled: boolean;
   phase4ProviderRollbackValidation: Phase4ProviderRollbackRecordValidation;
   phase4ProviderTraceability: Phase4ProviderTraceabilitySummary;
   phase4ProviderSurfaceDepth: Phase4ProviderSurfaceDepthSnapshot;
@@ -10667,6 +10738,10 @@ function RightPanel({
         onRecordAudit={onRecordPhase4ProviderAudit}
         onRecordPermission={onRecordPhase4ProviderPermission}
         onRecordRollback={onRecordPhase4ProviderRollback}
+        recordApprovalEnabled={phase4ProviderApprovalRecordEnabled}
+        recordAuditEnabled={phase4ProviderAuditRecordEnabled}
+        recordPermissionEnabled={phase4ProviderPermissionRecordEnabled}
+        recordRollbackEnabled={phase4ProviderRollbackRecordEnabled}
         onVerifyImportedReviewArtifact={onVerifyImportedPhase4ProviderReviewArtifact}
         importedReviewArtifactVerification={importedPhase4ProviderReviewArtifactVerification}
         permissionRecord={phase4ProviderPermissionRecord}

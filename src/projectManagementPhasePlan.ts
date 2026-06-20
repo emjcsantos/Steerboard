@@ -298,7 +298,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 70,
+    completionPercent: 72,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -345,7 +345,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-approval-record",
             title: "Provider Approval Record",
             description: "Record and clear local owner approval only when the current six-surface catalog fingerprint and fresh metadata-only refresh-safety proof match, without unlocking audit, rollback, permission, or execution.",
-            completionPercent: 58,
+            completionPercent: 62,
             complexity: "high",
             sourceDocument: "Phase 4 provider approval record"
           },
@@ -353,7 +353,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-audit-record",
             title: "Provider Audit Record",
             description: "Record and clear local provider audit review only when the current approval record, current six-surface catalog fingerprint, and current surface-depth audit evidence fingerprint match, without unlocking rollback, permission, or execution.",
-            completionPercent: 55,
+            completionPercent: 60,
             complexity: "high",
             sourceDocument: "Phase 4 provider audit record"
           },
@@ -361,7 +361,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-rollback-record",
             title: "Provider Rollback Record",
             description: "Record and clear local provider rollback review only when the current approval record, current audit record, current six-surface catalog fingerprint, and current surface-depth rollback evidence fingerprint match, without unlocking permission or execution.",
-            completionPercent: 58,
+            completionPercent: 61,
             complexity: "high",
             sourceDocument: "Phase 4 provider rollback record"
           },
@@ -369,7 +369,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-permission-record",
             title: "Provider Permission Record",
             description: "Record and clear local provider permission review only when the current approval, audit, rollback, six-surface catalog, surface-depth, and permission evidence fingerprints match every provider surface while mutation remains locked.",
-            completionPercent: 58,
+            completionPercent: 61,
             complexity: "high",
             sourceDocument: "Phase 4 provider permission record"
           },
