@@ -15,6 +15,25 @@ const requiredTraceabilityKinds = [
   "record-chain",
   "execution-lock"
 ];
+const requiredTraceabilityProofTerms = [
+  "items=7/7",
+  "ready=7",
+  "preview=0",
+  "setupRequired=0",
+  "held=0",
+  "itemKinds=active-goal|pm-coverage|catalog-depth|refresh-safety|surface-depth|record-chain|execution-lock",
+  "activeGoal=goal-phase-4-provider-surfaces",
+  "pmLinks=15/15",
+  "missingPm=0",
+  "catalogRecords=6/6",
+  "refreshRecords=8/8",
+  "surfaceItems=9/9",
+  "recordChain=ready",
+  "executionLocks=6/6",
+  "trust=ready",
+  "metadataOnly=locked",
+  "execution=locked"
+];
 const requiredSurfaceOwnerBoundaryProofTerms = [
   {
     kind: "approval-gate",
@@ -532,6 +551,15 @@ function verifyArtifact(artifact) {
   }
   if (traceability.executionLockCount < requiredSurfaceCount) {
     throw new Error(`expected ${requiredSurfaceCount} execution locks, found ${traceability.executionLockCount}`);
+  }
+  assertNonEmptyString(traceability.traceabilityProof, "traceability.traceabilityProof");
+  {
+    const missingTerms = requiredTraceabilityProofTerms.filter(
+      (term) => !traceability.traceabilityProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`traceability traceabilityProof is missing ${missingTerms.join(", ")}`);
+    }
   }
 
   if (blockerPriority.openBlockerCount !== 0) {

@@ -145,6 +145,15 @@ describe("phase 4 provider traceability", () => {
     expect(summary.refreshSafetyRecordCount).toBe(8);
     expect(summary.surfaceDepthItemCount).toBe(9);
     expect(summary.executionLockCount).toBe(6);
+    expect(summary.traceabilityProof).toContain("items=7/7");
+    expect(summary.traceabilityProof).toContain(
+      "itemKinds=active-goal|pm-coverage|catalog-depth|refresh-safety|surface-depth|record-chain|execution-lock"
+    );
+    expect(summary.traceabilityProof).toContain("activeGoal=goal-phase-4-provider-surfaces");
+    expect(summary.traceabilityProof).toContain("pmLinks=15/15 missingPm=0");
+    expect(summary.traceabilityProof).toContain("catalogRecords=6/6 refreshRecords=8/8 surfaceItems=9/9");
+    expect(summary.traceabilityProof).toContain("executionLocks=6/6 trust=review");
+    expect(summary.traceabilityProof).toContain("metadataOnly=locked execution=locked");
     expect(summary.nextAction).toContain(
       "Rerun catalog smoke from the explicit owner action to attach reload-safe timestamp evidence"
     );

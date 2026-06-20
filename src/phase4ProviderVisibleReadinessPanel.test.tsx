@@ -397,6 +397,12 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("rollbackValidation=ready rollbackChain=present");
     expect(html).toContain("owner=present scope=present action=present mutation=locked execution=locked");
     expect(html).toContain("active-goal");
+    expect(html).toContain("items=7/7 ready=7 preview=0 setupRequired=0 held=0");
+    expect(html).toContain(
+      "itemKinds=active-goal|pm-coverage|catalog-depth|refresh-safety|surface-depth|record-chain|execution-lock"
+    );
+    expect(html).toContain("pmLinks=15/15 missingPm=0");
+    expect(html).toContain("recordChain=ready executionLocks=6/6 trust=ready");
     expect(html).toContain("Phase 4 provider blocker priority");
     expect(html).toContain("Remaining goal link");
     expect(html).toContain("phase4-provider-permission-current");
@@ -487,7 +493,11 @@ describe("phase 4 provider visible readiness panel", () => {
             catalogDepth,
             refreshSafety: readyRefreshSafety,
             surfaceDepth,
-            traceability: { ...traceability, canTrustProviderReview: true },
+            traceability: {
+              ...traceability,
+              canTrustProviderReview: true,
+              traceabilityProof: traceability.traceabilityProof.replace("trust=review", "trust=ready")
+            },
             blockerPriority: noOpenBlockerPriority
           })
         ),

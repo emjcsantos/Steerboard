@@ -155,7 +155,11 @@ function noOpenBlockers(artifact: Phase4ProviderReviewArtifact): Phase4ProviderR
   return {
     ...artifact,
     catalogDepth,
-    traceability: { ...artifact.traceability, canTrustProviderReview: true },
+    traceability: {
+      ...artifact.traceability,
+      canTrustProviderReview: true,
+      traceabilityProof: artifact.traceability.traceabilityProof.replace("trust=review", "trust=ready")
+    },
     blockerPriority: {
       ...artifact.blockerPriority,
       openBlockerCount: 0,
@@ -305,10 +309,28 @@ function withReadyLocalRecords(
       return item;
     })
   };
+  const readyTraceability = {
+    ...artifact.traceability,
+    state: "ready" as const,
+    statusLabel: "Ready",
+    readiness: 100,
+    canTrustProviderReview: true,
+    readyCount: 7,
+    previewCount: 0,
+    setupRequiredCount: 0,
+    heldCount: 0,
+    traceabilityProof:
+      "items=7/7 ready=7 preview=0 setupRequired=0 held=0 " +
+      "itemKinds=active-goal|pm-coverage|catalog-depth|refresh-safety|surface-depth|record-chain|execution-lock " +
+      "activeGoal=goal-phase-4-provider-surfaces pmLinks=15/15 missingPm=0 " +
+      "catalogRecords=6/6 refreshRecords=8/8 surfaceItems=9/9 recordChain=ready " +
+      "executionLocks=6/6 trust=ready metadataOnly=locked execution=locked"
+  };
 
   return {
     ...noOpenBlockers(artifact),
     surfaceDepth,
+    traceability: readyTraceability,
     approvalRecord,
     approvalValidation,
     auditRecord,
@@ -689,6 +711,55 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("refresh-safety depth aggregate proof"),
       nextAction: expect.stringContaining("row, surface, reload-safe")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing traceability aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutTraceabilityProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      traceability: { ...artifact.traceability, traceabilityProof: "" }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutTraceabilityProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("traceability aggregate proof"),
+      nextAction: expect.stringContaining("traceability summary")
+    });
+  });
+
+  it("reviews no-blocker artifacts with incomplete traceability aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const incompleteTraceabilityProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      traceability: {
+        ...artifact.traceability,
+        traceabilityProof: artifact.traceability.traceabilityProof.replace("recordChain=ready ", "")
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(incompleteTraceabilityProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("traceability aggregate proof"),
+      nextAction: expect.stringContaining("record-chain")
     });
   });
 

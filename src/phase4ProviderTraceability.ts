@@ -50,6 +50,7 @@ export interface Phase4ProviderTraceabilitySummary {
   readonly refreshSafetyRecordCount: number;
   readonly surfaceDepthItemCount: number;
   readonly executionLockCount: number;
+  readonly traceabilityProof: string;
   readonly nextAction: string;
   readonly safety: string;
   readonly ariaLabel: string;
@@ -451,6 +452,35 @@ function buildAriaLabel(
   );
 }
 
+function traceabilityProof({
+  items,
+  readyCount,
+  previewCount,
+  setupRequiredCount,
+  heldCount,
+  missingPmTaskIds,
+  linkedGoalId,
+  linkedPmTaskCount,
+  catalogDepthRecordCount,
+  refreshSafetyRecordCount,
+  surfaceDepthItemCount,
+  executionLockCount,
+  canTrustProviderReview
+}: Omit<Phase4ProviderTraceabilitySummary, "ariaLabel" | "traceabilityProof">): string {
+  const itemKinds = items.map((item) => item.kind).join("|");
+  const recordChain = items.find((item) => item.kind === "record-chain")?.status ?? "missing";
+
+  return (
+    `items=${items.length}/7 ready=${readyCount} preview=${previewCount} ` +
+    `setupRequired=${setupRequiredCount} held=${heldCount} itemKinds=${itemKinds} ` +
+    `activeGoal=${linkedGoalId} pmLinks=${linkedPmTaskCount}/15 missingPm=${missingPmTaskIds.length} ` +
+    `catalogRecords=${catalogDepthRecordCount}/6 refreshRecords=${refreshSafetyRecordCount}/8 ` +
+    `surfaceItems=${surfaceDepthItemCount}/9 recordChain=${recordChain} ` +
+    `executionLocks=${executionLockCount}/6 trust=${canTrustProviderReview ? "ready" : "review"} ` +
+    "metadataOnly=locked execution=locked"
+  );
+}
+
 export function buildPhase4ProviderTraceabilitySummary({
   catalogDepth,
   refreshSafety,
@@ -490,19 +520,20 @@ export function buildPhase4ProviderTraceabilitySummary({
     item.status === "unsupported" ||
     item.status === "unavailable"
   ).length;
-  const draft = {
+  const canTrustProviderReview =
+    state === "ready" &&
+    isCurrentActiveRemainingGoal(goal) &&
+    currentActiveGoalIds.length === 1 &&
+    missingPmTaskIds.length === 0 &&
+    catalogDepth.executionLockCount >= 6 &&
+    !surfaceDepth.canEnableExecution;
+  const draftWithoutProof = {
     id: TRACE_ID,
     label: TRACE_LABEL,
     state,
     statusLabel: STATUS_LABELS[state],
     readiness: scoreItems(items),
-    canTrustProviderReview:
-      state === "ready" &&
-      isCurrentActiveRemainingGoal(goal) &&
-      currentActiveGoalIds.length === 1 &&
-      missingPmTaskIds.length === 0 &&
-      catalogDepth.executionLockCount >= 6 &&
-      !surfaceDepth.canEnableExecution,
+    canTrustProviderReview,
     readyCount,
     previewCount,
     setupRequiredCount,
@@ -517,6 +548,10 @@ export function buildPhase4ProviderTraceabilitySummary({
     nextAction: firstNextAction(items),
     safety: SAFETY,
     items
+  };
+  const draft = {
+    ...draftWithoutProof,
+    traceabilityProof: traceabilityProof(draftWithoutProof)
   };
 
   return {

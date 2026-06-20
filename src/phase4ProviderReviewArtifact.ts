@@ -151,6 +151,25 @@ const REQUIRED_REFRESH_SAFETY_DEPTH_PROOF_TERMS = [
   "metadataOnly=locked",
   "execution=locked"
 ] as const;
+const REQUIRED_TRACEABILITY_PROOF_TERMS = [
+  "items=7/7",
+  "ready=7",
+  "preview=0",
+  "setupRequired=0",
+  "held=0",
+  "itemKinds=active-goal|pm-coverage|catalog-depth|refresh-safety|surface-depth|record-chain|execution-lock",
+  "activeGoal=goal-phase-4-provider-surfaces",
+  "pmLinks=15/15",
+  "missingPm=0",
+  "catalogRecords=6/6",
+  "refreshRecords=8/8",
+  "surfaceItems=9/9",
+  "recordChain=ready",
+  "executionLocks=6/6",
+  "trust=ready",
+  "metadataOnly=locked",
+  "execution=locked"
+] as const;
 const REQUIRED_CATALOG_DEPTH_PROOF_TERMS = [
   "records=6/6",
   "ready=6",
@@ -873,6 +892,33 @@ function findRefreshSafetyDepthProofReview(
   return undefined;
 }
 
+function findTraceabilityProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const traceabilityProof = artifact.traceability.traceabilityProof?.trim();
+
+  if (!traceabilityProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing traceability aggregate proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after the traceability summary includes goal, PM, depth, record-chain, and execution-lock proof."
+    };
+  }
+
+  const missingTerms = REQUIRED_TRACEABILITY_PROOF_TERMS.filter(
+    (term) => !traceabilityProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete traceability aggregate proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after traceability proof includes active-goal, PM-link, depth-count, record-chain, trust, and execution-lock terms."
+    };
+  }
+
+  return undefined;
+}
+
 export function buildPhase4ProviderReviewArtifact(
   input: Phase4ProviderReviewArtifactBuildInput
 ): Phase4ProviderReviewArtifact {
@@ -1214,6 +1260,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       surfaceOwnerBoundaryProofReview.detail,
       surfaceOwnerBoundaryProofReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const traceabilityProofReview = findTraceabilityProofReview(artifact);
+  if (traceabilityProofReview) {
+    return result(
+      "review",
+      artifact,
+      traceabilityProofReview.detail,
+      traceabilityProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

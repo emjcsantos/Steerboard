@@ -376,8 +376,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-traceability",
             title: "Provider Traceability",
-            description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval, audit, rollback, permission records, aggregate record-chain proof, and execution locks before provider execution is considered.",
-            completionPercent: 70,
+            description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval, audit, rollback, permission records, aggregate traceability proof, aggregate record-chain proof, and execution locks before provider execution is considered.",
+            completionPercent: 72,
             complexity: "high",
             sourceDocument: "Phase 4 provider traceability"
           },

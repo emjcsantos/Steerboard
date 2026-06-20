@@ -8679,6 +8679,7 @@ export function Phase4ProviderTraceabilityPanel({
             </li>
           ))}
         </ol>
+        <small>{summary.traceabilityProof}</small>
         <small title={summary.nextAction}>{summary.nextAction}</small>
       </div>
     </section>
