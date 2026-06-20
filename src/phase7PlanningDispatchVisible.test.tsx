@@ -126,6 +126,12 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("phase7DispatchClosureGate");
     expect(html).toContain("canClose=");
     expect(html).toContain("canSpawn=no");
+    expect(html).toContain("Dispatch closeout proof");
+    expect(html).toContain("Phase 7 dispatch closeout proof");
+    expect(html).toContain("phase7DispatchCloseoutProof");
+    expect(html).toContain("artifactVerification=ready");
+    expect(html).toContain("launchGate=");
+    expect(html).toContain("closureGate=");
     expect(html).toContain("local metadata only");
   });
 
@@ -148,6 +154,8 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("phase7LiveWorkerLaunchGate state=review");
     expect(html).toContain("Dispatch closure gate");
     expect(html).toContain("phase7DispatchClosureGate state=review");
+    expect(html).toContain("Dispatch closeout proof");
+    expect(html).toContain("phase7DispatchCloseoutProof state=review");
     expect(html).toContain("Reviewable");
   });
 
@@ -187,6 +195,8 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("canSpawn=no");
     expect(html).toContain("Dispatch closure gate");
     expect(html).toContain("phase7DispatchClosureGate state=blocked");
+    expect(html).toContain("Dispatch closeout proof");
+    expect(html).toContain("phase7DispatchCloseoutProof state=blocked");
     expect(html).toContain("dispatch-review addressable");
   });
 });

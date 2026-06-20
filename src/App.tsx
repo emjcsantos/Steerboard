@@ -265,6 +265,10 @@ import {
   type Phase7DispatchClosureGate
 } from "./phase7DispatchClosureGate";
 import {
+  buildPhase7DispatchCloseoutProof,
+  type Phase7DispatchCloseoutProof
+} from "./phase7DispatchCloseoutProof";
+import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
 } from "./pipelineItemRunLink";
@@ -7168,6 +7172,11 @@ export function DispatchReviewRecordCard({
     artifactVerification,
     launchGate: liveWorkerLaunchGate
   });
+  const dispatchCloseoutProof = buildPhase7DispatchCloseoutProof({
+    artifactVerification,
+    launchGate: liveWorkerLaunchGate,
+    closureGate: dispatchClosureGate
+  });
 
   return (
     <article
@@ -7354,8 +7363,56 @@ export function DispatchReviewRecordCard({
       <DispatchReviewArtifactVerificationSummary verification={artifactVerification} />
       <DispatchLiveWorkerLaunchGateSummary gate={liveWorkerLaunchGate} />
       <DispatchClosureGateSummary gate={dispatchClosureGate} />
+      <DispatchCloseoutProofSummary closeout={dispatchCloseoutProof} />
       <small>{record.noRuntimeExecutionNote}</small>
     </article>
+  );
+}
+
+function DispatchCloseoutProofSummary({
+  closeout
+}: {
+  closeout: Phase7DispatchCloseoutProof;
+}) {
+  return (
+    <div
+      aria-label={`Phase 7 dispatch closeout proof: ${closeout.statusLabel}; can close ${closeout.canCloseDispatchReview ? "yes" : "no"}; can spawn ${closeout.canSpawnLiveWorker ? "yes" : "no"}; next action: ${closeout.nextAction}`}
+      className={classNames(
+        "dispatch-closeout-proof",
+        `dispatch-closeout-proof-${closeout.state}`
+      )}
+      title={closeout.detail}
+    >
+      <div className="dispatch-closeout-proof-header">
+        <strong>Dispatch closeout proof</strong>
+        <span>{closeout.statusLabel}</span>
+        <b>{closeout.readiness}%</b>
+      </div>
+      <dl className="dispatch-closeout-proof-grid" aria-label="Phase 7 dispatch closeout proof counts">
+        <div>
+          <dt>Close</dt>
+          <dd>{closeout.canCloseDispatchReview ? "Yes" : "No"}</dd>
+        </div>
+        <div>
+          <dt>Spawn</dt>
+          <dd>{closeout.canSpawnLiveWorker ? "Yes" : "No"}</dd>
+        </div>
+        <div>
+          <dt>Gates</dt>
+          <dd>
+            {closeout.artifactVerificationState}/{closeout.launchGateState}/
+            {closeout.closureGateState}
+          </dd>
+        </div>
+        <div>
+          <dt>Open</dt>
+          <dd>{closeout.openBlockerCount}</dd>
+        </div>
+      </dl>
+      <p>{closeout.detail}</p>
+      <small>{closeout.nextAction}</small>
+      <small>{closeout.closeoutProof}</small>
+    </div>
   );
 }
 
