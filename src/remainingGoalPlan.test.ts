@@ -633,31 +633,31 @@ describe("remaining goal plan", () => {
       completionPercent: 99
     });
     expect(phase4Epic?.completionPercent).toBe(99);
-    expect(commandSkillChild?.completionPercent).toBe(86);
+    expect(commandSkillChild?.completionPercent).toBe(99);
     expect(commandSkillChild?.description).toContain("commandScopeProof");
-    expect(pluginMcpChild?.completionPercent).toBe(86);
+    expect(pluginMcpChild?.completionPercent).toBe(99);
     expect(pluginMcpChild?.description).toContain("mcpToolPolicyProof");
-    expect(catalogDepthChild?.completionPercent).toBe(86);
+    expect(catalogDepthChild?.completionPercent).toBe(99);
     expect(catalogDepthChild?.description).toContain("catalogDepthProof");
-    expect(refreshSafetyParent?.completionPercent).toBe(86);
-    expect(refreshSmokeChild?.completionPercent).toBe(86);
+    expect(refreshSafetyParent?.completionPercent).toBe(99);
+    expect(refreshSmokeChild?.completionPercent).toBe(99);
     expect(refreshSmokeChild?.description).toContain("refreshSmokeProof");
-    expect(refreshSafetyDepthChild?.completionPercent).toBe(86);
+    expect(refreshSafetyDepthChild?.completionPercent).toBe(99);
     expect(refreshSafetyDepthChild?.description).toContain("refreshSafetyDepthProof");
-    expect(surfaceDepthChild?.completionPercent).toBe(86);
+    expect(surfaceDepthChild?.completionPercent).toBe(99);
     expect(surfaceDepthChild?.description).toContain("surfaceDepthProof");
     expect(surfaceDepthChild?.description).toContain("localRecordValidationProof");
-    expect(approvalRecordChild?.completionPercent).toBe(86);
+    expect(approvalRecordChild?.completionPercent).toBe(99);
     expect(approvalRecordChild?.description).toContain("approvalChainProof");
-    expect(auditRecordChild?.completionPercent).toBe(86);
+    expect(auditRecordChild?.completionPercent).toBe(99);
     expect(auditRecordChild?.description).toContain("auditChainProof");
-    expect(rollbackRecordChild?.completionPercent).toBe(86);
+    expect(rollbackRecordChild?.completionPercent).toBe(99);
     expect(rollbackRecordChild?.description).toContain("rollbackChainProof");
-    expect(permissionRecordChild?.completionPercent).toBe(86);
+    expect(permissionRecordChild?.completionPercent).toBe(99);
     expect(permissionRecordChild?.description).toContain("permissionChainProof");
-    expect(traceabilityChild?.completionPercent).toBe(86);
+    expect(traceabilityChild?.completionPercent).toBe(99);
     expect(traceabilityChild?.description).toContain("traceabilityProof");
-    expect(blockerPriorityChild?.completionPercent).toBe(86);
+    expect(blockerPriorityChild?.completionPercent).toBe(99);
     expect(blockerPriorityChild?.description).toContain("blockerPriorityProof");
     expect(phase4Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([

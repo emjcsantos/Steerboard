@@ -33,13 +33,13 @@ describe("project management phase plan", () => {
     const refreshSmokeChild = byId.get("phase-04-child-refresh-smoke");
     const refreshSafetyDepthChild = byId.get("phase-04-child-refresh-safety-depth");
 
-    expect(catalogParent?.completionPercent).toBe(86);
-    expect(commandSkillChild?.completionPercent).toBe(86);
-    expect(pluginMcpChild?.completionPercent).toBe(86);
-    expect(catalogDepthChild?.completionPercent).toBe(86);
-    expect(refreshParent?.completionPercent).toBe(86);
-    expect(refreshSmokeChild?.completionPercent).toBe(86);
-    expect(refreshSafetyDepthChild?.completionPercent).toBe(86);
+    expect(catalogParent?.completionPercent).toBe(99);
+    expect(commandSkillChild?.completionPercent).toBe(99);
+    expect(pluginMcpChild?.completionPercent).toBe(99);
+    expect(catalogDepthChild?.completionPercent).toBe(99);
+    expect(refreshParent?.completionPercent).toBe(99);
+    expect(refreshSmokeChild?.completionPercent).toBe(99);
+    expect(refreshSafetyDepthChild?.completionPercent).toBe(99);
     expect(catalogParent?.completionPercent).toBeGreaterThanOrEqual(
       catalogDepthChild?.completionPercent ?? 0
     );
@@ -76,7 +76,7 @@ describe("project management phase plan", () => {
       traceabilityChild,
       blockerPriorityChild
     ]) {
-      expect(row?.completionPercent, row?.id).toBe(86);
+      expect(row?.completionPercent, row?.id).toBe(99);
       expect(catalogParent?.completionPercent).toBeGreaterThanOrEqual(row?.completionPercent ?? 0);
     }
     expect(surfaceDepthChild?.description).toContain("surfaceDepthProof");
