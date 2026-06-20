@@ -94,10 +94,12 @@ describe("project management phase plan", () => {
     const byId = new Map(tasks.map((task) => [task.id, task]));
     const auditParent = byId.get("phase-08-parent-audit-log");
     const auditPersistenceChild = byId.get("phase-08-child-audit-persistence");
+    const ownerReviewHandoffChild = byId.get("phase-08-child-owner-review-handoff");
     const completionGateChild = byId.get("phase-08-child-completion-gate");
 
-    expect(auditParent?.completionPercent).toBe(68);
+    expect(auditParent?.completionPercent).toBe(72);
     expect(auditPersistenceChild?.completionPercent).toBe(65);
+    expect(ownerReviewHandoffChild?.completionPercent).toBe(72);
     expect(completionGateChild?.completionPercent).toBe(68);
     expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
       auditPersistenceChild?.completionPercent ?? 0
@@ -105,7 +107,11 @@ describe("project management phase plan", () => {
     expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
       completionGateChild?.completionPercent ?? 0
     );
+    expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
+      ownerReviewHandoffChild?.completionPercent ?? 0
+    );
     expect(auditParent?.description).toContain("auditPersistenceProof");
+    expect(auditParent?.description).toContain("phase8AuditReviewHandoffProof");
     expect(auditParent?.description).toContain("phase8PermissionAuditCompletionGate");
     expect(auditParent?.description).toContain("state/readiness/record/open-exception counts");
     expect(auditPersistenceChild?.description).toContain("auditPersistenceProof");
@@ -114,6 +120,8 @@ describe("project management phase plan", () => {
     );
     expect(completionGateChild?.description).toContain("phase8PermissionAuditCompletionGate");
     expect(completionGateChild?.description).toContain("mutation paths locked");
+    expect(ownerReviewHandoffChild?.description).toContain("phase8AuditReviewHandoffProof");
+    expect(ownerReviewHandoffChild?.description).toContain("current top blocker");
   });
 
   it("keeps Phase 8 risk gate progress aligned with permission and blocker proof", () => {

@@ -69,6 +69,7 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-08-child-blocker-priority",
   "phase-08-parent-audit-log",
   "phase-08-child-audit-persistence",
+  "phase-08-child-owner-review-handoff",
   "phase-08-child-completion-gate"
 ];
 const SAFETY =
@@ -232,7 +233,7 @@ function pmCoverageItem(
     label: "PM row coverage",
     kind: "pm-coverage",
     status: "ready",
-    detail: `${goal.pmTaskIds.length} Phase 8 PM task links cover risk gates, exception rows, audit persistence, traceability, blocker priority, and completion gate.`,
+    detail: `${goal.pmTaskIds.length} Phase 8 PM task links cover risk gates, exception rows, audit persistence, owner review handoff, traceability, blocker priority, and completion gate.`,
     nextAction: "Keep Phase 8 goal links aligned with the Project Management Epic, Parent, and Child rows."
   };
 }

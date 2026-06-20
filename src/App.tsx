@@ -678,6 +678,7 @@ import {
   buildPhase8PermissionAuditDepth,
   type Phase8PermissionAuditDepthSnapshot
 } from "./phase8PermissionAuditDepth";
+import { buildPhase8AuditReviewHandoff } from "./phase8AuditReviewHandoff";
 import { buildPhase8PermissionAuditCompletionGate } from "./phase8PermissionAuditCompletionGate";
 import {
   clearPhase8AuditReviewRecord,
@@ -15610,6 +15611,13 @@ export function Phase8PermissionAuditDepthPanel({
     snapshot,
     traceability
   });
+  const auditReviewHandoff = buildPhase8AuditReviewHandoff({
+    snapshot,
+    traceability,
+    blockerPriority,
+    artifactVerification,
+    reviewRecord
+  });
   const completionGate = buildPhase8PermissionAuditCompletionGate({
     snapshot,
     traceability,
@@ -15772,6 +15780,24 @@ export function Phase8PermissionAuditDepthPanel({
             </div>
           </div>
         ) : null}
+        <div
+          aria-label={auditReviewHandoff.ariaLabel}
+          className={classNames(
+            "phase8-audit-review-record",
+            `phase8-audit-review-record-${auditReviewHandoff.state}`
+          )}
+          title={auditReviewHandoff.safety}
+        >
+          <div>
+            <strong>{auditReviewHandoff.label}</strong>
+            <span>
+              {auditReviewHandoff.statusLabel} / recordable{" "}
+              {auditReviewHandoff.canRecordOwnerReview ? "yes" : "no"}
+            </span>
+            <small>{auditReviewHandoff.nextAction}</small>
+            <small>{auditReviewHandoff.phase8AuditReviewHandoffProof}</small>
+          </div>
+        </div>
         {importedArtifactVerification ? (
           <div
             aria-label={`Imported Phase 8 audit review artifact verifier ${importedArtifactVerification.statusLabel}; ${importedArtifactVerification.readiness}% ready`}

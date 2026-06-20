@@ -31,10 +31,10 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 84,
+      averageCompletionPercent: 85,
       currentTarget: "Permission and audit depth",
       currentNextAction:
-        "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof, phase8PermissionAuditCompletionGate, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, completion-gate closure proof, and the exact top blocker before mutation paths grow.",
+        "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof, phase8AuditReviewHandoffProof, phase8PermissionAuditCompletionGate, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, owner-review handoff proof, completion-gate closure proof, and the exact top blocker before mutation paths grow.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -619,15 +619,18 @@ describe("remaining goal plan", () => {
     const completionGateChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-08-child-completion-gate"
     );
+    const ownerReviewHandoffChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-08-child-owner-review-handoff"
+    );
 
     expect(phase8Goal).toMatchObject({
       target: "Permission and audit depth",
       priority: "high",
       status: "active",
       current: true,
-      completionPercent: 68
+      completionPercent: 72
     });
-    expect(phase8Epic?.completionPercent).toBe(68);
+    expect(phase8Epic?.completionPercent).toBe(72);
     expect(permissionLabelsChild?.completionPercent).toBe(65);
     expect(permissionLabelsChild?.description).toContain("permissionLabelSummaryProof total");
     expect(riskBlockersChild?.completionPercent).toBe(65);
@@ -644,6 +647,8 @@ describe("remaining goal plan", () => {
     expect(auditPersistenceChild?.description).toContain("auditPersistenceProof state/readiness/record");
     expect(completionGateChild?.completionPercent).toBe(68);
     expect(completionGateChild?.description).toContain("phase8PermissionAuditCompletionGate");
+    expect(ownerReviewHandoffChild?.completionPercent).toBe(72);
+    expect(ownerReviewHandoffChild?.description).toContain("phase8AuditReviewHandoffProof");
     expect(phase8Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-08-child-permission-labels",
@@ -652,6 +657,7 @@ describe("remaining goal plan", () => {
         "phase-08-child-traceability",
         "phase-08-child-blocker-priority",
         "phase-08-child-audit-persistence",
+        "phase-08-child-owner-review-handoff",
         "phase-08-child-completion-gate"
       ])
     );
@@ -664,6 +670,7 @@ describe("remaining goal plan", () => {
     expect(phase8Goal?.nextAction).toContain("riskExceptionSummaryProof");
     expect(phase8Goal?.nextAction).toContain("traceabilityProof");
     expect(phase8Goal?.nextAction).toContain("auditPersistenceProof");
+    expect(phase8Goal?.nextAction).toContain("phase8AuditReviewHandoffProof");
     expect(phase8Goal?.nextAction).toContain("phase8PermissionAuditCompletionGate");
     expect(phase8Goal?.nextAction).toContain("local owner audit-review record");
     expect(phase8Goal?.nextAction).toContain("current audit evidence fingerprint");

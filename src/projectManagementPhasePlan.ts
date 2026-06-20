@@ -682,8 +682,8 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-08-permissions-audit",
     title: "Phase 8: Permissions and Audit",
-    description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, current owner audit-review fingerprints, record-specific rollback evidence, and phase8PermissionAuditCompletionGate proof before mutation-capable paths expand.",
-    completionPercent: 68,
+    description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, current owner audit-review fingerprints, record-specific rollback evidence, phase8AuditReviewHandoffProof, and phase8PermissionAuditCompletionGate proof before mutation-capable paths expand.",
+    completionPercent: 72,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -738,8 +738,8 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-08-parent-audit-log",
         title: "Owner-Visible Audit Trail",
-        description: "Record attempted actions, owner audit reviews, approvals, blocked states, validation outcomes, record-specific rollback reviews, audit persistence depth, compact auditPersistenceProof state/readiness/record/open-exception counts, and phase8PermissionAuditCompletionGate proof for local owner-review persistence.",
-        completionPercent: 68,
+        description: "Record attempted actions, owner audit reviews, approvals, blocked states, validation outcomes, record-specific rollback reviews, audit persistence depth, compact auditPersistenceProof state/readiness/record/open-exception counts, phase8AuditReviewHandoffProof, and phase8PermissionAuditCompletionGate proof for local owner-review persistence.",
+        completionPercent: 72,
         complexity: "high",
         sourceDocument: "Audit requirements",
         children: [
@@ -750,6 +750,14 @@ const phaseSpecs: PhaseSpec[] = [
             completionPercent: 65,
             complexity: "high",
             sourceDocument: "Audit storage"
+          },
+          {
+            id: "phase-08-child-owner-review-handoff",
+            title: "Owner Review Handoff",
+            description: "Show the Phase 8 owner audit-review handoff with recordable/recorded state, artifact verification state, current top blocker source/status/reviewability, mutation lock, traceability trust, open blocker and exception counts, and compact phase8AuditReviewHandoffProof before owner-review records are treated as closure evidence.",
+            completionPercent: 72,
+            complexity: "high",
+            sourceDocument: "Phase 8 owner review handoff"
           },
           {
             id: "phase-08-child-completion-gate",
