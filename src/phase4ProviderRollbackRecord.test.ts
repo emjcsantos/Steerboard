@@ -109,6 +109,10 @@ describe("phase 4 provider rollback record", () => {
       matchesCurrentAudit: true,
       matchesCurrentAuditEvidence: true,
       matchesCurrentSurfaceDepthEvidence: true,
+      mutationLocked: true,
+      rollbackChainProof: expect.stringContaining(
+        "approvalMatch=matched auditMatch=matched auditEvidenceMatch=matched surfaceMatch=matched owner=present action=present mutation=locked execution=locked"
+      ),
       recordAgeMs: 300_000
     });
   });
@@ -130,7 +134,9 @@ describe("phase 4 provider rollback record", () => {
       matchesCurrentApproval: false,
       matchesCurrentAudit: false,
       matchesCurrentAuditEvidence: false,
-      matchesCurrentSurfaceDepthEvidence: false
+      matchesCurrentSurfaceDepthEvidence: false,
+      mutationLocked: false,
+      rollbackChainProof: expect.stringContaining("mutation=review execution=locked")
     });
   });
 
@@ -227,7 +233,12 @@ describe("phase 4 provider rollback record", () => {
         expectedSurfaceDepthEvidenceFingerprint: surfaceDepthEvidenceFingerprint,
         options: { evaluatedAt: "2026-06-18T10:25:00.000Z" }
       })
-    ).toMatchObject({ state: "review", detail: expect.stringContaining("mutation lock") });
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("mutation lock"),
+      mutationLocked: false,
+      rollbackChainProof: expect.stringContaining("mutation=review execution=locked")
+    });
   });
 
   it("parses public-safe records and rejects malformed storage", () => {

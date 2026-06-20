@@ -164,6 +164,26 @@ const REQUIRED_AUDIT_CHAIN_PROOF_TERMS = [
   "mutation=locked",
   "execution=locked"
 ] as const;
+const REQUIRED_ROLLBACK_CHAIN_PROOF_TERMS = [
+  "approval=",
+  "expectedApproval=",
+  "audit=",
+  "expectedAudit=",
+  "catalog=",
+  "expectedCatalog=",
+  "auditEvidence=",
+  "expectedAuditEvidence=",
+  "surfaceDepth=",
+  "expectedSurfaceDepth=",
+  "approvalMatch=",
+  "auditMatch=",
+  "auditEvidenceMatch=",
+  "surfaceMatch=",
+  "owner=present",
+  "action=present",
+  "mutation=locked",
+  "execution=locked"
+] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -406,6 +426,33 @@ function findAuditValidationChainProofReview(
       detail: `Phase 4 provider review artifact has incomplete audit validation chain proof: missing ${missingTerms.join(", ")}.`,
       nextAction:
         "Re-export Phase 4 provider review evidence after audit validation chain proof includes the required record-chain proof terms."
+    };
+  }
+
+  return undefined;
+}
+
+function findRollbackValidationChainProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const rollbackChainProof = artifact.rollbackValidation?.rollbackChainProof?.trim();
+
+  if (!artifact.rollbackValidation || !rollbackChainProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing rollback validation chain proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after rollback validation chain proof shows approval, audit, catalog, surface-depth, owner/action, mutation-lock, and execution-lock proof."
+    };
+  }
+
+  const missingTerms = REQUIRED_ROLLBACK_CHAIN_PROOF_TERMS.filter(
+    (term) => !rollbackChainProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete rollback validation chain proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after rollback validation chain proof includes the required record-chain proof terms."
     };
   }
 
@@ -670,6 +717,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       auditValidationChainProofReview.detail,
       auditValidationChainProofReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const rollbackValidationChainProofReview = findRollbackValidationChainProofReview(artifact);
+  if (rollbackValidationChainProofReview) {
+    return result(
+      "review",
+      artifact,
+      rollbackValidationChainProofReview.detail,
+      rollbackValidationChainProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

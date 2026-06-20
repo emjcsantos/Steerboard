@@ -361,7 +361,7 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("refreshSafety=ready ready=8 preview=0 blocked=0");
     expect(html).toContain("catalogMatch=matched execution=locked");
     expect(html).toContain("auditMatch=matched mutation=locked execution=locked");
-    expect(html).toContain("surfaceMatch=matched mutation=locked execution=locked");
+    expect(html).toContain("surfaceMatch=matched owner=present action=present mutation=locked execution=locked");
     expect(html).toContain("permissionMatch=matched mutation=locked execution=locked");
     expect(html).toContain("active-goal");
     expect(html).toContain("Phase 4 provider blocker priority");

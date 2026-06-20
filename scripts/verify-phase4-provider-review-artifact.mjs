@@ -55,6 +55,26 @@ const requiredAuditChainProofTerms = [
   "mutation=locked",
   "execution=locked"
 ];
+const requiredRollbackChainProofTerms = [
+  "approval=",
+  "expectedApproval=",
+  "audit=",
+  "expectedAudit=",
+  "catalog=",
+  "expectedCatalog=",
+  "auditEvidence=",
+  "expectedAuditEvidence=",
+  "surfaceDepth=",
+  "expectedSurfaceDepth=",
+  "approvalMatch=",
+  "auditMatch=",
+  "auditEvidenceMatch=",
+  "surfaceMatch=",
+  "owner=present",
+  "action=present",
+  "mutation=locked",
+  "execution=locked"
+];
 const maxArtifactAgeMs = 24 * 60 * 60 * 1000;
 
 function fail(message) {
@@ -336,6 +356,15 @@ function verifyArtifact(artifact) {
   }
   if (rollback.record.auditRecordId !== audit.record.id) {
     throw new Error("rollback record does not reference the audit record");
+  }
+  assertNonEmptyString(rollback.validation.rollbackChainProof, "rollback validation rollbackChainProof");
+  {
+    const missingTerms = requiredRollbackChainProofTerms.filter(
+      (term) => !rollback.validation.rollbackChainProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`rollback validation rollbackChainProof is missing ${missingTerms.join(", ")}`);
+    }
   }
   if (permission.record.approvalRecordId !== approval.record.id) {
     throw new Error("permission record does not reference the approval record");

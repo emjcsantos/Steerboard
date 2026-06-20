@@ -46,6 +46,8 @@ export interface Phase4ProviderRollbackRecordValidation {
   readonly matchesCurrentAudit: boolean;
   readonly matchesCurrentAuditEvidence: boolean;
   readonly matchesCurrentSurfaceDepthEvidence: boolean;
+  readonly mutationLocked: boolean;
+  readonly rollbackChainProof: string;
 }
 
 export interface Phase4ProviderRollbackRecordValidationOptions {
@@ -119,6 +121,45 @@ function recordAgeMs(
   return evaluatedAtMs !== undefined && createdAtMs !== undefined
     ? evaluatedAtMs - createdAtMs
     : undefined;
+}
+
+function valueOrMissing(value: string | undefined): string {
+  return value && value.trim().length > 0 ? value : "missing";
+}
+
+function rollbackChainProof(input: {
+  readonly record?: Phase4ProviderRollbackRecord;
+  readonly approvalRecord?: Phase4ProviderApprovalRecord;
+  readonly auditRecord?: Phase4ProviderAuditRecord;
+  readonly expectedCatalogFingerprint?: string;
+  readonly expectedSurfaceDepthEvidenceFingerprint?: string;
+  readonly matchesCurrentCatalog: boolean;
+  readonly matchesCurrentApproval: boolean;
+  readonly matchesCurrentAudit: boolean;
+  readonly matchesCurrentAuditEvidence: boolean;
+  readonly matchesCurrentSurfaceDepthEvidence: boolean;
+}): string {
+  const hasOwner = Boolean(input.record?.rollbackOwner.trim());
+  const hasAction = Boolean(input.record?.rollbackAction.trim());
+
+  return (
+    `approval=${valueOrMissing(input.record?.approvalRecordId)} ` +
+    `expectedApproval=${valueOrMissing(input.approvalRecord?.id)} ` +
+    `audit=${valueOrMissing(input.record?.auditRecordId)} ` +
+    `expectedAudit=${valueOrMissing(input.auditRecord?.id)} ` +
+    `catalog=${valueOrMissing(input.record?.catalogFingerprint)} ` +
+    `expectedCatalog=${valueOrMissing(input.expectedCatalogFingerprint)} ` +
+    `auditEvidence=${valueOrMissing(input.record?.auditEvidenceFingerprint)} ` +
+    `expectedAuditEvidence=${valueOrMissing(input.auditRecord?.auditEvidenceFingerprint)} ` +
+    `surfaceDepth=${valueOrMissing(input.record?.surfaceDepthEvidenceFingerprint)} ` +
+    `expectedSurfaceDepth=${valueOrMissing(input.expectedSurfaceDepthEvidenceFingerprint)} ` +
+    `approvalMatch=${input.matchesCurrentApproval ? "matched" : "review"} ` +
+    `auditMatch=${input.matchesCurrentAudit ? "matched" : "review"} ` +
+    `auditEvidenceMatch=${input.matchesCurrentAuditEvidence ? "matched" : "review"} ` +
+    `surfaceMatch=${input.matchesCurrentSurfaceDepthEvidence ? "matched" : "review"} ` +
+    `owner=${hasOwner ? "present" : "missing"} action=${hasAction ? "present" : "missing"} ` +
+    `mutation=${input.record?.mutationLocked ? "locked" : "review"} execution=locked`
+  );
 }
 
 function stableJson(value: unknown): string {
@@ -356,6 +397,12 @@ export function derivePhase4ProviderRollbackRecordValidation(input: {
     DEFAULT_PHASE4_PROVIDER_ROLLBACK_RECORD_MAX_AGE_MS;
 
   if (!input.record) {
+    const matchesCurrentCatalog = false;
+    const matchesCurrentApproval = false;
+    const matchesCurrentAudit = false;
+    const matchesCurrentAuditEvidence = false;
+    const matchesCurrentSurfaceDepthEvidence = false;
+
     return {
       state: "preview",
       detail: "Provider rollback record is not attached yet.",
@@ -367,11 +414,23 @@ export function derivePhase4ProviderRollbackRecordValidation(input: {
       expectedAuditEvidenceFingerprint: input.auditRecord?.auditEvidenceFingerprint,
       expectedSurfaceDepthEvidenceFingerprint: input.expectedSurfaceDepthEvidenceFingerprint,
       maxRecordAgeMs,
-      matchesCurrentCatalog: false,
-      matchesCurrentApproval: false,
-      matchesCurrentAudit: false,
-      matchesCurrentAuditEvidence: false,
-      matchesCurrentSurfaceDepthEvidence: false
+      matchesCurrentCatalog,
+      matchesCurrentApproval,
+      matchesCurrentAudit,
+      matchesCurrentAuditEvidence,
+      matchesCurrentSurfaceDepthEvidence,
+      mutationLocked: false,
+      rollbackChainProof: rollbackChainProof({
+        approvalRecord: input.approvalRecord,
+        auditRecord: input.auditRecord,
+        expectedCatalogFingerprint: input.expectedCatalogFingerprint,
+        expectedSurfaceDepthEvidenceFingerprint: input.expectedSurfaceDepthEvidenceFingerprint,
+        matchesCurrentCatalog,
+        matchesCurrentApproval,
+        matchesCurrentAudit,
+        matchesCurrentAuditEvidence,
+        matchesCurrentSurfaceDepthEvidence
+      })
     };
   }
 
@@ -409,7 +468,20 @@ export function derivePhase4ProviderRollbackRecordValidation(input: {
     matchesCurrentApproval,
     matchesCurrentAudit,
     matchesCurrentAuditEvidence,
-    matchesCurrentSurfaceDepthEvidence
+    matchesCurrentSurfaceDepthEvidence,
+    mutationLocked: input.record.mutationLocked,
+    rollbackChainProof: rollbackChainProof({
+      record: input.record,
+      approvalRecord: input.approvalRecord,
+      auditRecord: input.auditRecord,
+      expectedCatalogFingerprint: input.expectedCatalogFingerprint,
+      expectedSurfaceDepthEvidenceFingerprint: input.expectedSurfaceDepthEvidenceFingerprint,
+      matchesCurrentCatalog,
+      matchesCurrentApproval,
+      matchesCurrentAudit,
+      matchesCurrentAuditEvidence,
+      matchesCurrentSurfaceDepthEvidence
+    })
   };
 
   if (input.auditValidation.state !== "ready") {

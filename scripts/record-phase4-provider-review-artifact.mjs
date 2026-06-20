@@ -210,7 +210,16 @@ const rollbackValidation = {
   matchesCurrentApproval: true,
   matchesCurrentAudit: true,
   matchesCurrentAuditEvidence: true,
-  matchesCurrentSurfaceDepthEvidence: true
+  matchesCurrentSurfaceDepthEvidence: true,
+  mutationLocked: true,
+  rollbackChainProof:
+    `approval=${approvalRecordId} expectedApproval=${approvalRecordId} ` +
+    `audit=${auditRecordId} expectedAudit=${auditRecordId} ` +
+    `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
+    `auditEvidence=${auditEvidenceFingerprint} expectedAuditEvidence=${auditEvidenceFingerprint} ` +
+    `surfaceDepth=${surfaceDepthEvidenceFingerprint} expectedSurfaceDepth=${surfaceDepthEvidenceFingerprint} ` +
+    "approvalMatch=matched auditMatch=matched auditEvidenceMatch=matched surfaceMatch=matched " +
+    "owner=present action=present mutation=locked execution=locked"
 };
 const permissionRecord = {
   id: permissionRecordId,
@@ -357,7 +366,7 @@ const artifact = {
         "rollback-gate",
         "Rollback gate",
         "Provider rollback metadata is ready.",
-        `approval=${approvalRecordId} audit=${auditRecordId} catalog=${currentCatalogFingerprint} auditEvidence=${auditEvidenceFingerprint} surfaceDepth=${surfaceDepthEvidenceFingerprint} approvalMatch=matched auditMatch=matched surfaceMatch=matched mutation=locked execution=locked`
+        rollbackValidation.rollbackChainProof
       ),
       surfaceItem(
         "permission-gate",

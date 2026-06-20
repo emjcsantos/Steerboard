@@ -231,13 +231,7 @@ function withReadyLocalRecords(
       if (item.kind === "rollback-gate") {
         return {
           ...item,
-          ownerBoundaryProof:
-            `approval=${rollbackValidation.recordApprovalRecordId} ` +
-            `audit=${rollbackValidation.recordAuditRecordId} ` +
-            `catalog=${rollbackValidation.recordCatalogFingerprint} ` +
-            `auditEvidence=${rollbackValidation.recordAuditEvidenceFingerprint} ` +
-            `surfaceDepth=${rollbackValidation.recordSurfaceDepthEvidenceFingerprint} ` +
-            `approvalMatch=matched auditMatch=matched surfaceMatch=matched mutation=locked execution=locked`
+          ownerBoundaryProof: rollbackValidation.rollbackChainProof
         };
       }
 
@@ -512,6 +506,31 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("audit validation chain proof"),
       nextAction: expect.stringContaining("audit validation chain proof")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing rollback validation chain proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutRollbackChainProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      rollbackValidation: artifact.rollbackValidation
+        ? { ...artifact.rollbackValidation, rollbackChainProof: "" }
+        : artifact.rollbackValidation
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutRollbackChainProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("rollback validation chain proof"),
+      nextAction: expect.stringContaining("rollback validation chain proof")
     });
   });
 

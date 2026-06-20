@@ -369,16 +369,7 @@ function rollbackGateItem(
         `Expected approval ${rollbackValidation.expectedApprovalRecordId ?? "missing"}, record approval ${rollbackValidation.recordApprovalRecordId ?? "missing"}. ` +
         `Expected audit ${rollbackValidation.expectedAuditRecordId ?? "missing"}, record audit ${rollbackValidation.recordAuditRecordId ?? "missing"}. ` +
         `Expected audit evidence ${rollbackValidation.expectedAuditEvidenceFingerprint ?? "missing"}, record audit evidence ${rollbackValidation.recordAuditEvidenceFingerprint ?? "missing"}.`,
-      ownerBoundaryProof:
-        `approval=${valueOrMissing(rollbackValidation.recordApprovalRecordId)} ` +
-        `audit=${valueOrMissing(rollbackValidation.recordAuditRecordId)} ` +
-        `catalog=${valueOrMissing(rollbackValidation.recordCatalogFingerprint)} ` +
-        `auditEvidence=${valueOrMissing(rollbackValidation.recordAuditEvidenceFingerprint)} ` +
-        `surfaceDepth=${valueOrMissing(rollbackValidation.recordSurfaceDepthEvidenceFingerprint)} ` +
-        `approvalMatch=${rollbackValidation.matchesCurrentApproval ? "matched" : "review"} ` +
-        `auditMatch=${rollbackValidation.matchesCurrentAudit ? "matched" : "review"} ` +
-        `surfaceMatch=${rollbackValidation.matchesCurrentSurfaceDepthEvidence ? "matched" : "review"} ` +
-        `mutation=locked execution=locked`,
+      ownerBoundaryProof: rollbackValidation.rollbackChainProof,
       nextAction: rollbackValidation.nextAction
     };
   }
