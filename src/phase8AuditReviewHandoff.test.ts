@@ -174,6 +174,8 @@ describe("phase 8 audit review handoff", () => {
     expect(handoff.mutationLocked).toBe(true);
     expect(handoff.phase8AuditReviewHandoffProof).toContain("recordable=yes");
     expect(handoff.phase8AuditReviewHandoffProof).toContain("mutation=locked");
+    expect(handoff.phase8AuditReviewHandoffProof).toContain("fingerprintCurrent=no");
+    expect(handoff.phase8AuditReviewHandoffProof).toContain("reviewedBlocker=missing");
     expect(handoff.safety).toContain("does not request approval");
   });
 
@@ -212,6 +214,77 @@ describe("phase 8 audit review handoff", () => {
     expect(handoff.ownerReviewRecorded).toBe(true);
     expect(handoff.reviewRecordId).toBe(reviewRecord.id);
     expect(handoff.phase8AuditReviewHandoffProof).toContain("recorded=yes");
+    expect(handoff.phase8AuditReviewHandoffProof).toContain("artifactState=ready");
+    expect(handoff.phase8AuditReviewHandoffProof).toContain("fingerprintCurrent=yes");
+    expect(handoff.phase8AuditReviewHandoffProof).toContain("reviewedBlocker=attached");
     expect(handoff.phase8AuditReviewHandoffProof).toContain(reviewRecord.id);
+  });
+
+  it("keeps recorded owner reviews in review until the current artifact is ready", () => {
+    const bundle = phase8Bundle({ approved: true });
+    const reviewRecord = createPhase8AuditReviewRecord(
+      bundle.snapshot,
+      "2026-06-18T09:00:00.000Z",
+      bundle.blockerPriority
+    );
+    const handoff = buildPhase8AuditReviewHandoff({
+      ...bundle,
+      artifactVerification: artifactVerification({
+        state: "review",
+        hasReviewRecord: true
+      }),
+      reviewRecord
+    });
+
+    expect(handoff.state).toBe("review");
+    expect(handoff.ownerReviewRecorded).toBe(true);
+    expect(handoff.artifactVerified).toBe(false);
+    expect(handoff.nextAction).toContain("Verify the current Phase 8 audit artifact");
+    expect(handoff.phase8AuditReviewHandoffProof).toContain("artifactState=review");
+    expect(handoff.phase8AuditReviewHandoffProof).toContain("fingerprintCurrent=yes");
+  });
+
+  it("keeps stale owner reviews in review until the audit fingerprint is current", () => {
+    const bundle = phase8Bundle({ approved: true });
+    const staleRecord = createPhase8AuditReviewRecord(
+      {
+        ...bundle.snapshot,
+        riskyActionCount: bundle.snapshot.riskyActionCount + 1
+      },
+      "2026-06-18T09:00:00.000Z",
+      bundle.blockerPriority
+    );
+    const handoff = buildPhase8AuditReviewHandoff({
+      ...bundle,
+      artifactVerification: artifactVerification({ state: "ready", hasReviewRecord: true }),
+      reviewRecord: staleRecord
+    });
+
+    expect(handoff.state).toBe("review");
+    expect(handoff.auditFingerprintCurrent).toBe(false);
+    expect(handoff.nextAction).toContain("current audit fingerprint");
+    expect(handoff.phase8AuditReviewHandoffProof).toContain("fingerprintCurrent=no");
+  });
+
+  it("keeps partial reviewed-blocker records in review", () => {
+    const bundle = phase8Bundle({ approved: true });
+    const partialRecord = {
+      ...createPhase8AuditReviewRecord(
+        bundle.snapshot,
+        "2026-06-18T09:00:00.000Z",
+        bundle.blockerPriority
+      ),
+      topBlockerAction: undefined
+    };
+    const handoff = buildPhase8AuditReviewHandoff({
+      ...bundle,
+      artifactVerification: artifactVerification({ state: "ready", hasReviewRecord: true }),
+      reviewRecord: partialRecord
+    });
+
+    expect(handoff.state).toBe("review");
+    expect(handoff.reviewedBlockerProof).toBe(false);
+    expect(handoff.nextAction).toContain("complete reviewed-blocker proof");
+    expect(handoff.phase8AuditReviewHandoffProof).toContain("reviewedBlocker=missing");
   });
 });

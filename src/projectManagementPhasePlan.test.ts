@@ -97,9 +97,9 @@ describe("project management phase plan", () => {
     const ownerReviewHandoffChild = byId.get("phase-08-child-owner-review-handoff");
     const completionGateChild = byId.get("phase-08-child-completion-gate");
 
-    expect(auditParent?.completionPercent).toBe(80);
+    expect(auditParent?.completionPercent).toBe(84);
     expect(auditPersistenceChild?.completionPercent).toBe(80);
-    expect(ownerReviewHandoffChild?.completionPercent).toBe(72);
+    expect(ownerReviewHandoffChild?.completionPercent).toBe(84);
     expect(completionGateChild?.completionPercent).toBe(68);
     expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
       auditPersistenceChild?.completionPercent ?? 0
@@ -114,6 +114,7 @@ describe("project management phase plan", () => {
     expect(auditParent?.description).toContain("current-fingerprint proof");
     expect(auditParent?.description).toContain("reviewed-blocker proof");
     expect(auditParent?.description).toContain("phase8AuditReviewHandoffProof");
+    expect(auditParent?.description).toContain("artifact-state/fingerprint-current/reviewed-blocker");
     expect(auditParent?.description).toContain("phase8PermissionAuditCompletionGate");
     expect(auditParent?.description).toContain("state/readiness/record/open-exception counts");
     expect(auditPersistenceChild?.description).toContain("auditPersistenceProof");
@@ -125,6 +126,7 @@ describe("project management phase plan", () => {
     expect(completionGateChild?.description).toContain("phase8PermissionAuditCompletionGate");
     expect(completionGateChild?.description).toContain("mutation paths locked");
     expect(ownerReviewHandoffChild?.description).toContain("phase8AuditReviewHandoffProof");
+    expect(ownerReviewHandoffChild?.description).toContain("artifactState/fingerprintCurrent/reviewedBlocker");
     expect(ownerReviewHandoffChild?.description).toContain("current top blocker");
   });
 

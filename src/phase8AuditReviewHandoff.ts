@@ -1,5 +1,8 @@
 import type { Phase8AuditReviewArtifactVerification } from "./phase8AuditReviewArtifact";
-import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
+import {
+  buildPhase8AuditEvidenceFingerprint,
+  type Phase8AuditReviewRecord
+} from "./phase8AuditReviewRecord";
 import type { Phase8PermissionAuditDepthSnapshot } from "./phase8PermissionAuditDepth";
 import type { Phase8RiskBlockerPrioritySummary } from "./phase8RiskBlockerPriority";
 import type { Phase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
@@ -16,7 +19,10 @@ export interface Phase8AuditReviewHandoff {
   readonly ownerReviewRecorded: boolean;
   readonly mutationLocked: boolean;
   readonly artifactVerified: boolean;
+  readonly artifactState: string;
   readonly traceabilityTrusted: boolean;
+  readonly auditFingerprintCurrent: boolean;
+  readonly reviewedBlockerProof: boolean;
   readonly openBlockerCount: number;
   readonly openExceptionCount: number;
   readonly topBlockerSourceId: string;
@@ -59,6 +65,24 @@ function mutationLocked(input: Phase8AuditReviewHandoffInput): boolean {
   );
 }
 
+function auditFingerprintCurrent(input: Phase8AuditReviewHandoffInput): boolean {
+  return Boolean(
+    input.reviewRecord?.auditEvidenceFingerprint &&
+      input.reviewRecord.auditEvidenceFingerprint ===
+        buildPhase8AuditEvidenceFingerprint(input.snapshot)
+  );
+}
+
+function hasReviewedBlockerProof(record: Phase8AuditReviewRecord | undefined): boolean {
+  return Boolean(
+    record?.topBlockerLabel &&
+      record.topBlockerSourceId &&
+      record.topBlockerKind &&
+      record.topBlockerStatus &&
+      record.topBlockerAction
+  );
+}
+
 function resolveState(input: Phase8AuditReviewHandoffInput): Phase8AuditReviewHandoffState {
   if (
     input.snapshot.state === "blocked" ||
@@ -71,7 +95,11 @@ function resolveState(input: Phase8AuditReviewHandoffInput): Phase8AuditReviewHa
   }
 
   if (input.reviewRecord) {
-    return input.artifactVerification?.state === "waiting" ? "review" : "ready";
+    return input.artifactVerification?.state === "ready" &&
+      auditFingerprintCurrent(input) &&
+      hasReviewedBlockerProof(input.reviewRecord)
+      ? "ready"
+      : "review";
   }
 
   if (input.snapshot.state === "waiting" || !input.artifactVerification) {
@@ -105,6 +133,15 @@ function nextActionForState(
     return "Record local owner audit review of the current Phase 8 evidence; mutation paths remain locked and completion still requires artifact and blocker closure proof.";
   }
   if (state === "review") {
+    if (input.reviewRecord && !auditFingerprintCurrent(input)) {
+      return "Re-record owner audit review from the current Phase 8 evidence so handoff proof carries the current audit fingerprint.";
+    }
+    if (input.reviewRecord && !hasReviewedBlockerProof(input.reviewRecord)) {
+      return "Re-record owner audit review with complete reviewed-blocker proof before Phase 8 handoff can close.";
+    }
+    if (input.reviewRecord && input.artifactVerification?.state !== "ready") {
+      return "Verify the current Phase 8 audit artifact as ready before owner-review handoff can close.";
+    }
     return input.blockerPriority.topPriorityAction;
   }
   return "Owner audit review is recorded locally; keep artifact, reviewed-blocker, and mutation-lock proof attached for Phase 8 completion.";
@@ -116,8 +153,11 @@ function buildProof(handoff: Omit<Phase8AuditReviewHandoff, "ariaLabel" | "phase
     `recordable=${handoff.canRecordOwnerReview ? "yes" : "no"} ` +
     `recorded=${handoff.ownerReviewRecorded ? "yes" : "no"} ` +
     `artifact=${handoff.artifactVerified ? "verified" : "held"} ` +
+    `artifactState=${handoff.artifactState} ` +
     `mutation=${handoff.mutationLocked ? "locked" : "unlocked"} ` +
     `traceability=${handoff.traceabilityTrusted ? "ready" : "held"} ` +
+    `fingerprintCurrent=${handoff.auditFingerprintCurrent ? "yes" : "no"} ` +
+    `reviewedBlocker=${handoff.reviewedBlockerProof ? "attached" : "missing"} ` +
     `openBlockers=${handoff.openBlockerCount} openExceptions=${handoff.openExceptionCount} ` +
     `topBlocker=${handoff.topBlockerSourceId} topStatus=${handoff.topBlockerStatus} ` +
     `reviewable=${handoff.topBlockerReviewable ? "yes" : "no"} ` +
@@ -151,7 +191,10 @@ export function buildPhase8AuditReviewHandoff(
     ownerReviewRecorded,
     mutationLocked: mutationLocked(input),
     artifactVerified: input.artifactVerification?.state === "ready",
+    artifactState: input.artifactVerification?.state ?? "missing",
     traceabilityTrusted: input.traceability.canTrustPermissionAudit,
+    auditFingerprintCurrent: auditFingerprintCurrent(input),
+    reviewedBlockerProof: hasReviewedBlockerProof(input.reviewRecord),
     openBlockerCount: input.blockerPriority.openBlockerCount,
     openExceptionCount: input.snapshot.openExceptionCount,
     topBlockerSourceId: input.blockerPriority.topPrioritySourceId,
