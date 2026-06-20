@@ -235,6 +235,7 @@ function withLinkedPhase11Goals(): RemainingGoalPlanItem[] {
               "phase-11-child-proof-freshness-depth",
               "phase-11-child-evidence-records",
               "phase-11-child-fresh-checkout",
+              "phase-11-child-owner-command-closeout-status",
               "phase-11-child-traceability",
               "phase-11-child-blocker-priority"
             ]))
@@ -265,11 +266,11 @@ function underThresholdPhase3ProjectManagementPlan() {
 }
 
 describe("phase 11 owner release traceability", () => {
-  it("holds owner release traceability while Phase 11 goals are still next", () => {
+  it("trusts owner release traceability when Phase 11 goals are next but complete", () => {
     const result = trace();
 
-    expect(result.state).toBe("review");
-    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.state).toBe("ready");
+    expect(result.canTrustOwnerReleaseGate).toBe(true);
     expect(result.missingPmTaskIds).toEqual([]);
     expect(result.linkedGoalIds).toEqual([
       "goal-phase-11-owner-command-center",
@@ -288,7 +289,7 @@ describe("phase 11 owner release traceability", () => {
     ]);
     expect(result.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: "owner-goal", status: "review" }),
+        expect.objectContaining({ kind: "owner-goal", status: "ready" }),
         expect.objectContaining({ kind: "release-goal", status: "ready" }),
         expect.objectContaining({ kind: "pm-coverage", status: "ready" }),
         expect.objectContaining({ kind: "phase3-trace", status: "ready" }),
@@ -349,8 +350,8 @@ describe("phase 11 owner release traceability", () => {
   it("keeps the Phase 3 release trace ready when handoff proof is ready after active work", () => {
     const result = trace();
 
-    expect(result.state).toBe("review");
-    expect(result.canTrustOwnerReleaseGate).toBe(false);
+    expect(result.state).toBe("ready");
+    expect(result.canTrustOwnerReleaseGate).toBe(true);
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

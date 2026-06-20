@@ -5,8 +5,8 @@ import type { Phase11OwnerReleaseBlockerPrioritySummary } from "./phase11OwnerRe
 import type { Phase11OwnerReleaseTraceabilitySummary } from "./phase11OwnerReleaseTraceability";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import {
-  buildPhase11ReleaseCloseoutStatus
-} from "./phase11ReleaseCloseoutStatus";
+  buildPhase11OwnerCommandCloseoutStatus
+} from "./phase11OwnerCommandCloseoutStatus";
 import type { Phase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
 
 function ownerCommand(
@@ -223,9 +223,9 @@ function blockerPriority(
   };
 }
 
-describe("phase 11 release closeout status", () => {
-  it("completes when release readiness, traceability, evidence records, and packaging hold are ready", () => {
-    const status = buildPhase11ReleaseCloseoutStatus({
+describe("phase 11 owner command closeout status", () => {
+  it("completes when owner command, proof freshness, evidence records, PM links, and blockers are ready", () => {
+    const status = buildPhase11OwnerCommandCloseoutStatus({
       ownerCommandCenter: ownerCommand(),
       proofFreshnessDepth: proofFreshness(),
       evidenceRecords: evidenceRecords(),
@@ -236,17 +236,17 @@ describe("phase 11 release closeout status", () => {
 
     expect(status.state).toBe("complete");
     expect(status.implementationComplete).toBe(true);
-    expect(status.canRecommendRelease).toBe(true);
+    expect(status.ownerCommandReady).toBe(true);
     expect(status.packagingPaused).toBe(true);
-    expect(status.phase11ReleaseCloseoutStatusProof).toContain(
-      "phase11ReleaseCloseoutStatusProof=state=complete"
+    expect(status.phase11OwnerCommandCloseoutStatusProof).toContain(
+      "phase11OwnerCommandCloseoutStatusProof=state=complete"
     );
-    expect(status.phase11ReleaseCloseoutStatusProof).toContain("pmLinks=12/12");
-    expect(status.phase11ReleaseCloseoutStatusProof).toContain("packaging=paused");
+    expect(status.phase11OwnerCommandCloseoutStatusProof).toContain("pmLinks=12/12");
+    expect(status.phase11OwnerCommandCloseoutStatusProof).toContain("packaging=paused");
   });
 
-  it("keeps closeout in review while release readiness has evidence holds", () => {
-    const status = buildPhase11ReleaseCloseoutStatus({
+  it("keeps closeout in review while structured evidence remains held", () => {
+    const status = buildPhase11OwnerCommandCloseoutStatus({
       ownerCommandCenter: ownerCommand(),
       proofFreshnessDepth: proofFreshness(),
       evidenceRecords: evidenceRecords({
@@ -259,22 +259,14 @@ describe("phase 11 release closeout status", () => {
         staleCount: 1,
         nextAction: "Refresh clean checkout evidence."
       }),
-      releaseReadiness: releaseReadiness({
-        state: "review",
-        statusLabel: "Review",
-        readiness: 90,
-        canRecommendRelease: false,
-        releaseHoldCount: 1,
-        reviewCount: 1,
-        nextAction: "Refresh clean checkout evidence before release readiness."
-      }),
+      releaseReadiness: releaseReadiness(),
       traceability: traceability({
         state: "review",
         statusLabel: "Review",
         readiness: 90,
         canTrustOwnerReleaseGate: false,
         reviewCount: 1,
-        nextAction: "Refresh evidence records before trusting release traceability."
+        nextAction: "Refresh evidence records before trusting owner command closeout."
       }),
       blockerPriority: blockerPriority({
         state: "review",
@@ -290,41 +282,32 @@ describe("phase 11 release closeout status", () => {
     });
 
     expect(status.state).toBe("review");
-    expect(status.canRecommendRelease).toBe(false);
     expect(status.topHold).toBe("evidence-records");
     expect(status.nextAction).toBe("Refresh clean checkout evidence.");
-    expect(status.phase11ReleaseCloseoutStatusProof).toContain("evidence=held");
+    expect(status.phase11OwnerCommandCloseoutStatusProof).toContain("evidence=held");
   });
 
-  it("blocks closeout when release readiness evidence is blocked", () => {
-    const status = buildPhase11ReleaseCloseoutStatus({
-      ownerCommandCenter: ownerCommand(),
-      proofFreshnessDepth: proofFreshness(),
-      evidenceRecords: evidenceRecords({
-        state: "blocked",
-        statusLabel: "Blocked",
-        readiness: 40,
-        openGateCount: 1,
-        readyCount: 4,
-        blockedCount: 1,
-        malformedCount: 1,
-        nextAction: "Repair docs and known limits evidence."
-      }),
-      releaseReadiness: releaseReadiness({
+  it("blocks closeout when owner command evidence is blocked", () => {
+    const status = buildPhase11OwnerCommandCloseoutStatus({
+      ownerCommandCenter: ownerCommand({
         state: "blocked",
         statusLabel: "Blocked",
         readiness: 0,
-        canRecommendRelease: false,
-        releaseHoldCount: 1,
+        canRelease: false,
+        blockerCount: 1,
         blockedCount: 1,
-        nextAction: "Repair docs and known limits evidence."
+        nextAction: "Repair owner checklist blocker."
       }),
+      proofFreshnessDepth: proofFreshness(),
+      evidenceRecords: evidenceRecords(),
+      releaseReadiness: releaseReadiness(),
       traceability: traceability(),
       blockerPriority: blockerPriority()
     });
 
     expect(status.state).toBe("blocked");
-    expect(status.canRecommendRelease).toBe(false);
-    expect(status.phase11ReleaseCloseoutStatusProof).toContain("release=held");
+    expect(status.ownerCommandReady).toBe(false);
+    expect(status.phase11OwnerCommandCloseoutStatusProof).toContain("owner=held");
   });
-});
+}
+);

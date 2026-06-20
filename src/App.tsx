@@ -774,6 +774,10 @@ import {
   type Phase11ReleaseCloseoutStatus
 } from "./phase11ReleaseCloseoutStatus";
 import {
+  buildPhase11OwnerCommandCloseoutStatus,
+  type Phase11OwnerCommandCloseoutStatus
+} from "./phase11OwnerCommandCloseoutStatus";
+import {
   createReleasePrivacyReadiness,
   type ReleasePrivacyReadinessItemStatus,
   type ReleasePrivacyReadinessSnapshot
@@ -16880,6 +16884,14 @@ export function Phase11OwnerCommandCenterPanel({
     releaseReadiness,
     traceability
   });
+  const ownerCommandCloseoutStatus = buildPhase11OwnerCommandCloseoutStatus({
+    ownerCommandCenter: snapshot,
+    proofFreshnessDepth,
+    evidenceRecords,
+    releaseReadiness,
+    traceability,
+    blockerPriority
+  });
   const closeoutStatus = buildPhase11ReleaseCloseoutStatus({
     ownerCommandCenter: snapshot,
     proofFreshnessDepth,
@@ -17063,10 +17075,50 @@ export function Phase11OwnerCommandCenterPanel({
             )}
           </ol>
         </div>
+        <Phase11OwnerCommandCloseoutStatusPanel status={ownerCommandCloseoutStatus} />
         <Phase11ReleaseCloseoutStatusPanel status={closeoutStatus} />
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
     </section>
+  );
+}
+
+export function Phase11OwnerCommandCloseoutStatusPanel({
+  status
+}: {
+  status: Phase11OwnerCommandCloseoutStatus;
+}) {
+  return (
+    <div
+      aria-label={status.ariaLabel}
+      className={classNames(
+        "phase11-owner-blocker-priority",
+        `phase11-owner-blocker-priority-${status.state}`
+      )}
+      title={status.safety}
+    >
+      <div className="phase11-owner-blocker-priority-header">
+        <strong>{status.label}</strong>
+        <span>{status.statusLabel}</span>
+        <b>{status.readiness}%</b>
+      </div>
+      <dl className="phase11-owner-blocker-priority-grid" aria-label="Phase 11 owner command closeout status counts">
+        <div>
+          <dt>PM</dt>
+          <dd>{status.linkedPmTaskCount}/{status.requiredPmTaskCount}</dd>
+        </div>
+        <div>
+          <dt>Review</dt>
+          <dd>{status.ownerReviewAddressableCount}</dd>
+        </div>
+        <div>
+          <dt>Package</dt>
+          <dd>{status.packagingPaused ? "Paused" : "Review"}</dd>
+        </div>
+      </dl>
+      <small>{status.phase11OwnerCommandCloseoutStatusProof}</small>
+      <small title={status.nextAction}>{status.nextAction}</small>
+    </div>
   );
 }
 

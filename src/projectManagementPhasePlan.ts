@@ -1015,7 +1015,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-11-owner-packaging",
     title: "Phase 11: Owner Testing and Release Readiness",
-    description: "Prepare owner-facing pass/fail command gates, proof-freshness depth, structured evidence records, fresh checkout instructions, packaging locks, known-limit review, final security closure capability, release-decision proof, and phase11ReleaseCloseoutStatusProof.",
+    description: "Prepare owner-facing pass/fail command gates, proof-freshness depth, structured evidence records, fresh checkout instructions, owner-command closeout status, packaging locks, known-limit review, final security closure capability, release-decision proof, phase11OwnerCommandCloseoutStatusProof, and phase11ReleaseCloseoutStatusProof.",
     completionPercent: 100,
     complexity: "high",
     sourceDocument: "Phase completion map",
@@ -1023,40 +1023,48 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-11-parent-owner-testing",
         title: "Owner Testing Flow",
-        description: "Turn owner testing actions into one command-center pass/fail path for proof freshness depth, blockers, phase readiness, evidence records, and next action.",
-        completionPercent: 72,
+        description: "Turn owner testing actions into one command-center pass/fail path for proof freshness depth, blockers, phase readiness, evidence records, next action, and phase11OwnerCommandCloseoutStatusProof.",
+        completionPercent: 100,
         sourceDocument: "Owner testing panel",
         children: [
           {
             id: "phase-11-child-owner-checklist",
             title: "Owner Checklist",
-            description: "Show checklist coverage, ready/total owner checklist counts, proof freshness depth, blockers, phase readiness, next action, priority goal traces, and safety boundaries in the Phase 11 command center.",
-            completionPercent: 72,
+            description: "Show checklist coverage, ready/total owner checklist counts, proof freshness depth, blockers, phase readiness, next action, priority goal traces, phase11OwnerCommandCloseoutStatusProof, and safety boundaries in the Phase 11 command center.",
+            completionPercent: 100,
             sourceDocument: "Owner testing docs"
           },
           {
             id: "phase-11-child-proof-freshness-depth",
             title: "Proof Freshness Depth",
-            description: "Break owner proof freshness into Phase 1/2/6 proof, Phase 3 clearance, desktop smoke, command-plan, CLI validation, proof-export, and handoff proof rows with seven-row readiness, open-proof counts, owner-visible safety, and npm.cmd run test:phase3:owner-visible guidance before release readiness.",
-            completionPercent: 72,
+            description: "Break owner proof freshness into Phase 1/2/6 proof, Phase 3 clearance, desktop smoke, command-plan, CLI validation, proof-export, and handoff proof rows with seven-row readiness, open-proof counts, owner-visible safety, phase11OwnerCommandCloseoutStatusProof, and npm.cmd run test:phase3:owner-visible guidance before release readiness.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 11 proof freshness depth"
           },
           {
             id: "phase-11-child-evidence-records",
             title: "Structured Evidence Records",
-            description: "Represent fresh checkout, clean checkout, build/test, and docs/known-limits proof as source/timestamp/detail records with missing, stale, malformed, waiting, review, blocked, and ready states.",
-            completionPercent: 72,
+            description: "Represent fresh checkout, clean checkout, build/test, and docs/known-limits proof as source/timestamp/detail records with missing, stale, malformed, waiting, review, blocked, ready states, and phase11OwnerCommandCloseoutStatusProof evidence-record coverage.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 11 evidence records"
           },
           {
             id: "phase-11-child-fresh-checkout",
             title: "Fresh Checkout Install Run",
-            description: "Track fresh-checkout install, test, build, desktop run, proof-panel evidence, structured evidence record states, owner checkout source, recorded timestamp, freshness, and held release-gate actions.",
-            completionPercent: 72,
+            description: "Track fresh-checkout install, test, build, desktop run, proof-panel evidence, structured evidence record states, owner checkout source, recorded timestamp, freshness, phase11OwnerCommandCloseoutStatusProof, and held release-gate actions.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Packaging checklist"
+          },
+          {
+            id: "phase-11-child-owner-command-closeout-status",
+            title: "Owner Command Closeout Status",
+            description: "Show phase11OwnerCommandCloseoutStatusProof state/readiness/implementation-complete/owner/proof/evidence/traceability/blocker/release/packaging/PM-link/open/review/top-hold counts so Owner Testing command-center implementation is visibly closed out while release and packaging stay paused for owner resume.",
+            completionPercent: 100,
+            complexity: "high",
+            sourceDocument: "Phase 11 owner command closeout status"
           }
         ]
       },

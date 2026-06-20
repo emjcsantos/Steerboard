@@ -318,7 +318,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Make Owner Testing the single pass-fail release gate for proof freshness depth, blockers, phase readiness, owner release traceability, blocker priority, and next actions.",
     status: "next",
     priority: "high",
-    completionPercent: 72,
+    completionPercent: 100,
     pmTaskIds: [
       "phase-11-owner-packaging",
       "phase-11-parent-owner-testing",
@@ -326,11 +326,12 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-proof-freshness-depth",
       "phase-11-child-evidence-records",
       "phase-11-child-fresh-checkout",
+      "phase-11-child-owner-command-closeout-status",
       "phase-11-child-traceability",
       "phase-11-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 11 Owner Command, Proof Freshness Depth, Evidence Records, owner release traceability, blocker-priority panels, and owner-visible Phase 11 proof to review checklist coverage, command-plan freshness, CLI-validation freshness, proof-export depth, handoff proof depth, blockers, phase readiness, PM coverage, packaging holds, exact top blocker, next action, and fresh-checkout evidence."
+      "Keep the Phase 11 owner command closeout status proof attached with Owner Command, Proof Freshness Depth, Evidence Records, owner release traceability, blocker-priority, PM-link, release-hold, packaging-paused, next-action, and fresh-checkout evidence visible. Release and packaging actions remain paused until the owner explicitly resumes them."
   },
   {
     id: "goal-phase-11-release-readiness",

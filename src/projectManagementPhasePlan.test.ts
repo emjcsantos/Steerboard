@@ -521,6 +521,7 @@ describe("project management phase plan", () => {
     const ownerTestingParent = byId.get("phase-11-parent-owner-testing");
     const proofFreshnessChild = byId.get("phase-11-child-proof-freshness-depth");
     const evidenceRecordsChild = byId.get("phase-11-child-evidence-records");
+    const ownerCommandCloseoutChild = byId.get("phase-11-child-owner-command-closeout-status");
 
     expect(ownerTestingParent?.completionPercent).toBeGreaterThanOrEqual(
       proofFreshnessChild?.completionPercent ?? 0
@@ -528,13 +529,18 @@ describe("project management phase plan", () => {
     expect(proofFreshnessChild?.completionPercent).toBeGreaterThanOrEqual(
       evidenceRecordsChild?.completionPercent ?? 0
     );
-    expect(ownerTestingParent?.completionPercent).toBe(72);
-    expect(proofFreshnessChild?.completionPercent).toBe(72);
-    expect(evidenceRecordsChild?.completionPercent).toBe(72);
+    expect(ownerTestingParent?.completionPercent).toBe(100);
+    expect(proofFreshnessChild?.completionPercent).toBe(100);
+    expect(evidenceRecordsChild?.completionPercent).toBe(100);
+    expect(ownerCommandCloseoutChild?.completionPercent).toBe(100);
+    expect(ownerTestingParent?.description).toContain("phase11OwnerCommandCloseoutStatusProof");
     expect(proofFreshnessChild?.description).toContain("seven-row readiness");
     expect(proofFreshnessChild?.description).toContain("open-proof counts");
     expect(proofFreshnessChild?.description).toContain("owner-visible safety");
+    expect(proofFreshnessChild?.description).toContain("phase11OwnerCommandCloseoutStatusProof");
     expect(proofFreshnessChild?.description).toContain("npm.cmd run test:phase3:owner-visible");
+    expect(evidenceRecordsChild?.description).toContain("phase11OwnerCommandCloseoutStatusProof");
+    expect(ownerCommandCloseoutChild?.description).toContain("phase11OwnerCommandCloseoutStatusProof");
   });
 
   it("keeps Phase 11 package validation aligned with release readiness lock proof", () => {
@@ -569,6 +575,7 @@ describe("project management phase plan", () => {
     const ownerChecklistChild = byId.get("phase-11-child-owner-checklist");
     const freshCheckoutChild = byId.get("phase-11-child-fresh-checkout");
     const proofFreshnessChild = byId.get("phase-11-child-proof-freshness-depth");
+    const ownerCommandCloseoutChild = byId.get("phase-11-child-owner-command-closeout-status");
 
     expect(ownerTestingParent?.completionPercent).toBeGreaterThanOrEqual(
       ownerChecklistChild?.completionPercent ?? 0
@@ -582,15 +589,19 @@ describe("project management phase plan", () => {
     expect(freshCheckoutChild?.completionPercent).toBeGreaterThanOrEqual(
       proofFreshnessChild?.completionPercent ?? 0
     );
-    expect(ownerTestingParent?.completionPercent).toBe(72);
-    expect(ownerChecklistChild?.completionPercent).toBe(72);
-    expect(freshCheckoutChild?.completionPercent).toBe(72);
-    expect(proofFreshnessChild?.completionPercent).toBe(72);
+    expect(ownerTestingParent?.completionPercent).toBe(100);
+    expect(ownerChecklistChild?.completionPercent).toBe(100);
+    expect(freshCheckoutChild?.completionPercent).toBe(100);
+    expect(proofFreshnessChild?.completionPercent).toBe(100);
+    expect(ownerCommandCloseoutChild?.completionPercent).toBe(100);
     expect(ownerChecklistChild?.description).toContain("ready/total owner checklist counts");
     expect(ownerChecklistChild?.description).toContain("priority goal traces");
+    expect(ownerChecklistChild?.description).toContain("phase11OwnerCommandCloseoutStatusProof");
     expect(freshCheckoutChild?.description).toContain("structured evidence record states");
     expect(freshCheckoutChild?.description).toContain("owner checkout source");
     expect(freshCheckoutChild?.description).toContain("held release-gate actions");
+    expect(freshCheckoutChild?.description).toContain("phase11OwnerCommandCloseoutStatusProof");
+    expect(ownerCommandCloseoutChild?.description).toContain("phase11OwnerCommandCloseoutStatusProof");
   });
 
   it("keeps Phase 10 Arena polish blocker rows aligned with evidence-only proof depth", () => {

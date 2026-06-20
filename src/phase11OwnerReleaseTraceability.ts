@@ -77,6 +77,7 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-11-child-proof-freshness-depth",
   "phase-11-child-evidence-records",
   "phase-11-child-fresh-checkout",
+  "phase-11-child-owner-command-closeout-status",
   "phase-11-parent-release-packaging",
   "phase-11-child-package-validation",
   "phase-11-child-traceability",

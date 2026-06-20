@@ -226,6 +226,7 @@ function withReadyPhase11Goals(): RemainingGoalPlanItem[] {
               "phase-11-child-proof-freshness-depth",
               "phase-11-child-evidence-records",
               "phase-11-child-fresh-checkout",
+              "phase-11-child-owner-command-closeout-status",
               "phase-11-child-traceability",
               "phase-11-child-blocker-priority"
             ]))
@@ -281,7 +282,7 @@ describe("phase 11 owner release blocker priority", () => {
     const result = priority({ ownerCommandCenter, traceability });
 
     expect(result.state).toBe("review");
-    expect(result.openBlockerCount).toBe(2);
+    expect(result.openBlockerCount).toBe(1);
     expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
     expect(result.topPriorityAction).toContain("completed Phase 3 clearance PM traceability");
     expect(result.items).toEqual(
@@ -352,7 +353,7 @@ describe("phase 11 owner release blocker priority", () => {
     const result = priority({ proofFreshnessDepth, traceability });
 
     expect(result.state).toBe("review");
-    expect(result.openBlockerCount).toBe(4);
+    expect(result.openBlockerCount).toBe(3);
     expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
     expect(result.topPriorityAction).toContain("completed Phase 3 clearance PM traceability");
     expect(result.topPriorityAction).toContain("handoff proof");
