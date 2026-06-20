@@ -176,12 +176,16 @@ export function buildCodexPanelSessionRestoreProof(
     .sort((left, right) => left.localeCompare(right));
   const duplicateIdentityCount = findCodexPanelSessionIdentityIssues(state).length;
   const panelCount = records.length;
+  const restoreProof =
+    `restoreProof=panels=${panelCount} fresh=${freshPanelIds.length} ` +
+    `stale=${stalePanelIds.length} duplicateIdentities=${duplicateIdentityCount} ` +
+    `restored=${freshPanelIds.join("|") || "none"} stalePanels=${stalePanelIds.join("|") || "none"}`;
 
-  let detail = "No saved panel session labels restored after reload.";
+  let detail = `No saved panel session labels restored after reload. ${restoreProof}`;
   if (panelCount > 0) {
     detail =
       `Restored ${freshPanelIds.length}/${panelCount} saved panel session label${panelCount === 1 ? "" : "s"} ` +
-      `after reload; stale=${stalePanelIds.length}; duplicateIdentities=${duplicateIdentityCount}.`;
+      `after reload; stale=${stalePanelIds.length}; duplicateIdentities=${duplicateIdentityCount}. ${restoreProof}`;
   }
 
   return {

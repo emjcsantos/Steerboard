@@ -143,6 +143,9 @@ describe("phase priority evidence", () => {
     expect(phase2?.detail).toContain("expectedTokenPanels=2");
     expect(phase2?.detail).toContain("foreignTokenPanels=0");
     expect(phase2?.detail).toContain("Restored 2/2 saved panel session labels");
+    expect(phase2?.detail).toContain(
+      "restoreProof=panels=2 fresh=2 stale=0 duplicateIdentities=0 restored=orchestrator|validator stalePanels=none"
+    );
   });
 
   it("names Phase 6 saved-state proof counts for preserved staged and collapsed PM rows", () => {
@@ -339,6 +342,9 @@ describe("phase priority evidence", () => {
         "Reload the app and confirm at least two fresh saved panel session labels restore before trusting Phase 2 persistence."
     });
     expect(phase2?.detail).toContain("No saved panel session labels restored after reload.");
+    expect(phase2?.detail).toContain(
+      "restoreProof=panels=0 fresh=0 stale=0 duplicateIdentities=0 restored=none stalePanels=none"
+    );
   });
 
   it("names compact Phase 2 panel proof counts when smoke proof is incomplete", () => {
