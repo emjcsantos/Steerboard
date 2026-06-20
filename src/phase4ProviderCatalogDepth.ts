@@ -229,9 +229,11 @@ function buildCommandSkillProof(
 ): string {
   const command = records.find((record) => record.kind === "command");
   const skill = records.find((record) => record.kind === "skill");
+  const pairOrder = [command?.kind, skill?.kind].filter(Boolean).join("|") || "missing";
 
   return (
     `command=${command?.status ?? "missing"} skill=${skill?.status ?? "missing"} ` +
+    `pairOrder=${pairOrder} ` +
     `commandItems=${command?.itemOrder.length ?? 0} skillItems=${skill?.itemOrder.length ?? 0} ` +
     `commandEvidence=${command?.evidenceKey ?? "missing"} skillEvidence=${skill?.evidenceKey ?? "missing"} ` +
     `commandItemOrder=${command && command.itemOrder.length > 0 ? "present" : "missing"} ` +

@@ -118,6 +118,7 @@ const requiredCatalogDepthProofTerms = [
 const requiredCommandSkillProofTerms = [
   "command=ready",
   "skill=ready",
+  "pairOrder=command|skill",
   "commandItems=",
   "skillItems=",
   "commandEvidence=phase-04-provider-catalog:command",

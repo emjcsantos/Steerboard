@@ -206,6 +206,7 @@ const REQUIRED_CATALOG_DEPTH_PROOF_TERMS = [
 const REQUIRED_COMMAND_SKILL_PROOF_TERMS = [
   "command=ready",
   "skill=ready",
+  "pairOrder=command|skill",
   "commandItems=",
   "skillItems=",
   "commandEvidence=phase-04-provider-catalog:command",

@@ -131,7 +131,7 @@ function noOpenBlockers(artifact: Phase4ProviderReviewArtifact): Phase4ProviderR
       "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready " +
       "metadataOnly=locked execution=locked",
     commandSkillProof:
-      "command=ready skill=ready commandItems=1 skillItems=1 " +
+      "command=ready skill=ready pairOrder=command|skill commandItems=1 skillItems=1 " +
       "commandEvidence=phase-04-provider-catalog:command skillEvidence=phase-04-provider-catalog:skill " +
       "commandItemOrder=present skillItemOrder=present commandMetadata=present skillMetadata=present " +
       "commandSource=present skillSource=present " +
@@ -1057,7 +1057,33 @@ describe("phase 4 provider review artifact", () => {
     ).toMatchObject({
       state: "review",
       detail: expect.stringContaining("command/skill aggregate proof"),
-      nextAction: expect.stringContaining("command and skill catalog rows")
+      nextAction: expect.stringContaining("item order")
+    });
+  });
+
+  it("reviews no-blocker artifacts with incomplete command/skill aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const incompleteCommandSkillProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      catalogDepth: {
+        ...artifact.catalogDepth,
+        commandSkillProof: artifact.catalogDepth.commandSkillProof.replace("pairOrder=command|skill ", "")
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(incompleteCommandSkillProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("command/skill aggregate proof"),
+      nextAction: expect.stringContaining("item-order")
     });
   });
 

@@ -313,8 +313,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-command-skill",
             title: "Command and Skill Catalogs",
-            description: "Show command and skill entries with scoped item-order proof, structured command/skill aggregate proof including item-order/source/metadata coverage, command scope proof, skill invocation proof, fallback/source guidance, evidence keys, owner-safe readiness proof, and execution locks.",
-            completionPercent: 70,
+            description: "Show command and skill entries with scoped item-order proof, structured command/skill aggregate proof including explicit pair-order, item-order/source/metadata coverage, command scope proof, skill invocation proof, fallback/source guidance, evidence keys, owner-safe readiness proof, and execution locks.",
+            completionPercent: 72,
             sourceDocument: "Command and skill catalogs"
           },
           {

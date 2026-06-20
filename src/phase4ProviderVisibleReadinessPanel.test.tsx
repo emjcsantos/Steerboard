@@ -356,6 +356,7 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain(phase4CatalogFingerprint);
     expect(html).toContain("matched");
     expect(html).toContain("kindOrder=command|skill|plugin|mcp|automation|personalization");
+    expect(html).toContain("pairOrder=command|skill");
     expect(html).toContain("Phase 4 provider review artifact contains current catalog depth");
     expect(html).toContain("owner-visible provider readiness check");
     expect(html).toContain("Export review");

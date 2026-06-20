@@ -84,7 +84,7 @@ const catalogDepthProof =
   "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready " +
   "metadataOnly=locked execution=locked";
 const commandSkillProof =
-  "command=ready skill=ready commandItems=2 skillItems=2 " +
+  "command=ready skill=ready pairOrder=command|skill commandItems=2 skillItems=2 " +
   "commandEvidence=phase-04-provider-catalog:command skillEvidence=phase-04-provider-catalog:skill " +
   "commandItemOrder=present skillItemOrder=present commandMetadata=present skillMetadata=present " +
   "commandSource=present skillSource=present " +

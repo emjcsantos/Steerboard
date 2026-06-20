@@ -89,6 +89,7 @@ describe("phase 4 provider catalog depth", () => {
     expect(depth.catalogDepthProof).toContain("metadataOnly=locked execution=locked");
     expect(depth.commandSkillProof).toContain("commandEvidence=phase-04-provider-catalog:command");
     expect(depth.commandSkillProof).toContain("skillEvidence=phase-04-provider-catalog:skill");
+    expect(depth.commandSkillProof).toContain("pairOrder=command|skill");
     expect(depth.commandSkillProof).toContain("commandItemOrder=present");
     expect(depth.commandSkillProof).toContain("skillItemOrder=present");
     expect(depth.commandSkillProof).toContain("commandMetadata=present skillMetadata=present");
