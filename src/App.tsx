@@ -807,6 +807,10 @@ import {
   type Phase11ExternalDeliveryGate
 } from "./phase11ExternalDeliveryGate";
 import {
+  buildPhase11CleanInstallPackagingGate,
+  type Phase11CleanInstallPackagingGate
+} from "./phase11CleanInstallPackagingGate";
+import {
   buildPhase11OwnerCommandCloseoutStatus,
   type Phase11OwnerCommandCloseoutStatus
 } from "./phase11OwnerCommandCloseoutStatus";
@@ -17277,6 +17281,10 @@ export function Phase11OwnerCommandCenterPanel({
     closeoutStatus,
     evidenceRecords
   );
+  const cleanInstallPackagingGate = buildPhase11CleanInstallPackagingGate(
+    closeoutStatus,
+    releaseReadiness
+  );
 
   return (
     <section className="panel-section">
@@ -17454,6 +17462,7 @@ export function Phase11OwnerCommandCenterPanel({
         </div>
         <Phase11OwnerCommandCloseoutStatusPanel status={ownerCommandCloseoutStatus} />
         <Phase11ReleaseCloseoutStatusPanel status={closeoutStatus} />
+        <Phase11CleanInstallPackagingGatePanel gate={cleanInstallPackagingGate} />
         <Phase11ExternalDeliveryGatePanel gate={externalDeliveryGate} />
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
@@ -17761,6 +17770,46 @@ export function Phase11EvidenceRecordsPanel({
         <small>{records[0]?.safety}</small>
       </div>
     </section>
+  );
+}
+
+export function Phase11CleanInstallPackagingGatePanel({
+  gate
+}: {
+  gate: Phase11CleanInstallPackagingGate;
+}) {
+  return (
+    <div
+      aria-label={gate.ariaLabel}
+      className={classNames(
+        "phase11-owner-release-blocker-priority",
+        `phase11-owner-release-blocker-priority-${gate.state}`
+      )}
+      title={gate.safety}
+    >
+      <div className="phase11-owner-release-blocker-priority-header">
+        <strong>{gate.label}</strong>
+        <span>{gate.statusLabel}</span>
+        <b>{gate.readiness}%</b>
+      </div>
+      <dl className="phase11-owner-release-blocker-priority-grid" aria-label="Phase 11 clean install packaging gate counts">
+        <div>
+          <dt>Prepare</dt>
+          <dd>{gate.canPrepareInstallPackage ? "Ready" : "Held"}</dd>
+        </div>
+        <div>
+          <dt>Install</dt>
+          <dd>{gate.cleanInstallEvidenceReady ? "Ready" : "Held"}</dd>
+        </div>
+        <div>
+          <dt>Package</dt>
+          <dd>{gate.desktopPackagingLocked ? "Locked" : "Review"}</dd>
+        </div>
+      </dl>
+      <small>{gate.detail}</small>
+      <small>{gate.phase11CleanInstallPackagingGateProof}</small>
+      <small title={gate.nextAction}>{gate.nextAction}</small>
+    </div>
   );
 }
 
