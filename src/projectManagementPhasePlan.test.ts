@@ -55,6 +55,40 @@ describe("project management phase plan", () => {
     expect(refreshSafetyDepthChild?.description).toContain("refreshSafetyDepthProof");
   });
 
+  it("keeps Phase 4 surface and record-chain rows aligned with structured proof depth", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const catalogParent = byId.get("phase-04-parent-catalogs");
+    const surfaceDepthChild = byId.get("phase-04-child-surface-depth");
+    const approvalRecordChild = byId.get("phase-04-child-approval-record");
+    const auditRecordChild = byId.get("phase-04-child-audit-record");
+    const rollbackRecordChild = byId.get("phase-04-child-rollback-record");
+    const permissionRecordChild = byId.get("phase-04-child-permission-record");
+    const traceabilityChild = byId.get("phase-04-child-traceability");
+    const blockerPriorityChild = byId.get("phase-04-child-blocker-priority");
+
+    for (const row of [
+      surfaceDepthChild,
+      approvalRecordChild,
+      auditRecordChild,
+      rollbackRecordChild,
+      permissionRecordChild,
+      traceabilityChild,
+      blockerPriorityChild
+    ]) {
+      expect(row?.completionPercent, row?.id).toBe(86);
+      expect(catalogParent?.completionPercent).toBeGreaterThanOrEqual(row?.completionPercent ?? 0);
+    }
+    expect(surfaceDepthChild?.description).toContain("surfaceDepthProof");
+    expect(surfaceDepthChild?.description).toContain("localRecordValidationProof");
+    expect(approvalRecordChild?.description).toContain("approvalChainProof");
+    expect(auditRecordChild?.description).toContain("auditChainProof");
+    expect(rollbackRecordChild?.description).toContain("rollbackChainProof");
+    expect(permissionRecordChild?.description).toContain("permissionChainProof");
+    expect(traceabilityChild?.description).toContain("traceabilityProof");
+    expect(blockerPriorityChild?.description).toContain("blockerPriorityProof");
+  });
+
   it("keeps Phase 8 audit parent progress aligned with proof depth", () => {
     const tasks = createDefaultProjectManagementPhasePlan();
     const byId = new Map(tasks.map((task) => [task.id, task]));

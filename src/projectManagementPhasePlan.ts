@@ -336,56 +336,56 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-surface-depth",
             title: "Provider Surface Depth",
-            description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, explicit nine-gate item-kind proof, owner-boundary proof including structured approval/audit/rollback/permission chain proof coverage, structured surface-depth aggregate proof, and execution lock before provider execution is considered.",
-            completionPercent: 72,
+            description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, explicit nine-gate item-kind proof, owner-boundary proof including structured approval/audit/rollback/permission chain proof coverage, structured surfaceDepthProof aggregate proof, localRecordValidationProof, and execution lock before provider execution is considered.",
+            completionPercent: 86,
             complexity: "high",
             sourceDocument: "Phase 4 provider surface depth"
           },
           {
             id: "phase-04-child-approval-record",
             title: "Provider Approval Record",
-            description: "Record and clear local owner approval only when the current six-surface catalog fingerprint, fresh metadata-only refresh-safety proof, structured refresh-safety readiness proof, structured approval-chain proof with compact record-freshness verdict, aggregate local record-validation proof, mutation lock, and execution lock match, without unlocking audit, rollback, permission, or execution.",
-            completionPercent: 72,
+            description: "Record and clear local owner approval only when the current six-surface catalog fingerprint, fresh metadata-only refresh-safety proof, structured refresh-safety readiness proof, structured approvalChainProof with compact record-freshness verdict, aggregate local record-validation proof, mutation lock, and execution lock match, without unlocking audit, rollback, permission, or execution.",
+            completionPercent: 86,
             complexity: "high",
             sourceDocument: "Phase 4 provider approval record"
           },
           {
             id: "phase-04-child-audit-record",
             title: "Provider Audit Record",
-            description: "Record and clear local provider audit review only when the current approval record, approval validation state, structured approval-chain proof, current six-surface catalog fingerprint, current surface-depth audit evidence fingerprint, structured audit-chain proof with compact record-freshness verdict, aggregate local record-validation proof, owner-boundary proof, and mutation lock match, without unlocking rollback, permission, or execution.",
-            completionPercent: 72,
+            description: "Record and clear local provider audit review only when the current approval record, approval validation state, structured approval-chain proof, current six-surface catalog fingerprint, current surface-depth audit evidence fingerprint, structured auditChainProof with compact record-freshness verdict, aggregate local record-validation proof, owner-boundary proof, and mutation lock match, without unlocking rollback, permission, or execution.",
+            completionPercent: 86,
             complexity: "high",
             sourceDocument: "Phase 4 provider audit record"
           },
           {
             id: "phase-04-child-rollback-record",
             title: "Provider Rollback Record",
-            description: "Record and clear local provider rollback review only when the current approval record, current audit record, ready audit validation, structured audit-chain proof, current six-surface catalog fingerprint, current audit evidence fingerprint, current surface-depth rollback evidence fingerprint, owner/action evidence, structured rollback-chain proof with compact record-freshness verdict, aggregate local record-validation proof, and mutation lock match, without unlocking permission or execution.",
-            completionPercent: 72,
+            description: "Record and clear local provider rollback review only when the current approval record, current audit record, ready audit validation, structured audit-chain proof, current six-surface catalog fingerprint, current audit evidence fingerprint, current surface-depth rollback evidence fingerprint, owner/action evidence, structured rollbackChainProof with compact record-freshness verdict, aggregate local record-validation proof, and mutation lock match, without unlocking permission or execution.",
+            completionPercent: 86,
             complexity: "high",
             sourceDocument: "Phase 4 provider rollback record"
           },
           {
             id: "phase-04-child-permission-record",
             title: "Provider Permission Record",
-            description: "Record and clear local provider permission review only when the current approval, audit, rollback, ready rollback validation, structured rollback-chain proof, six-surface catalog, audit evidence, rollback evidence, surface-depth, permission evidence, owner/scope/action evidence, structured permission-chain proof with compact record-freshness verdict, aggregate local record-validation proof, and every provider surface scope match while mutation remains locked.",
-            completionPercent: 72,
+            description: "Record and clear local provider permission review only when the current approval, audit, rollback, ready rollback validation, structured rollback-chain proof, six-surface catalog, audit evidence, rollback evidence, surface-depth, permission evidence, owner/scope/action evidence, structured permissionChainProof with compact record-freshness verdict, aggregate local record-validation proof, and every provider surface scope match while mutation remains locked.",
+            completionPercent: 86,
             complexity: "high",
             sourceDocument: "Phase 4 provider permission record"
           },
           {
             id: "phase-04-child-traceability",
             title: "Provider Traceability",
-            description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval, audit, rollback, permission records, aggregate traceability proof, aggregate record-chain proof, and execution locks before provider execution is considered.",
-            completionPercent: 72,
+            description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval, audit, rollback, permission records, aggregate traceabilityProof, aggregate record-chain proof, and execution locks before provider execution is considered.",
+            completionPercent: 86,
             complexity: "high",
             sourceDocument: "Phase 4 provider traceability"
           },
           {
             id: "phase-04-child-blocker-priority",
             title: "Provider Blocker Priority",
-            description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action, show compact aggregate blocker-priority proof with top-blocker source, kind, status, evidence-key, catalog-smoke relevance, traceability trust, and aggregate record-chain proof, while keeping remaining-goal and PM traceability repairs out of catalog-smoke actions.",
-            completionPercent: 72,
+            description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action, show compact aggregate blockerPriorityProof with top-blocker source, kind, status, evidence-key, catalog-smoke relevance, traceability trust, and aggregate record-chain proof, while keeping remaining-goal and PM traceability repairs out of catalog-smoke actions.",
+            completionPercent: 86,
             complexity: "high",
             sourceDocument: "Phase 4 provider blocker priority"
           }

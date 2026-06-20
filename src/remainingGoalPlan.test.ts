@@ -576,6 +576,27 @@ describe("remaining goal plan", () => {
     const refreshSafetyDepthChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-04-child-refresh-safety-depth"
     );
+    const surfaceDepthChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-surface-depth"
+    );
+    const approvalRecordChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-approval-record"
+    );
+    const auditRecordChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-audit-record"
+    );
+    const rollbackRecordChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-rollback-record"
+    );
+    const permissionRecordChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-permission-record"
+    );
+    const traceabilityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-traceability"
+    );
+    const blockerPriorityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-blocker-priority"
+    );
 
     expect(phase4Goal).toMatchObject({
       target: "Provider integration surfaces",
@@ -595,6 +616,21 @@ describe("remaining goal plan", () => {
     expect(refreshSmokeChild?.description).toContain("refreshSmokeProof");
     expect(refreshSafetyDepthChild?.completionPercent).toBe(86);
     expect(refreshSafetyDepthChild?.description).toContain("refreshSafetyDepthProof");
+    expect(surfaceDepthChild?.completionPercent).toBe(86);
+    expect(surfaceDepthChild?.description).toContain("surfaceDepthProof");
+    expect(surfaceDepthChild?.description).toContain("localRecordValidationProof");
+    expect(approvalRecordChild?.completionPercent).toBe(86);
+    expect(approvalRecordChild?.description).toContain("approvalChainProof");
+    expect(auditRecordChild?.completionPercent).toBe(86);
+    expect(auditRecordChild?.description).toContain("auditChainProof");
+    expect(rollbackRecordChild?.completionPercent).toBe(86);
+    expect(rollbackRecordChild?.description).toContain("rollbackChainProof");
+    expect(permissionRecordChild?.completionPercent).toBe(86);
+    expect(permissionRecordChild?.description).toContain("permissionChainProof");
+    expect(traceabilityChild?.completionPercent).toBe(86);
+    expect(traceabilityChild?.description).toContain("traceabilityProof");
+    expect(blockerPriorityChild?.completionPercent).toBe(86);
+    expect(blockerPriorityChild?.description).toContain("blockerPriorityProof");
     expect(phase4Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-04-child-command-skill",
