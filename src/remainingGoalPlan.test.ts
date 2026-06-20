@@ -543,19 +543,19 @@ describe("remaining goal plan", () => {
       completionPercent: 65
     });
     expect(phase8Epic?.completionPercent).toBe(65);
-    expect(permissionLabelsChild?.completionPercent).toBe(64);
+    expect(permissionLabelsChild?.completionPercent).toBe(65);
     expect(permissionLabelsChild?.description).toContain("permissionLabelSummaryProof total");
-    expect(riskBlockersChild?.completionPercent).toBe(64);
+    expect(riskBlockersChild?.completionPercent).toBe(65);
     expect(riskBlockersChild?.description).toContain("topBlockerProof source/kind/status");
     expect(riskBlockersChild?.description).toContain("blockerQueueProof open/kind/status");
-    expect(riskExceptionsChild?.completionPercent).toBe(64);
+    expect(riskExceptionsChild?.completionPercent).toBe(65);
     expect(riskExceptionsChild?.description).toContain("riskExceptionSummaryProof severity/status/ready");
-    expect(traceabilityChild?.completionPercent).toBe(64);
+    expect(traceabilityChild?.completionPercent).toBe(65);
     expect(traceabilityChild?.description).toContain("traceabilityProof goal/missing-PM/trust");
-    expect(blockerPriorityChild?.completionPercent).toBe(64);
+    expect(blockerPriorityChild?.completionPercent).toBe(65);
     expect(blockerPriorityChild?.description).toContain("topBlockerProof source/kind/status");
     expect(blockerPriorityChild?.description).toContain("blockerQueueProof open/kind/status");
-    expect(auditPersistenceChild?.completionPercent).toBe(64);
+    expect(auditPersistenceChild?.completionPercent).toBe(65);
     expect(auditPersistenceChild?.description).toContain("auditPersistenceProof state/readiness/record");
     expect(phase8Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -568,6 +568,13 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase8Goal?.nextAction).toContain("blocker-priority queue");
+    expect(phase8Goal?.nextAction).toContain("permissionLabelSummaryProof");
+    expect(phase8Goal?.nextAction).toContain("riskBlockerProof");
+    expect(phase8Goal?.nextAction).toContain("topBlockerProof");
+    expect(phase8Goal?.nextAction).toContain("blockerQueueProof");
+    expect(phase8Goal?.nextAction).toContain("riskExceptionSummaryProof");
+    expect(phase8Goal?.nextAction).toContain("traceabilityProof");
+    expect(phase8Goal?.nextAction).toContain("auditPersistenceProof");
     expect(phase8Goal?.nextAction).toContain("local owner audit-review record");
     expect(phase8Goal?.nextAction).toContain("current audit evidence fingerprint");
     expect(phase8Goal?.nextAction).toContain("record-specific rollback review");

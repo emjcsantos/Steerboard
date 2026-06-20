@@ -95,8 +95,8 @@ describe("project management phase plan", () => {
     const auditParent = byId.get("phase-08-parent-audit-log");
     const auditPersistenceChild = byId.get("phase-08-child-audit-persistence");
 
-    expect(auditParent?.completionPercent).toBe(64);
-    expect(auditPersistenceChild?.completionPercent).toBe(64);
+    expect(auditParent?.completionPercent).toBe(65);
+    expect(auditPersistenceChild?.completionPercent).toBe(65);
     expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
       auditPersistenceChild?.completionPercent ?? 0
     );
@@ -128,6 +128,13 @@ describe("project management phase plan", () => {
     expect(riskBlockersChild?.completionPercent).toBeGreaterThanOrEqual(
       blockerPriorityChild?.completionPercent ?? 0
     );
+    expect(riskGateParent?.completionPercent).toBe(65);
+    expect(permissionLabelsChild?.completionPercent).toBe(65);
+    expect(riskBlockersChild?.completionPercent).toBe(65);
+    expect(blockerPriorityChild?.completionPercent).toBe(65);
+    expect(riskGateParent?.description).toContain("permissionLabelSummaryProof");
+    expect(riskGateParent?.description).toContain("topBlockerProof");
+    expect(riskGateParent?.description).toContain("blockerQueueProof");
     expect(permissionLabelsChild?.description).toContain("permissionLabelProof");
     expect(permissionLabelsChild?.description).toContain("permissionLabelSummaryProof total");
     expect(riskBlockersChild?.description).toContain("riskBlockerProof");
@@ -159,7 +166,9 @@ describe("project management phase plan", () => {
     expect(traceabilityChild?.description).toContain("traceabilityRowStateProof ready/review/blocked/waiting");
     expect(blockerPriorityChild?.description).toContain("topBlockerProof source/kind/status");
     expect(blockerPriorityChild?.description).toContain("blockerQueueProof open/kind/status");
-    expect(riskExceptionsChild?.completionPercent).toBe(64);
+    expect(riskExceptionsChild?.completionPercent).toBe(65);
+    expect(traceabilityChild?.completionPercent).toBe(65);
+    expect(blockerPriorityChild?.completionPercent).toBe(65);
     expect(riskExceptionsChild?.description).toContain("riskExceptionProof");
     expect(riskExceptionsChild?.description).toContain("riskExceptionSummaryProof severity/status/ready");
   });

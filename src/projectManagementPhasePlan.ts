@@ -658,8 +658,8 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-08-parent-risk-gates",
         title: "Risk Gate Hardening",
-        description: "Require explicit permission state, action risk, approval scope, fallback behavior, risk exceptions, disabled paths, owner review freshness, and missing-requirement explanations for risky actions.",
-        completionPercent: 64,
+        description: "Require explicit permission state, action risk, approval scope, fallback behavior, risk exceptions, disabled paths, owner review freshness, permissionLabelSummaryProof, topBlockerProof, blockerQueueProof, and missing-requirement explanations for risky actions.",
+        completionPercent: 65,
         complexity: "high",
         sourceDocument: "Permission risk gates",
         children: [
@@ -667,21 +667,21 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-08-child-permission-labels",
             title: "Permission State Labels",
             description: "Display unavailable, preview-only, approval-required, ready, waiting, review, and blocked states consistently across surfaces with compact permissionLabelProof provider, label, state, risk, requester evidence, and aggregate permissionLabelSummaryProof total/preview-only/approval-required/blocked/ready label counts.",
-            completionPercent: 64,
+            completionPercent: 65,
             sourceDocument: "Runtime profile permissions"
           },
           {
             id: "phase-08-child-risk-blockers",
             title: "Risk Blocker Explanations",
             description: "Explain why an action is blocked and what permission, approval, evidence, or rollback requirement is needed to continue, with compact riskBlockerProof row detail, topBlockerProof source/kind/status/severity/audit-review detail, and blockerQueueProof open/kind/status/reviewable counts.",
-            completionPercent: 64,
+            completionPercent: 65,
             sourceDocument: "Permission audit"
           },
           {
             id: "phase-08-child-risk-exceptions",
             title: "Risk Exceptions and Disabled Paths",
             description: "Show each permission, approval, evidence, owner-review, and rollback exception with disabled-path copy, required evidence, rollback expectation, record-specific rollback review, audit source, compact riskExceptionProof rows, and aggregate riskExceptionSummaryProof severity/status/ready counts.",
-            completionPercent: 64,
+            completionPercent: 65,
             complexity: "high",
             sourceDocument: "Phase 8 risk exception register"
           },
@@ -689,7 +689,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-08-child-traceability",
             title: "Risk Traceability",
             description: "Link Phase 8 remaining-goal status, PM child rows, permission/audit depth records, local owner audit-review records, current audit evidence fingerprints, risk exceptions, disabled paths, evidence keys, rollback expectations, compact traceabilityProof goal/missing-PM/trust counts, and traceabilityRowStateProof ready/review/blocked/waiting row-state counts before mutation-capable paths can advance.",
-            completionPercent: 64,
+            completionPercent: 65,
             complexity: "high",
             sourceDocument: "Phase 8 risk traceability"
           },
@@ -697,7 +697,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-08-child-blocker-priority",
             title: "Risk Blocker Priority",
             description: "Rank exact Phase 8 blockers across permission, approval, evidence, audit persistence, owner-review freshness, record-specific rollback, disabled paths, exceptions, and traceability with topBlockerProof source/kind/status/severity/audit-review detail and blockerQueueProof open/kind/status/reviewable counts before mutation-capable paths can advance, while keeping remaining-goal and PM traceability repairs out of audit-review actions.",
-            completionPercent: 64,
+            completionPercent: 65,
             complexity: "medium",
             sourceDocument: "Phase 8 risk blocker priority"
           }
@@ -707,7 +707,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-08-parent-audit-log",
         title: "Owner-Visible Audit Trail",
         description: "Record attempted actions, owner audit reviews, approvals, blocked states, validation outcomes, record-specific rollback reviews, audit persistence depth, and compact auditPersistenceProof state/readiness/record/open-exception counts for local owner-review persistence.",
-        completionPercent: 64,
+        completionPercent: 65,
         complexity: "high",
         sourceDocument: "Audit requirements",
         children: [
@@ -715,7 +715,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-08-child-audit-persistence",
             title: "Audit Persistence",
             description: "Persist audit entries and owner audit-review records locally while keeping malformed or stale audit state from hiding permission, evidence, mutation-lock, fingerprint, rollback blockers, and compact auditPersistenceProof state/readiness/record/open-exception counts.",
-            completionPercent: 64,
+            completionPercent: 65,
             complexity: "high",
             sourceDocument: "Audit storage"
           }
