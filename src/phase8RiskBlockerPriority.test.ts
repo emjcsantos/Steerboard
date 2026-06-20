@@ -232,7 +232,13 @@ describe("phase 8 risk blocker priority", () => {
     expect(summary.topBlockerProof).toContain(
       "topBlockerProof=source=phase8-live-action-terminal:permission kind=audit-depth status=waiting priority=1 severity=medium auditReview=yes"
     );
+    expect(summary.blockerQueueProof).toContain("blockerQueueProof=");
+    expect(summary.blockerQueueProof).toContain("auditDepth=");
+    expect(summary.blockerQueueProof).toContain("riskException=");
+    expect(summary.blockerQueueProof).toContain("traceability=");
+    expect(summary.blockerQueueProof).toContain("reviewable=");
     expect(summary.ariaLabel).toContain("topBlockerProof=");
+    expect(summary.ariaLabel).toContain("blockerQueueProof=");
     expect(summary.items[0]).toMatchObject({
       kind: "audit-depth",
       status: "waiting",
@@ -395,6 +401,9 @@ describe("phase 8 risk blocker priority", () => {
     expect(summary.topPriorityStatus).toBe("ready");
     expect(summary.topBlockerProof).toBe(
       "topBlockerProof=source=none kind=none status=ready priority=0 auditReview=no open=0 reviewable=0"
+    );
+    expect(summary.blockerQueueProof).toBe(
+      "blockerQueueProof=open=0 auditDepth=0 riskException=0 traceability=0 blocked=0 review=0 waiting=0 reviewable=0"
     );
   });
 

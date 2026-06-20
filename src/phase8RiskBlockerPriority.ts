@@ -46,6 +46,7 @@ export interface Phase8RiskBlockerPrioritySummary {
   readonly topPriorityStatus: Phase8RiskBlockerPriorityState | "ready";
   readonly auditReviewCanAddressTopBlocker: boolean;
   readonly topBlockerProof: string;
+  readonly blockerQueueProof: string;
   readonly nextAction: string;
   readonly safety: string;
   readonly ariaLabel: string;
@@ -354,7 +355,7 @@ function buildAriaLabel(
     `${summary.label}: ${summary.statusLabel}; ${summary.openBlockerCount} open blockers; ` +
     `${summary.auditReviewAddressableCount} audit-review addressable; top priority ${summary.topPriorityLabel}; ` +
     `source ${summary.topPrioritySourceId}; kind ${summary.topPriorityKind}; status ${summary.topPriorityStatus}; ` +
-    `${summary.topBlockerProof}; ` +
+    `${summary.topBlockerProof}; ${summary.blockerQueueProof}; ` +
     `next action: ${summary.nextAction}`
   );
 }
@@ -371,6 +372,36 @@ function buildTopBlockerProof(
     `topBlockerProof=source=${item.sourceId} kind=${item.kind} status=${item.status} ` +
     `priority=${item.priority} severity=${item.severity} ` +
     `auditReview=${item.canUseAuditReview ? "yes" : "no"} reviewable=${auditReviewAddressableCount}`
+  );
+}
+
+function buildBlockerQueueProof(
+  items: readonly Phase8RiskBlockerPriorityItem[],
+  auditReviewAddressableCount: number
+): string {
+  const kindCounts = {
+    "audit-depth": 0,
+    "risk-exception": 0,
+    traceability: 0
+  };
+  const stateCounts = {
+    blocked: 0,
+    review: 0,
+    waiting: 0
+  };
+
+  for (const item of items) {
+    kindCounts[item.kind] += 1;
+    if (item.status === "blocked" || item.status === "review" || item.status === "waiting") {
+      stateCounts[item.status] += 1;
+    }
+  }
+
+  return (
+    `blockerQueueProof=open=${items.length} auditDepth=${kindCounts["audit-depth"]} ` +
+    `riskException=${kindCounts["risk-exception"]} traceability=${kindCounts.traceability} ` +
+    `blocked=${stateCounts.blocked} review=${stateCounts.review} waiting=${stateCounts.waiting} ` +
+    `reviewable=${auditReviewAddressableCount}`
   );
 }
 
@@ -394,6 +425,7 @@ export function buildPhase8RiskBlockerPriority(
   const topItem = items[0];
   const auditReviewAddressableCount = items.filter((item) => item.canUseAuditReview).length;
   const topBlockerProof = buildTopBlockerProof(topItem, auditReviewAddressableCount);
+  const blockerQueueProof = buildBlockerQueueProof(items, auditReviewAddressableCount);
   const draft = {
     id: SNAPSHOT_ID,
     label: SNAPSHOT_LABEL,
@@ -411,6 +443,7 @@ export function buildPhase8RiskBlockerPriority(
     topPriorityStatus: topItem?.status ?? "ready",
     auditReviewCanAddressTopBlocker: topItem?.canUseAuditReview === true,
     topBlockerProof,
+    blockerQueueProof,
     nextAction:
       topItem?.nextAction ??
       "No Phase 8 risk blockers remain; keep permission, approval, audit, rollback, and disabled-path locks attached.",

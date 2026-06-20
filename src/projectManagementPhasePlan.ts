@@ -673,8 +673,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-risk-blockers",
             title: "Risk Blocker Explanations",
-            description: "Explain why an action is blocked and what permission, approval, evidence, or rollback requirement is needed to continue, with compact riskBlockerProof row detail plus topBlockerProof source, kind, status, priority, severity, and audit-review addressability.",
-            completionPercent: 55,
+            description: "Explain why an action is blocked and what permission, approval, evidence, or rollback requirement is needed to continue, with compact riskBlockerProof row detail, topBlockerProof source/status/severity detail, and blockerQueueProof kind/status/reviewable counts.",
+            completionPercent: 60,
             sourceDocument: "Permission audit"
           },
           {
