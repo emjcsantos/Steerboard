@@ -33,4 +33,22 @@ describe("project management phase plan", () => {
     );
     expect(auditParent?.description).toContain("auditPersistenceProof");
   });
+
+  it("keeps Phase 11 release traceability progress aligned with owner-visible proof depth", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const phase11Epic = byId.get("phase-11-owner-packaging");
+    const releaseParent = byId.get("phase-11-parent-release-packaging");
+    const traceabilityChild = byId.get("phase-11-child-traceability");
+
+    expect(phase11Epic?.completionPercent).toBeGreaterThanOrEqual(
+      traceabilityChild?.completionPercent ?? 0
+    );
+    expect(releaseParent?.completionPercent).toBeGreaterThanOrEqual(
+      traceabilityChild?.completionPercent ?? 0
+    );
+    expect(releaseParent?.description).toContain("owner release traceability status counts");
+    expect(traceabilityChild?.description).toContain("linked goal and PM row coverage");
+    expect(traceabilityChild?.description).toContain("release hold status");
+  });
 });
