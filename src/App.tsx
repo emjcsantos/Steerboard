@@ -775,6 +775,12 @@ import {
   buildPhase11ReleaseReadinessSnapshot,
   type Phase11ReleaseReadinessSnapshot
 } from "./phase11ReleaseReadiness";
+import {
+  buildPhase11SignedAuditExportArtifact,
+  serializePhase11SignedAuditExportArtifact,
+  verifyPhase11SignedAuditExportArtifact,
+  type Phase11SignedAuditExportArtifactVerification
+} from "./phase11SignedAuditExportArtifact";
 import { buildPhase11OwnerReleaseTraceability } from "./phase11OwnerReleaseTraceability";
 import { buildPhase11OwnerReleaseBlockerPriority } from "./phase11OwnerReleaseBlockerPriority";
 import {
@@ -11116,6 +11122,66 @@ function RightPanel({
       securityFinalReviewSnapshot
     ]
   );
+  const phase11SignedAuditExportArtifactVerification = useMemo(() => {
+    const artifact = buildPhase11SignedAuditExportArtifact({
+      exportedAt: phase11EvidenceEvaluationTime,
+      evaluatedAt: phase11EvidenceEvaluationTime,
+      evidenceRecords: phase11EvidenceRecords,
+      releaseReadiness: phase11ReleaseReadiness,
+      releasePrivacy: releasePrivacyReadinessSnapshot,
+      securityFinalReview: securityFinalReviewSnapshot,
+      packagingPaused:
+        desktopPackagingReadinessSnapshot.packagingLocked &&
+        !desktopPackagingReadinessSnapshot.canPackage
+    });
+
+    return verifyPhase11SignedAuditExportArtifact(artifact);
+  }, [
+    desktopPackagingReadinessSnapshot.canPackage,
+    desktopPackagingReadinessSnapshot.packagingLocked,
+    phase11EvidenceEvaluationTime,
+    phase11EvidenceRecords,
+    phase11ReleaseReadiness,
+    releasePrivacyReadinessSnapshot,
+    securityFinalReviewSnapshot
+  ]);
+  const exportPhase11SignedAuditArtifact = useCallback(() => {
+    const now = new Date().toISOString();
+    const artifact = buildPhase11SignedAuditExportArtifact({
+      exportedAt: now,
+      evaluatedAt: phase11EvidenceEvaluationTime,
+      evidenceRecords: phase11EvidenceRecords,
+      releaseReadiness: phase11ReleaseReadiness,
+      releasePrivacy: releasePrivacyReadinessSnapshot,
+      securityFinalReview: securityFinalReviewSnapshot,
+      packagingPaused:
+        desktopPackagingReadinessSnapshot.packagingLocked &&
+        !desktopPackagingReadinessSnapshot.canPackage
+    });
+    const serializedArtifact = serializePhase11SignedAuditExportArtifact(artifact);
+    const verification = verifyPhase11SignedAuditExportArtifact(artifact);
+
+    if (typeof document !== "undefined" && typeof URL !== "undefined" && typeof Blob !== "undefined") {
+      const blob = new Blob([serializedArtifact], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `phase11-signed-audit-export-${now.replace(/[:.]/g, "-")}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+
+    onAppNotice(`Phase 11 signed audit export ${verification.statusLabel}: ${verification.detail}`);
+  }, [
+    desktopPackagingReadinessSnapshot.canPackage,
+    desktopPackagingReadinessSnapshot.packagingLocked,
+    onAppNotice,
+    phase11EvidenceEvaluationTime,
+    phase11EvidenceRecords,
+    phase11ReleaseReadiness,
+    releasePrivacyReadinessSnapshot,
+    securityFinalReviewSnapshot
+  ]);
   const canActivateDraftProfile =
     runtimeProfileApprovalSnapshot.state === "requested" &&
     canActivateRuntimeProfile(runtimeProfileDraftReadiness);
@@ -11732,8 +11798,10 @@ function RightPanel({
 
       <Phase11EvidenceRecordsPanel
         onClearRecord={onClearPhase11EvidenceRecord}
+        onExportSignedAuditArtifact={exportPhase11SignedAuditArtifact}
         onImportRecords={onImportPhase11EvidenceRecords}
         onRecord={onRecordPhase11Evidence}
+        signedAuditExportVerification={phase11SignedAuditExportArtifactVerification}
         snapshot={phase11EvidenceRecords}
       />
 
@@ -17344,13 +17412,17 @@ export function Phase11ProofFreshnessDepthPanel({
 
 export function Phase11EvidenceRecordsPanel({
   onClearRecord,
+  onExportSignedAuditArtifact,
   onImportRecords,
   onRecord,
+  signedAuditExportVerification,
   snapshot
 }: {
   onClearRecord: (gate: Phase11EvidenceGate) => void;
+  onExportSignedAuditArtifact?: () => void;
   onImportRecords: (serializedRecords: string) => void;
   onRecord: (gate: Phase11EvidenceGate) => void;
+  signedAuditExportVerification?: Phase11SignedAuditExportArtifactVerification;
   snapshot: Phase11EvidenceRecordsSnapshot;
 }) {
   const importInputRef = useRef<HTMLInputElement | null>(null);
@@ -17399,6 +17471,15 @@ export function Phase11EvidenceRecordsPanel({
             ref={importInputRef}
             type="file"
           />
+          <button
+            disabled={!onExportSignedAuditArtifact}
+            onClick={onExportSignedAuditArtifact}
+            title="Export a local Phase 11 signed audit JSON artifact with offline verification metadata."
+            type="button"
+          >
+            <ShieldCheck size={13} />
+            <span>Export signed audit</span>
+          </button>
         </div>
         <dl className="phase11-evidence-records-grid" aria-label="Phase 11 evidence record counts">
           <div>
@@ -17422,6 +17503,27 @@ export function Phase11EvidenceRecordsPanel({
             <dd>{snapshot.malformedCount}</dd>
           </div>
         </dl>
+        {signedAuditExportVerification ? (
+          <div
+            className={classNames(
+              "phase11-evidence-record",
+              `phase11-evidence-record-${signedAuditExportVerification.state}`
+            )}
+            title={`${signedAuditExportVerification.detail} ${signedAuditExportVerification.nextAction}`}
+          >
+            <span>{signedAuditExportVerification.statusLabel}</span>
+            <div>
+              <strong>Signed audit export</strong>
+              <small>
+                {signedAuditExportVerification.signature || "signature pending"} / rollback{" "}
+                {signedAuditExportVerification.rollbackReferenceCount} / no mutation{" "}
+                {signedAuditExportVerification.noMutationScopeCount}
+              </small>
+              <small>{signedAuditExportVerification.nextAction}</small>
+            </div>
+            <b>{signedAuditExportVerification.readiness}%</b>
+          </div>
+        ) : null}
         <ol className="phase11-evidence-record-list" aria-label="Phase 11 evidence records">
           {records.map((record) => (
             <li
