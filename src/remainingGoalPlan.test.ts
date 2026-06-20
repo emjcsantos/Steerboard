@@ -396,6 +396,9 @@ describe("remaining goal plan", () => {
     const reversibleChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-09-child-reversible-action"
     );
+    const observabilityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-09-child-runner-observability"
+    );
     const traceabilityChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-09-child-traceability"
     );
@@ -409,6 +412,9 @@ describe("remaining goal plan", () => {
     expect(phase9Parent?.completionPercent).toBe(64);
     expect(phase9RunnerProbeParent?.completionPercent).toBe(64);
     expect(reversibleChild?.completionPercent).toBe(64);
+    expect(observabilityChild?.completionPercent).toBe(64);
+    expect(observabilityChild?.description).toContain("validation output evidence key");
+    expect(observabilityChild?.description).toContain("mutation-lock count");
     expect(reversibleChild?.description).toContain(
       "trusted Phase 9 traceability/current active goal proof"
     );

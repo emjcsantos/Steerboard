@@ -750,8 +750,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-09-child-runner-observability",
             title: "Runner Observability",
-            description: "Show request readiness, approval window, validation output, audit count, local runner-review evidence, current runner evidence fingerprint, rollback evidence, direct-handler blocks, and final state for the selected probe.",
-            completionPercent: 62,
+            description: "Show request readiness, approval window, validation output evidence key, audit count, local runner-review evidence, current runner evidence fingerprint, rollback evidence, direct-handler blocks, mutation-lock count, and final state for the selected probe.",
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Live action runner"
           },

@@ -131,6 +131,7 @@ describe("project management phase plan", () => {
     const byId = new Map(tasks.map((task) => [task.id, task]));
     const runnerProbeParent = byId.get("phase-09-parent-runner-probe");
     const reversibleActionChild = byId.get("phase-09-child-reversible-action");
+    const observabilityChild = byId.get("phase-09-child-runner-observability");
     const traceabilityChild = byId.get("phase-09-child-traceability");
 
     expect(runnerProbeParent?.completionPercent).toBeGreaterThanOrEqual(
@@ -144,6 +145,12 @@ describe("project management phase plan", () => {
     expect(reversibleActionChild?.description).toContain("no Git operation");
     expect(reversibleActionChild?.description).toContain("no external call");
     expect(reversibleActionChild?.description).toContain("no profile mutation");
+    expect(observabilityChild?.completionPercent).toBeGreaterThanOrEqual(
+      traceabilityChild?.completionPercent ?? 0
+    );
+    expect(observabilityChild?.description).toContain("validation output evidence key");
+    expect(observabilityChild?.description).toContain("current runner evidence fingerprint");
+    expect(observabilityChild?.description).toContain("mutation-lock count");
   });
 
   it("keeps Phase 11 proof freshness progress aligned with owner proof depth", () => {
