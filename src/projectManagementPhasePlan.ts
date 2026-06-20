@@ -546,8 +546,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-06-child-publish-hold-traceability",
             title: "Publish Hold Traceability",
-            description: "Link Phase 1 live proof, Phase 2 isolation proof, Phase 6 PM staging, required PM rows by Epic/Parent/Child kind, priority proof counts, compact local-hold evidence key, and the owner-held publish blocker before pushing is considered.",
-            completionPercent: 60,
+            description: "Link Phase 1 live proof, Phase 2 isolation proof, Phase 6 PM staging, required PM rows by Epic/Parent/Child kind, priority proof counts, compact local-hold evidence key with trust verdict, and the owner-held publish blocker before pushing is considered.",
+            completionPercent: 65,
             complexity: "medium",
             sourceDocument: "Phase 1/2/6 publish hold traceability"
           },

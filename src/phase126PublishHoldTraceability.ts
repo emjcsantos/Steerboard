@@ -341,6 +341,15 @@ function buildLocalHoldEvidenceKey(
   publishHoldStatus: Phase126PublishHoldTraceabilityState
 ): string {
   const goalId = goal?.id ?? "missing-goal";
+  const trustStatus =
+    goal &&
+    linkedPhaseCount === REQUIRED_PHASE_IDS.length &&
+    linkedRequiredPmTaskCount === REQUIRED_PM_TASK_IDS.length &&
+    readyPriorityEvidenceCount === REQUIRED_PRIORITY_EVIDENCE_IDS.length &&
+    publishHoldStatus === "blocked"
+      ? "ready"
+      : "review";
+
   return (
     `goal=${goalId} phases=${linkedPhaseCount}/${REQUIRED_PHASE_IDS.length} ` +
     `pm=${linkedPmTaskCount}/${REQUIRED_PM_TASK_IDS.length} ` +
@@ -348,7 +357,7 @@ function buildLocalHoldEvidenceKey(
     `epics=${linkedRequiredPmTaskKindCounts.epic} parents=${linkedRequiredPmTaskKindCounts.parent} ` +
     `children=${linkedRequiredPmTaskKindCounts.child} ` +
     `priority=${readyPriorityEvidenceCount}/${REQUIRED_PRIORITY_EVIDENCE_IDS.length} ` +
-    `hold=${publishHoldStatus}`
+    `hold=${publishHoldStatus} trust=${trustStatus}`
   );
 }
 
