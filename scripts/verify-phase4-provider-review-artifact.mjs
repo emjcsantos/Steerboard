@@ -42,6 +42,25 @@ const requiredRefreshSmokeProofTerms = [
   "metadataOnly=locked",
   "execution=locked"
 ];
+const requiredCatalogDepthProofTerms = [
+  "records=6/6",
+  "ready=6",
+  "preview=0",
+  "setupRequired=0",
+  "held=0",
+  "locks=6/6",
+  "metadataProof=6/6",
+  "scopedExecution=6/6",
+  "ownerSafe=6/6",
+  "command=ready",
+  "skill=ready",
+  "plugin=ready",
+  "mcp=ready",
+  "automation=ready",
+  "personalization=ready",
+  "metadataOnly=locked",
+  "execution=locked"
+];
 const requiredAuditChainProofTerms = [
   "approval=",
   "expectedApproval=",
@@ -232,6 +251,15 @@ function verifyArtifact(artifact) {
   const catalogRecords = assertArray(catalogDepth.records, "catalogDepth.records");
   if (catalogRecords.length < requiredSurfaceCount) {
     throw new Error(`expected at least ${requiredSurfaceCount} catalog records, found ${catalogRecords.length}`);
+  }
+  assertNonEmptyString(catalogDepth.catalogDepthProof, "catalogDepth.catalogDepthProof");
+  {
+    const missingTerms = requiredCatalogDepthProofTerms.filter(
+      (term) => !catalogDepth.catalogDepthProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`catalogDepth catalogDepthProof is missing ${missingTerms.join(", ")}`);
+    }
   }
   assertReadyRows(catalogRecords, "catalogDepth");
   for (const surface of ["command", "skill", "plugin", "mcp", "automation", "personalization"]) {

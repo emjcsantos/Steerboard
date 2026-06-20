@@ -130,6 +130,25 @@ const REQUIRED_REFRESH_SMOKE_PROOF_TERMS = [
   "metadataOnly=locked",
   "execution=locked"
 ] as const;
+const REQUIRED_CATALOG_DEPTH_PROOF_TERMS = [
+  "records=6/6",
+  "ready=6",
+  "preview=0",
+  "setupRequired=0",
+  "held=0",
+  "locks=6/6",
+  "metadataProof=6/6",
+  "scopedExecution=6/6",
+  "ownerSafe=6/6",
+  "command=ready",
+  "skill=ready",
+  "plugin=ready",
+  "mcp=ready",
+  "automation=ready",
+  "personalization=ready",
+  "metadataOnly=locked",
+  "execution=locked"
+] as const;
 const REQUIRED_SURFACE_OWNER_BOUNDARY_PROOF_TERMS: ReadonlyArray<{
   readonly kind: string;
   readonly terms: readonly string[];
@@ -481,6 +500,33 @@ function findCatalogScopedExecutionProofReview(
   return undefined;
 }
 
+function findCatalogDepthProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const catalogDepthProof = artifact.catalogDepth.catalogDepthProof?.trim();
+
+  if (!catalogDepthProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing catalog-depth aggregate proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after catalog-depth rows summarize all six provider surfaces, metadata proof, scoped execution proof, owner-safe proof, and execution locks."
+    };
+  }
+
+  const missingTerms = REQUIRED_CATALOG_DEPTH_PROOF_TERMS.filter(
+    (term) => !catalogDepthProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete catalog-depth aggregate proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after catalog-depth aggregate proof includes six-surface status, metadata, scoped execution, owner-safe, and execution-lock terms."
+    };
+  }
+
+  return undefined;
+}
+
 function findAuditValidationChainProofReview(
   artifact: Phase4ProviderReviewArtifact
 ): { detail: string; nextAction: string } | undefined {
@@ -785,6 +831,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       refreshSmokeProofReview.detail,
       refreshSmokeProofReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const catalogDepthProofReview = findCatalogDepthProofReview(artifact);
+  if (catalogDepthProofReview) {
+    return result(
+      "review",
+      artifact,
+      catalogDepthProofReview.detail,
+      catalogDepthProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

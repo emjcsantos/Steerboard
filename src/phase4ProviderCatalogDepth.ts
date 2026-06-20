@@ -42,6 +42,7 @@ export interface Phase4ProviderCatalogDepthSummary {
   readonly heldCount: number;
   readonly executionLockCount: number;
   readonly nextAction: string;
+  readonly catalogDepthProof: string;
   readonly ariaLabel: string;
 }
 
@@ -179,6 +180,46 @@ function firstNextAction(
   );
 }
 
+function recordStatus(
+  records: readonly Phase4ProviderCatalogDepthRecord[],
+  kind: Phase4ProviderCatalogDepthKind
+): ProviderIntegrationReadinessState | "missing" {
+  return records.find((record) => record.kind === kind)?.status ?? "missing";
+}
+
+function buildCatalogDepthProof(input: {
+  readonly records: readonly Phase4ProviderCatalogDepthRecord[];
+  readonly readyCount: number;
+  readonly previewCount: number;
+  readonly setupRequiredCount: number;
+  readonly heldCount: number;
+  readonly executionLockCount: number;
+}): string {
+  const metadataProofCount = input.records.filter(
+    (record) => record.metadataProof.length > 0
+  ).length;
+  const scopedExecutionProofCount = input.records.filter((record) =>
+    record.scopedExecutionProof.trim()
+  ).length;
+  const ownerSafeProofCount = input.records.filter((record) =>
+    record.ownerSafeProof.trim()
+  ).length;
+
+  return (
+    `records=${input.records.length}/6 ready=${input.readyCount} preview=${input.previewCount} ` +
+    `setupRequired=${input.setupRequiredCount} held=${input.heldCount} ` +
+    `locks=${input.executionLockCount}/6 metadataProof=${metadataProofCount}/6 ` +
+    `scopedExecution=${scopedExecutionProofCount}/6 ownerSafe=${ownerSafeProofCount}/6 ` +
+    `command=${recordStatus(input.records, "command")} ` +
+    `skill=${recordStatus(input.records, "skill")} ` +
+    `plugin=${recordStatus(input.records, "plugin")} ` +
+    `mcp=${recordStatus(input.records, "mcp")} ` +
+    `automation=${recordStatus(input.records, "automation")} ` +
+    `personalization=${recordStatus(input.records, "personalization")} ` +
+    "metadataOnly=locked execution=locked"
+  );
+}
+
 function buildAriaLabel(
   summary: Omit<Phase4ProviderCatalogDepthSummary, "ariaLabel">
 ): string {
@@ -193,16 +234,29 @@ export function buildPhase4ProviderCatalogDepth(
   readiness: ProviderIntegrationReadiness
 ): Phase4ProviderCatalogDepthSummary {
   const records = readiness.surfaces.map(buildRecord);
+  const readyCount = records.filter((record) => record.status === "ready").length;
+  const previewCount = records.filter((record) => record.status === "preview").length;
+  const setupRequiredCount = records.filter((record) => record.status === "setup-required").length;
+  const heldCount = records.filter((record) => heldStatus(record.status)).length;
+  const executionLockCount = records.filter((record) => record.executionLocked).length;
   const draft = {
     id: CATALOG_DEPTH_ID,
     label: CATALOG_DEPTH_LABEL,
     records,
-    readyCount: records.filter((record) => record.status === "ready").length,
-    previewCount: records.filter((record) => record.status === "preview").length,
-    setupRequiredCount: records.filter((record) => record.status === "setup-required").length,
-    heldCount: records.filter((record) => heldStatus(record.status)).length,
-    executionLockCount: records.filter((record) => record.executionLocked).length,
-    nextAction: firstNextAction(records, readiness.nextAction)
+    readyCount,
+    previewCount,
+    setupRequiredCount,
+    heldCount,
+    executionLockCount,
+    nextAction: firstNextAction(records, readiness.nextAction),
+    catalogDepthProof: buildCatalogDepthProof({
+      records,
+      readyCount,
+      previewCount,
+      setupRequiredCount,
+      heldCount,
+      executionLockCount
+    })
   };
 
   return {

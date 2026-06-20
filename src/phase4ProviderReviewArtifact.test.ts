@@ -117,8 +117,29 @@ function reviewArtifact({
 }
 
 function noOpenBlockers(artifact: Phase4ProviderReviewArtifact): Phase4ProviderReviewArtifact {
+  const catalogDepth = {
+    ...artifact.catalogDepth,
+    readyCount: 6,
+    previewCount: 0,
+    setupRequiredCount: 0,
+    heldCount: 0,
+    executionLockCount: 6,
+    catalogDepthProof:
+      "records=6/6 ready=6 preview=0 setupRequired=0 held=0 locks=6/6 " +
+      "metadataProof=6/6 scopedExecution=6/6 ownerSafe=6/6 " +
+      "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready " +
+      "metadataOnly=locked execution=locked",
+    records: artifact.catalogDepth.records.map((record) => ({
+      ...record,
+      status: "ready" as const,
+      statusLabel: "Ready",
+      readiness: 100
+    }))
+  };
+
   return {
     ...artifact,
+    catalogDepth,
     traceability: { ...artifact.traceability, canTrustProviderReview: true },
     blockerPriority: {
       ...artifact.blockerPriority,
@@ -618,6 +639,29 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("command scoped execution proof"),
       nextAction: expect.stringContaining("command, skill, plugin, and MCP catalog rows")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing catalog-depth aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutCatalogDepthProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      catalogDepth: { ...artifact.catalogDepth, catalogDepthProof: "" }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutCatalogDepthProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("catalog-depth aggregate proof"),
+      nextAction: expect.stringContaining("catalog-depth rows")
     });
   });
 

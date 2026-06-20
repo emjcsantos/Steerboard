@@ -78,6 +78,12 @@ describe("phase 4 provider catalog depth", () => {
       "personalization"
     ]);
     expect(depth.executionLockCount).toBe(6);
+    expect(depth.catalogDepthProof).toContain("records=6/6");
+    expect(depth.catalogDepthProof).toContain("locks=6/6");
+    expect(depth.catalogDepthProof).toContain("metadataProof=6/6");
+    expect(depth.catalogDepthProof).toContain("scopedExecution=6/6");
+    expect(depth.catalogDepthProof).toContain("ownerSafe=6/6");
+    expect(depth.catalogDepthProof).toContain("metadataOnly=locked execution=locked");
     expect(depth.records.every((record) => record.executionLocked)).toBe(true);
     expect(depth.records).toEqual(
       expect.arrayContaining([
@@ -138,6 +144,9 @@ describe("phase 4 provider catalog depth", () => {
     expect(depth.records.every((record) => record.status === "ready")).toBe(true);
     expect(depth.records.every((record) => record.itemOrder.length === 2)).toBe(true);
     expect(depth.records.every((record) => record.metadataProof.length === 2)).toBe(true);
+    expect(depth.catalogDepthProof).toContain(
+      "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready"
+    );
   });
 
   it("keeps preview, setup, and held provider states visible per catalog", () => {
@@ -192,6 +201,9 @@ describe("phase 4 provider catalog depth", () => {
     expect(depth.previewCount).toBe(1);
     expect(depth.setupRequiredCount).toBe(1);
     expect(depth.heldCount).toBe(1);
+    expect(depth.catalogDepthProof).toContain("skill=setup-required");
+    expect(depth.catalogDepthProof).toContain("plugin=preview");
+    expect(depth.catalogDepthProof).toContain("automation=unavailable");
     expect(depth.records).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "skill", status: "setup-required" }),
@@ -206,6 +218,7 @@ describe("phase 4 provider catalog depth", () => {
     const combinedText = [
       depth.label,
       depth.ariaLabel,
+      depth.catalogDepthProof,
       depth.nextAction,
       ...depth.records.flatMap((record) => [
         record.label,

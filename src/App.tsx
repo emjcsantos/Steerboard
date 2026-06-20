@@ -8189,6 +8189,7 @@ export function ProviderIntegrationReadinessPanel({
             {catalogDepth.readyCount} ready / {catalogDepth.executionLockCount} locks
           </span>
         </div>
+        <small>{catalogDepth.catalogDepthProof}</small>
         <ol className="provider-catalog-depth-list">
           {catalogDepth.records.map((record) => (
             <li

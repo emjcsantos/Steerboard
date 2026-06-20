@@ -67,6 +67,11 @@ const scopedExecutionProofBySurface = {
   mcp:
     "mcpToolPolicyProof=recorded-mcp:transport=stdio:toolPolicy=read-only:state=live transport=stdio toolPolicy=read-only execution=locked"
 };
+const catalogDepthProof =
+  "records=6/6 ready=6 preview=0 setupRequired=0 held=0 locks=6/6 " +
+  "metadataProof=6/6 scopedExecution=6/6 ownerSafe=6/6 " +
+  "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready " +
+  "metadataOnly=locked execution=locked";
 
 function catalogRecord(surface) {
   const itemOrder = [`${surface}-recorded-primary`, `${surface}-recorded-secondary`];
@@ -311,6 +316,7 @@ const artifact = {
     setupRequiredCount: 0,
     blockedCount: 0,
     executionLockCount: surfaceNames.length,
+    catalogDepthProof,
     nextAction: "Keep provider execution locked while recorded catalog metadata stays attached.",
     safety: "Metadata-only Phase 4 provider catalog review; no provider actions are executed.",
     ariaLabel: "Phase 4 provider catalog depth: Ready; 100% ready.",
