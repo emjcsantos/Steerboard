@@ -323,7 +323,8 @@ const surfaceDepthProof =
   "items=9/9 ready=9 preview=0 setupRequired=0 held=0 " +
   "surfaceCoverage=ready setupBlockers=ready capabilityGaps=ready previewReview=ready " +
   "approval=ready audit=ready rollback=ready permission=ready executionLock=ready " +
-  "ownerBoundary=present canEnableExecution=locked metadataOnly=locked execution=locked";
+  "ownerBoundary=present approvalChain=present auditChain=present rollbackChain=present permissionChain=present " +
+  "canEnableExecution=locked metadataOnly=locked execution=locked";
 
 const artifact = {
   schemaVersion: 1,
@@ -411,14 +412,13 @@ const artifact = {
         "Approval gate",
         "Provider approval metadata is ready.",
         `catalog=${currentCatalogFingerprint} recordCatalog=${currentCatalogFingerprint} ` +
-        `refreshSafety=ready ready=8 preview=0 blocked=0 ${refreshSmokeProof} ` +
-        `${refreshSafetyDepthProof} catalogMatch=matched execution=locked`
+        `${approvalValidation.approvalChainProof} catalogMatch=matched execution=locked`
       ),
       surfaceItem(
         "audit-gate",
         "Audit gate",
         "Provider audit metadata is ready.",
-        `approval=${approvalRecordId} catalog=${currentCatalogFingerprint} auditEvidence=${auditEvidenceFingerprint} approvalMatch=matched catalogMatch=matched auditMatch=matched mutation=locked execution=locked`
+        auditValidation.auditChainProof
       ),
       surfaceItem(
         "rollback-gate",

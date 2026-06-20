@@ -397,7 +397,10 @@ describe("phase 4 provider surface depth", () => {
       "approval=ready audit=ready rollback=ready permission=ready executionLock=ready"
     );
     expect(depth.surfaceDepthProof).toContain(
-      "ownerBoundary=present canEnableExecution=locked metadataOnly=locked execution=locked"
+      "ownerBoundary=present approvalChain=present auditChain=present rollbackChain=present permissionChain=present"
+    );
+    expect(depth.surfaceDepthProof).toContain(
+      "canEnableExecution=locked metadataOnly=locked execution=locked"
     );
     expect(depth.items).toEqual(
       expect.arrayContaining([

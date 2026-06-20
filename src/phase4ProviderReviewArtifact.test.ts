@@ -255,7 +255,8 @@ function withReadyLocalRecords(
       "items=9/9 ready=9 preview=0 setupRequired=0 held=0 " +
       "surfaceCoverage=ready setupBlockers=ready capabilityGaps=ready previewReview=ready " +
       "approval=ready audit=ready rollback=ready permission=ready executionLock=ready " +
-      "ownerBoundary=present canEnableExecution=locked metadataOnly=locked execution=locked",
+      "ownerBoundary=present approvalChain=present auditChain=present rollbackChain=present permissionChain=present " +
+      "canEnableExecution=locked metadataOnly=locked execution=locked",
     items: artifact.surfaceDepth.items.map((item) => {
       if (item.kind === "approval-gate") {
         return {
@@ -524,6 +525,35 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("surface-depth aggregate proof"),
       nextAction: expect.stringContaining("surface-depth snapshot")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing surface-depth chain aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutSurfaceDepthChainProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      surfaceDepth: {
+        ...artifact.surfaceDepth,
+        surfaceDepthProof: artifact.surfaceDepth.surfaceDepthProof.replace(
+          "approvalChain=present auditChain=present rollbackChain=present permissionChain=present ",
+          ""
+        )
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutSurfaceDepthChainProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("surface-depth aggregate proof"),
+      nextAction: expect.stringContaining("surface-depth aggregate proof")
     });
   });
 

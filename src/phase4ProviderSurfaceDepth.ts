@@ -166,6 +166,16 @@ function ownerBoundaryProofState(
     : "review";
 }
 
+function ownerBoundaryChainState(
+  items: readonly Phase4ProviderSurfaceDepthItem[],
+  kind: Phase4ProviderSurfaceDepthItemKind,
+  requiredTerms: readonly string[]
+): "present" | "review" {
+  const proof = items.find((item) => item.kind === kind)?.ownerBoundaryProof?.trim();
+
+  return proof && requiredTerms.every((term) => proof.includes(term)) ? "present" : "review";
+}
+
 function buildSurfaceDepthProof(input: {
   readonly items: readonly Phase4ProviderSurfaceDepthItem[];
   readonly readyCount: number;
@@ -187,6 +197,10 @@ function buildSurfaceDepthProof(input: {
     `permission=${itemStatus(input.items, "permission-gate")} ` +
     `executionLock=${itemStatus(input.items, "execution-lock")} ` +
     `ownerBoundary=${ownerBoundaryProofState(input.items)} ` +
+    `approvalChain=${ownerBoundaryChainState(input.items, "approval-gate", ["refreshSafety=ready", "owner=present", "mutation=locked", "execution=locked"])} ` +
+    `auditChain=${ownerBoundaryChainState(input.items, "audit-gate", ["approvalValidation=ready", "approvalChain=present", "mutation=locked", "execution=locked"])} ` +
+    `rollbackChain=${ownerBoundaryChainState(input.items, "rollback-gate", ["auditValidation=ready", "auditChain=present", "mutation=locked", "execution=locked"])} ` +
+    `permissionChain=${ownerBoundaryChainState(input.items, "permission-gate", ["rollbackValidation=ready", "rollbackChain=present", "mutation=locked", "execution=locked"])} ` +
     `canEnableExecution=${input.canEnableExecution ? "enabled" : "locked"} ` +
     "metadataOnly=locked execution=locked"
   );
@@ -354,7 +368,7 @@ function approvalGateItem(
       ownerBoundaryProof:
         `catalog=${valueOrMissing(approvalValidation.expectedCatalogFingerprint)} ` +
         `recordCatalog=${valueOrMissing(approvalValidation.recordCatalogFingerprint)} ` +
-        `${approvalValidation.refreshSafetyProof} ` +
+        `${approvalValidation.approvalChainProof} ` +
         `catalogMatch=${approvalValidation.matchesCurrentCatalog ? "matched" : "review"} execution=locked`,
       nextAction: approvalValidation.nextAction
     };
