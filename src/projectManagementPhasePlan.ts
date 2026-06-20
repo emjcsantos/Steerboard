@@ -682,8 +682,8 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-08-permissions-audit",
     title: "Phase 8: Permissions and Audit",
-    description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, current owner audit-review fingerprints, record-specific rollback evidence, phase8RiskClosureProof, phase8AuditReviewHandoffProof, and phase8PermissionAuditCompletionGate proof before mutation-capable paths expand.",
-    completionPercent: 76,
+    description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, current owner audit-review fingerprints, record-specific rollback evidence, phase8RiskClosureProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof, and phase8PermissionAuditCompletionGate proof before mutation-capable paths expand.",
+    completionPercent: 80,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -746,16 +746,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-08-parent-audit-log",
         title: "Owner-Visible Audit Trail",
-        description: "Record attempted actions, owner audit reviews, approvals, blocked states, validation outcomes, record-specific rollback reviews, audit persistence depth, compact auditPersistenceProof state/readiness/record/open-exception counts, phase8AuditReviewHandoffProof, and phase8PermissionAuditCompletionGate proof for local owner-review persistence.",
-        completionPercent: 72,
+        description: "Record attempted actions, owner audit reviews, approvals, blocked states, validation outcomes, record-specific rollback reviews, audit persistence depth, compact auditPersistenceProof state/readiness/record/open-exception counts, current-fingerprint proof, reviewed-blocker proof, phase8AuditReviewHandoffProof, and phase8PermissionAuditCompletionGate proof for local owner-review persistence.",
+        completionPercent: 80,
         complexity: "high",
         sourceDocument: "Audit requirements",
         children: [
           {
             id: "phase-08-child-audit-persistence",
             title: "Audit Persistence",
-            description: "Persist audit entries and owner audit-review records locally while keeping malformed or stale audit state from hiding permission, evidence, mutation-lock, fingerprint, rollback blockers, and compact auditPersistenceProof state/readiness/record/open-exception counts.",
-            completionPercent: 65,
+            description: "Persist audit entries and owner audit-review records locally while keeping malformed or stale audit state from hiding permission, evidence, mutation-lock, current-fingerprint, reviewed-blocker, rollback blockers, and compact auditPersistenceProof state/readiness/record/open-exception/fingerprint-current counts.",
+            completionPercent: 80,
             complexity: "high",
             sourceDocument: "Audit storage"
           },

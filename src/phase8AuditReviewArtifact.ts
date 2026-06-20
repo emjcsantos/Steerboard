@@ -1,4 +1,7 @@
-import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
+import {
+  buildPhase8AuditEvidenceFingerprint,
+  type Phase8AuditReviewRecord
+} from "./phase8AuditReviewRecord";
 import type { Phase8PermissionAuditDepthSnapshot } from "./phase8PermissionAuditDepth";
 import type { Phase8RiskBlockerPrioritySummary } from "./phase8RiskBlockerPriority";
 import type { Phase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
@@ -109,6 +112,16 @@ function hasCompleteReviewedBlockerProof(record: Phase8AuditReviewRecord): boole
   ).length;
 
   return presentCount === 0 || presentCount === values.length;
+}
+
+function hasCurrentReviewRecordFingerprint(
+  artifact: Phase8AuditReviewArtifact,
+  record: Phase8AuditReviewRecord
+): boolean {
+  return (
+    typeof record.auditEvidenceFingerprint === "string" &&
+    record.auditEvidenceFingerprint === buildPhase8AuditEvidenceFingerprint(artifact.snapshot)
+  );
 }
 
 function counts(
@@ -280,6 +293,18 @@ export function verifyPhase8AuditReviewArtifact(
       artifact,
       "Phase 8 audit review artifact includes an owner review record that does not preserve the mutation lock.",
       "Clear and recreate the owner audit review record while mutation-capable paths remain locked."
+    );
+  }
+
+  if (
+    artifact.reviewRecord &&
+    !hasCurrentReviewRecordFingerprint(artifact, artifact.reviewRecord)
+  ) {
+    return result(
+      "review",
+      artifact,
+      "Phase 8 audit review artifact includes an owner review record with a stale or missing current audit evidence fingerprint.",
+      "Re-record owner audit review from the current Phase 8 audit evidence before treating persistence as closure proof."
     );
   }
 

@@ -203,6 +203,34 @@ describe("phase 8 audit review artifact", () => {
     });
   });
 
+  it("reviews owner audit records that do not match the current audit fingerprint", () => {
+    const exported = artifact();
+    const reviewRecord = createPhase8AuditReviewRecord(
+      {
+        ...exported.snapshot,
+        riskyActionCount: exported.snapshot.riskyActionCount + 1
+      },
+      "2026-06-18T10:00:00.000Z",
+      exported.blockerPriority
+    );
+
+    expect(
+      verifyPhase8AuditReviewArtifact(
+        {
+          ...exported,
+          reviewRecord
+        },
+        {
+          verifiedAt: "2026-06-18T10:05:00.000Z"
+        }
+      )
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("stale or missing current audit evidence fingerprint"),
+      nextAction: expect.stringContaining("Re-record owner audit review")
+    });
+  });
+
   it("reviews stale artifacts and artifacts with incomplete evidence-key traceability", () => {
     const exported = artifact();
 

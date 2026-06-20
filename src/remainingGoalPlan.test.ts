@@ -34,7 +34,7 @@ describe("remaining goal plan", () => {
       averageCompletionPercent: 85,
       currentTarget: "Permission and audit depth",
       currentNextAction:
-        "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof, phase8AuditReviewHandoffProof, phase8PermissionAuditCompletionGate, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, blocker closure proof, owner-review handoff proof, completion-gate closure proof, and the exact top blocker before mutation paths grow.",
+        "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof, phase8PermissionAuditCompletionGate, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, blocker closure proof, owner-review handoff proof, completion-gate closure proof, and the exact top blocker before mutation paths grow.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -631,9 +631,9 @@ describe("remaining goal plan", () => {
       priority: "high",
       status: "active",
       current: true,
-      completionPercent: 76
+      completionPercent: 80
     });
-    expect(phase8Epic?.completionPercent).toBe(76);
+    expect(phase8Epic?.completionPercent).toBe(80);
     expect(permissionLabelsChild?.completionPercent).toBe(65);
     expect(permissionLabelsChild?.description).toContain("permissionLabelSummaryProof total");
     expect(riskBlockersChild?.completionPercent).toBe(65);
@@ -648,8 +648,9 @@ describe("remaining goal plan", () => {
     expect(blockerPriorityChild?.description).toContain("blockerQueueProof open/kind/status");
     expect(riskClosureChild?.completionPercent).toBe(76);
     expect(riskClosureChild?.description).toContain("phase8RiskClosureProof");
-    expect(auditPersistenceChild?.completionPercent).toBe(65);
+    expect(auditPersistenceChild?.completionPercent).toBe(80);
     expect(auditPersistenceChild?.description).toContain("auditPersistenceProof state/readiness/record");
+    expect(auditPersistenceChild?.description).toContain("fingerprint-current");
     expect(completionGateChild?.completionPercent).toBe(68);
     expect(completionGateChild?.description).toContain("phase8PermissionAuditCompletionGate");
     expect(ownerReviewHandoffChild?.completionPercent).toBe(72);

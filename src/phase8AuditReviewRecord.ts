@@ -127,6 +127,8 @@ function buildAuditPersistenceProof(input: {
   disabledPathCount: number;
   mutationLocked: boolean;
   auditEvidenceFingerprint: string;
+  fingerprintCurrent?: boolean;
+  reviewedBlockerProof?: boolean;
   topBlockerSourceId?: string;
   topBlockerStatus?: Phase8RiskBlockerPriorityState | "ready";
 }): string {
@@ -135,6 +137,8 @@ function buildAuditPersistenceProof(input: {
     `records=${input.auditRecordCount} openExceptions=${input.openExceptionCount} ` +
     `disabledPaths=${input.disabledPathCount} mutationLocked=${input.mutationLocked ? "yes" : "no"} ` +
     `fingerprint=${input.auditEvidenceFingerprint || "missing"} ` +
+    `fingerprintCurrent=${input.fingerprintCurrent ? "yes" : "unverified"} ` +
+    `reviewedBlocker=${input.reviewedBlockerProof ? "attached" : "missing"} ` +
     `topBlocker=${input.topBlockerSourceId || "none"} topStatus=${input.topBlockerStatus || "ready"}`
   );
 }
@@ -339,6 +343,13 @@ export function createPhase8AuditReviewRecord(
   const state = ownerReviewMissingOnly ? "ready" : snapshot.state;
   const readiness = ownerReviewMissingOnly ? 100 : snapshot.readiness;
   const auditEvidenceFingerprint = buildPhase8AuditEvidenceFingerprint(snapshot);
+  const reviewedBlockerProof = Boolean(
+    blockerPriority?.topPriorityLabel &&
+      blockerPriority.topPrioritySourceId &&
+      blockerPriority.topPriorityKind &&
+      blockerPriority.topPriorityStatus &&
+      blockerPriority.topPriorityAction
+  );
   const auditPersistenceProof = buildAuditPersistenceProof({
     state,
     readiness,
@@ -347,6 +358,8 @@ export function createPhase8AuditReviewRecord(
     disabledPathCount: snapshot.disabledPathCount,
     mutationLocked: true,
     auditEvidenceFingerprint,
+    fingerprintCurrent: true,
+    reviewedBlockerProof,
     topBlockerSourceId: blockerPriority?.topPrioritySourceId,
     topBlockerStatus: blockerPriority?.topPriorityStatus
   });
@@ -397,7 +410,7 @@ export function savePhase8AuditReviewRecord(record: Phase8AuditReviewRecord): vo
       : undefined,
     auditPersistenceProof: publicText(
       record.auditPersistenceProof,
-      "auditPersistenceProof=state=review readiness=0 records=0 openExceptions=0 disabledPaths=0 mutationLocked=yes fingerprint=missing topBlocker=none topStatus=ready"
+      "auditPersistenceProof=state=review readiness=0 records=0 openExceptions=0 disabledPaths=0 mutationLocked=yes fingerprint=missing fingerprintCurrent=unverified reviewedBlocker=missing topBlocker=none topStatus=ready"
     ),
     rollbackEvidence: publicText(
       record.rollbackEvidence,
