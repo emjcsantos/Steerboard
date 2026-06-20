@@ -485,6 +485,12 @@ describe("remaining goal plan", () => {
     const riskBlockersChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-08-child-risk-blockers"
     );
+    const traceabilityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-08-child-traceability"
+    );
+    const blockerPriorityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-08-child-blocker-priority"
+    );
 
     expect(phase8Goal).toMatchObject({
       target: "Permission and audit depth",
@@ -498,6 +504,11 @@ describe("remaining goal plan", () => {
     expect(riskBlockersChild?.completionPercent).toBe(64);
     expect(riskBlockersChild?.description).toContain("topBlockerProof source/kind/status");
     expect(riskBlockersChild?.description).toContain("blockerQueueProof open/kind/status");
+    expect(traceabilityChild?.completionPercent).toBe(64);
+    expect(traceabilityChild?.description).toContain("traceabilityProof goal/missing-PM/trust");
+    expect(blockerPriorityChild?.completionPercent).toBe(64);
+    expect(blockerPriorityChild?.description).toContain("topBlockerProof source/kind/status");
+    expect(blockerPriorityChild?.description).toContain("blockerQueueProof open/kind/status");
     expect(phase8Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-08-child-permission-labels",

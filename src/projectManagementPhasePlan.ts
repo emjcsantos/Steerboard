@@ -688,16 +688,16 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-traceability",
             title: "Risk Traceability",
-            description: "Link Phase 8 remaining-goal status, PM child rows, permission/audit depth records, local owner audit-review records, current audit evidence fingerprints, risk exceptions, disabled paths, evidence keys, rollback expectations, compact traceabilityProof trust counts, and traceabilityRowStateProof row-state counts before mutation-capable paths can advance.",
-            completionPercent: 62,
+            description: "Link Phase 8 remaining-goal status, PM child rows, permission/audit depth records, local owner audit-review records, current audit evidence fingerprints, risk exceptions, disabled paths, evidence keys, rollback expectations, compact traceabilityProof goal/missing-PM/trust counts, and traceabilityRowStateProof ready/review/blocked/waiting row-state counts before mutation-capable paths can advance.",
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Phase 8 risk traceability"
           },
           {
             id: "phase-08-child-blocker-priority",
             title: "Risk Blocker Priority",
-            description: "Rank exact Phase 8 blockers across permission, approval, evidence, audit persistence, owner-review freshness, record-specific rollback, disabled paths, exceptions, and traceability before mutation-capable paths can advance, while keeping remaining-goal and PM traceability repairs out of audit-review actions.",
-            completionPercent: 62,
+            description: "Rank exact Phase 8 blockers across permission, approval, evidence, audit persistence, owner-review freshness, record-specific rollback, disabled paths, exceptions, and traceability with topBlockerProof source/kind/status/severity/audit-review detail and blockerQueueProof open/kind/status/reviewable counts before mutation-capable paths can advance, while keeping remaining-goal and PM traceability repairs out of audit-review actions.",
+            completionPercent: 64,
             complexity: "medium",
             sourceDocument: "Phase 8 risk blocker priority"
           }
