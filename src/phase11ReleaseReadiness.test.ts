@@ -231,7 +231,7 @@ describe("phase 11 release readiness", () => {
     expect(result.canRecommendRelease).toBe(true);
     expect(result.releaseHoldCount).toBe(0);
     expect(result.items.every((item) => item.status === "ready")).toBe(true);
-    const phase3Trace = result.items.find((item) => item.label === "Current Phase 3 trace");
+    const phase3Trace = result.items.find((item) => item.label === "Completed Phase 3 trace");
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -245,7 +245,7 @@ describe("phase 11 release readiness", () => {
           detail: expect.stringContaining("proof export: Proof export is ready at 100% ready")
         }),
         expect.objectContaining({
-          label: "Current Phase 3 trace",
+          label: "Completed Phase 3 trace",
           status: "ready",
           nextAction: expect.stringContaining("completed Phase 3 clearance PM traceability")
         }),
@@ -348,7 +348,7 @@ describe("phase 11 release readiness", () => {
 
     expect(result.state).toBe("review");
     expect(result.canRecommendRelease).toBe(false);
-    const phase3Trace = result.items.find((item) => item.label === "Current Phase 3 trace");
+    const phase3Trace = result.items.find((item) => item.label === "Completed Phase 3 trace");
     const smokeProof = result.items.find((item) => item.label === "Owner smoke proof");
     expect(result.items).toEqual(
       expect.arrayContaining([
@@ -360,7 +360,7 @@ describe("phase 11 release readiness", () => {
             "Record the owner-reviewed Phase 3 handoff before exporting."
         }),
         expect.objectContaining({
-          label: "Current Phase 3 trace",
+          label: "Completed Phase 3 trace",
           status: "review",
           nextAction: expect.stringContaining("phase-11-proof-freshness-depth")
         }),
@@ -421,7 +421,7 @@ describe("phase 11 release readiness", () => {
       })
     });
 
-    const phase3Trace = result.items.find((item) => item.label === "Current Phase 3 trace");
+    const phase3Trace = result.items.find((item) => item.label === "Completed Phase 3 trace");
 
     expect(result.state).toBe("review");
     expect(result.canRecommendRelease).toBe(false);
@@ -454,7 +454,7 @@ describe("phase 11 release readiness", () => {
           status: "ready"
         }),
         expect.objectContaining({
-          label: "Current Phase 3 trace",
+          label: "Completed Phase 3 trace",
           status: "review",
           detail: expect.stringContaining("not visible"),
           nextAction: expect.stringContaining("completed Phase 3 clearance PM traceability")
@@ -490,7 +490,7 @@ describe("phase 11 release readiness", () => {
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: "Current Phase 3 trace",
+          label: "Completed Phase 3 trace",
           status: "review",
           detail: expect.stringContaining("current no"),
           nextAction: expect.stringContaining("goal-phase-3-proof-clearance")
@@ -526,7 +526,7 @@ describe("phase 11 release readiness", () => {
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: "Current Phase 3 trace",
+          label: "Completed Phase 3 trace",
           status: "review",
           detail: expect.stringContaining("is next"),
           nextAction: expect.stringContaining("goal-phase-3-proof-clearance")
@@ -560,7 +560,7 @@ describe("phase 11 release readiness", () => {
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: "Current Phase 3 trace",
+          label: "Completed Phase 3 trace",
           status: "ready",
           detail: expect.stringContaining("handoff proof ready; proof export ready")
         }),
@@ -601,12 +601,12 @@ describe("phase 11 release readiness", () => {
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: "Current Phase 3 trace",
+          label: "Completed Phase 3 trace",
           status: "review",
           nextAction: expect.stringContaining("phase-03-child-smoke-rows")
         }),
         expect.objectContaining({
-          label: "Current Phase 3 trace",
+          label: "Completed Phase 3 trace",
           nextAction: expect.stringContaining("phase-03-child-command-plan")
         })
       ])
@@ -623,7 +623,7 @@ describe("phase 11 release readiness", () => {
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: "Current Phase 3 trace",
+          label: "Completed Phase 3 trace",
           status: "review",
           detail: expect.stringContaining("PM board evidence missing"),
           nextAction: expect.stringContaining("phase-03-child-blocker-priority")
@@ -642,13 +642,13 @@ describe("phase 11 release readiness", () => {
     expect(result.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: "Current Phase 3 trace",
+          label: "Completed Phase 3 trace",
           status: "review",
           detail: expect.stringContaining("incomplete PM rows below 85%"),
           nextAction: expect.stringContaining("phase-03-child-handoff-gate")
         }),
         expect.objectContaining({
-          label: "Current Phase 3 trace",
+          label: "Completed Phase 3 trace",
           nextAction: expect.stringContaining("phase-03-child-blocker-priority")
         })
       ])
@@ -864,7 +864,7 @@ describe("phase 11 release readiness", () => {
           status: "blocked",
           detail: expect.stringContaining("with 1 blocker")
         }),
-        expect.objectContaining({ label: "Current Phase 3 trace", status: "ready" }),
+        expect.objectContaining({ label: "Completed Phase 3 trace", status: "ready" }),
         expect.objectContaining({ label: "Packaging lock", status: "ready" }),
         expect.objectContaining({ label: "Docs and known limits", status: "review" }),
         expect.objectContaining({ label: "Release decision", status: "blocked" })

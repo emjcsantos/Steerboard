@@ -346,7 +346,7 @@ function releaseReadinessSnapshot(
       },
       {
         id: "phase-11-release-readiness:phase3-trace",
-        label: "Current Phase 3 trace",
+        label: "Completed Phase 3 trace",
         kind: "phase3-trace",
         status: "review",
         detail:
@@ -468,7 +468,7 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("phase11OwnerCommandCloseoutStatusProof");
     expect(html).toContain("Phase 11 release closeout status");
     expect(html).toContain("phase11ReleaseCloseoutStatusProof");
-    expect(html).toContain("Current Phase 3 trace");
+    expect(html).toContain("Completed Phase 3 trace");
     expect(html).toContain("Packaging lock");
     expect(html).toContain("Phase 11 Proof Freshness");
     expect(html).toContain("<dt>Trust</dt><dd>Held</dd>");
@@ -657,7 +657,7 @@ describe("phase 11 owner-visible proof", () => {
         status: "ready" as const,
         detail:
           item.kind === "phase3-trace"
-            ? "goal-phase-3-proof-clearance is active, current yes, with 12 PM task links including phase-03-child-smoke-rows, phase-03-child-exit-gate, phase-03-child-command-plan, phase-03-child-blocker-priority, phase-03-child-traceability, phase-03-child-proof-export-boundary, phase-03-child-handoff-gate; proof freshness trusted; handoff proof ready; proof export ready."
+            ? "goal-phase-3-proof-clearance is next, current no, with 12 PM task links including phase-03-child-smoke-rows, phase-03-child-exit-gate, phase-03-child-command-plan, phase-03-child-blocker-priority, phase-03-child-traceability, phase-03-child-proof-export-boundary, phase-03-child-handoff-gate; proof freshness trusted; handoff proof ready; proof export ready."
             : item.detail,
         nextAction:
           item.label === "Packaging lock"
@@ -682,7 +682,7 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain(
       'aria-label="Phase 11 owner release blocker priority counts"><div><dt>Open</dt><dd>0</dd></div><div><dt>Review</dt><dd>0</dd></div><div><dt>Status</dt><dd>Ready</dd></div></dl>'
     );
-    expect(html).toContain("goal-phase-3-proof-clearance is active");
+    expect(html).toContain("goal-phase-3-proof-clearance is next");
     expect(html).toContain("phase-03-child-blocker-priority");
     expect(html).toContain("phase-03-child-traceability");
     expect(html).toContain("phase-03-child-handoff-gate");
