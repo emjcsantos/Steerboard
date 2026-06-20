@@ -298,7 +298,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 80,
+    completionPercent: 81,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -306,15 +306,15 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
         description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 68,
+        completionPercent: 69,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
           {
             id: "phase-04-child-command-skill",
             title: "Command and Skill Catalogs",
-            description: "Show command and skill entries with scoped item-order proof, fallback/source guidance, evidence keys, owner-safe readiness proof, and execution locks.",
-            completionPercent: 62,
+            description: "Show command and skill entries with scoped item-order proof, command scope proof, skill invocation proof, fallback/source guidance, evidence keys, owner-safe readiness proof, and execution locks.",
+            completionPercent: 66,
             sourceDocument: "Command and skill catalogs"
           },
           {

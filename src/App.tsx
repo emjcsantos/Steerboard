@@ -8204,6 +8204,7 @@ export function ProviderIntegrationReadinessPanel({
                 <small>{record.sourceLabel} / {record.evidenceKey}</small>
                 <em>{record.evidence}</em>
                 <small>{record.metadataProof.slice(0, 2).join("; ") || "No metadata proof attached"}</small>
+                <small>{record.scopedExecutionProof}</small>
                 <small>{record.ownerSafeProof}</small>
                 <small>{record.safety}</small>
                 <small>{record.nextAction}</small>

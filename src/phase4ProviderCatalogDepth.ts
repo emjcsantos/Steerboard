@@ -22,6 +22,7 @@ export interface Phase4ProviderCatalogDepthRecord {
   readonly total: number;
   readonly itemOrder: readonly string[];
   readonly metadataProof: readonly string[];
+  readonly scopedExecutionProof: string;
   readonly evidenceKey: string;
   readonly readiness: number;
   readonly evidence: string;
@@ -96,6 +97,31 @@ function summarizeMetadataProof(metadataProof: readonly string[]): string {
   return `Metadata proof: ${visibleItems}${suffix}.`;
 }
 
+function scopedExecutionProof(
+  kind: Phase4ProviderCatalogDepthKind,
+  metadataProof: readonly string[]
+): string {
+  const firstProof = metadataProof[0] ?? "missing";
+
+  if (kind === "command") {
+    const scopedProof = metadataProof.find((proof) => proof.includes("scopes=")) ?? firstProof;
+    return `commandScopeProof=${scopedProof} execution=locked`;
+  }
+
+  if (kind === "skill") {
+    const skillProof =
+      metadataProof.find(
+        (proof) =>
+          proof.includes("source=") &&
+          proof.includes("trigger=") &&
+          proof.includes("invocation=")
+      ) ?? firstProof;
+    return `skillInvocationProof=${skillProof} execution=locked`;
+  }
+
+  return `metadataProof=${firstProof} execution=locked`;
+}
+
 function heldStatus(status: ProviderIntegrationReadinessState): boolean {
   return status === "blocked" || status === "unsupported" || status === "unavailable";
 }
@@ -115,6 +141,7 @@ function buildRecord(
     total: surface.total,
     itemOrder: surface.itemOrder,
     metadataProof: surface.metadataProof,
+    scopedExecutionProof: scopedExecutionProof(kind, surface.metadataProof),
     evidenceKey: evidenceKey(kind),
     readiness: surface.readiness,
     evidence: `${EVIDENCE_BY_KIND[kind]} ${surface.detail} ${summarizeItemOrder(surface.itemOrder)} ${summarizeMetadataProof(surface.metadataProof)} Safety: ${surface.safety}`,

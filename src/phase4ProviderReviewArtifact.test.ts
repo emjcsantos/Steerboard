@@ -471,6 +471,34 @@ describe("phase 4 provider review artifact", () => {
     });
   });
 
+  it("reviews no-blocker artifacts missing command scoped execution proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutCommandScopedExecutionProof = {
+      ...artifact,
+      catalogDepth: {
+        ...artifact.catalogDepth,
+        records: artifact.catalogDepth.records.map((record) =>
+          record.kind === "command" ? { ...record, scopedExecutionProof: "" } : record
+        )
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutCommandScopedExecutionProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("command scoped execution proof"),
+      nextAction: expect.stringContaining("command and skill catalog rows")
+    });
+  });
+
   it("keeps malformed recorded artifacts waiting instead of trusting offline load", () => {
     expect(
       verifyRecordedPhase4ProviderReviewArtifact("{}", {

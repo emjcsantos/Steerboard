@@ -100,6 +100,19 @@ const STATUS_LABELS: Record<Phase4ProviderReviewArtifactState, string> = {
 
 const DEFAULT_MAX_ARTIFACT_AGE_MS = 24 * 60 * 60 * 1000;
 const REQUIRED_PROVIDER_SURFACE_COUNT = 6;
+const REQUIRED_CATALOG_SCOPED_EXECUTION_PROOF_TERMS: ReadonlyArray<{
+  readonly kind: string;
+  readonly terms: readonly string[];
+}> = [
+  {
+    kind: "command",
+    terms: ["commandScopeProof=", "scopes=", "execution=locked"]
+  },
+  {
+    kind: "skill",
+    terms: ["skillInvocationProof=", "source=", "trigger=", "invocation=", "execution=locked"]
+  }
+];
 const REQUIRED_SURFACE_OWNER_BOUNDARY_PROOF_TERMS: ReadonlyArray<{
   readonly kind: string;
   readonly terms: readonly string[];
@@ -314,6 +327,34 @@ function findSurfaceOwnerBoundaryProofReview(
   return undefined;
 }
 
+function findCatalogScopedExecutionProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  for (const requirement of REQUIRED_CATALOG_SCOPED_EXECUTION_PROOF_TERMS) {
+    const record = artifact.catalogDepth.records.find((catalogRecord) => catalogRecord.kind === requirement.kind);
+    const scopedExecutionProof = record?.scopedExecutionProof?.trim();
+
+    if (!record || !scopedExecutionProof) {
+      return {
+        detail: `Phase 4 provider review artifact is missing ${requirement.kind} scoped execution proof.`,
+        nextAction:
+          "Re-export Phase 4 provider review evidence after command and skill catalog rows show scoped execution-lock proof."
+      };
+    }
+
+    const missingTerms = requirement.terms.filter((term) => !scopedExecutionProof.includes(term));
+    if (missingTerms.length > 0) {
+      return {
+        detail: `Phase 4 provider review artifact has incomplete ${requirement.kind} scoped execution proof: missing ${missingTerms.join(", ")}.`,
+        nextAction:
+          "Re-export Phase 4 provider review evidence after command scope and skill invocation proof include the required execution-lock terms."
+      };
+    }
+  }
+
+  return undefined;
+}
+
 export function buildPhase4ProviderReviewArtifact(
   input: Phase4ProviderReviewArtifactBuildInput
 ): Phase4ProviderReviewArtifact {
@@ -499,6 +540,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       `Phase 4 provider review artifact is valid but still has ${artifact.blockerPriority.openBlockerCount} open blocker${artifact.blockerPriority.openBlockerCount === 1 ? "" : "s"}.`,
       artifact.blockerPriority.topPriorityAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const catalogScopedExecutionProofReview = findCatalogScopedExecutionProofReview(artifact);
+  if (catalogScopedExecutionProofReview) {
+    return result(
+      "review",
+      artifact,
+      catalogScopedExecutionProofReview.detail,
+      catalogScopedExecutionProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

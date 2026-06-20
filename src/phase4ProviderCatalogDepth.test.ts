@@ -85,11 +85,13 @@ describe("phase 4 provider catalog depth", () => {
           kind: "command",
           evidenceKey: "phase-04-provider-catalog:command",
           evidence: expect.stringMatching(/scope labels.*Catalog item order/),
+          scopedExecutionProof: expect.stringMatching(/commandScopeProof=.*scopes=.*execution=locked/),
           ownerSafeProof: expect.stringContaining("scoped slash-command labels")
         }),
         expect.objectContaining({
           kind: "skill",
           evidenceKey: "phase-04-provider-catalog:skill",
+          scopedExecutionProof: expect.stringMatching(/skillInvocationProof=.*source=.*trigger=.*invocation=.*execution=locked/),
           ownerSafeProof: expect.stringContaining("source, trigger, invocation metadata")
         }),
         expect.objectContaining({
@@ -206,6 +208,7 @@ describe("phase 4 provider catalog depth", () => {
         record.sourceLabel,
         record.evidenceKey,
         record.metadataProof.join(" "),
+        record.scopedExecutionProof,
         record.evidence,
         record.ownerSafeProof,
         record.safety,

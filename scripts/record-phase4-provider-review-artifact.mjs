@@ -54,6 +54,11 @@ const metadataProofBySurface = {
     "recorded-governance:layer=governance:source=builtin:privacy=local-process-only:state=preview"
   ]
 };
+const scopedExecutionProofBySurface = {
+  command: "commandScopeProof=/recorded-command:scopes=panel:state=live execution=locked",
+  skill:
+    "skillInvocationProof=recorded-skill:source=builtin:trigger=slash:invocation=Recorded Skill:state=live execution=locked"
+};
 
 function catalogRecord(surface) {
   const itemOrder = [`${surface}-recorded-primary`, `${surface}-recorded-secondary`];
@@ -68,6 +73,9 @@ function catalogRecord(surface) {
     evidenceKey: `phase-04-provider-catalog:${surface}`,
     itemOrder,
     metadataProof: metadataProofBySurface[surface],
+    scopedExecutionProof:
+      scopedExecutionProofBySurface[surface] ??
+      `metadataProof=${metadataProofBySurface[surface][0]} execution=locked`,
     ownerSafeProof: ownerSafeProofBySurface[surface],
     executionLocked: true
   };

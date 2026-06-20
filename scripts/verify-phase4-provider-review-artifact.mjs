@@ -172,6 +172,25 @@ function verifyArtifact(artifact) {
       throw new Error("catalogDepth mcp metadataProof is missing transport/toolPolicy proof");
     }
     assertNonEmptyString(record.ownerSafeProof, `catalogDepth.${surface}.ownerSafeProof`);
+    assertNonEmptyString(record.scopedExecutionProof, `catalogDepth.${surface}.scopedExecutionProof`);
+    if (
+      surface === "command" &&
+      (!record.scopedExecutionProof.includes("commandScopeProof=") ||
+        !record.scopedExecutionProof.includes("scopes=") ||
+        !record.scopedExecutionProof.includes("execution=locked"))
+    ) {
+      throw new Error("catalogDepth command scopedExecutionProof is missing scope or execution lock proof");
+    }
+    if (
+      surface === "skill" &&
+      (!record.scopedExecutionProof.includes("skillInvocationProof=") ||
+        !record.scopedExecutionProof.includes("source=") ||
+        !record.scopedExecutionProof.includes("trigger=") ||
+        !record.scopedExecutionProof.includes("invocation=") ||
+        !record.scopedExecutionProof.includes("execution=locked"))
+    ) {
+      throw new Error("catalogDepth skill scopedExecutionProof is missing source/trigger/invocation or execution lock proof");
+    }
     if (record.executionLocked !== true) {
       throw new Error(`catalogDepth ${surface} execution lock is missing`);
     }

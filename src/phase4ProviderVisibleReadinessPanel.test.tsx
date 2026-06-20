@@ -90,6 +90,17 @@ function surfaceFixture(
   surface: CatalogSurface,
   overrides: Partial<CatalogRefreshOwnerValidationSurfaceResult> = {}
 ): CatalogRefreshOwnerValidationSurfaceResult {
+  const metadataProofBySurface: Partial<Record<CatalogSurface, string[]>> = {
+    command: [
+      "/alpha:scopes=panel:state=live",
+      "/beta:scopes=panel+app:state=live"
+    ],
+    skill: [
+      "alpha-skill:source=builtin:trigger=slash:invocation=Alpha:state=live",
+      "beta-skill:source=extension:trigger=button:invocation=Beta:state=live"
+    ]
+  };
+
   return {
     surface,
     source: "provider-live",
@@ -98,7 +109,7 @@ function surfaceFixture(
     state: "ready",
     pass: true,
     itemOrder: [`${surface}-one`, `${surface}-two`],
-    metadataProof: [`${surface}:metadata-proof-one`, `${surface}:metadata-proof-two`],
+    metadataProof: metadataProofBySurface[surface] ?? [`${surface}:metadata-proof-one`, `${surface}:metadata-proof-two`],
     safety: "metadata/status-only",
     summary: {
       total: 2,
@@ -147,6 +158,8 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("Provider live");
     expect(html).toContain("2");
     expect(html).toContain("scope labels");
+    expect(html).toContain("commandScopeProof=");
+    expect(html).toContain("skillInvocationProof=");
     expect(html).toContain("tool policy");
     expect(html).toContain("non-mutating readiness evidence");
     expect(html).toContain("metadata/status-only");
