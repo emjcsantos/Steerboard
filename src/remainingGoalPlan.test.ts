@@ -33,7 +33,7 @@ describe("remaining goal plan", () => {
       averageCompletionPercent: 76,
       currentTarget: "Provider integration surfaces",
       currentNextAction:
-        "Use the Phase 4 Provider Readiness catalog depth, command/skill catalog item-order, evidence-key, scoped command, skill invocation, and execution-lock proof, plugin/MCP metadata-only surface and transport/tool-policy proof, owner-visible plugin/MCP metadata-only safety evidence, Refresh Safety depth, structured all-catalog refresh-smoke proof, reload-safe recorded metadata-only proof, Surface Depth owner-boundary proof, local approval, structured audit-chain, rollback, and permission record validation, owner-visible rollback and permission record-chain evidence, visible record-enable gates, explicit record-chain traceability row, tested recorded provider-review artifact loading with offline fingerprint verification, attached local record evidence, missing-record review enforcement, owner-visible missing-record proof, refresh-smoke artifact enforcement, audit validation chain-proof artifact enforcement, surface owner-boundary artifact enforcement, compact top-blocker source/evidence/status proof, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered.",
+        "Use the Phase 4 Provider Readiness catalog depth, command/skill catalog item-order, evidence-key, scoped command, skill invocation, and execution-lock proof, plugin/MCP metadata-only surface, scoped plugin surface, scoped MCP transport/tool-policy, and execution-lock proof, owner-visible plugin/MCP metadata-only safety evidence, Refresh Safety depth, structured all-catalog refresh-smoke proof, reload-safe recorded metadata-only proof, Surface Depth owner-boundary proof, local approval, structured audit-chain, rollback, and permission record validation, owner-visible rollback and permission record-chain evidence, visible record-enable gates, explicit record-chain traceability row, tested recorded provider-review artifact loading with offline fingerprint verification, attached local record evidence, missing-record review enforcement, owner-visible missing-record proof, refresh-smoke artifact enforcement, audit validation chain-proof artifact enforcement, surface owner-boundary artifact enforcement, compact top-blocker source/evidence/status proof, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -495,7 +495,7 @@ describe("remaining goal plan", () => {
       status: "active",
       completionPercent: 99
     });
-    expect(phase4Epic?.completionPercent).toBe(83);
+    expect(phase4Epic?.completionPercent).toBe(84);
     expect(phase4Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-04-child-command-skill",
@@ -513,7 +513,9 @@ describe("remaining goal plan", () => {
     );
     expect(phase4Goal?.nextAction).toContain("blocker-priority panels");
     expect(phase4Goal?.nextAction).toContain("command/skill catalog item-order, evidence-key, scoped command, skill invocation, and execution-lock proof");
-    expect(phase4Goal?.nextAction).toContain("plugin/MCP metadata-only surface and transport/tool-policy proof");
+    expect(phase4Goal?.nextAction).toContain(
+      "plugin/MCP metadata-only surface, scoped plugin surface, scoped MCP transport/tool-policy, and execution-lock proof"
+    );
     expect(phase4Goal?.nextAction).toContain("owner-visible plugin/MCP metadata-only safety evidence");
     expect(phase4Goal?.nextAction).toContain("owner-visible rollback and permission record-chain evidence");
     expect(phase4Goal?.nextAction).toContain("visible record-enable gates");

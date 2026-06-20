@@ -61,7 +61,11 @@ const metadataProofBySurface = {
 const scopedExecutionProofBySurface = {
   command: "commandScopeProof=/recorded-command:scopes=panel:state=live execution=locked",
   skill:
-    "skillInvocationProof=recorded-skill:source=builtin:trigger=slash:invocation=Recorded Skill:state=live execution=locked"
+    "skillInvocationProof=recorded-skill:source=builtin:trigger=slash:invocation=Recorded Skill:state=live execution=locked",
+  plugin:
+    "pluginSurfaceProof=recorded-plugin:connection=live:surface=metadata-only surface=metadata-only execution=locked",
+  mcp:
+    "mcpToolPolicyProof=recorded-mcp:transport=stdio:toolPolicy=read-only:state=live transport=stdio toolPolicy=read-only execution=locked"
 };
 
 function catalogRecord(surface) {

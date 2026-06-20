@@ -119,6 +119,19 @@ function scopedExecutionProof(
     return `skillInvocationProof=${skillProof} execution=locked`;
   }
 
+  if (kind === "plugin") {
+    const pluginProof =
+      metadataProof.find((proof) => proof.includes("surface=metadata-only")) ?? firstProof;
+    return `pluginSurfaceProof=${pluginProof} surface=metadata-only execution=locked`;
+  }
+
+  if (kind === "mcp") {
+    const mcpProof =
+      metadataProof.find((proof) => proof.includes("transport=") && proof.includes("toolPolicy=")) ??
+      firstProof;
+    return `mcpToolPolicyProof=${mcpProof} transport=attached toolPolicy=attached execution=locked`;
+  }
+
   return `metadataProof=${firstProof} execution=locked`;
 }
 

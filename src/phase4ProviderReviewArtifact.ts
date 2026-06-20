@@ -111,6 +111,14 @@ const REQUIRED_CATALOG_SCOPED_EXECUTION_PROOF_TERMS: ReadonlyArray<{
   {
     kind: "skill",
     terms: ["skillInvocationProof=", "source=", "trigger=", "invocation=", "execution=locked"]
+  },
+  {
+    kind: "plugin",
+    terms: ["pluginSurfaceProof=", "surface=metadata-only", "execution=locked"]
+  },
+  {
+    kind: "mcp",
+    terms: ["mcpToolPolicyProof=", "transport=", "toolPolicy=", "execution=locked"]
   }
 ];
 const REQUIRED_REFRESH_SMOKE_PROOF_TERMS = [
@@ -360,16 +368,16 @@ function findCatalogScopedExecutionProofReview(
       return {
         detail: `Phase 4 provider review artifact is missing ${requirement.kind} scoped execution proof.`,
         nextAction:
-          "Re-export Phase 4 provider review evidence after command and skill catalog rows show scoped execution-lock proof."
+          "Re-export Phase 4 provider review evidence after command, skill, plugin, and MCP catalog rows show scoped execution-lock proof."
       };
     }
 
     const missingTerms = requirement.terms.filter((term) => !scopedExecutionProof.includes(term));
     if (missingTerms.length > 0) {
       return {
-        detail: `Phase 4 provider review artifact has incomplete ${requirement.kind} scoped execution proof: missing ${missingTerms.join(", ")}.`,
-        nextAction:
-          "Re-export Phase 4 provider review evidence after command scope and skill invocation proof include the required execution-lock terms."
+      detail: `Phase 4 provider review artifact has incomplete ${requirement.kind} scoped execution proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after command, skill, plugin, and MCP catalog rows include the required execution-lock proof terms."
       };
     }
   }

@@ -100,6 +100,9 @@ describe("phase 4 provider catalog depth", () => {
           metadataProof: expect.arrayContaining([
             expect.stringContaining("surface=metadata-only")
           ]),
+          scopedExecutionProof: expect.stringMatching(
+            /pluginSurfaceProof=.*surface=metadata-only.*execution=locked/
+          ),
           ownerSafeProof: expect.stringContaining("connection/source metadata"),
           safety: expect.stringContaining("metadata/status-only")
         }),
@@ -110,6 +113,9 @@ describe("phase 4 provider catalog depth", () => {
             expect.stringContaining("transport="),
             expect.stringContaining("toolPolicy=")
           ]),
+          scopedExecutionProof: expect.stringMatching(
+            /mcpToolPolicyProof=.*transport=.*toolPolicy=.*execution=locked/
+          ),
           ownerSafeProof: expect.stringContaining("transport/tool-policy metadata"),
           safety: expect.stringContaining("must not execute")
         }),

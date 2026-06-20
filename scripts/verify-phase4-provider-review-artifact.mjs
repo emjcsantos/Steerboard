@@ -213,6 +213,23 @@ function verifyArtifact(artifact) {
     ) {
       throw new Error("catalogDepth skill scopedExecutionProof is missing source/trigger/invocation or execution lock proof");
     }
+    if (
+      surface === "plugin" &&
+      (!record.scopedExecutionProof.includes("pluginSurfaceProof=") ||
+        !record.scopedExecutionProof.includes("surface=metadata-only") ||
+        !record.scopedExecutionProof.includes("execution=locked"))
+    ) {
+      throw new Error("catalogDepth plugin scopedExecutionProof is missing metadata-only surface or execution lock proof");
+    }
+    if (
+      surface === "mcp" &&
+      (!record.scopedExecutionProof.includes("mcpToolPolicyProof=") ||
+        !record.scopedExecutionProof.includes("transport=") ||
+        !record.scopedExecutionProof.includes("toolPolicy=") ||
+        !record.scopedExecutionProof.includes("execution=locked"))
+    ) {
+      throw new Error("catalogDepth mcp scopedExecutionProof is missing transport/toolPolicy or execution lock proof");
+    }
     if (record.executionLocked !== true) {
       throw new Error(`catalogDepth ${surface} execution lock is missing`);
     }

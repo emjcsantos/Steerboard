@@ -539,7 +539,54 @@ describe("phase 4 provider review artifact", () => {
     ).toMatchObject({
       state: "review",
       detail: expect.stringContaining("command scoped execution proof"),
-      nextAction: expect.stringContaining("command and skill catalog rows")
+      nextAction: expect.stringContaining("command, skill, plugin, and MCP catalog rows")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing plugin and MCP scoped execution proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutPluginScopedExecutionProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      catalogDepth: {
+        ...artifact.catalogDepth,
+        records: artifact.catalogDepth.records.map((record) =>
+          record.kind === "plugin" ? { ...record, scopedExecutionProof: "" } : record
+        )
+      }
+    };
+    const withoutMcpScopedExecutionProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      catalogDepth: {
+        ...artifact.catalogDepth,
+        records: artifact.catalogDepth.records.map((record) =>
+          record.kind === "mcp" ? { ...record, scopedExecutionProof: "" } : record
+        )
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutPluginScopedExecutionProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("plugin scoped execution proof"),
+      nextAction: expect.stringContaining("plugin, and MCP catalog rows")
+    });
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutMcpScopedExecutionProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("mcp scoped execution proof"),
+      nextAction: expect.stringContaining("plugin, and MCP catalog rows")
     });
   });
 
