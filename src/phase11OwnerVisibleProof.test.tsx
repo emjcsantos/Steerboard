@@ -491,6 +491,13 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("phase11OwnerCommandCloseoutStatusProof");
     expect(html).toContain("Phase 11 release closeout status");
     expect(html).toContain("phase11ReleaseCloseoutStatusProof");
+    expect(html).toContain("Phase 11 external delivery gate");
+    expect(html).toContain("phase11ExternalDeliveryGateProof");
+    expect(html).toContain("canDeliver=no");
+    expect(html).toContain("ownerDelivery=missing");
+    expect(html).toContain("delivery=locked");
+    expect(html).toContain("signing=locked");
+    expect(html).toContain("upload=locked");
     expect(html).toContain("Completed Phase 3 trace");
     expect(html).toContain("Packaging lock");
     expect(html).toContain("Phase 11 Proof Freshness");
@@ -717,5 +724,10 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).not.toContain("phase-03-child-handoff-gate: Owner Handoff Gate");
     expect(html).not.toContain("82% complete");
     expect(html).toContain("Phase 11 release readiness is evidence-only");
+    expect(html).toContain("Phase 11 external delivery gate");
+    expect(html).toContain("signedAudit=ready");
+    expect(html).toContain("rollback=ready");
+    expect(html).toContain("releaseDecision=ready");
+    expect(html).toContain("ownerDelivery=missing");
   });
 });

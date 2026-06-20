@@ -803,6 +803,10 @@ import {
   type Phase11ReleaseCloseoutStatus
 } from "./phase11ReleaseCloseoutStatus";
 import {
+  buildPhase11ExternalDeliveryGate,
+  type Phase11ExternalDeliveryGate
+} from "./phase11ExternalDeliveryGate";
+import {
   buildPhase11OwnerCommandCloseoutStatus,
   type Phase11OwnerCommandCloseoutStatus
 } from "./phase11OwnerCommandCloseoutStatus";
@@ -17269,6 +17273,10 @@ export function Phase11OwnerCommandCenterPanel({
     traceability,
     blockerPriority
   });
+  const externalDeliveryGate = buildPhase11ExternalDeliveryGate(
+    closeoutStatus,
+    evidenceRecords
+  );
 
   return (
     <section className="panel-section">
@@ -17446,6 +17454,7 @@ export function Phase11OwnerCommandCenterPanel({
         </div>
         <Phase11OwnerCommandCloseoutStatusPanel status={ownerCommandCloseoutStatus} />
         <Phase11ReleaseCloseoutStatusPanel status={closeoutStatus} />
+        <Phase11ExternalDeliveryGatePanel gate={externalDeliveryGate} />
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
     </section>
@@ -17752,6 +17761,46 @@ export function Phase11EvidenceRecordsPanel({
         <small>{records[0]?.safety}</small>
       </div>
     </section>
+  );
+}
+
+export function Phase11ExternalDeliveryGatePanel({
+  gate
+}: {
+  gate: Phase11ExternalDeliveryGate;
+}) {
+  return (
+    <div
+      aria-label={gate.ariaLabel}
+      className={classNames(
+        "phase11-owner-release-blocker-priority",
+        `phase11-owner-release-blocker-priority-${gate.state}`
+      )}
+      title={gate.safety}
+    >
+      <div className="phase11-owner-release-blocker-priority-header">
+        <strong>{gate.label}</strong>
+        <span>{gate.statusLabel}</span>
+        <b>{gate.readiness}%</b>
+      </div>
+      <dl className="phase11-owner-release-blocker-priority-grid" aria-label="Phase 11 external delivery gate counts">
+        <div>
+          <dt>Deliver</dt>
+          <dd>{gate.canDeliverExternally ? "Ready" : "Held"}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{gate.signedAuditReady ? "Ready" : "Held"}</dd>
+        </div>
+        <div>
+          <dt>Owner</dt>
+          <dd>{gate.ownerDeliveryApproved ? "Approved" : "Missing"}</dd>
+        </div>
+      </dl>
+      <small>{gate.detail}</small>
+      <small>{gate.phase11ExternalDeliveryGateProof}</small>
+      <small title={gate.nextAction}>{gate.nextAction}</small>
+    </div>
   );
 }
 
