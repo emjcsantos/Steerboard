@@ -75,7 +75,8 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-08-child-closure-audit-status",
   "phase-08-child-owner-action-handoff",
   "phase-08-child-audit-review-blocker-handoff",
-  "phase-08-child-owner-review-closure-readiness"
+  "phase-08-child-owner-review-closure-readiness",
+  "phase-08-child-final-completion-handoff"
 ];
 const SAFETY =
   "Phase 8 risk traceability is evidence-only. It links the remaining goal, Project Management rows, permission/audit depth records, risk exceptions, disabled paths, evidence keys, and rollback expectations without requesting approval, granting access, running commands, mutating files, or unlocking provider execution.";

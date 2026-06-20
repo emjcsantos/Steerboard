@@ -104,8 +104,11 @@ describe("project management phase plan", () => {
     const ownerReviewClosureReadinessChild = byId.get(
       "phase-08-child-owner-review-closure-readiness"
     );
+    const finalCompletionHandoffChild = byId.get(
+      "phase-08-child-final-completion-handoff"
+    );
 
-    expect(auditParent?.completionPercent).toBe(98);
+    expect(auditParent?.completionPercent).toBe(99);
     expect(auditPersistenceChild?.completionPercent).toBe(80);
     expect(ownerReviewHandoffChild?.completionPercent).toBe(84);
     expect(completionGateChild?.completionPercent).toBe(90);
@@ -113,6 +116,7 @@ describe("project management phase plan", () => {
     expect(ownerActionHandoffChild?.completionPercent).toBe(94);
     expect(auditReviewBlockerHandoffChild?.completionPercent).toBe(96);
     expect(ownerReviewClosureReadinessChild?.completionPercent).toBe(98);
+    expect(finalCompletionHandoffChild?.completionPercent).toBe(99);
     expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
       auditPersistenceChild?.completionPercent ?? 0
     );
@@ -134,6 +138,9 @@ describe("project management phase plan", () => {
     expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
       ownerReviewClosureReadinessChild?.completionPercent ?? 0
     );
+    expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
+      finalCompletionHandoffChild?.completionPercent ?? 0
+    );
     expect(auditParent?.description).toContain("auditPersistenceProof");
     expect(auditParent?.description).toContain("current-fingerprint proof");
     expect(auditParent?.description).toContain("reviewed-blocker proof");
@@ -147,6 +154,8 @@ describe("project management phase plan", () => {
     expect(auditParent?.description).toContain("phase8AuditReviewBlockerHandoffProof");
     expect(auditParent?.description).toContain("reviewable-blocker handoff");
     expect(auditParent?.description).toContain("phase8OwnerReviewClosureReadinessProof");
+    expect(auditParent?.description).toContain("phase8FinalCompletionHandoffProof");
+    expect(auditParent?.description).toContain("Phase 9 handoff readiness");
     expect(auditParent?.description).toContain("closure gates");
     expect(auditParent?.description).toContain("state/readiness/record/open-exception counts");
     expect(auditPersistenceChild?.description).toContain("auditPersistenceProof");
@@ -171,6 +180,11 @@ describe("project management phase plan", () => {
       "phase8OwnerReviewClosureReadinessProof"
     );
     expect(ownerReviewClosureReadinessChild?.description).toContain("can-close counts");
+    expect(finalCompletionHandoffChild?.description).toContain(
+      "phase8FinalCompletionHandoffProof"
+    );
+    expect(finalCompletionHandoffChild?.description).toContain("top-hold counts");
+    expect(finalCompletionHandoffChild?.description).toContain("Phase 9");
     expect(ownerReviewHandoffChild?.description).toContain("phase8AuditReviewHandoffProof");
     expect(ownerReviewHandoffChild?.description).toContain("artifactState/fingerprintCurrent/reviewedBlocker");
     expect(ownerReviewHandoffChild?.description).toContain("current top blocker");

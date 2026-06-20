@@ -698,6 +698,7 @@ import {
 import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
 import { buildPhase8RiskClosure } from "./phase8RiskClosure";
 import { buildPhase8AuditReviewBlockerHandoff } from "./phase8AuditReviewBlockerHandoff";
+import { buildPhase8FinalCompletionHandoff } from "./phase8FinalCompletionHandoff";
 import { buildPhase8OwnerActionHandoff } from "./phase8OwnerActionHandoff";
 import { buildPhase8OwnerReviewClosureReadiness } from "./phase8OwnerReviewClosureReadiness";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
@@ -15658,6 +15659,12 @@ export function Phase8PermissionAuditDepthPanel({
     auditReviewBlockerHandoff,
     completionGate
   });
+  const finalCompletionHandoff = buildPhase8FinalCompletionHandoff({
+    riskClosure,
+    closureAuditStatus,
+    ownerReviewClosureReadiness,
+    completionGate
+  });
   const handleAuditReviewArtifactImport = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.currentTarget.files?.[0];
@@ -16101,6 +16108,24 @@ export function Phase8PermissionAuditDepthPanel({
             </span>
             <small>{ownerReviewClosureReadiness.nextAction}</small>
             <small>{ownerReviewClosureReadiness.phase8OwnerReviewClosureReadinessProof}</small>
+          </div>
+        </div>
+        <div
+          aria-label={finalCompletionHandoff.ariaLabel}
+          className={classNames(
+            "phase8-audit-review-record",
+            `phase8-audit-review-record-${finalCompletionHandoff.state}`
+          )}
+          title={finalCompletionHandoff.safety}
+        >
+          <div>
+            <strong>{finalCompletionHandoff.label}</strong>
+            <span>
+              {finalCompletionHandoff.statusLabel} / Phase 9{" "}
+              {finalCompletionHandoff.canAdvancePhase9 ? "ready" : "held"}
+            </span>
+            <small>{finalCompletionHandoff.nextAction}</small>
+            <small>{finalCompletionHandoff.phase8FinalCompletionHandoffProof}</small>
           </div>
         </div>
         <ol className="phase8-audit-items" aria-label="Phase 8 missing requirement explanations">
