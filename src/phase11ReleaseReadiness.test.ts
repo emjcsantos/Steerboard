@@ -14,6 +14,7 @@ import {
 import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import {
   buildRemainingGoalPriorityTraces,
+  summarizeRemainingGoalPlan,
   type RemainingGoalPlanSummary
 } from "./remainingGoalPlan";
 import type { SecurityFinalReviewSnapshot } from "./securityFinalReview";
@@ -280,6 +281,26 @@ describe("phase 11 release readiness", () => {
     expect(phase3Trace?.detail).toContain("phase-03-child-handoff-gate");
     expect(phase3Trace?.detail).toContain("age 600000ms of 86400000ms window");
     expect(result.ariaLabel).toContain("0 holds");
+  });
+
+  it("keeps release readiness held for the real remaining-goal queue", () => {
+    const result = snapshot({
+      remainingGoalSummary: summarizeRemainingGoalPlan()
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.canRecommendRelease).toBe(false);
+    expect(result.releaseHoldCount).toBeGreaterThan(0);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Release decision",
+          status: "blocked",
+          detail: expect.stringContaining("remaining goal")
+        })
+      ])
+    );
+    expect(result.nextAction).toContain("owner says to push");
   });
 
   it("reviews release readiness when Owner Testing is ready but proof freshness is not trusted", () => {
