@@ -66,8 +66,19 @@ describe("phase 4 provider approval record", () => {
       refreshSafetyProof: expect.stringContaining(
         "refreshSafety=ready ready=7 preview=0 blocked=0 surfaces=6/6 executed=6/6"
       ),
+      approvalChainProof: expect.stringContaining(
+        "catalog=phase4-catalog-current expectedCatalog=phase4-catalog-current catalogMatch=matched refreshSafety=ready"
+      ),
       recordAgeMs: 300_000
     });
+    expect(
+      derivePhase4ProviderApprovalRecordValidation({
+        record,
+        expectedCatalogFingerprint: "phase4-catalog-current",
+        refreshSafety: readyRefreshSafety,
+        options: { evaluatedAt: "2026-06-18T10:05:00.000Z" }
+      }).approvalChainProof
+    ).toContain("owner=present mutation=locked execution=locked");
   });
 
   it("returns preview when no approval record is attached", () => {
@@ -84,6 +95,9 @@ describe("phase 4 provider approval record", () => {
       refreshSafetyReady: true,
       refreshSafetyProof: expect.stringContaining(
         "refreshSafety=ready ready=7 preview=0 blocked=0 surfaces=6/6 executed=6/6"
+      ),
+      approvalChainProof: expect.stringContaining(
+        "catalog=missing expectedCatalog=phase4-catalog-current catalogMatch=review refreshSafety=ready"
       )
     });
   });
@@ -149,7 +163,8 @@ describe("phase 4 provider approval record", () => {
       refreshSafetyReady: false,
       refreshSafetyProof: expect.stringContaining(
         "refreshSafety=review ready=7 preview=1 blocked=0 surfaces=6/6 executed=6/6"
-      )
+      ),
+      approvalChainProof: expect.stringContaining("refreshSafety=review")
     });
   });
 

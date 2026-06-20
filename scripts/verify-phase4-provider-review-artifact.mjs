@@ -192,6 +192,17 @@ const requiredSurfaceDepthProofTerms = [
   "metadataOnly=locked",
   "execution=locked"
 ];
+const requiredApprovalChainProofTerms = [
+  "catalog=",
+  "expectedCatalog=",
+  "catalogMatch=",
+  "refreshSafety=ready",
+  "refreshSmoke=present",
+  "reloadSafe=ready",
+  "owner=present",
+  "mutation=locked",
+  "execution=locked"
+];
 const maxArtifactAgeMs = 24 * 60 * 60 * 1000;
 
 function fail(message) {
@@ -482,6 +493,15 @@ function verifyArtifact(artifact) {
     "approvalValidation",
     "approval"
   );
+  assertNonEmptyString(approval.validation.approvalChainProof, "approval validation approvalChainProof");
+  {
+    const missingTerms = requiredApprovalChainProofTerms.filter(
+      (term) => !approval.validation.approvalChainProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`approval validation approvalChainProof is missing ${missingTerms.join(", ")}`);
+    }
+  }
   const audit = assertReadyValidationPair(
     artifact,
     "auditRecord",

@@ -301,6 +301,17 @@ const REQUIRED_SURFACE_DEPTH_PROOF_TERMS = [
   "metadataOnly=locked",
   "execution=locked"
 ] as const;
+const REQUIRED_APPROVAL_CHAIN_PROOF_TERMS = [
+  "catalog=",
+  "expectedCatalog=",
+  "catalogMatch=",
+  "refreshSafety=ready",
+  "refreshSmoke=present",
+  "reloadSafe=ready",
+  "owner=present",
+  "mutation=locked",
+  "execution=locked"
+] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -651,6 +662,33 @@ function findAuditValidationChainProofReview(
       detail: `Phase 4 provider review artifact has incomplete audit validation chain proof: missing ${missingTerms.join(", ")}.`,
       nextAction:
         "Re-export Phase 4 provider review evidence after audit validation chain proof includes the required record-chain proof terms."
+    };
+  }
+
+  return undefined;
+}
+
+function findApprovalValidationChainProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const approvalChainProof = artifact.approvalValidation?.approvalChainProof?.trim();
+
+  if (!artifact.approvalValidation || !approvalChainProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing approval validation chain proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after approval validation chain proof shows catalog, refresh-safety, owner, mutation-lock, and execution-lock proof."
+    };
+  }
+
+  const missingTerms = REQUIRED_APPROVAL_CHAIN_PROOF_TERMS.filter(
+    (term) => !approvalChainProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete approval validation chain proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after approval validation chain proof includes the required record-chain proof terms."
     };
   }
 
@@ -1029,6 +1067,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       recordValidationReview.detail,
       recordValidationReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const approvalValidationChainProofReview = findApprovalValidationChainProofReview(artifact);
+  if (approvalValidationChainProofReview) {
+    return result(
+      "review",
+      artifact,
+      approvalValidationChainProofReview.detail,
+      approvalValidationChainProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

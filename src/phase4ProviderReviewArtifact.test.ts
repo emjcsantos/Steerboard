@@ -573,6 +573,31 @@ describe("phase 4 provider review artifact", () => {
     });
   });
 
+  it("reviews no-blocker artifacts missing approval validation chain proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutApprovalChainProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      approvalValidation: artifact.approvalValidation
+        ? { ...artifact.approvalValidation, approvalChainProof: "" }
+        : artifact.approvalValidation
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutApprovalChainProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("approval validation chain proof"),
+      nextAction: expect.stringContaining("approval validation chain proof")
+    });
+  });
+
   it("reviews no-blocker artifacts missing audit validation chain proof", () => {
     const artifact = withReadyLocalRecords(
       reviewArtifact({
@@ -826,7 +851,9 @@ describe("phase 4 provider review artifact", () => {
         maxRecordAgeMs: 24 * 60 * 60 * 1000,
         matchesCurrentCatalog: false,
         refreshSafetyReady: true,
-        refreshSafetyProof: "refreshSafety=ready ready=8 preview=0 blocked=0"
+        refreshSafetyProof: "refreshSafety=ready ready=8 preview=0 blocked=0",
+        approvalChainProof:
+          "catalog=phase4-catalog-old expectedCatalog=phase4-catalog-current catalogMatch=review refreshSafety=ready refreshSmoke=present reloadSafe=ready owner=present mutation=locked execution=locked"
       }
     };
 

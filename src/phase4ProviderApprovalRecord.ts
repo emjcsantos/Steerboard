@@ -21,6 +21,7 @@ export interface Phase4ProviderApprovalRecordValidation {
   readonly matchesCurrentCatalog: boolean;
   readonly refreshSafetyReady: boolean;
   readonly refreshSafetyProof: string;
+  readonly approvalChainProof: string;
 }
 
 export interface Phase4ProviderApprovalRecordValidationOptions {
@@ -108,6 +109,22 @@ function refreshSafetyProof(refreshSafety: Phase4RefreshSafetyDepthSummary): str
     `ready=${refreshSafety.readyCount} preview=${refreshSafety.previewCount} ` +
     `blocked=${refreshSafety.blockedCount} ${refreshSafety.refreshSmokeProof} ` +
     refreshSafety.refreshSafetyDepthProof
+  );
+}
+
+function approvalChainProof(input: {
+  readonly expectedCatalogFingerprint?: string;
+  readonly recordCatalogFingerprint?: string;
+  readonly matchesCurrentCatalog: boolean;
+  readonly refreshSafetyReady: boolean;
+  readonly refreshSafetyProof: string;
+}): string {
+  return (
+    `catalog=${input.recordCatalogFingerprint ?? "missing"} ` +
+    `expectedCatalog=${input.expectedCatalogFingerprint ?? "missing"} ` +
+    `catalogMatch=${input.matchesCurrentCatalog ? "matched" : "review"} ` +
+    `refreshSafety=${input.refreshSafetyReady ? "ready" : "review"} ` +
+    `${input.refreshSafetyProof} owner=present mutation=locked execution=locked`
   );
 }
 
@@ -235,6 +252,12 @@ export function derivePhase4ProviderApprovalRecordValidation(input: {
     DEFAULT_PHASE4_PROVIDER_APPROVAL_RECORD_MAX_AGE_MS;
   const isRefreshSafetyReady = refreshSafetyReady(input.refreshSafety);
   const refreshProof = refreshSafetyProof(input.refreshSafety);
+  const previewApprovalChainProof = approvalChainProof({
+    expectedCatalogFingerprint: input.expectedCatalogFingerprint,
+    matchesCurrentCatalog: false,
+    refreshSafetyReady: isRefreshSafetyReady,
+    refreshSafetyProof: refreshProof
+  });
 
   if (!input.record) {
     return {
@@ -246,7 +269,8 @@ export function derivePhase4ProviderApprovalRecordValidation(input: {
       maxRecordAgeMs,
       matchesCurrentCatalog: false,
       refreshSafetyReady: isRefreshSafetyReady,
-      refreshSafetyProof: refreshProof
+      refreshSafetyProof: refreshProof,
+      approvalChainProof: previewApprovalChainProof
     };
   }
 
@@ -261,7 +285,14 @@ export function derivePhase4ProviderApprovalRecordValidation(input: {
     maxRecordAgeMs,
     matchesCurrentCatalog,
     refreshSafetyReady: isRefreshSafetyReady,
-    refreshSafetyProof: refreshProof
+    refreshSafetyProof: refreshProof,
+    approvalChainProof: approvalChainProof({
+      expectedCatalogFingerprint: input.expectedCatalogFingerprint,
+      recordCatalogFingerprint: input.record.catalogFingerprint,
+      matchesCurrentCatalog,
+      refreshSafetyReady: isRefreshSafetyReady,
+      refreshSafetyProof: refreshProof
+    })
   };
 
   if (!input.expectedCatalogFingerprint) {

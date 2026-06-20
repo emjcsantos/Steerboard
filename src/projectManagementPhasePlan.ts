@@ -298,7 +298,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 91,
+    completionPercent: 92,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -306,7 +306,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
         description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured plugin/MCP scoped proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 77,
+        completionPercent: 78,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
@@ -344,8 +344,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-approval-record",
             title: "Provider Approval Record",
-            description: "Record and clear local owner approval only when the current six-surface catalog fingerprint, fresh metadata-only refresh-safety proof, structured refresh-safety readiness proof, and execution lock match, without unlocking audit, rollback, permission, or execution.",
-            completionPercent: 66,
+            description: "Record and clear local owner approval only when the current six-surface catalog fingerprint, fresh metadata-only refresh-safety proof, structured refresh-safety readiness proof, structured approval-chain proof, mutation lock, and execution lock match, without unlocking audit, rollback, permission, or execution.",
+            completionPercent: 68,
             complexity: "high",
             sourceDocument: "Phase 4 provider approval record"
           },

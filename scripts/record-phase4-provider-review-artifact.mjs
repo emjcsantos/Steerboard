@@ -165,7 +165,12 @@ const approvalValidation = {
   refreshSafetyReady: true,
   refreshSafetyProof:
     `refreshSafety=ready ready=8 preview=0 blocked=0 ${refreshSmokeProof} ` +
-    refreshSafetyDepthProof
+    refreshSafetyDepthProof,
+  approvalChainProof:
+    `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
+    "catalogMatch=matched refreshSafety=ready " +
+    `refreshSafety=ready ready=8 preview=0 blocked=0 ${refreshSmokeProof} ` +
+    `${refreshSafetyDepthProof} owner=present mutation=locked execution=locked`
 };
 const auditRecord = {
   id: auditRecordId,

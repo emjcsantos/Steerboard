@@ -8352,6 +8352,10 @@ export function Phase4ProviderSurfaceDepthPanel({
             <small>
               {approvalValidation?.refreshSafetyProof ?? "refreshSafety=review ready=0 preview=1 blocked=0"}
             </small>
+            <small>
+              {approvalValidation?.approvalChainProof ??
+                "catalog=missing expectedCatalog=missing catalogMatch=review refreshSafety=review owner=missing mutation=locked execution=locked"}
+            </small>
           </div>
           <button
             disabled={!recordApprovalEnabled || !onRecordApproval}
