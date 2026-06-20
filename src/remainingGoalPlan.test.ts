@@ -31,7 +31,7 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 96,
+      averageCompletionPercent: 100,
       currentTarget: "Permission and audit depth",
       currentNextAction:
         "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof artifactState/fingerprintCurrent/reviewedBlocker gates, phase8PermissionAuditCompletionGate handoff-ready/fingerprint-current proof, phase8ClosureAuditStatusProof blocked-category counts, phase8OwnerActionHandoffProof owner-action clearance, phase8AuditReviewBlockerHandoffProof reviewable-blocker handoff, phase8OwnerReviewClosureReadinessProof owner-review closure gates, phase8FinalCompletionHandoffProof Phase 9 handoff readiness, phase8CloseoutStatusProof closeout status, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, blocker closure proof, owner-review handoff proof, completion-gate closure proof, closure-audit status, owner-action handoff, audit-review blocker handoff, owner-review closure readiness, final completion handoff, closeout status, and the exact top blocker before mutation paths grow.",
@@ -952,7 +952,7 @@ describe("remaining goal plan", () => {
       target: "Adaptive Arena polish",
       priority: "medium",
       status: "next",
-      completionPercent: 65
+      completionPercent: 100
     });
     expect(phase10Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -961,13 +961,15 @@ describe("remaining goal plan", () => {
         "phase-10-child-flexlayout-spike",
         "phase-10-child-term-scan",
         "phase-10-child-traceability",
-        "phase-10-child-blocker-priority"
+        "phase-10-child-blocker-priority",
+        "phase-10-child-closeout-status"
       ])
     );
     expect(phase10Goal?.goal).toContain("traceabilityProof");
     expect(phase10Goal?.goal).toContain("blockerPriorityProof");
     expect(phase10Goal?.nextAction).toContain("traceabilityProof rows");
     expect(phase10Goal?.nextAction).toContain("blockerPriorityProof queue");
+    expect(phase10Goal?.nextAction).toContain("phase10ArenaPolishCloseoutStatusProof");
     expect(phase10Goal?.nextAction).toContain("owner-visible Phase 10 proof");
     expect(phase10Goal?.nextAction).toContain("npm.cmd run test:phase10:owner-visible");
     expect(packageJson.scripts["test:phase10:owner-visible"]).toBe(
@@ -985,21 +987,29 @@ describe("remaining goal plan", () => {
     const blockerPriorityChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-10-child-blocker-priority"
     );
-    expect(phase10Epic?.completionPercent).toBe(65);
+    const closeoutStatusChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-10-child-closeout-status"
+    );
+    expect(phase10Epic?.completionPercent).toBe(100);
     expect(phase10Epic?.description).toContain("npm.cmd run test:phase10:owner-visible");
     expect(phase10Epic?.description).toContain("traceabilityProof");
     expect(phase10Epic?.description).toContain("blockerPriorityProof");
-    expect(layoutFoundationParent?.completionPercent).toBe(65);
-    expect(flexLayoutSpikeChild?.completionPercent).toBe(65);
+    expect(phase10Epic?.description).toContain("phase10ArenaPolishCloseoutStatusProof");
+    expect(layoutFoundationParent?.completionPercent).toBe(100);
+    expect(flexLayoutSpikeChild?.completionPercent).toBe(100);
     expect(flexLayoutSpikeChild?.description).toContain("dependency-install status");
     expect(flexLayoutSpikeChild?.description).toContain("decisionProof");
     expect(flexLayoutSpikeChild?.description).toContain("traceabilityProof");
     expect(flexLayoutSpikeChild?.description).toContain("blockerPriorityProof");
+    expect(flexLayoutSpikeChild?.description).toContain("phase10ArenaPolishCloseoutStatusProof");
     expect(flexLayoutSpikeChild?.description).toContain("custom adaptive-grid fallback");
-    expect(blockerPriorityChild?.completionPercent).toBe(65);
+    expect(blockerPriorityChild?.completionPercent).toBe(100);
     expect(blockerPriorityChild?.description).toContain("blockerPriorityProof open/kind/status");
+    expect(blockerPriorityChild?.description).toContain("phase10ArenaPolishCloseoutStatusProof");
     expect(blockerPriorityChild?.description).toContain("Arena-review addressable count");
     expect(blockerPriorityChild?.description).toContain("top-priority action detail");
+    expect(closeoutStatusChild?.completionPercent).toBe(100);
+    expect(closeoutStatusChild?.description).toContain("phase10ArenaPolishCloseoutStatusProof");
   });
 
   it("keeps the Phase 11 owner and release targets linked to traceability and blocker priority", () => {

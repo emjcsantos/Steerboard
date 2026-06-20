@@ -613,6 +613,7 @@ describe("project management phase plan", () => {
     const flexLayoutSpikeChild = byId.get("phase-10-child-flexlayout-spike");
     const traceabilityChild = byId.get("phase-10-child-traceability");
     const blockerPriorityChild = byId.get("phase-10-child-blocker-priority");
+    const closeoutStatusChild = byId.get("phase-10-child-closeout-status");
 
     expect(phase10Epic?.completionPercent).toBeGreaterThanOrEqual(
       blockerPriorityChild?.completionPercent ?? 0
@@ -626,25 +627,31 @@ describe("project management phase plan", () => {
     expect(traceabilityChild?.completionPercent).toBeGreaterThanOrEqual(
       blockerPriorityChild?.completionPercent ?? 0
     );
-    expect(phase10Epic?.completionPercent).toBe(65);
+    expect(phase10Epic?.completionPercent).toBe(100);
     expect(phase10Epic?.description).toContain("npm.cmd run test:phase10:owner-visible");
     expect(phase10Epic?.description).toContain("traceabilityProof");
     expect(phase10Epic?.description).toContain("blockerPriorityProof");
-    expect(flexLayoutSpikeChild?.completionPercent).toBe(65);
+    expect(phase10Epic?.description).toContain("phase10ArenaPolishCloseoutStatusProof");
+    expect(flexLayoutSpikeChild?.completionPercent).toBe(100);
     expect(flexLayoutSpikeChild?.description).toContain("dependency-install status");
     expect(flexLayoutSpikeChild?.description).toContain("decisionProof");
     expect(flexLayoutSpikeChild?.description).toContain("traceabilityProof");
     expect(flexLayoutSpikeChild?.description).toContain("blockerPriorityProof");
+    expect(flexLayoutSpikeChild?.description).toContain("phase10ArenaPolishCloseoutStatusProof");
     expect(flexLayoutSpikeChild?.description).toContain("custom adaptive-grid fallback");
-    expect(traceabilityChild?.completionPercent).toBe(65);
+    expect(traceabilityChild?.completionPercent).toBe(100);
     expect(traceabilityChild?.description).toContain("npm.cmd run test:phase10:owner-visible");
     expect(traceabilityChild?.description).toContain("traceabilityProof goal/missing-PM/trust");
-    expect(blockerPriorityChild?.completionPercent).toBe(65);
+    expect(traceabilityChild?.description).toContain("phase10ArenaPolishCloseoutStatusProof");
+    expect(blockerPriorityChild?.completionPercent).toBe(100);
     expect(blockerPriorityChild?.description).toContain("owner-visible proof");
     expect(blockerPriorityChild?.description).toContain("blockerPriorityProof open/kind/status");
+    expect(blockerPriorityChild?.description).toContain("phase10ArenaPolishCloseoutStatusProof");
     expect(blockerPriorityChild?.description).toContain("open blocker count");
     expect(blockerPriorityChild?.description).toContain("Arena-review addressable count");
     expect(blockerPriorityChild?.description).toContain("top-priority action detail");
+    expect(closeoutStatusChild?.completionPercent).toBe(100);
+    expect(closeoutStatusChild?.description).toContain("phase10ArenaPolishCloseoutStatusProof");
   });
 
   it("keeps Phase 5 migration review rows aligned with review-depth proof", () => {

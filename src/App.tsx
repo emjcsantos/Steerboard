@@ -741,6 +741,10 @@ import { buildPhase10FlexLayoutSpikeSummary } from "./phase10FlexLayoutSpike";
 import { buildPhase10ArenaPolishTraceability } from "./phase10ArenaPolishTraceability";
 import { buildPhase10ArenaPolishBlockerPriority } from "./phase10ArenaPolishBlockerPriority";
 import {
+  buildPhase10ArenaPolishCloseoutStatus,
+  type Phase10ArenaPolishCloseoutStatus
+} from "./phase10ArenaPolishCloseoutStatus";
+import {
   buildPhase11OwnerCommandCenterSnapshot,
   type Phase11OwnerCommandCenterSnapshot
 } from "./phase11OwnerCommandCenter";
@@ -16696,6 +16700,11 @@ export function Phase10ArenaPolishPanel({
     snapshot,
     traceability
   });
+  const closeoutStatus = buildPhase10ArenaPolishCloseoutStatus({
+    snapshot,
+    traceability,
+    blockerPriority
+  });
 
   return (
     <section className="panel-section">
@@ -16848,9 +16857,49 @@ export function Phase10ArenaPolishPanel({
             )}
           </ol>
         </div>
+        <Phase10ArenaPolishCloseoutStatusPanel status={closeoutStatus} />
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
     </section>
+  );
+}
+
+export function Phase10ArenaPolishCloseoutStatusPanel({
+  status
+}: {
+  status: Phase10ArenaPolishCloseoutStatus;
+}) {
+  return (
+    <div
+      aria-label={status.ariaLabel}
+      className={classNames(
+        "phase10-arena-blocker-priority",
+        `phase10-arena-blocker-priority-${status.state}`
+      )}
+      title={status.safety}
+    >
+      <div className="phase10-arena-blocker-priority-header">
+        <strong>{status.label}</strong>
+        <span>{status.statusLabel}</span>
+        <b>{status.readiness}%</b>
+      </div>
+      <dl className="phase10-arena-blocker-priority-grid" aria-label="Phase 10 Arena polish closeout status counts">
+        <div>
+          <dt>PM</dt>
+          <dd>{status.linkedPmTaskCount}/{status.requiredPmTaskCount}</dd>
+        </div>
+        <div>
+          <dt>Review</dt>
+          <dd>{status.arenaReviewAddressableCount}</dd>
+        </div>
+        <div>
+          <dt>Package</dt>
+          <dd>{status.packagingPaused ? "Paused" : "Review"}</dd>
+        </div>
+      </dl>
+      <small>{status.phase10ArenaPolishCloseoutStatusProof}</small>
+      <small title={status.nextAction}>{status.nextAction}</small>
+    </div>
   );
 }
 

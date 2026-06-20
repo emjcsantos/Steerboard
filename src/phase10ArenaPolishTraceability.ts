@@ -64,7 +64,8 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-10-parent-arena-identity",
   "phase-10-child-term-scan",
   "phase-10-child-traceability",
-  "phase-10-child-blocker-priority"
+  "phase-10-child-blocker-priority",
+  "phase-10-child-closeout-status"
 ];
 const SAFETY =
   "Phase 10 Arena polish traceability is evidence-only. It links the remaining goal, Project Management rows, layout regression, density, keyboard, focus, terminology, and acceptance gates without launching runtime, mutating sources, changing saved sessions, or resuming packaging.";

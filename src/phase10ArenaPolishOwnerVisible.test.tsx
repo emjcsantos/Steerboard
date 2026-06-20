@@ -92,6 +92,8 @@ describe("phase 10 Arena polish owner-visible proof", () => {
     expect(html).toContain("defer package installation until owner approval");
     expect(html).toContain("Phase 10 Arena polish traceability");
     expect(html).toContain("Phase 10 Arena polish blocker priority");
+    expect(html).toContain("Phase 10 Arena polish closeout status");
+    expect(html).toContain("phase10ArenaPolishCloseoutStatusProof");
     expect(html).toContain("Arena review");
     expect(html).toContain("Phase 10 polish only");
     expect(html).toContain("without launching runtime or mutating sources");

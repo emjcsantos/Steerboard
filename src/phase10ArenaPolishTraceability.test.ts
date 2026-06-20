@@ -114,7 +114,7 @@ describe("phase 10 Arena polish traceability", () => {
     const summary = buildPhase10ArenaPolishTraceability({ snapshot: polishSnapshot() });
 
     expect(summary.linkedGoalId).toBe("goal-phase-10-arena-polish");
-    expect(summary.linkedPmTaskCount).toBe(9);
+    expect(summary.linkedPmTaskCount).toBe(10);
     expect(summary.missingPmTaskIds).toEqual([]);
     expect(summary.items.map((item) => item.kind)).toEqual([
       "active-goal",

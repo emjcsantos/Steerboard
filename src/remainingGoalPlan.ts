@@ -294,7 +294,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Polish adaptive layout, evaluate a FlexLayout-backed docking spike, density, keyboard controls, focus state, Arena terminology, traceabilityProof, blockerPriorityProof, and owner-visible proof after core live proof clears.",
     status: "next",
     priority: "medium",
-    completionPercent: 65,
+    completionPercent: 100,
     pmTaskIds: [
       "phase-10-adaptive-arena",
       "phase-10-parent-layout-foundation",
@@ -304,10 +304,11 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-10-parent-arena-identity",
       "phase-10-child-term-scan",
       "phase-10-child-traceability",
-      "phase-10-child-blocker-priority"
+      "phase-10-child-blocker-priority",
+      "phase-10-child-closeout-status"
     ],
     nextAction:
-      "Use the Phase 10 Arena Polish panel, FlexLayout docking spike, traceabilityProof rows, blockerPriorityProof queue, owner-visible Phase 10 proof, and npm.cmd run test:phase10:owner-visible to verify adaptive layout regression, MIT license notice impact, saved layout JSON feasibility, density, keyboard controls, focus state, terminology, acceptance gates, PM child links, and the exact top blocker before packaging resumes."
+      "Keep the Phase 10 Arena polish closeout status proof attached with phase10ArenaPolishCloseoutStatusProof, adaptive layout regression, density, keyboard controls, focus state, terminology, acceptance gates, FlexLayout defer/adopt decision, traceabilityProof rows, blockerPriorityProof queue, PM-link, owner-visible Phase 10 proof, npm.cmd run test:phase10:owner-visible, and packaging-paused evidence visible before packaging resumes."
   },
   {
     id: "goal-phase-11-owner-command-center",
