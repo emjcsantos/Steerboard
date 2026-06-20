@@ -197,7 +197,7 @@ function withCurrentPhase8Goal() {
 function withCurrentNextPhase8Goal() {
   return remainingGoalPlan.map((goal) =>
     goal.id === "goal-phase-8-permission-audit"
-      ? { ...goal, current: true }
+      ? { ...goal, status: "next" as const, current: true }
       : goal.current
         ? { ...goal, current: false }
         : goal
@@ -208,6 +208,10 @@ function withDuplicateCurrentActivePhase8Goal() {
   return remainingGoalPlan.map((goal) =>
     goal.id === "goal-phase-8-permission-audit"
       ? { ...goal, status: "active" as const, current: true }
+      : goal.id === "goal-phase-3-proof-clearance"
+        ? { ...goal, status: "active" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
       : goal
   );
 }
@@ -234,7 +238,7 @@ describe("phase 8 risk traceability", () => {
     expect(summary.traceabilityProof).toContain("missingPm=0");
     expect(summary.traceabilityProof).toContain("trust=review");
     expect(summary.traceabilityRowStateProof).toBe(
-      "traceabilityRowStateProof=rows=5 ready=1 review=0 blocked=0 waiting=4"
+      "traceabilityRowStateProof=rows=5 ready=2 review=0 blocked=0 waiting=3"
     );
     expect(summary.ariaLabel).toContain("traceabilityProof=");
     expect(summary.ariaLabel).toContain("traceabilityRowStateProof=");

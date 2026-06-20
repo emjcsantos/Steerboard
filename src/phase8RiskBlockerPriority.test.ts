@@ -217,6 +217,16 @@ function withCurrentPhase8Goal() {
   );
 }
 
+function withCurrentNextPhase8Goal() {
+  return remainingGoalPlan.map((goal) =>
+    goal.id === "goal-phase-8-permission-audit"
+      ? { ...goal, status: "next" as const, current: true }
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
+  );
+}
+
 describe("phase 8 risk blocker priority", () => {
   it("ranks waiting permission blockers with audit-review actions", () => {
     const summary = priority();
@@ -350,14 +360,15 @@ describe("phase 8 risk blocker priority", () => {
           runtimeExecutionAuditHistory: [readyAuditRecord],
           runtimeProfilePermissionRequestHistory: [readyProfileRequest]
         })
-      })
+      }),
+      goals: withCurrentNextPhase8Goal()
     });
 
     expect(summary.state).toBe("waiting");
     expect(summary.topPriorityLabel).toBe("Remaining goal link");
     expect(summary.auditReviewCanAddressTopBlocker).toBe(false);
     expect(summary.topPriorityAction).not.toContain("Record owner audit review");
-    expect(summary.topPriorityAction).toContain("owner-visible Phase 8 audit proof");
+    expect(summary.topPriorityAction).toContain("exactly one current active remaining goal");
     expect(summary.items[0]).toMatchObject({
       kind: "traceability",
       status: "waiting",

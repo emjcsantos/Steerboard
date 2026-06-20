@@ -568,7 +568,7 @@ describe("phase 11 owner command center", () => {
 
     expect(result.priorityGoalTraceCount).toBeGreaterThan(0);
     expect(result.priorityGoalTraces.map((trace) => trace.goalId).slice(0, 2)).toEqual([
-      "goal-phase-5-migration-hardening",
+      "goal-phase-8-permission-audit",
       "goal-phase-1-2-6-publish"
     ]);
     expect(result.priorityGoalTraces[0].current).toBe(true);

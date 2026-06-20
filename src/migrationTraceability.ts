@@ -141,6 +141,35 @@ function migrationGoal(goals: readonly RemainingGoalPlanItem[]): RemainingGoalPl
   return goals.find((goal) => goal.id === PHASE5_GOAL_ID);
 }
 
+function isCompletedPhase5HandoffGoal(
+  goal: RemainingGoalPlanItem | undefined,
+  currentActiveGoalIds: readonly string[]
+): goal is RemainingGoalPlanItem {
+  return (
+    goal?.id === PHASE5_GOAL_ID &&
+    goal.status === "next" &&
+    goal.completionPercent === 100 &&
+    goal.phaseIds.includes(PHASE5_PHASE_ID) &&
+    currentActiveGoalIds.length === 1
+  );
+}
+
+function activeGoalStatus(
+  goal: RemainingGoalPlanItem,
+  isTrustedPhase5Goal: boolean
+): MigrationTraceabilityState {
+  if (goal.status === "blocked") {
+    return "blocked";
+  }
+  if (isTrustedPhase5Goal) {
+    return "ready";
+  }
+  if (goal.status === "active") {
+    return "review";
+  }
+  return "waiting";
+}
+
 function activeGoalItem(
   goal: RemainingGoalPlanItem | undefined,
   currentActiveGoalIds: readonly string[]
@@ -169,27 +198,21 @@ function activeGoalItem(
 
   const exactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
   const isTrustedPhase5Goal =
-    isCurrentActiveRemainingGoal(goal) && exactlyOneCurrentActiveGoal;
+    (isCurrentActiveRemainingGoal(goal) && exactlyOneCurrentActiveGoal) ||
+    isCompletedPhase5HandoffGoal(goal, currentActiveGoalIds);
 
   return {
     id: `${TRACE_ID}:active-goal`,
     label: "Remaining goal link",
     kind: "active-goal",
-    status:
-      goal.status === "blocked"
-        ? "blocked"
-        : isTrustedPhase5Goal
-          ? "ready"
-          : goal.status === "active"
-            ? "review"
-            : "waiting",
+    status: activeGoalStatus(goal, isTrustedPhase5Goal),
     detail:
       `${goal.id} is ${goal.status} at ${goal.completionPercent}% with ${goal.pmTaskIds.length} PM task links ` +
       `and ${currentActiveGoalIds.length} current active goal${currentActiveGoalIds.length === 1 ? "" : "s"}.`,
     nextAction: exactlyOneCurrentActiveGoal
       ? publicText(
           goal.nextAction,
-          "Make Phase 5 the current active goal before migration review can be trusted."
+          "Keep Phase 5 completed handoff evidence attached before migration review can be trusted."
         )
       : `Keep exactly one current active remaining goal before Phase 5 migration review can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
   };
@@ -403,8 +426,8 @@ export function buildMigrationTraceabilitySummary({
   const waitingCount = items.filter((item) => item.status === "waiting").length;
   const canTrustMigrationReview =
     state === "ready" &&
-    isCurrentActiveRemainingGoal(goal) &&
-    currentActiveGoalIds.length === 1 &&
+    ((isCurrentActiveRemainingGoal(goal) && currentActiveGoalIds.length === 1) ||
+      isCompletedPhase5HandoffGoal(goal, currentActiveGoalIds)) &&
     missingPmTaskIds.length === 0 &&
     readiness.openReviewRecordCount === 0 &&
     evidenceKeyCount === readiness.reviewDepthItems.length;

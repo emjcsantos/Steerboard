@@ -88,7 +88,9 @@ function withDuplicateCurrentActivePhase5Goal() {
       ? { ...goal, status: "active" as const, current: true }
       : goal.id === "goal-phase-3-proof-clearance"
         ? { ...goal, status: "active" as const, current: true }
-      : goal
+      : goal.current
+        ? { ...goal, current: false }
+        : goal
   );
 }
 

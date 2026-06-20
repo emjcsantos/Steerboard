@@ -32,9 +32,9 @@ describe("remaining goal plan", () => {
       planned: 0,
       paused: 0,
       averageCompletionPercent: 84,
-      currentTarget: "Migration Center hardening",
+      currentTarget: "Permission and audit depth",
       currentNextAction:
-        "Keep the Phase 5 migration completion gate as the current active implementation target handoff, with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, migrationOwnerApprovalHandoffProof requestable=yes/recorded=no/canApply=no with local owner approval record persistence, applyImplementationBoundaryProof executor=missing/mutationPath=locked/canApply=no, phase5MigrationCompletionGate phaseComplete=yes/reviewOnly=complete/canApply=no, traceability rows, blocker-priority queue, apply-decision gate, owner-approval handoff, apply implementation boundary, local apply-review-staged audit record proof, and owner-visible Phase 5 check attached as review-only completion evidence while the next pending lane becomes the active implementation target.",
+        "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, and the exact top blocker before mutation paths grow.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -49,7 +49,7 @@ describe("remaining goal plan", () => {
     const traces = buildRemainingGoalPriorityTraces();
 
     expect(traces.map((trace) => trace.goalId).slice(0, 2)).toEqual([
-      "goal-phase-5-migration-hardening",
+      "goal-phase-8-permission-audit",
       "goal-phase-1-2-6-publish"
     ]);
     expect(traces).toEqual(
@@ -134,7 +134,7 @@ describe("remaining goal plan", () => {
     const queue = buildRemainingGoalPriorityQueue();
 
     expect(queue.map((goal) => goal.id).slice(0, 4)).toEqual([
-      "goal-phase-5-migration-hardening",
+      "goal-phase-8-permission-audit",
       "goal-phase-1-2-6-publish",
       "goal-phase-3-proof-clearance",
       "goal-phase-4-provider-surfaces"
@@ -159,7 +159,7 @@ describe("remaining goal plan", () => {
     const queue = buildRemainingGoalPriorityQueue(staleCurrentNextGoals);
 
     expect(queue.map((goal) => goal.id).slice(0, 3)).toEqual([
-      "goal-phase-5-migration-hardening",
+      "goal-phase-8-permission-audit",
       "goal-phase-1-2-6-publish",
       "goal-phase-3-proof-clearance"
     ]);
@@ -187,6 +187,10 @@ describe("remaining goal plan", () => {
       status: "next"
     });
     expect(traces.find((trace) => trace.goalId === "goal-phase-5-migration-hardening")).toMatchObject({
+      current: false,
+      status: "next"
+    });
+    expect(traces.find((trace) => trace.goalId === "goal-phase-8-permission-audit")).toMatchObject({
       current: true,
       status: "active"
     });
@@ -297,12 +301,12 @@ describe("remaining goal plan", () => {
   it("separates the blocked owner hold from the active implementation target", () => {
     const summary = summarizeRemainingGoalPlan();
 
-    expect(summary.currentTarget).toBe("Migration Center hardening");
+    expect(summary.currentTarget).toBe("Permission and audit depth");
     expect(summary.currentNextAction).toContain("current active implementation target");
     expect(summary.ownerHoldTarget).toBe("Unblock Phase 1/2/6 publishing");
     expect(summary.ownerHoldNextAction).toContain("owner says to push");
     expect(summary.priorityGoalTraces[0]).toMatchObject({
-      goalId: "goal-phase-5-migration-hardening",
+      goalId: "goal-phase-8-permission-audit",
       current: true
     });
     expect(summary.priorityGoalTraces[1]).toMatchObject({
@@ -313,13 +317,13 @@ describe("remaining goal plan", () => {
   });
 
   it("identifies only the current active remaining goal as implementation-trustable", () => {
-    const phase5Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-5-migration-hardening");
+    const phase8Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-8-permission-audit");
 
-    expect(findCurrentActiveRemainingGoals()).toEqual([phase5Goal]);
-    expect(isCurrentActiveRemainingGoal(phase5Goal)).toBe(true);
-    expect(isCurrentActiveRemainingGoal({ ...phase5Goal!, current: false })).toBe(false);
-    expect(isCurrentActiveRemainingGoal({ ...phase5Goal!, status: "next" })).toBe(false);
-    expect(isCurrentActiveRemainingGoal({ ...phase5Goal!, status: "active", current: true })).toBe(true);
+    expect(findCurrentActiveRemainingGoals()).toEqual([phase8Goal]);
+    expect(isCurrentActiveRemainingGoal(phase8Goal)).toBe(true);
+    expect(isCurrentActiveRemainingGoal({ ...phase8Goal!, current: false })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase8Goal!, status: "next" })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase8Goal!, status: "active", current: true })).toBe(true);
     expect(isCurrentActiveRemainingGoal(undefined)).toBe(false);
   });
 
@@ -332,10 +336,10 @@ describe("remaining goal plan", () => {
 
     expect(findCurrentActiveRemainingGoals(duplicateCurrentGoals).map((goal) => goal.id)).toEqual([
       "goal-phase-3-proof-clearance",
-      "goal-phase-5-migration-hardening"
+      "goal-phase-8-permission-audit"
     ]);
     expect(findRemainingGoalPlanIssues(duplicateCurrentGoals)).toContain(
-      "Remaining goals must have exactly one current active goal; found 2: goal-phase-3-proof-clearance, goal-phase-5-migration-hardening."
+      "Remaining goals must have exactly one current active goal; found 2: goal-phase-3-proof-clearance, goal-phase-8-permission-audit."
     );
   });
 
@@ -347,7 +351,7 @@ describe("remaining goal plan", () => {
     );
 
     expect(findCurrentActiveRemainingGoals(staleCurrentGoals).map((goal) => goal.id)).toEqual([
-      "goal-phase-5-migration-hardening"
+      "goal-phase-8-permission-audit"
     ]);
     expect(findRemainingGoalPlanIssues(staleCurrentGoals)).toContain(
       "Remaining goal goal-phase-3-proof-clearance is marked current but has status next; current goals must be active."
@@ -366,7 +370,7 @@ describe("remaining goal plan", () => {
     );
     const summary = summarizeRemainingGoalPlan(staleCurrentGoals);
 
-    expect(summary.currentTarget).toBe("Migration Center hardening");
+    expect(summary.currentTarget).toBe("Permission and audit depth");
     expect(summary.currentNextAction).toContain("current active implementation target");
   });
 
@@ -482,10 +486,10 @@ describe("remaining goal plan", () => {
     expect(phase5Goal).toMatchObject({
       target: "Migration Center hardening",
       priority: "high",
-      status: "active",
-      current: true,
+      status: "next",
       completionPercent: 100
     });
+    expect(phase5Goal?.current).toBeUndefined();
     expect(phase5Epic?.completionPercent).toBe(100);
     expect(phase5Epic?.description).toContain("migrationReviewDepthProof");
     expect(phase5Epic?.description).toContain("migrationTraceabilityProof");
@@ -568,7 +572,8 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase5Goal?.nextAction).toContain("blocker-priority queue");
-    expect(phase5Goal?.nextAction).toContain("current active implementation target");
+    expect(phase5Goal?.nextAction).toContain("completed handoff evidence");
+    expect(phase5Goal?.nextAction).toContain("Phase 8 becomes the active implementation target");
     expect(phase5Goal?.nextAction).toContain("migrationReviewDepthProof");
     expect(phase5Goal?.nextAction).toContain("trust=ready");
     expect(phase5Goal?.nextAction).toContain("migrationTraceabilityProof");
@@ -615,7 +620,8 @@ describe("remaining goal plan", () => {
     expect(phase8Goal).toMatchObject({
       target: "Permission and audit depth",
       priority: "high",
-      status: "next",
+      status: "active",
+      current: true,
       completionPercent: 65
     });
     expect(phase8Epic?.completionPercent).toBe(65);
@@ -644,6 +650,7 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase8Goal?.nextAction).toContain("blocker-priority queue");
+    expect(phase8Goal?.nextAction).toContain("current active implementation target");
     expect(phase8Goal?.nextAction).toContain("permissionLabelSummaryProof");
     expect(phase8Goal?.nextAction).toContain("riskBlockerProof");
     expect(phase8Goal?.nextAction).toContain("topBlockerProof");

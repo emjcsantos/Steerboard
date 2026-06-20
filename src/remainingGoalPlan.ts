@@ -177,10 +177,9 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-05-migration-center"],
     goal:
       "Finish preview, apply-intent lock, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, review-depth records, the apply-decision gate, owner-approval handoff, local owner approval record, apply implementation boundary, and completion gate for metadata-only migration work.",
-    status: "active",
+    status: "next",
     priority: "high",
     completionPercent: 100,
-    current: true,
     pmTaskIds: [
       "phase-05-migration-center",
       "phase-05-parent-draft-workflow",
@@ -197,7 +196,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-05-child-completion-gate"
     ],
     nextAction:
-      "Keep the Phase 5 migration completion gate as the current active implementation target handoff, with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, migrationOwnerApprovalHandoffProof requestable=yes/recorded=no/canApply=no with local owner approval record persistence, applyImplementationBoundaryProof executor=missing/mutationPath=locked/canApply=no, phase5MigrationCompletionGate phaseComplete=yes/reviewOnly=complete/canApply=no, traceability rows, blocker-priority queue, apply-decision gate, owner-approval handoff, apply implementation boundary, local apply-review-staged audit record proof, and owner-visible Phase 5 check attached as review-only completion evidence while the next pending lane becomes the active implementation target."
+      "Keep the Phase 5 migration completion gate attached as completed handoff evidence, with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, migrationOwnerApprovalHandoffProof requestable=yes/recorded=no/canApply=no with local owner approval record persistence, applyImplementationBoundaryProof executor=missing/mutationPath=locked/canApply=no, phase5MigrationCompletionGate phaseComplete=yes/reviewOnly=complete/canApply=no, traceability rows, blocker-priority queue, apply-decision gate, owner-approval handoff, apply implementation boundary, local apply-review-staged audit record proof, and owner-visible Phase 5 check attached as review-only completion evidence while Phase 8 becomes the active implementation target."
   },
   {
     id: "goal-phase-7-dispatch-loop",
@@ -222,7 +221,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-07-child-blocker-priority"
     ],
     nextAction:
-      "Keep the Phase 7 completion gate, dispatch review records, per-role handoff packet integrity, current evidence fingerprint matching, offline dispatch-review artifact verification, owner-visible artifact verification counts, integration ownership rows, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof attached as local metadata handoff evidence while Phase 5 Migration Center hardening becomes the current active implementation target."
+      "Keep the Phase 7 completion gate, dispatch review records, per-role handoff packet integrity, current evidence fingerprint matching, offline dispatch-review artifact verification, owner-visible artifact verification counts, integration ownership rows, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof attached as local metadata handoff evidence while Phase 8 Permission and audit depth is the current active implementation target."
   },
   {
     id: "goal-phase-8-permission-audit",
@@ -231,9 +230,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-08-permissions-audit"],
     goal:
       "Expand approval gates, risk exceptions, disabled-path explanations, owner audit-review persistence, current audit evidence fingerprints, and record-specific rollback evidence before mutation paths grow.",
-    status: "next",
+    status: "active",
     priority: "high",
     completionPercent: 65,
+    current: true,
     pmTaskIds: [
       "phase-08-permissions-audit",
       "phase-08-parent-risk-gates",
@@ -246,7 +246,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-08-child-audit-persistence"
     ],
     nextAction:
-      "Use the Phase 8 Audit Depth, permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, and the exact top blocker before mutation paths grow."
+      "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, and the exact top blocker before mutation paths grow."
   },
   {
     id: "goal-phase-9-runner",

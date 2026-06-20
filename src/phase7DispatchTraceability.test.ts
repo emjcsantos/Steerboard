@@ -147,9 +147,11 @@ function withDuplicateCurrentActivePhase7Goal() {
   return remainingGoalPlan.map((goal) =>
     goal.id === "goal-phase-7-dispatch-loop"
       ? { ...goal, status: "active" as const, current: true }
-      : goal.id === "goal-phase-5-migration-hardening"
+    : goal.id === "goal-phase-5-migration-hardening"
         ? { ...goal, status: "active" as const, current: true }
-        : goal
+      : goal.current
+        ? { ...goal, current: false }
+      : goal
   );
 }
 

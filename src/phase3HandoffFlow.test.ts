@@ -417,14 +417,22 @@ describe("phase 3 handoff flow", () => {
     const phase5Goal = remainingGoalPlan.find(
       (goal) => goal.id === "goal-phase-5-migration-hardening"
     );
+    const phase8Goal = remainingGoalPlan.find(
+      (goal) => goal.id === "goal-phase-8-permission-audit"
+    );
 
     expect(currentGoals.map((goal) => goal.id)).toEqual([
-      "goal-phase-5-migration-hardening"
+      "goal-phase-8-permission-audit"
     ]);
     expect(phase5Goal).toMatchObject({
-      status: "active",
+      status: "next",
       priority: "high"
     });
-    expect(phase5Goal?.current).toBe(true);
+    expect(phase5Goal?.current).toBeUndefined();
+    expect(phase8Goal).toMatchObject({
+      status: "active",
+      priority: "high",
+      current: true
+    });
   });
 });
