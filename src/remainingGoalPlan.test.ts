@@ -34,7 +34,7 @@ describe("remaining goal plan", () => {
       averageCompletionPercent: 100,
       currentTarget: "Desktop-backed runner approval",
       currentNextAction:
-        "Use the Phase 9 runner closeout status proof as the current active implementation target with approval, approval-depth, traceability, blocker-priority, complete Phase 8 dependency proof, phase9RequestGateProof, phase9RunnerCompletionGateProof, PM-link, and runner-expansion lock evidence visible. Phase 9 runner closeout status proof attached. Only the fixed terminal-readonly-probe may advance after live gates are ready; broader runner actions remain locked.",
+        "Use the Phase 9 runner closeout status proof as the current active implementation target with approval, approval-depth, traceability, blocker-priority, visible desktop-probe gate status, complete Phase 8 dependency proof, phase9RequestGateProof, phase9RunnerCompletionGateProof, PM-link, and runner-expansion lock evidence visible. Phase 9 runner closeout status proof attached. Only the fixed terminal-readonly-probe may advance after live gates are ready; broader runner actions remain locked.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, blocker-priority queue, and phase126PublishHoldCloseoutStatusProof to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -427,8 +427,10 @@ describe("remaining goal plan", () => {
     expect(phase9Goal?.nextAction).toContain("terminal-readonly-probe");
     expect(phase9Goal?.nextAction).toContain("Phase 9 runner closeout status proof attached");
     expect(phase9Goal?.goal).toContain("trusted Phase 9 traceability/current active goal proof");
+    expect(phase9Goal?.goal).toContain("visible Phase 9 desktop probe gate status");
     expect(phase9Goal?.goal).toContain("phase9RequestGateProof");
     expect(phase9Goal?.nextAction).toContain("phase9RequestGateProof");
+    expect(phase9Goal?.nextAction).toContain("visible desktop-probe gate status");
     expect(phase9Goal?.goal).toContain("phase9RunnerCompletionGateProof");
     expect(phase9Goal?.nextAction).toContain("phase9RunnerCompletionGateProof");
     expect(phase9Goal?.nextAction).toContain("runner-expansion lock evidence");
@@ -468,13 +470,16 @@ describe("remaining goal plan", () => {
     expect(completionGateChild?.completionPercent).toBe(100);
     expect(closeoutStatusChild?.completionPercent).toBe(100);
     expect(phase9Parent?.description).toContain("owner-visible Phase 9 proof summaries");
+    expect(phase9Parent?.description).toContain("visible Phase 9 desktop probe gate status");
     expect(phase9Parent?.description).toContain("phase9RequestGateProof");
     expect(phase9Parent?.description).toContain("phase9RunnerCompletionGateProof");
     expect(phase9Parent?.description).toContain("phase9RunnerCloseoutStatusProof");
     expect(phase9RunnerProbeParent?.description).toContain("runner approval proof summary");
+    expect(phase9RunnerProbeParent?.description).toContain("visible Phase 9 desktop probe gate status");
     expect(phase9RunnerProbeParent?.description).toContain("phase9RequestGateProof");
     expect(phase9RunnerProbeParent?.description).toContain("phase9RunnerCompletionGateProof");
     expect(observabilityChild?.description).toContain("validation output evidence key");
+    expect(observabilityChild?.description).toContain("visible Phase 9 desktop probe gate held/ready status");
     expect(observabilityChild?.description).toContain("phase9RequestGateProof");
     expect(observabilityChild?.description).toContain("phase9RunnerCompletionGateProof");
     expect(observabilityChild?.description).toContain("proof summaries");

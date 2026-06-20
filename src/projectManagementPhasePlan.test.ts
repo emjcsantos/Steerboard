@@ -510,10 +510,12 @@ describe("project management phase plan", () => {
     expect(completionGateChild?.completionPercent).toBe(100);
     expect(closeoutStatusChild?.completionPercent).toBe(100);
     expect(runnerProbeParent?.description).toContain("runner approval proof summary");
+    expect(runnerProbeParent?.description).toContain("visible Phase 9 desktop probe gate status");
     expect(runnerProbeParent?.description).toContain("phase9RequestGateProof");
     expect(runnerProbeParent?.description).toContain("phase9RunnerCompletionGateProof");
     expect(runnerProbeParent?.description).toContain("phase9RunnerCloseoutStatusProof");
     expect(observabilityChild?.description).toContain("validation output evidence key");
+    expect(observabilityChild?.description).toContain("visible Phase 9 desktop probe gate held/ready status");
     expect(observabilityChild?.description).toContain("current runner evidence fingerprint");
     expect(observabilityChild?.description).toContain("phase9RequestGateProof");
     expect(observabilityChild?.description).toContain("phase9RunnerCompletionGateProof");

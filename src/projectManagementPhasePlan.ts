@@ -854,7 +854,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-09-desktop-runner",
     title: "Phase 9: Desktop-Backed Runner",
-    description: "Enable the fixed terminal read-only desktop probe after permission, preview, audit, validation, persisted runner-review, current runner evidence fingerprint, complete Phase 8 owner-review proof, rollback, owner-visible Phase 9 proof summaries, phase9RequestGateProof, phase9RunnerCompletionGateProof, phase9RunnerCloseoutStatusProof, Phase 9 request gate, and trusted Phase 9 traceability/current active goal gates pass.",
+    description: "Enable the fixed terminal read-only desktop probe after permission, preview, audit, validation, persisted runner-review, current runner evidence fingerprint, complete Phase 8 owner-review proof, rollback, owner-visible Phase 9 proof summaries, visible Phase 9 desktop probe gate status, phase9RequestGateProof, phase9RunnerCompletionGateProof, phase9RunnerCloseoutStatusProof, Phase 9 request gate, and trusted Phase 9 traceability/current active goal gates pass.",
     completionPercent: 100,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
@@ -862,7 +862,7 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-09-parent-runner-probe",
         title: "Runner Probe Hardening",
-        description: "Keep the desktop runner limited to the fixed terminal-readonly-probe with selected-action readiness, visible request preview, Phase 9 approval checks, fingerprint-matched local runner-review evidence, runner approval proof summary, phase9RequestGateProof, phase9RunnerCompletionGateProof, phase9RunnerCloseoutStatusProof, and mutation locks.",
+        description: "Keep the desktop runner limited to the fixed terminal-readonly-probe with selected-action readiness, visible request preview, visible Phase 9 desktop probe gate status, Phase 9 approval checks, fingerprint-matched local runner-review evidence, runner approval proof summary, phase9RequestGateProof, phase9RunnerCompletionGateProof, phase9RunnerCloseoutStatusProof, and mutation locks.",
         completionPercent: 100,
         complexity: "high",
         sourceDocument: "Desktop runner probe",
@@ -870,7 +870,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-09-child-reversible-action",
             title: "Choose One Reversible Action",
-            description: "Use terminal-readonly-probe as the single selected read-only action with selected-action readiness, runner approval proof, phase9RequestGateProof, no workspace write, no Git operation, no external call, no profile mutation, and the visible Probe control disabled until the Phase 9 request gate and trusted Phase 9 traceability/current active goal proof are ready.",
+            description: "Use terminal-readonly-probe as the single selected read-only action with selected-action readiness, runner approval proof, visible Phase 9 desktop probe gate status, phase9RequestGateProof, no workspace write, no Git operation, no external call, no profile mutation, and the visible Probe control disabled until the Phase 9 request gate and trusted Phase 9 traceability/current active goal proof are ready.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Runner approval plan"
@@ -878,7 +878,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-09-child-runner-observability",
             title: "Runner Observability",
-            description: "Show request readiness, approval window, validation output evidence key, audit count, local runner-review evidence, current runner evidence fingerprint, rollback evidence, direct-handler blocks, mutation-lock count, phase9RequestGateProof, phase9RunnerCompletionGateProof, proof summaries, and final state for the selected probe.",
+            description: "Show request readiness, approval window, validation output evidence key, audit count, local runner-review evidence, current runner evidence fingerprint, rollback evidence, direct-handler blocks, visible Phase 9 desktop probe gate held/ready status, mutation-lock count, phase9RequestGateProof, phase9RunnerCompletionGateProof, proof summaries, and final state for the selected probe.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Live action runner"
