@@ -398,6 +398,10 @@ import { buildMigrationApplyImplementationBoundary } from "./migrationApplyImple
 import { buildMigrationTraceabilitySummary } from "./migrationTraceability";
 import { buildPhase5MigrationCompletionGate } from "./phase5MigrationCompletionGate";
 import {
+  buildPhase5ProfileActivationGate,
+  type Phase5ProfileActivationGate
+} from "./phase5ProfileActivationGate";
+import {
   buildPersonalizationCatalogSnapshot,
   defaultPersonalizationCatalog,
   type PersonalizationCatalogRefreshSource,
@@ -5341,6 +5345,10 @@ export function MigrationReviewGatePanel({
     ownerApprovalHandoff: migrationOwnerApprovalHandoff,
     applyImplementationBoundary: migrationApplyImplementationBoundary
   });
+  const phase5ProfileActivationGate = buildPhase5ProfileActivationGate(
+    phase5MigrationCompletionGate,
+    migrationApplyImplementationBoundary
+  );
 
   return (
     <div
@@ -5629,6 +5637,7 @@ export function MigrationReviewGatePanel({
         <p>{phase5MigrationCompletionGate.nextAction}</p>
         <small>{phase5MigrationCompletionGate.completionGateProof}</small>
       </div>
+      <MigrationProfileActivationGateSummary gate={phase5ProfileActivationGate} />
       <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
         {migrationHardeningReadiness.items.map((item) => (
           <li className={`migration-review-item-${item.status}`} key={item.id} title={item.detail}>
@@ -5638,6 +5647,51 @@ export function MigrationReviewGatePanel({
           </li>
         ))}
       </ol>
+    </div>
+  );
+}
+
+function MigrationProfileActivationGateSummary({
+  gate
+}: {
+  gate: Phase5ProfileActivationGate;
+}) {
+  return (
+    <div
+      aria-label={gate.ariaLabel}
+      className={classNames(
+        "migration-profile-activation-gate",
+        `migration-profile-activation-gate-${gate.state}`
+      )}
+      title={gate.detail}
+    >
+      <div className="migration-profile-activation-gate-header">
+        <strong>{gate.label}</strong>
+        <span>{gate.statusLabel}</span>
+      </div>
+      <dl
+        aria-label="Phase 5 profile activation gate locks"
+        className="migration-profile-activation-gate-grid"
+      >
+        <div>
+          <dt>Activate</dt>
+          <dd>{gate.canActivateProfile ? "Yes" : "No"}</dd>
+        </div>
+        <div>
+          <dt>Approval</dt>
+          <dd>{gate.ownerActivationApprovalRecorded ? "Recorded" : "Required"}</dd>
+        </div>
+        <div>
+          <dt>Handler</dt>
+          <dd>{gate.profileActivationHandlerReady ? "Ready" : "Missing"}</dd>
+        </div>
+        <div>
+          <dt>Apply</dt>
+          <dd>{gate.applyMigrationLocked ? "Locked" : "Open"}</dd>
+        </div>
+      </dl>
+      <p>{gate.nextAction}</p>
+      <small>{gate.profileActivationGateProof}</small>
     </div>
   );
 }
@@ -5810,6 +5864,10 @@ function AppDialogSurface({
     ownerApprovalHandoff: migrationOwnerApprovalHandoff,
     applyImplementationBoundary: migrationApplyImplementationBoundary
   });
+  const phase5ProfileActivationGate = buildPhase5ProfileActivationGate(
+    phase5MigrationCompletionGate,
+    migrationApplyImplementationBoundary
+  );
   const catalogRefreshSafetyDepth = buildPhase4RefreshSafetyDepth(
     catalogRefreshProviderSmokeProof,
     {
@@ -6440,6 +6498,7 @@ function AppDialogSurface({
                 <p>{phase5MigrationCompletionGate.nextAction}</p>
                 <small>{phase5MigrationCompletionGate.completionGateProof}</small>
               </div>
+              <MigrationProfileActivationGateSummary gate={phase5ProfileActivationGate} />
               <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
                 {migrationHardeningReadiness.items.map((item) => (
                   <li className={`migration-review-item-${item.status}`} key={item.id} title={item.detail}>

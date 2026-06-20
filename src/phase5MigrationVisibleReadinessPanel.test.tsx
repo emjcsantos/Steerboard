@@ -92,6 +92,11 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("phase5MigrationCompletionGate");
     expect(html).toContain("phaseComplete=yes");
     expect(html).toContain("reviewOnly=complete");
+    expect(html).toContain("Phase 5 profile activation gate");
+    expect(html).toContain("phase5ProfileActivationGate");
+    expect(html).toContain("ownerActivationApproval=required");
+    expect(html).toContain("handler=missing");
+    expect(html).toContain("canActivate=no");
   });
 
   it("renders staged apply-review evidence after saved draft history reload", () => {
@@ -148,6 +153,9 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("enterImplementation=no");
     expect(html).toContain("Phase 5 migration completion gate");
     expect(html).toContain("phaseComplete=yes");
+    expect(html).toContain("Phase 5 profile activation gate");
+    expect(html).toContain("ownerActivationApproval=required");
+    expect(html).toContain("handler=missing");
     expect(html).not.toContain("has not recorded a local apply-review-staged audit action yet");
     expect(html).not.toContain("top priority Apply review staging");
     expect(html).not.toContain("Review required");
@@ -199,6 +207,10 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("mutationPath=locked");
     expect(html).toContain("Phase 5 migration completion gate");
     expect(html).toContain("phaseComplete=yes");
+    expect(html).toContain("Phase 5 profile activation gate");
+    expect(html).toContain("ownerActivationApproval=required");
+    expect(html).toContain("handler=missing");
+    expect(html).toContain("canActivate=no");
   });
 
   it("keeps unstaged drafts visibly held before apply-review staging is recorded", () => {
@@ -232,5 +244,8 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("ownerApproval=missing");
     expect(html).toContain("Phase 5 migration completion gate");
     expect(html).toContain("phaseComplete=no");
+    expect(html).toContain("Phase 5 profile activation gate");
+    expect(html).toContain("reviewOnly=held");
+    expect(html).toContain("canActivate=no");
   });
 });
