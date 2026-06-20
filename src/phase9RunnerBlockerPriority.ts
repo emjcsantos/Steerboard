@@ -50,6 +50,7 @@ export interface Phase9RunnerBlockerPrioritySummary {
   readonly topPriorityKind: Phase9RunnerBlockerPriorityKind | "none";
   readonly topPriorityStatus: Phase9RunnerBlockerPriorityState | "ready";
   readonly runnerReviewCanAddressTopBlocker: boolean;
+  readonly runnerBlockerPriorityProof: string;
   readonly nextAction: string;
   readonly safety: string;
   readonly ariaLabel: string;
@@ -339,6 +340,19 @@ function buildAriaLabel(
   );
 }
 
+function buildRunnerBlockerPriorityProof(
+  summary: Omit<Phase9RunnerBlockerPrioritySummary, "ariaLabel" | "runnerBlockerPriorityProof">,
+  traceability: Phase9RunnerTraceabilitySummary
+): string {
+  return (
+    `open=${summary.openBlockerCount} runnerReviewAddressable=${summary.runnerReviewAddressableCount} ` +
+    `top=${summary.topPriorityLabel} source=${summary.topPrioritySourceId} kind=${summary.topPriorityKind} ` +
+    `status=${summary.topPriorityStatus} topActionable=${summary.runnerReviewCanAddressTopBlocker ? "yes" : "no"} ` +
+    `traceability=${traceability.canTrustRunnerApproval ? "ready" : traceability.state} ` +
+    `pmLinks=${traceability.linkedPmTaskCount}/9 mutationLocks=${traceability.mutationLockCount}/6 execution=locked`
+  );
+}
+
 export function buildPhase9RunnerBlockerPriority(
   input: Phase9RunnerBlockerPriorityInput
 ): Phase9RunnerBlockerPrioritySummary {
@@ -359,7 +373,7 @@ export function buildPhase9RunnerBlockerPriority(
   const state = resolveState(items, input.traceability);
   const topItem = items[0];
   const runnerReviewAddressableCount = items.filter((item) => item.canUseRunnerReview).length;
-  const draft = {
+  const draftWithoutProof = {
     id: SNAPSHOT_ID,
     label: SNAPSHOT_LABEL,
     state,
@@ -380,6 +394,13 @@ export function buildPhase9RunnerBlockerPriority(
       "No Phase 9 runner blockers remain; keep mutation locks attached before expanding desktop runner actions.",
     safety: SAFETY,
     items
+  };
+  const draft = {
+    ...draftWithoutProof,
+    runnerBlockerPriorityProof: buildRunnerBlockerPriorityProof(
+      draftWithoutProof,
+      input.traceability
+    )
   };
 
   return {

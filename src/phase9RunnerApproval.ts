@@ -46,6 +46,7 @@ export interface Phase9RunnerApprovalSnapshot {
   reviewCount: number;
   blockedCount: number;
   waitingCount: number;
+  runnerApprovalProof: string;
   nextAction: string;
   safety: string;
   ariaLabel: string;
@@ -612,6 +613,19 @@ function buildAriaLabel(snapshot: Omit<Phase9RunnerApprovalSnapshot, "ariaLabel"
   );
 }
 
+function buildRunnerApprovalProof(
+  snapshot: Omit<Phase9RunnerApprovalSnapshot, "ariaLabel" | "runnerApprovalProof">,
+  currentRunnerEvidenceFingerprint: string
+): string {
+  return (
+    `items=${snapshot.items.length}/8 ready=${snapshot.readyCount} review=${snapshot.reviewCount} ` +
+    `blocked=${snapshot.blockedCount} waiting=${snapshot.waitingCount} ` +
+    `selected=${snapshot.selectedAction} auditRecords=${snapshot.auditRecordCount} ` +
+    `requestGate=${snapshot.canRequestDesktopProbe ? "ready" : "held"} ` +
+    `runnerFingerprint=${currentRunnerEvidenceFingerprint} execution=locked`
+  );
+}
+
 export function buildPhase9RunnerApprovalSnapshot(
   input: Phase9RunnerApprovalInput
 ): Phase9RunnerApprovalSnapshot {
@@ -645,6 +659,7 @@ export function buildPhase9RunnerApprovalSnapshot(
     reviewCount: baseItems.filter((item) => item.status === "review").length,
     blockedCount: baseItems.filter((item) => item.status === "blocked").length,
     waitingCount: baseItems.filter((item) => item.status === "waiting").length,
+    runnerApprovalProof: "",
     nextAction: firstNextAction(baseItems),
     safety: SAFETY,
     ariaLabel: "",
@@ -691,6 +706,26 @@ export function buildPhase9RunnerApprovalSnapshot(
     reviewCount,
     blockedCount,
     waitingCount,
+    runnerApprovalProof: buildRunnerApprovalProof(
+      {
+        id: SNAPSHOT_ID,
+        label: SNAPSHOT_LABEL,
+        state,
+        statusLabel: STATUS_LABELS[state],
+        readiness,
+        selectedAction: SELECTED_ACTION,
+        canRequestDesktopProbe,
+        auditRecordCount,
+        readyCount,
+        reviewCount,
+        blockedCount,
+        waitingCount,
+        nextAction: firstNextAction(items),
+        safety: SAFETY,
+        items
+      },
+      currentRunnerEvidenceFingerprint
+    ),
     nextAction: firstNextAction(items),
     safety: SAFETY,
     items

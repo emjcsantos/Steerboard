@@ -46,6 +46,7 @@ export interface Phase9RunnerTraceabilitySummary {
   phase8OpenExceptionCount: number;
   mutationLockCount: number;
   runnerReviewRecordReady: boolean;
+  runnerTraceabilityProof: string;
   nextAction: string;
   safety: string;
   ariaLabel: string;
@@ -460,6 +461,29 @@ function buildAriaLabel(summary: Omit<Phase9RunnerTraceabilitySummary, "ariaLabe
   );
 }
 
+function buildRunnerTraceabilityProof(input: {
+  readonly items: readonly Phase9RunnerTraceabilityItem[];
+  readonly missingPmTaskIds: readonly string[];
+  readonly linkedPmTaskCount: number;
+  readonly phase8OpenExceptionCount: number;
+  readonly mutationLockCount: number;
+  readonly runnerReviewRecordReady: boolean;
+  readonly canTrustRunnerApproval: boolean;
+}): string {
+  const itemKinds = input.items.map((item) => item.kind).join("|");
+
+  return (
+    `items=${input.items.length}/6 ready=${input.items.filter((item) => item.status === "ready").length} ` +
+    `review=${input.items.filter((item) => item.status === "review").length} ` +
+    `blocked=${input.items.filter((item) => item.status === "blocked").length} ` +
+    `waiting=${input.items.filter((item) => item.status === "waiting").length} ` +
+    `itemKinds=${itemKinds} pmLinks=${input.linkedPmTaskCount}/9 ` +
+    `missingPm=${input.missingPmTaskIds.length} phase8Exceptions=${input.phase8OpenExceptionCount} ` +
+    `mutationLocks=${input.mutationLockCount}/6 runnerReview=${input.runnerReviewRecordReady ? "ready" : "held"} ` +
+    `trust=${input.canTrustRunnerApproval ? "ready" : "held"} execution=locked`
+  );
+}
+
 export function buildPhase9RunnerTraceabilitySummary({
   approval,
   depth,
@@ -500,21 +524,22 @@ export function buildPhase9RunnerTraceabilitySummary({
   const runnerReviewItem = items.find((item) => item.kind === "runner-review-record");
   const runnerReviewRecordReady =
     runnerReviewItem?.status === "ready" && runnerReviewRecord?.state === "ready";
+  const canTrustRunnerApproval =
+    state === "ready" &&
+    isCurrentActiveRemainingGoal(goal) &&
+    currentActiveGoalIds.length === 1 &&
+    missingPmTaskIds.length === 0 &&
+    phase8.openExceptionCount === 0 &&
+    phase8.blockedCount === 0 &&
+    runnerReviewRecordReady &&
+    runnerReviewRecord.mutationLocked;
   const draft = {
     id: TRACE_ID,
     label: TRACE_LABEL,
     state,
     statusLabel: STATUS_LABELS[state],
     readiness,
-    canTrustRunnerApproval:
-      state === "ready" &&
-      isCurrentActiveRemainingGoal(goal) &&
-      currentActiveGoalIds.length === 1 &&
-      missingPmTaskIds.length === 0 &&
-      phase8.openExceptionCount === 0 &&
-      phase8.blockedCount === 0 &&
-      runnerReviewRecordReady &&
-      runnerReviewRecord.mutationLocked,
+    canTrustRunnerApproval,
     readyCount,
     reviewCount,
     blockedCount,
@@ -525,6 +550,15 @@ export function buildPhase9RunnerTraceabilitySummary({
     phase8OpenExceptionCount: phase8.openExceptionCount,
     mutationLockCount: depth.mutationLockCount,
     runnerReviewRecordReady,
+    runnerTraceabilityProof: buildRunnerTraceabilityProof({
+      items,
+      missingPmTaskIds,
+      linkedPmTaskCount: goal?.pmTaskIds.length ?? 0,
+      phase8OpenExceptionCount: phase8.openExceptionCount,
+      mutationLockCount: depth.mutationLockCount,
+      runnerReviewRecordReady,
+      canTrustRunnerApproval
+    }),
     nextAction: firstNextAction(items),
     safety: SAFETY,
     items

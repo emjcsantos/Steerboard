@@ -260,6 +260,11 @@ describe("phase 9 runner traceability", () => {
     ]);
     expect(summary.state).toBe("waiting");
     expect(summary.canTrustRunnerApproval).toBe(false);
+    expect(summary.runnerTraceabilityProof).toContain("items=6/6");
+    expect(summary.runnerTraceabilityProof).toContain("pmLinks=9/9");
+    expect(summary.runnerTraceabilityProof).toContain("runnerReview=ready");
+    expect(summary.runnerTraceabilityProof).toContain("trust=held");
+    expect(summary.runnerTraceabilityProof).toContain("execution=locked");
     expect(summary.safety).toContain("evidence-only");
   });
 
@@ -354,6 +359,9 @@ describe("phase 9 runner traceability", () => {
     expect(summary.readyCount).toBe(6);
     expect(summary.mutationLockCount).toBeGreaterThanOrEqual(6);
     expect(summary.runnerReviewRecordReady).toBe(true);
+    expect(summary.runnerTraceabilityProof).toContain("ready=6");
+    expect(summary.runnerTraceabilityProof).toContain("mutationLocks=6/6");
+    expect(summary.runnerTraceabilityProof).toContain("trust=ready");
     expect(buildPhase9DesktopProbeGate(approval, summary)).toMatchObject({
       canRun: true,
       holdReason: "Run a fixed read-only terminal probe through the desktop runner."

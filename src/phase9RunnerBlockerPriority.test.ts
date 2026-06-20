@@ -249,6 +249,10 @@ describe("phase 9 runner blocker priority", () => {
     expect(summary.ariaLabel).toContain(`source ${summary.topPrioritySourceId}`);
     expect(summary.ariaLabel).toContain("kind phase8-gate");
     expect(summary.ariaLabel).toContain("status blocked");
+    expect(summary.runnerBlockerPriorityProof).toContain("open=");
+    expect(summary.runnerBlockerPriorityProof).toContain("runnerReviewAddressable=");
+    expect(summary.runnerBlockerPriorityProof).toContain("kind=phase8-gate");
+    expect(summary.runnerBlockerPriorityProof).toContain("execution=locked");
     expect(summary.runnerReviewCanAddressTopBlocker).toBe(false);
     expect(summary.items[0]).toMatchObject({
       kind: "phase8-gate",
@@ -402,6 +406,10 @@ describe("phase 9 runner blocker priority", () => {
     expect(summary.ariaLabel).toContain("source phase9.runner-blocker.none");
     expect(summary.ariaLabel).toContain("kind none");
     expect(summary.ariaLabel).toContain("status ready");
+    expect(summary.runnerBlockerPriorityProof).toContain("open=0");
+    expect(summary.runnerBlockerPriorityProof).toContain("runnerReviewAddressable=0");
+    expect(summary.runnerBlockerPriorityProof).toContain("traceability=ready");
+    expect(summary.runnerBlockerPriorityProof).toContain("mutationLocks=6/6");
   });
 
   it("keeps Phase 9 blocker-priority text public-safe", () => {

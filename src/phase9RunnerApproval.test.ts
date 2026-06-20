@@ -198,6 +198,10 @@ describe("phase 9 runner approval", () => {
     expect(approval.state).toBe("waiting");
     expect(approval.selectedAction).toBe("terminal-readonly-probe");
     expect(approval.canRequestDesktopProbe).toBe(false);
+    expect(approval.runnerApprovalProof).toContain("items=8/8");
+    expect(approval.runnerApprovalProof).toContain("selected=terminal-readonly-probe");
+    expect(approval.runnerApprovalProof).toContain("requestGate=held");
+    expect(approval.runnerApprovalProof).toContain("execution=locked");
     expect(approval.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -479,6 +483,10 @@ describe("phase 9 runner approval", () => {
     expect(approval.state).toBe("ready");
     expect(approval.readiness).toBe(100);
     expect(approval.auditRecordCount).toBe(2);
+    expect(approval.runnerApprovalProof).toContain("ready=8");
+    expect(approval.runnerApprovalProof).toContain("auditRecords=2");
+    expect(approval.runnerApprovalProof).toContain("requestGate=ready");
+    expect(approval.runnerApprovalProof).toContain("runnerFingerprint=phase9-runner-");
     expect(approval.items.every((item) => item.status === "ready")).toBe(true);
   });
 

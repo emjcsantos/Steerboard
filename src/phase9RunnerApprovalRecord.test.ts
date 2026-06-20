@@ -46,6 +46,8 @@ function runnerApprovalSnapshot(
     reviewCount: 1,
     blockedCount: 0,
     waitingCount: 1,
+    runnerApprovalProof:
+      "items=0/8 ready=5 review=1 blocked=0 waiting=1 selected=terminal-readonly-probe auditRecords=2 requestGate=held runnerFingerprint=phase9-runner-test execution=locked",
     nextAction: "Review Phase 9 runner approval evidence.",
     safety: "Phase 9 review only.",
     ariaLabel: "Phase 9 runner approval review.",

@@ -250,10 +250,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 9"],
     phaseIds: ["phase-09-desktop-runner"],
     goal:
-      "Allow the fixed terminal read-only desktop probe only after permission, audit, validation, rollback, complete Phase 8 owner-review fingerprint and reviewed-blocker proof, current runner evidence fingerprints, trusted Phase 9 traceability/current active goal proof, and persisted runner-review gates pass.",
+      "Allow the fixed terminal read-only desktop probe only after permission, audit, validation, rollback, complete Phase 8 owner-review fingerprint and reviewed-blocker proof, owner-visible Phase 9 proof summaries, current runner evidence fingerprints, trusted Phase 9 traceability/current active goal proof, and persisted runner-review gates pass.",
     status: "next",
     priority: "high",
-    completionPercent: 64,
+    completionPercent: 65,
     pmTaskIds: [
       "phase-09-desktop-runner",
       "phase-09-parent-runner-probe",
@@ -266,7 +266,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-09-child-approval-depth"
     ],
     nextAction:
-      "Use the Phase 9 Runner Approval depth, local runner-review record, current runner evidence fingerprint matching, traceability records, blocker-priority queue, and owner-visible Phase 9 runner proof to keep the terminal-readonly-probe selected, linked to PM child rows, uniquely evidenced, owner-approved, previewed, validated, audited, rollback-safe, guarded by the Phase 9 request gate, gated by complete Phase 8 owner-review fingerprint and reviewed-blocker proof plus trusted Phase 9 traceability/current active goal proof, stale-review visible, ranked by exact top blocker, and locked away from broad desktop mutation paths."
+      "Use the Phase 9 Runner Approval proof, approval-depth proof, traceability proof, blocker-priority proof, local runner-review record, and current runner evidence fingerprint matching to keep the terminal-readonly-probe selected, linked to PM child rows, uniquely evidenced, owner-approved, previewed, validated, audited, rollback-safe, guarded by the Phase 9 request gate, gated by complete Phase 8 owner-review fingerprint and reviewed-blocker proof plus trusted Phase 9 traceability/current active goal proof, stale-review visible, ranked by exact top blocker, and locked away from broad desktop mutation paths."
   },
   {
     id: "goal-phase-10-arena-polish",

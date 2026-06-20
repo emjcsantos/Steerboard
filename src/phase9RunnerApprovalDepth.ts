@@ -37,6 +37,7 @@ export interface Phase9RunnerApprovalDepthSummary {
   blockedCount: number;
   waitingCount: number;
   mutationLockCount: number;
+  runnerApprovalDepthProof: string;
   ariaLabel: string;
 }
 
@@ -296,11 +297,23 @@ function buildAriaLabel(summary: Omit<Phase9RunnerApprovalDepthSummary, "ariaLab
   );
 }
 
+function buildRunnerApprovalDepthProof(
+  summary: Omit<Phase9RunnerApprovalDepthSummary, "ariaLabel" | "runnerApprovalDepthProof">
+): string {
+  const kinds = summary.records.map((record) => record.kind).join("|");
+
+  return (
+    `records=${summary.records.length}/8 ready=${summary.readyCount} review=${summary.reviewCount} ` +
+    `blocked=${summary.blockedCount} waiting=${summary.waitingCount} ` +
+    `mutationLocks=${summary.mutationLockCount}/6 kinds=${kinds} execution=locked`
+  );
+}
+
 export function buildPhase9RunnerApprovalDepthSummary(
   snapshot: Phase9RunnerApprovalSnapshot
 ): Phase9RunnerApprovalDepthSummary {
   const records = buildRecords(snapshot);
-  const draft = {
+  const draftWithoutProof = {
     id: `${snapshot.id}:depth`,
     label: "Phase 9 runner approval depth",
     records,
@@ -309,6 +322,10 @@ export function buildPhase9RunnerApprovalDepthSummary(
     blockedCount: records.filter((record) => record.status === "blocked").length,
     waitingCount: records.filter((record) => record.status === "waiting").length,
     mutationLockCount: records.filter((record) => record.locksMutation).length
+  };
+  const draft = {
+    ...draftWithoutProof,
+    runnerApprovalDepthProof: buildRunnerApprovalDepthProof(draftWithoutProof)
   };
 
   return {

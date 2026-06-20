@@ -15256,6 +15256,7 @@ export function Phase9RunnerApprovalPanel({
           <b>{snapshot.readiness}%</b>
         </div>
         <p title={snapshot.nextAction}>{snapshot.nextAction}</p>
+        <small>{snapshot.runnerApprovalProof}</small>
         <div
           className={classNames(
             "phase9-runner-review-record",
@@ -15397,6 +15398,7 @@ export function Phase9RunnerApprovalPanel({
             </li>
           ))}
         </ol>
+        <small>{depth.runnerApprovalDepthProof}</small>
       </div>
         <div className="phase9-runner-traceability" aria-label={traceability.ariaLabel}>
           <div className="phase9-runner-traceability-header">
@@ -15424,6 +15426,7 @@ export function Phase9RunnerApprovalPanel({
               </li>
             ))}
           </ol>
+          <small>{traceability.runnerTraceabilityProof}</small>
         </div>
         <div
           aria-label={blockerPriority.ariaLabel}
@@ -15496,6 +15499,7 @@ export function Phase9RunnerApprovalPanel({
               </li>
             )}
           </ol>
+          <small>{blockerPriority.runnerBlockerPriorityProof}</small>
         </div>
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>

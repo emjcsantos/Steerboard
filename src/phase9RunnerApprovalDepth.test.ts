@@ -223,6 +223,10 @@ describe("phase 9 runner approval depth", () => {
     );
     expect(depth.waitingCount).toBeGreaterThan(0);
     expect(depth.mutationLockCount).toBe(6);
+    expect(depth.runnerApprovalDepthProof).toContain("records=8/8");
+    expect(depth.runnerApprovalDepthProof).toContain("mutationLocks=6/6");
+    expect(depth.runnerApprovalDepthProof).toContain("fixed-probe-selection");
+    expect(depth.runnerApprovalDepthProof).toContain("execution=locked");
   });
 
   it("marks the full depth ready only when approval, preview, validation, audit, and rollback proof are present", () => {
@@ -243,6 +247,8 @@ describe("phase 9 runner approval depth", () => {
 
     expect(depth.records.every((record) => record.status === "ready")).toBe(true);
     expect(depth.readyCount).toBe(8);
+    expect(depth.runnerApprovalDepthProof).toContain("ready=8");
+    expect(depth.runnerApprovalDepthProof).toContain("review=0");
     expect(depth.records).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

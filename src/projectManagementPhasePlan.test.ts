@@ -289,9 +289,16 @@ describe("project management phase plan", () => {
     expect(observabilityChild?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
     );
+    expect(runnerProbeParent?.completionPercent).toBe(65);
+    expect(reversibleActionChild?.completionPercent).toBe(65);
+    expect(observabilityChild?.completionPercent).toBe(65);
+    expect(traceabilityChild?.completionPercent).toBe(65);
+    expect(runnerProbeParent?.description).toContain("runner approval proof summary");
     expect(observabilityChild?.description).toContain("validation output evidence key");
     expect(observabilityChild?.description).toContain("current runner evidence fingerprint");
+    expect(observabilityChild?.description).toContain("proof summaries");
     expect(observabilityChild?.description).toContain("mutation-lock count");
+    expect(traceabilityChild?.description).toContain("traceability proof summary");
   });
 
   it("keeps Phase 11 proof freshness progress aligned with owner proof depth", () => {
