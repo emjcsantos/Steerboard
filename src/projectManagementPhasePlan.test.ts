@@ -74,6 +74,31 @@ describe("project management phase plan", () => {
     expect(integrationOwnerChild?.description).toContain("ownership-depth evidence");
   });
 
+  it("keeps Phase 7 handoff trace progress aligned with dispatch packet proof", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const observedLoopParent = byId.get("phase-07-parent-observed-loop");
+    const handoffTraceChild = byId.get("phase-07-child-handoff-trace");
+    const reviewDepthChild = byId.get("phase-07-child-review-depth");
+    const traceabilityChild = byId.get("phase-07-child-traceability");
+
+    expect(observedLoopParent?.completionPercent).toBeGreaterThanOrEqual(
+      reviewDepthChild?.completionPercent ?? 0
+    );
+    expect(handoffTraceChild?.completionPercent).toBeGreaterThanOrEqual(
+      reviewDepthChild?.completionPercent ?? 0
+    );
+    expect(handoffTraceChild?.completionPercent).toBeGreaterThanOrEqual(
+      traceabilityChild?.completionPercent ?? 0
+    );
+    expect(observedLoopParent?.description).toContain("four per-role handoff packets");
+    expect(observedLoopParent?.description).toContain("live-worker lock proof");
+    expect(handoffTraceChild?.description).toContain("handoff task counts");
+    expect(handoffTraceChild?.description).toContain("four per-role packet ownership");
+    expect(handoffTraceChild?.description).toContain("dependency order");
+    expect(handoffTraceChild?.description).toContain("local no-runtime boundaries");
+  });
+
   it("keeps Phase 9 reversible action progress aligned with selected runner proof", () => {
     const tasks = createDefaultProjectManagementPhasePlan();
     const byId = new Map(tasks.map((task) => [task.id, task]));

@@ -606,16 +606,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-07-parent-observed-loop",
         title: "Observed Dispatch-to-Handoff Loop",
-        description: "Record role-panel plan, attempts, validation gates, handoff tasks, packet integrity, evidence freshness, closure, and final merge review in one trace.",
-        completionPercent: 62,
+        description: "Record role-panel plan, attempts, validation gates, handoff tasks, four per-role handoff packets, packet integrity, evidence freshness, closure, final merge review, and live-worker lock proof in one trace.",
+        completionPercent: 64,
         complexity: "extra_high",
         sourceDocument: "Orchestrator-worker dispatch",
         children: [
           {
             id: "phase-07-child-handoff-trace",
             title: "Handoff Trace",
-            description: "Show what each worker is expected to own, validate, retry, depend on, and hand back without polluting the main context.",
-            completionPercent: 58,
+            description: "Show what each worker is expected to own, validate, retry, depend on, and hand back with handoff task counts, four per-role packet ownership, dependency order, validation labels, and local no-runtime boundaries without polluting the main context.",
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Worker handoff"
           },
