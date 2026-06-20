@@ -205,6 +205,9 @@ describe("phase 8 permission and audit depth", () => {
           kind: "permission",
           status: "waiting",
           label: "terminal action",
+          detail: expect.stringContaining(
+            "permissionLabelProof=provider=terminal label=preview-only state=idle risk=high requestedBy=operator"
+          ),
           pmTaskId: "phase-08-child-permission-labels",
           evidenceKey: expect.stringContaining("phase8.permission-scope")
         })
@@ -258,6 +261,16 @@ describe("phase 8 permission and audit depth", () => {
     expect(snapshot.openExceptionCount).toBe(0);
     expect(snapshot.items.every((item) => item.status === "ready")).toBe(true);
     expect(snapshot.exceptions.every((exception) => exception.status === "ready")).toBe(true);
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "terminal action",
+          detail: expect.stringContaining(
+            "permissionLabelProof=provider=terminal label=ready state=approved risk=high requestedBy=operator"
+          )
+        })
+      ])
+    );
     expect(new Set(snapshot.items.map((item) => item.evidenceKey)).size).toBe(snapshot.items.length);
     expect(new Set(snapshot.exceptions.map((exception) => exception.evidenceKey)).size).toBe(
       snapshot.exceptions.length
@@ -359,7 +372,10 @@ describe("phase 8 permission and audit depth", () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: "approval",
-          status: "blocked"
+          status: "blocked",
+          detail: expect.stringContaining(
+            "permissionLabelProof=provider=terminal label=blocked state=denied risk=high requestedBy=operator"
+          )
         }),
         expect.objectContaining({
           kind: "evidence",
@@ -403,6 +419,13 @@ describe("phase 8 permission and audit depth", () => {
     expect(snapshot.openExceptionCount).toBeGreaterThanOrEqual(3);
     expect(snapshot.items).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({
+          label: "terminal action",
+          status: "review",
+          detail: expect.stringContaining(
+            "permissionLabelProof=provider=terminal label=approval-required state=requested risk=high requestedBy=operator"
+          )
+        }),
         expect.objectContaining({
           label: "Rollback requirement",
           kind: "rollback",

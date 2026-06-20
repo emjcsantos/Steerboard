@@ -237,6 +237,9 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("Depth 10");
     expect(html).toContain("Mutation locked");
     expect(html).toContain("terminal action");
+    expect(html).toContain(
+      "permissionLabelProof=provider=terminal label=preview-only state=idle risk=high requestedBy=operator"
+    );
     expect(html).toContain("git action");
     expect(html).toContain("plugin action");
     expect(html).toContain("permission");

@@ -666,8 +666,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-permission-labels",
             title: "Permission State Labels",
-            description: "Display unavailable, preview-only, approval-required, ready, waiting, review, and blocked states consistently across surfaces.",
-            completionPercent: 50,
+            description: "Display unavailable, preview-only, approval-required, ready, waiting, review, and blocked states consistently across surfaces with compact permissionLabelProof provider, label, state, risk, and requester evidence.",
+            completionPercent: 55,
             sourceDocument: "Runtime profile permissions"
           },
           {

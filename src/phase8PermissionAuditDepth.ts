@@ -269,6 +269,16 @@ function evidenceSlug(value: string): string {
     .slice(0, 52) || "record";
 }
 
+function permissionLabelProof(
+  summary: LiveActionPermissionRequestSummary,
+  label: "approval-required" | "blocked" | "preview-only" | "ready"
+): string {
+  return (
+    `permissionLabelProof=provider=${summary.provider} label=${label} ` +
+    `state=${summary.state} risk=${summary.risk} requestedBy=${summary.requestedBy || "unknown"}`
+  );
+}
+
 function withTraceability(
   item: Omit<Phase8PermissionAuditDepthItem, "pmTaskId" | "evidenceKey">
 ): Phase8PermissionAuditDepthItem {
@@ -308,7 +318,8 @@ function liveActionItem(
       kind: "approval",
       status: "blocked",
       detail:
-        `${summary.provider} is ${summary.state}; the risky action remains locked and has an explicit blocked branch.`,
+        `${summary.provider} is ${summary.state}; the risky action remains locked and has an explicit blocked branch. ` +
+        permissionLabelProof(summary, "blocked"),
       nextAction:
         `Reset or re-request approval for ${summary.actionLabel} before any execution evidence can be accepted.`
     };
@@ -321,7 +332,8 @@ function liveActionItem(
       kind: "approval",
       status: "review",
       detail:
-        `${summary.provider} is waiting on an approval decision for ${summary.risk} risk work.`,
+        `${summary.provider} is waiting on an approval decision for ${summary.risk} risk work. ` +
+        permissionLabelProof(summary, "approval-required"),
       nextAction:
         `Approve, deny, time out, or cancel ${summary.actionLabel}; do not execute while approval is pending.`
     };
@@ -334,7 +346,8 @@ function liveActionItem(
       kind: "evidence",
       status: "ready",
       detail:
-        `${summary.provider} approval is visible; execution still requires action-scoped evidence and audit capture.`,
+        `${summary.provider} approval is visible; execution still requires action-scoped evidence and audit capture. ` +
+        permissionLabelProof(summary, "ready"),
       nextAction:
         `Collect dry-run or runner evidence for ${summary.actionLabel} and keep rollback expectations visible.`
     };
@@ -346,7 +359,8 @@ function liveActionItem(
     kind: "permission",
     status: "waiting",
     detail:
-      `${summary.provider} has no active permission request; state, risk, requester, and detail are visible.`,
+      `${summary.provider} has no active permission request; state, risk, requester, and detail are visible. ` +
+      permissionLabelProof(summary, "preview-only"),
     nextAction:
       `Request permission for ${summary.actionLabel} or leave the action locked with this explanation.`
   };
