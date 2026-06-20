@@ -156,6 +156,7 @@ import {
 } from "./phase4ProviderBlockerPriority";
 import {
   buildPhase4ProviderReviewArtifact,
+  parsePhase4ProviderReviewArtifact,
   serializePhase4ProviderReviewArtifact,
   verifyPhase4ProviderReviewArtifact,
   verifySerializedPhase4ProviderReviewArtifact,
@@ -3036,8 +3037,23 @@ export function App() {
         "phase4-provider-review-artifact.json",
         "phase4_provider_review_artifact_read"
       );
+      const artifact = parsePhase4ProviderReviewArtifact(serializedArtifact);
 
-      verifyImportedPhase4ProviderReviewArtifact(serializedArtifact);
+      if (!artifact) {
+        verifyImportedPhase4ProviderReviewArtifact(serializedArtifact);
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const verification = verifyPhase4ProviderReviewArtifact(artifact, {
+        verifiedAt: now,
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      });
+
+      setImportedPhase4ProviderReviewArtifactVerification(verification);
+      setAppNotice(
+        `Loaded recorded Phase 4 provider review ${verification.statusLabel}: ${verification.detail}`
+      );
     } catch {
       setAppNotice(
         "Recorded Phase 4 provider review artifact is unavailable; run npm.cmd run smoke:phase4:record first"

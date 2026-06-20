@@ -258,10 +258,10 @@ describe("milestone status model", () => {
 
     expect(platform?.completion).toBe("In progress");
     expect(platform?.tone).toBe("active");
-    expect(platform?.completionPercent).toBe(60);
+    expect(platform?.completionPercent).toBe(61);
     expect(platform?.current).toBe(true);
     expect(platform?.latestNote).toBe(
-      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution, Phase 3 exit-package clearance now has recorded CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, and proof-export readiness, and Phase 4 provider integration now includes metadata-only recorded provider-review artifact load/verify commands with attached approval, audit, rollback, and permission evidence as the current active implementation goal."
+      "Platform command, skill, plugin, MCP, automation, and personalization capability surfaces refresh through ready/preview/setup-required/blocked/unsupported/unavailable states. Panel composers restrict slash suggestions and decisions to panel-scoped commands, provider-routed slash submissions leave explicit transcript evidence, and owner testing now evaluates slash-command execution plus session-control readiness from transcript proof without executing commands. The connection dialog still runs an all-catalog provider refresh smoke proof across six metadata/status surfaces without execution, Phase 3 exit-package clearance now has recorded CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, and proof-export readiness, and Phase 4 provider integration now includes metadata-only recorded provider-review artifact load/verify commands with offline fingerprint verification and attached approval, audit, rollback, and permission evidence as the current active implementation goal."
     );
     expect(platform?.nextStep).toBe(
       "Advance Phase 4 provider integration with the connection dialog catalog smoke plus `npm.cmd run smoke:phase4:record` and `npm.cmd run smoke:phase4:verify` as recurring provider-refresh/review regression checks, keep provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions behind owner-reviewed locks."
@@ -283,7 +283,7 @@ describe("milestone status model", () => {
     expect(activeGoal?.target).toBe("Provider integration surfaces");
     expect(providerGoal?.status).toBe("active");
     expect(platform?.latestNote).toContain("Phase 3 exit-package clearance now has recorded CLI validation");
-    expect(platform?.latestNote).toContain("Phase 4 provider integration now includes metadata-only recorded provider-review artifact load/verify commands with attached approval, audit, rollback, and permission evidence");
+    expect(platform?.latestNote).toContain("Phase 4 provider integration now includes metadata-only recorded provider-review artifact load/verify commands with offline fingerprint verification and attached approval, audit, rollback, and permission evidence");
     expect(platform?.nextStep).toContain("Advance Phase 4 provider integration");
   });
 
@@ -328,7 +328,7 @@ describe("milestone status model", () => {
       nextTarget: "Platform capabilities",
       nextStep:
         "Advance Phase 4 provider integration with the connection dialog catalog smoke plus `npm.cmd run smoke:phase4:record` and `npm.cmd run smoke:phase4:verify` as recurring provider-refresh/review regression checks, keep provider execution disabled, and preserve arbitrary terminal commands, Git mutation, MCP/plugin/automation execution, runtime/profile mutation, and external-service actions behind owner-reviewed locks.",
-      nextCompletionPercent: 60
+      nextCompletionPercent: 61
     });
   });
 
