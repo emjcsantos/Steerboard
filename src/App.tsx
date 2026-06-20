@@ -13362,7 +13362,7 @@ const liveActionRunnerNextActionLabels: Record<LiveActionRunnerNextAction, strin
   "review-risk-policy": "Review risk"
 };
 
-function LiveActionRiskGatePanel({
+export function LiveActionRiskGatePanel({
   auditExportMarkdown,
   auditHistory,
   executableCount,
