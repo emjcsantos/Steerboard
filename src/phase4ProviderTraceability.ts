@@ -20,6 +20,7 @@ export type Phase4ProviderTraceabilityItemKind =
   | "catalog-depth"
   | "refresh-safety"
   | "surface-depth"
+  | "record-chain"
   | "execution-lock";
 
 export interface Phase4ProviderTraceabilityItem {
@@ -347,6 +348,36 @@ function surfaceDepthItem(
   };
 }
 
+const RECORD_CHAIN_KINDS = [
+  "approval-gate",
+  "audit-gate",
+  "rollback-gate",
+  "permission-gate"
+] as const;
+
+function recordChainItem(
+  surfaceDepth: Phase4ProviderSurfaceDepthSnapshot
+): Phase4ProviderTraceabilityItem {
+  const gateItems = surfaceDepth.items.filter((item) =>
+    RECORD_CHAIN_KINDS.includes(item.kind as (typeof RECORD_CHAIN_KINDS)[number])
+  );
+  const readyGateItems = gateItems.filter((item) => item.status === "ready");
+  const firstOpenGate = gateItems.find((item) => item.status !== "ready");
+
+  return {
+    id: `${TRACE_ID}:record-chain`,
+    label: "Local record chain",
+    kind: "record-chain",
+    status: firstOpenGate?.status ?? (readyGateItems.length === RECORD_CHAIN_KINDS.length ? "ready" : "preview"),
+    detail:
+      `${readyGateItems.length}/${RECORD_CHAIN_KINDS.length} local approval, audit, rollback, and permission record gates are ready.` +
+      (firstOpenGate ? ` Next open gate: ${firstOpenGate.label}. ${firstOpenGate.detail}` : ""),
+    nextAction: firstOpenGate
+      ? publicText(firstOpenGate.nextAction, "Complete the next local provider record gate.")
+      : "Keep the local approval, audit, rollback, and permission record chain attached while provider execution remains locked."
+  };
+}
+
 function executionLockItem({
   catalogDepth,
   surfaceDepth
@@ -412,6 +443,7 @@ export function buildPhase4ProviderTraceabilitySummary({
     catalogDepthItem(catalogDepth),
     refreshSafetyItem(refreshSafety),
     surfaceDepthItem(surfaceDepth),
+    recordChainItem(surfaceDepth),
     executionLockItem({ catalogDepth, surfaceDepth })
   ];
   const state = resolveState(items);

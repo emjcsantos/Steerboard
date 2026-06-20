@@ -5,7 +5,16 @@ const artifactPath = resolve("local_private", "phase4-provider-review-artifact.j
 const expectedSource = "steerboard.phase4.provider-review.v1";
 const requiredSurfaceCount = 6;
 const requiredSurfaceItemCount = 9;
-const requiredTraceabilityCount = 6;
+const requiredTraceabilityCount = 7;
+const requiredTraceabilityKinds = [
+  "active-goal",
+  "pm-coverage",
+  "catalog-depth",
+  "refresh-safety",
+  "surface-depth",
+  "record-chain",
+  "execution-lock"
+];
 const maxArtifactAgeMs = 24 * 60 * 60 * 1000;
 
 function fail(message) {
@@ -137,6 +146,11 @@ function verifyArtifact(artifact) {
     throw new Error(`expected at least ${requiredTraceabilityCount} traceability items, found ${traceabilityItems.length}`);
   }
   assertReadyRows(traceabilityItems, "traceability");
+  for (const kind of requiredTraceabilityKinds) {
+    if (!traceabilityItems.some((item) => item.kind === kind)) {
+      throw new Error(`traceability is missing ${kind}`);
+    }
+  }
   if (traceability.canTrustProviderReview !== true) {
     throw new Error("traceability canTrustProviderReview is not true");
   }

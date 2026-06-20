@@ -298,7 +298,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 72,
+    completionPercent: 74,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -361,7 +361,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-rollback-record",
             title: "Provider Rollback Record",
             description: "Record and clear local provider rollback review only when the current approval record, current audit record, current six-surface catalog fingerprint, and current surface-depth rollback evidence fingerprint match, without unlocking permission or execution.",
-            completionPercent: 61,
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Phase 4 provider rollback record"
           },
@@ -369,7 +369,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-permission-record",
             title: "Provider Permission Record",
             description: "Record and clear local provider permission review only when the current approval, audit, rollback, six-surface catalog, surface-depth, and permission evidence fingerprints match every provider surface while mutation remains locked.",
-            completionPercent: 61,
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Phase 4 provider permission record"
           },
@@ -377,7 +377,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-traceability",
             title: "Provider Traceability",
             description: "Link the Phase 4 remaining goal, PM child rows, catalog depth, refresh safety depth, fresh catalog fingerprint proof, surface depth, local approval, audit, rollback, and permission records, and execution locks before provider execution is considered.",
-            completionPercent: 62,
+            completionPercent: 68,
             complexity: "high",
             sourceDocument: "Phase 4 provider traceability"
           },

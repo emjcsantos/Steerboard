@@ -230,7 +230,7 @@ describe("phase 4 provider review artifact", () => {
       catalogDepthRecordCount: 6,
       refreshSafetyRecordCount: 7,
       surfaceDepthItemCount: 9,
-      traceabilityItemCount: 6,
+      traceabilityItemCount: 7,
       executionLocked: true,
       hasApprovalRecord: false,
       hasAuditRecord: false,

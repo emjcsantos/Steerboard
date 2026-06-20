@@ -153,6 +153,7 @@ describe("phase 4 provider traceability", () => {
       "catalog-depth",
       "refresh-safety",
       "surface-depth",
+      "record-chain",
       "execution-lock"
     ]);
     expect(summary.items).toEqual(
@@ -163,6 +164,11 @@ describe("phase 4 provider traceability", () => {
           detail: expect.stringContaining("1 current active goal")
         }),
         expect.objectContaining({ kind: "surface-depth", status: "preview" }),
+        expect.objectContaining({
+          kind: "record-chain",
+          status: "preview",
+          detail: expect.stringContaining("0/4 local approval, audit, rollback, and permission record gates are ready")
+        }),
         expect.objectContaining({ kind: "execution-lock", status: "ready" })
       ])
     );

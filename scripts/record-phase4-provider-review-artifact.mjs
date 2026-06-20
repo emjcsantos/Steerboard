@@ -275,7 +275,7 @@ const artifact = {
     statusLabel: "Ready",
     readiness: 100,
     canTrustProviderReview: true,
-    readyCount: 6,
+    readyCount: 7,
     previewCount: 0,
     setupRequiredCount: 0,
     heldCount: 0,
@@ -295,6 +295,7 @@ const artifact = {
       traceItem("catalog-depth", "Catalog-depth evidence", "catalog-depth", "Six provider catalog-depth rows are attached."),
       traceItem("refresh-safety", "Refresh-safety evidence", "refresh-safety", "Refresh safety proof is attached."),
       traceItem("surface-depth", "Surface-depth evidence", "surface-depth", "Surface-depth proof is attached."),
+      traceItem("record-chain", "Local record chain", "record-chain", "Local approval, audit, rollback, and permission record gates are attached."),
       traceItem("execution-lock", "Provider execution lock", "execution-lock", "Six provider execution locks are visible.")
     ]
   },
