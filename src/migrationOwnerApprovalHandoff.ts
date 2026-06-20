@@ -15,6 +15,7 @@ export interface MigrationOwnerApprovalHandoff {
   readonly sourceMutationLocked: boolean;
   readonly profileActivationLocked: boolean;
   readonly approvalRequired: boolean;
+  readonly ownerApprovalRecordId?: string;
   readonly migrationOwnerApprovalHandoffProof: string;
   readonly nextAction: string;
   readonly safety: string;
@@ -24,7 +25,19 @@ export interface MigrationOwnerApprovalHandoff {
 export interface MigrationOwnerApprovalHandoffInput {
   readonly applyDecisionGate: MigrationApplyDecisionGate;
   readonly ownerApprovalRecorded?: boolean;
+  readonly ownerApprovalRecord?: MigrationOwnerApprovalRecord;
 }
+
+export interface MigrationOwnerApprovalRecord {
+  readonly id: string;
+  readonly createdAt: string;
+  readonly state: "ready";
+  readonly handoffProof: string;
+  readonly detail: string;
+}
+
+export const MIGRATION_OWNER_APPROVAL_RECORD_STORAGE_KEY =
+  "steerboard.migrationOwnerApprovalRecord.v1";
 
 const HANDOFF_ID = "phase-5-migration-owner-approval-handoff";
 const HANDOFF_LABEL = "Phase 5 migration owner approval handoff";
@@ -43,7 +56,7 @@ function resolveState(input: MigrationOwnerApprovalHandoffInput): MigrationOwner
     return "blocked";
   }
 
-  if (input.ownerApprovalRecorded) {
+  if (input.ownerApprovalRecorded || input.ownerApprovalRecord) {
     return "ready";
   }
 
@@ -94,7 +107,8 @@ function buildProof(handoff: Omit<MigrationOwnerApprovalHandoff, "ariaLabel" | "
     `canApply=${handoff.canApplyMigration ? "yes" : "no"} ` +
     `profileActivation=${handoff.profileActivationLocked ? "locked" : "unlocked"} ` +
     `sourceMutation=${handoff.sourceMutationLocked ? "locked" : "unlocked"} ` +
-    `approval=${handoff.approvalRequired ? "required" : "recorded"}`
+    `approval=${handoff.approvalRequired ? "required" : "recorded"} ` +
+    `record=${handoff.ownerApprovalRecordId ?? "missing"}`
   );
 }
 
@@ -113,7 +127,8 @@ export function buildMigrationOwnerApprovalHandoff(
   input: MigrationOwnerApprovalHandoffInput
 ): MigrationOwnerApprovalHandoff {
   const state = resolveState(input);
-  const ownerApprovalRecorded = input.ownerApprovalRecorded === true;
+  const ownerApprovalRecord = input.ownerApprovalRecord;
+  const ownerApprovalRecorded = input.ownerApprovalRecorded === true || Boolean(ownerApprovalRecord);
   const draft = {
     id: HANDOFF_ID,
     label: HANDOFF_LABEL,
@@ -130,6 +145,7 @@ export function buildMigrationOwnerApprovalHandoff(
     sourceMutationLocked: true,
     profileActivationLocked: true,
     approvalRequired: !ownerApprovalRecorded,
+    ownerApprovalRecordId: ownerApprovalRecord?.id,
     nextAction: nextActionForState(state),
     safety: SAFETY
   };
@@ -142,4 +158,135 @@ export function buildMigrationOwnerApprovalHandoff(
     ...handoff,
     ariaLabel: buildAriaLabel(handoff)
   };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function publicText(value: unknown, fallback: string): string {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return fallback;
+  }
+
+  const sanitized = value
+    .replace(/[A-Za-z]:[\\/][^\s]+/g, "local path")
+    .replace(/[\\/](Users|Projects|Documents|Desktop)[\\/][^\s]+/gi, "local path")
+    .replace(/sk-[A-Za-z0-9_-]{12,}/g, "redacted token")
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return sanitized.length > 0 ? sanitized : fallback;
+}
+
+function readStorage(): string | null {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return null;
+  }
+
+  try {
+    const value = window.localStorage.getItem?.(MIGRATION_OWNER_APPROVAL_RECORD_STORAGE_KEY);
+    return typeof value === "string" ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(record: MigrationOwnerApprovalRecord): void {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem?.(
+      MIGRATION_OWNER_APPROVAL_RECORD_STORAGE_KEY,
+      JSON.stringify(record)
+    );
+  } catch {
+    return;
+  }
+}
+
+function clearStorage(): void {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem?.(MIGRATION_OWNER_APPROVAL_RECORD_STORAGE_KEY);
+  } catch {
+    return;
+  }
+}
+
+export function createMigrationOwnerApprovalRecord(input: {
+  readonly handoff: MigrationOwnerApprovalHandoff;
+  readonly createdAt: string;
+  readonly detail?: string;
+}): MigrationOwnerApprovalRecord {
+  const createdAt = publicText(input.createdAt, new Date().toISOString());
+
+  return {
+    id: `phase5-migration-owner-approval:${createdAt}`,
+    createdAt,
+    state: "ready",
+    handoffProof: publicText(
+      input.handoff.migrationOwnerApprovalHandoffProof,
+      "handoff=waiting requestable=yes recorded=no canApply=no"
+    ),
+    detail: publicText(
+      input.detail,
+      "Owner approval recorded locally for Phase 5 migration review while migration apply and profile activation remain locked."
+    )
+  };
+}
+
+export function parseStoredMigrationOwnerApprovalRecord(
+  serialized: string | null
+): MigrationOwnerApprovalRecord | undefined {
+  if (!serialized) {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(serialized);
+    if (!isRecord(parsed)) {
+      return undefined;
+    }
+
+    if (
+      typeof parsed.id !== "string" ||
+      typeof parsed.createdAt !== "string" ||
+      parsed.state !== "ready" ||
+      typeof parsed.handoffProof !== "string"
+    ) {
+      return undefined;
+    }
+
+    return {
+      id: publicText(parsed.id, "phase5-migration-owner-approval:missing"),
+      createdAt: publicText(parsed.createdAt, "missing"),
+      state: "ready",
+      handoffProof: publicText(parsed.handoffProof, "handoff=review"),
+      detail: publicText(
+        parsed.detail,
+        "Owner approval recorded locally for Phase 5 migration review while migration apply and profile activation remain locked."
+      )
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+export function loadMigrationOwnerApprovalRecord(): MigrationOwnerApprovalRecord | undefined {
+  return parseStoredMigrationOwnerApprovalRecord(readStorage());
+}
+
+export function saveMigrationOwnerApprovalRecord(record: MigrationOwnerApprovalRecord): void {
+  writeStorage(record);
+}
+
+export function clearMigrationOwnerApprovalRecord(): void {
+  clearStorage();
 }

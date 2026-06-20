@@ -10,6 +10,13 @@ import {
   toggleMigrationCategory
 } from "./migrationModel";
 import { buildMigrationHardeningReadiness } from "./migrationHardeningReadiness";
+import {
+  buildMigrationOwnerApprovalHandoff,
+  createMigrationOwnerApprovalRecord
+} from "./migrationOwnerApprovalHandoff";
+import { buildMigrationApplyDecisionGate } from "./migrationApplyDecisionGate";
+import { buildMigrationBlockerPriority } from "./migrationBlockerPriority";
+import { buildMigrationTraceabilitySummary } from "./migrationTraceability";
 
 function selectedPreview() {
   return toggleMigrationCategory(buildDefaultMigrationPreview("codex"), "projects", true);
@@ -130,6 +137,47 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).not.toContain("has not recorded a local apply-review-staged audit action yet");
     expect(html).not.toContain("top priority Apply review staging");
     expect(html).not.toContain("Review required");
+  });
+
+  it("renders recorded owner approval without unlocking apply or profile activation", () => {
+    const readiness = buildMigrationHardeningReadiness({
+      preview: selectedPreview(),
+      draftHistory: stagedDraftHistory(),
+      excludedSecretsSummary: [
+        "Credentials excluded",
+        "Raw transcripts excluded",
+        "Source mutation excluded"
+      ]
+    });
+    const traceability = buildMigrationTraceabilitySummary({ readiness });
+    const blockerPriority = buildMigrationBlockerPriority({
+      readiness,
+      traceability
+    });
+    const applyDecisionGate = buildMigrationApplyDecisionGate({
+      readiness,
+      traceability,
+      blockerPriority
+    });
+    const pendingHandoff = buildMigrationOwnerApprovalHandoff({
+      applyDecisionGate
+    });
+    const ownerApprovalRecord = createMigrationOwnerApprovalRecord({
+      handoff: pendingHandoff,
+      createdAt: "2026-06-20T12:15:00.000Z"
+    });
+    const html = renderToStaticMarkup(
+      <MigrationReviewGatePanel
+        migrationHardeningReadiness={readiness}
+        migrationOwnerApprovalRecord={ownerApprovalRecord}
+      />
+    );
+
+    expect(html).toContain("Phase 5 migration owner approval handoff");
+    expect(html).toContain("recorded=yes");
+    expect(html).toContain(`record=${ownerApprovalRecord.id}`);
+    expect(html).toContain("canApply=no");
+    expect(html).toContain("profileActivation=locked");
   });
 
   it("keeps unstaged drafts visibly held before apply-review staging is recorded", () => {

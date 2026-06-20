@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import { buildMigrationApplyDecisionGate } from "./migrationApplyDecisionGate";
 import { buildMigrationBlockerPriority } from "./migrationBlockerPriority";
 import { buildMigrationHardeningReadiness } from "./migrationHardeningReadiness";
-import { buildMigrationOwnerApprovalHandoff } from "./migrationOwnerApprovalHandoff";
+import {
+  buildMigrationOwnerApprovalHandoff,
+  createMigrationOwnerApprovalRecord,
+  parseStoredMigrationOwnerApprovalRecord
+} from "./migrationOwnerApprovalHandoff";
 import {
   appendMigrationProfileDraftHistory,
   buildDefaultMigrationPreview,
@@ -72,9 +76,16 @@ describe("migration owner approval handoff", () => {
   });
 
   it("records owner approval evidence without adding an apply path", () => {
+    const pending = buildMigrationOwnerApprovalHandoff({
+      applyDecisionGate: readyApplyDecisionGate()
+    });
+    const record = createMigrationOwnerApprovalRecord({
+      handoff: pending,
+      createdAt: "2026-06-20T12:15:00.000Z"
+    });
     const handoff = buildMigrationOwnerApprovalHandoff({
       applyDecisionGate: readyApplyDecisionGate(),
-      ownerApprovalRecorded: true
+      ownerApprovalRecord: record
     });
 
     expect(handoff).toMatchObject({
@@ -84,9 +95,25 @@ describe("migration owner approval handoff", () => {
       ownerApprovalRecorded: true,
       canApplyMigration: false,
       canActivateProfile: false,
-      approvalRequired: false
+      approvalRequired: false,
+      ownerApprovalRecordId: record.id
     });
     expect(handoff.migrationOwnerApprovalHandoffProof).toContain("recorded=yes");
     expect(handoff.migrationOwnerApprovalHandoffProof).toContain("canApply=no");
+    expect(handoff.migrationOwnerApprovalHandoffProof).toContain(`record=${record.id}`);
+  });
+
+  it("parses only valid local owner approval records", () => {
+    const pending = buildMigrationOwnerApprovalHandoff({
+      applyDecisionGate: readyApplyDecisionGate()
+    });
+    const record = createMigrationOwnerApprovalRecord({
+      handoff: pending,
+      createdAt: "2026-06-20T12:15:00.000Z"
+    });
+
+    expect(parseStoredMigrationOwnerApprovalRecord(JSON.stringify(record))).toEqual(record);
+    expect(parseStoredMigrationOwnerApprovalRecord(null)).toBeUndefined();
+    expect(parseStoredMigrationOwnerApprovalRecord(JSON.stringify({ ...record, state: "blocked" }))).toBeUndefined();
   });
 });

@@ -508,16 +508,16 @@ describe("project management phase plan", () => {
     expect(previewMetadataChild?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
     );
-    expect(draftParent?.completionPercent).toBe(84);
-    expect(profileDraftsChild?.completionPercent).toBe(84);
-    expect(rollbackAuditParent?.completionPercent).toBe(84);
-    expect(previewMetadataChild?.completionPercent).toBe(84);
-    expect(auditSummaryChild?.completionPercent).toBe(84);
-    expect(reviewDepthChild?.completionPercent).toBe(84);
-    expect(traceabilityChild?.completionPercent).toBe(84);
-    expect(blockerPriorityChild?.completionPercent).toBe(84);
-    expect(applyDecisionChild?.completionPercent).toBe(84);
-    expect(ownerApprovalHandoffChild?.completionPercent).toBe(84);
+    expect(draftParent?.completionPercent).toBe(90);
+    expect(profileDraftsChild?.completionPercent).toBe(90);
+    expect(rollbackAuditParent?.completionPercent).toBe(90);
+    expect(previewMetadataChild?.completionPercent).toBe(90);
+    expect(auditSummaryChild?.completionPercent).toBe(90);
+    expect(reviewDepthChild?.completionPercent).toBe(90);
+    expect(traceabilityChild?.completionPercent).toBe(90);
+    expect(blockerPriorityChild?.completionPercent).toBe(90);
+    expect(applyDecisionChild?.completionPercent).toBe(90);
+    expect(ownerApprovalHandoffChild?.completionPercent).toBe(90);
     expect(profileDraftsChild?.description).toContain("apply-review-staged audit actions");
     expect(profileDraftsChild?.description).toContain("migrationReviewDepthProof");
     expect(profileDraftsChild?.description).toContain("evidenceKeys=6/6");
@@ -562,7 +562,7 @@ describe("project management phase plan", () => {
     expect(applyDecisionChild?.description).toContain("canApply=no");
     expect(applyDecisionChild?.description).toContain("approval=required");
     expect(ownerApprovalHandoffChild?.description).toContain("migrationOwnerApprovalHandoffProof");
-    expect(ownerApprovalHandoffChild?.description).toContain("recorded=no");
+    expect(ownerApprovalHandoffChild?.description).toContain("recorded state");
     expect(ownerApprovalHandoffChild?.description).toContain("canApply=no");
   });
 });

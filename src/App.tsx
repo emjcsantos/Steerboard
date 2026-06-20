@@ -371,7 +371,14 @@ import {
   buildMigrationBlockerPriority
 } from "./migrationBlockerPriority";
 import { buildMigrationApplyDecisionGate } from "./migrationApplyDecisionGate";
-import { buildMigrationOwnerApprovalHandoff } from "./migrationOwnerApprovalHandoff";
+import {
+  buildMigrationOwnerApprovalHandoff,
+  clearMigrationOwnerApprovalRecord,
+  createMigrationOwnerApprovalRecord,
+  loadMigrationOwnerApprovalRecord,
+  saveMigrationOwnerApprovalRecord,
+  type MigrationOwnerApprovalRecord
+} from "./migrationOwnerApprovalHandoff";
 import { buildMigrationTraceabilitySummary } from "./migrationTraceability";
 import {
   buildPersonalizationCatalogSnapshot,
@@ -2005,6 +2012,10 @@ export function App() {
   const [migrationProfileDraftHistory, setMigrationProfileDraftHistory] = useState<MigrationProfileDraftHistoryRecord[]>(() =>
     loadMigrationProfileDraftHistory([], MIGRATION_DRAFT_HISTORY_LIMIT)
   );
+  const [migrationOwnerApprovalRecord, setMigrationOwnerApprovalRecord] =
+    useState<MigrationOwnerApprovalRecord | undefined>(() =>
+      loadMigrationOwnerApprovalRecord()
+    );
   const [migrationProfileDraftActionNotice, setMigrationProfileDraftActionNotice] = useState("");
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") {
@@ -4029,6 +4040,44 @@ export function App() {
     });
   }
 
+  function handleRecordMigrationOwnerApproval() {
+    const traceability = buildMigrationTraceabilitySummary({
+      readiness: migrationHardeningReadiness
+    });
+    const blockerPriority = buildMigrationBlockerPriority({
+      readiness: migrationHardeningReadiness,
+      traceability
+    });
+    const applyDecisionGate = buildMigrationApplyDecisionGate({
+      readiness: migrationHardeningReadiness,
+      traceability,
+      blockerPriority
+    });
+    const approvalHandoff = buildMigrationOwnerApprovalHandoff({
+      applyDecisionGate
+    });
+
+    if (!approvalHandoff.canRequestOwnerApproval) {
+      setMigrationProfileDraftActionNotice(approvalHandoff.nextAction);
+      return;
+    }
+
+    const record = createMigrationOwnerApprovalRecord({
+      handoff: approvalHandoff,
+      createdAt: new Date().toISOString()
+    });
+
+    saveMigrationOwnerApprovalRecord(record);
+    setMigrationOwnerApprovalRecord(record);
+    setMigrationProfileDraftActionNotice(record.detail);
+  }
+
+  function handleClearMigrationOwnerApproval() {
+    clearMigrationOwnerApprovalRecord();
+    setMigrationOwnerApprovalRecord(undefined);
+    setMigrationProfileDraftActionNotice("Phase 5 migration owner approval record cleared locally.");
+  }
+
   async function runCodexLiveSmokeProof() {
     setCodexLiveSmokeLoading(true);
     const nextProof = await loadCodexLiveSmokeProof();
@@ -4962,12 +5011,15 @@ export function App() {
           migrationProfileDraft={migrationProfileDraft}
           migrationProfileDraftHistory={migrationProfileDraftHistory}
           migrationProfileDraftHistorySummary={migrationProfileDraftHistorySummary}
+          migrationOwnerApprovalRecord={migrationOwnerApprovalRecord}
           migrationDraftActionNotice={migrationProfileDraftActionNotice}
           migrationSourceId={migrationSourceId}
           migrationSourcePreview={migrationSourcePreview}
           mcpCatalogLoading={mcpCatalogLoading}
           mcpCatalogSnapshot={mcpCatalogSnapshot}
           onCreateMigrationProfileDraft={handleCreateMigrationProfileDraft}
+          onClearMigrationOwnerApproval={handleClearMigrationOwnerApproval}
+          onRecordMigrationOwnerApproval={handleRecordMigrationOwnerApproval}
           onRollbackLatestMigrationProfileDraft={handleRollbackLatestMigrationProfileDraft}
           onStageMigrationApplyIntent={handleStageMigrationApplyIntent}
           onMigrationCategoryChange={handleMigrationCategoryChange}
@@ -5133,9 +5185,11 @@ function AppMenuBar({
 }
 
 export function MigrationReviewGatePanel({
-  migrationHardeningReadiness
+  migrationHardeningReadiness,
+  migrationOwnerApprovalRecord
 }: {
   migrationHardeningReadiness: MigrationHardeningReadiness;
+  migrationOwnerApprovalRecord?: MigrationOwnerApprovalRecord;
 }) {
   const migrationTraceability = buildMigrationTraceabilitySummary({
     readiness: migrationHardeningReadiness
@@ -5150,7 +5204,8 @@ export function MigrationReviewGatePanel({
     blockerPriority: migrationBlockerPriority
   });
   const migrationOwnerApprovalHandoff = buildMigrationOwnerApprovalHandoff({
-    applyDecisionGate: migrationApplyDecisionGate
+    applyDecisionGate: migrationApplyDecisionGate,
+    ownerApprovalRecord: migrationOwnerApprovalRecord
   });
 
   return (
@@ -5414,12 +5469,15 @@ function AppDialogSurface({
   migrationProfileDraft,
   migrationProfileDraftHistory,
   migrationProfileDraftHistorySummary,
+  migrationOwnerApprovalRecord,
   migrationDraftActionNotice,
   migrationSourceId,
   migrationSourcePreview,
   mcpCatalogLoading,
   mcpCatalogSnapshot,
   onCreateMigrationProfileDraft,
+  onClearMigrationOwnerApproval,
+  onRecordMigrationOwnerApproval,
   onRollbackLatestMigrationProfileDraft,
   onStageMigrationApplyIntent,
   onMigrationCategoryChange,
@@ -5475,12 +5533,15 @@ function AppDialogSurface({
   migrationProfileDraft?: MigrationProfileDraft;
   migrationProfileDraftHistory: MigrationProfileDraftHistoryRecord[];
   migrationProfileDraftHistorySummary: MigrationProfileDraftHistorySummary;
+  migrationOwnerApprovalRecord?: MigrationOwnerApprovalRecord;
   migrationDraftActionNotice?: string;
   migrationSourceId: MigrationSourceId;
   migrationSourcePreview: MigrationSourcePreviewPayload;
   mcpCatalogLoading: boolean;
   mcpCatalogSnapshot: McpCatalogSnapshot;
   onCreateMigrationProfileDraft: () => void;
+  onClearMigrationOwnerApproval: () => void;
+  onRecordMigrationOwnerApproval: () => void;
   onRollbackLatestMigrationProfileDraft: () => void;
   onStageMigrationApplyIntent: () => void;
   onMigrationCategoryChange: (categoryId: MigrationCategoryId, selected: boolean) => void;
@@ -5531,7 +5592,8 @@ function AppDialogSurface({
     blockerPriority: migrationBlockerPriority
   });
   const migrationOwnerApprovalHandoff = buildMigrationOwnerApprovalHandoff({
-    applyDecisionGate: migrationApplyDecisionGate
+    applyDecisionGate: migrationApplyDecisionGate,
+    ownerApprovalRecord: migrationOwnerApprovalRecord
   });
   const catalogRefreshSafetyDepth = buildPhase4RefreshSafetyDepth(
     catalogRefreshProviderSmokeProof,
@@ -6129,6 +6191,23 @@ function AppDialogSurface({
                 type="button"
               >
                 Roll back latest draft
+              </button>
+              <button
+                className="dialog-secondary-action"
+                disabled={!migrationOwnerApprovalHandoff.canRequestOwnerApproval}
+                onClick={onRecordMigrationOwnerApproval}
+                title={migrationOwnerApprovalHandoff.nextAction}
+                type="button"
+              >
+                Record owner approval
+              </button>
+              <button
+                className="dialog-secondary-action"
+                disabled={!migrationOwnerApprovalRecord}
+                onClick={onClearMigrationOwnerApproval}
+                type="button"
+              >
+                Clear owner approval
               </button>
             </div>
             {migrationProfileDraft ? (
