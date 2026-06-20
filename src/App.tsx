@@ -257,6 +257,10 @@ import {
   type Phase7DispatchReviewArtifactVerification
 } from "./phase7DispatchReviewArtifact";
 import {
+  buildPhase7LiveWorkerLaunchGate,
+  type Phase7LiveWorkerLaunchGate
+} from "./phase7LiveWorkerLaunchGate";
+import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
 } from "./pipelineItemRunLink";
@@ -7154,6 +7158,7 @@ export function DispatchReviewRecordCard({
     expectedEvidenceFingerprint: record.reviewEvidenceFingerprint,
     verifiedAt: record.createdAt
   });
+  const liveWorkerLaunchGate = buildPhase7LiveWorkerLaunchGate(artifactVerification);
 
   return (
     <article
@@ -7338,8 +7343,53 @@ export function DispatchReviewRecordCard({
         <small>{blockerPriority.dispatchBlockerPriorityProof}</small>
       </div>
       <DispatchReviewArtifactVerificationSummary verification={artifactVerification} />
+      <DispatchLiveWorkerLaunchGateSummary gate={liveWorkerLaunchGate} />
       <small>{record.noRuntimeExecutionNote}</small>
     </article>
+  );
+}
+
+function DispatchLiveWorkerLaunchGateSummary({
+  gate
+}: {
+  gate: Phase7LiveWorkerLaunchGate;
+}) {
+  return (
+    <div
+      aria-label={`Phase 7 live worker launch gate: ${gate.statusLabel}; can spawn ${gate.canSpawnLiveWorker ? "yes" : "no"}; approval ${gate.approvalRequired ? "required" : "recorded"}; next action: ${gate.nextAction}`}
+      className={classNames(
+        "dispatch-live-worker-launch-gate",
+        `dispatch-live-worker-launch-gate-${gate.state}`
+      )}
+      title={gate.detail}
+    >
+      <div className="dispatch-live-worker-launch-gate-header">
+        <strong>Live worker launch gate</strong>
+        <span>{gate.statusLabel}</span>
+        <b>{gate.readiness}%</b>
+      </div>
+      <dl className="dispatch-live-worker-launch-gate-grid" aria-label="Phase 7 live worker launch gate counts">
+        <div>
+          <dt>Spawn</dt>
+          <dd>{gate.canSpawnLiveWorker ? "Yes" : "No"}</dd>
+        </div>
+        <div>
+          <dt>Approval</dt>
+          <dd>{gate.approvalRequired ? "Required" : "Recorded"}</dd>
+        </div>
+        <div>
+          <dt>Locks</dt>
+          <dd>{gate.liveWorkerLockCount}</dd>
+        </div>
+        <div>
+          <dt>Open</dt>
+          <dd>{gate.openBlockerCount}</dd>
+        </div>
+      </dl>
+      <p>{gate.detail}</p>
+      <small>{gate.nextAction}</small>
+      <small>{gate.launchGateProof}</small>
+    </div>
   );
 }
 

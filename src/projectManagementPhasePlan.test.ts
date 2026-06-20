@@ -225,17 +225,21 @@ describe("project management phase plan", () => {
     expect(integrationOwnerChild?.completionPercent).toBeGreaterThanOrEqual(
       integrationDepthChild?.completionPercent ?? 0
     );
-    expect(phase7Epic?.completionPercent).toBe(78);
-    expect(rolePanelParent?.completionPercent).toBe(78);
-    expect(workerPreviewChild?.completionPercent).toBe(78);
-    expect(integrationOwnerChild?.completionPercent).toBe(78);
-    expect(integrationDepthChild?.completionPercent).toBe(78);
+    expect(phase7Epic?.completionPercent).toBe(82);
+    expect(rolePanelParent?.completionPercent).toBe(82);
+    expect(workerPreviewChild?.completionPercent).toBe(82);
+    expect(integrationOwnerChild?.completionPercent).toBe(82);
+    expect(integrationDepthChild?.completionPercent).toBe(82);
     expect(phase7Epic?.description).toContain("offline dispatch-review artifact verification");
+    expect(phase7Epic?.description).toContain("owner-visible live-worker launch-gate proof");
     expect(workerPreviewChild?.description).toContain("offline artifact verification");
+    expect(workerPreviewChild?.description).toContain("launch-gate canSpawn=no proof");
     expect(integrationDepthChild?.description).toContain("artifact verification");
+    expect(integrationDepthChild?.description).toContain("launch-gate lock ownership");
     expect(rolePanelParent?.description).toContain("handoff packet integrity");
     expect(rolePanelParent?.description).toContain("PM coverage");
     expect(rolePanelParent?.description).toContain("integrationOwnershipProof");
+    expect(rolePanelParent?.description).toContain("live-worker launch-gate proof");
     expect(workerPreviewChild?.description).toContain("validation gate depth");
     expect(workerPreviewChild?.description).toContain("dispatchReviewDepthProof");
     expect(workerPreviewChild?.description).toContain("PM coverage");
@@ -276,11 +280,13 @@ describe("project management phase plan", () => {
     );
     expect(observedLoopParent?.description).toContain("four per-role handoff packets");
     expect(observedLoopParent?.description).toContain("artifact verification");
+    expect(observedLoopParent?.description).toContain("live-worker launch-gate proof");
     expect(observedLoopParent?.description).toContain("live-worker lock proof");
     expect(handoffTraceChild?.description).toContain("handoff task counts");
     expect(handoffTraceChild?.description).toContain("four per-role packet ownership");
     expect(handoffTraceChild?.description).toContain("dependency order");
     expect(handoffTraceChild?.description).toContain("offline artifact verification");
+    expect(handoffTraceChild?.description).toContain("launch-gate proof");
     expect(handoffTraceChild?.description).toContain("local no-runtime boundaries");
   });
 

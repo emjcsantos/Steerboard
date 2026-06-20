@@ -111,6 +111,15 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("artifactVerification=ready");
     expect(html).toContain("fingerprint=");
     expect(html).toContain("match=ready");
+    expect(html).toContain("Live worker launch gate");
+    expect(html).toContain("Phase 7 live worker launch gate");
+    expect(html).toContain("Spawn");
+    expect(html).toContain("No");
+    expect(html).toContain("Approval");
+    expect(html).toContain("Required");
+    expect(html).toContain("phase7LiveWorkerLaunchGate");
+    expect(html).toContain("canSpawn=no");
+    expect(html).toContain("approval=required");
     expect(html).toContain("local metadata only");
   });
 
@@ -129,6 +138,8 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("Dispatch artifact verification");
     expect(html).toContain("artifactVerification=review");
     expect(html).toContain("Phase 7 dispatch review artifact still has open review-depth or integration-ownership rows");
+    expect(html).toContain("Live worker launch gate");
+    expect(html).toContain("phase7LiveWorkerLaunchGate state=review");
     expect(html).toContain("Reviewable");
   });
 
@@ -163,6 +174,9 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("Dispatch artifact verification");
     expect(html).toContain("artifactVerification=blocked");
     expect(html).toContain("execution=unlocked");
+    expect(html).toContain("Live worker launch gate");
+    expect(html).toContain("phase7LiveWorkerLaunchGate state=blocked");
+    expect(html).toContain("canSpawn=no");
     expect(html).toContain("dispatch-review addressable");
   });
 });
