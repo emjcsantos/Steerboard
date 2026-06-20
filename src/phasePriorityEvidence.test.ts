@@ -132,6 +132,9 @@ describe("phase priority evidence", () => {
     expect(phase1?.detail).toContain("methodCount=4");
     expect(phase1?.detail).toContain("uniqueMethods=4");
     expect(phase1?.detail).toContain(
+      "methods=item/agentMessage/delta|thread/start|turn/completed|turn/start"
+    );
+    expect(phase1?.detail).toContain(
       "reloadProof=source:desktop executed=true timestamped=true storageTrusted=true"
     );
     const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
@@ -257,6 +260,9 @@ describe("phase priority evidence", () => {
     expect(phase1?.detail).toContain("expected token");
     expect(phase1?.detail).toContain("signalProof=4/7");
     expect(phase1?.detail).toContain("methodCount=4");
+    expect(phase1?.detail).toContain(
+      "methods=item/agentMessage/delta|thread/start|turn/completed|turn/start"
+    );
   });
 
   it("keeps Phase 1 proof in review when reload timestamp is missing", () => {

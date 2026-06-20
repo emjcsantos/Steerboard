@@ -29,7 +29,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm the Owner Testing Phase 1/2/6 blocker-priority queue ranks the owner/remote push hold above ordinary proof review when local proof is already ready and keeps publish-goal or PM-link traceability repairs out of owner-review actions.
    - Use the Owner Testing Phase 1 and Phase 2 smoke buttons to rerun live-panel and two-panel proof only after explicitly choosing the action.
    - Confirm incomplete Phase 1 desktop smoke proof names the exact missing stream/completion signals such as desktop smoke result, thread id, turn id, agent delta, turn completion, or expected token.
-   - Confirm Phase 1 live proof detail shows compact `signalProof`, `methodCount`, and `uniqueMethods` evidence before treating stream evidence as ready.
+   - Confirm Phase 1 live proof detail shows compact `signalProof`, `methodCount`, `uniqueMethods`, and sorted `methods` evidence before treating stream evidence as ready.
    - Reload after successful Phase 1/2 desktop smoke proof and confirm the priority card keeps only timestamped desktop-executed proof states without rerunning prompts on startup, shows compact `reloadProof` storage-trust evidence for Phase 1, and returns timestamp-missing desktop proofs to review or fallback.
    - Confirm the Environment panel Remaining Goals summary shows all remaining targets, covers Phase 1 through Phase 11, and keeps `Unblock Phase 1/2/6 publishing` blocked until the owner approves pushing.
    - Confirm the Phase 11 Owner Command panel shows checklist coverage, proof freshness, blockers, phase readiness, next action, and fresh-checkout evidence as separate pass/fail gates.

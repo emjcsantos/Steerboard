@@ -137,6 +137,19 @@ function stringArrayLength(value: unknown): number {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string").length : 0;
 }
 
+function methodListProof(value: unknown): string {
+  if (!Array.isArray(value)) {
+    return "none";
+  }
+
+  const methods = value
+    .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    .map((item) => item.trim())
+    .sort((left, right) => left.localeCompare(right));
+
+  return methods.length > 0 ? methods.join("|") : "none";
+}
+
 function countReadyPanels(
   panels: readonly unknown[],
   predicate: (panel: Record<string, unknown>) => boolean
@@ -226,7 +239,8 @@ function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenc
   const streamSignalProof =
     `signalProof=${readySignalCount}/${streamSignalChecks.length} ` +
     `methodCount=${nonNegativeNumber(liveSmokeProof.methodCount)} ` +
-    `uniqueMethods=${stringArrayLength(liveSmokeProof.uniqueMethods)}`;
+    `uniqueMethods=${stringArrayLength(liveSmokeProof.uniqueMethods)} ` +
+    `methods=${methodListProof(liveSmokeProof.uniqueMethods)}`;
   const reloadProof = buildReloadProofSummary(liveSmokeProof);
   const ready = executed && missingStreamSignals.length === 0;
 
