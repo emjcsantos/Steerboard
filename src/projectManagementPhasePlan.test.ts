@@ -22,6 +22,39 @@ describe("project management phase plan", () => {
     }
   });
 
+  it("keeps Phase 4 catalog and refresh rows aligned with structured proof depth", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const catalogParent = byId.get("phase-04-parent-catalogs");
+    const commandSkillChild = byId.get("phase-04-child-command-skill");
+    const pluginMcpChild = byId.get("phase-04-child-plugin-mcp");
+    const catalogDepthChild = byId.get("phase-04-child-catalog-depth");
+    const refreshParent = byId.get("phase-04-parent-refresh-safety");
+    const refreshSmokeChild = byId.get("phase-04-child-refresh-smoke");
+    const refreshSafetyDepthChild = byId.get("phase-04-child-refresh-safety-depth");
+
+    expect(catalogParent?.completionPercent).toBe(86);
+    expect(commandSkillChild?.completionPercent).toBe(86);
+    expect(pluginMcpChild?.completionPercent).toBe(86);
+    expect(catalogDepthChild?.completionPercent).toBe(86);
+    expect(refreshParent?.completionPercent).toBe(86);
+    expect(refreshSmokeChild?.completionPercent).toBe(86);
+    expect(refreshSafetyDepthChild?.completionPercent).toBe(86);
+    expect(catalogParent?.completionPercent).toBeGreaterThanOrEqual(
+      catalogDepthChild?.completionPercent ?? 0
+    );
+    expect(refreshParent?.completionPercent).toBeGreaterThanOrEqual(
+      refreshSafetyDepthChild?.completionPercent ?? 0
+    );
+    expect(commandSkillChild?.description).toContain("commandScopeProof");
+    expect(commandSkillChild?.description).toContain("skillInvocationProof");
+    expect(pluginMcpChild?.description).toContain("pluginSurfaceProof");
+    expect(pluginMcpChild?.description).toContain("mcpToolPolicyProof");
+    expect(catalogDepthChild?.description).toContain("catalogDepthProof");
+    expect(refreshSmokeChild?.description).toContain("refreshSmokeProof");
+    expect(refreshSafetyDepthChild?.description).toContain("refreshSafetyDepthProof");
+  });
+
   it("keeps Phase 8 audit parent progress aligned with proof depth", () => {
     const tasks = createDefaultProjectManagementPhasePlan();
     const byId = new Map(tasks.map((task) => [task.id, task]));

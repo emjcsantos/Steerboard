@@ -558,6 +558,24 @@ describe("remaining goal plan", () => {
     const phase4Epic = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-04-provider-surfaces"
     );
+    const commandSkillChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-command-skill"
+    );
+    const pluginMcpChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-plugin-mcp"
+    );
+    const catalogDepthChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-catalog-depth"
+    );
+    const refreshSafetyParent = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-parent-refresh-safety"
+    );
+    const refreshSmokeChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-refresh-smoke"
+    );
+    const refreshSafetyDepthChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-04-child-refresh-safety-depth"
+    );
 
     expect(phase4Goal).toMatchObject({
       target: "Provider integration surfaces",
@@ -566,6 +584,17 @@ describe("remaining goal plan", () => {
       completionPercent: 99
     });
     expect(phase4Epic?.completionPercent).toBe(99);
+    expect(commandSkillChild?.completionPercent).toBe(86);
+    expect(commandSkillChild?.description).toContain("commandScopeProof");
+    expect(pluginMcpChild?.completionPercent).toBe(86);
+    expect(pluginMcpChild?.description).toContain("mcpToolPolicyProof");
+    expect(catalogDepthChild?.completionPercent).toBe(86);
+    expect(catalogDepthChild?.description).toContain("catalogDepthProof");
+    expect(refreshSafetyParent?.completionPercent).toBe(86);
+    expect(refreshSmokeChild?.completionPercent).toBe(86);
+    expect(refreshSmokeChild?.description).toContain("refreshSmokeProof");
+    expect(refreshSafetyDepthChild?.completionPercent).toBe(86);
+    expect(refreshSafetyDepthChild?.description).toContain("refreshSafetyDepthProof");
     expect(phase4Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-04-child-command-skill",

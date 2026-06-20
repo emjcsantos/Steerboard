@@ -313,23 +313,23 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-command-skill",
             title: "Command and Skill Catalogs",
-            description: "Show command and skill entries with scoped item-order proof, structured command/skill aggregate proof including explicit pair-order, item-order/source/metadata coverage, command scope proof, skill invocation proof, fallback/source guidance, evidence keys, owner-safe readiness proof, and execution locks.",
-            completionPercent: 72,
+            description: "Show command and skill entries with scoped item-order proof, structured command/skill aggregate proof including explicit pair-order, item-order/source/metadata coverage, commandScopeProof, skillInvocationProof, fallback/source guidance, evidence keys, owner-safe readiness proof, and execution locks.",
+            completionPercent: 86,
             sourceDocument: "Command and skill catalogs"
           },
           {
             id: "phase-04-child-plugin-mcp",
             title: "Plugin and MCP Catalogs",
-            description: "Show plugin and MCP entries with structured plugin/MCP aggregate proof including explicit pair-order, item-order/source/metadata coverage, scoped plugin surface proof, metadata-only surface proof, MCP transport/tool-policy proof, connection state, allowed surfaces, non-mutating readiness evidence, and execution-lock artifact enforcement.",
-            completionPercent: 72,
+            description: "Show plugin and MCP entries with structured plugin/MCP aggregate proof including explicit pair-order, item-order/source/metadata coverage, pluginSurfaceProof, metadata-only surface proof, mcpToolPolicyProof transport/tool-policy proof, connection state, allowed surfaces, non-mutating readiness evidence, and execution-lock artifact enforcement.",
+            completionPercent: 86,
             complexity: "high",
             sourceDocument: "Plugin and MCP catalogs"
           },
           {
             id: "phase-04-child-catalog-depth",
             title: "Provider Catalog Detail Depth",
-            description: "Show command, skill, plugin, MCP, automation, and personalization catalog records with visible source, totals, explicit six-surface kind-order proof, item-order proof, metadata proof, structured catalog-depth aggregate proof, readiness state, evidence keys, owner-safe proof, next actions, and execution locks.",
-            completionPercent: 72,
+            description: "Show command, skill, plugin, MCP, automation, and personalization catalog records with visible source, totals, explicit six-surface kind-order proof, item-order proof, metadata proof, structured catalogDepthProof aggregate proof, readiness state, evidence keys, owner-safe proof, next actions, and execution locks.",
+            completionPercent: 86,
             complexity: "high",
             sourceDocument: "Phase 4 provider catalog depth"
           },
@@ -395,22 +395,22 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-refresh-safety",
         title: "Metadata-Only Refresh Safety",
         description: "Keep refresh and readiness paths read-only, fresh, structured with all-catalog refresh-smoke proof including compact per-surface state proof and refresh-safety depth aggregate proof, and matched to current catalog evidence until provider permissions and approval gates are explicit.",
-        completionPercent: 72,
+        completionPercent: 86,
         complexity: "high",
         sourceDocument: "Provider catalog safety",
         children: [
           {
             id: "phase-04-child-refresh-smoke",
             title: "All-Catalog Refresh Smoke",
-            description: "Refresh and classify catalog status with checkedAt, all-six-surface execution count, explicit six-surface order proof, compact per-surface state proof, catalog fingerprint, metadata-only contract, reload-safe proof, and execution-lock proof without running commands, tools, automations, or mutations.",
-            completionPercent: 72,
+            description: "Refresh and classify catalog status with checkedAt, all-six-surface execution count, explicit six-surface order proof, compact per-surface state proof, refreshSmokeProof, catalog fingerprint, metadata-only contract, reload-safe proof, and execution-lock proof without running commands, tools, automations, or mutations.",
+            completionPercent: 86,
             sourceDocument: "Catalog refresh owner validation"
           },
           {
             id: "phase-04-child-refresh-safety-depth",
             title: "Refresh Safety Depth",
-            description: "Show refresh run state, six-surface order, validation result, proof freshness, catalog fingerprint match, structured refresh-safety depth aggregate proof with explicit review-row kind coverage, metadata-only contract, provider execution lock, and reload-safe metadata-only proof as separate review rows.",
-            completionPercent: 72,
+            description: "Show refresh run state, six-surface order, validation result, proof freshness, catalog fingerprint match, structured refreshSafetyDepthProof aggregate proof with explicit review-row kind coverage, metadata-only contract, provider execution lock, and reload-safe metadata-only proof as separate review rows.",
+            completionPercent: 86,
             complexity: "high",
             sourceDocument: "Phase 4 refresh safety depth"
           }
