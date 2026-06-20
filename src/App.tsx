@@ -678,6 +678,7 @@ import {
   buildPhase8PermissionAuditDepth,
   type Phase8PermissionAuditDepthSnapshot
 } from "./phase8PermissionAuditDepth";
+import { buildPhase8PermissionAuditCompletionGate } from "./phase8PermissionAuditCompletionGate";
 import {
   clearPhase8AuditReviewRecord,
   createPhase8AuditReviewRecord,
@@ -15609,6 +15610,13 @@ export function Phase8PermissionAuditDepthPanel({
     snapshot,
     traceability
   });
+  const completionGate = buildPhase8PermissionAuditCompletionGate({
+    snapshot,
+    traceability,
+    blockerPriority,
+    artifactVerification,
+    reviewRecord
+  });
   const handleAuditReviewArtifactImport = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.currentTarget.files?.[0];
@@ -15908,6 +15916,24 @@ export function Phase8PermissionAuditDepthPanel({
               </li>
             )}
           </ol>
+        </div>
+        <div
+          aria-label={completionGate.ariaLabel}
+          className={classNames(
+            "phase8-audit-review-record",
+            `phase8-audit-review-record-${completionGate.state}`
+          )}
+          title={completionGate.detail}
+        >
+          <div>
+            <strong>Phase 8 permission audit completion gate</strong>
+            <span>
+              {completionGate.statusLabel} / phase{" "}
+              {completionGate.phaseComplete ? "complete" : "held"}
+            </span>
+            <small>{completionGate.nextAction}</small>
+            <small>{completionGate.completionGateProof}</small>
+          </div>
         </div>
         <ol className="phase8-audit-items" aria-label="Phase 8 missing requirement explanations">
           {visibleItems.map((item) => (

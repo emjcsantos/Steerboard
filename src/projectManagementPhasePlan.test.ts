@@ -94,18 +94,26 @@ describe("project management phase plan", () => {
     const byId = new Map(tasks.map((task) => [task.id, task]));
     const auditParent = byId.get("phase-08-parent-audit-log");
     const auditPersistenceChild = byId.get("phase-08-child-audit-persistence");
+    const completionGateChild = byId.get("phase-08-child-completion-gate");
 
-    expect(auditParent?.completionPercent).toBe(65);
+    expect(auditParent?.completionPercent).toBe(68);
     expect(auditPersistenceChild?.completionPercent).toBe(65);
+    expect(completionGateChild?.completionPercent).toBe(68);
     expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
       auditPersistenceChild?.completionPercent ?? 0
     );
+    expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
+      completionGateChild?.completionPercent ?? 0
+    );
     expect(auditParent?.description).toContain("auditPersistenceProof");
+    expect(auditParent?.description).toContain("phase8PermissionAuditCompletionGate");
     expect(auditParent?.description).toContain("state/readiness/record/open-exception counts");
     expect(auditPersistenceChild?.description).toContain("auditPersistenceProof");
     expect(auditPersistenceChild?.description).toContain(
       "state/readiness/record/open-exception counts"
     );
+    expect(completionGateChild?.description).toContain("phase8PermissionAuditCompletionGate");
+    expect(completionGateChild?.description).toContain("mutation paths locked");
   });
 
   it("keeps Phase 8 risk gate progress aligned with permission and blocker proof", () => {
