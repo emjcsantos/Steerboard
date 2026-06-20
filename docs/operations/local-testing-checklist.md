@@ -24,9 +24,9 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm reconnect/restart behavior does not lose panel scope or pending action context.
    - Run live smoke, control smoke, active-turn interrupt smoke, active-turn steer smoke, and two-panel smoke from the connection dialog when desktop runtime access is available.
    - Confirm the Owner Testing Phase 1/2/6 priority card shows one-panel proof, two-panel isolation, and PM phase-board staging as separate evidence rows.
-   - Confirm the Owner Testing Phase 1/2/6 publish-hold traceability rows link `goal-phase-1-2-6-publish`, Phase 1 live proof, Phase 2 isolation proof, Phase 6 PM staging, required PM child rows, and the owner/remote push hold without running smoke, Git, push, release, or packaging actions.
+   - Confirm the Owner Testing Phase 1/2/6 publish-hold traceability and closeout rows link `goal-phase-1-2-6-publish`, Phase 1 live proof, Phase 2 isolation proof, Phase 6 PM staging, required PM child rows, `phase126PublishHoldCloseoutStatusProof`, and the owner/remote push hold without running smoke, Git, push, release, or packaging actions.
    - Confirm the same publish-hold traceability panel shows trusted required PM links by Epic, Parent, and Child count, plus the priority proof count and compact local-hold evidence key for phases, PM links, priority proofs, hold status, and trust verdict.
-   - Confirm the Owner Testing Phase 1/2/6 blocker-priority queue ranks the owner/remote push hold above ordinary proof review when local proof is already ready and keeps publish-goal or PM-link traceability repairs out of owner-review actions.
+   - Confirm the Owner Testing Phase 1/2/6 blocker-priority queue ranks the owner/remote push hold above ordinary proof review when local proof is already ready, keeps `phase126PublishHoldCloseoutStatusProof` visible, and keeps publish-goal or PM-link traceability repairs out of owner-review actions.
    - Use the Owner Testing Phase 1 and Phase 2 smoke buttons to rerun live-panel and two-panel proof only after explicitly choosing the action.
    - Confirm incomplete Phase 1 desktop smoke proof names the exact missing stream/completion signals such as desktop smoke result, thread id, turn id, agent delta, turn completion, or expected token.
    - Confirm Phase 1 live proof detail shows compact `signalProof`, `methodCount`, `uniqueMethods`, and sorted `methods` evidence before treating stream evidence as ready.
@@ -148,7 +148,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm the Project Management board contains Phase 0 through Phase 11 as Epics, exposes compact phase-map proof with staged Epic/Parent/Child review coverage, and that representative Epic, Parent, and Child rows each stage an Arena review package through `Run` with compact `runContextProof` for selected task, descendants, parent/epic context, completion, source, risk, and staged-review mode.
    - Confirm stale saved Project Management rows are refreshed from the canonical Phase 0 through Phase 11 plan while saved-state proof counts show current-plan row coverage, zero duplicate current-plan rows, preserved collapsed or staged UI state, and trust verdict.
    - Confirm duplicate saved current-plan rows are pruned during Project Management upgrade while duplicate custom owner rows remain available with stable suffixed IDs.
-   - Confirm Phase 6 includes publish-hold traceability and blocker-priority child rows linked to the Phase 1/2/6 publish-hold goal.
+   - Confirm Phase 6 includes publish-hold traceability, blocker-priority, and closeout-status child rows linked to the Phase 1/2/6 publish-hold goal and `phase126PublishHoldCloseoutStatusProof`.
 10. `Dispatch`
     - Dispatch a staged pipeline item through the standard lane.
     - Confirm role-panel plan generation, route details, and log records are consistent.

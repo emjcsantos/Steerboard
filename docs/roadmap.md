@@ -4,7 +4,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 ## Current Pipeline
 
-The current implementation target is Phase 9 desktop-backed runner approval, using the fixed `terminal-readonly-probe` only after visible desktop-probe gate status, Phase 9 request, completion, closeout, traceability, blocker-priority, and Phase 8 dependency gates are ready. Phase 1, Phase 2, and Phase 6 are held locally behind the owner/remote publish hold until the Steerboard public remote is restored and the owner explicitly approves pushing. The Project Management board, Remaining Goals summary, Owner Testing surfaces, and release-readiness gates all use the current Phase 0-11 plan below.
+The current implementation target is Phase 9 desktop-backed runner approval, using the fixed `terminal-readonly-probe` only after visible desktop-probe gate status, Phase 9 request, completion, closeout, traceability, blocker-priority, and Phase 8 dependency gates are ready. Phase 1, Phase 2, and Phase 6 are held locally behind the owner/remote publish hold with `phase126PublishHoldCloseoutStatusProof` until the Steerboard public remote is restored and the owner explicitly approves pushing. The Project Management board, Remaining Goals summary, Owner Testing surfaces, and release-readiness gates all use the current Phase 0-11 plan below.
 
 The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md). The Project Management lane details are maintained in [Project Management Lane](product/project-management-lane.md).
 
@@ -74,7 +74,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 - Dense Jira-like hierarchy for task, description, status, completion, complexity, source, and action review.
 - Row-level staged Arena review packages for Epics, Parents, and Children, including hierarchy context and descendant tasks.
 - Remaining-goal links from each priority target to the PM rows needed to stage Arena review packages.
-- Phase 1/2/6 publish-hold traceability and blocker-priority rows, including the required Phase 6 publish-hold traceability and blocker-priority child rows, that keep the owner/remote publish hold ranked above proof review.
+- Phase 1/2/6 publish-hold traceability, blocker-priority, and closeout-status rows, including the required Phase 6 publish-hold traceability, blocker-priority, and closeout child rows plus `phase126PublishHoldCloseoutStatusProof`, that keep the owner/remote publish hold ranked above proof review.
 - Execution remains locked: PM staging is local review only and does not launch workers, push branches, publish artifacts, or mutate external state.
 
 ## Phase 7: Orchestrator-Worker Dispatch
