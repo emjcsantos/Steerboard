@@ -267,7 +267,7 @@ describe("phase 11 owner release blocker priority", () => {
     expect(result.topPriorityLabel).toBe("No open Phase 11 owner release blocker");
   });
 
-  it("surfaces missing current Phase 3 traceability from the real traceability summary", () => {
+  it("surfaces missing completed Phase 3 traceability from the real traceability summary", () => {
     const ownerCommandCenter = ownerSnapshot({
       priorityGoalTraceCount: 0,
       priorityGoalTraces: []
@@ -283,7 +283,7 @@ describe("phase 11 owner release blocker priority", () => {
 
     expect(result.state).toBe("review");
     expect(result.openBlockerCount).toBe(1);
-    expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
+    expect(result.topPriorityLabel).toBe("Completed Phase 3 trace");
     expect(result.topPriorityAction).toContain("completed Phase 3 clearance PM traceability");
     expect(result.items).toEqual(
       expect.arrayContaining([
@@ -322,7 +322,7 @@ describe("phase 11 owner release blocker priority", () => {
     expect(result.ownerReviewCanAddressTopBlocker).toBe(false);
   });
 
-  it("ranks handoff-proof review as the current Phase 3 trace release blocker", () => {
+  it("ranks handoff-proof review as the completed Phase 3 trace release blocker", () => {
     const proofFreshnessDepth = proofSnapshot({
       state: "review",
       statusLabel: "Review",
@@ -354,12 +354,12 @@ describe("phase 11 owner release blocker priority", () => {
 
     expect(result.state).toBe("review");
     expect(result.openBlockerCount).toBe(3);
-    expect(result.topPriorityLabel).toBe("Current Phase 3 trace");
+    expect(result.topPriorityLabel).toBe("Completed Phase 3 trace");
     expect(result.topPriorityAction).toContain("completed Phase 3 clearance PM traceability");
     expect(result.topPriorityAction).toContain("handoff proof");
     expect(result.items[0]).toMatchObject({
       kind: "traceability",
-      label: "Current Phase 3 trace",
+      label: "Completed Phase 3 trace",
       status: "review",
       ownerReviewAddressable: false
     });

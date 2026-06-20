@@ -430,7 +430,7 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
-  it("reviews current Phase 3 trace when proof export is not ready", () => {
+  it("reviews completed Phase 3 trace when proof export is not ready", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
@@ -484,7 +484,7 @@ describe("phase 11 owner release traceability", () => {
     expect(phase3Trace?.detail).toContain(PHASE3_PROOF_EXPORT_EVIDENCE_KEY);
   });
 
-  it("reviews current Phase 3 trace when handoff is ready but proof freshness is not trusted", () => {
+  it("reviews completed Phase 3 trace when handoff is ready but proof freshness is not trusted", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>
@@ -713,7 +713,7 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
-  it("reviews when the current Phase 3 trace misses clearance child PM rows", () => {
+  it("reviews when the completed Phase 3 trace misses clearance child PM rows", () => {
     const result = trace({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>

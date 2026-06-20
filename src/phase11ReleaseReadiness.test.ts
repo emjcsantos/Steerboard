@@ -578,7 +578,7 @@ describe("phase 11 release readiness", () => {
     );
   });
 
-  it("reviews release readiness when the current Phase 3 trace misses clearance child PM rows", () => {
+  it("reviews release readiness when the completed Phase 3 trace misses clearance child PM rows", () => {
     const result = snapshot({
       ownerCommandCenter: ownerSnapshot({
         priorityGoalTraces: buildRemainingGoalPriorityTraces().map((trace) =>

@@ -421,12 +421,12 @@ function phase3TraceItem(
 
   return {
     id: `${TRACE_ID}:phase3-trace`,
-    label: "Current Phase 3 trace",
+    label: "Completed Phase 3 trace",
     kind: "phase3-trace",
     status,
     detail: phase3Trace
       ? `${phase3Trace.goalId} is ${phase3Trace.status}, current ${phase3Trace.current ? "yes" : "no"}, with ${phase3Trace.pmTaskIds.length} PM task links including ${REQUIRED_PHASE3_RELEASE_TRACE_PM_ROWS}${incompletePmDetail}; current active goals ${currentActiveGoalIds.length}; proof freshness ${proofFreshnessTrusted ? "trusted" : "not trusted"}; handoff proof ${handoffProofReady ? "ready" : "not ready"}; proof export ${proofExportReady ? "ready" : "not ready"}; proof export detail: ${proofExportDetail}.`
-      : "Current Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
+      : "Completed Phase 3 goal/PM traceability is not visible in Owner Testing priority traces.",
     nextAction:
       status === "ready"
         ? "Keep completed Phase 3 clearance PM traceability plus ready handoff proof and proof-export evidence visible before release readiness is trusted."
