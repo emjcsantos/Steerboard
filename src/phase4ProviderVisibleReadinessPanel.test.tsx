@@ -389,6 +389,9 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("refreshSafety=ready ready=8 preview=0 blocked=0");
     expect(html).toContain("records=8/8 ready=8 preview=0 blocked=0");
     expect(html).toContain(
+      "surfaceStates=command:ready|skill:ready|plugin:ready|mcp:ready|automation:ready|personalization:ready"
+    );
+    expect(html).toContain(
       "recordKinds=run-state|surface-order|validation-result|proof-freshness|catalog-fingerprint|metadata-only-contract|reload-safe-proof|execution-lock"
     );
     expect(html).toContain("refreshSmoke=present reloadSafe=ready");

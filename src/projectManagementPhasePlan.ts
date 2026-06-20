@@ -394,16 +394,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-04-parent-refresh-safety",
         title: "Metadata-Only Refresh Safety",
-        description: "Keep refresh and readiness paths read-only, fresh, structured with all-catalog refresh-smoke proof and refresh-safety depth aggregate proof, and matched to current catalog evidence until provider permissions and approval gates are explicit.",
-        completionPercent: 70,
+        description: "Keep refresh and readiness paths read-only, fresh, structured with all-catalog refresh-smoke proof including compact per-surface state proof and refresh-safety depth aggregate proof, and matched to current catalog evidence until provider permissions and approval gates are explicit.",
+        completionPercent: 72,
         complexity: "high",
         sourceDocument: "Provider catalog safety",
         children: [
           {
             id: "phase-04-child-refresh-smoke",
             title: "All-Catalog Refresh Smoke",
-            description: "Refresh and classify catalog status with checkedAt, all-six-surface execution count, explicit six-surface order proof, catalog fingerprint, metadata-only contract, reload-safe proof, and execution-lock proof without running commands, tools, automations, or mutations.",
-            completionPercent: 70,
+            description: "Refresh and classify catalog status with checkedAt, all-six-surface execution count, explicit six-surface order proof, compact per-surface state proof, catalog fingerprint, metadata-only contract, reload-safe proof, and execution-lock proof without running commands, tools, automations, or mutations.",
+            completionPercent: 72,
             sourceDocument: "Catalog refresh owner validation"
           },
           {

@@ -109,6 +109,9 @@ describe("phase 4 refresh safety depth", () => {
     expect(depth.refreshSmokeProof).toContain(
       "surfaceOrder=command|skill|plugin|mcp|automation|personalization"
     );
+    expect(depth.refreshSmokeProof).toContain(
+      "surfaceStates=command:preview|skill:preview|plugin:preview|mcp:preview|automation:preview|personalization:preview"
+    );
     expect(depth.refreshSmokeProof).toContain("reloadSafe=preview");
     expect(depth.refreshSmokeProof).toContain("metadataOnly=locked execution=locked");
     expect(depth.refreshSafetyDepthProof).toContain("records=8/8");
@@ -170,6 +173,9 @@ describe("phase 4 refresh safety depth", () => {
     );
     expect(depth.refreshSmokeProof).toContain(
       "surfaceOrder=command|skill|plugin|mcp|automation|personalization"
+    );
+    expect(depth.refreshSmokeProof).toContain(
+      "surfaceStates=command:ready|skill:ready|plugin:ready|mcp:ready|automation:ready|personalization:ready"
     );
     expect(depth.refreshSmokeProof).toContain("reloadSafe=ready");
     expect(depth.refreshSmokeProof).toContain("metadataOnly=locked execution=locked");

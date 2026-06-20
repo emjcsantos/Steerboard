@@ -72,6 +72,7 @@ const requiredRefreshSmokeProofTerms = [
   "catalog=",
   "expectedCatalog=",
   "surfaceOrder=command|skill|plugin|mcp|automation|personalization",
+  "surfaceStates=command:ready|skill:ready|plugin:ready|mcp:ready|automation:ready|personalization:ready",
   "reloadSafe=ready",
   "metadataOnly=locked",
   "execution=locked"

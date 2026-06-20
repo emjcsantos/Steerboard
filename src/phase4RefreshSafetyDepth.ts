@@ -326,11 +326,15 @@ function refreshSmokeProof(
   const expectedFingerprint = options.expectedCatalogFingerprint ?? fingerprint;
   const reloadSafe = records.find((record) => record.kind === "reload-safe-proof")?.status ?? "missing";
   const surfaceOrder = smoke.surfaces.map((surface) => surface.surface).join("|");
+  const surfaceStates = smoke.surfaces
+    .map((surface) => `${surface.surface}:${surface.state}`)
+    .join("|");
 
   return (
     `surfaces=${surfaceCount}/6 executed=${executedCount}/6 ready=${readyCount} ` +
     `preview=${previewCount} blocked=${blockedCount} checkedAt=${smoke.checkedAt ?? "missing"} ` +
     `catalog=${fingerprint} expectedCatalog=${expectedFingerprint} surfaceOrder=${surfaceOrder} ` +
+    `surfaceStates=${surfaceStates} ` +
     `reloadSafe=${reloadSafe} ` +
     `metadataOnly=${metadataOnly} execution=locked`
   );

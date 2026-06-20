@@ -12,7 +12,9 @@ const refreshSafetyRecordKinds =
 const refreshSmokeProof =
   `surfaces=6/6 executed=6/6 ready=6 preview=0 blocked=0 checkedAt=${createdAt} ` +
   `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
-  `surfaceOrder=${surfaceOrderProof} reloadSafe=ready ` +
+  `surfaceOrder=${surfaceOrderProof} ` +
+  "surfaceStates=command:ready|skill:ready|plugin:ready|mcp:ready|automation:ready|personalization:ready " +
+  "reloadSafe=ready " +
   "metadataOnly=locked execution=locked";
 const refreshSafetyDepthProof =
   `records=8/8 ready=8 preview=0 blocked=0 recordKinds=${refreshSafetyRecordKinds} ` +
