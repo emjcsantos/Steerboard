@@ -159,4 +159,32 @@ describe("project management phase plan", () => {
     expect(freshCheckoutChild?.description).toContain("owner checkout source");
     expect(freshCheckoutChild?.description).toContain("held release-gate actions");
   });
+
+  it("keeps Phase 5 migration review rows aligned with review-depth proof", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const draftParent = byId.get("phase-05-parent-draft-workflow");
+    const rollbackAuditParent = byId.get("phase-05-parent-rollback-audit");
+    const previewMetadataChild = byId.get("phase-05-child-preview-metadata");
+    const auditSummaryChild = byId.get("phase-05-child-audit-summary");
+    const reviewDepthChild = byId.get("phase-05-child-review-depth");
+    const traceabilityChild = byId.get("phase-05-child-traceability");
+
+    expect(draftParent?.completionPercent).toBeGreaterThanOrEqual(
+      previewMetadataChild?.completionPercent ?? 0
+    );
+    expect(rollbackAuditParent?.completionPercent).toBeGreaterThanOrEqual(
+      auditSummaryChild?.completionPercent ?? 0
+    );
+    expect(rollbackAuditParent?.completionPercent).toBeGreaterThanOrEqual(
+      reviewDepthChild?.completionPercent ?? 0
+    );
+    expect(previewMetadataChild?.completionPercent).toBeGreaterThanOrEqual(
+      traceabilityChild?.completionPercent ?? 0
+    );
+    expect(auditSummaryChild?.description).toContain("draft/audit fingerprint match");
+    expect(previewMetadataChild?.description).toContain("sensitive-exclusion evidence keys");
+    expect(reviewDepthChild?.description).toContain("six separate owner-review records");
+    expect(reviewDepthChild?.description).toContain("unique evidence keys");
+  });
 });

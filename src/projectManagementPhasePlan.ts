@@ -444,8 +444,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-05-child-preview-metadata",
             title: "Metadata Preview",
-            description: "Show migration impact and review-gate previews without copying private content or executing external actions.",
-            completionPercent: 58,
+            description: "Show migration impact, selected metadata category counts, review-gate previews, sensitive-exclusion evidence keys, unsupported category visibility, and no-private-content/no-external-action boundaries.",
+            completionPercent: 62,
             sourceDocument: "Migration Center"
           }
         ]
@@ -461,15 +461,15 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-05-child-audit-summary",
             title: "Audit Summary Review",
-            description: "Surface who, what, when, risk level, evidence fingerprint, apply-intent lock, and rollback path for every migration draft.",
-            completionPercent: 60,
+            description: "Surface who, what, when, risk level, draft/audit fingerprint match, selected/review-required/unsupported category counts, apply-intent lock, and rollback path for every migration draft.",
+            completionPercent: 62,
             sourceDocument: "Migration audit summary"
           },
           {
             id: "phase-05-child-review-depth",
             title: "Migration Review Depth",
-            description: "Show apply-intent lock, local apply-review-staged audit proof, rollback evidence, fingerprint-matched audit consistency, sensitive exclusions, and profile activation lock as separate owner-review records.",
-            completionPercent: 60,
+            description: "Show apply-intent lock, local apply-review-staged audit proof, rollback evidence, fingerprint-matched audit consistency, sensitive exclusions, and profile activation lock as six separate owner-review records with unique evidence keys.",
+            completionPercent: 62,
             complexity: "high",
             sourceDocument: "Migration review gate"
           },

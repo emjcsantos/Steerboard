@@ -431,6 +431,12 @@ describe("remaining goal plan", () => {
     const previewMetadataChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-05-child-preview-metadata"
     );
+    const auditSummaryChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-05-child-audit-summary"
+    );
+    const reviewDepthChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-05-child-review-depth"
+    );
 
     expect(phase5Goal).toMatchObject({
       target: "Migration Center hardening",
@@ -439,7 +445,13 @@ describe("remaining goal plan", () => {
       completionPercent: 65
     });
     expect(phase5Epic?.completionPercent).toBe(64);
-    expect(previewMetadataChild?.completionPercent).toBe(58);
+    expect(previewMetadataChild?.completionPercent).toBe(62);
+    expect(previewMetadataChild?.description).toContain("sensitive-exclusion evidence keys");
+    expect(auditSummaryChild?.completionPercent).toBe(62);
+    expect(auditSummaryChild?.description).toContain("draft/audit fingerprint match");
+    expect(reviewDepthChild?.completionPercent).toBe(62);
+    expect(reviewDepthChild?.description).toContain("six separate owner-review records");
+    expect(reviewDepthChild?.description).toContain("unique evidence keys");
     expect(rollbackAuditParent?.completionPercent).toBe(62);
     expect(phase5Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
