@@ -273,6 +273,10 @@ import {
   type Phase7DispatchOwnerHandoffReport
 } from "./phase7DispatchOwnerHandoffReport";
 import {
+  buildPhase7DispatchCompletionGate,
+  type Phase7DispatchCompletionGate
+} from "./phase7DispatchCompletionGate";
+import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
 } from "./pipelineItemRunLink";
@@ -7185,6 +7189,7 @@ export function DispatchReviewRecordCard({
     record,
     closeout: dispatchCloseoutProof
   });
+  const dispatchCompletionGate = buildPhase7DispatchCompletionGate(ownerHandoffReport);
 
   return (
     <article
@@ -7373,8 +7378,53 @@ export function DispatchReviewRecordCard({
       <DispatchClosureGateSummary gate={dispatchClosureGate} />
       <DispatchCloseoutProofSummary closeout={dispatchCloseoutProof} />
       <DispatchOwnerHandoffReportSummary report={ownerHandoffReport} />
+      <DispatchCompletionGateSummary gate={dispatchCompletionGate} />
       <small>{record.noRuntimeExecutionNote}</small>
     </article>
+  );
+}
+
+function DispatchCompletionGateSummary({
+  gate
+}: {
+  gate: Phase7DispatchCompletionGate;
+}) {
+  return (
+    <div
+      aria-label={`Phase 7 dispatch completion gate: ${gate.statusLabel}; phase complete ${gate.phaseComplete ? "yes" : "no"}; can spawn ${gate.canSpawnLiveWorker ? "yes" : "no"}; next action: ${gate.nextAction}`}
+      className={classNames(
+        "dispatch-completion-gate",
+        `dispatch-completion-gate-${gate.state}`
+      )}
+      title={gate.detail}
+    >
+      <div className="dispatch-completion-gate-header">
+        <strong>Dispatch completion gate</strong>
+        <span>{gate.statusLabel}</span>
+        <b>{gate.readiness}%</b>
+      </div>
+      <dl className="dispatch-completion-gate-grid" aria-label="Phase 7 dispatch completion gate counts">
+        <div>
+          <dt>Phase</dt>
+          <dd>{gate.phaseComplete ? "Complete" : "Open"}</dd>
+        </div>
+        <div>
+          <dt>Spawn</dt>
+          <dd>{gate.canSpawnLiveWorker ? "Yes" : "No"}</dd>
+        </div>
+        <div>
+          <dt>Owner</dt>
+          <dd>{gate.ownerHandoffState}</dd>
+        </div>
+        <div>
+          <dt>Push</dt>
+          <dd>{gate.pushApprovalRequired ? "Required" : "Recorded"}</dd>
+        </div>
+      </dl>
+      <p>{gate.detail}</p>
+      <small>{gate.nextAction}</small>
+      <small>{gate.completionGateProof}</small>
+    </div>
   );
 }
 

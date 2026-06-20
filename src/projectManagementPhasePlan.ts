@@ -566,38 +566,38 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-07-dispatch-loop",
     title: "Phase 7: Orchestrator-Worker Dispatch",
-    description: "Move from local dispatch previews to saved, reviewable orchestrator-worker handoff records with explicit dispatch review, handoff packet integrity, evidence freshness, offline dispatch-review artifact verification, owner-visible live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, main integration ownership depth, dispatchTraceabilityProof, and dispatchBlockerPriorityProof.",
-    completionPercent: 94,
+    description: "Move from local dispatch previews to saved, reviewable orchestrator-worker handoff records with explicit dispatch review, handoff packet integrity, evidence freshness, offline dispatch-review artifact verification, owner-visible live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, main integration ownership depth, dispatchTraceabilityProof, and dispatchBlockerPriorityProof.",
+    completionPercent: 100,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-07-parent-role-panels",
         title: "Role-Panel Dispatch Plan",
-        description: "Define and record orchestrator, implementer, validator, and integration roles with clear attempt limits, role coverage counts, handoff packet integrity, offline artifact verification, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, integrationOwnershipProof, PM coverage, traceability links, closure boundary, and live-worker execution locks.",
-        completionPercent: 94,
+        description: "Define and record orchestrator, implementer, validator, and integration roles with clear attempt limits, role coverage counts, handoff packet integrity, offline artifact verification, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, integrationOwnershipProof, PM coverage, traceability links, closure boundary, and live-worker execution locks.",
+        completionPercent: 100,
         complexity: "high",
         sourceDocument: "Dispatch role-panel plan",
         children: [
           {
             id: "phase-07-child-worker-preview",
             title: "Worker Preview Cards",
-            description: "Show worker objective, files owned, validation plan, retry limit, role coverage counts, per-role handoff packet integrity, handoff expectation, validation gate depth, dispatchReviewDepthProof, offline artifact verification, launch-gate canSpawn=no proof, closure-gate canClose metadata proof, closeoutProof state, ownerHandoffProof, PM coverage, and local no-runtime boundary before launch.",
-            completionPercent: 94,
+            description: "Show worker objective, files owned, validation plan, retry limit, role coverage counts, per-role handoff packet integrity, handoff expectation, validation gate depth, dispatchReviewDepthProof, offline artifact verification, launch-gate canSpawn=no proof, closure-gate canClose metadata proof, closeoutProof state, ownerHandoffProof, phase7DispatchCompletionGate proof, PM coverage, and local no-runtime boundary before launch.",
+            completionPercent: 100,
             sourceDocument: "Dispatch controls"
           },
           {
             id: "phase-07-child-integration-owner",
             title: "Main Integration Ownership",
-            description: "Keep final integration, validation, commit, push approval, reporting, dispatch-review traceability, five-link traceability coverage, closure boundary, artifact verification, launch-gate approval-required proof, closure-gate no-spawn proof, aggregate closeout proof, owner handoff report proof, and integrationOwnershipProof owned by the main Arena path.",
-            completionPercent: 94,
+            description: "Keep final integration, validation, commit, push approval, reporting, dispatch-review traceability, five-link traceability coverage, closure boundary, artifact verification, launch-gate approval-required proof, closure-gate no-spawn proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, and integrationOwnershipProof owned by the main Arena path.",
+            completionPercent: 100,
             sourceDocument: "Dispatch safety rules"
           },
           {
             id: "phase-07-child-integration-ownership-depth",
             title: "Integration Ownership Depth",
-            description: "Show integration owner, final validation owner, commit/push/reporting owner, pushApproval=required state, five traceability links, closure boundary, open-depth counts, integrationOwnershipProof, artifact verification, launch-gate lock ownership, closure-gate readiness, aggregate closeout readiness, owner handoff readiness, and live-worker lock ownership as separate review rows.",
-            completionPercent: 94,
+            description: "Show integration owner, final validation owner, commit/push/reporting owner, pushApproval=required state, five traceability links, closure boundary, open-depth counts, integrationOwnershipProof, artifact verification, launch-gate lock ownership, closure-gate readiness, aggregate closeout readiness, owner handoff readiness, completion-gate readiness, and live-worker lock ownership as separate review rows.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 7 integration ownership depth"
           }
@@ -606,40 +606,40 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-07-parent-observed-loop",
         title: "Observed Dispatch-to-Handoff Loop",
-        description: "Record role-panel plan, attempts, validation gates, handoff tasks, four per-role handoff packets, packet integrity, evidence freshness, closure, final merge review, dispatchReviewDepthProof, artifact verification, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, and live-worker lock proof in one trace.",
-        completionPercent: 94,
+        description: "Record role-panel plan, attempts, validation gates, handoff tasks, four per-role handoff packets, packet integrity, evidence freshness, closure, final merge review, dispatchReviewDepthProof, artifact verification, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, and live-worker lock proof in one trace.",
+        completionPercent: 100,
         complexity: "extra_high",
         sourceDocument: "Orchestrator-worker dispatch",
         children: [
           {
             id: "phase-07-child-handoff-trace",
             title: "Handoff Trace",
-            description: "Show what each worker is expected to own, validate, retry, depend on, and hand back with handoff task counts, four per-role packet ownership, dependency order, validation labels, dispatchReviewDepthProof, offline artifact verification, launch-gate proof, closure-gate proof, closeoutProof state, ownerHandoffProof, and local no-runtime boundaries without polluting the main context.",
-            completionPercent: 94,
+            description: "Show what each worker is expected to own, validate, retry, depend on, and hand back with handoff task counts, four per-role packet ownership, dependency order, validation labels, dispatchReviewDepthProof, offline artifact verification, launch-gate proof, closure-gate proof, closeoutProof state, ownerHandoffProof, phase7DispatchCompletionGate proof, and local no-runtime boundaries without polluting the main context.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Worker handoff"
           },
           {
             id: "phase-07-child-review-depth",
             title: "Dispatch Review Depth",
-            description: "Audit visible role counts, max attempt limits, handoff task depth, per-role handoff packet integrity, current evidence fingerprint freshness, validation gate depth, dispatchReviewDepthProof, offline dispatch-review artifact verification, live-worker launch-gate proof, closure-gate proof, closeoutProof state, ownerHandoffProof, and the no-live-worker execution lock for staged PM Run outputs.",
-            completionPercent: 94,
+            description: "Audit visible role counts, max attempt limits, handoff task depth, per-role handoff packet integrity, current evidence fingerprint freshness, validation gate depth, dispatchReviewDepthProof, offline dispatch-review artifact verification, live-worker launch-gate proof, closure-gate proof, closeoutProof state, ownerHandoffProof, phase7DispatchCompletionGate proof, and the no-live-worker execution lock for staged PM Run outputs.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Dispatch review records"
           },
           {
             id: "phase-07-child-traceability",
             title: "Dispatch Traceability",
-            description: "Link Phase 7 remaining-goal status, PM child rows, dispatch review depth, evidence freshness, offline artifact verification, integration ownership depth, launch-gate canSpawn=no proof, closure-gate canClose metadata proof, aggregate closeout proof, owner handoff report proof, PM coverage, five-link traceability, closure boundary, live-worker locks, and dispatchTraceabilityProof before any worker spawning can be trusted.",
-            completionPercent: 94,
+            description: "Link Phase 7 remaining-goal status, PM child rows, dispatch review depth, evidence freshness, offline artifact verification, integration ownership depth, launch-gate canSpawn=no proof, closure-gate canClose metadata proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, PM coverage, five-link traceability, closure boundary, live-worker locks, and dispatchTraceabilityProof before any worker spawning can be trusted.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 7 dispatch traceability"
           },
           {
             id: "phase-07-child-blocker-priority",
             title: "Dispatch Blocker Priority",
-            description: "Rank exact Phase 7 blockers across role coverage, attempt limits, handoff tasks, handoff packet integrity, evidence freshness, validation gates, integration ownership, PM coverage, traceability, artifact verification, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, closure boundaries, and live-worker locks with dispatchBlockerPriorityProof before dispatch can expand, while keeping remaining-goal and PM traceability repairs out of dispatch-review actions.",
-            completionPercent: 94,
+            description: "Rank exact Phase 7 blockers across role coverage, attempt limits, handoff tasks, handoff packet integrity, evidence freshness, validation gates, integration ownership, PM coverage, traceability, artifact verification, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, closure boundaries, and live-worker locks with dispatchBlockerPriorityProof before dispatch can expand, while keeping remaining-goal and PM traceability repairs out of dispatch-review actions.",
+            completionPercent: 100,
             complexity: "medium",
             sourceDocument: "Phase 7 dispatch blocker priority"
           }

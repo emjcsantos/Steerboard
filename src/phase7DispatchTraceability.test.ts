@@ -145,14 +145,16 @@ function withNextPhase7Goal() {
 
 function withDuplicateCurrentActivePhase7Goal() {
   return remainingGoalPlan.map((goal) =>
-    goal.id === "goal-phase-5-migration-hardening"
+    goal.id === "goal-phase-7-dispatch-loop"
       ? { ...goal, status: "active" as const, current: true }
-      : goal
+      : goal.id === "goal-phase-5-migration-hardening"
+        ? { ...goal, status: "active" as const, current: true }
+        : goal
   );
 }
 
 describe("phase 7 dispatch traceability", () => {
-  it("keeps Phase 7 dispatch traceability waiting while Phase 7 is only next", () => {
+  it("keeps completed Phase 7 dispatch traceability in review when no active goal is set", () => {
     const { record, run } = buildRecordBundle();
     const summary = traceability({ record, run, goals: withNextPhase7Goal() });
 
@@ -166,7 +168,7 @@ describe("phase 7 dispatch traceability", () => {
       "integration-ownership",
       "live-worker-lock"
     ]);
-    expect(summary.state).toBe("waiting");
+    expect(summary.state).toBe("review");
     expect(summary.canTrustDispatchReview).toBe(false);
     expect(summary.liveWorkerLockCount).toBe(2);
     expect(summary.safety).toContain("evidence-only");
@@ -189,7 +191,7 @@ describe("phase 7 dispatch traceability", () => {
     expect(summary.dispatchTraceabilityProof).toContain("trust=ready");
   });
 
-  it("does not trust dispatch traceability when Phase 7 is current but still next", () => {
+  it("does not trust dispatch traceability when completed Phase 7 has a stale current flag", () => {
     const { record, run } = buildRecordBundle();
     const summary = traceability({
       record,
@@ -197,11 +199,11 @@ describe("phase 7 dispatch traceability", () => {
       goals: withCurrentNextPhase7Goal()
     });
 
-    expect(summary.state).toBe("waiting");
+    expect(summary.state).toBe("review");
     expect(summary.canTrustDispatchReview).toBe(false);
     expect(summary.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: "active-goal", status: "waiting" })
+        expect.objectContaining({ kind: "active-goal", status: "review" })
       ])
     );
   });

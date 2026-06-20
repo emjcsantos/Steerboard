@@ -32,9 +32,9 @@ describe("remaining goal plan", () => {
       planned: 0,
       paused: 0,
       averageCompletionPercent: 81,
-      currentTarget: "Planning and dispatch loop",
+      currentTarget: "Migration Center hardening",
       currentNextAction:
-        "Use dispatch review records as the current active implementation target with review-depth checks, per-role handoff packet integrity, current evidence fingerprint matching, offline dispatch-review artifact verification, owner-visible artifact verification counts, integration ownership rows, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof to audit role counts, attempt limits, handoff tasks, validation dependencies, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, live-worker execution locks, canSpawn=no approval-required status, canClose metadata handoff status, closeoutProof state, and pushApproval=required owner handoff state before any live worker session spawning.",
+        "Use the Migration review gate as the current active implementation target with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, traceability rows, blocker-priority queue, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, and keep profile activation locked before any migration apply path.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -49,7 +49,7 @@ describe("remaining goal plan", () => {
     const traces = buildRemainingGoalPriorityTraces();
 
     expect(traces.map((trace) => trace.goalId).slice(0, 2)).toEqual([
-      "goal-phase-7-dispatch-loop",
+      "goal-phase-5-migration-hardening",
       "goal-phase-1-2-6-publish"
     ]);
     expect(traces).toEqual(
@@ -131,7 +131,7 @@ describe("remaining goal plan", () => {
     const queue = buildRemainingGoalPriorityQueue();
 
     expect(queue.map((goal) => goal.id).slice(0, 4)).toEqual([
-      "goal-phase-7-dispatch-loop",
+      "goal-phase-5-migration-hardening",
       "goal-phase-1-2-6-publish",
       "goal-phase-3-proof-clearance",
       "goal-phase-4-provider-surfaces"
@@ -156,7 +156,7 @@ describe("remaining goal plan", () => {
     const queue = buildRemainingGoalPriorityQueue(staleCurrentNextGoals);
 
     expect(queue.map((goal) => goal.id).slice(0, 3)).toEqual([
-      "goal-phase-7-dispatch-loop",
+      "goal-phase-5-migration-hardening",
       "goal-phase-1-2-6-publish",
       "goal-phase-3-proof-clearance"
     ]);
@@ -180,6 +180,10 @@ describe("remaining goal plan", () => {
       status: "next"
     });
     expect(traces.find((trace) => trace.goalId === "goal-phase-7-dispatch-loop")).toMatchObject({
+      current: false,
+      status: "next"
+    });
+    expect(traces.find((trace) => trace.goalId === "goal-phase-5-migration-hardening")).toMatchObject({
       current: true,
       status: "active"
     });
@@ -290,12 +294,12 @@ describe("remaining goal plan", () => {
   it("separates the blocked owner hold from the active implementation target", () => {
     const summary = summarizeRemainingGoalPlan();
 
-    expect(summary.currentTarget).toBe("Planning and dispatch loop");
+    expect(summary.currentTarget).toBe("Migration Center hardening");
     expect(summary.currentNextAction).toContain("current active implementation target");
     expect(summary.ownerHoldTarget).toBe("Unblock Phase 1/2/6 publishing");
     expect(summary.ownerHoldNextAction).toContain("owner says to push");
     expect(summary.priorityGoalTraces[0]).toMatchObject({
-      goalId: "goal-phase-7-dispatch-loop",
+      goalId: "goal-phase-5-migration-hardening",
       current: true
     });
     expect(summary.priorityGoalTraces[1]).toMatchObject({
@@ -306,13 +310,13 @@ describe("remaining goal plan", () => {
   });
 
   it("identifies only the current active remaining goal as implementation-trustable", () => {
-    const phase7Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-7-dispatch-loop");
+    const phase5Goal = remainingGoalPlan.find((goal) => goal.id === "goal-phase-5-migration-hardening");
 
-    expect(findCurrentActiveRemainingGoals()).toEqual([phase7Goal]);
-    expect(isCurrentActiveRemainingGoal(phase7Goal)).toBe(true);
-    expect(isCurrentActiveRemainingGoal({ ...phase7Goal!, current: false })).toBe(false);
-    expect(isCurrentActiveRemainingGoal({ ...phase7Goal!, status: "next" })).toBe(false);
-    expect(isCurrentActiveRemainingGoal({ ...phase7Goal!, status: "active", current: true })).toBe(true);
+    expect(findCurrentActiveRemainingGoals()).toEqual([phase5Goal]);
+    expect(isCurrentActiveRemainingGoal(phase5Goal)).toBe(true);
+    expect(isCurrentActiveRemainingGoal({ ...phase5Goal!, current: false })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase5Goal!, status: "next" })).toBe(false);
+    expect(isCurrentActiveRemainingGoal({ ...phase5Goal!, status: "active", current: true })).toBe(true);
     expect(isCurrentActiveRemainingGoal(undefined)).toBe(false);
   });
 
@@ -325,10 +329,10 @@ describe("remaining goal plan", () => {
 
     expect(findCurrentActiveRemainingGoals(duplicateCurrentGoals).map((goal) => goal.id)).toEqual([
       "goal-phase-3-proof-clearance",
-      "goal-phase-7-dispatch-loop"
+      "goal-phase-5-migration-hardening"
     ]);
     expect(findRemainingGoalPlanIssues(duplicateCurrentGoals)).toContain(
-      "Remaining goals must have exactly one current active goal; found 2: goal-phase-3-proof-clearance, goal-phase-7-dispatch-loop."
+      "Remaining goals must have exactly one current active goal; found 2: goal-phase-3-proof-clearance, goal-phase-5-migration-hardening."
     );
   });
 
@@ -340,7 +344,7 @@ describe("remaining goal plan", () => {
     );
 
     expect(findCurrentActiveRemainingGoals(staleCurrentGoals).map((goal) => goal.id)).toEqual([
-      "goal-phase-7-dispatch-loop"
+      "goal-phase-5-migration-hardening"
     ]);
     expect(findRemainingGoalPlanIssues(staleCurrentGoals)).toContain(
       "Remaining goal goal-phase-3-proof-clearance is marked current but has status next; current goals must be active."
@@ -359,7 +363,7 @@ describe("remaining goal plan", () => {
     );
     const summary = summarizeRemainingGoalPlan(staleCurrentGoals);
 
-    expect(summary.currentTarget).toBe("Planning and dispatch loop");
+    expect(summary.currentTarget).toBe("Migration Center hardening");
     expect(summary.currentNextAction).toContain("current active implementation target");
   });
 
@@ -466,7 +470,8 @@ describe("remaining goal plan", () => {
     expect(phase5Goal).toMatchObject({
       target: "Migration Center hardening",
       priority: "high",
-      status: "next",
+      status: "active",
+      current: true,
       completionPercent: 72
     });
     expect(phase5Epic?.completionPercent).toBe(72);
@@ -733,9 +738,8 @@ describe("remaining goal plan", () => {
     expect(phase7Goal).toMatchObject({
       target: "Planning and dispatch loop",
       priority: "high",
-      status: "active",
-      current: true,
-      completionPercent: 94
+      status: "next",
+      completionPercent: 100
     });
     expect(phase7Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -749,7 +753,7 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase7Goal?.nextAction).toContain("traceability rows");
-    expect(phase7Goal?.nextAction).toContain("current active implementation target");
+    expect(phase7Goal?.nextAction).toContain("local metadata handoff evidence");
     expect(phase7Goal?.nextAction).toContain("handoff packet integrity");
     expect(phase7Goal?.nextAction).toContain("current evidence fingerprint");
     expect(phase7Goal?.nextAction).toContain("offline dispatch-review artifact verification");
@@ -758,10 +762,7 @@ describe("remaining goal plan", () => {
     expect(phase7Goal?.nextAction).toContain("metadata closure-gate proof");
     expect(phase7Goal?.nextAction).toContain("aggregate closeout proof");
     expect(phase7Goal?.nextAction).toContain("owner handoff report proof");
-    expect(phase7Goal?.nextAction).toContain("canSpawn=no approval-required status");
-    expect(phase7Goal?.nextAction).toContain("canClose metadata handoff status");
-    expect(phase7Goal?.nextAction).toContain("closeoutProof state");
-    expect(phase7Goal?.nextAction).toContain("pushApproval=required owner handoff state");
+    expect(phase7Goal?.nextAction).toContain("phase7DispatchCompletionGate proof");
     expect(phase7Goal?.nextAction).toContain("dispatchReviewDepthProof");
     expect(phase7Goal?.nextAction).toContain("integrationOwnershipProof");
     expect(phase7Goal?.nextAction).toContain("dispatchTraceabilityProof");
@@ -770,7 +771,7 @@ describe("remaining goal plan", () => {
     expect(phase7Goal?.nextAction).toContain("owner-visible Phase 7 dispatch proof");
     for (const rowId of phase7Goal?.pmTaskIds ?? []) {
       const row = createDefaultProjectManagementPhasePlan().find((task) => task.id === rowId);
-      expect(row?.completionPercent, rowId).toBeGreaterThanOrEqual(94);
+      expect(row?.completionPercent, rowId).toBe(100);
     }
   });
 

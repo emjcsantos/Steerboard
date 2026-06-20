@@ -177,9 +177,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phaseIds: ["phase-05-migration-center"],
     goal:
       "Finish preview, apply-intent lock, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, and review-depth records for metadata-only migration work.",
-    status: "next",
+    status: "active",
     priority: "high",
     completionPercent: 72,
+    current: true,
     pmTaskIds: [
       "phase-05-migration-center",
       "phase-05-parent-draft-workflow",
@@ -200,11 +201,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 7"],
     phaseIds: ["phase-07-dispatch-loop"],
     goal:
-      "Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits, dispatch review depth, handoff packet integrity, current evidence freshness, main integration ownership, validation gates, traceability, blocker priority, live-worker locks, owner-visible launch-gate proof, metadata closure-gate proof, aggregate closeout proof, and owner handoff report proof.",
-    status: "active",
+      "Turn staged PM work into orchestrator, implementer, validator, and integration handoff packets with visible attempt limits, dispatch review depth, handoff packet integrity, current evidence freshness, main integration ownership, validation gates, traceability, blocker priority, live-worker locks, owner-visible launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, and completion-gate proof.",
+    status: "next",
     priority: "high",
-    completionPercent: 94,
-    current: true,
+    completionPercent: 100,
     pmTaskIds: [
       "phase-07-dispatch-loop",
       "phase-07-parent-role-panels",
@@ -218,7 +218,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-07-child-blocker-priority"
     ],
     nextAction:
-      "Use dispatch review records as the current active implementation target with review-depth checks, per-role handoff packet integrity, current evidence fingerprint matching, offline dispatch-review artifact verification, owner-visible artifact verification counts, integration ownership rows, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof to audit role counts, attempt limits, handoff tasks, validation dependencies, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, live-worker execution locks, canSpawn=no approval-required status, canClose metadata handoff status, closeoutProof state, and pushApproval=required owner handoff state before any live worker session spawning."
+      "Keep the Phase 7 completion gate, dispatch review records, per-role handoff packet integrity, current evidence fingerprint matching, offline dispatch-review artifact verification, owner-visible artifact verification counts, integration ownership rows, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof attached as local metadata handoff evidence while Phase 5 Migration Center hardening becomes the current active implementation target."
   },
   {
     id: "goal-phase-8-permission-audit",

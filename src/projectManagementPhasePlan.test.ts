@@ -225,26 +225,29 @@ describe("project management phase plan", () => {
     expect(integrationOwnerChild?.completionPercent).toBeGreaterThanOrEqual(
       integrationDepthChild?.completionPercent ?? 0
     );
-    expect(phase7Epic?.completionPercent).toBe(94);
-    expect(rolePanelParent?.completionPercent).toBe(94);
-    expect(workerPreviewChild?.completionPercent).toBe(94);
-    expect(integrationOwnerChild?.completionPercent).toBe(94);
-    expect(integrationDepthChild?.completionPercent).toBe(94);
+    expect(phase7Epic?.completionPercent).toBe(100);
+    expect(rolePanelParent?.completionPercent).toBe(100);
+    expect(workerPreviewChild?.completionPercent).toBe(100);
+    expect(integrationOwnerChild?.completionPercent).toBe(100);
+    expect(integrationDepthChild?.completionPercent).toBe(100);
     expect(phase7Epic?.description).toContain("offline dispatch-review artifact verification");
     expect(phase7Epic?.description).toContain("owner-visible live-worker launch-gate proof");
     expect(phase7Epic?.description).toContain("metadata closure-gate proof");
     expect(phase7Epic?.description).toContain("aggregate closeout proof");
     expect(phase7Epic?.description).toContain("owner handoff report proof");
+    expect(phase7Epic?.description).toContain("phase7DispatchCompletionGate proof");
     expect(workerPreviewChild?.description).toContain("offline artifact verification");
     expect(workerPreviewChild?.description).toContain("launch-gate canSpawn=no proof");
     expect(workerPreviewChild?.description).toContain("closure-gate canClose metadata proof");
     expect(workerPreviewChild?.description).toContain("closeoutProof state");
     expect(workerPreviewChild?.description).toContain("ownerHandoffProof");
+    expect(workerPreviewChild?.description).toContain("phase7DispatchCompletionGate proof");
     expect(integrationDepthChild?.description).toContain("artifact verification");
     expect(integrationDepthChild?.description).toContain("launch-gate lock ownership");
     expect(integrationDepthChild?.description).toContain("closure-gate readiness");
     expect(integrationDepthChild?.description).toContain("aggregate closeout readiness");
     expect(integrationDepthChild?.description).toContain("owner handoff readiness");
+    expect(integrationDepthChild?.description).toContain("completion-gate readiness");
     expect(rolePanelParent?.description).toContain("handoff packet integrity");
     expect(rolePanelParent?.description).toContain("PM coverage");
     expect(rolePanelParent?.description).toContain("integrationOwnershipProof");
@@ -252,6 +255,7 @@ describe("project management phase plan", () => {
     expect(rolePanelParent?.description).toContain("metadata closure-gate proof");
     expect(rolePanelParent?.description).toContain("aggregate closeout proof");
     expect(rolePanelParent?.description).toContain("owner handoff report proof");
+    expect(rolePanelParent?.description).toContain("phase7DispatchCompletionGate proof");
     expect(workerPreviewChild?.description).toContain("validation gate depth");
     expect(workerPreviewChild?.description).toContain("dispatchReviewDepthProof");
     expect(workerPreviewChild?.description).toContain("PM coverage");
@@ -296,6 +300,7 @@ describe("project management phase plan", () => {
     expect(observedLoopParent?.description).toContain("metadata closure-gate proof");
     expect(observedLoopParent?.description).toContain("aggregate closeout proof");
     expect(observedLoopParent?.description).toContain("owner handoff report proof");
+    expect(observedLoopParent?.description).toContain("phase7DispatchCompletionGate proof");
     expect(observedLoopParent?.description).toContain("live-worker lock proof");
     expect(handoffTraceChild?.description).toContain("handoff task counts");
     expect(handoffTraceChild?.description).toContain("four per-role packet ownership");
@@ -305,6 +310,7 @@ describe("project management phase plan", () => {
     expect(handoffTraceChild?.description).toContain("closure-gate proof");
     expect(handoffTraceChild?.description).toContain("closeoutProof state");
     expect(handoffTraceChild?.description).toContain("ownerHandoffProof");
+    expect(handoffTraceChild?.description).toContain("phase7DispatchCompletionGate proof");
     expect(handoffTraceChild?.description).toContain("local no-runtime boundaries");
   });
 

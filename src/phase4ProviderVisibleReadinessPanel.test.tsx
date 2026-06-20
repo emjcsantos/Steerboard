@@ -359,7 +359,7 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("pairOrder=command|skill");
     expect(html).toContain("pairOrder=plugin|mcp");
     expect(html).toContain("Keep Phase 4 provider review held");
-    expect(html).toContain("current active goal is goal-phase-7-dispatch-loop");
+    expect(html).toContain("current active goal is goal-phase-5-migration-hardening");
     expect(html).toContain("owner-visible provider readiness check");
     expect(html).toContain("Export review");
     expect(html).toContain("Import review");

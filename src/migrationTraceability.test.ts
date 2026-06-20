@@ -86,6 +86,8 @@ function withDuplicateCurrentActivePhase5Goal() {
   return remainingGoalPlan.map((goal) =>
     goal.id === "goal-phase-5-migration-hardening"
       ? { ...goal, status: "active" as const, current: true }
+      : goal.id === "goal-phase-3-proof-clearance"
+        ? { ...goal, status: "active" as const, current: true }
       : goal
   );
 }

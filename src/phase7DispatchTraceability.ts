@@ -150,6 +150,15 @@ function phase7Goal(goals: readonly RemainingGoalPlanItem[]): RemainingGoalPlanI
   return goals.find((goal) => goal.id === PHASE7_GOAL_ID);
 }
 
+function isCompletedPhase7Goal(goal: RemainingGoalPlanItem): boolean {
+  return (
+    goal.id === PHASE7_GOAL_ID &&
+    goal.status !== "blocked" &&
+    goal.completionPercent === 100 &&
+    goal.phaseIds.includes(PHASE7_PHASE_ID)
+  );
+}
+
 function activeGoalItem(
   goal: RemainingGoalPlanItem | undefined,
   currentActiveGoalIds: readonly string[]
@@ -178,7 +187,8 @@ function activeGoalItem(
 
   const exactlyOneCurrentActiveGoal = currentActiveGoalIds.length === 1;
   const isTrustedPhase7Goal =
-    isCurrentActiveRemainingGoal(goal) && exactlyOneCurrentActiveGoal;
+    (isCurrentActiveRemainingGoal(goal) || isCompletedPhase7Goal(goal)) &&
+    exactlyOneCurrentActiveGoal;
 
   return {
     id: `${TRACE_ID}:active-goal`,
@@ -189,7 +199,7 @@ function activeGoalItem(
         ? "blocked"
         : isTrustedPhase7Goal
           ? "ready"
-          : goal.status === "active"
+          : goal.status === "active" || isCompletedPhase7Goal(goal)
             ? "review"
             : "waiting",
     detail:
@@ -198,7 +208,7 @@ function activeGoalItem(
     nextAction: exactlyOneCurrentActiveGoal
       ? publicText(
           goal.nextAction,
-          "Make Phase 7 the current active goal before dispatch review can be trusted."
+          "Complete Phase 7 or make it the current active goal before dispatch review can be trusted."
         )
       : `Keep exactly one current active remaining goal before Phase 7 dispatch review can be trusted: ${currentActiveGoalIds.join(", ") || "none"}.`
   };
@@ -365,7 +375,7 @@ export function buildPhase7DispatchTraceability(
     input.ownership.items.filter((item) => item.kind === "closure-boundary" && item.status === "ready").length;
   const canTrustDispatchReview =
     state === "ready" &&
-    isCurrentActiveRemainingGoal(goal) &&
+    Boolean(goal && (isCurrentActiveRemainingGoal(goal) || isCompletedPhase7Goal(goal))) &&
     currentActiveGoalIds.length === 1 &&
     input.depth.state === "ready" &&
     input.ownership.state === "ready" &&

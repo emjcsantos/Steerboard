@@ -182,12 +182,12 @@ describe("phase 7 dispatch blocker priority", () => {
     const { record, run } = buildRecordBundle();
     const summary = priority({ record, run, goals: withNextPhase7Goal() });
 
-    expect(summary.state).toBe("waiting");
+    expect(summary.state).toBe("review");
     expect(summary.openBlockerCount).toBe(1);
     expect(summary.topPriorityLabel).toBe("Remaining goal link");
     expect(summary.items[0]).toMatchObject({
       kind: "traceability",
-      status: "waiting",
+      status: "review",
       canUseDispatchReview: false
     });
     expect(summary.dispatchReviewAddressableCount).toBe(0);
