@@ -32,6 +32,7 @@ export interface Phase4RefreshSafetyDepthSummary {
   readonly readyCount: number;
   readonly previewCount: number;
   readonly blockedCount: number;
+  readonly refreshSmokeProof: string;
   readonly nextAction: string;
   readonly ariaLabel: string;
 }
@@ -309,6 +310,27 @@ function executionLockRecord(): Phase4RefreshSafetyDepthRecord {
   };
 }
 
+function refreshSmokeProof(
+  smoke: CatalogRefreshProviderSmokeResult,
+  options: Phase4RefreshSafetyDepthOptions
+): string {
+  const surfaceCount = smoke.surfaces.length;
+  const executedCount = smoke.surfaces.filter((surface) => surface.executed).length;
+  const readyCount = smoke.surfaces.filter((surface) => surface.state === "ready").length;
+  const blockedCount = smoke.surfaces.filter((surface) => surface.state === "blocked").length;
+  const previewCount = smoke.surfaces.filter((surface) => surface.state === "preview").length;
+  const metadataOnly = smoke.safety.includes("must not execute") ? "locked" : "review";
+  const fingerprint = smoke.catalogFingerprint ?? "missing";
+  const expectedFingerprint = options.expectedCatalogFingerprint ?? fingerprint;
+
+  return (
+    `surfaces=${surfaceCount}/6 executed=${executedCount}/6 ready=${readyCount} ` +
+    `preview=${previewCount} blocked=${blockedCount} checkedAt=${smoke.checkedAt ?? "missing"} ` +
+    `catalog=${fingerprint} expectedCatalog=${expectedFingerprint} ` +
+    `metadataOnly=${metadataOnly} execution=locked`
+  );
+}
+
 function firstNextAction(records: readonly Phase4RefreshSafetyDepthRecord[]): string {
   return (
     records.find((record) => record.status === "blocked")?.nextAction ??
@@ -347,6 +369,7 @@ export function buildPhase4RefreshSafetyDepth(
     readyCount: records.filter((record) => record.status === "ready").length,
     previewCount: records.filter((record) => record.status === "preview").length,
     blockedCount: records.filter((record) => record.status === "blocked").length,
+    refreshSmokeProof: refreshSmokeProof(smoke, options),
     nextAction: firstNextAction(records)
   };
 

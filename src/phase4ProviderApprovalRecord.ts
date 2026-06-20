@@ -105,7 +105,8 @@ function refreshSafetyProof(refreshSafety: Phase4RefreshSafetyDepthSummary): str
 
   return (
     `refreshSafety=${ready ? "ready" : "review"} ` +
-    `ready=${refreshSafety.readyCount} preview=${refreshSafety.previewCount} blocked=${refreshSafety.blockedCount}`
+    `ready=${refreshSafety.readyCount} preview=${refreshSafety.previewCount} ` +
+    `blocked=${refreshSafety.blockedCount} ${refreshSafety.refreshSmokeProof}`
   );
 }
 

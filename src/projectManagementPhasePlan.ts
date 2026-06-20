@@ -297,8 +297,8 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
-    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured audit-chain proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 82,
+    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured all-catalog refresh-smoke proof, structured audit-chain proof, and current six-surface fingerprint checks after Phase 3 clears.",
+    completionPercent: 83,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -394,16 +394,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-04-parent-refresh-safety",
         title: "Metadata-Only Refresh Safety",
-        description: "Keep refresh and readiness paths read-only, fresh, and matched to current catalog evidence until provider permissions and approval gates are explicit.",
-        completionPercent: 66,
+        description: "Keep refresh and readiness paths read-only, fresh, structured with all-catalog refresh-smoke proof, and matched to current catalog evidence until provider permissions and approval gates are explicit.",
+        completionPercent: 68,
         complexity: "high",
         sourceDocument: "Provider catalog safety",
         children: [
           {
             id: "phase-04-child-refresh-smoke",
             title: "All-Catalog Refresh Smoke",
-            description: "Refresh and classify catalog status with checkedAt and catalog fingerprint proof without running commands, tools, automations, or mutations.",
-            completionPercent: 62,
+            description: "Refresh and classify catalog status with checkedAt, all-six-surface execution count, catalog fingerprint, metadata-only contract, reload-safe proof, and execution-lock proof without running commands, tools, automations, or mutations.",
+            completionPercent: 66,
             sourceDocument: "Catalog refresh owner validation"
           },
           {

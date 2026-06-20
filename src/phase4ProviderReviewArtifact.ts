@@ -113,6 +113,15 @@ const REQUIRED_CATALOG_SCOPED_EXECUTION_PROOF_TERMS: ReadonlyArray<{
     terms: ["skillInvocationProof=", "source=", "trigger=", "invocation=", "execution=locked"]
   }
 ];
+const REQUIRED_REFRESH_SMOKE_PROOF_TERMS = [
+  "surfaces=6/6",
+  "executed=6/6",
+  "checkedAt=",
+  "catalog=",
+  "expectedCatalog=",
+  "metadataOnly=locked",
+  "execution=locked"
+] as const;
 const REQUIRED_SURFACE_OWNER_BOUNDARY_PROOF_TERMS: ReadonlyArray<{
   readonly kind: string;
   readonly terms: readonly string[];
@@ -395,6 +404,33 @@ function findAuditValidationChainProofReview(
   return undefined;
 }
 
+function findRefreshSmokeProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const refreshSmokeProof = artifact.refreshSafety.refreshSmokeProof?.trim();
+
+  if (!refreshSmokeProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing all-catalog refresh smoke proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after the refresh-safety summary includes all-catalog smoke proof."
+    };
+  }
+
+  const missingTerms = REQUIRED_REFRESH_SMOKE_PROOF_TERMS.filter(
+    (term) => !refreshSmokeProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete all-catalog refresh smoke proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Rerun catalog smoke and re-export Phase 4 provider review evidence after the refresh proof includes surface, timestamp, fingerprint, metadata-only, and execution-lock terms."
+    };
+  }
+
+  return undefined;
+}
+
 export function buildPhase4ProviderReviewArtifact(
   input: Phase4ProviderReviewArtifactBuildInput
 ): Phase4ProviderReviewArtifact {
@@ -580,6 +616,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       `Phase 4 provider review artifact is valid but still has ${artifact.blockerPriority.openBlockerCount} open blocker${artifact.blockerPriority.openBlockerCount === 1 ? "" : "s"}.`,
       artifact.blockerPriority.topPriorityAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const refreshSmokeProofReview = findRefreshSmokeProofReview(artifact);
+  if (refreshSmokeProofReview) {
+    return result(
+      "review",
+      artifact,
+      refreshSmokeProofReview.detail,
+      refreshSmokeProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

@@ -105,6 +105,8 @@ describe("phase 4 refresh safety depth", () => {
         })
       ])
     );
+    expect(depth.refreshSmokeProof).toContain("surfaces=6/6 executed=0/6");
+    expect(depth.refreshSmokeProof).toContain("metadataOnly=locked execution=locked");
     expect(depth.nextAction).toContain("explicit owner action");
   });
 
@@ -150,6 +152,12 @@ describe("phase 4 refresh safety depth", () => {
         })
       ])
     );
+    expect(depth.refreshSmokeProof).toContain("surfaces=6/6 executed=6/6");
+    expect(depth.refreshSmokeProof).toContain("checkedAt=2026-06-18T00:00:00.000Z");
+    expect(depth.refreshSmokeProof).toContain(
+      `catalog=${buildCatalogRefreshProviderFingerprint(snapshotPayloads)}`
+    );
+    expect(depth.refreshSmokeProof).toContain("metadataOnly=locked execution=locked");
   });
 
   it("marks catalog smoke proof as preview when the fingerprint no longer matches", () => {

@@ -17,6 +17,8 @@ const readyRefreshSafety: Phase4RefreshSafetyDepthSummary = {
   readyCount: 7,
   previewCount: 0,
   blockedCount: 0,
+  refreshSmokeProof:
+    "surfaces=6/6 executed=6/6 ready=6 preview=0 blocked=0 checkedAt=2026-06-18T00:00:00.000Z catalog=phase4-catalog-current expectedCatalog=phase4-catalog-current metadataOnly=locked execution=locked",
   nextAction: "Keep refresh safety attached.",
   ariaLabel: "Refresh safety ready."
 };
@@ -59,7 +61,9 @@ describe("phase 4 provider approval record", () => {
       state: "ready",
       matchesCurrentCatalog: true,
       refreshSafetyReady: true,
-      refreshSafetyProof: "refreshSafety=ready ready=7 preview=0 blocked=0",
+      refreshSafetyProof: expect.stringContaining(
+        "refreshSafety=ready ready=7 preview=0 blocked=0 surfaces=6/6 executed=6/6"
+      ),
       recordAgeMs: 300_000
     });
   });
@@ -76,7 +80,9 @@ describe("phase 4 provider approval record", () => {
       detail: expect.stringContaining("not attached"),
       matchesCurrentCatalog: false,
       refreshSafetyReady: true,
-      refreshSafetyProof: "refreshSafety=ready ready=7 preview=0 blocked=0"
+      refreshSafetyProof: expect.stringContaining(
+        "refreshSafety=ready ready=7 preview=0 blocked=0 surfaces=6/6 executed=6/6"
+      )
     });
   });
 
@@ -139,7 +145,9 @@ describe("phase 4 provider approval record", () => {
       detail: expect.stringContaining("refresh safety proof"),
       nextAction: "Rerun catalog smoke.",
       refreshSafetyReady: false,
-      refreshSafetyProof: "refreshSafety=review ready=7 preview=1 blocked=0"
+      refreshSafetyProof: expect.stringContaining(
+        "refreshSafety=review ready=7 preview=1 blocked=0 surfaces=6/6 executed=6/6"
+      )
     });
   });
 

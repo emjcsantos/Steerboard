@@ -5586,6 +5586,7 @@ function AppDialogSurface({
                     {catalogRefreshSafetyDepth.readyCount} ready / {catalogRefreshSafetyDepth.previewCount} preview
                   </b>
                 </div>
+                <small>{catalogRefreshSafetyDepth.refreshSmokeProof}</small>
                 <ol className="transport-catalog-safety-list">
                   {catalogRefreshSafetyDepth.records.map((record) => (
                     <li

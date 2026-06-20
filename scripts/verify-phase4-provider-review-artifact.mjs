@@ -33,6 +33,15 @@ const requiredSurfaceOwnerBoundaryProofTerms = [
     terms: ["approval=", "audit=", "rollback=", "surfaceDepth=", "permissionEvidence=", "surfaces=", "mutation=locked", "execution=locked"]
   }
 ];
+const requiredRefreshSmokeProofTerms = [
+  "surfaces=6/6",
+  "executed=6/6",
+  "checkedAt=",
+  "catalog=",
+  "expectedCatalog=",
+  "metadataOnly=locked",
+  "execution=locked"
+];
 const requiredAuditChainProofTerms = [
   "approval=",
   "expectedApproval=",
@@ -216,6 +225,15 @@ function verifyArtifact(artifact) {
   assertReadyRows(refreshRecords, "refreshSafety");
   if (!refreshRecords.some((record) => record.kind === "reload-safe-proof")) {
     throw new Error("refreshSafety is missing reload-safe-proof");
+  }
+  assertNonEmptyString(refreshSafety.refreshSmokeProof, "refreshSafety.refreshSmokeProof");
+  {
+    const missingTerms = requiredRefreshSmokeProofTerms.filter(
+      (term) => !refreshSafety.refreshSmokeProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`refreshSafety refreshSmokeProof is missing ${missingTerms.join(", ")}`);
+    }
   }
 
   const surfaceItems = assertArray(surfaceDepth.items, "surfaceDepth.items");

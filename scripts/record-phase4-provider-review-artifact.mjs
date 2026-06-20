@@ -6,6 +6,10 @@ const source = "steerboard.phase4.provider-review.v1";
 const surfaceNames = ["command", "skill", "plugin", "mcp", "automation", "personalization"];
 const createdAt = new Date().toISOString();
 const currentCatalogFingerprint = `phase4-catalog-recorded-${createdAt.replace(/[:.]/g, "-")}`;
+const refreshSmokeProof =
+  `surfaces=6/6 executed=6/6 ready=6 preview=0 blocked=0 checkedAt=${createdAt} ` +
+  `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
+  "metadataOnly=locked execution=locked";
 const approvalRecordId = `phase4-provider-approval:${createdAt}`;
 const auditRecordId = `phase4-provider-audit:${createdAt}`;
 const rollbackRecordId = `phase4-provider-rollback:${createdAt}`;
@@ -134,7 +138,7 @@ const approvalValidation = {
   maxRecordAgeMs: 24 * 60 * 60 * 1000,
   matchesCurrentCatalog: true,
   refreshSafetyReady: true,
-  refreshSafetyProof: "refreshSafety=ready ready=8 preview=0 blocked=0"
+  refreshSafetyProof: `refreshSafety=ready ready=8 preview=0 blocked=0 ${refreshSmokeProof}`
 };
 const auditRecord = {
   id: auditRecordId,
@@ -289,6 +293,7 @@ const artifact = {
     previewCount: 0,
     blockedCount: 0,
     openProofCount: 0,
+    refreshSmokeProof,
     nextAction: "Keep metadata-only refresh proof attached while provider execution remains locked.",
     safety: "Recorded Phase 4 refresh proof does not run provider actions.",
     ariaLabel: "Phase 4 refresh safety depth: Ready; 100% ready.",
@@ -336,7 +341,7 @@ const artifact = {
         "approval-gate",
         "Approval gate",
         "Provider approval metadata is ready.",
-        `catalog=${currentCatalogFingerprint} recordCatalog=${currentCatalogFingerprint} refreshSafety=ready ready=8 preview=0 blocked=0 catalogMatch=matched execution=locked`
+        `catalog=${currentCatalogFingerprint} recordCatalog=${currentCatalogFingerprint} refreshSafety=ready ready=8 preview=0 blocked=0 ${refreshSmokeProof} catalogMatch=matched execution=locked`
       ),
       surfaceItem(
         "audit-gate",
