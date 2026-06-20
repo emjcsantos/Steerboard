@@ -4,7 +4,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 ## Current Pipeline
 
-The current implementation target is Phase 3 exit-package clearance after local desktop smoke proof passed. Phase 1, Phase 2, and Phase 6 are held locally behind the owner/remote publish hold until the Steerboard public remote is restored and the owner explicitly approves pushing. The Project Management board, Remaining Goals summary, Owner Testing surfaces, and release-readiness gates all use the current Phase 0-11 plan below.
+The current implementation target is Phase 9 desktop-backed runner approval, using the fixed `terminal-readonly-probe` only after the Phase 9 request, completion, closeout, traceability, blocker-priority, and Phase 8 dependency gates are ready. Phase 1, Phase 2, and Phase 6 are held locally behind the owner/remote publish hold until the Steerboard public remote is restored and the owner explicitly approves pushing. The Project Management board, Remaining Goals summary, Owner Testing surfaces, and release-readiness gates all use the current Phase 0-11 plan below.
 
 The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md). The Project Management lane details are maintained in [Project Management Lane](product/project-management-lane.md).
 
@@ -15,13 +15,13 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 | Phase 0: Baseline, Safety, and Docs Hygiene | Completed | Public boundary, repeatable validation, and roadmap/PM documentation hygiene are in place. |
 | Phase 1: One Live Chat Panel | In progress | One-panel live send/stream proof is modeled with persisted proof rows and remains part of the Phase 1/2/6 owner publish hold. |
 | Phase 2: Multi-Panel Session Isolation | In progress | Two-panel session/thread isolation, no-cross-talk proof, and restore-panel behavior are modeled and remain part of the Phase 1/2/6 owner publish hold. |
-| Phase 3: Controls, Slash Commands, and Desktop Proof | In progress | Desktop smoke proof now passes locally; current active implementation target is current-panel slash/session evidence, persisted proof import, blocker priority, traceability, owner handoff, and proof-export gating. |
+| Phase 3: Controls, Slash Commands, and Desktop Proof | In progress | Desktop smoke proof, CLI validation, current-panel slash/session evidence, owner handoff, and proof-export gating are retained as Phase 3 handoff evidence while Phase 9 is active. |
 | Phase 4: Provider Integration Surfaces | Next | Provider catalog depth, surface depth, approval, audit, rollback, permission, traceability, and blocker priority remain metadata-only and execution-locked. |
 | Phase 5: Migration Center | Next | Migration review, apply-intent lock, rollback evidence, sensitive exclusions, traceability, and blocker priority remain metadata-only until review gates pass. |
 | Phase 6: Project and Program Planning Lane | In progress | The Project Management board carries the current Phase 0-11 Epic, Parent, and Child hierarchy, saved-state upgrades, staged Arena review packages, publish-hold traceability, and blocker-priority rows. |
 | Phase 7: Orchestrator-Worker Dispatch | Next | Dispatch review depth, role packet staging, integration ownership, traceability, blocker priority, and live-worker locks remain staged for review. |
 | Phase 8: Permissions and Audit | Next | Permission labels, risk blockers, risk exceptions, audit persistence, traceability, and blocker priority remain prerequisites before mutation paths grow. |
-| Phase 9: Desktop-Backed Runner | Next | The fixed terminal read-only probe remains behind permission, audit, validation, rollback, traceability, runner-review, and owner approval gates. |
+| Phase 9: Desktop-Backed Runner | In progress | The fixed terminal read-only probe is the current active implementation target and remains behind permission, audit, validation, rollback, traceability, runner-review, request-gate, completion-gate, closeout, and owner approval gates. |
 | Phase 10: Adaptive Magnetic Arena | Next | Adaptive layout regression, density, keyboard controls, focus state, Arena terminology, traceability, and blocker priority remain polish work after core proof clears. |
 | Phase 11: Owner Testing and Release Readiness | Next | Owner Testing, evidence records, proof freshness, fresh checkout, release readiness, owner release traceability, blocker priority, and packaging holds remain the final release gate. |
 
