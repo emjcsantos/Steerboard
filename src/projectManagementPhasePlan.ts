@@ -360,8 +360,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-rollback-record",
             title: "Provider Rollback Record",
-            description: "Record and clear local provider rollback review only when the current approval record, current audit record, ready audit validation, structured audit-chain proof, current six-surface catalog fingerprint, current audit evidence fingerprint, current surface-depth rollback evidence fingerprint, owner/action evidence, structured rollback-chain proof, aggregate local record-validation proof, and mutation lock match, without unlocking permission or execution.",
-            completionPercent: 70,
+            description: "Record and clear local provider rollback review only when the current approval record, current audit record, ready audit validation, structured audit-chain proof, current six-surface catalog fingerprint, current audit evidence fingerprint, current surface-depth rollback evidence fingerprint, owner/action evidence, structured rollback-chain proof with compact record-freshness verdict, aggregate local record-validation proof, and mutation lock match, without unlocking permission or execution.",
+            completionPercent: 72,
             complexity: "high",
             sourceDocument: "Phase 4 provider rollback record"
           },

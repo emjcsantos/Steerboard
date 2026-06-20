@@ -113,7 +113,7 @@ describe("phase 4 provider rollback record", () => {
       matchesCurrentSurfaceDepthEvidence: true,
       mutationLocked: true,
       rollbackChainProof: expect.stringContaining(
-        "approvalMatch=matched auditMatch=matched auditEvidenceMatch=matched surfaceMatch=matched owner=present action=present mutation=locked execution=locked"
+        "approvalMatch=matched auditMatch=matched auditEvidenceMatch=matched surfaceMatch=matched recordFreshness=fresh owner=present action=present mutation=locked execution=locked"
       ),
       recordAgeMs: 300_000
     });
@@ -139,7 +139,9 @@ describe("phase 4 provider rollback record", () => {
       matchesCurrentAuditEvidence: false,
       matchesCurrentSurfaceDepthEvidence: false,
       mutationLocked: false,
-      rollbackChainProof: expect.stringContaining("mutation=review execution=locked")
+      rollbackChainProof: expect.stringContaining(
+        "recordFreshness=missing owner=missing action=missing mutation=review execution=locked"
+      )
     });
     expect(validation.rollbackChainProof).toContain("auditValidation=ready auditChain=present");
   });
@@ -215,7 +217,11 @@ describe("phase 4 provider rollback record", () => {
           maxRecordAgeMs: 24 * 60 * 60 * 1000
         }
       })
-    ).toMatchObject({ state: "review", detail: expect.stringContaining("stale") });
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("stale"),
+      rollbackChainProof: expect.stringContaining("recordFreshness=review")
+    });
     expect(
       derivePhase4ProviderRollbackRecordValidation({
         record,

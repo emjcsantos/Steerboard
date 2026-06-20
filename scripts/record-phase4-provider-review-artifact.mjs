@@ -259,7 +259,7 @@ const rollbackValidation = {
     `auditEvidence=${auditEvidenceFingerprint} expectedAuditEvidence=${auditEvidenceFingerprint} ` +
     `surfaceDepth=${surfaceDepthEvidenceFingerprint} expectedSurfaceDepth=${surfaceDepthEvidenceFingerprint} ` +
     "approvalMatch=matched auditMatch=matched auditEvidenceMatch=matched surfaceMatch=matched " +
-    "owner=present action=present mutation=locked execution=locked"
+    "recordFreshness=fresh owner=present action=present mutation=locked execution=locked"
 };
 const permissionRecord = {
   id: permissionRecordId,

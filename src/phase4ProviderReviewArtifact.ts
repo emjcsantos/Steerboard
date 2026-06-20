@@ -302,6 +302,7 @@ const REQUIRED_ROLLBACK_CHAIN_PROOF_TERMS = [
   "auditMatch=",
   "auditEvidenceMatch=",
   "surfaceMatch=",
+  "recordFreshness=fresh",
   "owner=present",
   "action=present",
   "mutation=locked",

@@ -134,6 +134,8 @@ function rollbackChainProof(input: {
   readonly auditValidation: Phase4ProviderAuditRecordValidation;
   readonly expectedCatalogFingerprint?: string;
   readonly expectedSurfaceDepthEvidenceFingerprint?: string;
+  readonly recordAgeMs?: number;
+  readonly maxRecordAgeMs: number;
   readonly matchesCurrentCatalog: boolean;
   readonly matchesCurrentApproval: boolean;
   readonly matchesCurrentAudit: boolean;
@@ -142,6 +144,12 @@ function rollbackChainProof(input: {
 }): string {
   const hasOwner = Boolean(input.record?.rollbackOwner.trim());
   const hasAction = Boolean(input.record?.rollbackAction.trim());
+  const recordFreshness =
+    input.recordAgeMs === undefined
+      ? "missing"
+      : input.recordAgeMs >= 0 && input.recordAgeMs <= input.maxRecordAgeMs
+        ? "fresh"
+        : "review";
 
   return (
     `approval=${valueOrMissing(input.record?.approvalRecordId)} ` +
@@ -160,6 +168,7 @@ function rollbackChainProof(input: {
     `auditMatch=${input.matchesCurrentAudit ? "matched" : "review"} ` +
     `auditEvidenceMatch=${input.matchesCurrentAuditEvidence ? "matched" : "review"} ` +
     `surfaceMatch=${input.matchesCurrentSurfaceDepthEvidence ? "matched" : "review"} ` +
+    `recordFreshness=${recordFreshness} ` +
     `owner=${hasOwner ? "present" : "missing"} action=${hasAction ? "present" : "missing"} ` +
     `mutation=${input.record?.mutationLocked ? "locked" : "review"} execution=locked`
   );
@@ -429,6 +438,7 @@ export function derivePhase4ProviderRollbackRecordValidation(input: {
         auditValidation: input.auditValidation,
         expectedCatalogFingerprint: input.expectedCatalogFingerprint,
         expectedSurfaceDepthEvidenceFingerprint: input.expectedSurfaceDepthEvidenceFingerprint,
+        maxRecordAgeMs,
         matchesCurrentCatalog,
         matchesCurrentApproval,
         matchesCurrentAudit,
@@ -481,6 +491,8 @@ export function derivePhase4ProviderRollbackRecordValidation(input: {
       auditValidation: input.auditValidation,
       expectedCatalogFingerprint: input.expectedCatalogFingerprint,
       expectedSurfaceDepthEvidenceFingerprint: input.expectedSurfaceDepthEvidenceFingerprint,
+      recordAgeMs: ageMs,
+      maxRecordAgeMs,
       matchesCurrentCatalog,
       matchesCurrentApproval,
       matchesCurrentAudit,

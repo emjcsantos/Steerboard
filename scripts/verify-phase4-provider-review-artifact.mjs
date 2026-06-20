@@ -193,6 +193,7 @@ const requiredRollbackChainProofTerms = [
   "auditMatch=",
   "auditEvidenceMatch=",
   "surfaceMatch=",
+  "recordFreshness=fresh",
   "owner=present",
   "action=present",
   "mutation=locked",
