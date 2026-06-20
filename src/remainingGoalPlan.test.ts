@@ -247,7 +247,7 @@ describe("remaining goal plan", () => {
     expect(phase3Goal?.nextAction).toContain("proof-export offline verification");
     expect(phase3Goal?.goal).toContain("phase3ClearanceCompletionStatusProof");
     expect(phase3Goal?.nextAction).toContain("phase3ClearanceCompletionStatusProof");
-    expect(phase3Goal?.nextAction).toContain("Phase 4 provider integration becomes the current active implementation target");
+    expect(phase3Goal?.nextAction).toContain("Phase 4 provider integration remains staged behind the current Phase 9 runner implementation target");
   });
 
   it("keeps the Phase 3 PM traceability child aligned to the current active goal boundary", () => {
@@ -957,6 +957,7 @@ describe("remaining goal plan", () => {
     expect(phase7Goal?.nextAction).toContain("dispatchBlockerPriorityProof");
     expect(phase7Goal?.nextAction).toContain("blocker-priority queue");
     expect(phase7Goal?.nextAction).toContain("owner-visible Phase 7 dispatch proof");
+    expect(phase7Goal?.nextAction).toContain("Phase 9 runner dependency review remains the current active implementation target");
     for (const rowId of phase7Goal?.pmTaskIds ?? []) {
       const row = createDefaultProjectManagementPhasePlan().find((task) => task.id === rowId);
       expect(row?.completionPercent, rowId).toBe(100);

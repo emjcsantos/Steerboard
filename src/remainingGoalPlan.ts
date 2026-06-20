@@ -140,7 +140,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-03-child-control-ready"
     ],
     nextAction:
-      "Keep the Phase 3 command plan, CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, proof-export offline verification, and phase3ClearanceCompletionStatusProof attached as audit evidence while Phase 4 provider integration becomes the current active implementation target."
+      "Keep the Phase 3 command plan, CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, proof-export offline verification, and phase3ClearanceCompletionStatusProof attached as audit evidence while Phase 4 provider integration remains staged behind the current Phase 9 runner implementation target."
   },
   {
     id: "goal-phase-4-provider-surfaces",
@@ -224,7 +224,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-07-child-blocker-priority"
     ],
     nextAction:
-      "Keep the Phase 7 completion gate, dispatch review records, per-role handoff packet integrity, current evidence fingerprint matching, offline dispatch-review artifact verification, owner-visible artifact verification counts, integration ownership rows, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof attached as local metadata handoff evidence while Phase 8 Permission and audit depth is the current active implementation target."
+      "Keep the Phase 7 completion gate, dispatch review records, per-role handoff packet integrity, current evidence fingerprint matching, offline dispatch-review artifact verification, owner-visible artifact verification counts, integration ownership rows, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, phase7DispatchCompletionGate proof, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof attached as local metadata handoff evidence while Phase 9 runner dependency review remains the current active implementation target."
   },
   {
     id: "goal-phase-8-permission-audit",
