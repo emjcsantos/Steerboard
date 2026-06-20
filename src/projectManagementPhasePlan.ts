@@ -714,54 +714,54 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-08-parent-risk-gates",
         title: "Risk Gate Hardening",
-        description: "Require explicit permission state, action risk, approval scope, fallback behavior, risk exceptions, disabled paths, owner review freshness, permissionLabelSummaryProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, and missing-requirement explanations for risky actions.",
-        completionPercent: 76,
+        description: "Require explicit permission state, action risk, approval scope, fallback behavior, risk exceptions, disabled paths, owner review freshness, permissionLabelSummaryProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, phase8CloseoutStatusProof, and missing-requirement explanations for risky actions.",
+        completionPercent: 100,
         complexity: "high",
         sourceDocument: "Permission risk gates",
         children: [
           {
             id: "phase-08-child-permission-labels",
             title: "Permission State Labels",
-            description: "Display unavailable, preview-only, approval-required, ready, waiting, review, and blocked states consistently across surfaces with compact permissionLabelProof provider, label, state, risk, requester evidence, and aggregate permissionLabelSummaryProof total/preview-only/approval-required/blocked/ready label counts.",
-            completionPercent: 65,
+            description: "Display unavailable, preview-only, approval-required, ready, waiting, review, and blocked states consistently across surfaces with compact permissionLabelProof provider, label, state, risk, requester evidence, aggregate permissionLabelSummaryProof total/preview-only/approval-required/blocked/ready label counts, and phase8CloseoutStatusProof.",
+            completionPercent: 100,
             sourceDocument: "Runtime profile permissions"
           },
           {
             id: "phase-08-child-risk-blockers",
             title: "Risk Blocker Explanations",
-            description: "Explain why an action is blocked and what permission, approval, evidence, or rollback requirement is needed to continue, with compact riskBlockerProof row detail, topBlockerProof source/kind/status/severity/audit-review detail, and blockerQueueProof open/kind/status/reviewable counts.",
-            completionPercent: 65,
+            description: "Explain why an action is blocked and what permission, approval, evidence, or rollback requirement is needed to continue, with compact riskBlockerProof row detail, topBlockerProof source/kind/status/severity/audit-review detail, blockerQueueProof open/kind/status/reviewable counts, and phase8CloseoutStatusProof.",
+            completionPercent: 100,
             sourceDocument: "Permission audit"
           },
           {
             id: "phase-08-child-risk-exceptions",
             title: "Risk Exceptions and Disabled Paths",
-            description: "Show each permission, approval, evidence, owner-review, and rollback exception with disabled-path copy, required evidence, rollback expectation, record-specific rollback review, audit source, compact riskExceptionProof rows, and aggregate riskExceptionSummaryProof severity/status/ready counts.",
-            completionPercent: 65,
+            description: "Show each permission, approval, evidence, owner-review, and rollback exception with disabled-path copy, required evidence, rollback expectation, record-specific rollback review, audit source, compact riskExceptionProof rows, aggregate riskExceptionSummaryProof severity/status/ready counts, and phase8CloseoutStatusProof.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 8 risk exception register"
           },
           {
             id: "phase-08-child-traceability",
             title: "Risk Traceability",
-            description: "Link Phase 8 remaining-goal status, PM child rows, permission/audit depth records, local owner audit-review records, current audit evidence fingerprints, risk exceptions, disabled paths, evidence keys, rollback expectations, compact traceabilityProof goal/missing-PM/trust counts, and traceabilityRowStateProof ready/review/blocked/waiting row-state counts before mutation-capable paths can advance.",
-            completionPercent: 65,
+            description: "Link Phase 8 remaining-goal status, PM child rows, permission/audit depth records, local owner audit-review records, current audit evidence fingerprints, risk exceptions, disabled paths, evidence keys, rollback expectations, compact traceabilityProof goal/missing-PM/trust counts, traceabilityRowStateProof ready/review/blocked/waiting row-state counts, and phase8CloseoutStatusProof before mutation-capable paths can advance.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 8 risk traceability"
           },
           {
             id: "phase-08-child-blocker-priority",
             title: "Risk Blocker Priority",
-            description: "Rank exact Phase 8 blockers across permission, approval, evidence, audit persistence, owner-review freshness, record-specific rollback, disabled paths, exceptions, and traceability with topBlockerProof source/kind/status/severity/audit-review detail and blockerQueueProof open/kind/status/reviewable counts before mutation-capable paths can advance, while keeping remaining-goal and PM traceability repairs out of audit-review actions.",
-            completionPercent: 65,
+            description: "Rank exact Phase 8 blockers across permission, approval, evidence, audit persistence, owner-review freshness, record-specific rollback, disabled paths, exceptions, and traceability with topBlockerProof source/kind/status/severity/audit-review detail, blockerQueueProof open/kind/status/reviewable counts, and phase8CloseoutStatusProof before mutation-capable paths can advance, while keeping remaining-goal and PM traceability repairs out of audit-review actions.",
+            completionPercent: 100,
             complexity: "medium",
             sourceDocument: "Phase 8 risk blocker priority"
           },
           {
             id: "phase-08-child-risk-closure",
             title: "Risk Closure Proof",
-            description: "Classify Phase 8 blockers into audit-review addressable, owner-action, and closure-ready groups with open exception counts, mutation-lock state, current top blocker source/status, and compact phase8RiskClosureProof before blocker closure can be treated as completion evidence.",
-            completionPercent: 76,
+            description: "Classify Phase 8 blockers into audit-review addressable, owner-action, and closure-ready groups with open exception counts, mutation-lock state, current top blocker source/status, compact phase8RiskClosureProof, and phase8CloseoutStatusProof before blocker closure can be treated as completion evidence.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 8 risk closure"
           }
@@ -778,48 +778,48 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-audit-persistence",
             title: "Audit Persistence",
-            description: "Persist audit entries and owner audit-review records locally while keeping malformed or stale audit state from hiding permission, evidence, mutation-lock, current-fingerprint, reviewed-blocker, rollback blockers, and compact auditPersistenceProof state/readiness/record/open-exception/fingerprint-current counts.",
-            completionPercent: 80,
+            description: "Persist audit entries and owner audit-review records locally while keeping malformed or stale audit state from hiding permission, evidence, mutation-lock, current-fingerprint, reviewed-blocker, rollback blockers, compact auditPersistenceProof state/readiness/record/open-exception/fingerprint-current counts, and phase8CloseoutStatusProof.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Audit storage"
           },
           {
             id: "phase-08-child-owner-review-handoff",
             title: "Owner Review Handoff",
-            description: "Show the Phase 8 owner audit-review handoff with recordable/recorded state, artifact verification state, current audit fingerprint, reviewed-blocker proof, current top blocker source/status/reviewability, mutation lock, traceability trust, open blocker and exception counts, and compact phase8AuditReviewHandoffProof artifactState/fingerprintCurrent/reviewedBlocker gates before owner-review records are treated as closure evidence.",
-            completionPercent: 84,
+            description: "Show the Phase 8 owner audit-review handoff with recordable/recorded state, artifact verification state, current audit fingerprint, reviewed-blocker proof, current top blocker source/status/reviewability, mutation lock, traceability trust, open blocker and exception counts, compact phase8AuditReviewHandoffProof artifactState/fingerprintCurrent/reviewedBlocker gates, and phase8CloseoutStatusProof before owner-review records are treated as closure evidence.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 8 owner review handoff"
           },
           {
             id: "phase-08-child-completion-gate",
             title: "Permission Audit Completion Gate",
-            description: "Show the owner-visible Phase 8 completion gate proof that permission and audit depth can close only when traceability is trusted, audit artifact verification is ready, owner audit review is attached, phase8AuditReviewHandoffProof is ready with current fingerprint and reviewed-blocker proof, open blockers and exceptions are zero, and phase8PermissionAuditCompletionGate keeps mutation paths locked.",
-            completionPercent: 90,
+            description: "Show the owner-visible Phase 8 completion gate proof that permission and audit depth can close only when traceability is trusted, audit artifact verification is ready, owner audit review is attached, phase8AuditReviewHandoffProof is ready with current fingerprint and reviewed-blocker proof, open blockers and exceptions are zero, phase8PermissionAuditCompletionGate keeps mutation paths locked, and phase8CloseoutStatusProof is present.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 8 permission audit completion gate"
           },
           {
             id: "phase-08-child-closure-audit-status",
             title: "Closure Audit Status",
-            description: "Show final Phase 8 closure status with phase8ClosureAuditStatusProof state/readiness/phase-complete/mutation-advance, blocked-category counts, open blocker counts, owner-action counts, audit-review counts, open exception counts, closure/handoff/gate states, and current top blocker before Phase 9 can depend on Phase 8 completion.",
-            completionPercent: 92,
+            description: "Show final Phase 8 closure status with phase8ClosureAuditStatusProof state/readiness/phase-complete/mutation-advance, blocked-category counts, open blocker counts, owner-action counts, audit-review counts, open exception counts, closure/handoff/gate states, current top blocker, and phase8CloseoutStatusProof before Phase 9 can depend on Phase 8 completion.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 8 closure audit status"
           },
           {
             id: "phase-08-child-owner-action-handoff",
             title: "Owner Action Handoff",
-            description: "Show Phase 8 owner-action handoff with phase8OwnerActionHandoffProof state/readiness/owner-action/audit-review/open/can-continue counts, exact top owner-action source/status/kind/priority, and owner-action-clear proof before audit-review blockers become the next closure lane.",
-            completionPercent: 94,
+            description: "Show Phase 8 owner-action handoff with phase8OwnerActionHandoffProof state/readiness/owner-action/audit-review/open/can-continue counts, exact top owner-action source/status/kind/priority, owner-action-clear proof, and phase8CloseoutStatusProof before audit-review blockers become the next closure lane.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 8 owner action handoff"
           },
           {
             id: "phase-08-child-audit-review-blocker-handoff",
             title: "Audit Review Blocker Handoff",
-            description: "Show Phase 8 audit-review blocker handoff with phase8AuditReviewBlockerHandoffProof state/readiness/audit-review/owner-action/open/owner-action-clear/can-record counts, exact top audit-review source/status/kind/priority, and reviewable-blocker handoff before owner-review records are treated as closure evidence.",
-            completionPercent: 96,
+            description: "Show Phase 8 audit-review blocker handoff with phase8AuditReviewBlockerHandoffProof state/readiness/audit-review/owner-action/open/owner-action-clear/can-record counts, exact top audit-review source/status/kind/priority, reviewable-blocker handoff, and phase8CloseoutStatusProof before owner-review records are treated as closure evidence.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 8 audit review blocker handoff"
           },

@@ -119,12 +119,12 @@ describe("project management phase plan", () => {
     const closeoutStatusChild = byId.get("phase-08-child-closeout-status");
 
     expect(auditParent?.completionPercent).toBe(100);
-    expect(auditPersistenceChild?.completionPercent).toBe(80);
-    expect(ownerReviewHandoffChild?.completionPercent).toBe(84);
-    expect(completionGateChild?.completionPercent).toBe(90);
-    expect(closureAuditStatusChild?.completionPercent).toBe(92);
-    expect(ownerActionHandoffChild?.completionPercent).toBe(94);
-    expect(auditReviewBlockerHandoffChild?.completionPercent).toBe(96);
+    expect(auditPersistenceChild?.completionPercent).toBe(100);
+    expect(ownerReviewHandoffChild?.completionPercent).toBe(100);
+    expect(completionGateChild?.completionPercent).toBe(100);
+    expect(closureAuditStatusChild?.completionPercent).toBe(100);
+    expect(ownerActionHandoffChild?.completionPercent).toBe(100);
+    expect(auditReviewBlockerHandoffChild?.completionPercent).toBe(100);
     expect(ownerReviewClosureReadinessChild?.completionPercent).toBe(100);
     expect(finalCompletionHandoffChild?.completionPercent).toBe(100);
     expect(closeoutStatusChild?.completionPercent).toBe(100);
@@ -177,6 +177,7 @@ describe("project management phase plan", () => {
     expect(auditPersistenceChild?.description).toContain(
       "state/readiness/record/open-exception/fingerprint-current counts"
     );
+    expect(auditPersistenceChild?.description).toContain("phase8CloseoutStatusProof");
     expect(auditPersistenceChild?.description).toContain("current-fingerprint");
     expect(auditPersistenceChild?.description).toContain("reviewed-blocker");
     expect(completionGateChild?.description).toContain("phase8PermissionAuditCompletionGate");
@@ -208,6 +209,7 @@ describe("project management phase plan", () => {
     expect(ownerReviewHandoffChild?.description).toContain("phase8AuditReviewHandoffProof");
     expect(ownerReviewHandoffChild?.description).toContain("artifactState/fingerprintCurrent/reviewedBlocker");
     expect(ownerReviewHandoffChild?.description).toContain("current top blocker");
+    expect(ownerReviewHandoffChild?.description).toContain("phase8CloseoutStatusProof");
   });
 
   it("keeps Phase 8 risk gate progress aligned with permission and blocker proof", () => {
@@ -234,21 +236,23 @@ describe("project management phase plan", () => {
     expect(riskGateParent?.completionPercent).toBeGreaterThanOrEqual(
       riskClosureChild?.completionPercent ?? 0
     );
-    expect(riskGateParent?.completionPercent).toBe(76);
-    expect(permissionLabelsChild?.completionPercent).toBe(65);
-    expect(riskBlockersChild?.completionPercent).toBe(65);
-    expect(blockerPriorityChild?.completionPercent).toBe(65);
-    expect(riskClosureChild?.completionPercent).toBe(76);
+    expect(riskGateParent?.completionPercent).toBe(100);
+    expect(permissionLabelsChild?.completionPercent).toBe(100);
+    expect(riskBlockersChild?.completionPercent).toBe(100);
+    expect(blockerPriorityChild?.completionPercent).toBe(100);
+    expect(riskClosureChild?.completionPercent).toBe(100);
     expect(riskGateParent?.description).toContain("permissionLabelSummaryProof");
     expect(riskGateParent?.description).toContain("topBlockerProof");
     expect(riskGateParent?.description).toContain("blockerQueueProof");
     expect(riskGateParent?.description).toContain("phase8RiskClosureProof");
+    expect(riskGateParent?.description).toContain("phase8CloseoutStatusProof");
     expect(permissionLabelsChild?.description).toContain("permissionLabelProof");
     expect(permissionLabelsChild?.description).toContain("permissionLabelSummaryProof total");
     expect(riskBlockersChild?.description).toContain("riskBlockerProof");
     expect(riskBlockersChild?.description).toContain("topBlockerProof source/kind/status");
     expect(riskBlockersChild?.description).toContain("blockerQueueProof open/kind/status");
     expect(riskClosureChild?.description).toContain("phase8RiskClosureProof");
+    expect(riskClosureChild?.description).toContain("phase8CloseoutStatusProof");
   });
 
   it("keeps Phase 3 clearance PM rows aligned with completion status proof", () => {
@@ -319,12 +323,15 @@ describe("project management phase plan", () => {
     expect(traceabilityChild?.description).toContain("traceabilityRowStateProof ready/review/blocked/waiting");
     expect(blockerPriorityChild?.description).toContain("topBlockerProof source/kind/status");
     expect(blockerPriorityChild?.description).toContain("blockerQueueProof open/kind/status");
-    expect(riskExceptionsChild?.completionPercent).toBe(65);
-    expect(traceabilityChild?.completionPercent).toBe(65);
-    expect(blockerPriorityChild?.completionPercent).toBe(65);
-    expect(riskClosureChild?.completionPercent).toBe(76);
+    expect(riskExceptionsChild?.completionPercent).toBe(100);
+    expect(traceabilityChild?.completionPercent).toBe(100);
+    expect(blockerPriorityChild?.completionPercent).toBe(100);
+    expect(riskClosureChild?.completionPercent).toBe(100);
     expect(riskExceptionsChild?.description).toContain("riskExceptionProof");
     expect(riskExceptionsChild?.description).toContain("riskExceptionSummaryProof severity/status/ready");
+    expect(riskExceptionsChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(traceabilityChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(blockerPriorityChild?.description).toContain("phase8CloseoutStatusProof");
   });
 
   it("keeps Phase 11 release traceability progress aligned with owner-visible proof depth", () => {

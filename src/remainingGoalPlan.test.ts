@@ -696,38 +696,49 @@ describe("remaining goal plan", () => {
       completionPercent: 100
     });
     expect(phase8Epic?.completionPercent).toBe(100);
-    expect(permissionLabelsChild?.completionPercent).toBe(65);
+    expect(permissionLabelsChild?.completionPercent).toBe(100);
     expect(permissionLabelsChild?.description).toContain("permissionLabelSummaryProof total");
-    expect(riskBlockersChild?.completionPercent).toBe(65);
+    expect(permissionLabelsChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(riskBlockersChild?.completionPercent).toBe(100);
     expect(riskBlockersChild?.description).toContain("topBlockerProof source/kind/status");
     expect(riskBlockersChild?.description).toContain("blockerQueueProof open/kind/status");
-    expect(riskExceptionsChild?.completionPercent).toBe(65);
+    expect(riskBlockersChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(riskExceptionsChild?.completionPercent).toBe(100);
     expect(riskExceptionsChild?.description).toContain("riskExceptionSummaryProof severity/status/ready");
-    expect(traceabilityChild?.completionPercent).toBe(65);
+    expect(riskExceptionsChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(traceabilityChild?.completionPercent).toBe(100);
     expect(traceabilityChild?.description).toContain("traceabilityProof goal/missing-PM/trust");
-    expect(blockerPriorityChild?.completionPercent).toBe(65);
+    expect(traceabilityChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(blockerPriorityChild?.completionPercent).toBe(100);
     expect(blockerPriorityChild?.description).toContain("topBlockerProof source/kind/status");
     expect(blockerPriorityChild?.description).toContain("blockerQueueProof open/kind/status");
-    expect(riskClosureChild?.completionPercent).toBe(76);
+    expect(blockerPriorityChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(riskClosureChild?.completionPercent).toBe(100);
     expect(riskClosureChild?.description).toContain("phase8RiskClosureProof");
-    expect(auditPersistenceChild?.completionPercent).toBe(80);
+    expect(riskClosureChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(auditPersistenceChild?.completionPercent).toBe(100);
     expect(auditPersistenceChild?.description).toContain("auditPersistenceProof state/readiness/record");
     expect(auditPersistenceChild?.description).toContain("fingerprint-current");
-    expect(completionGateChild?.completionPercent).toBe(90);
+    expect(auditPersistenceChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(completionGateChild?.completionPercent).toBe(100);
     expect(completionGateChild?.description).toContain("phase8PermissionAuditCompletionGate");
     expect(completionGateChild?.description).toContain("phase8AuditReviewHandoffProof");
     expect(completionGateChild?.description).toContain("current fingerprint");
-    expect(closureAuditStatusChild?.completionPercent).toBe(92);
+    expect(completionGateChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(closureAuditStatusChild?.completionPercent).toBe(100);
     expect(closureAuditStatusChild?.description).toContain("phase8ClosureAuditStatusProof");
     expect(closureAuditStatusChild?.description).toContain("blocked-category counts");
-    expect(ownerActionHandoffChild?.completionPercent).toBe(94);
+    expect(closureAuditStatusChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(ownerActionHandoffChild?.completionPercent).toBe(100);
     expect(ownerActionHandoffChild?.description).toContain("phase8OwnerActionHandoffProof");
     expect(ownerActionHandoffChild?.description).toContain("owner-action-clear proof");
-    expect(auditReviewBlockerHandoffChild?.completionPercent).toBe(96);
+    expect(ownerActionHandoffChild?.description).toContain("phase8CloseoutStatusProof");
+    expect(auditReviewBlockerHandoffChild?.completionPercent).toBe(100);
     expect(auditReviewBlockerHandoffChild?.description).toContain(
       "phase8AuditReviewBlockerHandoffProof"
     );
     expect(auditReviewBlockerHandoffChild?.description).toContain("reviewable-blocker handoff");
+    expect(auditReviewBlockerHandoffChild?.description).toContain("phase8CloseoutStatusProof");
     expect(ownerReviewClosureReadinessChild?.completionPercent).toBe(100);
     expect(ownerReviewClosureReadinessChild?.description).toContain(
       "phase8OwnerReviewClosureReadinessProof"
@@ -745,9 +756,10 @@ describe("remaining goal plan", () => {
     expect(closeoutStatusChild?.description).toContain("phase8CloseoutStatusProof");
     expect(closeoutStatusChild?.description).toContain("phase9-dependency");
     expect(closeoutStatusChild?.description).toContain("mutation paths stay locked");
-    expect(ownerReviewHandoffChild?.completionPercent).toBe(84);
+    expect(ownerReviewHandoffChild?.completionPercent).toBe(100);
     expect(ownerReviewHandoffChild?.description).toContain("phase8AuditReviewHandoffProof");
     expect(ownerReviewHandoffChild?.description).toContain("artifactState/fingerprintCurrent/reviewedBlocker");
+    expect(ownerReviewHandoffChild?.description).toContain("phase8CloseoutStatusProof");
     expect(phase8Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-08-child-permission-labels",
