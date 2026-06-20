@@ -75,6 +75,23 @@ const requiredCommandSkillProofTerms = [
   "metadataOnly=locked",
   "execution=locked"
 ];
+const requiredPluginMcpProofTerms = [
+  "plugin=ready",
+  "mcp=ready",
+  "pluginItems=",
+  "mcpItems=",
+  "pluginEvidence=phase-04-provider-catalog:plugin",
+  "mcpEvidence=phase-04-provider-catalog:mcp",
+  "pluginSurfaceProof=present",
+  "mcpToolPolicyProof=present",
+  "metadataOnlySurface=present",
+  "mcpTransport=present",
+  "mcpToolPolicy=present",
+  "pluginLock=locked",
+  "mcpLock=locked",
+  "metadataOnly=locked",
+  "execution=locked"
+];
 const requiredAuditChainProofTerms = [
   "approval=",
   "expectedApproval=",
@@ -282,6 +299,15 @@ function verifyArtifact(artifact) {
     );
     if (missingTerms.length > 0) {
       throw new Error(`catalogDepth commandSkillProof is missing ${missingTerms.join(", ")}`);
+    }
+  }
+  assertNonEmptyString(catalogDepth.pluginMcpProof, "catalogDepth.pluginMcpProof");
+  {
+    const missingTerms = requiredPluginMcpProofTerms.filter(
+      (term) => !catalogDepth.pluginMcpProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`catalogDepth pluginMcpProof is missing ${missingTerms.join(", ")}`);
     }
   }
   assertReadyRows(catalogRecords, "catalogDepth");

@@ -44,6 +44,7 @@ export interface Phase4ProviderCatalogDepthSummary {
   readonly nextAction: string;
   readonly catalogDepthProof: string;
   readonly commandSkillProof: string;
+  readonly pluginMcpProof: string;
   readonly ariaLabel: string;
 }
 
@@ -239,6 +240,27 @@ function buildCommandSkillProof(
   );
 }
 
+function buildPluginMcpProof(
+  records: readonly Phase4ProviderCatalogDepthRecord[]
+): string {
+  const plugin = records.find((record) => record.kind === "plugin");
+  const mcp = records.find((record) => record.kind === "mcp");
+
+  return (
+    `plugin=${plugin?.status ?? "missing"} mcp=${mcp?.status ?? "missing"} ` +
+    `pluginItems=${plugin?.itemOrder.length ?? 0} mcpItems=${mcp?.itemOrder.length ?? 0} ` +
+    `pluginEvidence=${plugin?.evidenceKey ?? "missing"} mcpEvidence=${mcp?.evidenceKey ?? "missing"} ` +
+    `pluginSurfaceProof=${plugin?.scopedExecutionProof.includes("pluginSurfaceProof=") ? "present" : "missing"} ` +
+    `mcpToolPolicyProof=${mcp?.scopedExecutionProof.includes("mcpToolPolicyProof=") ? "present" : "missing"} ` +
+    `metadataOnlySurface=${plugin?.scopedExecutionProof.includes("surface=metadata-only") ? "present" : "missing"} ` +
+    `mcpTransport=${mcp?.scopedExecutionProof.includes("transport=") ? "present" : "missing"} ` +
+    `mcpToolPolicy=${mcp?.scopedExecutionProof.includes("toolPolicy=") ? "present" : "missing"} ` +
+    `pluginLock=${plugin?.executionLocked ? "locked" : "review"} ` +
+    `mcpLock=${mcp?.executionLocked ? "locked" : "review"} ` +
+    "metadataOnly=locked execution=locked"
+  );
+}
+
 function buildAriaLabel(
   summary: Omit<Phase4ProviderCatalogDepthSummary, "ariaLabel">
 ): string {
@@ -276,7 +298,8 @@ export function buildPhase4ProviderCatalogDepth(
       heldCount,
       executionLockCount
     }),
-    commandSkillProof: buildCommandSkillProof(records)
+    commandSkillProof: buildCommandSkillProof(records),
+    pluginMcpProof: buildPluginMcpProof(records)
   };
 
   return {

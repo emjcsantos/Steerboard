@@ -163,6 +163,23 @@ const REQUIRED_COMMAND_SKILL_PROOF_TERMS = [
   "metadataOnly=locked",
   "execution=locked"
 ] as const;
+const REQUIRED_PLUGIN_MCP_PROOF_TERMS = [
+  "plugin=ready",
+  "mcp=ready",
+  "pluginItems=",
+  "mcpItems=",
+  "pluginEvidence=phase-04-provider-catalog:plugin",
+  "mcpEvidence=phase-04-provider-catalog:mcp",
+  "pluginSurfaceProof=present",
+  "mcpToolPolicyProof=present",
+  "metadataOnlySurface=present",
+  "mcpTransport=present",
+  "mcpToolPolicy=present",
+  "pluginLock=locked",
+  "mcpLock=locked",
+  "metadataOnly=locked",
+  "execution=locked"
+] as const;
 const REQUIRED_SURFACE_OWNER_BOUNDARY_PROOF_TERMS: ReadonlyArray<{
   readonly kind: string;
   readonly terms: readonly string[];
@@ -568,6 +585,33 @@ function findCommandSkillProofReview(
   return undefined;
 }
 
+function findPluginMcpProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const pluginMcpProof = artifact.catalogDepth.pluginMcpProof?.trim();
+
+  if (!pluginMcpProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing plugin/MCP aggregate proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after plugin and MCP catalog rows summarize item order, evidence keys, metadata-only surface proof, MCP transport/tool-policy proof, and execution locks."
+    };
+  }
+
+  const missingTerms = REQUIRED_PLUGIN_MCP_PROOF_TERMS.filter(
+    (term) => !pluginMcpProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete plugin/MCP aggregate proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after plugin/MCP aggregate proof includes item-order, evidence-key, metadata-only surface, transport/tool-policy, and execution-lock terms."
+    };
+  }
+
+  return undefined;
+}
+
 function findAuditValidationChainProofReview(
   artifact: Phase4ProviderReviewArtifact
 ): { detail: string; nextAction: string } | undefined {
@@ -894,6 +938,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       commandSkillProofReview.detail,
       commandSkillProofReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const pluginMcpProofReview = findPluginMcpProofReview(artifact);
+  if (pluginMcpProofReview) {
+    return result(
+      "review",
+      artifact,
+      pluginMcpProofReview.detail,
+      pluginMcpProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

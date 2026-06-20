@@ -8191,6 +8191,7 @@ export function ProviderIntegrationReadinessPanel({
         </div>
         <small>{catalogDepth.catalogDepthProof}</small>
         <small>{catalogDepth.commandSkillProof}</small>
+        <small>{catalogDepth.pluginMcpProof}</small>
         <ol className="provider-catalog-depth-list">
           {catalogDepth.records.map((record) => (
             <li

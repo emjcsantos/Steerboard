@@ -297,16 +297,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
-    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured all-catalog refresh-smoke proof, structured plugin/MCP scoped proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 89,
+    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured all-catalog refresh-smoke proof, structured plugin/MCP scoped proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and current six-surface fingerprint checks after Phase 3 clears.",
+    completionPercent: 90,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
-        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP scoped proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 76,
+        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured plugin/MCP scoped proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
+        completionPercent: 77,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
@@ -320,8 +320,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-plugin-mcp",
             title: "Plugin and MCP Catalogs",
-            description: "Show plugin and MCP entries with scoped plugin surface proof, metadata-only surface proof, MCP transport/tool-policy proof, connection state, allowed surfaces, non-mutating readiness evidence, and execution-lock artifact enforcement.",
-            completionPercent: 66,
+            description: "Show plugin and MCP entries with structured plugin/MCP aggregate proof, scoped plugin surface proof, metadata-only surface proof, MCP transport/tool-policy proof, connection state, allowed surfaces, non-mutating readiness evidence, and execution-lock artifact enforcement.",
+            completionPercent: 68,
             complexity: "high",
             sourceDocument: "Plugin and MCP catalogs"
           },
