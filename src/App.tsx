@@ -697,6 +697,7 @@ import {
 } from "./phase8AuditReviewArtifact";
 import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
 import { buildPhase8RiskClosure } from "./phase8RiskClosure";
+import { buildPhase8AuditReviewBlockerHandoff } from "./phase8AuditReviewBlockerHandoff";
 import { buildPhase8OwnerActionHandoff } from "./phase8OwnerActionHandoff";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import {
@@ -15644,6 +15645,12 @@ export function Phase8PermissionAuditDepthPanel({
     blockerPriority,
     closureAuditStatus
   });
+  const auditReviewBlockerHandoff = buildPhase8AuditReviewBlockerHandoff({
+    riskClosure,
+    blockerPriority,
+    closureAuditStatus,
+    ownerActionHandoff
+  });
   const handleAuditReviewArtifactImport = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.currentTarget.files?.[0];
@@ -16051,6 +16058,24 @@ export function Phase8PermissionAuditDepthPanel({
             </span>
             <small>{ownerActionHandoff.nextAction}</small>
             <small>{ownerActionHandoff.phase8OwnerActionHandoffProof}</small>
+          </div>
+        </div>
+        <div
+          aria-label={auditReviewBlockerHandoff.ariaLabel}
+          className={classNames(
+            "phase8-audit-review-record",
+            `phase8-audit-review-record-${auditReviewBlockerHandoff.state}`
+          )}
+          title={auditReviewBlockerHandoff.safety}
+        >
+          <div>
+            <strong>{auditReviewBlockerHandoff.label}</strong>
+            <span>
+              {auditReviewBlockerHandoff.statusLabel} / audit review{" "}
+              {auditReviewBlockerHandoff.auditReviewBlockerCount}
+            </span>
+            <small>{auditReviewBlockerHandoff.nextAction}</small>
+            <small>{auditReviewBlockerHandoff.phase8AuditReviewBlockerHandoffProof}</small>
           </div>
         </div>
         <ol className="phase8-audit-items" aria-label="Phase 8 missing requirement explanations">
