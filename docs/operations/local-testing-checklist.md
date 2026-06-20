@@ -140,7 +140,7 @@ Do not proceed to the next section until the current item is at least `review`.
 9. `Planning`
    - Create or update a plan item and confirm expected persistence updates.
    - Confirm planning metadata remains readable after a refresh.
-   - Confirm the Project Management board contains Phase 0 through Phase 11 as Epics and that representative Epic, Parent, and Child rows each stage an Arena review package through `Run`.
+   - Confirm the Project Management board contains Phase 0 through Phase 11 as Epics, exposes compact phase-map proof with staged Epic/Parent/Child review coverage, and that representative Epic, Parent, and Child rows each stage an Arena review package through `Run`.
    - Confirm Phase 6 includes publish-hold traceability and blocker-priority child rows linked to the Phase 1/2/6 publish-hold goal.
 10. `Dispatch`
     - Dispatch a staged pipeline item through the standard lane.

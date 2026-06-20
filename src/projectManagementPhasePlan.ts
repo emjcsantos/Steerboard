@@ -513,9 +513,9 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-06-child-current-phase-map",
             title: "Load Current Phase Map",
-            description: "Update the board with Phase 0 through Phase 11, current completion, and next actions.",
+            description: "Update the board with Phase 0 through Phase 11, current completion, next actions, compact phase-map proof, and staged Epic/Parent/Child review coverage.",
             status: "ongoing",
-            completionPercent: 70,
+            completionPercent: 72,
             sourceDocument: "Phase completion map"
           },
           {

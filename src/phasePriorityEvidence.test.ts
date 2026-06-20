@@ -112,6 +112,8 @@ describe("phase priority evidence", () => {
 
     expect(phase6?.detail).toContain("12 Epics");
     expect(phase6?.detail).toContain("staged Epic/Parent/Child package coverage");
+    expect(phase6?.detail).toContain("phaseRange=0-11");
+    expect(phase6?.detail).toContain("staged=epic|parent|child");
     expect(phase6?.nextAction).toBe(
       "Use row-level Run buttons to stage Arena review packages while keeping execution locked."
     );

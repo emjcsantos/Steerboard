@@ -314,11 +314,15 @@ function buildPhase6PmBoardItem(
   }
 
   if (hasEnoughHierarchy && allDispatchesStage) {
+    const phaseMapProof =
+      `phaseRange=0-11 epics=${epics.length} parents=${parents.length} ` +
+      `children=${children.length} staged=epic|parent|child`;
+
     return item(
       "phase-6-pm-board",
       "Phase 6 PM phase board",
       "ready",
-      `Project Management board has ${epics.length} Epics, ${parents.length} Parents, ${children.length} Children, and staged Epic/Parent/Child package coverage.`,
+      `Project Management board has ${epics.length} Epics, ${parents.length} Parents, ${children.length} Children, and staged Epic/Parent/Child package coverage. ${phaseMapProof}`,
       "Use row-level Run buttons to stage Arena review packages while keeping execution locked."
     );
   }

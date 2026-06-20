@@ -136,6 +136,12 @@ describe("project management hierarchy", () => {
     expect(byId.get("phase-06-child-publish-hold-traceability")?.description).toContain(
       "owner-held publish blocker"
     );
+    expect(byId.get("phase-06-child-current-phase-map")?.description).toContain(
+      "compact phase-map proof"
+    );
+    expect(byId.get("phase-06-child-current-phase-map")?.description).toContain(
+      "staged Epic/Parent/Child review coverage"
+    );
     expect(byId.get("phase-06-child-publish-hold-blocker-priority")?.description).toContain(
       "owner/remote publish hold"
     );
