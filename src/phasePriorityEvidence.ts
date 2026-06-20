@@ -127,6 +127,16 @@ function item(
   };
 }
 
+function nonNegativeNumber(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.floor(value)
+    : 0;
+}
+
+function stringArrayLength(value: unknown): number {
+  return Array.isArray(value) ? value.filter((item) => typeof item === "string").length : 0;
+}
+
 function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenceItem {
   if (!isRecord(liveSmokeProof)) {
     return item(
@@ -166,6 +176,11 @@ function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenc
     }
   ];
   const missingStreamSignals = streamSignalChecks.filter((signal) => !signal.ready);
+  const readySignalCount = streamSignalChecks.length - missingStreamSignals.length;
+  const streamSignalProof =
+    `signalProof=${readySignalCount}/${streamSignalChecks.length} ` +
+    `methodCount=${nonNegativeNumber(liveSmokeProof.methodCount)} ` +
+    `uniqueMethods=${stringArrayLength(liveSmokeProof.uniqueMethods)}`;
   const ready = executed && missingStreamSignals.length === 0;
 
   if (ready) {
@@ -173,7 +188,7 @@ function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenc
       "phase-1-live-panel",
       "Phase 1 live Arena panel",
       "ready",
-      "One live Arena panel has thread, turn, stream delta, completion, and expected-token evidence.",
+      `One live Arena panel has thread, turn, stream delta, completion, and expected-token evidence. ${streamSignalProof}.`,
       "Keep this as the one-panel regression proof before expanding provider work."
     );
   }
@@ -192,7 +207,7 @@ function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenc
     "phase-1-live-panel",
     "Phase 1 live Arena panel",
     "review",
-    `Live panel proof ran, but missing stream/completion signal${missingStreamSignals.length === 1 ? "" : "s"}: ${missingStreamSignals.map((signal) => signal.label).join(", ")}.`,
+    `Live panel proof ran with ${streamSignalProof}, but missing stream/completion signal${missingStreamSignals.length === 1 ? "" : "s"}: ${missingStreamSignals.map((signal) => signal.label).join(", ")}.`,
     "Review the proof detail, rerun the desktop smoke, and keep browser fallback as waiting."
   );
 }

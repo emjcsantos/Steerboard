@@ -122,6 +122,10 @@ describe("phase priority evidence", () => {
     expect(phase6?.nextAction).toBe(
       "Use row-level Run buttons to stage Arena review packages while keeping execution locked."
     );
+    const phase1 = result.items.find((item) => item.id === "phase-1-live-panel");
+    expect(phase1?.detail).toContain("signalProof=7/7");
+    expect(phase1?.detail).toContain("methodCount=4");
+    expect(phase1?.detail).toContain("uniqueMethods=4");
     const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
     expect(phase2?.detail).toContain("Restored 2/2 saved panel session labels");
   });
@@ -204,6 +208,8 @@ describe("phase priority evidence", () => {
     expect(phase1?.detail).toContain("desktop smoke result");
     expect(phase1?.detail).toContain("agent delta");
     expect(phase1?.detail).toContain("expected token");
+    expect(phase1?.detail).toContain("signalProof=4/7");
+    expect(phase1?.detail).toContain("methodCount=4");
   });
 
   it("keeps Phase 1 proof in review when reload timestamp is missing", () => {
