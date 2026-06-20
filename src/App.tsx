@@ -699,6 +699,7 @@ import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
 import { buildPhase8RiskClosure } from "./phase8RiskClosure";
 import { buildPhase8AuditReviewBlockerHandoff } from "./phase8AuditReviewBlockerHandoff";
 import { buildPhase8OwnerActionHandoff } from "./phase8OwnerActionHandoff";
+import { buildPhase8OwnerReviewClosureReadiness } from "./phase8OwnerReviewClosureReadiness";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import {
   buildPhase9RunnerApprovalSnapshot,
@@ -15651,6 +15652,12 @@ export function Phase8PermissionAuditDepthPanel({
     closureAuditStatus,
     ownerActionHandoff
   });
+  const ownerReviewClosureReadiness = buildPhase8OwnerReviewClosureReadiness({
+    riskClosure,
+    auditReviewHandoff,
+    auditReviewBlockerHandoff,
+    completionGate
+  });
   const handleAuditReviewArtifactImport = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.currentTarget.files?.[0];
@@ -16076,6 +16083,24 @@ export function Phase8PermissionAuditDepthPanel({
             </span>
             <small>{auditReviewBlockerHandoff.nextAction}</small>
             <small>{auditReviewBlockerHandoff.phase8AuditReviewBlockerHandoffProof}</small>
+          </div>
+        </div>
+        <div
+          aria-label={ownerReviewClosureReadiness.ariaLabel}
+          className={classNames(
+            "phase8-audit-review-record",
+            `phase8-audit-review-record-${ownerReviewClosureReadiness.state}`
+          )}
+          title={ownerReviewClosureReadiness.safety}
+        >
+          <div>
+            <strong>{ownerReviewClosureReadiness.label}</strong>
+            <span>
+              {ownerReviewClosureReadiness.statusLabel} / owner review{" "}
+              {ownerReviewClosureReadiness.ownerReviewRecorded ? "recorded" : "held"}
+            </span>
+            <small>{ownerReviewClosureReadiness.nextAction}</small>
+            <small>{ownerReviewClosureReadiness.phase8OwnerReviewClosureReadinessProof}</small>
           </div>
         </div>
         <ol className="phase8-audit-items" aria-label="Phase 8 missing requirement explanations">

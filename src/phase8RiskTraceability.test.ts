@@ -221,7 +221,7 @@ describe("phase 8 risk traceability", () => {
     const summary = traceability();
 
     expect(summary.linkedGoalId).toBe("goal-phase-8-permission-audit");
-    expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(15);
+    expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(16);
     expect(summary.missingPmTaskIds).toEqual([]);
     expect(summary.items.map((item) => item.kind)).toEqual([
       "active-goal",
