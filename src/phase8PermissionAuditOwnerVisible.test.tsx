@@ -271,6 +271,10 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("canAdvanceMutationPaths=no");
     expect(html).toContain("handoff=held");
     expect(html).toContain("handoffState=waiting");
+    expect(html).toContain("Phase 8 closure audit status");
+    expect(html).toContain("phase8ClosureAuditStatusProof");
+    expect(html).toContain("blockedCategories=");
+    expect(html).toContain("mutationAdvance=no");
     expect(html).toContain("Remaining goal link");
     expect(html).toContain("PM row coverage");
     expect(html).toContain("Audit-depth evidence");

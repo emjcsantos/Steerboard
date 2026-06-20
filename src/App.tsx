@@ -679,6 +679,7 @@ import {
   type Phase8PermissionAuditDepthSnapshot
 } from "./phase8PermissionAuditDepth";
 import { buildPhase8AuditReviewHandoff } from "./phase8AuditReviewHandoff";
+import { buildPhase8ClosureAuditStatus } from "./phase8ClosureAuditStatus";
 import { buildPhase8PermissionAuditCompletionGate } from "./phase8PermissionAuditCompletionGate";
 import {
   clearPhase8AuditReviewRecord,
@@ -15632,6 +15633,11 @@ export function Phase8PermissionAuditDepthPanel({
     artifactVerification,
     reviewRecord
   });
+  const closureAuditStatus = buildPhase8ClosureAuditStatus({
+    riskClosure,
+    auditReviewHandoff,
+    completionGate
+  });
   const handleAuditReviewArtifactImport = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.currentTarget.files?.[0];
@@ -16003,6 +16009,24 @@ export function Phase8PermissionAuditDepthPanel({
             </span>
             <small>{completionGate.nextAction}</small>
             <small>{completionGate.completionGateProof}</small>
+          </div>
+        </div>
+        <div
+          aria-label={closureAuditStatus.ariaLabel}
+          className={classNames(
+            "phase8-audit-review-record",
+            `phase8-audit-review-record-${closureAuditStatus.state}`
+          )}
+          title={closureAuditStatus.safety}
+        >
+          <div>
+            <strong>{closureAuditStatus.label}</strong>
+            <span>
+              {closureAuditStatus.statusLabel} / blocked categories{" "}
+              {closureAuditStatus.blockedCategoryCount}
+            </span>
+            <small>{closureAuditStatus.nextAction}</small>
+            <small>{closureAuditStatus.phase8ClosureAuditStatusProof}</small>
           </div>
         </div>
         <ol className="phase8-audit-items" aria-label="Phase 8 missing requirement explanations">

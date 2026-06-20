@@ -232,7 +232,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Expand approval gates, risk exceptions, disabled-path explanations, blocker closure proof, owner audit-review persistence with current-fingerprint proof, owner-review handoff proof, current audit evidence fingerprints, record-specific rollback evidence, and completion-gate proof before mutation paths grow.",
     status: "active",
     priority: "high",
-    completionPercent: 90,
+    completionPercent: 92,
     current: true,
     pmTaskIds: [
       "phase-08-permissions-audit",
@@ -246,10 +246,11 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-08-parent-audit-log",
       "phase-08-child-audit-persistence",
       "phase-08-child-owner-review-handoff",
-      "phase-08-child-completion-gate"
+      "phase-08-child-completion-gate",
+      "phase-08-child-closure-audit-status"
     ],
     nextAction:
-      "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof artifactState/fingerprintCurrent/reviewedBlocker gates, phase8PermissionAuditCompletionGate handoff-ready/fingerprint-current proof, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, blocker closure proof, owner-review handoff proof, completion-gate closure proof, and the exact top blocker before mutation paths grow."
+      "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof artifactState/fingerprintCurrent/reviewedBlocker gates, phase8PermissionAuditCompletionGate handoff-ready/fingerprint-current proof, phase8ClosureAuditStatusProof blocked-category counts, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, blocker closure proof, owner-review handoff proof, completion-gate closure proof, closure-audit status, and the exact top blocker before mutation paths grow."
   },
   {
     id: "goal-phase-9-runner",
