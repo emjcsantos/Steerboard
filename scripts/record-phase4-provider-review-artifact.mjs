@@ -345,6 +345,10 @@ const traceabilityProof =
   "activeGoal=goal-phase-4-provider-surfaces pmLinks=15/15 missingPm=0 " +
   "catalogRecords=6/6 refreshRecords=8/8 surfaceItems=9/9 recordChain=ready " +
   "executionLocks=6/6 trust=ready metadataOnly=locked execution=locked";
+const blockerPriorityProof =
+  "open=0 catalogSmokeAddressable=0 topSource=phase4.provider-blocker.none " +
+  "topKind=none topStatus=ready topEvidence=phase-04-provider-blocker:none " +
+  "catalogSmokeTop=no recordChain=ready traceability=ready metadataOnly=locked execution=locked";
 
 const artifact = {
   schemaVersion: 1,
@@ -504,6 +508,7 @@ const artifact = {
     topPriorityStatus: "ready",
     topPriorityEvidenceKey: "phase-04-provider-blocker:none",
     nextAction: "No Phase 4 provider blockers remain; keep execution locked until owner approval and audit gates exist.",
+    blockerPriorityProof,
     safety: "Recorded Phase 4 blocker priority is evidence-only.",
     ariaLabel: "Phase 4 provider blocker priority: Ready; 0 open blockers.",
     items: [

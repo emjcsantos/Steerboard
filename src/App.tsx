@@ -8769,6 +8769,7 @@ export function Phase4ProviderBlockerPriorityPanel({
             </li>
           )}
         </ol>
+        <small>{summary.blockerPriorityProof}</small>
         <small title={summary.nextAction}>{summary.nextAction}</small>
       </div>
     </section>

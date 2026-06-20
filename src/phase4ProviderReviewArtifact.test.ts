@@ -168,7 +168,11 @@ function noOpenBlockers(artifact: Phase4ProviderReviewArtifact): Phase4ProviderR
       topPrioritySourceId: "phase4.provider-blocker.none",
       topPriorityKind: "none",
       topPriorityStatus: "ready",
-      topPriorityEvidenceKey: "phase-04-provider-blocker:none"
+      topPriorityEvidenceKey: "phase-04-provider-blocker:none",
+      blockerPriorityProof:
+        "open=0 catalogSmokeAddressable=0 topSource=phase4.provider-blocker.none " +
+        "topKind=none topStatus=ready topEvidence=phase-04-provider-blocker:none " +
+        "catalogSmokeTop=no recordChain=ready traceability=ready metadataOnly=locked execution=locked"
     }
   };
 }
@@ -759,6 +763,55 @@ describe("phase 4 provider review artifact", () => {
     ).toMatchObject({
       state: "review",
       detail: expect.stringContaining("traceability aggregate proof"),
+      nextAction: expect.stringContaining("record-chain")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing blocker-priority aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutBlockerPriorityProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      blockerPriority: { ...artifact.blockerPriority, blockerPriorityProof: "" }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutBlockerPriorityProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("blocker-priority aggregate proof"),
+      nextAction: expect.stringContaining("blocker priority")
+    });
+  });
+
+  it("reviews no-blocker artifacts with incomplete blocker-priority aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const incompleteBlockerPriorityProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      blockerPriority: {
+        ...artifact.blockerPriority,
+        blockerPriorityProof: artifact.blockerPriority.blockerPriorityProof.replace("recordChain=ready ", "")
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(incompleteBlockerPriorityProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("blocker-priority aggregate proof"),
       nextAction: expect.stringContaining("record-chain")
     });
   });

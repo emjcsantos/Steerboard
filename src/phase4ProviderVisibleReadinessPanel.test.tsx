@@ -403,6 +403,10 @@ describe("phase 4 provider visible readiness panel", () => {
     );
     expect(html).toContain("pmLinks=15/15 missingPm=0");
     expect(html).toContain("recordChain=ready executionLocks=6/6 trust=ready");
+    expect(html).toContain("open=0 catalogSmokeAddressable=0");
+    expect(html).toContain("topSource=phase4.provider-blocker.none topKind=none");
+    expect(html).toContain("topStatus=ready topEvidence=phase-04-provider-blocker:none");
+    expect(html).toContain("catalogSmokeTop=no recordChain=ready traceability=ready");
     expect(html).toContain("Phase 4 provider blocker priority");
     expect(html).toContain("Remaining goal link");
     expect(html).toContain("phase4-provider-permission-current");
@@ -481,7 +485,11 @@ describe("phase 4 provider visible readiness panel", () => {
       topPrioritySourceId: "phase4.provider-blocker.none",
       topPriorityKind: "none",
       topPriorityStatus: "ready",
-      topPriorityEvidenceKey: "phase-04-provider-blocker:none"
+      topPriorityEvidenceKey: "phase-04-provider-blocker:none",
+      blockerPriorityProof:
+        "open=0 catalogSmokeAddressable=0 topSource=phase4.provider-blocker.none " +
+        "topKind=none topStatus=ready topEvidence=phase-04-provider-blocker:none " +
+        "catalogSmokeTop=no recordChain=ready traceability=ready metadataOnly=locked execution=locked"
     };
     const recordedMissingLocalEvidence =
       verifyRecordedPhase4ProviderReviewArtifact(

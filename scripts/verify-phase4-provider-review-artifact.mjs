@@ -34,6 +34,19 @@ const requiredTraceabilityProofTerms = [
   "metadataOnly=locked",
   "execution=locked"
 ];
+const requiredBlockerPriorityProofTerms = [
+  "open=0",
+  "catalogSmokeAddressable=0",
+  "topSource=phase4.provider-blocker.none",
+  "topKind=none",
+  "topStatus=ready",
+  "topEvidence=phase-04-provider-blocker:none",
+  "catalogSmokeTop=no",
+  "recordChain=ready",
+  "traceability=ready",
+  "metadataOnly=locked",
+  "execution=locked"
+];
 const requiredSurfaceOwnerBoundaryProofTerms = [
   {
     kind: "approval-gate",
@@ -559,6 +572,16 @@ function verifyArtifact(artifact) {
     );
     if (missingTerms.length > 0) {
       throw new Error(`traceability traceabilityProof is missing ${missingTerms.join(", ")}`);
+    }
+  }
+
+  assertNonEmptyString(blockerPriority.blockerPriorityProof, "blockerPriority.blockerPriorityProof");
+  {
+    const missingTerms = requiredBlockerPriorityProofTerms.filter(
+      (term) => !blockerPriority.blockerPriorityProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`blockerPriority blockerPriorityProof is missing ${missingTerms.join(", ")}`);
     }
   }
 

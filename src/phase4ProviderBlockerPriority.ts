@@ -58,6 +58,7 @@ export interface Phase4ProviderBlockerPrioritySummary {
   readonly topPriorityStatus: Phase4ProviderBlockerPriorityState | "ready";
   readonly topPriorityEvidenceKey: string;
   readonly catalogSmokeCanAddressTopBlocker: boolean;
+  readonly blockerPriorityProof: string;
   readonly nextAction: string;
   readonly safety: string;
   readonly ariaLabel: string;
@@ -396,6 +397,25 @@ function buildAriaLabel(
   );
 }
 
+function blockerPriorityProof(
+  snapshot: Omit<Phase4ProviderBlockerPrioritySummary, "ariaLabel" | "blockerPriorityProof">,
+  traceability: Phase4ProviderTraceabilitySummary
+): string {
+  const recordChain = traceability.traceabilityProof.includes("recordChain=ready")
+    ? "ready"
+    : "review";
+  const traceabilityTrust = traceability.canTrustProviderReview ? "ready" : "review";
+
+  return (
+    `open=${snapshot.openBlockerCount} catalogSmokeAddressable=${snapshot.catalogSmokeAddressableCount} ` +
+    `topSource=${snapshot.topPrioritySourceId} topKind=${snapshot.topPriorityKind} ` +
+    `topStatus=${snapshot.topPriorityStatus} topEvidence=${snapshot.topPriorityEvidenceKey} ` +
+    `catalogSmokeTop=${snapshot.catalogSmokeCanAddressTopBlocker ? "yes" : "no"} ` +
+    `recordChain=${recordChain} traceability=${traceabilityTrust} ` +
+    "metadataOnly=locked execution=locked"
+  );
+}
+
 export function buildPhase4ProviderBlockerPriority(
   input: Phase4ProviderBlockerPriorityInput
 ): Phase4ProviderBlockerPrioritySummary {
@@ -416,7 +436,7 @@ export function buildPhase4ProviderBlockerPriority(
   const state = resolveState(items, input.traceability);
   const topItem = items[0];
   const catalogSmokeAddressableCount = items.filter((item) => item.canUseCatalogSmoke).length;
-  const draft = {
+  const draftWithoutProof = {
     id: SNAPSHOT_ID,
     label: SNAPSHOT_LABEL,
     state,
@@ -438,6 +458,10 @@ export function buildPhase4ProviderBlockerPriority(
       "No Phase 4 provider blockers remain; keep execution locked until owner approval and audit gates exist.",
     safety: SAFETY,
     items
+  };
+  const draft = {
+    ...draftWithoutProof,
+    blockerPriorityProof: blockerPriorityProof(draftWithoutProof, input.traceability)
   };
 
   return {

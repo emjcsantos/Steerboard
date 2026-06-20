@@ -384,8 +384,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-blocker-priority",
             title: "Provider Blocker Priority",
-            description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action, show compact top-blocker source, kind, status, evidence-key, and aggregate record-chain proof, while keeping remaining-goal and PM traceability repairs out of catalog-smoke actions.",
-            completionPercent: 70,
+            description: "Rank setup-required, unavailable, unsupported, blocked, and preview provider blockers across catalog depth, refresh safety, surface depth, and traceability before owner action, show compact aggregate blocker-priority proof with top-blocker source, kind, status, evidence-key, catalog-smoke relevance, traceability trust, and aggregate record-chain proof, while keeping remaining-goal and PM traceability repairs out of catalog-smoke actions.",
+            completionPercent: 72,
             complexity: "high",
             sourceDocument: "Phase 4 provider blocker priority"
           }

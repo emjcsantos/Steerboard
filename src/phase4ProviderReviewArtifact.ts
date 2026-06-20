@@ -170,6 +170,19 @@ const REQUIRED_TRACEABILITY_PROOF_TERMS = [
   "metadataOnly=locked",
   "execution=locked"
 ] as const;
+const REQUIRED_BLOCKER_PRIORITY_PROOF_TERMS = [
+  "open=0",
+  "catalogSmokeAddressable=0",
+  "topSource=phase4.provider-blocker.none",
+  "topKind=none",
+  "topStatus=ready",
+  "topEvidence=phase-04-provider-blocker:none",
+  "catalogSmokeTop=no",
+  "recordChain=ready",
+  "traceability=ready",
+  "metadataOnly=locked",
+  "execution=locked"
+] as const;
 const REQUIRED_CATALOG_DEPTH_PROOF_TERMS = [
   "records=6/6",
   "ready=6",
@@ -919,6 +932,33 @@ function findTraceabilityProofReview(
   return undefined;
 }
 
+function findBlockerPriorityProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const blockerPriorityProof = artifact.blockerPriority.blockerPriorityProof?.trim();
+
+  if (!blockerPriorityProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing blocker-priority aggregate proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after blocker priority includes top-blocker, catalog-smoke, record-chain, traceability, and execution-lock proof."
+    };
+  }
+
+  const missingTerms = REQUIRED_BLOCKER_PRIORITY_PROOF_TERMS.filter(
+    (term) => !blockerPriorityProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete blocker-priority aggregate proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after blocker-priority proof includes open-count, top-source, top-kind, top-status, evidence-key, record-chain, traceability, and execution-lock terms."
+    };
+  }
+
+  return undefined;
+}
+
 export function buildPhase4ProviderReviewArtifact(
   input: Phase4ProviderReviewArtifactBuildInput
 ): Phase4ProviderReviewArtifact {
@@ -1271,6 +1311,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       traceabilityProofReview.detail,
       traceabilityProofReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const blockerPriorityProofReview = findBlockerPriorityProofReview(artifact);
+  if (blockerPriorityProofReview) {
+    return result(
+      "review",
+      artifact,
+      blockerPriorityProofReview.detail,
+      blockerPriorityProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

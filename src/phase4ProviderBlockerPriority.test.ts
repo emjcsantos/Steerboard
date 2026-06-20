@@ -552,6 +552,13 @@ describe("phase 4 provider blocker priority", () => {
     expect(snapshot.topPriorityStatus).toBe("ready");
     expect(snapshot.topPriorityEvidenceKey).toBe("phase-04-provider-blocker:none");
     expect(snapshot.catalogSmokeCanAddressTopBlocker).toBe(false);
+    expect(snapshot.blockerPriorityProof).toContain("open=0 catalogSmokeAddressable=0");
+    expect(snapshot.blockerPriorityProof).toContain("topSource=phase4.provider-blocker.none");
+    expect(snapshot.blockerPriorityProof).toContain("topKind=none topStatus=ready");
+    expect(snapshot.blockerPriorityProof).toContain("topEvidence=phase-04-provider-blocker:none");
+    expect(snapshot.blockerPriorityProof).toContain("catalogSmokeTop=no");
+    expect(snapshot.blockerPriorityProof).toContain("recordChain=ready traceability=ready");
+    expect(snapshot.blockerPriorityProof).toContain("metadataOnly=locked execution=locked");
     expect(snapshot.items).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({
