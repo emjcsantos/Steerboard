@@ -28,10 +28,17 @@ describe("project management phase plan", () => {
     const auditParent = byId.get("phase-08-parent-audit-log");
     const auditPersistenceChild = byId.get("phase-08-child-audit-persistence");
 
+    expect(auditParent?.completionPercent).toBe(64);
+    expect(auditPersistenceChild?.completionPercent).toBe(64);
     expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
       auditPersistenceChild?.completionPercent ?? 0
     );
     expect(auditParent?.description).toContain("auditPersistenceProof");
+    expect(auditParent?.description).toContain("state/readiness/record/open-exception counts");
+    expect(auditPersistenceChild?.description).toContain("auditPersistenceProof");
+    expect(auditPersistenceChild?.description).toContain(
+      "state/readiness/record/open-exception counts"
+    );
   });
 
   it("keeps Phase 8 risk gate progress aligned with permission and blocker proof", () => {
@@ -85,6 +92,9 @@ describe("project management phase plan", () => {
     expect(traceabilityChild?.description).toContain("traceabilityRowStateProof ready/review/blocked/waiting");
     expect(blockerPriorityChild?.description).toContain("topBlockerProof source/kind/status");
     expect(blockerPriorityChild?.description).toContain("blockerQueueProof open/kind/status");
+    expect(riskExceptionsChild?.completionPercent).toBe(64);
+    expect(riskExceptionsChild?.description).toContain("riskExceptionProof");
+    expect(riskExceptionsChild?.description).toContain("riskExceptionSummaryProof severity/status/ready");
   });
 
   it("keeps Phase 11 release traceability progress aligned with owner-visible proof depth", () => {
