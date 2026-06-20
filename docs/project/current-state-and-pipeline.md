@@ -71,7 +71,7 @@ The current implementation includes:
 - Connect planning-lane dispatch records to live worker/session creation only after risk exceptions, disabled paths, permission approvals, audit persistence, and rollback evidence are ready.
 - Add plugin, skill, MCP, and automation execution paths behind explicit provider support and approval gates.
 - Add permissioned terminal and Git evidence capture after the read-only runner path is proven.
-- Add signed audit export, rollback references, and release privacy checks.
+- Extend signed audit export delivery and rollback reference attachments; release privacy checks are now represented by `releasePrivacyReadiness` and final security closure gates.
 - Prepare a clean Git-based install path and desktop packaging only after the Phase 11 Release Readiness and release closeout gates record clean checkout, build/test, smoke proof with Phase 3 proof-export detail, completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, docs/known limits, final security closure capability, explicit owner release decision, `phase11ReleaseCloseoutStatusProof`, and packaging-paused evidence.
 
 ## Closeout Note
