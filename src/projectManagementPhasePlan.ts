@@ -734,16 +734,16 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-09-parent-runner-probe",
         title: "Runner Probe Hardening",
-        description: "Keep the desktop runner limited to the fixed terminal-readonly-probe with visible request preview, Phase 9 approval checks, fingerprint-matched local runner-review evidence, and mutation locks.",
-        completionPercent: 62,
+        description: "Keep the desktop runner limited to the fixed terminal-readonly-probe with selected-action readiness, visible request preview, Phase 9 approval checks, fingerprint-matched local runner-review evidence, and mutation locks.",
+        completionPercent: 64,
         complexity: "high",
         sourceDocument: "Desktop runner probe",
         children: [
           {
             id: "phase-09-child-reversible-action",
             title: "Choose One Reversible Action",
-            description: "Use terminal-readonly-probe as the single selected read-only action, with the visible Probe control disabled until the Phase 9 request gate and trusted Phase 9 traceability/current active goal proof are ready.",
-            completionPercent: 54,
+            description: "Use terminal-readonly-probe as the single selected read-only action with selected-action readiness, no workspace write, no Git operation, no external call, no profile mutation, and the visible Probe control disabled until the Phase 9 request gate and trusted Phase 9 traceability/current active goal proof are ready.",
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Runner approval plan"
           },

@@ -407,10 +407,13 @@ describe("remaining goal plan", () => {
       "trusted Phase 9 traceability/current active goal gates"
     );
     expect(phase9Parent?.completionPercent).toBe(64);
-    expect(phase9RunnerProbeParent?.completionPercent).toBe(62);
+    expect(phase9RunnerProbeParent?.completionPercent).toBe(64);
+    expect(reversibleChild?.completionPercent).toBe(64);
     expect(reversibleChild?.description).toContain(
       "trusted Phase 9 traceability/current active goal proof"
     );
+    expect(reversibleChild?.description).toContain("no workspace write");
+    expect(reversibleChild?.description).toContain("no Git operation");
     expect(traceabilityChild?.description).toContain("current active goal trust");
     expect(blockerPriorityChild?.description).toContain(
       "owner-action blockers from runner-review-addressable blockers"
