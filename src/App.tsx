@@ -13473,6 +13473,20 @@ function LiveActionRiskGatePanel({
           <span>{desktopActionRunnerSummary.statusLabel}</span>
           <strong>{desktopActionRunnerSummary.auditText}</strong>
         </div>
+        <div
+          className={classNames(
+            "live-action-desktop-probe-gate",
+            phase9CanRequestDesktopProbe
+              ? "live-action-desktop-probe-gate-ready"
+              : "live-action-desktop-probe-gate-held"
+          )}
+          aria-label={`Phase 9 desktop probe gate: ${phase9CanRequestDesktopProbe ? "Ready" : "Held"}; ${phase9DesktopProbeHoldReason}`}
+          title={phase9DesktopProbeHoldReason}
+        >
+          <span>{phase9CanRequestDesktopProbe ? "Ready" : "Held"}</span>
+          <strong>Phase 9 desktop probe gate</strong>
+          <small>{phase9DesktopProbeHoldReason}</small>
+        </div>
         <ol className="live-action-gate-list">
           {liveActionGateDefinitions.map((definition) => {
             const request =

@@ -10846,6 +10846,48 @@ textarea {
   color: #f0d984;
 }
 
+.live-action-desktop-probe-gate {
+  display: grid;
+  grid-template-columns: auto minmax(0, max-content) minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #263545;
+  border-radius: 8px;
+  background: #111923;
+  padding: 7px;
+}
+
+.live-action-desktop-probe-gate span,
+.live-action-desktop-probe-gate strong,
+.live-action-desktop-probe-gate small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.live-action-desktop-probe-gate span {
+  border-radius: 999px;
+  background: #352e18;
+  color: #f0d984;
+  padding: 4px 7px;
+  font-weight: 900;
+}
+
+.live-action-desktop-probe-gate-ready span {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.live-action-desktop-probe-gate strong {
+  color: #edf2f7;
+}
+
+.live-action-desktop-probe-gate small {
+  min-width: 0;
+  color: #8f99a5;
+}
+
 .live-action-gate-list,
 .live-action-audit-history ol {
   display: grid;
