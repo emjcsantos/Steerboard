@@ -753,7 +753,7 @@ describe("remaining goal plan", () => {
       target: "Adaptive Arena polish",
       priority: "medium",
       status: "next",
-      completionPercent: 62
+      completionPercent: 65
     });
     expect(phase10Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -765,8 +765,11 @@ describe("remaining goal plan", () => {
         "phase-10-child-blocker-priority"
       ])
     );
-    expect(phase10Goal?.nextAction).toContain("traceability rows");
-    expect(phase10Goal?.nextAction).toContain("blocker-priority queue");
+    expect(phase10Goal?.goal).toContain("traceabilityProof");
+    expect(phase10Goal?.goal).toContain("blockerPriorityProof");
+    expect(phase10Goal?.nextAction).toContain("traceabilityProof rows");
+    expect(phase10Goal?.nextAction).toContain("blockerPriorityProof queue");
+    expect(phase10Goal?.nextAction).toContain("owner-visible Phase 10 proof");
     expect(phase10Goal?.nextAction).toContain("npm.cmd run test:phase10:owner-visible");
     expect(packageJson.scripts["test:phase10:owner-visible"]).toBe(
       "vitest run src/phase10ArenaPolishOwnerVisible.test.tsx"
@@ -783,14 +786,19 @@ describe("remaining goal plan", () => {
     const blockerPriorityChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-10-child-blocker-priority"
     );
-    expect(phase10Epic?.completionPercent).toBe(62);
+    expect(phase10Epic?.completionPercent).toBe(65);
     expect(phase10Epic?.description).toContain("npm.cmd run test:phase10:owner-visible");
-    expect(layoutFoundationParent?.completionPercent).toBe(62);
-    expect(flexLayoutSpikeChild?.completionPercent).toBe(62);
+    expect(phase10Epic?.description).toContain("traceabilityProof");
+    expect(phase10Epic?.description).toContain("blockerPriorityProof");
+    expect(layoutFoundationParent?.completionPercent).toBe(65);
+    expect(flexLayoutSpikeChild?.completionPercent).toBe(65);
     expect(flexLayoutSpikeChild?.description).toContain("dependency-install status");
     expect(flexLayoutSpikeChild?.description).toContain("decisionProof");
+    expect(flexLayoutSpikeChild?.description).toContain("traceabilityProof");
+    expect(flexLayoutSpikeChild?.description).toContain("blockerPriorityProof");
     expect(flexLayoutSpikeChild?.description).toContain("custom adaptive-grid fallback");
-    expect(blockerPriorityChild?.completionPercent).toBe(62);
+    expect(blockerPriorityChild?.completionPercent).toBe(65);
+    expect(blockerPriorityChild?.description).toContain("blockerPriorityProof open/kind/status");
     expect(blockerPriorityChild?.description).toContain("Arena-review addressable count");
     expect(blockerPriorityChild?.description).toContain("top-priority action detail");
   });

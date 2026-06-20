@@ -411,16 +411,22 @@ describe("project management phase plan", () => {
     expect(traceabilityChild?.completionPercent).toBeGreaterThanOrEqual(
       blockerPriorityChild?.completionPercent ?? 0
     );
-    expect(phase10Epic?.completionPercent).toBe(62);
+    expect(phase10Epic?.completionPercent).toBe(65);
     expect(phase10Epic?.description).toContain("npm.cmd run test:phase10:owner-visible");
-    expect(flexLayoutSpikeChild?.completionPercent).toBe(62);
+    expect(phase10Epic?.description).toContain("traceabilityProof");
+    expect(phase10Epic?.description).toContain("blockerPriorityProof");
+    expect(flexLayoutSpikeChild?.completionPercent).toBe(65);
     expect(flexLayoutSpikeChild?.description).toContain("dependency-install status");
     expect(flexLayoutSpikeChild?.description).toContain("decisionProof");
+    expect(flexLayoutSpikeChild?.description).toContain("traceabilityProof");
+    expect(flexLayoutSpikeChild?.description).toContain("blockerPriorityProof");
     expect(flexLayoutSpikeChild?.description).toContain("custom adaptive-grid fallback");
-    expect(traceabilityChild?.completionPercent).toBe(62);
+    expect(traceabilityChild?.completionPercent).toBe(65);
     expect(traceabilityChild?.description).toContain("npm.cmd run test:phase10:owner-visible");
-    expect(blockerPriorityChild?.completionPercent).toBe(62);
+    expect(traceabilityChild?.description).toContain("traceabilityProof goal/missing-PM/trust");
+    expect(blockerPriorityChild?.completionPercent).toBe(65);
     expect(blockerPriorityChild?.description).toContain("owner-visible proof");
+    expect(blockerPriorityChild?.description).toContain("blockerPriorityProof open/kind/status");
     expect(blockerPriorityChild?.description).toContain("open blocker count");
     expect(blockerPriorityChild?.description).toContain("Arena-review addressable count");
     expect(blockerPriorityChild?.description).toContain("top-priority action detail");

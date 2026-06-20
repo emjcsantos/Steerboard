@@ -803,37 +803,37 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-10-adaptive-arena",
     title: "Phase 10: Adaptive Magnetic Arena",
-    description: "Polish adaptive Arena layout regression, evaluate a FlexLayout-backed docking spike, density, keyboard controls, focus state, terminology, acceptance gates, and owner-visible proof with npm.cmd run test:phase10:owner-visible.",
-    completionPercent: 62,
+    description: "Polish adaptive Arena layout regression, evaluate a FlexLayout-backed docking spike, density, keyboard controls, focus state, terminology, acceptance gates, traceabilityProof, blockerPriorityProof, and owner-visible proof with npm.cmd run test:phase10:owner-visible.",
+    completionPercent: 65,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-10-parent-layout-foundation",
         title: "Adaptive Layout Foundation",
-        description: "Keep drag, drop, keyboard adjustment, saved-state repair, project stack drop, panel capacity rules, and the FlexLayout docking feasibility spike visible in Phase 10 readiness.",
-        completionPercent: 62,
+        description: "Keep drag, drop, keyboard adjustment, saved-state repair, project stack drop, panel capacity rules, owner-visible proof, and the FlexLayout docking feasibility spike visible in Phase 10 readiness.",
+        completionPercent: 65,
         sourceDocument: "Adaptive Arena layout",
         children: [
           {
             id: "phase-10-child-layout-regression",
             title: "Layout Regression Pass",
-            description: "Verify adaptive panel move, resize, hide, reveal, reset, drop preview, saved-state repair, acceptance gates, and owner-visible Phase 10 proof with npm.cmd run test:phase10:owner-visible.",
-            completionPercent: 62,
+            description: "Verify adaptive panel move, resize, hide, reveal, reset, drop preview, saved-state repair, acceptance gates, traceabilityProof, blockerPriorityProof, and owner-visible Phase 10 proof with npm.cmd run test:phase10:owner-visible.",
+            completionPercent: 65,
             sourceDocument: "Adaptive layout tests"
           },
           {
             id: "phase-10-child-density-polish",
             title: "Density and Readability Polish",
-            description: "Tune dense operational views so controls, labels, Phase readiness panels, evidence rows, and owner-visible Phase 10 proof remain scannable.",
-            completionPercent: 62,
+            description: "Tune dense operational views so controls, labels, Phase readiness panels, evidence rows, traceabilityProof, blockerPriorityProof, and owner-visible Phase 10 proof remain scannable.",
+            completionPercent: 65,
             sourceDocument: "Product UI polish"
           },
           {
             id: "phase-10-child-flexlayout-spike",
             title: "FlexLayout Docking Spike",
-            description: "Evaluate caplin/FlexLayout as an MIT-licensed React docking layout option for Arena tabsets, splitters, saved layout JSON, dockable panels, dependency-install status, owner approval, decisionProof, and custom adaptive-grid fallback before replacing custom adaptive-grid behavior.",
-            completionPercent: 62,
+            description: "Evaluate caplin/FlexLayout as an MIT-licensed React docking layout option for Arena tabsets, splitters, saved layout JSON, dockable panels, dependency-install status, owner approval, decisionProof, traceabilityProof, blockerPriorityProof, and custom adaptive-grid fallback before replacing custom adaptive-grid behavior.",
+            completionPercent: 65,
             complexity: "medium",
             sourceDocument: "caplin/FlexLayout MIT license review"
           }
@@ -842,33 +842,33 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-10-parent-arena-identity",
         title: "Arena Product Identity",
-        description: "Keep Arena language consistent across user-facing docs, UI labels, milestone text, Phase 10 readiness checks, and owner-visible Arena polish proof.",
+        description: "Keep Arena language consistent across user-facing docs, UI labels, milestone text, Phase 10 readiness checks, traceabilityProof, blockerPriorityProof, and owner-visible Arena polish proof.",
         status: "ongoing",
-        completionPercent: 62,
+        completionPercent: 65,
         complexity: "low",
         sourceDocument: "Arena rename",
         children: [
           {
             id: "phase-10-child-term-scan",
             title: "Terminology Scan",
-            description: "Prevent old public vocabulary from returning while preserving backward-compatible internal keys, public-safe scan reporting, and owner-visible Arena terminology proof.",
-            completionPercent: 62,
+            description: "Prevent old public vocabulary from returning while preserving backward-compatible internal keys, public-safe scan reporting, traceabilityProof, blockerPriorityProof, and owner-visible Arena terminology proof.",
+            completionPercent: 65,
             complexity: "low",
             sourceDocument: "Arena rename validation"
           },
           {
             id: "phase-10-child-traceability",
             title: "Arena Polish Traceability",
-            description: "Link Phase 10 remaining-goal status, PM child rows, layout regression, density, keyboard, focus, terminology, acceptance gates, and npm.cmd run test:phase10:owner-visible before release packaging can resume.",
-            completionPercent: 62,
+            description: "Link Phase 10 remaining-goal status, PM child rows, layout regression, density, keyboard, focus, terminology, acceptance gates, traceabilityProof goal/missing-PM/trust, and npm.cmd run test:phase10:owner-visible before release packaging can resume.",
+            completionPercent: 65,
             complexity: "medium",
             sourceDocument: "Phase 10 Arena polish traceability"
           },
           {
             id: "phase-10-child-blocker-priority",
             title: "Arena Polish Blocker Priority",
-            description: "Rank exact Phase 10 blockers across layout regression, density, keyboard controls, focus state, terminology, acceptance gates, PM coverage, traceability, and owner-visible proof with open blocker count, Arena-review addressable count, and top-priority action detail before packaging resumes.",
-            completionPercent: 62,
+            description: "Rank exact Phase 10 blockers across layout regression, density, keyboard controls, focus state, terminology, acceptance gates, PM coverage, traceability, blockerPriorityProof open/kind/status, and owner-visible proof with open blocker count, Arena-review addressable count, and top-priority action detail before packaging resumes.",
+            completionPercent: 65,
             complexity: "medium",
             sourceDocument: "Phase 10 Arena polish blocker priority"
           }
