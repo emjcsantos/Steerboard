@@ -137,6 +137,7 @@ const REQUIRED_REFRESH_SAFETY_DEPTH_PROOF_TERMS = [
   "ready=8",
   "preview=0",
   "blocked=0",
+  "recordKinds=run-state|surface-order|validation-result|proof-freshness|catalog-fingerprint|metadata-only-contract|reload-safe-proof|execution-lock",
   "refreshSmoke=present",
   "reloadSafe=ready",
   "checkedAt=present",

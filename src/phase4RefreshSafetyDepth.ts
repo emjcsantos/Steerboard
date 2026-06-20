@@ -353,9 +353,11 @@ function refreshSafetyDepthProof(
   const blockedCount = records.filter((record) => record.status === "blocked").length;
   const reloadSafeRecord = records.find((record) => record.kind === "reload-safe-proof");
   const metadataOnly = smoke.safety.includes("must not execute") ? "locked" : "review";
+  const recordKinds = records.map((record) => record.kind).join("|");
 
   return (
     `records=${records.length}/8 ready=${readyCount} preview=${previewCount} blocked=${blockedCount} ` +
+    `recordKinds=${recordKinds} ` +
     `refreshSmoke=${smokeProof.trim() ? "present" : "missing"} reloadSafe=${reloadSafeRecord?.status ?? "missing"} ` +
     `checkedAt=${smoke.checkedAt ? "present" : "missing"} fingerprint=${smoke.catalogFingerprint ? "present" : "missing"} ` +
     `command=${surfaceStatus(smoke, "command")} skill=${surfaceStatus(smoke, "skill")} ` +

@@ -112,6 +112,9 @@ describe("phase 4 refresh safety depth", () => {
     expect(depth.refreshSmokeProof).toContain("reloadSafe=preview");
     expect(depth.refreshSmokeProof).toContain("metadataOnly=locked execution=locked");
     expect(depth.refreshSafetyDepthProof).toContain("records=8/8");
+    expect(depth.refreshSafetyDepthProof).toContain(
+      "recordKinds=run-state|surface-order|validation-result|proof-freshness|catalog-fingerprint|metadata-only-contract|reload-safe-proof|execution-lock"
+    );
     expect(depth.refreshSafetyDepthProof).toContain("refreshSmoke=present reloadSafe=preview");
     expect(depth.refreshSafetyDepthProof).toContain("checkedAt=missing fingerprint=missing");
     expect(depth.refreshSafetyDepthProof).toContain("metadataOnly=locked execution=locked");
@@ -171,6 +174,9 @@ describe("phase 4 refresh safety depth", () => {
     expect(depth.refreshSmokeProof).toContain("reloadSafe=ready");
     expect(depth.refreshSmokeProof).toContain("metadataOnly=locked execution=locked");
     expect(depth.refreshSafetyDepthProof).toContain("records=8/8 ready=8 preview=0 blocked=0");
+    expect(depth.refreshSafetyDepthProof).toContain(
+      "recordKinds=run-state|surface-order|validation-result|proof-freshness|catalog-fingerprint|metadata-only-contract|reload-safe-proof|execution-lock"
+    );
     expect(depth.refreshSafetyDepthProof).toContain("refreshSmoke=present reloadSafe=ready");
     expect(depth.refreshSafetyDepthProof).toContain("checkedAt=present fingerprint=present");
     expect(depth.refreshSafetyDepthProof).toContain(

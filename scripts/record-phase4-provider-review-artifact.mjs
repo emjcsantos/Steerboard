@@ -7,13 +7,16 @@ const surfaceNames = ["command", "skill", "plugin", "mcp", "automation", "person
 const createdAt = new Date().toISOString();
 const currentCatalogFingerprint = `phase4-catalog-recorded-${createdAt.replace(/[:.]/g, "-")}`;
 const surfaceOrderProof = surfaceNames.join("|");
+const refreshSafetyRecordKinds =
+  "run-state|surface-order|validation-result|proof-freshness|catalog-fingerprint|metadata-only-contract|reload-safe-proof|execution-lock";
 const refreshSmokeProof =
   `surfaces=6/6 executed=6/6 ready=6 preview=0 blocked=0 checkedAt=${createdAt} ` +
   `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
   `surfaceOrder=${surfaceOrderProof} reloadSafe=ready ` +
   "metadataOnly=locked execution=locked";
 const refreshSafetyDepthProof =
-  "records=8/8 ready=8 preview=0 blocked=0 refreshSmoke=present reloadSafe=ready " +
+  `records=8/8 ready=8 preview=0 blocked=0 recordKinds=${refreshSafetyRecordKinds} ` +
+  "refreshSmoke=present reloadSafe=ready " +
   "checkedAt=present fingerprint=present " +
   "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready " +
   "metadataOnly=locked execution=locked";
