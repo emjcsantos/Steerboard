@@ -108,11 +108,17 @@ describe("project management phase plan", () => {
   it("keeps Phase 7 role-panel progress aligned with dispatch review proof depth", () => {
     const tasks = createDefaultProjectManagementPhasePlan();
     const byId = new Map(tasks.map((task) => [task.id, task]));
+    const phase7Epic = byId.get("phase-07-dispatch-loop");
     const rolePanelParent = byId.get("phase-07-parent-role-panels");
     const workerPreviewChild = byId.get("phase-07-child-worker-preview");
     const integrationOwnerChild = byId.get("phase-07-child-integration-owner");
     const integrationDepthChild = byId.get("phase-07-child-integration-ownership-depth");
+    const traceabilityChild = byId.get("phase-07-child-traceability");
+    const blockerPriorityChild = byId.get("phase-07-child-blocker-priority");
 
+    expect(phase7Epic?.completionPercent).toBeGreaterThanOrEqual(
+      rolePanelParent?.completionPercent ?? 0
+    );
     expect(rolePanelParent?.completionPercent).toBeGreaterThanOrEqual(
       integrationDepthChild?.completionPercent ?? 0
     );
@@ -123,8 +129,22 @@ describe("project management phase plan", () => {
       integrationDepthChild?.completionPercent ?? 0
     );
     expect(rolePanelParent?.description).toContain("handoff packet integrity");
+    expect(rolePanelParent?.description).toContain("PM coverage");
     expect(workerPreviewChild?.description).toContain("validation gate depth");
+    expect(workerPreviewChild?.description).toContain("PM coverage");
     expect(integrationOwnerChild?.description).toContain("ownership-depth evidence");
+    expect(integrationOwnerChild?.description).toContain("five-link traceability coverage");
+    expect(integrationDepthChild?.description).toContain("five traceability links");
+    expect(integrationDepthChild?.description).toContain("open-depth counts");
+    expect(traceabilityChild?.completionPercent).toBeGreaterThanOrEqual(
+      integrationDepthChild?.completionPercent ?? 0
+    );
+    expect(blockerPriorityChild?.completionPercent).toBeGreaterThanOrEqual(
+      traceabilityChild?.completionPercent ?? 0
+    );
+    expect(traceabilityChild?.description).toContain("PM coverage");
+    expect(traceabilityChild?.description).toContain("five-link traceability");
+    expect(blockerPriorityChild?.description).toContain("PM coverage");
   });
 
   it("keeps Phase 7 handoff trace progress aligned with dispatch packet proof", () => {

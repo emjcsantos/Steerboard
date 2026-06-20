@@ -574,30 +574,30 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-07-parent-role-panels",
         title: "Role-Panel Dispatch Plan",
-        description: "Define and record orchestrator, implementer, validator, and integration roles with clear attempt limits, role coverage counts, handoff packet integrity, integration ownership depth, and live-worker execution locks.",
-        completionPercent: 62,
+        description: "Define and record orchestrator, implementer, validator, and integration roles with clear attempt limits, role coverage counts, handoff packet integrity, integration ownership depth, PM coverage, traceability links, closure boundary, and live-worker execution locks.",
+        completionPercent: 64,
         complexity: "high",
         sourceDocument: "Dispatch role-panel plan",
         children: [
           {
             id: "phase-07-child-worker-preview",
             title: "Worker Preview Cards",
-            description: "Show worker objective, files owned, validation plan, retry limit, role coverage counts, per-role handoff packet integrity, handoff expectation, validation gate depth, and local no-runtime boundary before launch.",
-            completionPercent: 62,
+            description: "Show worker objective, files owned, validation plan, retry limit, role coverage counts, per-role handoff packet integrity, handoff expectation, validation gate depth, PM coverage, and local no-runtime boundary before launch.",
+            completionPercent: 64,
             sourceDocument: "Dispatch controls"
           },
           {
             id: "phase-07-child-integration-owner",
             title: "Main Integration Ownership",
-            description: "Keep final integration, validation, commit, push approval, reporting, dispatch-review traceability, closure boundary, and ownership-depth evidence owned by the main Arena path.",
-            completionPercent: 62,
+            description: "Keep final integration, validation, commit, push approval, reporting, dispatch-review traceability, five-link traceability coverage, closure boundary, and ownership-depth evidence owned by the main Arena path.",
+            completionPercent: 64,
             sourceDocument: "Dispatch safety rules"
           },
           {
             id: "phase-07-child-integration-ownership-depth",
             title: "Integration Ownership Depth",
-            description: "Show integration owner, final validation owner, commit/push/reporting owner, traceability links, and closure boundary as separate review rows.",
-            completionPercent: 62,
+            description: "Show integration owner, final validation owner, commit/push/reporting owner, five traceability links, closure boundary, open-depth counts, and live-worker lock ownership as separate review rows.",
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Phase 7 integration ownership depth"
           }
@@ -630,16 +630,16 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-07-child-traceability",
             title: "Dispatch Traceability",
-            description: "Link Phase 7 remaining-goal status, PM child rows, dispatch review depth, evidence freshness, integration ownership depth, and live-worker locks before any worker spawning can be trusted.",
-            completionPercent: 62,
+            description: "Link Phase 7 remaining-goal status, PM child rows, dispatch review depth, evidence freshness, integration ownership depth, PM coverage, five-link traceability, closure boundary, and live-worker locks before any worker spawning can be trusted.",
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Phase 7 dispatch traceability"
           },
           {
             id: "phase-07-child-blocker-priority",
             title: "Dispatch Blocker Priority",
-            description: "Rank exact Phase 7 blockers across role coverage, attempt limits, handoff tasks, handoff packet integrity, evidence freshness, validation gates, integration ownership, traceability, closure boundaries, and live-worker locks before dispatch can expand, while keeping remaining-goal and PM traceability repairs out of dispatch-review actions.",
-            completionPercent: 62,
+            description: "Rank exact Phase 7 blockers across role coverage, attempt limits, handoff tasks, handoff packet integrity, evidence freshness, validation gates, integration ownership, PM coverage, traceability, closure boundaries, and live-worker locks before dispatch can expand, while keeping remaining-goal and PM traceability repairs out of dispatch-review actions.",
+            completionPercent: 64,
             complexity: "medium",
             sourceDocument: "Phase 7 dispatch blocker priority"
           }

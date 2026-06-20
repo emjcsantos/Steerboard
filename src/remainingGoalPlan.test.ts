@@ -633,6 +633,10 @@ describe("remaining goal plan", () => {
     expect(phase7Goal?.nextAction).toContain("current evidence fingerprint");
     expect(phase7Goal?.nextAction).toContain("blocker-priority queue");
     expect(phase7Goal?.nextAction).toContain("owner-visible Phase 7 dispatch proof");
+    for (const rowId of phase7Goal?.pmTaskIds ?? []) {
+      const row = createDefaultProjectManagementPhasePlan().find((task) => task.id === rowId);
+      expect(row?.completionPercent, rowId).toBeGreaterThanOrEqual(64);
+    }
   });
 
   it("keeps the Phase 10 Arena polish target linked to traceability and blocker priority", () => {
