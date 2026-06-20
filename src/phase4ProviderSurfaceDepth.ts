@@ -303,6 +303,7 @@ function approvalGateItem(
       ownerBoundaryProof:
         `catalog=${valueOrMissing(approvalValidation.expectedCatalogFingerprint)} ` +
         `recordCatalog=${valueOrMissing(approvalValidation.recordCatalogFingerprint)} ` +
+        `${approvalValidation.refreshSafetyProof} ` +
         `catalogMatch=${approvalValidation.matchesCurrentCatalog ? "matched" : "review"} execution=locked`,
       nextAction: approvalValidation.nextAction
     };

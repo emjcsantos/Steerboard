@@ -8343,6 +8343,9 @@ export function Phase4ProviderSurfaceDepthPanel({
               Catalog {approvalValidation?.recordCatalogFingerprint ?? "missing"} / expected{" "}
               {approvalValidation?.expectedCatalogFingerprint ?? "missing"}
             </small>
+            <small>
+              {approvalValidation?.refreshSafetyProof ?? "refreshSafety=review ready=0 preview=1 blocked=0"}
+            </small>
           </div>
           <button
             disabled={!recordApprovalEnabled || !onRecordApproval}

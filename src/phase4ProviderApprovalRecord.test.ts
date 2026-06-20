@@ -58,6 +58,8 @@ describe("phase 4 provider approval record", () => {
     ).toMatchObject({
       state: "ready",
       matchesCurrentCatalog: true,
+      refreshSafetyReady: true,
+      refreshSafetyProof: "refreshSafety=ready ready=7 preview=0 blocked=0",
       recordAgeMs: 300_000
     });
   });
@@ -72,7 +74,9 @@ describe("phase 4 provider approval record", () => {
     ).toMatchObject({
       state: "preview",
       detail: expect.stringContaining("not attached"),
-      matchesCurrentCatalog: false
+      matchesCurrentCatalog: false,
+      refreshSafetyReady: true,
+      refreshSafetyProof: "refreshSafety=ready ready=7 preview=0 blocked=0"
     });
   });
 
@@ -133,7 +137,9 @@ describe("phase 4 provider approval record", () => {
     ).toMatchObject({
       state: "review",
       detail: expect.stringContaining("refresh safety proof"),
-      nextAction: "Rerun catalog smoke."
+      nextAction: "Rerun catalog smoke.",
+      refreshSafetyReady: false,
+      refreshSafetyProof: "refreshSafety=review ready=7 preview=1 blocked=0"
     });
   });
 

@@ -19,6 +19,8 @@ export interface Phase4ProviderApprovalRecordValidation {
   readonly recordAgeMs?: number;
   readonly maxRecordAgeMs: number;
   readonly matchesCurrentCatalog: boolean;
+  readonly refreshSafetyReady: boolean;
+  readonly refreshSafetyProof: string;
 }
 
 export interface Phase4ProviderApprovalRecordValidationOptions {
@@ -96,6 +98,15 @@ function recordAgeMs(
 
 function refreshSafetyReady(refreshSafety: Phase4RefreshSafetyDepthSummary): boolean {
   return refreshSafety.blockedCount === 0 && refreshSafety.previewCount === 0;
+}
+
+function refreshSafetyProof(refreshSafety: Phase4RefreshSafetyDepthSummary): string {
+  const ready = refreshSafetyReady(refreshSafety);
+
+  return (
+    `refreshSafety=${ready ? "ready" : "review"} ` +
+    `ready=${refreshSafety.readyCount} preview=${refreshSafety.previewCount} blocked=${refreshSafety.blockedCount}`
+  );
 }
 
 function readStorage(): string | null {
@@ -220,6 +231,8 @@ export function derivePhase4ProviderApprovalRecordValidation(input: {
   const maxRecordAgeMs =
     input.options?.maxRecordAgeMs ??
     DEFAULT_PHASE4_PROVIDER_APPROVAL_RECORD_MAX_AGE_MS;
+  const isRefreshSafetyReady = refreshSafetyReady(input.refreshSafety);
+  const refreshProof = refreshSafetyProof(input.refreshSafety);
 
   if (!input.record) {
     return {
@@ -229,7 +242,9 @@ export function derivePhase4ProviderApprovalRecordValidation(input: {
         "Record owner approval after current six-surface catalog smoke proof is fresh and fingerprint-matched.",
       expectedCatalogFingerprint: input.expectedCatalogFingerprint,
       maxRecordAgeMs,
-      matchesCurrentCatalog: false
+      matchesCurrentCatalog: false,
+      refreshSafetyReady: isRefreshSafetyReady,
+      refreshSafetyProof: refreshProof
     };
   }
 
@@ -242,7 +257,9 @@ export function derivePhase4ProviderApprovalRecordValidation(input: {
     recordCatalogFingerprint: input.record.catalogFingerprint,
     ...(ageMs !== undefined ? { recordAgeMs: ageMs } : {}),
     maxRecordAgeMs,
-    matchesCurrentCatalog
+    matchesCurrentCatalog,
+    refreshSafetyReady: isRefreshSafetyReady,
+    refreshSafetyProof: refreshProof
   };
 
   if (!input.expectedCatalogFingerprint) {
@@ -266,7 +283,7 @@ export function derivePhase4ProviderApprovalRecordValidation(input: {
     };
   }
 
-  if (!refreshSafetyReady(input.refreshSafety)) {
+  if (!isRefreshSafetyReady) {
     return {
       state: "review",
       detail:

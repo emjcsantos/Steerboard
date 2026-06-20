@@ -216,7 +216,8 @@ function withReadyLocalRecords(
           ...item,
           ownerBoundaryProof:
             `catalog=${approvalValidation.expectedCatalogFingerprint} ` +
-            `recordCatalog=${approvalValidation.recordCatalogFingerprint} catalogMatch=matched execution=locked`
+            `recordCatalog=${approvalValidation.recordCatalogFingerprint} ` +
+            `${approvalValidation.refreshSafetyProof} catalogMatch=matched execution=locked`
         };
       }
 
@@ -502,7 +503,9 @@ describe("phase 4 provider review artifact", () => {
         recordCatalogFingerprint: "phase4-catalog-old",
         recordAgeMs: 5 * 60 * 1000,
         maxRecordAgeMs: 24 * 60 * 60 * 1000,
-        matchesCurrentCatalog: false
+        matchesCurrentCatalog: false,
+        refreshSafetyReady: true,
+        refreshSafetyProof: "refreshSafety=ready ready=8 preview=0 blocked=0"
       }
     };
 

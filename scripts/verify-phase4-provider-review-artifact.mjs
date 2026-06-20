@@ -18,7 +18,7 @@ const requiredTraceabilityKinds = [
 const requiredSurfaceOwnerBoundaryProofTerms = [
   {
     kind: "approval-gate",
-    terms: ["catalog=", "recordCatalog=", "catalogMatch=", "execution=locked"]
+    terms: ["catalog=", "recordCatalog=", "refreshSafety=ready", "catalogMatch=", "execution=locked"]
   },
   {
     kind: "audit-gate",

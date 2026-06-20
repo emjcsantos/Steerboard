@@ -106,7 +106,7 @@ const REQUIRED_SURFACE_OWNER_BOUNDARY_PROOF_TERMS: ReadonlyArray<{
 }> = [
   {
     kind: "approval-gate",
-    terms: ["catalog=", "recordCatalog=", "catalogMatch=", "execution=locked"]
+    terms: ["catalog=", "recordCatalog=", "refreshSafety=ready", "catalogMatch=", "execution=locked"]
   },
   {
     kind: "audit-gate",

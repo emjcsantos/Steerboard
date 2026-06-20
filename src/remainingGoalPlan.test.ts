@@ -495,7 +495,7 @@ describe("remaining goal plan", () => {
       status: "active",
       completionPercent: 99
     });
-    expect(phase4Epic?.completionPercent).toBe(79);
+    expect(phase4Epic?.completionPercent).toBe(80);
     expect(phase4Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-04-child-command-skill",

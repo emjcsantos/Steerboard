@@ -124,7 +124,9 @@ const approvalValidation = {
   recordCatalogFingerprint: currentCatalogFingerprint,
   recordAgeMs: 0,
   maxRecordAgeMs: 24 * 60 * 60 * 1000,
-  matchesCurrentCatalog: true
+  matchesCurrentCatalog: true,
+  refreshSafetyReady: true,
+  refreshSafetyProof: "refreshSafety=ready ready=8 preview=0 blocked=0"
 };
 const auditRecord = {
   id: auditRecordId,
@@ -320,7 +322,7 @@ const artifact = {
         "approval-gate",
         "Approval gate",
         "Provider approval metadata is ready.",
-        `catalog=${currentCatalogFingerprint} recordCatalog=${currentCatalogFingerprint} catalogMatch=matched execution=locked`
+        `catalog=${currentCatalogFingerprint} recordCatalog=${currentCatalogFingerprint} refreshSafety=ready ready=8 preview=0 blocked=0 catalogMatch=matched execution=locked`
       ),
       surfaceItem(
         "audit-gate",
