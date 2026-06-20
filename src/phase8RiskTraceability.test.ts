@@ -228,6 +228,13 @@ describe("phase 8 risk traceability", () => {
     ]);
     expect(summary.state).toBe("waiting");
     expect(summary.canTrustPermissionAudit).toBe(false);
+    expect(summary.traceabilityProof).toContain(
+      "traceabilityProof=goal=goal-phase-8-permission-audit state=waiting"
+    );
+    expect(summary.traceabilityProof).toContain("missingPm=0");
+    expect(summary.traceabilityProof).toContain("trust=review");
+    expect(summary.ariaLabel).toContain("traceabilityProof=");
+    expect(summary.items[0]?.detail).toContain("traceabilityProof=");
     expect(summary.safety).toContain("evidence-only");
   });
 
@@ -244,6 +251,8 @@ describe("phase 8 risk traceability", () => {
 
     expect(summary.state).toBe("blocked");
     expect(summary.missingPmTaskIds).toEqual(["phase-08-child-traceability"]);
+    expect(summary.traceabilityProof).toContain("missingPm=1");
+    expect(summary.traceabilityProof).toContain("trust=review");
     expect(summary.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -315,6 +324,8 @@ describe("phase 8 risk traceability", () => {
 
     expect(summary.state).toBe("ready");
     expect(summary.canTrustPermissionAudit).toBe(true);
+    expect(summary.traceabilityProof).toContain("state=ready");
+    expect(summary.traceabilityProof).toContain("trust=ready");
     expect(summary.readyCount).toBe(5);
     expect(summary.evidenceKeyCount).toBe(summary.auditDepthItemCount + summary.exceptionCount);
     expect(summary.openExceptionCount).toBe(0);

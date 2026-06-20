@@ -47,6 +47,7 @@ export interface Phase8RiskTraceabilitySummary {
   openExceptionCount: number;
   evidenceKeyCount: number;
   disabledPathCount: number;
+  traceabilityProof: string;
   nextAction: string;
   safety: string;
   ariaLabel: string;
@@ -321,7 +322,29 @@ function buildAriaLabel(summary: Omit<Phase8RiskTraceabilitySummary, "ariaLabel"
     `${summary.linkedPmTaskCount} PM links, ${summary.auditDepthItemCount} audit-depth rows, ` +
     `${summary.exceptionCount} exceptions, ${summary.openExceptionCount} open exceptions, ` +
     `${summary.evidenceKeyCount} evidence keys, ${summary.disabledPathCount} disabled paths; ` +
+    `${summary.traceabilityProof}; ` +
     `next action: ${summary.nextAction}`
+  );
+}
+
+function buildTraceabilityProof(input: {
+  state: Phase8RiskTraceabilityState;
+  linkedGoalId: string;
+  linkedPmTaskCount: number;
+  missingPmTaskIds: readonly string[];
+  auditDepthItemCount: number;
+  exceptionCount: number;
+  openExceptionCount: number;
+  evidenceKeyCount: number;
+  disabledPathCount: number;
+  canTrustPermissionAudit: boolean;
+}): string {
+  return (
+    `traceabilityProof=goal=${input.linkedGoalId} state=${input.state} ` +
+    `pmLinks=${input.linkedPmTaskCount} missingPm=${input.missingPmTaskIds.length} ` +
+    `auditDepth=${input.auditDepthItemCount} exceptions=${input.exceptionCount} ` +
+    `openExceptions=${input.openExceptionCount} evidenceKeys=${input.evidenceKeyCount} ` +
+    `disabledPaths=${input.disabledPathCount} trust=${input.canTrustPermissionAudit ? "ready" : "review"}`
   );
 }
 
@@ -359,19 +382,36 @@ export function buildPhase8RiskTraceabilitySummary({
   const reviewCount = items.filter((item) => item.status === "review").length;
   const blockedCount = items.filter((item) => item.status === "blocked").length;
   const waitingCount = items.filter((item) => item.status === "waiting").length;
+  const canTrustPermissionAudit =
+    state === "ready" &&
+    isCurrentActiveRemainingGoal(goal) &&
+    currentActiveGoalIds.length === 1 &&
+    missingPmTaskIds.length === 0 &&
+    snapshot.openExceptionCount === 0 &&
+    evidenceKeyCount === snapshot.items.length + snapshot.exceptions.length;
+  const traceabilityProof = buildTraceabilityProof({
+    state,
+    linkedGoalId: goal?.id ?? PHASE8_GOAL_ID,
+    linkedPmTaskCount: goal?.pmTaskIds.length ?? 0,
+    missingPmTaskIds,
+    auditDepthItemCount: snapshot.items.length,
+    exceptionCount: snapshot.exceptions.length,
+    openExceptionCount: snapshot.openExceptionCount,
+    evidenceKeyCount,
+    disabledPathCount: snapshot.disabledPathCount,
+    canTrustPermissionAudit
+  });
+  const proofedItems = items.map((item) => ({
+    ...item,
+    detail: `${item.detail} ${traceabilityProof}`
+  }));
   const draft = {
     id: TRACE_ID,
     label: TRACE_LABEL,
     state,
     statusLabel: STATUS_LABELS[state],
     readiness,
-    canTrustPermissionAudit:
-      state === "ready" &&
-      isCurrentActiveRemainingGoal(goal) &&
-      currentActiveGoalIds.length === 1 &&
-      missingPmTaskIds.length === 0 &&
-      snapshot.openExceptionCount === 0 &&
-      evidenceKeyCount === snapshot.items.length + snapshot.exceptions.length,
+    canTrustPermissionAudit,
     readyCount,
     reviewCount,
     blockedCount,
@@ -384,9 +424,10 @@ export function buildPhase8RiskTraceabilitySummary({
     openExceptionCount: snapshot.openExceptionCount,
     evidenceKeyCount,
     disabledPathCount: snapshot.disabledPathCount,
+    traceabilityProof,
     nextAction: firstNextAction(items),
     safety: SAFETY,
-    items
+    items: proofedItems
   };
 
   return {
