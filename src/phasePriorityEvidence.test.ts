@@ -135,7 +135,7 @@ describe("phase priority evidence", () => {
       "methods=item/agentMessage/delta|thread/start|turn/completed|turn/start"
     );
     expect(phase1?.detail).toContain(
-      "reloadProof=source:desktop executed=true timestamped=true storageTrusted=true"
+      "reloadProof=source:desktop executed=true timestamped=true checkedAt=2026-06-10T00:00:00.000Z storageTrusted=true"
     );
     const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
     expect(phase2?.detail).toContain(
@@ -285,7 +285,7 @@ describe("phase priority evidence", () => {
     });
     expect(phase1?.detail).toContain("reload timestamp");
     expect(phase1?.detail).toContain(
-      "reloadProof=source:desktop executed=true timestamped=false storageTrusted=false"
+      "reloadProof=source:desktop executed=true timestamped=false checkedAt=none storageTrusted=false"
     );
   });
 

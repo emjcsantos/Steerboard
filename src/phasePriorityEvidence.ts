@@ -204,9 +204,13 @@ function buildReloadProofSummary(proof: Record<string, unknown>): string {
   const source = typeof proof.source === "string" && proof.source.trim() ? proof.source.trim() : "unknown";
   const executed = bool(proof.executed);
   const timestamped = typeof proof.checkedAt === "string" && proof.checkedAt.trim().length > 0;
+  const checkedAt = timestamped ? String(proof.checkedAt).trim().replace(/\s+/g, "_") : "none";
   const storageTrusted = source === "desktop" && executed && timestamped;
 
-  return `reloadProof=source:${source} executed=${executed} timestamped=${timestamped} storageTrusted=${storageTrusted}`;
+  return (
+    `reloadProof=source:${source} executed=${executed} timestamped=${timestamped} ` +
+    `checkedAt=${checkedAt} storageTrusted=${storageTrusted}`
+  );
 }
 
 function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenceItem {
