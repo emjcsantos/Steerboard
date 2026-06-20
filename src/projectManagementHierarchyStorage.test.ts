@@ -140,6 +140,56 @@ describe("project management hierarchy storage", () => {
     });
   });
 
+  it("prunes duplicate current phase-plan rows while preserving duplicate custom rows", () => {
+    const tasks = parseStoredProjectManagementTasks(JSON.stringify([
+      {
+        id: "phase-06-planning-lane",
+        type: "epic",
+        title: "Old Phase 6",
+        description: "First stale Phase 6 row",
+        completionPercent: 1,
+        sourceDocument: "Old saved board"
+      },
+      {
+        id: "phase-06-planning-lane",
+        type: "epic",
+        title: "Duplicate Phase 6",
+        description: "Duplicate current-plan row that should be pruned.",
+        completionPercent: 2,
+        sourceDocument: "Old saved board"
+      },
+      {
+        id: "custom-owner-note",
+        type: "epic",
+        title: "Owner Note",
+        description: "First custom row.",
+        completionPercent: 0,
+        sourceDocument: "Local PM board"
+      },
+      {
+        id: "custom-owner-note",
+        type: "epic",
+        title: "Owner Note Copy",
+        description: "Custom duplicate should survive with a stable suffix.",
+        completionPercent: 0,
+        sourceDocument: "Local PM board"
+      }
+    ]));
+
+    expect(tasks.filter((task) => task.id === "phase-06-planning-lane")).toHaveLength(1);
+    expect(tasks.some((task) => task.id.startsWith("phase-06-planning-lane-"))).toBe(false);
+    expect(tasks.find((task) => task.id === "phase-06-planning-lane")).toMatchObject({
+      title: "Phase 6: Project and Program Planning Lane",
+      completionPercent: 55
+    });
+    expect(tasks.find((task) => task.id === "custom-owner-note")).toMatchObject({
+      title: "Owner Note"
+    });
+    expect(tasks.find((task) => task.id === "custom-owner-note-4")).toMatchObject({
+      title: "Owner Note Copy"
+    });
+  });
+
   it("repairs saved chat messages and excludes invalid entries", () => {
     const messages = parseStoredProjectManagementChat(
       JSON.stringify([

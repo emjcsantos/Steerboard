@@ -203,11 +203,16 @@ export function repairProjectManagementTasks(rawTasks: unknown): ProjectManageme
 
   const normalized = rawTasks.map((task, index) => normalizeProjectManagementTask(task, index));
   const ids = new Set<string>();
-  const repaired = normalized.map((task, index) => {
+  const repaired = normalized.reduce<ProjectManagementTask[]>((acc, task, index) => {
+    if (ids.has(task.id) && currentProjectManagementPhasePlanTaskIds.has(task.id)) {
+      return acc;
+    }
+
     const nextId = ids.has(task.id) ? `${task.id}-${index + 1}` : task.id;
     ids.add(nextId);
-    return { ...task, id: nextId };
-  });
+    acc.push({ ...task, id: nextId });
+    return acc;
+  }, []);
 
   const validIds = new Set(repaired.map((task) => task.id));
   const hierarchySafe = repaired.map((task) => {

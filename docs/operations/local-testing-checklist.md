@@ -145,6 +145,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Confirm planning metadata remains readable after a refresh.
    - Confirm the Project Management board contains Phase 0 through Phase 11 as Epics, exposes compact phase-map proof with staged Epic/Parent/Child review coverage, and that representative Epic, Parent, and Child rows each stage an Arena review package through `Run`.
    - Confirm stale saved Project Management rows are refreshed from the canonical Phase 0 through Phase 11 plan while local collapsed or staged UI state is preserved.
+   - Confirm duplicate saved current-plan rows are pruned during Project Management upgrade while duplicate custom owner rows remain available with stable suffixed IDs.
    - Confirm Phase 6 includes publish-hold traceability and blocker-priority child rows linked to the Phase 1/2/6 publish-hold goal.
 10. `Dispatch`
     - Dispatch a staged pipeline item through the standard lane.
