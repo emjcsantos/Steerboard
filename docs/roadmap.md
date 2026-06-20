@@ -4,7 +4,7 @@ This roadmap is intentionally high level. Detailed planning, task splitting, pro
 
 ## Current Pipeline
 
-The current implementation target is Phase 9 desktop-backed runner approval, using the fixed `terminal-readonly-probe` only after visible desktop-probe gate status, Phase 9 request, completion, closeout, traceability, blocker-priority, and Phase 8 dependency gates are ready. Phase 1, Phase 2, and Phase 6 are held locally behind the owner/remote publish hold with `phase126PublishHoldCloseoutStatusProof` until the Steerboard public remote is restored and the owner explicitly approves pushing. The Project Management board, Remaining Goals summary, Owner Testing surfaces, and release-readiness gates all use the current Phase 0-11 plan below.
+The current implementation target is Phase 9 desktop-backed runner approval, using the fixed `terminal-readonly-probe` only after visible desktop-probe gate status, Phase 9 request, completion, closeout, traceability, blocker-priority, and Phase 8 dependency gates are ready. Phase 1, Phase 2, and Phase 6 are held locally behind the owner/remote publish hold with `phase126PublishHoldCloseoutStatusProof` until the Steerboard public remote is restored and the owner explicitly approves pushing. Phase 4 provider completion status proof, `phase5MigrationCompletionGate`, `phase7DispatchCompletionGate`, `phase8CloseoutStatusProof`, and `phase10ArenaPolishCloseoutStatusProof` remain attached as closeout or completion evidence. The Project Management board, Remaining Goals summary, Owner Testing surfaces, and release-readiness gates all use the current Phase 0-11 plan below.
 
 The latest public handoff is maintained in [Current State And Pipeline](project/current-state-and-pipeline.md). The Project Management lane details are maintained in [Project Management Lane](product/project-management-lane.md).
 
@@ -16,13 +16,13 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 | Phase 1: One Live Chat Panel | In progress | One-panel live send/stream proof is modeled with persisted proof rows and remains part of the Phase 1/2/6 owner publish hold. |
 | Phase 2: Multi-Panel Session Isolation | In progress | Two-panel session/thread isolation, no-cross-talk proof, and restore-panel behavior are modeled and remain part of the Phase 1/2/6 owner publish hold. |
 | Phase 3: Controls, Slash Commands, and Desktop Proof | In progress | Desktop smoke proof, CLI validation, current-panel slash/session evidence, owner handoff, and proof-export gating are retained as Phase 3 handoff evidence while Phase 9 is active. |
-| Phase 4: Provider Integration Surfaces | Next | Provider catalog depth, surface depth, approval, audit, rollback, permission, traceability, and blocker priority remain metadata-only and execution-locked. |
-| Phase 5: Migration Center | Next | Migration review, apply-intent lock, rollback evidence, sensitive exclusions, traceability, and blocker priority remain metadata-only until review gates pass. |
+| Phase 4: Provider Integration Surfaces | Next | Provider catalog depth, surface depth, approval, audit, rollback, permission, traceability, blocker priority, and Phase 4 provider completion status proof remain metadata-only and execution-locked. |
+| Phase 5: Migration Center | Next | Migration review, apply-intent lock, rollback evidence, sensitive exclusions, traceability, blocker priority, and `phase5MigrationCompletionGate` remain metadata-only until review gates pass. |
 | Phase 6: Project and Program Planning Lane | In progress | The Project Management board carries the current Phase 0-11 Epic, Parent, and Child hierarchy, saved-state upgrades, staged Arena review packages, publish-hold traceability, blocker-priority, closeout-status rows, and `phase126PublishHoldCloseoutStatusProof`. |
-| Phase 7: Orchestrator-Worker Dispatch | Next | Dispatch review depth, role packet staging, integration ownership, traceability, blocker priority, and live-worker locks remain staged for review. |
-| Phase 8: Permissions and Audit | Next | Permission labels, risk blockers, risk exceptions, audit persistence, traceability, and blocker priority remain prerequisites before mutation paths grow. |
+| Phase 7: Orchestrator-Worker Dispatch | Next | Dispatch review depth, role packet staging, integration ownership, traceability, blocker priority, `phase7DispatchCompletionGate`, and live-worker locks remain staged for review. |
+| Phase 8: Permissions and Audit | Next | Permission labels, risk blockers, risk exceptions, audit persistence, traceability, blocker priority, and `phase8CloseoutStatusProof` remain prerequisites before mutation paths grow. |
 | Phase 9: Desktop-Backed Runner | In progress | The fixed terminal read-only probe is the current active implementation target and remains behind permission, audit, validation, rollback, traceability, runner-review, visible desktop-probe gate status, request-gate, completion-gate, closeout, and owner approval gates. |
-| Phase 10: Adaptive Magnetic Arena | Next | Adaptive layout regression, density, keyboard controls, focus state, Arena terminology, traceability, and blocker priority remain polish work after core proof clears. |
+| Phase 10: Adaptive Magnetic Arena | Next | Adaptive layout regression, density, keyboard controls, focus state, Arena terminology, traceability, blocker priority, and `phase10ArenaPolishCloseoutStatusProof` remain polish work after core proof clears. |
 | Phase 11: Owner Testing and Release Readiness | Next | Owner Testing, evidence records, proof freshness, fresh checkout, release readiness, owner release traceability, blocker priority, and packaging holds remain the final release gate. |
 
 ## Phase 0: Baseline, Safety, and Docs Hygiene
@@ -59,13 +59,13 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 - Command, skill, plugin, MCP, automation, and personalization catalog depth.
 - Provider surface depth for setup blockers, capability gaps, preview review, and execution locks.
 - Local approval, audit, rollback, and permission records tied to the current catalog and evidence fingerprints.
-- Provider traceability and blocker priority before any provider execution is considered.
+- Provider traceability, blocker priority, and Phase 4 provider completion status proof before any provider execution is considered.
 
 ## Phase 5: Migration Center
 
 - Migration source picker and metadata-only import review.
 - Apply-intent lock, rollback evidence, profile activation lock, and sensitive exclusion checks.
-- Migration review depth, traceability, and blocker priority before any active profile or source platform state can change.
+- Migration review depth, traceability, blocker priority, and `phase5MigrationCompletionGate` before any active profile or source platform state can change.
 
 ## Phase 6: Project and Program Planning Lane
 
@@ -81,13 +81,13 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 
 - Role-panel plan scaffolds for orchestrator, implementer, validator, and integration ownership.
 - Dispatch review depth for role coverage, max attempts, handoff task depth, packet integrity, validation gates, and closure boundaries.
-- Current evidence fingerprint matching, traceability, blocker priority, and no-live-worker execution lock before worker spawning.
+- Current evidence fingerprint matching, traceability, blocker priority, `phase7DispatchCompletionGate`, and no-live-worker execution lock before worker spawning.
 
 ## Phase 8: Permissions and Audit
 
 - Permission labels, risk blockers, risk exceptions, and disabled-path explanations.
 - Local owner audit-review records with current audit evidence fingerprints.
-- Record-specific rollback review, audit persistence, risk traceability, blocker priority, and owner-visible proof before mutation paths grow.
+- Record-specific rollback review, audit persistence, risk traceability, blocker priority, `phase8CloseoutStatusProof`, and owner-visible proof before mutation paths grow.
 
 ## Phase 9: Desktop-Backed Runner
 
@@ -97,7 +97,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 
 ## Phase 10: Adaptive Magnetic Arena
 
-- Adaptive layout regression, density/readability, keyboard controls, focus state, and Arena terminology.
+- Adaptive layout regression, density/readability, keyboard controls, focus state, Arena terminology, and `phase10ArenaPolishCloseoutStatusProof`.
 - Current adaptive canvas behavior remains local UI work; release gating stays behind Phase 3 clearance and later packaging gates.
 - Traceability and blocker priority for Arena-review acceptance before packaging resumes.
 
