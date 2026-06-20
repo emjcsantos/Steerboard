@@ -14,6 +14,7 @@ import {
   currentProjectManagementPhaseEpicIds,
   currentProjectManagementPhasePlanTaskIds
 } from "./projectManagementPhasePlan";
+import type { RuntimeStreamIsolationProof } from "./runtimeStream";
 
 export type PhasePriorityEvidenceState = "ready" | "review" | "blocked" | "waiting";
 export type PhasePriorityEvidenceId = "phase-1-live-panel" | "phase-2-panel-isolation" | "phase-6-pm-board";
@@ -47,6 +48,7 @@ export interface PhasePriorityEvidenceInput {
   liveSmokeProof?: CodexLiveSmokeProof;
   twoPanelSmokeProof?: CodexTwoPanelSmokeProof;
   panelSessionState?: CodexPanelSessionState;
+  runtimeStreamIsolationProof?: RuntimeStreamIsolationProof;
   projectManagementTasks?: readonly ProjectManagementTask[];
   project?: {
     id: string;
@@ -177,7 +179,8 @@ function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenc
 
 function buildPhase2IsolationItem(
   twoPanelSmokeProof: unknown,
-  panelSessionState: CodexPanelSessionState | undefined
+  panelSessionState: CodexPanelSessionState | undefined,
+  runtimeStreamIsolationProof: RuntimeStreamIsolationProof | undefined
 ): PhasePriorityEvidenceItem {
   const identityIssues = findCodexPanelSessionIdentityIssues(panelSessionState ?? {});
 
@@ -188,6 +191,20 @@ function buildPhase2IsolationItem(
       "blocked",
       identityIssues[0].detail,
       "Start fresh panel sessions until live session and thread identities are unique."
+    );
+  }
+
+  if (
+    runtimeStreamIsolationProof &&
+    (runtimeStreamIsolationProof.crossTalkDetected ||
+      runtimeStreamIsolationProof.quarantinedEventCount > 0)
+  ) {
+    return item(
+      "phase-2-panel-isolation",
+      "Phase 2 multi-panel isolation",
+      "blocked",
+      runtimeStreamIsolationProof.detail,
+      "Repair panel-keyed stream routing before trusting two-panel isolation proof."
     );
   }
 
@@ -221,11 +238,14 @@ function buildPhase2IsolationItem(
     panelsReady;
 
   if (ready) {
+    const routeProofDetail = runtimeStreamIsolationProof
+      ? ` ${runtimeStreamIsolationProof.detail}`
+      : "";
     return item(
       "phase-2-panel-isolation",
       "Phase 2 multi-panel isolation",
       "ready",
-      "Two live panels completed with distinct session/thread identities and no foreign token evidence.",
+      `Two live panels completed with distinct session/thread identities and no foreign token evidence.${routeProofDetail}`,
       "Keep two-panel smoke as the isolation regression before worker dispatch work."
     );
   }
@@ -339,7 +359,11 @@ function buildPhase6PmBoardItem(
 export function buildPhasePriorityEvidence(input: PhasePriorityEvidenceInput = {}): PhasePriorityEvidenceResult {
   const items = [
     buildPhase1LivePanelItem(input.liveSmokeProof),
-    buildPhase2IsolationItem(input.twoPanelSmokeProof, input.panelSessionState),
+    buildPhase2IsolationItem(
+      input.twoPanelSmokeProof,
+      input.panelSessionState,
+      input.runtimeStreamIsolationProof
+    ),
     buildPhase6PmBoardItem(input.projectManagementTasks, input.project)
   ];
   const counts = countItems(items);

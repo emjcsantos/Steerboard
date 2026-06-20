@@ -5,6 +5,11 @@ import type {
 } from "./codexTransportSpike";
 import { createDefaultProjectManagementTasks } from "./projectManagementHierarchy";
 import { buildPhasePriorityEvidence } from "./phasePriorityEvidence";
+import {
+  buildRuntimeStreamIsolationProof,
+  createRuntimeStreamPanelRouterState,
+  reduceRuntimeStreamPanelRouter
+} from "./runtimeStream";
 
 const readyLiveSmoke: CodexLiveSmokeProof = {
   source: "desktop",
@@ -221,5 +226,50 @@ describe("phase priority evidence", () => {
       state: "blocked"
     });
     expect(phase2?.detail).toContain("same-session");
+  });
+
+  it("blocks Phase 2 when route isolation proof reports quarantined stream events", () => {
+    const routed = reduceRuntimeStreamPanelRouter(
+      createRuntimeStreamPanelRouterState([
+        { panelId: "orchestrator", provider: "codex", sessionId: "session-a" },
+        { panelId: "validator", provider: "codex", sessionId: "session-b" }
+      ]),
+      [
+        {
+          panelId: "validator",
+          provider: "codex",
+          sessionId: "session-a",
+          turnId: "turn-1",
+          turnSequence: 1,
+          events: [
+            {
+              id: "foreign-token",
+              sourceEventId: "foreign-token:source",
+              eventKind: "run",
+              label: "Foreign token",
+              detail: "Wrong session reached the validator panel.",
+              adapterStatus: "blocked",
+              reason: "session/provider mismatch",
+              sequence: 1
+            }
+          ]
+        }
+      ]
+    );
+
+    const result = buildPhasePriorityEvidence({
+      liveSmokeProof: readyLiveSmoke,
+      twoPanelSmokeProof: readyTwoPanelSmoke,
+      runtimeStreamIsolationProof: buildRuntimeStreamIsolationProof(routed),
+      projectManagementTasks: createDefaultProjectManagementTasks()
+    });
+    const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
+
+    expect(result.state).toBe("blocked");
+    expect(phase2).toMatchObject({
+      state: "blocked",
+      nextAction: "Repair panel-keyed stream routing before trusting two-panel isolation proof."
+    });
+    expect(phase2?.detail).toContain("session/provider");
   });
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildRuntimeStreamSnapshot,
+  buildRuntimeStreamIsolationProof,
   clampRuntimeStreamPosition,
   nextRuntimeStreamPosition,
   createRuntimeStreamPanelRouterState,
@@ -90,6 +91,32 @@ describe("runtime stream panel router", () => {
     expect(selectRuntimeStreamQuarantineEvents(next)).toHaveLength(0);
   });
 
+  it("summarizes route isolation without mixing panel ownership", () => {
+    const state = createRuntimeStreamPanelRouterState([ownerPanelA, ownerPanelB]);
+    const next = reduceRuntimeStreamPanelRouter(state, [
+      makeRoutedEventBatch("panel-a", "codex", "shared-session", "turn-1", 1, ["a1", "a2"]),
+      makeRoutedEventBatch("panel-b", "codex", "shared-session", "turn-1", 1, ["b1", "b2"])
+    ]);
+
+    const proof = buildRuntimeStreamIsolationProof(next);
+
+    expect(proof).toMatchObject({
+      panelCount: 2,
+      activePanelCount: 2,
+      routedEventCount: 4,
+      quarantinedEventCount: 0,
+      unknownPanelCount: 0,
+      unknownSessionCount: 0,
+      staleTurnCount: 0,
+      panelEventCounts: {
+        "panel-a": 2,
+        "panel-b": 2
+      },
+      crossTalkDetected: false
+    });
+    expect(proof.detail).toContain("zero mismatched owned events");
+  });
+
   it("quarantines unknown panel events with explicit reason", () => {
     const state = createRuntimeStreamPanelRouterState([ownerPanelA]);
     const next = reduceRuntimeStreamPanelRouter(state, [
@@ -121,6 +148,10 @@ describe("runtime stream panel router", () => {
       detail: expect.stringContaining("Session/provider mismatch")
     });
     expect(selectPanelRuntimeEvents(next, "panel-a")).toHaveLength(0);
+    expect(buildRuntimeStreamIsolationProof(next)).toMatchObject({
+      quarantinedEventCount: 1,
+      unknownSessionCount: 1
+    });
   });
 
   it("quarantines stale turn batches while preserving current panel log state", () => {

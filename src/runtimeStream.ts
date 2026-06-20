@@ -80,6 +80,19 @@ export interface RuntimePanelLatestStatus {
   isRunning: boolean;
 }
 
+export interface RuntimeStreamIsolationProof {
+  panelCount: number;
+  activePanelCount: number;
+  routedEventCount: number;
+  quarantinedEventCount: number;
+  unknownPanelCount: number;
+  unknownSessionCount: number;
+  staleTurnCount: number;
+  panelEventCounts: Record<string, number>;
+  crossTalkDetected: boolean;
+  detail: string;
+}
+
 const buildPanelLog = (
   ownership: RuntimeStreamPanelOwnership
 ): RuntimeStreamPanelLog => ({
@@ -298,6 +311,60 @@ export function selectRuntimeStreamQuarantineEvents(
 ): RuntimeStreamQuarantineRecord[] {
   const events = [...state.quarantinedEvents];
   return reason ? events.filter((item) => item.reason === reason) : events;
+}
+
+export function buildRuntimeStreamIsolationProof(
+  state: RuntimeStreamPanelRouterState
+): RuntimeStreamIsolationProof {
+  const panelEventCounts: Record<string, number> = {};
+  let routedEventCount = 0;
+  let crossTalkDetected = false;
+
+  for (const panelId of Object.keys(state.panelLogs).sort()) {
+    const panelLog = state.panelLogs[panelId];
+    panelEventCounts[panelId] = panelLog.events.length;
+    routedEventCount += panelLog.events.length;
+
+    if (
+      panelLog.events.some(
+        (event) =>
+          event.panelId !== panelLog.panelId ||
+          event.provider !== panelLog.provider ||
+          event.sessionId !== panelLog.sessionId
+      )
+    ) {
+      crossTalkDetected = true;
+    }
+  }
+
+  const unknownPanelCount = selectRuntimeStreamQuarantineEvents(state, "unknown-panel").length;
+  const unknownSessionCount = selectRuntimeStreamQuarantineEvents(state, "unknown-session").length;
+  const staleTurnCount = selectRuntimeStreamQuarantineEvents(state, "stale-turn").length;
+  const quarantinedEventCount = state.quarantinedEvents.length;
+  const panelCount = Object.keys(state.panelLogs).length;
+  const activePanelCount = Object.values(panelEventCounts).filter((count) => count > 0).length;
+
+  let detail = "No runtime stream panel routes are registered.";
+  if (panelCount > 0) {
+    detail =
+      `Route isolation proof has ${activePanelCount}/${panelCount} active panels, ` +
+      `${routedEventCount} routed events, ${quarantinedEventCount} quarantined events, ` +
+      `${unknownPanelCount} unknown-panel, ${unknownSessionCount} session/provider, ` +
+      `${staleTurnCount} stale-turn, and ${crossTalkDetected ? "mismatched" : "zero mismatched"} owned events.`;
+  }
+
+  return {
+    panelCount,
+    activePanelCount,
+    routedEventCount,
+    quarantinedEventCount,
+    unknownPanelCount,
+    unknownSessionCount,
+    staleTurnCount,
+    panelEventCounts,
+    crossTalkDetected,
+    detail
+  };
 }
 
 const clampToInteger = (value: number): number =>

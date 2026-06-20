@@ -166,8 +166,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-02-child-no-cross-talk",
             title: "Verify No Cross-Talk",
-            description: "Confirm controls, stream state, final response, and proof rows cannot bleed into another panel.",
-            completionPercent: 45,
+            description: "Confirm controls, stream state, final response, proof rows, and runtime route-isolation quarantine counts cannot bleed into another panel.",
+            completionPercent: 52,
             complexity: "high",
             sourceDocument: "Panel identity guards"
           }
