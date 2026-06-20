@@ -119,6 +119,11 @@ describe("phase priority evidence", () => {
     expect(phase6?.detail).toContain("staged Epic/Parent/Child package coverage");
     expect(phase6?.detail).toContain("phaseRange=0-11");
     expect(phase6?.detail).toContain("staged=epic|parent|child");
+    expect(phase6?.detail).toContain("savedStateProof=");
+    expect(phase6?.detail).toMatch(/currentPlanRows=\d+\/\d+/);
+    expect(phase6?.detail).toContain("duplicateCurrentRows=0");
+    expect(phase6?.detail).toContain("stagedCurrentRows=0");
+    expect(phase6?.detail).toContain("collapsedCurrentRows=0");
     expect(phase6?.nextAction).toBe(
       "Use row-level Run buttons to stage Arena review packages while keeping execution locked."
     );
@@ -135,6 +140,35 @@ describe("phase priority evidence", () => {
     expect(phase2?.detail).toContain("expectedTokenPanels=2");
     expect(phase2?.detail).toContain("foreignTokenPanels=0");
     expect(phase2?.detail).toContain("Restored 2/2 saved panel session labels");
+  });
+
+  it("names Phase 6 saved-state proof counts for preserved staged and collapsed PM rows", () => {
+    const projectManagementTasks = createDefaultProjectManagementTasks().map((task) => {
+      if (task.id === "phase-06-planning-lane") {
+        return { ...task, collapsed: true, runState: "staged" as const };
+      }
+
+      if (task.id === "phase-06-parent-phase-board") {
+        return { ...task, collapsed: true };
+      }
+
+      if (task.id === "phase-06-child-current-phase-map") {
+        return { ...task, runState: "staged" as const };
+      }
+
+      return task;
+    });
+    const result = buildPhasePriorityEvidence({
+      liveSmokeProof: readyLiveSmoke,
+      twoPanelSmokeProof: readyTwoPanelSmoke,
+      projectManagementTasks
+    });
+    const phase6 = result.items.find((item) => item.id === "phase-6-pm-board");
+
+    expect(result.state).toBe("ready");
+    expect(phase6?.detail).toContain("duplicateCurrentRows=0");
+    expect(phase6?.detail).toContain("stagedCurrentRows=2");
+    expect(phase6?.detail).toContain("collapsedCurrentRows=2");
   });
 
   it("keeps Phase 6 PM board evidence in review when acceptance child rows are missing", () => {

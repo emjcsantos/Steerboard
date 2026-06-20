@@ -372,6 +372,39 @@ function findTask(tasks: readonly ProjectManagementTask[], type: ProjectManageme
   return tasks.find((task) => task.type === type && currentProjectManagementPhasePlanTaskIds.has(task.id));
 }
 
+function buildProjectManagementSavedStateProofSummary(tasks: readonly ProjectManagementTask[]): string {
+  const seenCurrentPlanIds = new Set<string>();
+  let duplicateCurrentRows = 0;
+  let stagedCurrentRows = 0;
+  let collapsedCurrentRows = 0;
+
+  for (const task of tasks) {
+    if (!currentProjectManagementPhasePlanTaskIds.has(task.id)) {
+      continue;
+    }
+
+    if (seenCurrentPlanIds.has(task.id)) {
+      duplicateCurrentRows += 1;
+    } else {
+      seenCurrentPlanIds.add(task.id);
+    }
+
+    if (task.runState === "staged") {
+      stagedCurrentRows += 1;
+    }
+
+    if (task.collapsed) {
+      collapsedCurrentRows += 1;
+    }
+  }
+
+  return (
+    `savedStateProof=currentPlanRows=${seenCurrentPlanIds.size}/${currentProjectManagementPhasePlanTaskIds.size} ` +
+    `duplicateCurrentRows=${duplicateCurrentRows} stagedCurrentRows=${stagedCurrentRows} ` +
+    `collapsedCurrentRows=${collapsedCurrentRows}`
+  );
+}
+
 function buildPhase6PmBoardItem(
   tasks: readonly ProjectManagementTask[] | undefined,
   project: { id: string; name: string } | undefined
@@ -399,6 +432,7 @@ function buildPhase6PmBoardItem(
     stageableParent ? buildProjectManagementArenaDispatch(safeTasks, stageableParent.id, proofProject) : undefined,
     stageableChild ? buildProjectManagementArenaDispatch(safeTasks, stageableChild.id, proofProject) : undefined
   ];
+  const savedStateProof = buildProjectManagementSavedStateProofSummary(safeTasks);
   const allDispatchesStage = dispatches.every((dispatch) => dispatch?.dispatchPackage.status === "staged");
   const hasEnoughHierarchy = epics.length >= 12 && parents.length >= 24 && children.length >= 37;
 
@@ -407,7 +441,7 @@ function buildPhase6PmBoardItem(
       "phase-6-pm-board",
       "Phase 6 PM phase board",
       "review",
-      `Project Management board is missing ${missingPhaseIds.length} phase Epic row${missingPhaseIds.length === 1 ? "" : "s"}.`,
+      `Project Management board is missing ${missingPhaseIds.length} phase Epic row${missingPhaseIds.length === 1 ? "" : "s"}. ${savedStateProof}`,
       "Repair saved PM state so Phase 0 through Phase 11 are present."
     );
   }
@@ -417,7 +451,7 @@ function buildPhase6PmBoardItem(
       "phase-6-pm-board",
       "Phase 6 PM phase board",
       "review",
-      `Project Management board is missing Phase 6 acceptance child row${missingPhase6AcceptanceChildIds.length === 1 ? "" : "s"}: ${missingPhase6AcceptanceChildIds.join(", ")}.`,
+      `Project Management board is missing Phase 6 acceptance child row${missingPhase6AcceptanceChildIds.length === 1 ? "" : "s"}: ${missingPhase6AcceptanceChildIds.join(", ")}. ${savedStateProof}`,
       "Restore Phase 6 publish-hold traceability and blocker-priority child rows before trusting PM board evidence."
     );
   }
@@ -431,7 +465,7 @@ function buildPhase6PmBoardItem(
       "phase-6-pm-board",
       "Phase 6 PM phase board",
       "ready",
-      `Project Management board has ${epics.length} Epics, ${parents.length} Parents, ${children.length} Children, and staged Epic/Parent/Child package coverage. ${phaseMapProof}`,
+      `Project Management board has ${epics.length} Epics, ${parents.length} Parents, ${children.length} Children, and staged Epic/Parent/Child package coverage. ${phaseMapProof} ${savedStateProof}`,
       "Use row-level Run buttons to stage Arena review packages while keeping execution locked."
     );
   }
@@ -440,7 +474,7 @@ function buildPhase6PmBoardItem(
     "phase-6-pm-board",
     "Phase 6 PM phase board",
     "review",
-    `Project Management board has ${epics.length} Epics, ${parents.length} Parents, and ${children.length} Children, but staging coverage is incomplete.`,
+    `Project Management board has ${epics.length} Epics, ${parents.length} Parents, and ${children.length} Children, but staging coverage is incomplete. ${savedStateProof}`,
     "Verify Epic, Parent, and Child rows can each produce staged Arena packages."
   );
 }
