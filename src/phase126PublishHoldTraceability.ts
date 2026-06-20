@@ -40,6 +40,13 @@ export interface Phase126PublishHoldTraceabilitySummary {
   readonly linkedGoalId: string;
   readonly linkedPhaseCount: number;
   readonly linkedPmTaskCount: number;
+  readonly requiredPmTaskCount: number;
+  readonly linkedRequiredPmTaskCount: number;
+  readonly linkedRequiredPmTaskKindCounts: {
+    readonly epic: number;
+    readonly parent: number;
+    readonly child: number;
+  };
   readonly requiredPriorityEvidenceCount: number;
   readonly readyPriorityEvidenceCount: number;
   readonly publishHoldStatus: Phase126PublishHoldTraceabilityState;
@@ -300,10 +307,36 @@ function countReadyPriorityEvidence(items: readonly PhasePriorityEvidenceItem[])
   ).length;
 }
 
+function pmTaskKind(taskId: string): "epic" | "parent" | "child" {
+  if (taskId.includes("-parent-")) {
+    return "parent";
+  }
+
+  if (taskId.includes("-child-")) {
+    return "child";
+  }
+
+  return "epic";
+}
+
+function countLinkedRequiredPmKinds(
+  linkedRequiredPmTaskIds: readonly string[]
+): Phase126PublishHoldTraceabilitySummary["linkedRequiredPmTaskKindCounts"] {
+  return linkedRequiredPmTaskIds.reduce(
+    (counts, taskId) => ({
+      ...counts,
+      [pmTaskKind(taskId)]: counts[pmTaskKind(taskId)] + 1
+    }),
+    { epic: 0, parent: 0, child: 0 }
+  );
+}
+
 function buildLocalHoldEvidenceKey(
   goal: RemainingGoalPlanItem | undefined,
   linkedPhaseCount: number,
   linkedPmTaskCount: number,
+  linkedRequiredPmTaskCount: number,
+  linkedRequiredPmTaskKindCounts: Phase126PublishHoldTraceabilitySummary["linkedRequiredPmTaskKindCounts"],
   readyPriorityEvidenceCount: number,
   publishHoldStatus: Phase126PublishHoldTraceabilityState
 ): string {
@@ -311,6 +344,9 @@ function buildLocalHoldEvidenceKey(
   return (
     `goal=${goalId} phases=${linkedPhaseCount}/${REQUIRED_PHASE_IDS.length} ` +
     `pm=${linkedPmTaskCount}/${REQUIRED_PM_TASK_IDS.length} ` +
+    `trustedPm=${linkedRequiredPmTaskCount}/${REQUIRED_PM_TASK_IDS.length} ` +
+    `epics=${linkedRequiredPmTaskKindCounts.epic} parents=${linkedRequiredPmTaskKindCounts.parent} ` +
+    `children=${linkedRequiredPmTaskKindCounts.child} ` +
     `priority=${readyPriorityEvidenceCount}/${REQUIRED_PRIORITY_EVIDENCE_IDS.length} ` +
     `hold=${publishHoldStatus}`
   );
@@ -322,6 +358,8 @@ function buildAriaLabel(
   return (
     `${summary.label}: ${summary.statusLabel}; ${summary.readiness}% ready; ` +
     `${summary.linkedPhaseCount} phases; ${summary.linkedPmTaskCount} PM links; ` +
+    `${summary.linkedRequiredPmTaskCount}/${summary.requiredPmTaskCount} trusted PM links; ` +
+    `${summary.linkedRequiredPmTaskKindCounts.epic} Epics, ${summary.linkedRequiredPmTaskKindCounts.parent} Parents, ${summary.linkedRequiredPmTaskKindCounts.child} Children; ` +
     `${summary.readyPriorityEvidenceCount}/${summary.requiredPriorityEvidenceCount} priority proofs; ` +
     `${summary.blockedCount} blocked; ${summary.waitingCount} waiting; ` +
     `publish hold ${summary.publishHoldStatus}; local hold evidence ${summary.localHoldEvidenceKey}; ` +
@@ -337,6 +375,9 @@ export function buildPhase126PublishHoldTraceability(
   const planTaskIds = new Set(currentProjectManagementPhasePlanTaskIds);
   const missingPmTaskIds = REQUIRED_PM_TASK_IDS.filter(
     (taskId) => !goal?.pmTaskIds.includes(taskId) || !planTaskIds.has(taskId)
+  );
+  const linkedRequiredPmTaskIds = REQUIRED_PM_TASK_IDS.filter(
+    (taskId) => Boolean(goal?.pmTaskIds.includes(taskId)) && planTaskIds.has(taskId)
   );
   const phase1 = input.phasePriorityEvidence.items.find((item) => item.id === "phase-1-live-panel");
   const phase2 = input.phasePriorityEvidence.items.find((item) => item.id === "phase-2-panel-isolation");
@@ -354,6 +395,7 @@ export function buildPhase126PublishHoldTraceability(
   const readyPriorityEvidenceCount = countReadyPriorityEvidence(input.phasePriorityEvidence.items);
   const linkedPhaseCount = goal?.phaseIds.length ?? 0;
   const linkedPmTaskCount = goal?.pmTaskIds.length ?? 0;
+  const linkedRequiredPmTaskKindCounts = countLinkedRequiredPmKinds(linkedRequiredPmTaskIds);
   const draft = {
     id: TRACE_ID,
     label: TRACE_LABEL,
@@ -373,6 +415,9 @@ export function buildPhase126PublishHoldTraceability(
     linkedGoalId: goal?.id ?? "",
     linkedPhaseCount,
     linkedPmTaskCount,
+    requiredPmTaskCount: REQUIRED_PM_TASK_IDS.length,
+    linkedRequiredPmTaskCount: linkedRequiredPmTaskIds.length,
+    linkedRequiredPmTaskKindCounts,
     requiredPriorityEvidenceCount: REQUIRED_PRIORITY_EVIDENCE_IDS.length,
     readyPriorityEvidenceCount,
     publishHoldStatus,
@@ -380,6 +425,8 @@ export function buildPhase126PublishHoldTraceability(
       goal,
       linkedPhaseCount,
       linkedPmTaskCount,
+      linkedRequiredPmTaskIds.length,
+      linkedRequiredPmTaskKindCounts,
       readyPriorityEvidenceCount,
       publishHoldStatus
     ),

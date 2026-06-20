@@ -25,7 +25,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Run live smoke, control smoke, active-turn interrupt smoke, active-turn steer smoke, and two-panel smoke from the connection dialog when desktop runtime access is available.
    - Confirm the Owner Testing Phase 1/2/6 priority card shows one-panel proof, two-panel isolation, and PM phase-board staging as separate evidence rows.
    - Confirm the Owner Testing Phase 1/2/6 publish-hold traceability rows link `goal-phase-1-2-6-publish`, Phase 1 live proof, Phase 2 isolation proof, Phase 6 PM staging, required PM child rows, and the owner/remote push hold without running smoke, Git, push, release, or packaging actions.
-   - Confirm the same publish-hold traceability panel shows the priority proof count and compact local-hold evidence key for phases, PM links, priority proofs, and hold status.
+   - Confirm the same publish-hold traceability panel shows trusted required PM links by Epic, Parent, and Child count, plus the priority proof count and compact local-hold evidence key for phases, PM links, priority proofs, and hold status.
    - Confirm the Owner Testing Phase 1/2/6 blocker-priority queue ranks the owner/remote push hold above ordinary proof review when local proof is already ready and keeps publish-goal or PM-link traceability repairs out of owner-review actions.
    - Use the Owner Testing Phase 1 and Phase 2 smoke buttons to rerun live-panel and two-panel proof only after explicitly choosing the action.
    - Confirm incomplete Phase 1 desktop smoke proof names the exact missing stream/completion signals such as desktop smoke result, thread id, turn id, agent delta, turn completion, or expected token.
