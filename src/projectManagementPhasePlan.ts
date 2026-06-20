@@ -574,23 +574,23 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-07-parent-role-panels",
         title: "Role-Panel Dispatch Plan",
-        description: "Define and record orchestrator, implementer, validator, and integration roles with clear attempt limits and ownership.",
-        completionPercent: 58,
+        description: "Define and record orchestrator, implementer, validator, and integration roles with clear attempt limits, role coverage counts, handoff packet integrity, integration ownership depth, and live-worker execution locks.",
+        completionPercent: 62,
         complexity: "high",
         sourceDocument: "Dispatch role-panel plan",
         children: [
           {
             id: "phase-07-child-worker-preview",
             title: "Worker Preview Cards",
-            description: "Show worker objective, files owned, validation plan, retry limit, role counts, handoff expectation, and local no-runtime boundary before launch.",
-            completionPercent: 58,
+            description: "Show worker objective, files owned, validation plan, retry limit, role coverage counts, per-role handoff packet integrity, handoff expectation, validation gate depth, and local no-runtime boundary before launch.",
+            completionPercent: 62,
             sourceDocument: "Dispatch controls"
           },
           {
             id: "phase-07-child-integration-owner",
             title: "Main Integration Ownership",
-            description: "Keep final integration, validation, commit, push, reporting, and dispatch-review traceability owned by the main Arena path.",
-            completionPercent: 58,
+            description: "Keep final integration, validation, commit, push approval, reporting, dispatch-review traceability, closure boundary, and ownership-depth evidence owned by the main Arena path.",
+            completionPercent: 62,
             sourceDocument: "Dispatch safety rules"
           },
           {

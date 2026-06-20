@@ -51,4 +51,26 @@ describe("project management phase plan", () => {
     expect(traceabilityChild?.description).toContain("linked goal and PM row coverage");
     expect(traceabilityChild?.description).toContain("release hold status");
   });
+
+  it("keeps Phase 7 role-panel progress aligned with dispatch review proof depth", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const rolePanelParent = byId.get("phase-07-parent-role-panels");
+    const workerPreviewChild = byId.get("phase-07-child-worker-preview");
+    const integrationOwnerChild = byId.get("phase-07-child-integration-owner");
+    const integrationDepthChild = byId.get("phase-07-child-integration-ownership-depth");
+
+    expect(rolePanelParent?.completionPercent).toBeGreaterThanOrEqual(
+      integrationDepthChild?.completionPercent ?? 0
+    );
+    expect(workerPreviewChild?.completionPercent).toBeGreaterThanOrEqual(
+      integrationDepthChild?.completionPercent ?? 0
+    );
+    expect(integrationOwnerChild?.completionPercent).toBeGreaterThanOrEqual(
+      integrationDepthChild?.completionPercent ?? 0
+    );
+    expect(rolePanelParent?.description).toContain("handoff packet integrity");
+    expect(workerPreviewChild?.description).toContain("validation gate depth");
+    expect(integrationOwnerChild?.description).toContain("ownership-depth evidence");
+  });
 });
