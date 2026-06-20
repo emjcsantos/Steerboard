@@ -80,11 +80,15 @@ const catalogDepthProof =
 const commandSkillProof =
   "command=ready skill=ready commandItems=2 skillItems=2 " +
   "commandEvidence=phase-04-provider-catalog:command skillEvidence=phase-04-provider-catalog:skill " +
+  "commandItemOrder=present skillItemOrder=present commandMetadata=present skillMetadata=present " +
+  "commandSource=present skillSource=present " +
   "commandScopeProof=present skillInvocationProof=present " +
   "commandLock=locked skillLock=locked metadataOnly=locked execution=locked";
 const pluginMcpProof =
   "plugin=ready mcp=ready pluginItems=2 mcpItems=2 " +
   "pluginEvidence=phase-04-provider-catalog:plugin mcpEvidence=phase-04-provider-catalog:mcp " +
+  "pluginItemOrder=present mcpItemOrder=present pluginMetadata=present mcpMetadata=present " +
+  "pluginSource=present mcpSource=present " +
   "pluginSurfaceProof=present mcpToolPolicyProof=present metadataOnlySurface=present " +
   "mcpTransport=present mcpToolPolicy=present " +
   "pluginLock=locked mcpLock=locked metadataOnly=locked execution=locked";

@@ -297,31 +297,31 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
-    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 98,
+    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof with item-order/source/metadata coverage, structured plugin/MCP aggregate proof with item-order/source/metadata coverage, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, and current six-surface fingerprint checks after Phase 3 clears.",
+    completionPercent: 99,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
-        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 84,
+        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof with item-order/source/metadata coverage, structured plugin/MCP aggregate proof with item-order/source/metadata coverage, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
+        completionPercent: 86,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
           {
             id: "phase-04-child-command-skill",
             title: "Command and Skill Catalogs",
-            description: "Show command and skill entries with scoped item-order proof, structured command/skill aggregate proof, command scope proof, skill invocation proof, fallback/source guidance, evidence keys, owner-safe readiness proof, and execution locks.",
-            completionPercent: 68,
+            description: "Show command and skill entries with scoped item-order proof, structured command/skill aggregate proof including item-order/source/metadata coverage, command scope proof, skill invocation proof, fallback/source guidance, evidence keys, owner-safe readiness proof, and execution locks.",
+            completionPercent: 70,
             sourceDocument: "Command and skill catalogs"
           },
           {
             id: "phase-04-child-plugin-mcp",
             title: "Plugin and MCP Catalogs",
-            description: "Show plugin and MCP entries with structured plugin/MCP aggregate proof, scoped plugin surface proof, metadata-only surface proof, MCP transport/tool-policy proof, connection state, allowed surfaces, non-mutating readiness evidence, and execution-lock artifact enforcement.",
-            completionPercent: 68,
+            description: "Show plugin and MCP entries with structured plugin/MCP aggregate proof including item-order/source/metadata coverage, scoped plugin surface proof, metadata-only surface proof, MCP transport/tool-policy proof, connection state, allowed surfaces, non-mutating readiness evidence, and execution-lock artifact enforcement.",
+            completionPercent: 70,
             complexity: "high",
             sourceDocument: "Plugin and MCP catalogs"
           },

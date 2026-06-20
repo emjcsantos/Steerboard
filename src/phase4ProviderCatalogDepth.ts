@@ -232,6 +232,12 @@ function buildCommandSkillProof(
     `command=${command?.status ?? "missing"} skill=${skill?.status ?? "missing"} ` +
     `commandItems=${command?.itemOrder.length ?? 0} skillItems=${skill?.itemOrder.length ?? 0} ` +
     `commandEvidence=${command?.evidenceKey ?? "missing"} skillEvidence=${skill?.evidenceKey ?? "missing"} ` +
+    `commandItemOrder=${command && command.itemOrder.length > 0 ? "present" : "missing"} ` +
+    `skillItemOrder=${skill && skill.itemOrder.length > 0 ? "present" : "missing"} ` +
+    `commandMetadata=${command && command.metadataProof.length > 0 ? "present" : "missing"} ` +
+    `skillMetadata=${skill && skill.metadataProof.length > 0 ? "present" : "missing"} ` +
+    `commandSource=${command?.sourceLabel ? "present" : "missing"} ` +
+    `skillSource=${skill?.sourceLabel ? "present" : "missing"} ` +
     `commandScopeProof=${command?.scopedExecutionProof.includes("commandScopeProof=") ? "present" : "missing"} ` +
     `skillInvocationProof=${skill?.scopedExecutionProof.includes("skillInvocationProof=") ? "present" : "missing"} ` +
     `commandLock=${command?.executionLocked ? "locked" : "review"} ` +
@@ -250,6 +256,12 @@ function buildPluginMcpProof(
     `plugin=${plugin?.status ?? "missing"} mcp=${mcp?.status ?? "missing"} ` +
     `pluginItems=${plugin?.itemOrder.length ?? 0} mcpItems=${mcp?.itemOrder.length ?? 0} ` +
     `pluginEvidence=${plugin?.evidenceKey ?? "missing"} mcpEvidence=${mcp?.evidenceKey ?? "missing"} ` +
+    `pluginItemOrder=${plugin && plugin.itemOrder.length > 0 ? "present" : "missing"} ` +
+    `mcpItemOrder=${mcp && mcp.itemOrder.length > 0 ? "present" : "missing"} ` +
+    `pluginMetadata=${plugin && plugin.metadataProof.length > 0 ? "present" : "missing"} ` +
+    `mcpMetadata=${mcp && mcp.metadataProof.length > 0 ? "present" : "missing"} ` +
+    `pluginSource=${plugin?.sourceLabel ? "present" : "missing"} ` +
+    `mcpSource=${mcp?.sourceLabel ? "present" : "missing"} ` +
     `pluginSurfaceProof=${plugin?.scopedExecutionProof.includes("pluginSurfaceProof=") ? "present" : "missing"} ` +
     `mcpToolPolicyProof=${mcp?.scopedExecutionProof.includes("mcpToolPolicyProof=") ? "present" : "missing"} ` +
     `metadataOnlySurface=${plugin?.scopedExecutionProof.includes("surface=metadata-only") ? "present" : "missing"} ` +

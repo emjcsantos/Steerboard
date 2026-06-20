@@ -162,8 +162,16 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("metadataProof=6/6 scopedExecution=6/6 ownerSafe=6/6");
     expect(html).toContain("commandScopeProof=present");
     expect(html).toContain("skillInvocationProof=present");
+    expect(html).toContain("commandItemOrder=present");
+    expect(html).toContain("skillItemOrder=present");
+    expect(html).toContain("commandMetadata=present");
+    expect(html).toContain("skillSource=present");
     expect(html).toContain("pluginSurfaceProof=present");
     expect(html).toContain("mcpToolPolicyProof=present");
+    expect(html).toContain("pluginItemOrder=present");
+    expect(html).toContain("mcpItemOrder=present");
+    expect(html).toContain("pluginMetadata=present");
+    expect(html).toContain("mcpSource=present");
     expect(html).toContain("metadataOnlySurface=present");
     expect(html).toContain("commandScopeProof=");
     expect(html).toContain("skillInvocationProof=");

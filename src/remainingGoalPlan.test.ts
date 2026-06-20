@@ -33,7 +33,7 @@ describe("remaining goal plan", () => {
       averageCompletionPercent: 76,
       currentTarget: "Provider integration surfaces",
       currentNextAction:
-        "Use the Phase 4 Provider Readiness catalog depth, structured catalog-depth aggregate proof, structured command/skill aggregate proof, command/skill catalog item-order, evidence-key, scoped command, skill invocation, and execution-lock proof, structured plugin/MCP aggregate proof, plugin/MCP metadata-only surface, scoped plugin surface, scoped MCP transport/tool-policy, and execution-lock proof, owner-visible plugin/MCP metadata-only safety evidence, Refresh Safety depth, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, reload-safe recorded metadata-only proof, Surface Depth owner-boundary proof, structured surface-depth aggregate proof with record-chain coverage, aggregate local record-validation proof, local approval, structured approval-chain, structured audit-chain with approval-validation linkage, structured rollback-chain with audit-validation linkage, structured permission-chain with rollback-validation linkage, and permission record validation, owner-visible rollback and permission record-chain evidence, visible record-enable gates, explicit aggregate record-chain traceability proof, tested recorded provider-review artifact loading with offline fingerprint verification, attached local record evidence, missing-record review enforcement, owner-visible missing-record proof, catalog-depth aggregate artifact enforcement, command/skill aggregate artifact enforcement, plugin/MCP aggregate artifact enforcement, refresh-smoke artifact enforcement, refresh-safety depth aggregate artifact enforcement, approval validation chain-proof artifact enforcement, audit validation chain-proof artifact enforcement, rollback validation chain-proof artifact enforcement, permission validation chain-proof artifact enforcement, local record-validation aggregate artifact enforcement, surface-depth aggregate chain artifact enforcement, surface owner-boundary artifact enforcement, compact top-blocker source/evidence/status proof with record-chain detail, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered.",
+        "Use the Phase 4 Provider Readiness catalog depth, structured catalog-depth aggregate proof, structured command/skill aggregate proof, command/skill catalog item-order, source, metadata, evidence-key, scoped command, skill invocation, and execution-lock proof, structured plugin/MCP aggregate proof, plugin/MCP item-order, source, metadata-only surface, scoped plugin surface, scoped MCP transport/tool-policy, and execution-lock proof, owner-visible plugin/MCP metadata-only safety evidence, Refresh Safety depth, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, reload-safe recorded metadata-only proof, Surface Depth owner-boundary proof, structured surface-depth aggregate proof with record-chain coverage, aggregate local record-validation proof, local approval, structured approval-chain, structured audit-chain with approval-validation linkage, structured rollback-chain with audit-validation linkage, structured permission-chain with rollback-validation linkage, and permission record validation, owner-visible rollback and permission record-chain evidence, visible record-enable gates, explicit aggregate record-chain traceability proof, tested recorded provider-review artifact loading with offline fingerprint verification, attached local record evidence, missing-record review enforcement, owner-visible missing-record proof, catalog-depth aggregate artifact enforcement, command/skill aggregate artifact enforcement with item-order/source/metadata proof, plugin/MCP aggregate artifact enforcement with item-order/source/metadata proof, refresh-smoke artifact enforcement, refresh-safety depth aggregate artifact enforcement, approval validation chain-proof artifact enforcement, audit validation chain-proof artifact enforcement, rollback validation chain-proof artifact enforcement, permission validation chain-proof artifact enforcement, local record-validation aggregate artifact enforcement, surface-depth aggregate chain artifact enforcement, surface owner-boundary artifact enforcement, compact top-blocker source/evidence/status proof with record-chain detail, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -495,7 +495,7 @@ describe("remaining goal plan", () => {
       status: "active",
       completionPercent: 99
     });
-    expect(phase4Epic?.completionPercent).toBe(98);
+    expect(phase4Epic?.completionPercent).toBe(99);
     expect(phase4Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-04-child-command-skill",
@@ -515,9 +515,9 @@ describe("remaining goal plan", () => {
     expect(phase4Goal?.nextAction).toContain("structured catalog-depth aggregate proof");
     expect(phase4Goal?.nextAction).toContain("structured command/skill aggregate proof");
     expect(phase4Goal?.nextAction).toContain("structured plugin/MCP aggregate proof");
-    expect(phase4Goal?.nextAction).toContain("command/skill catalog item-order, evidence-key, scoped command, skill invocation, and execution-lock proof");
+    expect(phase4Goal?.nextAction).toContain("command/skill catalog item-order, source, metadata, evidence-key, scoped command, skill invocation, and execution-lock proof");
     expect(phase4Goal?.nextAction).toContain(
-      "plugin/MCP metadata-only surface, scoped plugin surface, scoped MCP transport/tool-policy, and execution-lock proof"
+      "plugin/MCP item-order, source, metadata-only surface, scoped plugin surface, scoped MCP transport/tool-policy, and execution-lock proof"
     );
     expect(phase4Goal?.nextAction).toContain("owner-visible plugin/MCP metadata-only safety evidence");
     expect(phase4Goal?.nextAction).toContain("owner-visible rollback and permission record-chain evidence");
@@ -542,8 +542,8 @@ describe("remaining goal plan", () => {
     expect(phase4Goal?.nextAction).toContain("missing-record review enforcement");
     expect(phase4Goal?.nextAction).toContain("owner-visible missing-record proof");
     expect(phase4Goal?.nextAction).toContain("catalog-depth aggregate artifact enforcement");
-    expect(phase4Goal?.nextAction).toContain("command/skill aggregate artifact enforcement");
-    expect(phase4Goal?.nextAction).toContain("plugin/MCP aggregate artifact enforcement");
+    expect(phase4Goal?.nextAction).toContain("command/skill aggregate artifact enforcement with item-order/source/metadata proof");
+    expect(phase4Goal?.nextAction).toContain("plugin/MCP aggregate artifact enforcement with item-order/source/metadata proof");
     expect(phase4Goal?.nextAction).toContain("compact top-blocker source/evidence/status proof with record-chain detail");
     expect(phase4Goal?.nextAction).toContain("approval, audit, rollback, permission");
   });

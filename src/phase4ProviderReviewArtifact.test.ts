@@ -132,11 +132,15 @@ function noOpenBlockers(artifact: Phase4ProviderReviewArtifact): Phase4ProviderR
     commandSkillProof:
       "command=ready skill=ready commandItems=1 skillItems=1 " +
       "commandEvidence=phase-04-provider-catalog:command skillEvidence=phase-04-provider-catalog:skill " +
+      "commandItemOrder=present skillItemOrder=present commandMetadata=present skillMetadata=present " +
+      "commandSource=present skillSource=present " +
       "commandScopeProof=present skillInvocationProof=present " +
       "commandLock=locked skillLock=locked metadataOnly=locked execution=locked",
     pluginMcpProof:
       "plugin=ready mcp=ready pluginItems=1 mcpItems=1 " +
       "pluginEvidence=phase-04-provider-catalog:plugin mcpEvidence=phase-04-provider-catalog:mcp " +
+      "pluginItemOrder=present mcpItemOrder=present pluginMetadata=present mcpMetadata=present " +
+      "pluginSource=present mcpSource=present " +
       "pluginSurfaceProof=present mcpToolPolicyProof=present metadataOnlySurface=present " +
       "mcpTransport=present mcpToolPolicy=present " +
       "pluginLock=locked mcpLock=locked metadataOnly=locked execution=locked",
