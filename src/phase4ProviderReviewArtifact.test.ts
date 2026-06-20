@@ -328,7 +328,7 @@ function withReadyLocalRecords(
     traceabilityProof:
       "items=7/7 ready=7 preview=0 setupRequired=0 held=0 " +
       "itemKinds=active-goal|pm-coverage|catalog-depth|refresh-safety|surface-depth|record-chain|execution-lock " +
-      "activeGoal=goal-phase-4-provider-surfaces pmLinks=15/15 missingPm=0 " +
+      "activeGoal=goal-phase-4-provider-surfaces pmLinks=16/16 missingPm=0 " +
       "catalogRecords=6/6 refreshRecords=8/8 surfaceItems=9/9 recordChain=ready " +
       "executionLocks=6/6 trust=ready metadataOnly=locked execution=locked"
   };
