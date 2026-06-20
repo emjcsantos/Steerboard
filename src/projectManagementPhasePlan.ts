@@ -688,8 +688,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-traceability",
             title: "Risk Traceability",
-            description: "Link Phase 8 remaining-goal status, PM child rows, permission/audit depth records, local owner audit-review records, current audit evidence fingerprints, risk exceptions, disabled paths, evidence keys, rollback expectations, and compact traceabilityProof trust counts before mutation-capable paths can advance.",
-            completionPercent: 57,
+            description: "Link Phase 8 remaining-goal status, PM child rows, permission/audit depth records, local owner audit-review records, current audit evidence fingerprints, risk exceptions, disabled paths, evidence keys, rollback expectations, compact traceabilityProof trust counts, and traceabilityRowStateProof row-state counts before mutation-capable paths can advance.",
+            completionPercent: 62,
             complexity: "high",
             sourceDocument: "Phase 8 risk traceability"
           },

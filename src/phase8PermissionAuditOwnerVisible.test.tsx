@@ -255,6 +255,7 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain(
       "traceabilityProof=goal=goal-phase-8-permission-audit state=waiting"
     );
+    expect(html).toContain("traceabilityRowStateProof=rows=5");
     expect(html).toContain("Remaining goal link");
     expect(html).toContain("PM row coverage");
     expect(html).toContain("Audit-depth evidence");

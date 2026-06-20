@@ -48,6 +48,7 @@ export interface Phase8RiskTraceabilitySummary {
   evidenceKeyCount: number;
   disabledPathCount: number;
   traceabilityProof: string;
+  traceabilityRowStateProof: string;
   nextAction: string;
   safety: string;
   ariaLabel: string;
@@ -322,7 +323,7 @@ function buildAriaLabel(summary: Omit<Phase8RiskTraceabilitySummary, "ariaLabel"
     `${summary.linkedPmTaskCount} PM links, ${summary.auditDepthItemCount} audit-depth rows, ` +
     `${summary.exceptionCount} exceptions, ${summary.openExceptionCount} open exceptions, ` +
     `${summary.evidenceKeyCount} evidence keys, ${summary.disabledPathCount} disabled paths; ` +
-    `${summary.traceabilityProof}; ` +
+    `${summary.traceabilityProof}; ${summary.traceabilityRowStateProof}; ` +
     `next action: ${summary.nextAction}`
   );
 }
@@ -345,6 +346,19 @@ function buildTraceabilityProof(input: {
     `auditDepth=${input.auditDepthItemCount} exceptions=${input.exceptionCount} ` +
     `openExceptions=${input.openExceptionCount} evidenceKeys=${input.evidenceKeyCount} ` +
     `disabledPaths=${input.disabledPathCount} trust=${input.canTrustPermissionAudit ? "ready" : "review"}`
+  );
+}
+
+function buildTraceabilityRowStateProof(input: {
+  readyCount: number;
+  reviewCount: number;
+  blockedCount: number;
+  waitingCount: number;
+  itemCount: number;
+}): string {
+  return (
+    `traceabilityRowStateProof=rows=${input.itemCount} ready=${input.readyCount} ` +
+    `review=${input.reviewCount} blocked=${input.blockedCount} waiting=${input.waitingCount}`
   );
 }
 
@@ -401,9 +415,16 @@ export function buildPhase8RiskTraceabilitySummary({
     disabledPathCount: snapshot.disabledPathCount,
     canTrustPermissionAudit
   });
+  const traceabilityRowStateProof = buildTraceabilityRowStateProof({
+    readyCount,
+    reviewCount,
+    blockedCount,
+    waitingCount,
+    itemCount: items.length
+  });
   const proofedItems = items.map((item) => ({
     ...item,
-    detail: `${item.detail} ${traceabilityProof}`
+    detail: `${item.detail} ${traceabilityProof} ${traceabilityRowStateProof}`
   }));
   const draft = {
     id: TRACE_ID,
@@ -425,6 +446,7 @@ export function buildPhase8RiskTraceabilitySummary({
     evidenceKeyCount,
     disabledPathCount: snapshot.disabledPathCount,
     traceabilityProof,
+    traceabilityRowStateProof,
     nextAction: firstNextAction(items),
     safety: SAFETY,
     items: proofedItems
