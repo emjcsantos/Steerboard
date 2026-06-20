@@ -708,6 +708,7 @@ import {
 } from "./phase9RunnerApproval";
 import { buildPhase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDepth";
 import { buildPhase9RunnerBlockerPriority } from "./phase9RunnerBlockerPriority";
+import { buildPhase9RunnerCompletionGate } from "./phase9RunnerCompletionGate";
 import {
   buildPhase9DesktopProbeGate,
   buildPhase9RunnerTraceabilitySummary
@@ -16198,6 +16199,12 @@ export function Phase9RunnerApprovalPanel({
     phase8: phase8PermissionAuditDepth,
     traceability
   });
+  const completionGate = buildPhase9RunnerCompletionGate({
+    approval: snapshot,
+    traceability,
+    blockerPriority,
+    requestGate: desktopProbeGate
+  });
 
   return (
     <section className="panel-section">
@@ -16320,6 +16327,22 @@ export function Phase9RunnerApprovalPanel({
           <span>{desktopProbeGate.statusLabel} / {desktopProbeGate.readiness}%</span>
           <small>{desktopProbeGate.holdReason}</small>
           <small>{desktopProbeGate.phase9RequestGateProof}</small>
+        </div>
+        <div
+          aria-label={completionGate.ariaLabel}
+          className={classNames(
+            "phase9-desktop-probe-gate",
+            `phase9-desktop-probe-gate-${completionGate.state}`,
+            completionGate.phaseComplete
+              ? "phase9-desktop-probe-gate-ready"
+              : "phase9-desktop-probe-gate-held"
+          )}
+          title={completionGate.safety}
+        >
+          <strong>{completionGate.label}</strong>
+          <span>{completionGate.statusLabel} / {completionGate.readiness}%</span>
+          <small>{completionGate.nextAction}</small>
+          <small>{completionGate.completionGateProof}</small>
         </div>
         <ol className="phase9-runner-items" aria-label="Phase 9 runner approval targets">
           {snapshot.items.map((item) => (

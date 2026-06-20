@@ -31,7 +31,7 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 87,
+      averageCompletionPercent: 88,
       currentTarget: "Permission and audit depth",
       currentNextAction:
         "Use the Phase 8 Audit Depth as the current active implementation target, with permissionLabelSummaryProof, riskBlockerProof, topBlockerProof, blockerQueueProof, phase8RiskClosureProof, riskExceptionSummaryProof, traceabilityProof, traceabilityRowStateProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof artifactState/fingerprintCurrent/reviewedBlocker gates, phase8PermissionAuditCompletionGate handoff-ready/fingerprint-current proof, phase8ClosureAuditStatusProof blocked-category counts, phase8OwnerActionHandoffProof owner-action clearance, phase8AuditReviewBlockerHandoffProof reviewable-blocker handoff, phase8OwnerReviewClosureReadinessProof owner-review closure gates, phase8FinalCompletionHandoffProof Phase 9 handoff readiness, local owner audit-review record, current audit evidence fingerprint matching, record-specific rollback review for executed or failed audit records, risk traceability rows, blocker-priority queue, and owner-visible Phase 8 audit proof to resolve risk exceptions, disabled paths, PM child links, evidence keys, missing permission, approval, audit persistence, rollback explanations, stale owner-review evidence, blocker closure proof, owner-review handoff proof, completion-gate closure proof, closure-audit status, owner-action handoff, audit-review blocker handoff, owner-review closure readiness, final completion handoff, and the exact top blocker before mutation paths grow.",
@@ -381,7 +381,7 @@ describe("remaining goal plan", () => {
       target: "Desktop-backed runner approval",
       priority: "high",
       status: "next",
-      completionPercent: 66
+      completionPercent: 67
     });
     expect(phase9Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -390,7 +390,8 @@ describe("remaining goal plan", () => {
         "phase-09-child-traceability",
         "phase-09-child-blocker-priority",
         "phase-09-child-approval-record",
-        "phase-09-child-approval-depth"
+        "phase-09-child-approval-depth",
+        "phase-09-child-completion-gate"
       ])
     );
     expect(phase9Goal?.nextAction).toContain("terminal-readonly-probe");
@@ -404,6 +405,8 @@ describe("remaining goal plan", () => {
     expect(phase9Goal?.nextAction).toContain("blocker-priority proof");
     expect(phase9Goal?.goal).toContain("phase9RequestGateProof");
     expect(phase9Goal?.nextAction).toContain("phase9RequestGateProof");
+    expect(phase9Goal?.goal).toContain("phase9RunnerCompletionGateProof");
+    expect(phase9Goal?.nextAction).toContain("phase9RunnerCompletionGateProof");
 
     const phase9Parent = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-09-desktop-runner"
@@ -423,20 +426,27 @@ describe("remaining goal plan", () => {
     const blockerPriorityChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-09-child-blocker-priority"
     );
+    const completionGateChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-09-child-completion-gate"
+    );
 
     expect(phase9Parent?.description).toContain(
       "trusted Phase 9 traceability/current active goal gates"
     );
-    expect(phase9Parent?.completionPercent).toBe(66);
-    expect(phase9RunnerProbeParent?.completionPercent).toBe(66);
-    expect(reversibleChild?.completionPercent).toBe(66);
-    expect(observabilityChild?.completionPercent).toBe(66);
+    expect(phase9Parent?.completionPercent).toBe(67);
+    expect(phase9RunnerProbeParent?.completionPercent).toBe(67);
+    expect(reversibleChild?.completionPercent).toBe(67);
+    expect(observabilityChild?.completionPercent).toBe(67);
+    expect(completionGateChild?.completionPercent).toBe(67);
     expect(phase9Parent?.description).toContain("owner-visible Phase 9 proof summaries");
     expect(phase9Parent?.description).toContain("phase9RequestGateProof");
+    expect(phase9Parent?.description).toContain("phase9RunnerCompletionGateProof");
     expect(phase9RunnerProbeParent?.description).toContain("runner approval proof summary");
     expect(phase9RunnerProbeParent?.description).toContain("phase9RequestGateProof");
+    expect(phase9RunnerProbeParent?.description).toContain("phase9RunnerCompletionGateProof");
     expect(observabilityChild?.description).toContain("validation output evidence key");
     expect(observabilityChild?.description).toContain("phase9RequestGateProof");
+    expect(observabilityChild?.description).toContain("phase9RunnerCompletionGateProof");
     expect(observabilityChild?.description).toContain("proof summaries");
     expect(observabilityChild?.description).toContain("mutation-lock count");
     expect(reversibleChild?.description).toContain(
@@ -450,6 +460,9 @@ describe("remaining goal plan", () => {
       "owner-action blockers from runner-review-addressable blockers"
     );
     expect(blockerPriorityChild?.description).toContain("blocker-priority proof summary");
+    expect(completionGateChild?.description).toContain("phase9RunnerCompletionGateProof");
+    expect(completionGateChild?.description).toContain("fixed terminal-readonly-probe");
+    expect(completionGateChild?.description).toContain("broader runner actions stay locked");
   });
 
   it("keeps the Phase 5 migration hardening target linked to traceability and review depth", () => {

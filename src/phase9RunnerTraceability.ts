@@ -77,7 +77,8 @@ const REQUIRED_PM_TASK_IDS = [
   "phase-09-child-blocker-priority",
   "phase-09-parent-approval-flow",
   "phase-09-child-approval-record",
-  "phase-09-child-approval-depth"
+  "phase-09-child-approval-depth",
+  "phase-09-child-completion-gate"
 ];
 const SAFETY =
   "Phase 9 runner traceability is evidence-only. It links the remaining goal, Project Management rows, Phase 8 permission/audit depth, runner approval depth, and mutation locks without requesting permission, running the desktop probe, mutating files, or unlocking broader execution.";
@@ -242,7 +243,7 @@ function pmCoverageItem(
     label: "PM row coverage",
     kind: "pm-coverage",
     status: "ready",
-    detail: `${goal.pmTaskIds.length} Phase 9 PM task links cover the runner probe, approval flow, depth, traceability, and blocker priority rows.`,
+    detail: `${goal.pmTaskIds.length} Phase 9 PM task links cover the runner probe, approval flow, depth, traceability, blocker priority, and completion gate rows.`,
     nextAction: "Keep Phase 9 goal links aligned with the Project Management Epic, Parent, and Child rows."
   };
 }
@@ -485,7 +486,7 @@ function buildRunnerTraceabilityProof(input: {
     `review=${input.items.filter((item) => item.status === "review").length} ` +
     `blocked=${input.items.filter((item) => item.status === "blocked").length} ` +
     `waiting=${input.items.filter((item) => item.status === "waiting").length} ` +
-    `itemKinds=${itemKinds} pmLinks=${input.linkedPmTaskCount}/9 ` +
+    `itemKinds=${itemKinds} pmLinks=${input.linkedPmTaskCount}/10 ` +
     `missingPm=${input.missingPmTaskIds.length} phase8Exceptions=${input.phase8OpenExceptionCount} ` +
     `mutationLocks=${input.mutationLockCount}/6 runnerReview=${input.runnerReviewRecordReady ? "ready" : "held"} ` +
     `trust=${input.canTrustRunnerApproval ? "ready" : "held"} execution=locked`

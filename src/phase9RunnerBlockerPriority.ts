@@ -349,7 +349,7 @@ function buildRunnerBlockerPriorityProof(
     `top=${summary.topPriorityLabel} source=${summary.topPrioritySourceId} kind=${summary.topPriorityKind} ` +
     `status=${summary.topPriorityStatus} topActionable=${summary.runnerReviewCanAddressTopBlocker ? "yes" : "no"} ` +
     `traceability=${traceability.canTrustRunnerApproval ? "ready" : traceability.state} ` +
-    `pmLinks=${traceability.linkedPmTaskCount}/9 mutationLocks=${traceability.mutationLockCount}/6 execution=locked`
+    `pmLinks=${traceability.linkedPmTaskCount}/10 mutationLocks=${traceability.mutationLockCount}/6 execution=locked`
   );
 }
 

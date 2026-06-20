@@ -415,6 +415,7 @@ describe("project management phase plan", () => {
     const reversibleActionChild = byId.get("phase-09-child-reversible-action");
     const observabilityChild = byId.get("phase-09-child-runner-observability");
     const traceabilityChild = byId.get("phase-09-child-traceability");
+    const completionGateChild = byId.get("phase-09-child-completion-gate");
 
     expect(runnerProbeParent?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
@@ -430,19 +431,26 @@ describe("project management phase plan", () => {
     expect(observabilityChild?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
     );
-    expect(runnerProbeParent?.completionPercent).toBe(66);
-    expect(reversibleActionChild?.completionPercent).toBe(66);
-    expect(observabilityChild?.completionPercent).toBe(66);
-    expect(traceabilityChild?.completionPercent).toBe(66);
+    expect(runnerProbeParent?.completionPercent).toBe(67);
+    expect(reversibleActionChild?.completionPercent).toBe(67);
+    expect(observabilityChild?.completionPercent).toBe(67);
+    expect(traceabilityChild?.completionPercent).toBe(67);
+    expect(completionGateChild?.completionPercent).toBe(67);
     expect(runnerProbeParent?.description).toContain("runner approval proof summary");
     expect(runnerProbeParent?.description).toContain("phase9RequestGateProof");
+    expect(runnerProbeParent?.description).toContain("phase9RunnerCompletionGateProof");
     expect(observabilityChild?.description).toContain("validation output evidence key");
     expect(observabilityChild?.description).toContain("current runner evidence fingerprint");
     expect(observabilityChild?.description).toContain("phase9RequestGateProof");
+    expect(observabilityChild?.description).toContain("phase9RunnerCompletionGateProof");
     expect(observabilityChild?.description).toContain("proof summaries");
     expect(observabilityChild?.description).toContain("mutation-lock count");
     expect(traceabilityChild?.description).toContain("phase9RequestGateProof");
+    expect(traceabilityChild?.description).toContain("phase9RunnerCompletionGateProof");
     expect(traceabilityChild?.description).toContain("traceability proof summary");
+    expect(completionGateChild?.description).toContain("phase9RunnerCompletionGateProof");
+    expect(completionGateChild?.description).toContain("fixed terminal-readonly-probe");
+    expect(completionGateChild?.description).toContain("broader runner actions stay locked");
   });
 
   it("keeps Phase 11 proof freshness progress aligned with owner proof depth", () => {

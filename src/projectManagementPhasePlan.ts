@@ -822,16 +822,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-09-desktop-runner",
     title: "Phase 9: Desktop-Backed Runner",
-    description: "Enable the fixed terminal read-only desktop probe after permission, preview, audit, validation, persisted runner-review, current runner evidence fingerprint, complete Phase 8 owner-review proof, rollback, owner-visible Phase 9 proof summaries, phase9RequestGateProof, Phase 9 request gate, and trusted Phase 9 traceability/current active goal gates pass.",
-    completionPercent: 66,
+    description: "Enable the fixed terminal read-only desktop probe after permission, preview, audit, validation, persisted runner-review, current runner evidence fingerprint, complete Phase 8 owner-review proof, rollback, owner-visible Phase 9 proof summaries, phase9RequestGateProof, phase9RunnerCompletionGateProof, Phase 9 request gate, and trusted Phase 9 traceability/current active goal gates pass.",
+    completionPercent: 67,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-09-parent-runner-probe",
         title: "Runner Probe Hardening",
-        description: "Keep the desktop runner limited to the fixed terminal-readonly-probe with selected-action readiness, visible request preview, Phase 9 approval checks, fingerprint-matched local runner-review evidence, runner approval proof summary, phase9RequestGateProof, and mutation locks.",
-        completionPercent: 66,
+        description: "Keep the desktop runner limited to the fixed terminal-readonly-probe with selected-action readiness, visible request preview, Phase 9 approval checks, fingerprint-matched local runner-review evidence, runner approval proof summary, phase9RequestGateProof, phase9RunnerCompletionGateProof, and mutation locks.",
+        completionPercent: 67,
         complexity: "high",
         sourceDocument: "Desktop runner probe",
         children: [
@@ -839,23 +839,23 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-09-child-reversible-action",
             title: "Choose One Reversible Action",
             description: "Use terminal-readonly-probe as the single selected read-only action with selected-action readiness, runner approval proof, phase9RequestGateProof, no workspace write, no Git operation, no external call, no profile mutation, and the visible Probe control disabled until the Phase 9 request gate and trusted Phase 9 traceability/current active goal proof are ready.",
-            completionPercent: 66,
+            completionPercent: 67,
             complexity: "high",
             sourceDocument: "Runner approval plan"
           },
           {
             id: "phase-09-child-runner-observability",
             title: "Runner Observability",
-            description: "Show request readiness, approval window, validation output evidence key, audit count, local runner-review evidence, current runner evidence fingerprint, rollback evidence, direct-handler blocks, mutation-lock count, phase9RequestGateProof, proof summaries, and final state for the selected probe.",
-            completionPercent: 66,
+            description: "Show request readiness, approval window, validation output evidence key, audit count, local runner-review evidence, current runner evidence fingerprint, rollback evidence, direct-handler blocks, mutation-lock count, phase9RequestGateProof, phase9RunnerCompletionGateProof, proof summaries, and final state for the selected probe.",
+            completionPercent: 67,
             complexity: "high",
             sourceDocument: "Live action runner"
           },
           {
             id: "phase-09-child-traceability",
             title: "Runner Traceability",
-            description: "Link Phase 9 remaining-goal status, current active goal trust, PM child rows, complete Phase 8 owner audit review proof, runner approval depth, local runner-review records, current runner evidence fingerprints, phase9RequestGateProof, Phase 9 request gate evidence, evidence keys, traceability proof summary, and mutation locks before the desktop runner can advance.",
-            completionPercent: 66,
+            description: "Link Phase 9 remaining-goal status, current active goal trust, PM child rows, complete Phase 8 owner audit review proof, runner approval depth, local runner-review records, current runner evidence fingerprints, phase9RequestGateProof, phase9RunnerCompletionGateProof, Phase 9 request gate evidence, evidence keys, traceability proof summary, and mutation locks before the desktop runner can advance.",
+            completionPercent: 67,
             complexity: "high",
             sourceDocument: "Phase 9 runner traceability"
           },
@@ -863,7 +863,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-09-child-blocker-priority",
             title: "Runner Blocker Priority",
             description: "Rank exact Phase 9 blockers across the Phase 8 gate, owner permission, approval window, request preview, validation output, audit record, local runner-review record, current runner evidence fingerprint, rollback evidence, phase9RequestGateProof, request-gate enforcement, traceability, blocker-priority proof summary, and mutation locks while separating owner-action blockers from runner-review-addressable blockers before the desktop runner can advance.",
-            completionPercent: 66,
+            completionPercent: 67,
             complexity: "medium",
             sourceDocument: "Phase 9 runner blocker priority"
           }
@@ -872,8 +872,8 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-09-parent-approval-flow",
         title: "Approval and Rollback Flow",
-        description: "Require owner approval, request preview, validation result, audit record, local runner-review record, current runner evidence fingerprint, rollback evidence, owner-visible proof summaries, phase9RequestGateProof, and Phase 9 request-gate enforcement before runner expansion.",
-        completionPercent: 66,
+        description: "Require owner approval, request preview, validation result, audit record, local runner-review record, current runner evidence fingerprint, rollback evidence, owner-visible proof summaries, phase9RequestGateProof, phase9RunnerCompletionGateProof, and Phase 9 request-gate enforcement before runner expansion.",
+        completionPercent: 67,
         complexity: "extra_high",
         sourceDocument: "Permissions and audit",
         children: [
@@ -881,16 +881,24 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-09-child-approval-record",
             title: "Approval Record",
             description: "Record terminal request, approval, Phase 9 held blocks, fallback, failure, execution, local runner-review fingerprints, runner approval proof, phase9RequestGateProof, and rollback-safe evidence in the owner-visible audit path.",
-            completionPercent: 66,
+            completionPercent: 67,
             sourceDocument: "Audit trail"
           },
           {
             id: "phase-09-child-approval-depth",
             title: "Runner Approval Depth",
-            description: "Show fixed probe selection, owner approval, request preview, validation output, audit record, local runner-review record, current runner evidence fingerprint, rollback evidence, phase9RequestGateProof, Phase 9 request-gate enforcement, and the desktop execution lock as separate depth records.",
-            completionPercent: 66,
+            description: "Show fixed probe selection, owner approval, request preview, validation output, audit record, local runner-review record, current runner evidence fingerprint, rollback evidence, phase9RequestGateProof, phase9RunnerCompletionGateProof, Phase 9 request-gate enforcement, and the desktop execution lock as separate depth records.",
+            completionPercent: 67,
             complexity: "high",
             sourceDocument: "Phase 9 runner approval depth"
+          },
+          {
+            id: "phase-09-child-completion-gate",
+            title: "Runner Completion Gate",
+            description: "Show phase9RunnerCompletionGateProof state/readiness/phase-complete/fixed-probe/runner-expansion/approval/traceability/blocker/request-gate/open/phase8-exception/mutation-lock/top-hold counts so only the fixed terminal-readonly-probe can advance after all Phase 9 gates are ready while broader runner actions stay locked.",
+            completionPercent: 67,
+            complexity: "high",
+            sourceDocument: "Phase 9 runner completion gate"
           }
         ]
       }

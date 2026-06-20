@@ -240,7 +240,7 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("phase9.fixed-probe-selection");
     expect(html).toContain("phase9.desktop-execution-lock");
     expect(html).toContain("Phase 9 runner traceability");
-    expect(html).toContain("pmLinks=9/9");
+    expect(html).toContain("pmLinks=10/10");
     expect(html).toContain("trust=held");
     expect(html).toContain("Remaining goal link");
     expect(html).toContain("PM row coverage");
@@ -256,6 +256,9 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("canRun=no");
     expect(html).toContain("approvalGate=held");
     expect(html).toContain("Request owner approval for the fixed terminal read-only probe.");
+    expect(html).toContain("Phase 9 runner completion gate");
+    expect(html).toContain("phase9RunnerCompletionGateProof");
+    expect(html).toContain("runnerExpansion=locked");
     expect(html).toContain("Open");
     expect(html).toContain("Reviewable");
     expect(html).toContain("Status");
@@ -303,13 +306,16 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("Ready");
     expect(html).toContain("Request");
     expect(html).toContain(
-      '<dd title="goal-phase-9-runner is next at 66% with 9 PM task links and 1 current active goal.'
+      '<dd title="goal-phase-9-runner is next at 67% with 10 PM task links and 1 current active goal.'
     );
     expect(html).toContain(">Held</dd>");
     expect(html).toContain("Phase 9 request gate");
     expect(html).toContain("phase9RequestGateProof");
     expect(html).toContain("traceability=held");
-    expect(html).toContain("goal-phase-9-runner is next at 66% with 9 PM task links and 1 current active goal.");
+    expect(html).toContain("goal-phase-9-runner is next at 67% with 10 PM task links and 1 current active goal.");
+    expect(html).toContain("Phase 9 runner completion gate");
+    expect(html).toContain("phase9RunnerCompletionGateProof");
+    expect(html).toContain("runnerExpansion=locked");
     expect(html).toContain("Records");
     expect(html).toContain("Phase 9 runner review record ready");
     expect(html).toContain(
