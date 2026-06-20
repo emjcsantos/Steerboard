@@ -305,6 +305,7 @@ describe("phase 4 provider visible readiness panel", () => {
     );
     const html = renderToStaticMarkup(
       <>
+        <ProviderIntegrationReadinessPanel catalogDepth={catalogDepth} readiness={readiness} />
         <Phase4ProviderSurfaceDepthPanel
           approvalValidation={approvalValidation}
           auditRecord={auditRecord}
@@ -354,6 +355,7 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("Catalog fingerprint");
     expect(html).toContain(phase4CatalogFingerprint);
     expect(html).toContain("matched");
+    expect(html).toContain("kindOrder=command|skill|plugin|mcp|automation|personalization");
     expect(html).toContain("Phase 4 provider review artifact contains current catalog depth");
     expect(html).toContain("owner-visible provider readiness check");
     expect(html).toContain("Export review");

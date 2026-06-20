@@ -206,10 +206,12 @@ function buildCatalogDepthProof(input: {
   const ownerSafeProofCount = input.records.filter((record) =>
     record.ownerSafeProof.trim()
   ).length;
+  const kindOrder = input.records.map((record) => record.kind).join("|");
 
   return (
     `records=${input.records.length}/6 ready=${input.readyCount} preview=${input.previewCount} ` +
     `setupRequired=${input.setupRequiredCount} held=${input.heldCount} ` +
+    `kindOrder=${kindOrder} ` +
     `locks=${input.executionLockCount}/6 metadataProof=${metadataProofCount}/6 ` +
     `scopedExecution=${scopedExecutionProofCount}/6 ownerSafe=${ownerSafeProofCount}/6 ` +
     `command=${recordStatus(input.records, "command")} ` +

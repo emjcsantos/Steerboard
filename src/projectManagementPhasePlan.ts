@@ -328,8 +328,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-catalog-depth",
             title: "Provider Catalog Detail Depth",
-            description: "Show command, skill, plugin, MCP, automation, and personalization catalog records with visible source, totals, item-order proof, metadata proof, structured catalog-depth aggregate proof, readiness state, evidence keys, owner-safe proof, next actions, and execution locks.",
-            completionPercent: 70,
+            description: "Show command, skill, plugin, MCP, automation, and personalization catalog records with visible source, totals, explicit six-surface kind-order proof, item-order proof, metadata proof, structured catalog-depth aggregate proof, readiness state, evidence keys, owner-safe proof, next actions, and execution locks.",
+            completionPercent: 72,
             complexity: "high",
             sourceDocument: "Phase 4 provider catalog depth"
           },

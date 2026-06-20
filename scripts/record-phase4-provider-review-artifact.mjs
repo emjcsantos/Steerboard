@@ -79,6 +79,7 @@ const scopedExecutionProofBySurface = {
 };
 const catalogDepthProof =
   "records=6/6 ready=6 preview=0 setupRequired=0 held=0 locks=6/6 " +
+  "kindOrder=command|skill|plugin|mcp|automation|personalization " +
   "metadataProof=6/6 scopedExecution=6/6 ownerSafe=6/6 " +
   "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready " +
   "metadataOnly=locked execution=locked";

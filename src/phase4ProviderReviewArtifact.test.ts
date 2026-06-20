@@ -126,6 +126,7 @@ function noOpenBlockers(artifact: Phase4ProviderReviewArtifact): Phase4ProviderR
     executionLockCount: 6,
     catalogDepthProof:
       "records=6/6 ready=6 preview=0 setupRequired=0 held=0 locks=6/6 " +
+      "kindOrder=command|skill|plugin|mcp|automation|personalization " +
       "metadataProof=6/6 scopedExecution=6/6 ownerSafe=6/6 " +
       "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready " +
       "metadataOnly=locked execution=locked",
@@ -1080,6 +1081,35 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("catalog-depth aggregate proof"),
       nextAction: expect.stringContaining("catalog-depth rows")
+    });
+  });
+
+  it("reviews no-blocker artifacts with incomplete catalog-depth aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const incompleteCatalogDepthProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      catalogDepth: {
+        ...artifact.catalogDepth,
+        catalogDepthProof: artifact.catalogDepth.catalogDepthProof.replace(
+          "kindOrder=command|skill|plugin|mcp|automation|personalization ",
+          ""
+        )
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(incompleteCatalogDepthProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("catalog-depth aggregate proof"),
+      nextAction: expect.stringContaining("six-surface status")
     });
   });
 

@@ -101,6 +101,7 @@ const requiredCatalogDepthProofTerms = [
   "preview=0",
   "setupRequired=0",
   "held=0",
+  "kindOrder=command|skill|plugin|mcp|automation|personalization",
   "locks=6/6",
   "metadataProof=6/6",
   "scopedExecution=6/6",
