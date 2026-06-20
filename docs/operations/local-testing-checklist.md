@@ -59,6 +59,7 @@ Do not proceed to the next section until the current item is at least `review`.
 4. `Multi-Panel`
    - Open two or more panels and switch focus repeatedly.
    - Verify each panel preserves its own session context and activity state.
+   - Reload with saved panel sessions and confirm Phase 2 restore proof reports at least two fresh saved panel labels plus stale-label and duplicate-identity counts.
    - Confirm Phase 2 no-cross-talk evidence includes runtime route-isolation proof with per-panel routed-event counts, zero quarantined stream events, and zero mismatched owned events before trusting two-panel proof.
    - Confirm corrupted saved panel metadata with duplicate live identities shows a conflict warning and does not send live chat through the duplicated identity.
    - Switch to Adaptive Arena and confirm the Phase 10 Arena Polish panel reports layout regression, density/readability, keyboard controls, focus state, terminology, and acceptance gates separately.

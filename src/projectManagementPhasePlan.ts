@@ -183,8 +183,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-02-child-restore-panels",
             title: "Restore Saved Panel Stack",
-            description: "Reload the desktop app and verify the saved panel stack and session labels restore correctly.",
-            completionPercent: 50,
+            description: "Reload the desktop app and verify at least two fresh saved panel session labels restore with stale-label and duplicate-identity counts before trusting Phase 2 persistence.",
+            completionPercent: 58,
             sourceDocument: "Local testing checklist"
           }
         ]

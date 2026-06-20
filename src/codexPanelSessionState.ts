@@ -34,6 +34,16 @@ export interface CodexPanelSessionIdentityIssue {
   detail: string;
 }
 
+export interface CodexPanelSessionRestoreProof {
+  panelCount: number;
+  freshPanelCount: number;
+  stalePanelCount: number;
+  duplicateIdentityCount: number;
+  restoredPanelIds: string[];
+  stalePanelIds: string[];
+  detail: string;
+}
+
 export interface RepairPanelSessionsOptions {
   now?: number;
   staleAfterMs?: number;
@@ -145,6 +155,44 @@ export function findCodexPanelSessionIdentityIssues(
     ...buildIdentityIssues("duplicateSessionId", collectIdentityGroups(state, "sessionId")),
     ...buildIdentityIssues("duplicateThreadId", collectIdentityGroups(state, "threadId"))
   ];
+}
+
+export function buildCodexPanelSessionRestoreProof(
+  state: CodexPanelSessionState
+): CodexPanelSessionRestoreProof {
+  const records = Object.values(state).filter((record): record is CodexPanelSessionStateRecord =>
+    isRecord(record) &&
+    isString(record.panelId) &&
+    isString(record.sessionId) &&
+    isString(record.threadId)
+  );
+  const freshPanelIds = records
+    .filter((record) => isLiveIdentityRecord(record))
+    .map((record) => record.panelId)
+    .sort((left, right) => left.localeCompare(right));
+  const stalePanelIds = records
+    .filter((record) => record.stale)
+    .map((record) => record.panelId)
+    .sort((left, right) => left.localeCompare(right));
+  const duplicateIdentityCount = findCodexPanelSessionIdentityIssues(state).length;
+  const panelCount = records.length;
+
+  let detail = "No saved panel session labels restored after reload.";
+  if (panelCount > 0) {
+    detail =
+      `Restored ${freshPanelIds.length}/${panelCount} saved panel session label${panelCount === 1 ? "" : "s"} ` +
+      `after reload; stale=${stalePanelIds.length}; duplicateIdentities=${duplicateIdentityCount}.`;
+  }
+
+  return {
+    panelCount,
+    freshPanelCount: freshPanelIds.length,
+    stalePanelCount: stalePanelIds.length,
+    duplicateIdentityCount,
+    restoredPanelIds: freshPanelIds,
+    stalePanelIds,
+    detail
+  };
 }
 
 function normalizeTimestamp(value: unknown): string | null {

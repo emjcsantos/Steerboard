@@ -122,6 +122,8 @@ describe("phase priority evidence", () => {
     expect(phase6?.nextAction).toBe(
       "Use row-level Run buttons to stage Arena review packages while keeping execution locked."
     );
+    const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
+    expect(phase2?.detail).toContain("Restored 2/2 saved panel session labels");
   });
 
   it("keeps Phase 6 PM board evidence in review when acceptance child rows are missing", () => {
@@ -266,6 +268,24 @@ describe("phase priority evidence", () => {
       state: "blocked"
     });
     expect(phase2?.detail).toContain("same-session");
+  });
+
+  it("keeps Phase 2 in review when saved panel labels do not restore", () => {
+    const result = buildPhasePriorityEvidence({
+      liveSmokeProof: readyLiveSmoke,
+      twoPanelSmokeProof: readyTwoPanelSmoke,
+      panelSessionState: {},
+      projectManagementTasks: createDefaultProjectManagementTasks()
+    });
+    const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
+
+    expect(result.state).toBe("review");
+    expect(phase2).toMatchObject({
+      state: "review",
+      nextAction:
+        "Reload the app and confirm at least two fresh saved panel session labels restore before trusting Phase 2 persistence."
+    });
+    expect(phase2?.detail).toContain("No saved panel session labels restored after reload.");
   });
 
   it("blocks Phase 2 when route isolation proof reports quarantined stream events", () => {

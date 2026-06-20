@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildCodexPanelSessionRestoreProof,
   closePanelSession,
   findCodexPanelSessionIdentityIssues,
   markPanelSessionStale,
@@ -160,6 +161,35 @@ describe("codex panel session state", () => {
     );
 
     expect(findCodexPanelSessionIdentityIssues(state)).toEqual([]);
+  });
+
+  it("summarizes restored fresh and stale panel labels after reload", () => {
+    const state = parseStoredPanelSessionState(
+      JSON.stringify([
+        baseRecord,
+        {
+          ...baseRecord,
+          panelId: "panel-2",
+          sessionId: "session-beta",
+          threadId: "thread-beta",
+          checkedAt: "2026-06-05T09:30:00.000Z",
+          updatedAt: "2026-06-05T09:30:00.000Z"
+        }
+      ]),
+      { now: Date.parse("2026-06-05T10:01:00.000Z"), staleAfterMs: 10 * 60 * 1000 }
+    );
+
+    const proof = buildCodexPanelSessionRestoreProof(state);
+
+    expect(proof).toMatchObject({
+      panelCount: 2,
+      freshPanelCount: 1,
+      stalePanelCount: 1,
+      duplicateIdentityCount: 0,
+      restoredPanelIds: ["panel-1"],
+      stalePanelIds: ["panel-2"]
+    });
+    expect(proof.detail).toContain("Restored 1/2 saved panel session labels");
   });
 
   it("reports duplicate live session ids across different panels", () => {

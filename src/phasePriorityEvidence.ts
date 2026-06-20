@@ -3,6 +3,7 @@ import type {
   CodexTwoPanelSmokeProof
 } from "./codexTransportSpike";
 import {
+  buildCodexPanelSessionRestoreProof,
   findCodexPanelSessionIdentityIssues,
   type CodexPanelSessionState
 } from "./codexPanelSessionState";
@@ -201,7 +202,10 @@ function buildPhase2IsolationItem(
   panelSessionState: CodexPanelSessionState | undefined,
   runtimeStreamIsolationProof: RuntimeStreamIsolationProof | undefined
 ): PhasePriorityEvidenceItem {
-  const identityIssues = findCodexPanelSessionIdentityIssues(panelSessionState ?? {});
+  const hasPanelSessionState = Boolean(panelSessionState);
+  const safePanelSessionState = panelSessionState ?? {};
+  const identityIssues = findCodexPanelSessionIdentityIssues(safePanelSessionState);
+  const restoreProof = buildCodexPanelSessionRestoreProof(safePanelSessionState);
 
   if (identityIssues.length > 0) {
     return item(
@@ -257,14 +261,27 @@ function buildPhase2IsolationItem(
     panelsReady;
 
   if (ready) {
+    if (hasPanelSessionState && restoreProof.freshPanelCount < 2) {
+      return item(
+        "phase-2-panel-isolation",
+        "Phase 2 multi-panel isolation",
+        "review",
+        `${restoreProof.detail} Two-panel smoke is ready, but saved panel stack labels need reload proof.`,
+        "Reload the app and confirm at least two fresh saved panel session labels restore before trusting Phase 2 persistence."
+      );
+    }
+
     const routeProofDetail = runtimeStreamIsolationProof
       ? ` ${runtimeStreamIsolationProof.detail}`
+      : "";
+    const restoreProofDetail = hasPanelSessionState
+      ? ` ${restoreProof.detail}`
       : "";
     return item(
       "phase-2-panel-isolation",
       "Phase 2 multi-panel isolation",
       "ready",
-      `Two live panels completed with distinct session/thread identities and no foreign token evidence.${routeProofDetail}`,
+      `Two live panels completed with distinct session/thread identities and no foreign token evidence.${routeProofDetail}${restoreProofDetail}`,
       "Keep two-panel smoke as the isolation regression before worker dispatch work."
     );
   }
