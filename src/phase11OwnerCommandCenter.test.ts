@@ -8,6 +8,7 @@ import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshness
 import type { PhasePriorityEvidenceResult } from "./phasePriorityEvidence";
 import {
   buildRemainingGoalPriorityTraces,
+  summarizeRemainingGoalPlan,
   type RemainingGoalPlanSummary
 } from "./remainingGoalPlan";
 import { buildPhase11OwnerCommandCenterSnapshot } from "./phase11OwnerCommandCenter";
@@ -219,6 +220,26 @@ describe("phase 11 owner command center", () => {
       ])
     );
     expect(result.nextAction).toContain("waiting, review, or blocked owner checklist");
+  });
+
+  it("keeps the command center blocked for the real remaining-goal queue", () => {
+    const result = snapshot({
+      remainingGoalSummary: summarizeRemainingGoalPlan()
+    });
+
+    expect(result.state).toBe("blocked");
+    expect(result.canRelease).toBe(false);
+    expect(result.blockerCount).toBeGreaterThan(0);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Phase readiness",
+          status: "blocked",
+          detail: expect.stringContaining("owner hold"),
+          nextAction: expect.stringContaining("owner says to push")
+        })
+      ])
+    );
   });
 
   it("waits for fresh-checkout evidence even when other release-gate signals are ready", () => {
