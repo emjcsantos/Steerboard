@@ -210,10 +210,25 @@ function withReadyLocalRecords(
   });
   const surfaceDepth = {
     ...artifact.surfaceDepth,
+    state: "ready" as const,
+    statusLabel: "Ready",
+    readiness: 100,
+    attentionCount: 0,
+    readyCount: 9,
+    previewCount: 0,
+    setupRequiredCount: 0,
+    heldCount: 0,
+    nextSurfaceLabel: "Execution lock",
+    surfaceDepthProof:
+      "items=9/9 ready=9 preview=0 setupRequired=0 held=0 " +
+      "surfaceCoverage=ready setupBlockers=ready capabilityGaps=ready previewReview=ready " +
+      "approval=ready audit=ready rollback=ready permission=ready executionLock=ready " +
+      "ownerBoundary=present canEnableExecution=locked metadataOnly=locked execution=locked",
     items: artifact.surfaceDepth.items.map((item) => {
       if (item.kind === "approval-gate") {
         return {
           ...item,
+          status: "ready" as const,
           ownerBoundaryProof:
             `catalog=${approvalValidation.expectedCatalogFingerprint} ` +
             `recordCatalog=${approvalValidation.recordCatalogFingerprint} ` +
@@ -224,6 +239,7 @@ function withReadyLocalRecords(
       if (item.kind === "audit-gate") {
         return {
           ...item,
+          status: "ready" as const,
           ownerBoundaryProof: auditValidation.auditChainProof
         };
       }
@@ -231,6 +247,7 @@ function withReadyLocalRecords(
       if (item.kind === "rollback-gate") {
         return {
           ...item,
+          status: "ready" as const,
           ownerBoundaryProof: rollbackValidation.rollbackChainProof
         };
       }
@@ -238,6 +255,7 @@ function withReadyLocalRecords(
       if (item.kind === "permission-gate") {
         return {
           ...item,
+          status: "ready" as const,
           ownerBoundaryProof: permissionValidation.permissionChainProof
         };
       }
@@ -451,6 +469,29 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("audit-gate owner-boundary proof"),
       nextAction: expect.stringContaining("owner-boundary proof")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing surface-depth aggregate proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutSurfaceDepthProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      surfaceDepth: { ...artifact.surfaceDepth, surfaceDepthProof: "" }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutSurfaceDepthProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("surface-depth aggregate proof"),
+      nextAction: expect.stringContaining("surface-depth snapshot")
     });
   });
 

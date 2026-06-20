@@ -288,6 +288,11 @@ const permissionValidation = {
   mutationLocked: true,
   permissionChainProof
 };
+const surfaceDepthProof =
+  "items=9/9 ready=9 preview=0 setupRequired=0 held=0 " +
+  "surfaceCoverage=ready setupBlockers=ready capabilityGaps=ready previewReview=ready " +
+  "approval=ready audit=ready rollback=ready permission=ready executionLock=ready " +
+  "ownerBoundary=present canEnableExecution=locked metadataOnly=locked execution=locked";
 
 const artifact = {
   schemaVersion: 1,
@@ -359,6 +364,7 @@ const artifact = {
     heldCount: 0,
     nextAction: "Keep provider execution locked until approval, audit, rollback, permission, and explicit execution gates are implemented.",
     safety: "Recorded Phase 4 surface depth is metadata-only and does not execute provider actions.",
+    surfaceDepthProof,
     ariaLabel: "Phase 4 provider surface depth: Ready; 100% ready.",
     items: [
       surfaceItem("surface-coverage", "Surface coverage", "All six provider surfaces are visible."),

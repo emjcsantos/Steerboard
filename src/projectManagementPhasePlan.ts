@@ -297,16 +297,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
-    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured all-catalog refresh-smoke proof, structured plugin/MCP scoped proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 86,
+    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured all-catalog refresh-smoke proof, structured plugin/MCP scoped proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and current six-surface fingerprint checks after Phase 3 clears.",
+    completionPercent: 87,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
-        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured plugin/MCP scoped proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 73,
+        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured plugin/MCP scoped proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
+        completionPercent: 74,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
@@ -336,8 +336,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-surface-depth",
             title: "Provider Surface Depth",
-            description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, owner-boundary proof including the structured permission-chain proof, and execution lock before provider execution is considered.",
-            completionPercent: 65,
+            description: "Show surface coverage, setup blockers, capability gaps, preview review, approval, audit, rollback, permission, owner-boundary proof including the structured permission-chain proof, structured surface-depth aggregate proof, and execution lock before provider execution is considered.",
+            completionPercent: 67,
             complexity: "high",
             sourceDocument: "Phase 4 provider surface depth"
           },

@@ -8604,6 +8604,7 @@ export function Phase4ProviderSurfaceDepthPanel({
           ))}
         </ol>
         <small title={snapshot.safety}>{snapshot.safety}</small>
+        <small>{snapshot.surfaceDepthProof}</small>
       </div>
     </section>
   );

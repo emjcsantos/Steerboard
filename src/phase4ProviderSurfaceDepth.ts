@@ -46,6 +46,7 @@ export interface Phase4ProviderSurfaceDepthSnapshot {
   readonly nextSurfaceLabel: string;
   readonly nextAction: string;
   readonly safety: string;
+  readonly surfaceDepthProof: string;
   readonly ariaLabel: string;
   readonly items: readonly Phase4ProviderSurfaceDepthItem[];
 }
@@ -138,6 +139,56 @@ function firstNextAction(items: readonly Phase4ProviderSurfaceDepthItem[]): stri
     items.find((item) => item.status === "unsupported")?.nextAction ??
     items.find((item) => item.status === "preview")?.nextAction ??
     "Keep provider execution locked until approval, audit, rollback, permission, and explicit execution gates are implemented."
+  );
+}
+
+function itemStatus(
+  items: readonly Phase4ProviderSurfaceDepthItem[],
+  kind: Phase4ProviderSurfaceDepthItemKind
+): Phase4ProviderSurfaceDepthState | "missing" {
+  return items.find((item) => item.kind === kind)?.status ?? "missing";
+}
+
+function ownerBoundaryProofState(
+  items: readonly Phase4ProviderSurfaceDepthItem[]
+): "present" | "review" {
+  const gateKinds: Phase4ProviderSurfaceDepthItemKind[] = [
+    "approval-gate",
+    "audit-gate",
+    "rollback-gate",
+    "permission-gate"
+  ];
+
+  return gateKinds.every((kind) =>
+    items.find((item) => item.kind === kind)?.ownerBoundaryProof?.trim()
+  )
+    ? "present"
+    : "review";
+}
+
+function buildSurfaceDepthProof(input: {
+  readonly items: readonly Phase4ProviderSurfaceDepthItem[];
+  readonly readyCount: number;
+  readonly previewCount: number;
+  readonly setupRequiredCount: number;
+  readonly heldCount: number;
+  readonly canEnableExecution: boolean;
+}): string {
+  return (
+    `items=${input.items.length}/9 ready=${input.readyCount} preview=${input.previewCount} ` +
+    `setupRequired=${input.setupRequiredCount} held=${input.heldCount} ` +
+    `surfaceCoverage=${itemStatus(input.items, "surface-coverage")} ` +
+    `setupBlockers=${itemStatus(input.items, "setup-blockers")} ` +
+    `capabilityGaps=${itemStatus(input.items, "capability-gaps")} ` +
+    `previewReview=${itemStatus(input.items, "preview-review")} ` +
+    `approval=${itemStatus(input.items, "approval-gate")} ` +
+    `audit=${itemStatus(input.items, "audit-gate")} ` +
+    `rollback=${itemStatus(input.items, "rollback-gate")} ` +
+    `permission=${itemStatus(input.items, "permission-gate")} ` +
+    `executionLock=${itemStatus(input.items, "execution-lock")} ` +
+    `ownerBoundary=${ownerBoundaryProofState(input.items)} ` +
+    `canEnableExecution=${input.canEnableExecution ? "enabled" : "locked"} ` +
+    "metadataOnly=locked execution=locked"
   );
 }
 
@@ -484,6 +535,14 @@ export function buildPhase4ProviderSurfaceDepth(
     nextSurfaceLabel: nextSurfaceLabel(readiness, items),
     nextAction: firstNextAction(items),
     safety: SAFETY,
+    surfaceDepthProof: buildSurfaceDepthProof({
+      items,
+      readyCount,
+      previewCount,
+      setupRequiredCount,
+      heldCount,
+      canEnableExecution: false
+    }),
     items
   };
 

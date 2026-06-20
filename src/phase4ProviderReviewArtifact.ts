@@ -217,6 +217,22 @@ const REQUIRED_PERMISSION_CHAIN_PROOF_TERMS = [
   "mutation=locked",
   "execution=locked"
 ] as const;
+const REQUIRED_SURFACE_DEPTH_PROOF_TERMS = [
+  "items=9/9",
+  "surfaceCoverage=ready",
+  "setupBlockers=ready",
+  "capabilityGaps=ready",
+  "previewReview=ready",
+  "approval=ready",
+  "audit=ready",
+  "rollback=ready",
+  "permission=ready",
+  "executionLock=ready",
+  "ownerBoundary=present",
+  "canEnableExecution=locked",
+  "metadataOnly=locked",
+  "execution=locked"
+] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -405,6 +421,33 @@ function findSurfaceOwnerBoundaryProofReview(
           "Re-export Phase 4 provider review evidence after the local record chain proof includes the required owner-boundary terms."
       };
     }
+  }
+
+  return undefined;
+}
+
+function findSurfaceDepthProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const surfaceDepthProof = artifact.surfaceDepth.surfaceDepthProof?.trim();
+
+  if (!surfaceDepthProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing surface-depth aggregate proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after the surface-depth snapshot summarizes row coverage, owner-boundary proof, metadata-only posture, and execution lock."
+    };
+  }
+
+  const missingTerms = REQUIRED_SURFACE_DEPTH_PROOF_TERMS.filter(
+    (term) => !surfaceDepthProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete surface-depth aggregate proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after surface-depth aggregate proof includes row status, owner-boundary, metadata-only, and execution-lock terms."
+    };
   }
 
   return undefined;
@@ -799,6 +842,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       permissionValidationChainProofReview.detail,
       permissionValidationChainProofReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const surfaceDepthProofReview = findSurfaceDepthProofReview(artifact);
+  if (surfaceDepthProofReview) {
+    return result(
+      "review",
+      artifact,
+      surfaceDepthProofReview.detail,
+      surfaceDepthProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

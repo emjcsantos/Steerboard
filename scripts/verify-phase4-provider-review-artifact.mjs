@@ -108,6 +108,22 @@ const requiredPermissionChainProofTerms = [
   "mutation=locked",
   "execution=locked"
 ];
+const requiredSurfaceDepthProofTerms = [
+  "items=9/9",
+  "surfaceCoverage=ready",
+  "setupBlockers=ready",
+  "capabilityGaps=ready",
+  "previewReview=ready",
+  "approval=ready",
+  "audit=ready",
+  "rollback=ready",
+  "permission=ready",
+  "executionLock=ready",
+  "ownerBoundary=present",
+  "canEnableExecution=locked",
+  "metadataOnly=locked",
+  "execution=locked"
+];
 const maxArtifactAgeMs = 24 * 60 * 60 * 1000;
 
 function fail(message) {
@@ -313,6 +329,15 @@ function verifyArtifact(artifact) {
   assertReadyRows(surfaceItems, "surfaceDepth");
   if (surfaceDepth.canEnableExecution !== false) {
     throw new Error("surfaceDepth canEnableExecution is not false");
+  }
+  assertNonEmptyString(surfaceDepth.surfaceDepthProof, "surfaceDepth.surfaceDepthProof");
+  {
+    const missingTerms = requiredSurfaceDepthProofTerms.filter(
+      (term) => !surfaceDepth.surfaceDepthProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`surfaceDepth surfaceDepthProof is missing ${missingTerms.join(", ")}`);
+    }
   }
   for (const requirement of requiredSurfaceOwnerBoundaryProofTerms) {
     const item = surfaceItems.find((row) => row.kind === requirement.kind);
