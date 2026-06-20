@@ -42,6 +42,7 @@ export interface CodexSessionControlInputs {
   } | null;
   lastUserPrompt?: string;
   draftText?: string;
+  providerCapabilities?: Partial<Record<"fork" | "resume" | "archive", boolean>>;
 }
 
 export interface CodexUnsupportedSessionControlsSummary {
@@ -146,6 +147,39 @@ function unsupportedAdapterReason(action: string): string {
   return `${action} is unsupported in the first Codex app-server adapter.`;
 }
 
+function lifecycleControl(
+  action: "Fork" | "Resume" | "Archive",
+  supported: boolean | undefined,
+  liveTransportAvailable: boolean,
+  canUseWhenSupported: boolean,
+  liveReason: string,
+  disabledReason: string
+): CodexSessionControlSnapshot {
+  if (!supported) {
+    return {
+      state: "unsupported",
+      reason: unsupportedAdapterReason(action)
+    };
+  }
+
+  if (!liveTransportAvailable) {
+    return {
+      state: "unavailable",
+      reason: transportUnavailableReason()
+    };
+  }
+
+  return canUseWhenSupported
+    ? {
+        state: "live",
+        reason: liveReason
+      }
+    : {
+        state: "disabled",
+        reason: disabledReason
+      };
+}
+
 export function buildCodexSessionControls(
   args: CodexSessionControlInputs
 ): CodexSessionControls {
@@ -220,17 +254,31 @@ export function buildCodexSessionControls(
       state: steerState,
       reason: steerReason
     },
-    fork: {
-      state: "unsupported",
-      reason: unsupportedAdapterReason("Fork")
-    },
-    resume: {
-      state: "unsupported",
-      reason: unsupportedAdapterReason("Resume")
-    },
-    archive: {
-      state: "unsupported",
-      reason: unsupportedAdapterReason("Archive")
-    }
+    fork: lifecycleControl(
+      "Fork",
+      args.providerCapabilities?.fork,
+      args.liveTransportAvailable,
+      !sessionStarting && !sessionRunning && lastUserPrompt.length > 0,
+      "Fork this panel from the last completed prompt.",
+      sessionStarting || sessionRunning
+        ? "Wait until the current turn finishes before forking."
+        : "No previous user prompt is available to fork."
+    ),
+    resume: lifecycleControl(
+      "Resume",
+      args.providerCapabilities?.resume,
+      args.liveTransportAvailable,
+      sessionStatus === "interrupted" || sessionStatus === "failed",
+      "Resume this interrupted or failed panel session.",
+      "Resume is available only after an interrupted or failed panel session."
+    ),
+    archive: lifecycleControl(
+      "Archive",
+      args.providerCapabilities?.archive,
+      args.liveTransportAvailable,
+      sessionStatus === "completed" || sessionStatus === "interrupted" || sessionStatus === "failed",
+      "Archive this completed, interrupted, or failed panel session.",
+      "Archive is available only after the panel session reaches a terminal state."
+    )
   };
 }

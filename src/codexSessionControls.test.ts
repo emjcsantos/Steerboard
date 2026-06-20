@@ -114,6 +114,64 @@ describe("codex session controls", () => {
     });
   });
 
+  it("enables lifecycle controls only when the provider advertises support and state allows it", () => {
+    const controls = buildCodexSessionControls({
+      sessionStatus: "failed",
+      liveTransportAvailable: true,
+      lastUserPrompt: "Previous",
+      draftText: "",
+      providerCapabilities: {
+        fork: true,
+        resume: true,
+        archive: true
+      }
+    });
+
+    expect(controls.fork).toEqual({
+      state: "live",
+      reason: "Fork this panel from the last completed prompt."
+    });
+    expect(controls.resume).toEqual({
+      state: "live",
+      reason: "Resume this interrupted or failed panel session."
+    });
+    expect(controls.archive).toEqual({
+      state: "live",
+      reason: "Archive this completed, interrupted, or failed panel session."
+    });
+    expect(summarizeUnsupportedSessionControls(controls)).toMatchObject({
+      count: 0,
+      label: "No unsupported controls"
+    });
+  });
+
+  it("keeps provider-supported lifecycle controls disabled until prerequisites are met", () => {
+    const controls = buildCodexSessionControls({
+      sessionStatus: "running",
+      liveTransportAvailable: true,
+      activeTurn: { status: "streaming" },
+      lastUserPrompt: "Previous",
+      providerCapabilities: {
+        fork: true,
+        resume: true,
+        archive: true
+      }
+    });
+
+    expect(controls.fork).toEqual({
+      state: "disabled",
+      reason: "Wait until the current turn finishes before forking."
+    });
+    expect(controls.resume).toEqual({
+      state: "disabled",
+      reason: "Resume is available only after an interrupted or failed panel session."
+    });
+    expect(controls.archive).toEqual({
+      state: "disabled",
+      reason: "Archive is available only after the panel session reaches a terminal state."
+    });
+  });
+
   it("summarizes unsupported controls with fork, resume, and archive evidence", () => {
     const controls = buildCodexSessionControls({
       sessionStatus: "running",

@@ -6860,6 +6860,14 @@ function SessionCell({
   const liveChatStarting = liveChatStatus === "starting";
   const liveChatRunning = liveChatStatus === "running";
   const liveChatBusy = liveChatStarting || liveChatRunning;
+  const liveProviderLifecycleCapabilities = useMemo(
+    () => ({
+      fork: false,
+      resume: false,
+      archive: false
+    }),
+    []
+  );
   const liveControlSnapshot = useMemo(
     () =>
       buildCodexSessionControls({
@@ -6869,9 +6877,18 @@ function SessionCell({
           status: liveChatStarting ? "starting" : liveChatRunning ? "streaming" : liveChatStatus
         },
         lastUserPrompt: lastLivePrompt,
-        draftText: draftMessage
+        draftText: draftMessage,
+        providerCapabilities: liveProviderLifecycleCapabilities
       }),
-    [canUseLiveCodex, draftMessage, lastLivePrompt, liveChatRunning, liveChatStarting, liveChatStatus]
+    [
+      canUseLiveCodex,
+      draftMessage,
+      lastLivePrompt,
+      liveChatRunning,
+      liveChatStarting,
+      liveChatStatus,
+      liveProviderLifecycleCapabilities
+    ]
   );
   const unsupportedControlSummary = useMemo(
     () => summarizeUnsupportedSessionControls(liveControlSnapshot),

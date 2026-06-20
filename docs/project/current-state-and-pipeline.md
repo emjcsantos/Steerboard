@@ -66,7 +66,7 @@ The current implementation includes:
 ## Future Tasks
 
 - Complete live panel chat hardening for one-panel and multi-panel desktop sessions; local live-turn stream/recovery evidence rows now record stream counts, terminal status/error counts, transcript length, preserved prompt recovery guidance, and panel-scoped retry boundaries after live results or exceptions.
-- Finish panel lifecycle controls for interrupt, retry, steer, fork, resume, and archive where providers support them.
+- Finish panel lifecycle controls for interrupt, retry, steer, fork, resume, and archive where providers support them; the control model is now provider-capability aware while the current app-server adapter still honestly reports fork, resume, and archive as unsupported until provider endpoints exist.
 - Extend richer incremental streaming evidence beyond local stream/recovery transcript rows only after provider event coverage proves additional event kinds are stable.
 - Connect planning-lane dispatch records to live worker/session creation only after risk exceptions, disabled paths, permission approvals, audit persistence, and rollback evidence are ready.
 - Add plugin, skill, MCP, and automation execution paths behind explicit provider support and approval gates.

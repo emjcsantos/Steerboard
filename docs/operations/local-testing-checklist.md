@@ -70,7 +70,7 @@ Do not proceed to the next section until the current item is at least `review`.
 5. `Controls`
    - Exercise stop, retry, pause, and route controls.
    - Confirm control actions are deterministic and do not drift between views.
-   - Confirm unsupported lifecycle controls show visible unsupported evidence, not only disabled icons.
+   - Confirm unsupported lifecycle controls show visible unsupported evidence, not only disabled icons, and that provider-supported fork, resume, or archive capability can move from unsupported to live or disabled according to session state.
    - Confirm the Owner Testing controls card lists interrupt, retry, steer, fork, resume, and archive with their current state.
    - Confirm the Owner Testing panel moves control evidence from review to ready only after interrupt, retry, and steer/follow-up transcript proof is present and fork/resume/archive are honestly unsupported or live.
 6. `Slash Commands`
