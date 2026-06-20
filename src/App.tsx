@@ -15107,7 +15107,7 @@ export function Phase8PermissionAuditDepthPanel({
           <p title={blockerPriority.topPriorityAction}>{blockerPriority.topPriorityLabel}</p>
           <small
             className="phase8-blocker-priority-source"
-            title={`${blockerPriority.topPrioritySourceId} / ${blockerPriority.topPriorityKind} / ${blockerPriority.topPriorityStatus}`}
+            title={`${blockerPriority.topPrioritySourceId} / ${blockerPriority.topPriorityKind} / ${blockerPriority.topPriorityStatus} / ${blockerPriority.topBlockerProof}`}
           >
             {blockerPriority.topPrioritySourceId} / {blockerPriority.topPriorityKind} /{" "}
             {blockerPriority.topPriorityStatus}

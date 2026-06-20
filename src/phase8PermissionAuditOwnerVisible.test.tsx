@@ -263,6 +263,9 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("Status");
     expect(html).toContain("phase8-live-action-terminal:permission / audit-depth / waiting");
     expect(html).toContain(
+      "topBlockerProof=source=phase8-live-action-terminal:permission kind=audit-depth status=waiting priority=1 severity=medium auditReview=yes"
+    );
+    expect(html).toContain(
       "riskBlockerProof=source=phase8-live-action-terminal:permission kind=permission status=waiting pm=phase-08-child-permission-labels evidence=phase8.permission-scope.phase8-live-action-terminal-permission auditReview=yes"
     );
     expect(html).toContain("Audit review");

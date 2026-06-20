@@ -52,6 +52,8 @@ function blockerPriority(): Phase8RiskBlockerPrioritySummary {
     topPriorityKind: "audit-depth",
     topPriorityStatus: "waiting",
     auditReviewCanAddressTopBlocker: true,
+    topBlockerProof:
+      "topBlockerProof=source=phase8-live-action-terminal:permission kind=audit-depth status=waiting priority=1 severity=medium auditReview=yes reviewable=1",
     nextAction: "Review terminal action before mutation paths grow.",
     safety: "Evidence only.",
     ariaLabel: "Phase 8 risk blocker priority.",

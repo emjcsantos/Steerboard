@@ -229,6 +229,10 @@ describe("phase 8 risk blocker priority", () => {
     expect(summary.topPriorityKind).toBe("audit-depth");
     expect(summary.topPriorityStatus).toBe("waiting");
     expect(summary.ariaLabel).toContain("source phase8-live-action-terminal:permission");
+    expect(summary.topBlockerProof).toContain(
+      "topBlockerProof=source=phase8-live-action-terminal:permission kind=audit-depth status=waiting priority=1 severity=medium auditReview=yes"
+    );
+    expect(summary.ariaLabel).toContain("topBlockerProof=");
     expect(summary.items[0]).toMatchObject({
       kind: "audit-depth",
       status: "waiting",
@@ -389,6 +393,9 @@ describe("phase 8 risk blocker priority", () => {
     expect(summary.topPrioritySourceId).toBe("phase8.risk-blocker.none");
     expect(summary.topPriorityKind).toBe("none");
     expect(summary.topPriorityStatus).toBe("ready");
+    expect(summary.topBlockerProof).toBe(
+      "topBlockerProof=source=none kind=none status=ready priority=0 auditReview=no open=0 reviewable=0"
+    );
   });
 
   it("ranks missing owner audit review before lower-value waiting traceability rows", () => {

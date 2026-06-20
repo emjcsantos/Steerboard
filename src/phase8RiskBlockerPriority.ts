@@ -45,6 +45,7 @@ export interface Phase8RiskBlockerPrioritySummary {
   readonly topPriorityKind: Phase8RiskBlockerPriorityKind | "none";
   readonly topPriorityStatus: Phase8RiskBlockerPriorityState | "ready";
   readonly auditReviewCanAddressTopBlocker: boolean;
+  readonly topBlockerProof: string;
   readonly nextAction: string;
   readonly safety: string;
   readonly ariaLabel: string;
@@ -353,7 +354,23 @@ function buildAriaLabel(
     `${summary.label}: ${summary.statusLabel}; ${summary.openBlockerCount} open blockers; ` +
     `${summary.auditReviewAddressableCount} audit-review addressable; top priority ${summary.topPriorityLabel}; ` +
     `source ${summary.topPrioritySourceId}; kind ${summary.topPriorityKind}; status ${summary.topPriorityStatus}; ` +
+    `${summary.topBlockerProof}; ` +
     `next action: ${summary.nextAction}`
+  );
+}
+
+function buildTopBlockerProof(
+  item: Phase8RiskBlockerPriorityItem | undefined,
+  auditReviewAddressableCount: number
+): string {
+  if (!item) {
+    return "topBlockerProof=source=none kind=none status=ready priority=0 auditReview=no open=0 reviewable=0";
+  }
+
+  return (
+    `topBlockerProof=source=${item.sourceId} kind=${item.kind} status=${item.status} ` +
+    `priority=${item.priority} severity=${item.severity} ` +
+    `auditReview=${item.canUseAuditReview ? "yes" : "no"} reviewable=${auditReviewAddressableCount}`
   );
 }
 
@@ -376,6 +393,7 @@ export function buildPhase8RiskBlockerPriority(
   const state = resolveState(items, input.traceability);
   const topItem = items[0];
   const auditReviewAddressableCount = items.filter((item) => item.canUseAuditReview).length;
+  const topBlockerProof = buildTopBlockerProof(topItem, auditReviewAddressableCount);
   const draft = {
     id: SNAPSHOT_ID,
     label: SNAPSHOT_LABEL,
@@ -392,6 +410,7 @@ export function buildPhase8RiskBlockerPriority(
     topPriorityKind: topItem?.kind ?? "none",
     topPriorityStatus: topItem?.status ?? "ready",
     auditReviewCanAddressTopBlocker: topItem?.canUseAuditReview === true,
+    topBlockerProof,
     nextAction:
       topItem?.nextAction ??
       "No Phase 8 risk blockers remain; keep permission, approval, audit, rollback, and disabled-path locks attached.",
