@@ -275,6 +275,10 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("phase8ClosureAuditStatusProof");
     expect(html).toContain("blockedCategories=");
     expect(html).toContain("mutationAdvance=no");
+    expect(html).toContain("Phase 8 owner-action handoff");
+    expect(html).toContain("phase8OwnerActionHandoffProof");
+    expect(html).toContain("ownerAction=");
+    expect(html).toContain("canContinueAuditReview=");
     expect(html).toContain("Remaining goal link");
     expect(html).toContain("PM row coverage");
     expect(html).toContain("Audit-depth evidence");

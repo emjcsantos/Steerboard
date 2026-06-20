@@ -697,6 +697,7 @@ import {
 } from "./phase8AuditReviewArtifact";
 import { buildPhase8RiskBlockerPriority } from "./phase8RiskBlockerPriority";
 import { buildPhase8RiskClosure } from "./phase8RiskClosure";
+import { buildPhase8OwnerActionHandoff } from "./phase8OwnerActionHandoff";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
 import {
   buildPhase9RunnerApprovalSnapshot,
@@ -15638,6 +15639,11 @@ export function Phase8PermissionAuditDepthPanel({
     auditReviewHandoff,
     completionGate
   });
+  const ownerActionHandoff = buildPhase8OwnerActionHandoff({
+    riskClosure,
+    blockerPriority,
+    closureAuditStatus
+  });
   const handleAuditReviewArtifactImport = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.currentTarget.files?.[0];
@@ -16027,6 +16033,24 @@ export function Phase8PermissionAuditDepthPanel({
             </span>
             <small>{closureAuditStatus.nextAction}</small>
             <small>{closureAuditStatus.phase8ClosureAuditStatusProof}</small>
+          </div>
+        </div>
+        <div
+          aria-label={ownerActionHandoff.ariaLabel}
+          className={classNames(
+            "phase8-audit-review-record",
+            `phase8-audit-review-record-${ownerActionHandoff.state}`
+          )}
+          title={ownerActionHandoff.safety}
+        >
+          <div>
+            <strong>{ownerActionHandoff.label}</strong>
+            <span>
+              {ownerActionHandoff.statusLabel} / owner action{" "}
+              {ownerActionHandoff.ownerActionBlockerCount}
+            </span>
+            <small>{ownerActionHandoff.nextAction}</small>
+            <small>{ownerActionHandoff.phase8OwnerActionHandoffProof}</small>
           </div>
         </div>
         <ol className="phase8-audit-items" aria-label="Phase 8 missing requirement explanations">
