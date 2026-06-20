@@ -371,6 +371,7 @@ import {
   buildMigrationBlockerPriority
 } from "./migrationBlockerPriority";
 import { buildMigrationApplyDecisionGate } from "./migrationApplyDecisionGate";
+import { buildMigrationOwnerApprovalHandoff } from "./migrationOwnerApprovalHandoff";
 import { buildMigrationTraceabilitySummary } from "./migrationTraceability";
 import {
   buildPersonalizationCatalogSnapshot,
@@ -5148,6 +5149,9 @@ export function MigrationReviewGatePanel({
     traceability: migrationTraceability,
     blockerPriority: migrationBlockerPriority
   });
+  const migrationOwnerApprovalHandoff = buildMigrationOwnerApprovalHandoff({
+    applyDecisionGate: migrationApplyDecisionGate
+  });
 
   return (
     <div
@@ -5331,6 +5335,42 @@ export function MigrationReviewGatePanel({
         <p>{migrationApplyDecisionGate.nextAction}</p>
         <small>{migrationApplyDecisionGate.migrationApplyDecisionProof}</small>
       </div>
+      <div
+        aria-label={migrationOwnerApprovalHandoff.ariaLabel}
+        className={classNames(
+          "migration-owner-approval-handoff",
+          `migration-owner-approval-handoff-${migrationOwnerApprovalHandoff.state}`
+        )}
+        title={migrationOwnerApprovalHandoff.safety}
+      >
+        <div className="migration-owner-approval-handoff-header">
+          <strong>{migrationOwnerApprovalHandoff.label}</strong>
+          <span>{migrationOwnerApprovalHandoff.statusLabel}</span>
+        </div>
+        <dl
+          aria-label="Migration owner approval handoff locks"
+          className="migration-owner-approval-handoff-grid"
+        >
+          <div>
+            <dt>Request</dt>
+            <dd>{migrationOwnerApprovalHandoff.canRequestOwnerApproval ? "Ready" : "Held"}</dd>
+          </div>
+          <div>
+            <dt>Recorded</dt>
+            <dd>{migrationOwnerApprovalHandoff.ownerApprovalRecorded ? "Yes" : "No"}</dd>
+          </div>
+          <div>
+            <dt>Apply</dt>
+            <dd>{migrationOwnerApprovalHandoff.canApplyMigration ? "Yes" : "No"}</dd>
+          </div>
+          <div>
+            <dt>Profile</dt>
+            <dd>{migrationOwnerApprovalHandoff.profileActivationLocked ? "Locked" : "Open"}</dd>
+          </div>
+        </dl>
+        <p>{migrationOwnerApprovalHandoff.nextAction}</p>
+        <small>{migrationOwnerApprovalHandoff.migrationOwnerApprovalHandoffProof}</small>
+      </div>
       <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
         {migrationHardeningReadiness.items.map((item) => (
           <li className={`migration-review-item-${item.status}`} key={item.id} title={item.detail}>
@@ -5489,6 +5529,9 @@ function AppDialogSurface({
     readiness: migrationHardeningReadiness,
     traceability: migrationTraceability,
     blockerPriority: migrationBlockerPriority
+  });
+  const migrationOwnerApprovalHandoff = buildMigrationOwnerApprovalHandoff({
+    applyDecisionGate: migrationApplyDecisionGate
   });
   const catalogRefreshSafetyDepth = buildPhase4RefreshSafetyDepth(
     catalogRefreshProviderSmokeProof,
@@ -6014,6 +6057,42 @@ function AppDialogSurface({
                 </dl>
                 <p>{migrationApplyDecisionGate.nextAction}</p>
                 <small>{migrationApplyDecisionGate.migrationApplyDecisionProof}</small>
+              </div>
+              <div
+                aria-label={migrationOwnerApprovalHandoff.ariaLabel}
+                className={classNames(
+                  "migration-owner-approval-handoff",
+                  `migration-owner-approval-handoff-${migrationOwnerApprovalHandoff.state}`
+                )}
+                title={migrationOwnerApprovalHandoff.safety}
+              >
+                <div className="migration-owner-approval-handoff-header">
+                  <strong>{migrationOwnerApprovalHandoff.label}</strong>
+                  <span>{migrationOwnerApprovalHandoff.statusLabel}</span>
+                </div>
+                <dl
+                  aria-label="Migration owner approval handoff locks"
+                  className="migration-owner-approval-handoff-grid"
+                >
+                  <div>
+                    <dt>Request</dt>
+                    <dd>{migrationOwnerApprovalHandoff.canRequestOwnerApproval ? "Ready" : "Held"}</dd>
+                  </div>
+                  <div>
+                    <dt>Recorded</dt>
+                    <dd>{migrationOwnerApprovalHandoff.ownerApprovalRecorded ? "Yes" : "No"}</dd>
+                  </div>
+                  <div>
+                    <dt>Apply</dt>
+                    <dd>{migrationOwnerApprovalHandoff.canApplyMigration ? "Yes" : "No"}</dd>
+                  </div>
+                  <div>
+                    <dt>Profile</dt>
+                    <dd>{migrationOwnerApprovalHandoff.profileActivationLocked ? "Locked" : "Open"}</dd>
+                  </div>
+                </dl>
+                <p>{migrationOwnerApprovalHandoff.nextAction}</p>
+                <small>{migrationOwnerApprovalHandoff.migrationOwnerApprovalHandoffProof}</small>
               </div>
               <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
                 {migrationHardeningReadiness.items.map((item) => (

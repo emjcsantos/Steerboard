@@ -479,6 +479,7 @@ describe("project management phase plan", () => {
     const traceabilityChild = byId.get("phase-05-child-traceability");
     const blockerPriorityChild = byId.get("phase-05-child-blocker-priority");
     const applyDecisionChild = byId.get("phase-05-child-apply-decision-gate");
+    const ownerApprovalHandoffChild = byId.get("phase-05-child-owner-approval-handoff");
 
     expect(draftParent?.completionPercent).toBeGreaterThanOrEqual(
       profileDraftsChild?.completionPercent ?? 0
@@ -501,53 +502,67 @@ describe("project management phase plan", () => {
     expect(rollbackAuditParent?.completionPercent).toBeGreaterThanOrEqual(
       applyDecisionChild?.completionPercent ?? 0
     );
+    expect(rollbackAuditParent?.completionPercent).toBeGreaterThanOrEqual(
+      ownerApprovalHandoffChild?.completionPercent ?? 0
+    );
     expect(previewMetadataChild?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
     );
-    expect(draftParent?.completionPercent).toBe(78);
-    expect(profileDraftsChild?.completionPercent).toBe(78);
-    expect(rollbackAuditParent?.completionPercent).toBe(78);
-    expect(previewMetadataChild?.completionPercent).toBe(78);
-    expect(auditSummaryChild?.completionPercent).toBe(78);
-    expect(reviewDepthChild?.completionPercent).toBe(78);
-    expect(traceabilityChild?.completionPercent).toBe(78);
-    expect(blockerPriorityChild?.completionPercent).toBe(78);
-    expect(applyDecisionChild?.completionPercent).toBe(78);
+    expect(draftParent?.completionPercent).toBe(84);
+    expect(profileDraftsChild?.completionPercent).toBe(84);
+    expect(rollbackAuditParent?.completionPercent).toBe(84);
+    expect(previewMetadataChild?.completionPercent).toBe(84);
+    expect(auditSummaryChild?.completionPercent).toBe(84);
+    expect(reviewDepthChild?.completionPercent).toBe(84);
+    expect(traceabilityChild?.completionPercent).toBe(84);
+    expect(blockerPriorityChild?.completionPercent).toBe(84);
+    expect(applyDecisionChild?.completionPercent).toBe(84);
+    expect(ownerApprovalHandoffChild?.completionPercent).toBe(84);
     expect(profileDraftsChild?.description).toContain("apply-review-staged audit actions");
     expect(profileDraftsChild?.description).toContain("migrationReviewDepthProof");
     expect(profileDraftsChild?.description).toContain("evidenceKeys=6/6");
     expect(profileDraftsChild?.description).toContain("without changing active profiles or source data");
     expect(profileDraftsChild?.description).toContain("migrationApplyDecisionProof");
+    expect(profileDraftsChild?.description).toContain("migrationOwnerApprovalHandoffProof");
     expect(rollbackAuditParent?.description).toContain("sensitive-boundary traceability");
     expect(rollbackAuditParent?.description).toContain("migrationTraceabilityProof");
     expect(rollbackAuditParent?.description).toContain("openReview=0");
     expect(rollbackAuditParent?.description).toContain("migrationBlockerPriorityProof");
     expect(rollbackAuditParent?.description).toContain("open=0");
     expect(rollbackAuditParent?.description).toContain("migrationApplyDecisionProof");
+    expect(rollbackAuditParent?.description).toContain("migrationOwnerApprovalHandoffProof");
     expect(auditSummaryChild?.description).toContain("draft/audit fingerprint match");
     expect(auditSummaryChild?.description).toContain("migrationReviewDepthProof");
     expect(auditSummaryChild?.description).toContain("records=6/6");
     expect(auditSummaryChild?.description).toContain("migrationApplyDecisionProof");
+    expect(auditSummaryChild?.description).toContain("migrationOwnerApprovalHandoffProof");
     expect(previewMetadataChild?.description).toContain("sensitive-exclusion evidence keys");
     expect(previewMetadataChild?.description).toContain("migrationReviewDepthProof");
     expect(previewMetadataChild?.description).toContain("sourceMutation=locked");
     expect(previewMetadataChild?.description).toContain("migrationApplyDecisionProof");
+    expect(previewMetadataChild?.description).toContain("migrationOwnerApprovalHandoffProof");
     expect(reviewDepthChild?.description).toContain("six separate ready owner-review records");
     expect(reviewDepthChild?.description).toContain("unique evidence keys");
     expect(reviewDepthChild?.description).toContain("migrationReviewDepthProof");
     expect(reviewDepthChild?.description).toContain("ready owner-review records");
     expect(reviewDepthChild?.description).toContain("migrationApplyDecisionProof");
+    expect(reviewDepthChild?.description).toContain("migrationOwnerApprovalHandoffProof");
     expect(traceabilityChild?.description).toContain("source-mutation locks");
     expect(traceabilityChild?.description).toContain("migrationTraceabilityProof");
     expect(traceabilityChild?.description).toContain("trust=ready");
     expect(traceabilityChild?.description).toContain("openReview=0");
     expect(traceabilityChild?.description).toContain("apply-decision gate");
+    expect(traceabilityChild?.description).toContain("owner-approval handoff");
     expect(blockerPriorityChild?.description).toContain("source-mutation locks");
     expect(blockerPriorityChild?.description).toContain("migrationBlockerPriorityProof");
     expect(blockerPriorityChild?.description).toContain("open=0");
     expect(blockerPriorityChild?.description).toContain("migrationApplyDecisionProof");
+    expect(blockerPriorityChild?.description).toContain("migrationOwnerApprovalHandoffProof");
     expect(applyDecisionChild?.description).toContain("migrationApplyDecisionProof");
     expect(applyDecisionChild?.description).toContain("canApply=no");
     expect(applyDecisionChild?.description).toContain("approval=required");
+    expect(ownerApprovalHandoffChild?.description).toContain("migrationOwnerApprovalHandoffProof");
+    expect(ownerApprovalHandoffChild?.description).toContain("recorded=no");
+    expect(ownerApprovalHandoffChild?.description).toContain("canApply=no");
   });
 });

@@ -176,10 +176,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 5"],
     phaseIds: ["phase-05-migration-center"],
     goal:
-      "Finish preview, apply-intent lock, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, review-depth records, and the apply-decision gate for metadata-only migration work.",
+      "Finish preview, apply-intent lock, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, review-depth records, the apply-decision gate, and the owner-approval handoff for metadata-only migration work.",
     status: "active",
     priority: "high",
-    completionPercent: 78,
+    completionPercent: 84,
     current: true,
     pmTaskIds: [
       "phase-05-migration-center",
@@ -191,10 +191,11 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-05-child-review-depth",
       "phase-05-child-traceability",
       "phase-05-child-blocker-priority",
-      "phase-05-child-apply-decision-gate"
+      "phase-05-child-apply-decision-gate",
+      "phase-05-child-owner-approval-handoff"
     ],
     nextAction:
-      "Use the Migration review gate as the current active implementation target with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, traceability rows, blocker-priority queue, apply-decision gate, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, and keep profile activation locked before any migration apply path."
+      "Use the Migration review gate as the current active implementation target with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, migrationOwnerApprovalHandoffProof requestable=yes/recorded=no/canApply=no, traceability rows, blocker-priority queue, apply-decision gate, owner-approval handoff, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, request explicit owner approval only as local review evidence, and keep profile activation locked before any migration apply path."
   },
   {
     id: "goal-phase-7-dispatch-loop",
