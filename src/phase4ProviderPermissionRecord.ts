@@ -193,6 +193,8 @@ function buildPermissionChainProof(input: {
   readonly recordAuditRecordId?: string;
   readonly expectedRollbackRecordId?: string;
   readonly recordRollbackRecordId?: string;
+  readonly rollbackValidationState: Phase4ProviderRollbackRecordValidation["state"];
+  readonly rollbackChainProof: string;
   readonly expectedAuditEvidenceFingerprint?: string;
   readonly recordAuditEvidenceFingerprint?: string;
   readonly expectedRollbackEvidenceFingerprint?: string;
@@ -222,6 +224,8 @@ function buildPermissionChainProof(input: {
     `approval=${valueOrMissing(input.recordApprovalRecordId)} expectedApproval=${valueOrMissing(input.expectedApprovalRecordId)} ` +
     `audit=${valueOrMissing(input.recordAuditRecordId)} expectedAudit=${valueOrMissing(input.expectedAuditRecordId)} ` +
     `rollback=${valueOrMissing(input.recordRollbackRecordId)} expectedRollback=${valueOrMissing(input.expectedRollbackRecordId)} ` +
+    `rollbackValidation=${input.rollbackValidationState} ` +
+    `rollbackChain=${input.rollbackChainProof.trim() ? "present" : "missing"} ` +
     `catalog=${valueOrMissing(input.recordCatalogFingerprint)} expectedCatalog=${valueOrMissing(input.expectedCatalogFingerprint)} ` +
     `auditEvidence=${valueOrMissing(input.recordAuditEvidenceFingerprint)} expectedAuditEvidence=${valueOrMissing(input.expectedAuditEvidenceFingerprint)} ` +
     `rollbackEvidence=${valueOrMissing(input.recordRollbackEvidenceFingerprint)} expectedRollbackEvidence=${valueOrMissing(input.expectedRollbackEvidenceFingerprint)} ` +
@@ -562,6 +566,8 @@ export function derivePhase4ProviderPermissionRecordValidation(input: {
         expectedApprovalRecordId: input.approvalRecord?.id,
         expectedAuditRecordId: input.auditRecord?.id,
         expectedRollbackRecordId: input.rollbackRecord?.id,
+        rollbackValidationState: input.rollbackValidation.state,
+        rollbackChainProof: input.rollbackValidation.rollbackChainProof,
         expectedAuditEvidenceFingerprint,
         expectedRollbackEvidenceFingerprint,
         expectedSurfaceDepthEvidenceFingerprint:
@@ -659,6 +665,8 @@ export function derivePhase4ProviderPermissionRecordValidation(input: {
       recordAuditRecordId: input.record.auditRecordId,
       expectedRollbackRecordId: input.rollbackRecord?.id,
       recordRollbackRecordId: input.record.rollbackRecordId,
+      rollbackValidationState: input.rollbackValidation.state,
+      rollbackChainProof: input.rollbackValidation.rollbackChainProof,
       expectedAuditEvidenceFingerprint,
       recordAuditEvidenceFingerprint: input.record.auditEvidenceFingerprint,
       expectedRollbackEvidenceFingerprint,

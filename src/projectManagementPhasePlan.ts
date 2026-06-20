@@ -298,7 +298,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 94,
+    completionPercent: 95,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -306,7 +306,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
         description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof, structured plugin/MCP aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
-        completionPercent: 80,
+        completionPercent: 81,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
         children: [
@@ -368,8 +368,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-permission-record",
             title: "Provider Permission Record",
-            description: "Record and clear local provider permission review only when the current approval, audit, rollback, six-surface catalog, audit evidence, rollback evidence, surface-depth, permission evidence, owner/scope/action evidence, structured permission-chain proof, and every provider surface scope match while mutation remains locked.",
-            completionPercent: 66,
+            description: "Record and clear local provider permission review only when the current approval, audit, rollback, ready rollback validation, structured rollback-chain proof, six-surface catalog, audit evidence, rollback evidence, surface-depth, permission evidence, owner/scope/action evidence, structured permission-chain proof, and every provider surface scope match while mutation remains locked.",
+            completionPercent: 68,
             complexity: "high",
             sourceDocument: "Phase 4 provider permission record"
           },

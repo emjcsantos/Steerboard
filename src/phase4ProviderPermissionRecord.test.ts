@@ -137,7 +137,9 @@ describe("phase 4 provider permission record", () => {
   });
 
   it("validates fresh records tied to the current approval, audit, rollback, catalog, and permission evidence", () => {
-    expect(validate()).toMatchObject({
+    const validation = validate();
+
+    expect(validation).toMatchObject({
       state: "ready",
       matchesCurrentCatalog: true,
       matchesCurrentApproval: true,
@@ -155,24 +157,25 @@ describe("phase 4 provider permission record", () => {
         "approvalMatch=matched auditMatch=matched rollbackMatch=matched catalogMatch=matched"
       )
     });
-    expect(validate().permissionChainProof).toContain(
+    expect(validation.permissionChainProof).toContain("rollbackValidation=ready rollbackChain=present");
+    expect(validation.permissionChainProof).toContain(
       "owner=present scope=present action=present mutation=locked execution=locked"
     );
   });
 
   it("returns preview when no permission record is attached", () => {
-    expect(
-      derivePhase4ProviderPermissionRecordValidation({
-        approvalRecord,
-        auditRecord,
-        rollbackRecord,
-        rollbackValidation,
-        expectedCatalogFingerprint: "phase4-catalog-current",
-        expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
-        expectedPermissionEvidenceFingerprint: "phase4-provider-permission-current",
-        options: { evaluatedAt: "2026-06-18T10:35:00.000Z" }
-      })
-    ).toMatchObject({
+    const validation = derivePhase4ProviderPermissionRecordValidation({
+      approvalRecord,
+      auditRecord,
+      rollbackRecord,
+      rollbackValidation,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
+      expectedPermissionEvidenceFingerprint: "phase4-provider-permission-current",
+      options: { evaluatedAt: "2026-06-18T10:35:00.000Z" }
+    });
+
+    expect(validation).toMatchObject({
       state: "preview",
       detail: expect.stringContaining("not attached"),
       matchesCurrentCatalog: false,
@@ -183,18 +186,8 @@ describe("phase 4 provider permission record", () => {
       mutationLocked: false,
       missingSurfaceScopes: EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
     });
-    expect(
-      derivePhase4ProviderPermissionRecordValidation({
-        approvalRecord,
-        auditRecord,
-        rollbackRecord,
-        rollbackValidation,
-        expectedCatalogFingerprint: "phase4-catalog-current",
-        expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
-        expectedPermissionEvidenceFingerprint: "phase4-provider-permission-current",
-        options: { evaluatedAt: "2026-06-18T10:35:00.000Z" }
-      }).permissionChainProof
-    ).toContain("mutation=review execution=locked");
+    expect(validation.permissionChainProof).toContain("rollbackValidation=ready rollbackChain=present");
+    expect(validation.permissionChainProof).toContain("mutation=review execution=locked");
   });
 
   it("reviews stale, future-dated, mismatched, incomplete, and mutation-unlocked permission records", () => {

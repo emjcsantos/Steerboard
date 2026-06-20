@@ -274,6 +274,7 @@ const permissionChainProof =
   `approval=${approvalRecordId} expectedApproval=${approvalRecordId} ` +
   `audit=${auditRecordId} expectedAudit=${auditRecordId} ` +
   `rollback=${rollbackRecordId} expectedRollback=${rollbackRecordId} ` +
+  "rollbackValidation=ready rollbackChain=present " +
   `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
   `auditEvidence=${auditEvidenceFingerprint} expectedAuditEvidence=${auditEvidenceFingerprint} ` +
   `rollbackEvidence=${rollbackEvidenceFingerprint} expectedRollbackEvidence=${rollbackEvidenceFingerprint} ` +
