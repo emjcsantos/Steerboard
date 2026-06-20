@@ -115,14 +115,24 @@ function refreshSafetyProof(refreshSafety: Phase4RefreshSafetyDepthSummary): str
 function approvalChainProof(input: {
   readonly expectedCatalogFingerprint?: string;
   readonly recordCatalogFingerprint?: string;
+  readonly recordAgeMs?: number;
+  readonly maxRecordAgeMs: number;
   readonly matchesCurrentCatalog: boolean;
   readonly refreshSafetyReady: boolean;
   readonly refreshSafetyProof: string;
 }): string {
+  const recordFreshness =
+    input.recordAgeMs === undefined
+      ? "missing"
+      : input.recordAgeMs >= 0 && input.recordAgeMs <= input.maxRecordAgeMs
+        ? "fresh"
+        : "review";
+
   return (
     `catalog=${input.recordCatalogFingerprint ?? "missing"} ` +
     `expectedCatalog=${input.expectedCatalogFingerprint ?? "missing"} ` +
     `catalogMatch=${input.matchesCurrentCatalog ? "matched" : "review"} ` +
+    `recordFreshness=${recordFreshness} ` +
     `refreshSafety=${input.refreshSafetyReady ? "ready" : "review"} ` +
     `${input.refreshSafetyProof} owner=present mutation=locked execution=locked`
   );
@@ -254,6 +264,7 @@ export function derivePhase4ProviderApprovalRecordValidation(input: {
   const refreshProof = refreshSafetyProof(input.refreshSafety);
   const previewApprovalChainProof = approvalChainProof({
     expectedCatalogFingerprint: input.expectedCatalogFingerprint,
+    maxRecordAgeMs,
     matchesCurrentCatalog: false,
     refreshSafetyReady: isRefreshSafetyReady,
     refreshSafetyProof: refreshProof
@@ -289,6 +300,8 @@ export function derivePhase4ProviderApprovalRecordValidation(input: {
     approvalChainProof: approvalChainProof({
       expectedCatalogFingerprint: input.expectedCatalogFingerprint,
       recordCatalogFingerprint: input.record.catalogFingerprint,
+      recordAgeMs: ageMs,
+      maxRecordAgeMs,
       matchesCurrentCatalog,
       refreshSafetyReady: isRefreshSafetyReady,
       refreshSafetyProof: refreshProof

@@ -274,6 +274,7 @@ const requiredApprovalChainProofTerms = [
   "catalog=",
   "expectedCatalog=",
   "catalogMatch=",
+  "recordFreshness=fresh",
   "refreshSafety=ready",
   "refreshSmoke=present",
   "reloadSafe=ready",

@@ -67,7 +67,7 @@ describe("phase 4 provider approval record", () => {
         "refreshSafety=ready ready=7 preview=0 blocked=0 surfaces=6/6 executed=6/6"
       ),
       approvalChainProof: expect.stringContaining(
-        "catalog=phase4-catalog-current expectedCatalog=phase4-catalog-current catalogMatch=matched refreshSafety=ready"
+        "catalog=phase4-catalog-current expectedCatalog=phase4-catalog-current catalogMatch=matched recordFreshness=fresh refreshSafety=ready"
       ),
       recordAgeMs: 300_000
     });
@@ -97,7 +97,7 @@ describe("phase 4 provider approval record", () => {
         "refreshSafety=ready ready=7 preview=0 blocked=0 surfaces=6/6 executed=6/6"
       ),
       approvalChainProof: expect.stringContaining(
-        "catalog=missing expectedCatalog=phase4-catalog-current catalogMatch=review refreshSafety=ready"
+        "catalog=missing expectedCatalog=phase4-catalog-current catalogMatch=review recordFreshness=missing refreshSafety=ready"
       )
     });
   });
@@ -132,7 +132,8 @@ describe("phase 4 provider approval record", () => {
       })
     ).toMatchObject({
       state: "review",
-      detail: expect.stringContaining("stale")
+      detail: expect.stringContaining("stale"),
+      approvalChainProof: expect.stringContaining("recordFreshness=review")
     });
     expect(
       derivePhase4ProviderApprovalRecordValidation({

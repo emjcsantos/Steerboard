@@ -344,8 +344,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-approval-record",
             title: "Provider Approval Record",
-            description: "Record and clear local owner approval only when the current six-surface catalog fingerprint, fresh metadata-only refresh-safety proof, structured refresh-safety readiness proof, structured approval-chain proof, aggregate local record-validation proof, mutation lock, and execution lock match, without unlocking audit, rollback, permission, or execution.",
-            completionPercent: 70,
+            description: "Record and clear local owner approval only when the current six-surface catalog fingerprint, fresh metadata-only refresh-safety proof, structured refresh-safety readiness proof, structured approval-chain proof with compact record-freshness verdict, aggregate local record-validation proof, mutation lock, and execution lock match, without unlocking audit, rollback, permission, or execution.",
+            completionPercent: 72,
             complexity: "high",
             sourceDocument: "Phase 4 provider approval record"
           },

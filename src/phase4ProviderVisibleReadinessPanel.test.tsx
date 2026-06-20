@@ -393,7 +393,7 @@ describe("phase 4 provider visible readiness panel", () => {
     );
     expect(html).toContain("refreshSmoke=present reloadSafe=ready");
     expect(html).toContain("checkedAt=present fingerprint=present");
-    expect(html).toContain("catalogMatch=matched refreshSafety=ready");
+    expect(html).toContain("catalogMatch=matched recordFreshness=fresh refreshSafety=ready");
     expect(html).toContain("owner=present mutation=locked execution=locked");
     expect(html).toContain("catalogMatch=matched execution=locked");
     expect(html).toContain("approvalValidation=ready approvalChain=present");

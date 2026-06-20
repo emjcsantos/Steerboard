@@ -383,6 +383,7 @@ const REQUIRED_APPROVAL_CHAIN_PROOF_TERMS = [
   "catalog=",
   "expectedCatalog=",
   "catalogMatch=",
+  "recordFreshness=fresh",
   "refreshSafety=ready",
   "refreshSmoke=present",
   "reloadSafe=ready",

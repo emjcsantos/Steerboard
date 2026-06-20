@@ -1301,7 +1301,7 @@ describe("phase 4 provider review artifact", () => {
         refreshSafetyReady: true,
         refreshSafetyProof: "refreshSafety=ready ready=8 preview=0 blocked=0",
         approvalChainProof:
-          "catalog=phase4-catalog-old expectedCatalog=phase4-catalog-current catalogMatch=review refreshSafety=ready refreshSmoke=present reloadSafe=ready owner=present mutation=locked execution=locked"
+          "catalog=phase4-catalog-old expectedCatalog=phase4-catalog-current catalogMatch=review recordFreshness=fresh refreshSafety=ready refreshSmoke=present reloadSafe=ready owner=present mutation=locked execution=locked"
       }
     };
 
