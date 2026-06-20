@@ -420,6 +420,7 @@ describe("phase 9 runner blocker priority", () => {
     expect(summary.runnerBlockerPriorityProof).toContain("open=0");
     expect(summary.runnerBlockerPriorityProof).toContain("runnerReviewAddressable=0");
     expect(summary.runnerBlockerPriorityProof).toContain("traceability=ready");
+    expect(summary.runnerBlockerPriorityProof).toContain("pmLinks=11/11");
     expect(summary.runnerBlockerPriorityProof).toContain("mutationLocks=6/6");
   });
 

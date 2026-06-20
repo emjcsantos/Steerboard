@@ -66,6 +66,7 @@ export interface Phase9RunnerBlockerPriorityInput {
 
 const SNAPSHOT_ID = "phase-09-runner-blocker-priority";
 const SNAPSHOT_LABEL = "Phase 9 runner blocker priority";
+const REQUIRED_PM_TASK_COUNT = 11;
 const RUNNER_REVIEW_ACTION = "Review Phase 9 runner evidence";
 const SAFETY =
   "Phase 9 runner blocker priority is evidence-only. It ranks existing Phase 8 gate, runner approval, approval-depth, traceability, and mutation-lock blockers but does not request permission, run the desktop probe, mutate files, export audit records, or unlock broader desktop execution.";
@@ -349,7 +350,7 @@ function buildRunnerBlockerPriorityProof(
     `top=${summary.topPriorityLabel} source=${summary.topPrioritySourceId} kind=${summary.topPriorityKind} ` +
     `status=${summary.topPriorityStatus} topActionable=${summary.runnerReviewCanAddressTopBlocker ? "yes" : "no"} ` +
     `traceability=${traceability.canTrustRunnerApproval ? "ready" : traceability.state} ` +
-    `pmLinks=${traceability.linkedPmTaskCount}/10 mutationLocks=${traceability.mutationLockCount}/6 execution=locked`
+    `pmLinks=${traceability.linkedPmTaskCount}/${REQUIRED_PM_TASK_COUNT} mutationLocks=${traceability.mutationLockCount}/6 execution=locked`
   );
 }
 
