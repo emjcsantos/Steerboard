@@ -15,6 +15,7 @@ const PHASE11_EVIDENCE_GATES: Phase11EvidenceGate[] = [
   "clean-checkout",
   "build-test",
   "docs-known-limits",
+  "signed-audit-export",
   "release-decision"
 ];
 
@@ -27,6 +28,8 @@ const DEFAULT_RECORD_DETAILS: Record<Phase11EvidenceGate, string> = {
     "Owner attached final test, build, and output evidence metadata for Phase 11 release review.",
   "docs-known-limits":
     "Owner attached docs, owner checklist, packaging limits, and known limits evidence metadata for Phase 11 release review.",
+  "signed-audit-export":
+    "Owner attached signed audit export, signature verification, rollback references, no-mutation export scope, and release privacy readiness evidence metadata for Phase 11 release review.",
   "release-decision":
     "Owner attached owner release-decision evidence metadata while packaging locked, Phase 3 handoff proof and proof-export evidence remain attached, and security closure proof is ready for Phase 11 release review."
 };

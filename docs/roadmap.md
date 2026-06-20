@@ -23,7 +23,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 | Phase 8: Permissions and Audit | Next | Permission labels, risk blockers, risk exceptions, audit persistence, traceability, blocker priority, and `phase8CloseoutStatusProof` remain prerequisites before mutation paths grow. |
 | Phase 9: Desktop-Backed Runner | In progress | The fixed terminal read-only probe is the current active implementation target and remains behind permission, audit, validation, rollback, traceability, runner-review, visible desktop-probe gate status, request-gate, completion-gate, closeout, and owner approval gates. |
 | Phase 10: Adaptive Magnetic Arena | Next | Adaptive layout regression, density, keyboard controls, focus state, Arena terminology, traceability, blocker priority, and `phase10ArenaPolishCloseoutStatusProof` remain polish work after core proof clears. |
-| Phase 11: Owner Testing and Release Readiness | Next | Owner Testing, evidence records, proof freshness, fresh checkout, release readiness, owner release traceability, blocker priority, and packaging holds remain the final release gate. |
+| Phase 11: Owner Testing and Release Readiness | Next | Owner Testing, evidence records, proof freshness, fresh checkout, signed audit export and rollback reference evidence, release readiness, owner release traceability, blocker priority, and packaging holds remain the final release gate. |
 
 ## Phase 0: Baseline, Safety, and Docs Hygiene
 
@@ -104,5 +104,5 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 ## Phase 11: Owner Testing and Release Readiness
 
 - Owner Testing command center with checklist coverage, proof freshness depth, evidence records, phase readiness, current next action, and prioritized remaining-goal traces.
-- Release readiness gate for fresh checkout, clean checkout, build/test, owner smoke proof with Phase 3 proof-export detail, completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, docs/known limits, security closure capability, and final release decision.
+- Release readiness gate for fresh checkout, clean checkout, build/test, owner smoke proof with Phase 3 proof-export detail, completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, docs/known limits, signed audit export and rollback reference evidence, security closure capability, and final release decision.
 - Owner release traceability and blocker priority keep packaging, signing, installer creation, Git push, and external release actions paused until the owner explicitly resumes them.

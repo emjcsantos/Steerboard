@@ -68,9 +68,9 @@ function evidenceRecords(
     state: "ready",
     statusLabel: "Ready",
     readiness: 100,
-    totalGateCount: 5,
+    totalGateCount: 6,
     openGateCount: 0,
-    readyCount: 5,
+    readyCount: 6,
     reviewCount: 0,
     blockedCount: 0,
     waitingCount: 0,
@@ -122,6 +122,17 @@ function evidenceRecords(
         recordedAt: "2026-06-17T10:00:00.000Z",
         detail: "Docs and known limits evidence is ready.",
         nextAction: "Keep docs and known limits evidence attached.",
+        safety: "Evidence only."
+      },
+      "signed-audit-export": {
+        gate: "signed-audit-export",
+        label: "Signed audit export",
+        state: "ready",
+        freshness: "fresh",
+        source: "owner proof",
+        recordedAt: "2026-06-17T10:00:00.000Z",
+        detail: "Signed audit export and rollback reference evidence is ready.",
+        nextAction: "Keep signed audit export evidence attached.",
         safety: "Evidence only."
       },
       "release-decision": {

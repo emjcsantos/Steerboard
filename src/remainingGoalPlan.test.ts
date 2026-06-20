@@ -1139,18 +1139,25 @@ describe("remaining goal plan", () => {
     const packageValidationChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-11-child-package-validation"
     );
+    const signedAuditExportChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-11-child-signed-audit-export"
+    );
     const releaseCloseoutChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-11-child-release-closeout-status"
     );
     expect(releasePackagingParent?.completionPercent).toBe(100);
     expect(packageValidationChild?.completionPercent).toBe(100);
+    expect(signedAuditExportChild?.completionPercent).toBe(100);
     expect(releaseCloseoutChild?.completionPercent).toBe(100);
     expect(packageValidationChild?.description).toContain("packaging lock readiness");
     expect(packageValidationChild?.description).toContain("release-decision prerequisite detail");
+    expect(signedAuditExportChild?.description).toContain("signed audit export metadata");
+    expect(signedAuditExportChild?.description).toContain("rollback references");
     expect(releaseCloseoutChild?.description).toContain("phase11ReleaseCloseoutStatusProof");
     expect(releaseGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-11-child-package-validation",
+        "phase-11-child-signed-audit-export",
         "phase-11-child-traceability",
         "phase-11-child-blocker-priority",
         "phase-11-child-release-closeout-status"
@@ -1158,6 +1165,7 @@ describe("remaining goal plan", () => {
     );
     expect(releaseGoal?.goal).toContain("structured evidence records");
     expect(releaseGoal?.goal).toContain("fresh-checkout");
+    expect(releaseGoal?.goal).toContain("signed audit export and rollback reference evidence");
     expect(releaseGoal?.goal).toContain(
       "completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence"
     );
@@ -1166,6 +1174,7 @@ describe("remaining goal plan", () => {
     );
     expect(releaseGoal?.nextAction).toContain("Phase 11 release closeout status proof attached");
     expect(releaseGoal?.nextAction).toContain("evidence records");
+    expect(releaseGoal?.nextAction).toContain("signed audit export and rollback reference evidence");
     expect(releaseGoal?.nextAction).toContain("owner release traceability");
     expect(releaseGoal?.nextAction).toContain("packaging-paused evidence");
     expect(releaseGoal?.nextAction).toContain("Release actions remain paused");

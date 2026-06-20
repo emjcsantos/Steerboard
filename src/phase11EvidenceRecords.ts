@@ -3,6 +3,7 @@ export type Phase11EvidenceGate =
   | "clean-checkout"
   | "build-test"
   | "docs-known-limits"
+  | "signed-audit-export"
   | "release-decision";
 
 export type Phase11EvidenceRecordState = "ready" | "review" | "blocked" | "waiting";
@@ -68,6 +69,7 @@ const GATE_LABELS: Record<Phase11EvidenceGate, string> = {
   "clean-checkout": "Clean checkout",
   "build-test": "Build and test",
   "docs-known-limits": "Docs and known limits",
+  "signed-audit-export": "Signed audit export",
   "release-decision": "Release decision evidence"
 };
 
@@ -76,6 +78,7 @@ const DEFAULT_NEXT_ACTIONS: Record<Phase11EvidenceGate, string> = {
   "clean-checkout": "Record clean-checkout install, dependency verification, and startup proof before release readiness.",
   "build-test": "Record the final test and build pass before release packaging is reconsidered.",
   "docs-known-limits": "Record release docs, owner checklist, packaging limits, and known limits review before release.",
+  "signed-audit-export": "Record signed audit export metadata, signature verification, rollback references, and no-mutation export scope before release readiness.",
   "release-decision": "Record release-decision evidence metadata before release readiness can recommend release."
 };
 
@@ -84,6 +87,7 @@ const READY_NEXT_ACTIONS: Record<Phase11EvidenceGate, string> = {
   "clean-checkout": "Keep clean-checkout proof attached to the release record.",
   "build-test": "Keep the final test and build output attached to the release record.",
   "docs-known-limits": "Keep release docs and known limits attached to the readiness record.",
+  "signed-audit-export": "Keep signed audit export metadata and rollback references attached while release packaging remains owner-held.",
   "release-decision": "Keep owner release-decision evidence attached while completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence stays attached, current non-ready proof freshness row actions for handoff/proof-export review remain visible, and packaging remains locked for explicit owner resume."
 };
 
@@ -92,6 +96,13 @@ const REQUIRED_DETAIL_TERMS: Record<Phase11EvidenceGate, readonly string[]> = {
   "clean-checkout": ["install", "dependency", "startup"],
   "build-test": ["test", "build", "output"],
   "docs-known-limits": ["docs", "owner checklist", "packaging limits", "known limits"],
+  "signed-audit-export": [
+    "signed audit export",
+    "signature",
+    "rollback reference",
+    "no mutation",
+    "release privacy"
+  ],
   "release-decision": [
     "owner",
     "release-decision",
@@ -108,6 +119,7 @@ const REQUIRED_DETAIL_COVERAGE_COPY: Record<Phase11EvidenceGate, string> = {
   "clean-checkout": "install, dependency verification, and startup proof",
   "build-test": "test, build, and output",
   "docs-known-limits": "docs, owner checklist, packaging limits, and known limits",
+  "signed-audit-export": "signed audit export, signature verification, rollback references, no-mutation scope, and release privacy readiness",
   "release-decision": "owner release-decision evidence, packaging locked, Phase 3 handoff proof, proof-export evidence, and security closure"
 };
 
@@ -170,6 +182,18 @@ function detailIncludesTerm(normalizedDetail: string, term: string): boolean {
 
   if (term === "release-decision") {
     return normalizedDetail.includes("release-decision") || normalizedDetail.includes("release decision");
+  }
+
+  if (term === "rollback reference") {
+    return normalizedDetail.includes("rollback reference") || normalizedDetail.includes("rollback references");
+  }
+
+  if (term === "no mutation") {
+    return (
+      normalizedDetail.includes("no mutation") ||
+      normalizedDetail.includes("no-mutation") ||
+      normalizedDetail.includes("mutation locked")
+    );
   }
 
   return normalizedDetail.includes(term);
@@ -368,6 +392,7 @@ export function buildPhase11EvidenceRecords(
     "clean-checkout": evaluatePhase11EvidenceRecord("clean-checkout", inputs["clean-checkout"], nowIso),
     "build-test": evaluatePhase11EvidenceRecord("build-test", inputs["build-test"], nowIso),
     "docs-known-limits": evaluatePhase11EvidenceRecord("docs-known-limits", inputs["docs-known-limits"], nowIso),
+    "signed-audit-export": evaluatePhase11EvidenceRecord("signed-audit-export", inputs["signed-audit-export"], nowIso),
     "release-decision": evaluatePhase11EvidenceRecord("release-decision", inputs["release-decision"], nowIso)
   };
   const values = Object.values(records);

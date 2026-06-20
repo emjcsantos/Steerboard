@@ -94,7 +94,7 @@ function evidenceSnapshot(
     state: "ready",
     statusLabel: "Ready",
     readiness: 100,
-    totalGateCount: 5,
+    totalGateCount: 6,
     openGateCount: 0,
     records: {
       "fresh-checkout": {
@@ -141,6 +141,17 @@ function evidenceSnapshot(
         nextAction: "Keep evidence attached.",
         safety: "Evidence only."
       },
+      "signed-audit-export": {
+        gate: "signed-audit-export",
+        label: "Signed audit export",
+        state: "ready",
+        freshness: "fresh",
+        source: "owner",
+        recordedAt: "2026-06-17T12:00:00.000Z",
+        detail: "Signed audit export and rollback reference evidence recorded.",
+        nextAction: "Keep evidence attached.",
+        safety: "Evidence only."
+      },
       "release-decision": {
         gate: "release-decision",
         label: "Release decision evidence",
@@ -153,7 +164,7 @@ function evidenceSnapshot(
         safety: "Evidence only."
       }
     },
-    readyCount: 5,
+    readyCount: 6,
     reviewCount: 0,
     blockedCount: 0,
     waitingCount: 0,

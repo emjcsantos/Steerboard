@@ -176,6 +176,8 @@ function readyEvidence(gate: Phase11EvidenceGate) {
     "clean-checkout": "Clean checkout install, dependency verification, and startup proof passed.",
     "build-test": "Final test, build, and output evidence passed.",
     "docs-known-limits": "Release docs, owner checklist, packaging limits, and known limits reviewed.",
+    "signed-audit-export":
+      "Signed audit export metadata, signature verification, rollback references, no-mutation export scope, and release privacy readiness evidence passed.",
     "release-decision":
       "Owner release decision recorded while packaging locked, Phase 3 handoff proof and proof-export evidence stayed attached, and security closure proof was ready."
   };
@@ -207,6 +209,7 @@ function snapshot(
     cleanCheckoutEvidence: readyEvidence("clean-checkout"),
     buildTestEvidence: readyEvidence("build-test"),
     docsKnownLimitsEvidence: readyEvidence("docs-known-limits"),
+    signedAuditExportEvidence: readyEvidence("signed-audit-export"),
     releaseDecisionEvidence: readyEvidence("release-decision"),
     ...overrides
   });

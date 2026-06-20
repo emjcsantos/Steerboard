@@ -11103,6 +11103,7 @@ function RightPanel({
         cleanCheckoutEvidence: phase11EvidenceRecords.records["clean-checkout"],
         buildTestEvidence: phase11EvidenceRecords.records["build-test"],
         docsKnownLimitsEvidence: phase11EvidenceRecords.records["docs-known-limits"],
+        signedAuditExportEvidence: phase11EvidenceRecords.records["signed-audit-export"],
         releaseDecisionEvidence: phase11EvidenceRecords.records["release-decision"]
       }),
     [

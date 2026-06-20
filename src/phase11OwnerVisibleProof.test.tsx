@@ -96,7 +96,7 @@ function proofFreshnessSnapshot(
     readyCount: 5,
     reviewCount: 2,
     blockedCount: 0,
-    waitingCount: 0,
+    waitingCount: 1,
     openProofCount: 2,
     nextAction:
       "Import or rerun desktop smoke proof rows until each required row is storage-proof attested.",
@@ -179,19 +179,19 @@ function evidenceRecordsSnapshot(
     label: "Phase 11 evidence records",
     state: "blocked",
     statusLabel: "Blocked",
-    readiness: 47,
-    totalGateCount: 5,
-    openGateCount: 4,
+    readiness: 45,
+    totalGateCount: 6,
+    openGateCount: 5,
     readyCount: 1,
     reviewCount: 1,
     blockedCount: 1,
-    waitingCount: 2,
+    waitingCount: 3,
     staleCount: 1,
-    missingCount: 2,
+    missingCount: 3,
     malformedCount: 1,
     nextAction: "Repair docs and known limits evidence metadata before release readiness.",
     ariaLabel:
-      "Phase 11 evidence records: Blocked; 47% ready; 4 open evidence gates; 2 missing; 1 stale; 1 malformed; next action: Repair docs and known limits evidence metadata before release readiness.",
+      "Phase 11 evidence records: Blocked; 45% ready; 5 open evidence gates; 3 missing; 1 stale; 1 malformed; next action: Repair docs and known limits evidence metadata before release readiness.",
     records: {
       "fresh-checkout": {
         gate: "fresh-checkout",
@@ -244,6 +244,19 @@ function evidenceRecordsSnapshot(
         safety:
           "Phase 11 evidence records are metadata-only. They do not run tests, install dependencies, build packages, execute smoke flows, write files, push branches, call networks, or resume release actions."
       },
+      "signed-audit-export": {
+        gate: "signed-audit-export",
+        label: "Signed audit export",
+        state: "waiting",
+        freshness: "missing",
+        source: "missing",
+        recordedAt: "missing",
+        detail: "Signed audit export evidence has not been recorded.",
+        nextAction:
+          "Record signed audit export metadata, signature verification, rollback references, and no-mutation export scope before release readiness.",
+        safety:
+          "Phase 11 evidence records are metadata-only. They do not run tests, install dependencies, build packages, execute smoke flows, write files, push branches, call networks, or resume release actions."
+      },
       "release-decision": {
         gate: "release-decision",
         label: "Release decision evidence",
@@ -272,7 +285,7 @@ function releaseReadinessSnapshot(
     statusLabel: "Review",
     readiness: 75,
     canRecommendRelease: false,
-    releaseHoldCount: 5,
+    releaseHoldCount: 6,
     readyCount: 4,
     reviewCount: 5,
     blockedCount: 0,
@@ -335,6 +348,16 @@ function releaseReadinessSnapshot(
         status: "review",
         detail: "Docs-known-limits evidence needs repair.",
         nextAction: "Repair docs and known limits evidence metadata."
+      },
+      {
+        id: "phase-11-release-readiness:signed-audit-export",
+        label: "Signed audit export",
+        kind: "signed-audit-export",
+        status: "waiting",
+        detail:
+          "Signed audit export metadata, signature verification, rollback references, no-mutation export scope, and release privacy readiness evidence still need owner evidence.",
+        nextAction:
+          "Record signed audit export metadata and rollback references before release readiness can proceed."
       },
       {
         id: "phase-11-release-readiness:security-closure",
@@ -485,17 +508,18 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Owner handoff proof");
     expect(html).toContain("handoff proof and proof-export evidence");
     expect(html).toContain("Phase 11 Evidence Records");
-    expect(html).toContain("Phase 11 evidence records: Blocked; 47% ready; 4 open evidence gates");
-    expect(html).toContain("<b>47%</b>");
-    expect(html).toContain("<dt>Open</dt><dd>4</dd>");
+    expect(html).toContain("Phase 11 evidence records: Blocked; 45% ready; 5 open evidence gates");
+    expect(html).toContain("<b>45%</b>");
+    expect(html).toContain("<dt>Open</dt><dd>5</dd>");
     expect(html).toContain("<dt>Ready</dt><dd>1</dd>");
-    expect(html).toContain("<dt>Waiting</dt><dd>2</dd>");
+    expect(html).toContain("<dt>Waiting</dt><dd>3</dd>");
     expect(html).toContain("<dt>Stale</dt><dd>1</dd>");
     expect(html).toContain("<dt>Malformed</dt><dd>1</dd>");
     expect(html).toContain("Fresh checkout");
     expect(html).toContain("Clean checkout");
     expect(html).toContain("Build and test");
     expect(html).toContain("Docs and known limits");
+    expect(html).toContain("Signed audit export");
     expect(html).toContain("Release decision evidence");
     expect(html).toContain(
       "Attach owner-local clean checkout metadata covering install, dependency verification, and startup proof."
@@ -525,9 +549,10 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Package");
     expect(html).toContain("<dt>Package</dt><dd>80%</dd>");
     expect(html).toContain("Holds");
-    expect(html).toContain("<dt>Holds</dt><dd>5</dd>");
+    expect(html).toContain("<dt>Holds</dt><dd>6</dd>");
     expect(html).toContain("Owner smoke proof");
     expect(html).toContain("Security closure");
+    expect(html).toContain("Record signed audit export metadata and rollback references");
     expect(html).toContain("Security closure capability is available.");
     expect(html).toContain("Keep security closure evidence attached.");
     expect(html).toContain("Release decision");
@@ -607,9 +632,9 @@ describe("phase 11 owner-visible proof", () => {
       state: "ready",
       statusLabel: "Ready",
       readiness: 100,
-      totalGateCount: 5,
+      totalGateCount: 6,
       openGateCount: 0,
-      readyCount: 5,
+      readyCount: 6,
       reviewCount: 0,
       blockedCount: 0,
       waitingCount: 0,
@@ -637,7 +662,9 @@ describe("phase 11 owner-visible proof", () => {
                     ? "Final test, build, and output evidence passed."
                     : record.gate === "docs-known-limits"
                       ? "Release docs, owner checklist, packaging limits, and known limits reviewed."
-                      : "Owner release-decision evidence recorded while packaging locked, Phase 3 handoff proof and proof-export evidence stayed attached, and security closure proof was ready.",
+                      : record.gate === "signed-audit-export"
+                        ? "Signed audit export, signature verification, rollback references, no-mutation export scope, and release privacy readiness reviewed."
+                        : "Owner release-decision evidence recorded while packaging locked, Phase 3 handoff proof and proof-export evidence stayed attached, and security closure proof was ready.",
             nextAction: `Keep ${record.label.toLowerCase()} evidence attached.`
           }
         ])
@@ -649,7 +676,7 @@ describe("phase 11 owner-visible proof", () => {
       readiness: 100,
       canRecommendRelease: true,
       releaseHoldCount: 0,
-      readyCount: 9,
+      readyCount: 10,
       reviewCount: 0,
       nextAction: "Release readiness is recorded.",
       items: releaseReadinessSnapshot().items.map((item) => ({

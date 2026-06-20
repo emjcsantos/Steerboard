@@ -17,6 +17,7 @@ export type Phase11ReleaseReadinessItemKind =
   | "phase3-trace"
   | "packaging-lock"
   | "docs-known-limits"
+  | "signed-audit-export"
   | "security-closure"
   | "release-decision";
 
@@ -61,6 +62,7 @@ export interface Phase11ReleaseReadinessInput {
   cleanCheckoutEvidence?: Phase11EvidenceRecordSnapshot;
   buildTestEvidence?: Phase11EvidenceRecordSnapshot;
   docsKnownLimitsEvidence?: Phase11EvidenceRecordSnapshot;
+  signedAuditExportEvidence?: Phase11EvidenceRecordSnapshot;
   releaseDecisionEvidence?: Phase11EvidenceRecordSnapshot;
   freshCheckoutState?: Phase11ReleaseReadinessState;
   cleanCheckoutState?: Phase11ReleaseReadinessState;
@@ -448,6 +450,25 @@ function docsKnownLimitsItem(
   };
 }
 
+function signedAuditExportItem(
+  evidence: Phase11EvidenceRecordSnapshot | undefined
+): Phase11ReleaseReadinessItem {
+  const status = evidence?.state ?? "waiting";
+
+  return {
+    id: `${SNAPSHOT_ID}:signed-audit-export`,
+    label: "Signed audit export",
+    kind: "signed-audit-export",
+    status,
+    detail: evidence
+      ? `${evidence.detail} Source: ${evidence.source}; recorded: ${evidence.recordedAt}; freshness: ${evidence.freshness}.`
+      : "Signed audit export metadata, signature verification, rollback references, no-mutation export scope, and release privacy readiness evidence still need owner evidence.",
+    nextAction:
+      evidence?.nextAction ??
+      "Record signed audit export metadata and rollback references before release readiness can proceed."
+  };
+}
+
 function securityClosureItem(
   securityFinalReview: SecurityFinalReviewSnapshot
 ): Phase11ReleaseReadinessItem {
@@ -697,7 +718,8 @@ function releaseDecisionItem(
     input.freshCheckoutEvidence,
     input.cleanCheckoutEvidence,
     input.buildTestEvidence,
-    input.docsKnownLimitsEvidence
+    input.docsKnownLimitsEvidence,
+    input.signedAuditExportEvidence
   ].filter((evidence): evidence is Phase11EvidenceRecordSnapshot => Boolean(evidence)));
   const releaseDecisionRecordedAtMs = evidenceRecordedAtMs(input.releaseDecisionEvidence);
   const latestPrerequisiteRecordedAtMs = evidenceRecordedAtMs(latestPrerequisite);
@@ -758,7 +780,8 @@ export function buildPhase11ReleaseReadinessSnapshot(
       input.projectManagementTasks
     ),
     packagingLockItem(input.desktopPackaging, input.securityFinalReview),
-    docsKnownLimitsItem(input.docsKnownLimitsEvidence, input.docsKnownLimitsState)
+    docsKnownLimitsItem(input.docsKnownLimitsEvidence, input.docsKnownLimitsState),
+    signedAuditExportItem(input.signedAuditExportEvidence)
   ];
   const items = [
     ...prerequisiteItems,

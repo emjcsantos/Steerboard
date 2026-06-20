@@ -347,7 +347,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 11"],
     phaseIds: ["phase-11-owner-packaging"],
     goal:
-      "Coordinate the final fresh-checkout, clean-checkout, build, smoke, completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, packaging-lock, docs, known-limits, owner release traceability, blocker-priority review, structured evidence records, final security closure capability, and release-decision pass before release.",
+      "Coordinate the final fresh-checkout, clean-checkout, build, smoke, completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, packaging-lock, docs, known-limits, signed audit export and rollback reference evidence, owner release traceability, blocker-priority review, structured evidence records, final security closure capability, and release-decision pass before release.",
     status: "next",
     priority: "high",
     completionPercent: 100,
@@ -355,12 +355,13 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-owner-packaging",
       "phase-11-parent-release-packaging",
       "phase-11-child-package-validation",
+      "phase-11-child-signed-audit-export",
       "phase-11-child-traceability",
       "phase-11-child-blocker-priority",
       "phase-11-child-release-closeout-status"
     ],
     nextAction:
-      "Keep the Phase 11 release closeout status proof attached with release readiness, evidence records, owner release traceability, blocker-priority, PM-link, security closure, and packaging-paused evidence visible. Release actions remain paused until the owner explicitly resumes packaging."
+      "Keep the Phase 11 release closeout status proof attached with release readiness, evidence records, signed audit export and rollback reference evidence, owner release traceability, blocker-priority, PM-link, security closure, and packaging-paused evidence visible. Release actions remain paused until the owner explicitly resumes packaging."
   }
 ];
 

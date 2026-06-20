@@ -339,6 +339,7 @@ describe("project management phase plan", () => {
     const byId = new Map(tasks.map((task) => [task.id, task]));
     const phase11Epic = byId.get("phase-11-owner-packaging");
     const releaseParent = byId.get("phase-11-parent-release-packaging");
+    const signedAuditExportChild = byId.get("phase-11-child-signed-audit-export");
     const traceabilityChild = byId.get("phase-11-child-traceability");
     const blockerPriorityChild = byId.get("phase-11-child-blocker-priority");
     const closeoutStatusChild = byId.get("phase-11-child-release-closeout-status");
@@ -354,9 +355,14 @@ describe("project management phase plan", () => {
     );
     expect(phase11Epic?.completionPercent).toBe(100);
     expect(releaseParent?.completionPercent).toBe(100);
+    expect(signedAuditExportChild?.completionPercent).toBe(100);
     expect(traceabilityChild?.completionPercent).toBe(100);
     expect(releaseParent?.description).toContain("owner release traceability status counts");
+    expect(releaseParent?.description).toContain("signed audit export and rollback reference evidence records");
     expect(phase11Epic?.description).toContain("phase11ReleaseCloseoutStatusProof");
+    expect(signedAuditExportChild?.description).toContain("signature verification");
+    expect(signedAuditExportChild?.description).toContain("rollback references");
+    expect(signedAuditExportChild?.description).toContain("release privacy readiness");
     expect(traceabilityChild?.description).toContain("linked goal and PM row coverage");
     expect(traceabilityChild?.description).toContain("release hold status");
     expect(blockerPriorityChild?.completionPercent).toBe(100);
@@ -582,6 +588,7 @@ describe("project management phase plan", () => {
     const byId = new Map(tasks.map((task) => [task.id, task]));
     const releaseParent = byId.get("phase-11-parent-release-packaging");
     const packageValidationChild = byId.get("phase-11-child-package-validation");
+    const signedAuditExportChild = byId.get("phase-11-child-signed-audit-export");
     const traceabilityChild = byId.get("phase-11-child-traceability");
     const closeoutStatusChild = byId.get("phase-11-child-release-closeout-status");
 
@@ -593,6 +600,7 @@ describe("project management phase plan", () => {
     );
     expect(releaseParent?.completionPercent).toBe(100);
     expect(packageValidationChild?.completionPercent).toBe(100);
+    expect(signedAuditExportChild?.completionPercent).toBe(100);
     expect(traceabilityChild?.completionPercent).toBe(100);
     expect(closeoutStatusChild?.completionPercent).toBe(100);
     expect(packageValidationChild?.description).toContain("packaging lock readiness");
@@ -600,6 +608,7 @@ describe("project management phase plan", () => {
     expect(packageValidationChild?.description).toContain("local storage repair");
     expect(packageValidationChild?.description).toContain("safety-disabled live actions");
     expect(packageValidationChild?.description).toContain("without executing packaging");
+    expect(signedAuditExportChild?.description).toContain("no-mutation export scope");
   });
 
   it("keeps Phase 11 owner checklist and fresh checkout aligned with owner command proof", () => {

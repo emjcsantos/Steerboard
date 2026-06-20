@@ -50,6 +50,7 @@ describe("phase 11 evidence records", () => {
     ["clean-checkout", "Clean checkout install passed."],
     ["build-test", "Vitest test and Vite build passed."],
     ["docs-known-limits", "Docs and known limits reviewed."],
+    ["signed-audit-export", "Signed audit export and rollback references recorded."],
     ["release-decision", "Owner approved release decision while packaging locked and Phase 3 proof stayed attached."]
   ] as const)(
     "moves incomplete %s ready evidence into review",
@@ -73,6 +74,10 @@ describe("phase 11 evidence records", () => {
         expect(record.detail).toContain("proof-export");
         expect(record.detail).toContain("security closure");
       }
+      if (gate === "signed-audit-export") {
+        expect(record.detail).toContain("signature");
+        expect(record.detail).toContain("release privacy");
+      }
       expect(record.nextAction).toContain("evidence metadata covering");
     }
   );
@@ -86,6 +91,10 @@ describe("phase 11 evidence records", () => {
     [
       "docs-known-limits",
       "Release docs, owner checklist, packaging limits, and known limits reviewed."
+    ],
+    [
+      "signed-audit-export",
+      "Signed audit export, signature verification, rollback references, no-mutation export scope, and release privacy readiness reviewed."
     ],
     [
       "release-decision",
@@ -281,6 +290,14 @@ describe("phase 11 evidence records", () => {
           recordedAt: "bad-date",
           detail: "Docs reviewed."
         },
+        "signed-audit-export": {
+          gate: "signed-audit-export",
+          state: "ready",
+          source: "owner",
+          recordedAt: "2026-06-17T11:15:00.000Z",
+          detail:
+            "Signed audit export, signature verification, rollback references, no-mutation export scope, and release privacy readiness reviewed."
+        },
         "release-decision": {
           gate: "release-decision",
           state: "ready",
@@ -295,10 +312,10 @@ describe("phase 11 evidence records", () => {
 
     expect(summary.state).toBe("blocked");
     expect(summary.statusLabel).toBe("Blocked");
-    expect(summary.readiness).toBe(53);
-    expect(summary.totalGateCount).toBe(5);
+    expect(summary.readiness).toBe(61);
+    expect(summary.totalGateCount).toBe(6);
     expect(summary.openGateCount).toBe(4);
-    expect(summary.readyCount).toBe(1);
+    expect(summary.readyCount).toBe(2);
     expect(summary.reviewCount).toBe(2);
     expect(summary.blockedCount).toBe(1);
     expect(summary.waitingCount).toBe(1);
