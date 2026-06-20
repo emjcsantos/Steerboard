@@ -221,7 +221,7 @@ describe("phase 11 proof freshness depth", () => {
         }),
         expect.objectContaining({
           label: "Owner handoff proof",
-          nextAction: expect.stringContaining("current active goal/PM traceability")
+          nextAction: expect.stringContaining("trusted Phase 3 goal/PM traceability")
         }),
         expect.objectContaining({
           label: "Owner handoff proof",

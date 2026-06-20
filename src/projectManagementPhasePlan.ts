@@ -243,7 +243,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-traceability",
             title: "Clearance Traceability",
-            description: "Link the current active Phase 3 goal, required PM rows, clearance evidence, command plan, CLI validation freshness, proof-export offline verification, blocker priority, phase3ClearanceCompletionStatusProof, and exact handoff-review details for current fingerprint, clearance snapshot, and age matching in one owner-review trace.",
+            description: "Link the trusted Phase 3 clearance goal, required PM rows, clearance evidence, command plan, CLI validation freshness, proof-export offline verification, blocker priority, phase3ClearanceCompletionStatusProof, and exact handoff-review details for current fingerprint, clearance snapshot, and age matching in one owner-review trace.",
             completionPercent: 100,
             complexity: "medium",
             sourceDocument: "Phase 3 clearance traceability"
@@ -1087,7 +1087,7 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-11-parent-release-packaging",
         title: "Release Readiness Gate",
-        description: "Keep fresh checkout, clean checkout, build/test, smoke proof with Phase 3 proof-export detail, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, packaging lock, docs, known limits, evidence records, owner release traceability status counts, visible Security 100% final closure guidance, and release-decision top-prerequisite detail visible while packaging stays paused.",
+        description: "Keep fresh checkout, clean checkout, build/test, smoke proof with Phase 3 proof-export detail, completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, packaging lock, docs, known limits, evidence records, owner release traceability status counts, visible Security 100% final closure guidance, and release-decision top-prerequisite detail visible while packaging stays paused.",
         completionPercent: 100,
         complexity: "high",
         sourceDocument: "Phase 11 release readiness",
@@ -1095,7 +1095,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-package-validation",
             title: "Package Lock Validation",
-            description: "Validate packaged-app prerequisites, fresh-checkout proof, proof persistence, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, evidence-record inputs, packaging lock readiness, release-decision prerequisite detail, visible Security 100% final closure guidance, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
+            description: "Validate packaged-app prerequisites, fresh-checkout proof, proof persistence, completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, evidence-record inputs, packaging lock readiness, release-decision prerequisite detail, visible Security 100% final closure guidance, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Release validation"
@@ -1103,7 +1103,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-traceability",
             title: "Owner Release Traceability",
-            description: "Link Owner Testing command gates, proof freshness depth, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, evidence records, release readiness, owner release traceability status counts, linked goal and PM row coverage, release hold status, visible Security 100% final closure guidance, required PM rows, and packaging holds before release review can be trusted.",
+            description: "Link Owner Testing command gates, proof freshness depth, completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, evidence records, release readiness, owner release traceability status counts, linked goal and PM row coverage, release hold status, visible Security 100% final closure guidance, required PM rows, and packaging holds before release review can be trusted.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 11 owner release traceability"

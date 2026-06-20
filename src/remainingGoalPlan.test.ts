@@ -272,7 +272,7 @@ describe("remaining goal plan", () => {
       title: "Clearance Traceability",
       sourceDocument: "Phase 3 clearance traceability"
     });
-    expect(traceabilityChild?.description).toContain("current active Phase 3 goal");
+    expect(traceabilityChild?.description).toContain("trusted Phase 3 clearance goal");
     expect(traceabilityChild?.description).toContain("required PM rows");
     expect(traceabilityChild?.description).toContain("proof-export offline verification");
     expect(traceabilityChild?.description).toContain("phase3ClearanceCompletionStatusProof");
@@ -1153,7 +1153,7 @@ describe("remaining goal plan", () => {
     expect(releaseGoal?.goal).toContain("structured evidence records");
     expect(releaseGoal?.goal).toContain("fresh-checkout");
     expect(releaseGoal?.goal).toContain(
-      "current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence"
+      "completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence"
     );
     expect(releaseGoal?.goal).toContain(
       "current non-ready proof freshness row actions for handoff/proof-export review"

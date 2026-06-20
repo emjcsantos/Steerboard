@@ -37,8 +37,8 @@ function trustedTraceability(
   return {
     state: "ready",
     canTrustTrace: true,
-    detail: "The current active Phase 3 goal and required PM rows are linked.",
-    nextAction: "Keep the current active Phase 3 goal and required PM rows linked through handoff.",
+    detail: "The trusted Phase 3 clearance goal and required PM rows are linked.",
+    nextAction: "Keep the trusted Phase 3 clearance goal and required PM rows linked through handoff.",
     ...overrides
   };
 }

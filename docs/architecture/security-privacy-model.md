@@ -113,7 +113,7 @@ Browser-preview safety locks can satisfy the security closure posture when execu
 
 ## Phase 11 Release Readiness Gate
 
-The Phase 11 release-readiness gate sits above the final security review. It combines clean checkout, build/test, owner smoke proof with Phase 3 proof-export detail, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, packaging lock, docs/known limits, final security closure capability, and final release decision into one reviewable status while reusing the final security review as an input.
+The Phase 11 release-readiness gate sits above the final security review. It combines clean checkout, build/test, owner smoke proof with Phase 3 proof-export detail, completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence, packaging lock, docs/known limits, final security closure capability, and final release decision into one reviewable status while reusing the final security review as an input.
 
 This gate is decision support only. It must not install dependencies, run tests, build packages, sign artifacts, create installers, mutate files, push branches, call a network endpoint, start a process, or perform release actions. A ready packaging-lock row means packaging remained locked during review; it does not resume packaging by itself.
 

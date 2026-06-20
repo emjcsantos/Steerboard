@@ -742,7 +742,7 @@ describe("phase 3 owner-visible proof panel", () => {
       "<strong>Handoff boundary</strong><span>ready</span><small>phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification</small>"
     );
     expect(html).toContain(
-      'aria-label="Phase 3 clearance traceability: Ready; 100% ready; 13/13 PM rows linked; 0 open trace rows; next action: Keep the current active Phase 3 goal, PM rows, clearance evidence, and owner handoff trace linked until Phase 3 exits."'
+      'aria-label="Phase 3 clearance traceability: Ready; 100% ready; 13/13 PM rows linked; 0 open trace rows; next action: Keep the trusted Phase 3 clearance goal, PM rows, clearance evidence, and owner handoff trace linked while later phases advance."'
     );
     expect(html).toContain(
       'aria-label="Phase 3 clearance traceability counts"><div><dt>PM Rows</dt><dd>13/13</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>State</dt><dd>Ready</dd></div><div><dt>Ready</dt><dd>100%</dd></div></dl>'
@@ -755,10 +755,10 @@ describe("phase 3 owner-visible proof panel", () => {
       'aria-label="Phase 3 command plan smoke counts"><div><dt>Ready</dt><dd>3</dd></div><div><dt>Open</dt><dd>0</dd></div><div><dt>Covers</dt><dd>3</dd></div><div><dt>State</dt><dd>Ready</dd></div></dl>'
     );
     expect(html).toContain(
-      "All required Phase 3 Epic, Parent, and Child rows are linked to the current active goal."
+      "All required Phase 3 Epic, Parent, and Child rows are linked to the trusted Phase 3 goal."
     );
     expect(html).toContain(
-      "Keep all required Phase 3 PM rows linked to the current active goal."
+      "Keep all required Phase 3 PM rows linked to the trusted Phase 3 goal."
     );
     expect(html).toContain("Owner handoff record");
     expect(html).toContain("Provider boundary");

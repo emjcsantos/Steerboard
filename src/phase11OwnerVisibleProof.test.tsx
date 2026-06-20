@@ -162,7 +162,7 @@ function proofFreshnessSnapshot(
         kind: "handoff-proof",
         status: "review",
         detail:
-          "Owner handoff proof needs current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence.",
+          "Owner handoff proof needs completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence.",
         nextAction:
           "Record ready Phase 3 handoff proof before release review."
       }
@@ -281,7 +281,7 @@ function releaseReadinessSnapshot(
     securityReadiness: 100,
     packagingReadiness: 80,
     nextAction:
-      "Resolve Phase 11 proof freshness depth, evidence records, and current active Phase 3 clearance PM traceability before release readiness.",
+      "Resolve Phase 11 proof freshness depth, evidence records, and completed Phase 3 clearance PM traceability before release readiness.",
     safety:
       "Phase 11 release readiness is evidence-only. It does not install dependencies, run tests, build packages, execute smoke flows, sign artifacts, push branches, call networks, or resume packaging.",
     ariaLabel: "Phase 11 release readiness review.",
@@ -350,9 +350,9 @@ function releaseReadinessSnapshot(
         kind: "phase3-trace",
         status: "review",
         detail:
-          "Current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence needs owner review.",
+          "Completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence needs owner review.",
         nextAction:
-          "Attach current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence before release readiness."
+          "Attach completed Phase 3 clearance PM traceability with handoff proof and proof-export evidence before release readiness."
       },
       {
         id: "phase-11-release-readiness:release-decision",
@@ -535,7 +535,7 @@ describe("phase 11 owner-visible proof", () => {
       "Owner can decide whether to resume release only after all evidence is ready."
     );
     expect(html).toContain("storage-proof attested");
-    expect(html).toContain("current active Phase 3 clearance PM traceability");
+    expect(html).toContain("completed Phase 3 clearance PM traceability");
     expect(html).toContain("Top prerequisite row: Fresh checkout is review");
     expect(html).toContain(
       "Fresh-checkout install, test, build, desktop run, and proof-panel evidence need a structured evidence record"
