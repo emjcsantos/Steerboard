@@ -248,7 +248,7 @@ describe("phase 9 runner traceability", () => {
     const summary = traceability();
 
     expect(summary.linkedGoalId).toBe("goal-phase-9-runner");
-    expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(10);
+    expect(summary.linkedPmTaskCount).toBeGreaterThanOrEqual(11);
     expect(summary.missingPmTaskIds).toEqual([]);
     expect(summary.items.map((item) => item.kind)).toEqual([
       "active-goal",
@@ -261,7 +261,7 @@ describe("phase 9 runner traceability", () => {
     expect(summary.state).toBe("waiting");
     expect(summary.canTrustRunnerApproval).toBe(false);
     expect(summary.runnerTraceabilityProof).toContain("items=6/6");
-    expect(summary.runnerTraceabilityProof).toContain("pmLinks=10/10");
+    expect(summary.runnerTraceabilityProof).toContain("pmLinks=11/11");
     expect(summary.runnerTraceabilityProof).toContain("runnerReview=ready");
     expect(summary.runnerTraceabilityProof).toContain("trust=held");
     expect(summary.runnerTraceabilityProof).toContain("execution=locked");

@@ -719,6 +719,10 @@ import { buildPhase9RunnerApprovalDepthSummary } from "./phase9RunnerApprovalDep
 import { buildPhase9RunnerBlockerPriority } from "./phase9RunnerBlockerPriority";
 import { buildPhase9RunnerCompletionGate } from "./phase9RunnerCompletionGate";
 import {
+  buildPhase9RunnerCloseoutStatus,
+  type Phase9RunnerCloseoutStatus
+} from "./phase9RunnerCloseoutStatus";
+import {
   buildPhase9DesktopProbeGate,
   buildPhase9RunnerTraceabilitySummary
 } from "./phase9RunnerTraceability";
@@ -16350,6 +16354,14 @@ export function Phase9RunnerApprovalPanel({
     blockerPriority,
     requestGate: desktopProbeGate
   });
+  const closeoutStatus = buildPhase9RunnerCloseoutStatus({
+    approval: snapshot,
+    approvalDepth: depth,
+    traceability,
+    blockerPriority,
+    requestGate: desktopProbeGate,
+    completionGate
+  });
 
   return (
     <section className="panel-section">
@@ -16489,6 +16501,7 @@ export function Phase9RunnerApprovalPanel({
           <small>{completionGate.nextAction}</small>
           <small>{completionGate.completionGateProof}</small>
         </div>
+        <Phase9RunnerCloseoutStatusPanel status={closeoutStatus} />
         <ol className="phase9-runner-items" aria-label="Phase 9 runner approval targets">
           {snapshot.items.map((item) => (
             <li
@@ -16637,6 +16650,31 @@ export function Phase9RunnerApprovalPanel({
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
     </section>
+  );
+}
+
+export function Phase9RunnerCloseoutStatusPanel({
+  status
+}: {
+  status: Phase9RunnerCloseoutStatus;
+}) {
+  return (
+    <div
+      aria-label={status.ariaLabel}
+      className={classNames(
+        "phase9-desktop-probe-gate",
+        `phase9-desktop-probe-gate-${status.state}`,
+        status.fixedProbeReady
+          ? "phase9-desktop-probe-gate-ready"
+          : "phase9-desktop-probe-gate-held"
+      )}
+      title={status.safety}
+    >
+      <strong>{status.label}</strong>
+      <span>{status.statusLabel} / {status.readiness}%</span>
+      <small>{status.nextAction}</small>
+      <small>{status.phase9RunnerCloseoutStatusProof}</small>
+    </div>
   );
 }
 
