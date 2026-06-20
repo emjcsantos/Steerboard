@@ -238,6 +238,19 @@ describe("phase 3 clearance traceability", () => {
     );
   });
 
+  it("trusts completed Phase 3 clearance while Phase 9 remains active", () => {
+    const result = snapshot({ goals: remainingGoalPlan });
+
+    expect(result.state).toBe("ready");
+    expect(result.canTrustTrace).toBe(true);
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "active-goal", status: "ready" })
+      ])
+    );
+    expect(result.nextAction).toContain("trusted Phase 3 clearance goal");
+  });
+
   it("keeps old CLI validation records visibly distinct when smoke bundle provenance is missing", () => {
     const result = snapshot({
       commandValidation: commandValidation({
