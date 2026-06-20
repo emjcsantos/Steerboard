@@ -31,8 +31,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isPersistableDesktopExecutedProof(proof: { source: string; executed: boolean }): boolean {
-  return proof.source === "desktop" && proof.executed === true;
+function isPersistableDesktopExecutedProof(proof: {
+  source: string;
+  executed: boolean;
+  checkedAt: string | null;
+}): boolean {
+  return proof.source === "desktop" && proof.executed === true && Boolean(proof.checkedAt);
 }
 
 function readFromLocalStorage(key: string): string | null {
@@ -73,9 +77,16 @@ export function parseStoredPhasePrioritySmokeProofBundle(
       return getFallbackPhasePrioritySmokeProofBundle();
     }
 
+    const liveSmoke = normalizeCodexLiveSmokeProof(parsed.liveSmoke);
+    const twoPanelSmoke = normalizeCodexTwoPanelSmokeProof(parsed.twoPanelSmoke);
+
     return {
-      liveSmoke: normalizeCodexLiveSmokeProof(parsed.liveSmoke),
-      twoPanelSmoke: normalizeCodexTwoPanelSmokeProof(parsed.twoPanelSmoke)
+      liveSmoke: isPersistableDesktopExecutedProof(liveSmoke)
+        ? liveSmoke
+        : getFallbackCodexLiveSmokeProof(),
+      twoPanelSmoke: isPersistableDesktopExecutedProof(twoPanelSmoke)
+        ? twoPanelSmoke
+        : getFallbackCodexTwoPanelSmokeProof()
     };
   } catch {
     return getFallbackPhasePrioritySmokeProofBundle();

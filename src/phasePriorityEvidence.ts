@@ -141,6 +141,11 @@ function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenc
   const ok = bool(liveSmokeProof.ok);
   const streamSignalChecks = [
     { key: "ok", label: "desktop smoke result", ready: ok },
+    {
+      key: "checkedAt",
+      label: "reload timestamp",
+      ready: typeof liveSmokeProof.checkedAt === "string" && liveSmokeProof.checkedAt.trim().length > 0
+    },
     { key: "threadIdSeen", label: "thread id", ready: bool(liveSmokeProof.threadIdSeen) },
     { key: "turnIdSeen", label: "turn id", ready: bool(liveSmokeProof.turnIdSeen) },
     {

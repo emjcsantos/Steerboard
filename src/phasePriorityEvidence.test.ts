@@ -204,6 +204,24 @@ describe("phase priority evidence", () => {
     expect(phase1?.detail).toContain("expected token");
   });
 
+  it("keeps Phase 1 proof in review when reload timestamp is missing", () => {
+    const result = buildPhasePriorityEvidence({
+      liveSmokeProof: {
+        ...readyLiveSmoke,
+        checkedAt: null
+      },
+      twoPanelSmokeProof: readyTwoPanelSmoke,
+      projectManagementTasks: createDefaultProjectManagementTasks()
+    });
+    const phase1 = result.items.find((item) => item.id === "phase-1-live-panel");
+
+    expect(result.state).toBe("review");
+    expect(phase1).toMatchObject({
+      state: "review"
+    });
+    expect(phase1?.detail).toContain("reload timestamp");
+  });
+
   it("blocks Phase 2 when live panel identities are duplicated", () => {
     const result = buildPhasePriorityEvidence({
       liveSmokeProof: readyLiveSmoke,

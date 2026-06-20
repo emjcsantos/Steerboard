@@ -124,6 +124,23 @@ describe("phase priority smoke proof storage", () => {
     });
   });
 
+  it("falls back for desktop-executed stored proofs without reload-safe timestamps", () => {
+    const parsed = parseStoredPhasePrioritySmokeProofBundle(
+      JSON.stringify({
+        liveSmoke: {
+          ...desktopLiveSmoke,
+          checkedAt: ""
+        },
+        twoPanelSmoke: {
+          ...desktopTwoPanelSmoke,
+          checkedAt: "not-a-date"
+        }
+      })
+    );
+
+    expect(parsed).toEqual(fallbackBundle);
+  });
+
   it("does not persist browser fallback or non-executed proofs", () => {
     const setItem = vi.fn();
     vi.stubGlobal("window", {
@@ -136,6 +153,23 @@ describe("phase priority smoke proof storage", () => {
     savePhasePrioritySmokeProofBundle({
       liveSmoke: { source: "browser", executed: false, ok: false },
       twoPanelSmoke: { source: "desktop", executed: false, ok: false }
+    });
+
+    expect(setItem).not.toHaveBeenCalled();
+  });
+
+  it("does not persist desktop-executed proofs without reload-safe timestamps", () => {
+    const setItem = vi.fn();
+    vi.stubGlobal("window", {
+      localStorage: {
+        setItem,
+        getItem: vi.fn(() => null)
+      }
+    });
+
+    savePhasePrioritySmokeProofBundle({
+      liveSmoke: { ...desktopLiveSmoke, checkedAt: null },
+      twoPanelSmoke: { ...desktopTwoPanelSmoke, checkedAt: "" }
     });
 
     expect(setItem).not.toHaveBeenCalled();
