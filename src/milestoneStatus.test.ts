@@ -211,10 +211,10 @@ describe("milestone status model", () => {
     expect(orchestration?.completionPercent).toBe(55);
     expect(orchestration?.current).toBeUndefined();
     expect(orchestration?.latestNote).toBe(
-      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for Arena review, with handoff, retry state, dispatch review records, and owner-visible Phase 7 proof before external dispatch."
+      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for Arena review, with handoff, retry state, dispatch review records, and verified owner-visible Phase 7 proof before external dispatch."
     );
     expect(orchestration?.nextStep).toBe(
-      "Run `npm.cmd run test:phase7:owner-visible`, keep the dispatch review rows owner-visible, and preserve local-first review before live worker session spawning."
+      "Keep the Phase 7 owner-visible proof attached, keep the dispatch review rows owner-visible, and preserve local-first review before live worker session spawning."
     );
   });
 
@@ -311,10 +311,10 @@ describe("milestone status model", () => {
     expect(migrationCenter?.completionPercent).toBe(58);
     expect(migrationCenter?.current).toBeUndefined();
     expect(migrationCenter?.latestNote).toBe(
-      "Reviewed profile-draft persistence, local apply-review-staged audit proof, rollback/audit summaries, persisted apply-review staging, and owner-visible Phase 5 review-depth checks are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded."
+      "Reviewed profile-draft persistence, local apply-review-staged audit proof, rollback/audit summaries, persisted apply-review staging, and verified owner-visible Phase 5 review-depth checks are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded."
     );
     expect(migrationCenter?.nextStep).toBe(
-      "Run `npm.cmd run test:phase5:owner-visible`, keep migration metadata checks owner-reviewed, verify local apply-review-staged audit proof plus rollback audit coverage, and require explicit apply before changing active profile state."
+      "Keep the Phase 5 owner-visible proof attached, keep migration metadata checks owner-reviewed, preserve local apply-review-staged audit proof plus rollback audit coverage, and require explicit apply before changing active profile state."
     );
   });
 
@@ -373,10 +373,10 @@ describe("milestone status model", () => {
     expect(ownerTesting?.completionPercent).toBe(50);
     expect(ownerTesting?.current).toBeUndefined();
     expect(ownerTesting?.latestNote).toBe(
-      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, per-control session-control state evidence, opt-in Phase 3 desktop smoke harnessing, reload-safe owner-visible Phase 3 smoke proof readiness rows, the non-live `npm.cmd run test:phase3:owner-visible` proof-panel check, an actionable diagnostic Phase 3 exit gate, and the non-live `npm.cmd run test:phase11:owner-visible` Owner Command, Proof Freshness, Evidence Records, Release Readiness, owner release traceability, blocker-priority, and packaging-hold proof without automatic execution."
+      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, per-control session-control state evidence, opt-in Phase 3 desktop smoke harnessing, reload-safe owner-visible Phase 3 smoke proof readiness rows, verified non-live Phase 3 owner-visible proof, an actionable diagnostic Phase 3 exit gate, and verified non-live Phase 11 Owner Command, Proof Freshness, Evidence Records, Release Readiness, owner release traceability, blocker-priority, and packaging-hold proof without automatic execution."
     );
     expect(ownerTesting?.nextStep).toBe(
-      "Run the full local testing checklist, keep `npm.cmd run smoke:phase3` as the recurring opt-in desktop smoke command, run `npm.cmd run test:phase3:owner-visible` for the non-live imported-proof panel check, run `npm.cmd run test:phase11:owner-visible` for the non-live Owner Command, Proof Freshness, Evidence Records, Release Readiness, owner release traceability, blocker-priority, and packaging-hold proof, use the Phase 3 gate actions to clear missing proofs, verify smoke proof rows move browser or non-executed proofs to waiting and desktop executions to ready, review, or blocked across reload and while the app remains open, verify the per-control Owner Testing state chips, approval-to-probe behavior, all-catalog provider refresh smoke, live panel slash execution evidence, live panel control evidence, active-turn interrupt/steer smoke proof, Phase 11 owner command evidence, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase."
+      "Keep the verified Phase 3 owner-visible proof, Phase 3 artifact verification, Phase 11 owner-visible proof, and Phase 4 provider artifact verification attached; keep `npm.cmd run smoke:phase3` as the recurring opt-in desktop smoke command; verify smoke proof rows move browser or non-executed proofs to waiting and desktop executions to ready, review, or blocked across reload and while the app remains open; preserve disabled-path evidence for terminal, Git, MCP, plugin, automation, runtime, profile, and external actions."
     );
   });
 
@@ -488,7 +488,7 @@ describe("milestone status model", () => {
     expect(pmLane?.completionPercent).toBe(57);
     expect(pmLane?.latestNote.toLowerCase()).toContain("owner-visible phase 7 dispatch proof");
     expect(pmLane?.latestNote.toLowerCase()).toContain("offline dispatch-review artifact verification");
-    expect(pmLane?.nextStep.toLowerCase()).toContain("test:phase7:owner-visible");
+    expect(pmLane?.nextStep.toLowerCase()).toContain("live worker session spawning locked");
   });
 
   it("keeps the public security and privacy architecture doc current and public-safe", () => {

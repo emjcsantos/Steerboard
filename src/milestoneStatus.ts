@@ -57,9 +57,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Define a consistent model for sequencing cross-cutting tasks and status propagation.",
     completionPercent: 55,
     latestNote:
-      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for Arena review, with handoff, retry state, dispatch review records, and owner-visible Phase 7 proof before external dispatch.",
+      "Local orchestration now creates explicit orchestrator, implementer, validator, and integration role-panel plans for Arena review, with handoff, retry state, dispatch review records, and verified owner-visible Phase 7 proof before external dispatch.",
     nextStep:
-      "Run `npm.cmd run test:phase7:owner-visible`, keep the dispatch review rows owner-visible, and preserve local-first review before live worker session spawning.",
+      "Keep the Phase 7 owner-visible proof attached, keep the dispatch review rows owner-visible, and preserve local-first review before live worker session spawning.",
     tone: "active",
     note:
       "Local runs, task state, role-plan visibility, validation gates, handoff previews, and retry state are modeled before live runtime execution."
@@ -110,9 +110,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Implement safe migration metadata review and safe-to-apply profile transitions.",
     completionPercent: 58,
     latestNote:
-      "Reviewed profile-draft persistence, local apply-review-staged audit proof, rollback/audit summaries, persisted apply-review staging, and owner-visible Phase 5 review-depth checks are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded.",
+      "Reviewed profile-draft persistence, local apply-review-staged audit proof, rollback/audit summaries, persisted apply-review staging, and verified owner-visible Phase 5 review-depth checks are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded.",
     nextStep:
-      "Run `npm.cmd run test:phase5:owner-visible`, keep migration metadata checks owner-reviewed, verify local apply-review-staged audit proof plus rollback audit coverage, and require explicit apply before changing active profile state.",
+      "Keep the Phase 5 owner-visible proof attached, keep migration metadata checks owner-reviewed, preserve local apply-review-staged audit proof plus rollback audit coverage, and require explicit apply before changing active profile state.",
     tone: "active",
     note:
       "Reviewed profile-draft persistence and rollback/audit summaries are now part of the migration milestone; migration remains metadata-only, with secrets, raw transcripts, and source mutation excluded."
@@ -135,9 +135,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Make live-functionality checks repeatable through a local checklist, failure fixtures, and docs consistency checks.",
     completionPercent: 50,
     latestNote:
-      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, per-control session-control state evidence, opt-in Phase 3 desktop smoke harnessing, reload-safe owner-visible Phase 3 smoke proof readiness rows, the non-live `npm.cmd run test:phase3:owner-visible` proof-panel check, an actionable diagnostic Phase 3 exit gate, and the non-live `npm.cmd run test:phase11:owner-visible` Owner Command, Proof Freshness, Evidence Records, Release Readiness, owner release traceability, blocker-priority, and packaging-hold proof without automatic execution.",
+      "A provider-neutral checklist and fixture layer now verifies Phase 10B runner contract behavior, disabled mutation paths, redacted audit output, six-surface catalog refresh owner validation, all-catalog provider refresh smoke proofing, slash execution readiness evidence, per-control session-control state evidence, opt-in Phase 3 desktop smoke harnessing, reload-safe owner-visible Phase 3 smoke proof readiness rows, verified non-live Phase 3 owner-visible proof, an actionable diagnostic Phase 3 exit gate, and verified non-live Phase 11 Owner Command, Proof Freshness, Evidence Records, Release Readiness, owner release traceability, blocker-priority, and packaging-hold proof without automatic execution.",
     nextStep:
-      "Run the full local testing checklist, keep `npm.cmd run smoke:phase3` as the recurring opt-in desktop smoke command, run `npm.cmd run test:phase3:owner-visible` for the non-live imported-proof panel check, run `npm.cmd run test:phase11:owner-visible` for the non-live Owner Command, Proof Freshness, Evidence Records, Release Readiness, owner release traceability, blocker-priority, and packaging-hold proof, use the Phase 3 gate actions to clear missing proofs, verify smoke proof rows move browser or non-executed proofs to waiting and desktop executions to ready, review, or blocked across reload and while the app remains open, verify the per-control Owner Testing state chips, approval-to-probe behavior, all-catalog provider refresh smoke, live panel slash execution evidence, live panel control evidence, active-turn interrupt/steer smoke proof, Phase 11 owner command evidence, and disabled-path evidence (terminal, Git, MCP, plugin, automation, runtime, profile, and external), and keep desktop-backed mutation as a future phase.",
+      "Keep the verified Phase 3 owner-visible proof, Phase 3 artifact verification, Phase 11 owner-visible proof, and Phase 4 provider artifact verification attached; keep `npm.cmd run smoke:phase3` as the recurring opt-in desktop smoke command; verify smoke proof rows move browser or non-executed proofs to waiting and desktop executions to ready, review, or blocked across reload and while the app remains open; preserve disabled-path evidence for terminal, Git, MCP, plugin, automation, runtime, profile, and external actions.",
     tone: "active",
     note: "Daily local testing and failure-state coverage are being hardened before broader live runner attachment."
   },
@@ -159,9 +159,9 @@ export const steerboardMilestoneStatuses: MilestoneStatus[] = [
     plan: "Define the optional lane scope while keeping Arena chat primary.",
     completionPercent: 57,
     latestNote:
-      "Pipeline visibility, explicit orchestrator/implementer/validator/integration role-panel plan previews, dispatch previews, linked local runs, handoff packet integrity, integration ownership rows, offline dispatch-review artifact verification, traceability, blocker priority, and owner-visible Phase 7 dispatch proof are added for Arena review.",
+      "Pipeline visibility, explicit orchestrator/implementer/validator/integration role-panel plan previews, dispatch previews, linked local runs, handoff packet integrity, integration ownership rows, offline dispatch-review artifact verification, traceability, blocker priority, and verified owner-visible Phase 7 dispatch proof are added for Arena review.",
     nextStep:
-      "Keep secondary, run `npm.cmd run test:phase7:owner-visible`, and keep staged dispatch review proof local before live worker session spawning.",
+      "Keep the lane secondary, keep staged dispatch review proof local, and keep live worker session spawning locked until explicit owner review.",
     tone: "active",
     note:
       "Optional pipeline visibility, role-panel plan previews, dispatch previews, linked local run state, and owner-visible dispatch proof are scaffolded; it remains secondary to Arena chat."
