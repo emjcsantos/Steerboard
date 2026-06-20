@@ -77,6 +77,69 @@ describe("project management hierarchy storage", () => {
     });
   });
 
+  it("refreshes stale current phase-plan rows while preserving local UI state", () => {
+    const tasks = parseStoredProjectManagementTasks(JSON.stringify([
+      {
+        id: "phase-06-planning-lane",
+        type: "epic",
+        title: "Old Phase 6",
+        description: "Stale Phase 6 row",
+        status: "todo",
+        completionPercent: 1,
+        complexity: "low",
+        sourceDocument: "Old saved board",
+        collapsed: true,
+        runState: "staged"
+      },
+      {
+        id: "phase-06-child-current-phase-map",
+        type: "child",
+        title: "Old Phase Map",
+        description: "Stale saved row",
+        status: "todo",
+        completionPercent: 1,
+        complexity: "low",
+        sourceDocument: "Old saved board",
+        parentId: "missing-parent",
+        runState: "staged"
+      },
+      {
+        id: "phase-06-parent-phase-board",
+        type: "parent",
+        title: "Old Parent",
+        description: "Stale parent row",
+        status: "todo",
+        completionPercent: 1,
+        complexity: "low",
+        sourceDocument: "Old saved board",
+        parentId: "phase-06-planning-lane",
+        collapsed: true,
+        runState: "staged"
+      }
+    ]));
+
+    expect(tasks.find((task) => task.id === "phase-06-child-current-phase-map")).toMatchObject({
+      title: "Load Current Phase Map",
+      description: expect.stringContaining("compact phase-map proof"),
+      status: "ongoing",
+      completionPercent: 72,
+      complexity: "medium",
+      sourceDocument: "Phase completion map",
+      parentId: "phase-06-parent-phase-board",
+      runState: "staged"
+    });
+    expect(tasks.find((task) => task.id === "phase-06-parent-phase-board")).toMatchObject({
+      title: "Phase Board Hierarchy",
+      collapsed: true,
+      runState: "staged"
+    });
+    expect(tasks.find((task) => task.id === "phase-06-planning-lane")).toMatchObject({
+      title: "Phase 6: Project and Program Planning Lane",
+      collapsed: true,
+      runState: "staged"
+    });
+  });
+
   it("repairs saved chat messages and excludes invalid entries", () => {
     const messages = parseStoredProjectManagementChat(
       JSON.stringify([

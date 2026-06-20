@@ -146,10 +146,24 @@ function mergeCurrentPhasePlan(tasks: ProjectManagementTask[]): ProjectManagemen
   const baseTasks = containsCurrentPhasePlan
     ? tasks
     : tasks.filter((task) => !legacyProjectManagementSeedTaskIds.has(task.id));
-  const knownIds = new Set(baseTasks.map((task) => task.id));
-  const merged = [...baseTasks];
+  const defaultTasks = createDefaultProjectManagementTasks();
+  const defaultById = new Map(defaultTasks.map((task) => [task.id, task]));
+  const merged = baseTasks.map((task) => {
+    const currentTask = defaultById.get(task.id);
 
-  for (const defaultTask of createDefaultProjectManagementTasks()) {
+    if (!currentTask) {
+      return task;
+    }
+
+    return {
+      ...currentTask,
+      collapsed: currentTask.type === "child" ? undefined : task.collapsed,
+      runState: task.runState === "staged" ? "staged" : currentTask.runState
+    };
+  });
+  const knownIds = new Set(merged.map((task) => task.id));
+
+  for (const defaultTask of defaultTasks) {
     if (!knownIds.has(defaultTask.id)) {
       merged.push(defaultTask);
       knownIds.add(defaultTask.id);

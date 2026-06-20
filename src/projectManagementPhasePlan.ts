@@ -521,8 +521,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-06-child-saved-state-upgrade",
             title: "Upgrade Existing Saved Boards",
-            description: "Ensure existing local Project Management state receives the current phase plan without malformed rows.",
-            completionPercent: 45,
+            description: "Ensure existing local Project Management state receives the current phase plan without malformed rows, refreshes stale current-plan rows from the canonical Phase 0-11 map, and preserves local collapsed or staged UI state.",
+            completionPercent: 48,
             sourceDocument: "Project management storage"
           }
         ]
