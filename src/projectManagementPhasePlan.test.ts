@@ -112,4 +112,24 @@ describe("project management phase plan", () => {
     expect(proofFreshnessChild?.description).toContain("owner-visible safety");
     expect(proofFreshnessChild?.description).toContain("npm.cmd run test:phase3:owner-visible");
   });
+
+  it("keeps Phase 11 package validation aligned with release readiness lock proof", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const releaseParent = byId.get("phase-11-parent-release-packaging");
+    const packageValidationChild = byId.get("phase-11-child-package-validation");
+    const traceabilityChild = byId.get("phase-11-child-traceability");
+
+    expect(releaseParent?.completionPercent).toBeGreaterThanOrEqual(
+      packageValidationChild?.completionPercent ?? 0
+    );
+    expect(packageValidationChild?.completionPercent).toBeGreaterThanOrEqual(
+      traceabilityChild?.completionPercent ?? 0
+    );
+    expect(packageValidationChild?.description).toContain("packaging lock readiness");
+    expect(packageValidationChild?.description).toContain("release-decision prerequisite detail");
+    expect(packageValidationChild?.description).toContain("local storage repair");
+    expect(packageValidationChild?.description).toContain("safety-disabled live actions");
+    expect(packageValidationChild?.description).toContain("without executing packaging");
+  });
 });

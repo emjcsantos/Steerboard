@@ -935,8 +935,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-package-validation",
             title: "Package Lock Validation",
-            description: "Validate packaged-app prerequisites, fresh-checkout proof, proof persistence, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, evidence-record inputs, visible Security 100% final closure guidance, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
-            completionPercent: 56,
+            description: "Validate packaged-app prerequisites, fresh-checkout proof, proof persistence, current active Phase 3 clearance PM traceability with handoff proof and proof-export evidence, current non-ready proof freshness row actions for handoff/proof-export review, evidence-record inputs, packaging lock readiness, release-decision prerequisite detail, visible Security 100% final closure guidance, local storage repair, safety-disabled live actions, and release holds without executing packaging.",
+            completionPercent: 64,
             complexity: "high",
             sourceDocument: "Release validation"
           },

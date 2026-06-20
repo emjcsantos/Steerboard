@@ -681,7 +681,9 @@ describe("remaining goal plan", () => {
       (task) => task.id === "phase-11-child-package-validation"
     );
     expect(releasePackagingParent?.completionPercent).toBe(64);
-    expect(packageValidationChild?.completionPercent).toBe(56);
+    expect(packageValidationChild?.completionPercent).toBe(64);
+    expect(packageValidationChild?.description).toContain("packaging lock readiness");
+    expect(packageValidationChild?.description).toContain("release-decision prerequisite detail");
     expect(releaseGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-11-child-package-validation",
