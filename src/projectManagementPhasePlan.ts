@@ -158,8 +158,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-02-child-two-panel-smoke",
             title: "Run Two-Panel Smoke",
-            description: "Open two panels, run separate turns, and verify each panel records only its own activity.",
-            completionPercent: 55,
+            description: "Open two panels, run separate turns, and verify each panel records compact session/thread, event-count, transcript-length, completion, and token evidence for only its own activity.",
+            completionPercent: 60,
             complexity: "high",
             sourceDocument: "Desktop smoke harness"
           },

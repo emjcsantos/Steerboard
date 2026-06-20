@@ -144,14 +144,32 @@ function countReadyPanels(
   return panels.filter((panel) => isRecord(panel) && predicate(panel)).length;
 }
 
+function sumPanelProofNumbers(panels: readonly unknown[], key: string): number {
+  return panels.reduce<number>((total, panel) => {
+    if (!isRecord(panel)) {
+      return total;
+    }
+
+    return total + nonNegativeNumber(panel[key]);
+  }, 0);
+}
+
 function buildTwoPanelSmokeProofSummary(twoPanelSmokeProof: Record<string, unknown>, panels: readonly unknown[]): string {
   const panelCount = nonNegativeNumber(twoPanelSmokeProof.panelCount);
   const completedPanels = countReadyPanels(panels, (panel) => bool(panel.completed));
+  const sessionIdPanels = countReadyPanels(panels, (panel) => bool(panel.sessionIdSeen));
+  const threadIdPanels = countReadyPanels(panels, (panel) => bool(panel.threadIdSeen));
   const expectedTokenPanels = countReadyPanels(panels, (panel) => bool(panel.expectedTokenSeen));
   const foreignTokenPanels = countReadyPanels(panels, (panel) => bool(panel.foreignTokenSeen));
+  const eventCount = sumPanelProofNumbers(panels, "eventCount");
+  const transcriptLength = sumPanelProofNumbers(panels, "transcriptLength");
+  const expectedPanels = Math.max(panelCount, panels.length);
 
   return (
-    `panelProof=${completedPanels}/${Math.max(panelCount, panels.length)} ` +
+    `panelProof=${completedPanels}/${expectedPanels} ` +
+    `sessionIdPanels=${sessionIdPanels}/${expectedPanels} ` +
+    `threadIdPanels=${threadIdPanels}/${expectedPanels} ` +
+    `eventCount=${eventCount} transcriptLength=${transcriptLength} ` +
     `expectedTokenPanels=${expectedTokenPanels} foreignTokenPanels=${foreignTokenPanels}`
   );
 }

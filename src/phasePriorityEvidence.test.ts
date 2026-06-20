@@ -128,6 +128,10 @@ describe("phase priority evidence", () => {
     expect(phase1?.detail).toContain("uniqueMethods=4");
     const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
     expect(phase2?.detail).toContain("panelProof=2/2");
+    expect(phase2?.detail).toContain("sessionIdPanels=2/2");
+    expect(phase2?.detail).toContain("threadIdPanels=2/2");
+    expect(phase2?.detail).toContain("eventCount=16");
+    expect(phase2?.detail).toContain("transcriptLength=4");
     expect(phase2?.detail).toContain("expectedTokenPanels=2");
     expect(phase2?.detail).toContain("foreignTokenPanels=0");
     expect(phase2?.detail).toContain("Restored 2/2 saved panel session labels");
@@ -308,6 +312,8 @@ describe("phase priority evidence", () => {
           readyTwoPanelSmoke.panels[0],
           {
             ...readyTwoPanelSmoke.panels[1],
+            sessionIdSeen: false,
+            threadIdSeen: false,
             completed: false,
             expectedTokenSeen: false,
             foreignTokenSeen: true
@@ -323,6 +329,10 @@ describe("phase priority evidence", () => {
       state: "review"
     });
     expect(phase2?.detail).toContain("panelProof=1/2");
+    expect(phase2?.detail).toContain("sessionIdPanels=1/2");
+    expect(phase2?.detail).toContain("threadIdPanels=1/2");
+    expect(phase2?.detail).toContain("eventCount=16");
+    expect(phase2?.detail).toContain("transcriptLength=4");
     expect(phase2?.detail).toContain("expectedTokenPanels=1");
     expect(phase2?.detail).toContain("foreignTokenPanels=1");
   });
