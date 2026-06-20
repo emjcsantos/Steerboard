@@ -79,6 +79,9 @@ function launchGate(overrides: Partial<Phase7LiveWorkerLaunchGate> = {}): Phase7
     readiness: 95,
     canSpawnLiveWorker: false,
     approvalRequired: true,
+    preflightState: "missing",
+    readyPreflightCount: 0,
+    requiredPreflightCount: 5,
     artifactVerificationState: "ready",
     executionLocked: true,
     openBlockerCount: 0,
@@ -87,7 +90,7 @@ function launchGate(overrides: Partial<Phase7LiveWorkerLaunchGate> = {}): Phase7
     detail: "Phase 7 dispatch artifact is verified, but live-worker spawning remains locked.",
     nextAction: "Keep dispatch work in local metadata review.",
     launchGateProof:
-      "phase7LiveWorkerLaunchGate state=locked artifactVerification=ready approval=required canSpawn=no execution=locked locks=2/2 packets=4/4 open=0",
+      "phase7LiveWorkerLaunchGate state=locked artifactVerification=ready preflight=missing preflightReady=0/5 approval=required canSpawn=no execution=locked locks=2/2 packets=4/4 open=0",
     ...overrides
   };
 }

@@ -120,6 +120,13 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("phase7LiveWorkerLaunchGate");
     expect(html).toContain("canSpawn=no");
     expect(html).toContain("approval=required");
+    expect(html).toContain("preflight=missing");
+    expect(html).toContain("preflightReady=0/5");
+    expect(html).toContain("risk exception");
+    expect(html).toContain("disabled-path");
+    expect(html).toContain("permission approval");
+    expect(html).toContain("audit persistence");
+    expect(html).toContain("rollback evidence");
     expect(html).toContain("Dispatch closure gate");
     expect(html).toContain("Phase 7 dispatch closure gate");
     expect(html).toContain("Close");

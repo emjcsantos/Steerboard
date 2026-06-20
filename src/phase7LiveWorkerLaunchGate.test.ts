@@ -39,17 +39,64 @@ describe("phase 7 live worker launch gate", () => {
       readiness: 95,
       canSpawnLiveWorker: false,
       approvalRequired: true,
+      preflightState: "missing",
+      readyPreflightCount: 0,
+      requiredPreflightCount: 5,
       artifactVerificationState: "ready",
       executionLocked: true,
       openBlockerCount: 0,
       liveWorkerLockCount: 2,
       handoffPacketCount: 4
     });
-    expect(gate.detail).toContain("owner approves a separate live-worker expansion");
+    expect(gate.detail).toContain("preflight evidence is incomplete");
     expect(gate.launchGateProof).toContain("artifactVerification=ready");
+    expect(gate.launchGateProof).toContain("preflight=missing");
+    expect(gate.launchGateProof).toContain("preflightReady=0/5");
     expect(gate.launchGateProof).toContain("approval=required");
     expect(gate.launchGateProof).toContain("canSpawn=no");
     expect(gate.launchGateProof).toContain("execution=locked");
+  });
+
+  it("keeps verified dispatch artifacts locked even after live-session preflight evidence is ready", () => {
+    const gate = buildPhase7LiveWorkerLaunchGate(verification(), {
+      riskExceptionsReady: true,
+      disabledPathsReady: true,
+      permissionApprovalsReady: true,
+      auditPersistenceReady: true,
+      rollbackEvidenceReady: true
+    });
+
+    expect(gate).toMatchObject({
+      state: "locked",
+      canSpawnLiveWorker: false,
+      approvalRequired: true,
+      preflightState: "ready",
+      readyPreflightCount: 5,
+      requiredPreflightCount: 5
+    });
+    expect(gate.detail).toContain("live-session preflight evidence are verified");
+    expect(gate.launchGateProof).toContain("preflight=ready");
+    expect(gate.launchGateProof).toContain("preflightReady=5/5");
+    expect(gate.launchGateProof).toContain("canSpawn=no");
+  });
+
+  it("blocks live-worker review when preflight evidence contradicts a required prerequisite", () => {
+    const gate = buildPhase7LiveWorkerLaunchGate(verification(), {
+      riskExceptionsReady: true,
+      disabledPathsReady: true,
+      permissionApprovalsReady: false,
+      auditPersistenceReady: true,
+      rollbackEvidenceReady: true
+    });
+
+    expect(gate).toMatchObject({
+      state: "blocked",
+      canSpawnLiveWorker: false,
+      preflightState: "blocked",
+      readyPreflightCount: 4
+    });
+    expect(gate.detail).toContain("preflight evidence contradicts");
+    expect(gate.launchGateProof).toContain("preflight=blocked");
   });
 
   it("keeps review artifacts locked with the verifier next action", () => {
@@ -67,6 +114,7 @@ describe("phase 7 live worker launch gate", () => {
       state: "review",
       canSpawnLiveWorker: false,
       approvalRequired: true,
+      preflightState: "missing",
       artifactVerificationState: "review",
       openBlockerCount: 1
     });
