@@ -298,6 +298,18 @@ describe("phase 11 owner release traceability", () => {
     );
   });
 
+  it("trusts owner release traceability from the real remaining goal plan", () => {
+    const result = trace({ goals: remainingGoalPlan });
+
+    expect(result.state).toBe("ready");
+    expect(result.canTrustOwnerReleaseGate).toBe(true);
+    expect(result.missingPmTaskIds).toEqual([]);
+    expect(result.linkedGoalIds).toEqual([
+      "goal-phase-11-owner-command-center",
+      "goal-phase-11-release-readiness"
+    ]);
+  });
+
   it("trusts owner release traceability when Phase 11 goals reach 100% with required links", () => {
     const goals = withLinkedPhase11Goals().map((goal) =>
       goal.id === "goal-phase-11-owner-command-center" ||
