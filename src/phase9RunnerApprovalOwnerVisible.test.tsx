@@ -251,8 +251,10 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("Phase 9 runner blocker priority");
     expect(html).toContain("runnerReviewAddressable=");
     expect(html).toContain("phase-09-desktop-runner-approval:owner-review / approval / waiting");
-    expect(html).toContain("Phase 9 desktop probe gate held");
-    expect(html).toContain("Desktop probe gate");
+    expect(html).toContain("Phase 9 request gate");
+    expect(html).toContain("phase9RequestGateProof");
+    expect(html).toContain("canRun=no");
+    expect(html).toContain("approvalGate=held");
     expect(html).toContain("Request owner approval for the fixed terminal read-only probe.");
     expect(html).toContain("Open");
     expect(html).toContain("Reviewable");
@@ -301,11 +303,13 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("Ready");
     expect(html).toContain("Request");
     expect(html).toContain(
-      '<dd title="goal-phase-9-runner is next at 65% with 9 PM task links and 1 current active goal.'
+      '<dd title="goal-phase-9-runner is next at 66% with 9 PM task links and 1 current active goal.'
     );
     expect(html).toContain(">Held</dd>");
-    expect(html).toContain("Desktop probe gate");
-    expect(html).toContain("goal-phase-9-runner is next at 65% with 9 PM task links and 1 current active goal.");
+    expect(html).toContain("Phase 9 request gate");
+    expect(html).toContain("phase9RequestGateProof");
+    expect(html).toContain("traceability=held");
+    expect(html).toContain("goal-phase-9-runner is next at 66% with 9 PM task links and 1 current active goal.");
     expect(html).toContain("Records");
     expect(html).toContain("Phase 9 runner review record ready");
     expect(html).toContain(

@@ -54,8 +54,14 @@ export interface Phase9RunnerTraceabilitySummary {
 }
 
 export interface Phase9DesktopProbeGate {
+  state: Phase9RunnerTraceabilityState;
+  statusLabel: string;
+  readiness: number;
   canRun: boolean;
   holdReason: string;
+  phase9RequestGateProof: string;
+  safety: string;
+  ariaLabel: string;
 }
 
 const TRACE_ID = "phase-09-runner-traceability";
@@ -75,6 +81,8 @@ const REQUIRED_PM_TASK_IDS = [
 ];
 const SAFETY =
   "Phase 9 runner traceability is evidence-only. It links the remaining goal, Project Management rows, Phase 8 permission/audit depth, runner approval depth, and mutation locks without requesting permission, running the desktop probe, mutating files, or unlocking broader execution.";
+const REQUEST_GATE_SAFETY =
+  "Phase 9 request gate is evidence-only. It can hold or release only the fixed terminal-readonly-probe request and does not run commands, write files, mutate Git, call external services, or unlock broader desktop actions.";
 
 const STATUS_LABELS: Record<Phase9RunnerTraceabilityState, string> = {
   ready: "Ready",
@@ -484,6 +492,71 @@ function buildRunnerTraceabilityProof(input: {
   );
 }
 
+function requestGateState(
+  approval: Phase9RunnerApprovalSnapshot,
+  traceability: Phase9RunnerTraceabilitySummary,
+  canRun: boolean
+): Phase9RunnerTraceabilityState {
+  if (canRun) {
+    return "ready";
+  }
+  if (approval.state === "blocked" || traceability.state === "blocked") {
+    return "blocked";
+  }
+  if (approval.state === "review" || traceability.state === "review") {
+    return "review";
+  }
+  return "waiting";
+}
+
+function requestGateReadiness(state: Phase9RunnerTraceabilityState): number {
+  if (state === "ready") {
+    return 100;
+  }
+  if (state === "review") {
+    return 75;
+  }
+  if (state === "waiting") {
+    return 50;
+  }
+  return 0;
+}
+
+function buildRequestGate(
+  approval: Phase9RunnerApprovalSnapshot,
+  traceability: Phase9RunnerTraceabilitySummary,
+  canRun: boolean,
+  holdReason: string
+): Phase9DesktopProbeGate {
+  const state = requestGateState(approval, traceability, canRun);
+  const readiness = requestGateReadiness(state);
+  const phase9RequestGateProof =
+    `phase9RequestGateProof=state=${state} readiness=${readiness} ` +
+    `canRun=${canRun ? "yes" : "no"} ` +
+    `approvalGate=${approval.canRequestDesktopProbe ? "ready" : "held"} ` +
+    `traceability=${traceability.canTrustRunnerApproval ? "ready" : "held"} ` +
+    `phase8Exceptions=${traceability.phase8OpenExceptionCount} ` +
+    `mutationLocks=${traceability.mutationLockCount}/6 ` +
+    `runnerReview=${traceability.runnerReviewRecordReady ? "ready" : "held"} ` +
+    `execution=locked`;
+  const gate = {
+    state,
+    statusLabel: STATUS_LABELS[state],
+    readiness,
+    canRun,
+    holdReason,
+    phase9RequestGateProof,
+    safety: REQUEST_GATE_SAFETY
+  };
+
+  return {
+    ...gate,
+    ariaLabel:
+      `Phase 9 request gate: ${gate.statusLabel}; ${gate.readiness}% ready; ` +
+      `fixed probe ${gate.canRun ? "ready" : "held"}; next action: ${gate.holdReason}`
+  };
+}
+
 export function buildPhase9RunnerTraceabilitySummary({
   approval,
   depth,
@@ -575,10 +648,7 @@ export function buildPhase9DesktopProbeGate(
   traceability: Phase9RunnerTraceabilitySummary
 ): Phase9DesktopProbeGate {
   if (!approval.canRequestDesktopProbe) {
-    return {
-      canRun: false,
-      holdReason: approval.nextAction
-    };
+    return buildRequestGate(approval, traceability, false, approval.nextAction);
   }
 
   if (!traceability.canTrustRunnerApproval) {
@@ -587,16 +657,20 @@ export function buildPhase9DesktopProbeGate(
       traceability.items.find((item) => item.status === "review") ??
       traceability.items.find((item) => item.status === "waiting");
 
-    return {
-      canRun: false,
-      holdReason: traceabilityBlocker
+    return buildRequestGate(
+      approval,
+      traceability,
+      false,
+      traceabilityBlocker
         ? `${traceabilityBlocker.detail} ${traceabilityBlocker.nextAction}`
         : traceability.nextAction
-    };
+    );
   }
 
-  return {
-    canRun: true,
-    holdReason: "Run a fixed read-only terminal probe through the desktop runner."
-  };
+  return buildRequestGate(
+    approval,
+    traceability,
+    true,
+    "Run a fixed read-only terminal probe through the desktop runner."
+  );
 }

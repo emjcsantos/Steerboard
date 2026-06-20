@@ -363,9 +363,17 @@ describe("phase 9 runner traceability", () => {
     expect(summary.runnerTraceabilityProof).toContain("mutationLocks=6/6");
     expect(summary.runnerTraceabilityProof).toContain("trust=ready");
     expect(buildPhase9DesktopProbeGate(approval, summary)).toMatchObject({
+      state: "ready",
+      readiness: 100,
       canRun: true,
-      holdReason: "Run a fixed read-only terminal probe through the desktop runner."
+      holdReason: "Run a fixed read-only terminal probe through the desktop runner.",
+      phase9RequestGateProof: expect.stringContaining(
+        "phase9RequestGateProof=state=ready"
+      )
     });
+    expect(buildPhase9DesktopProbeGate(approval, summary).phase9RequestGateProof).toContain(
+      "canRun=yes"
+    );
   });
 
   it("keeps the desktop probe held when Phase 9 approval is not request-ready", () => {
@@ -374,8 +382,10 @@ describe("phase 9 runner traceability", () => {
 
     expect(approval.canRequestDesktopProbe).toBe(false);
     expect(buildPhase9DesktopProbeGate(approval, summary)).toMatchObject({
+      state: "waiting",
       canRun: false,
-      holdReason: "Request owner approval for the fixed terminal read-only probe."
+      holdReason: "Request owner approval for the fixed terminal read-only probe.",
+      phase9RequestGateProof: expect.stringContaining("approvalGate=held")
     });
   });
 
@@ -397,8 +407,10 @@ describe("phase 9 runner traceability", () => {
     expect(summary.state).toBe("waiting");
     expect(summary.canTrustRunnerApproval).toBe(false);
     expect(buildPhase9DesktopProbeGate(approval, summary)).toMatchObject({
+      state: "waiting",
       canRun: false,
-      holdReason: expect.stringContaining("goal-phase-9-runner is next")
+      holdReason: expect.stringContaining("goal-phase-9-runner is next"),
+      phase9RequestGateProof: expect.stringContaining("traceability=held")
     });
     expect(summary.items).toEqual(
       expect.arrayContaining([
@@ -425,6 +437,7 @@ describe("phase 9 runner traceability", () => {
     expect(summary.state).toBe("review");
     expect(summary.canTrustRunnerApproval).toBe(false);
     expect(buildPhase9DesktopProbeGate(approval, summary)).toMatchObject({
+      state: "review",
       canRun: false
     });
     expect(summary.items).toEqual(

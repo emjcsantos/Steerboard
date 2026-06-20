@@ -381,7 +381,7 @@ describe("remaining goal plan", () => {
       target: "Desktop-backed runner approval",
       priority: "high",
       status: "next",
-      completionPercent: 65
+      completionPercent: 66
     });
     expect(phase9Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -402,6 +402,8 @@ describe("remaining goal plan", () => {
     expect(phase9Goal?.nextAction).toContain("approval-depth proof");
     expect(phase9Goal?.nextAction).toContain("traceability proof");
     expect(phase9Goal?.nextAction).toContain("blocker-priority proof");
+    expect(phase9Goal?.goal).toContain("phase9RequestGateProof");
+    expect(phase9Goal?.nextAction).toContain("phase9RequestGateProof");
 
     const phase9Parent = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-09-desktop-runner"
@@ -425,13 +427,16 @@ describe("remaining goal plan", () => {
     expect(phase9Parent?.description).toContain(
       "trusted Phase 9 traceability/current active goal gates"
     );
-    expect(phase9Parent?.completionPercent).toBe(65);
-    expect(phase9RunnerProbeParent?.completionPercent).toBe(65);
-    expect(reversibleChild?.completionPercent).toBe(65);
-    expect(observabilityChild?.completionPercent).toBe(65);
+    expect(phase9Parent?.completionPercent).toBe(66);
+    expect(phase9RunnerProbeParent?.completionPercent).toBe(66);
+    expect(reversibleChild?.completionPercent).toBe(66);
+    expect(observabilityChild?.completionPercent).toBe(66);
     expect(phase9Parent?.description).toContain("owner-visible Phase 9 proof summaries");
+    expect(phase9Parent?.description).toContain("phase9RequestGateProof");
     expect(phase9RunnerProbeParent?.description).toContain("runner approval proof summary");
+    expect(phase9RunnerProbeParent?.description).toContain("phase9RequestGateProof");
     expect(observabilityChild?.description).toContain("validation output evidence key");
+    expect(observabilityChild?.description).toContain("phase9RequestGateProof");
     expect(observabilityChild?.description).toContain("proof summaries");
     expect(observabilityChild?.description).toContain("mutation-lock count");
     expect(reversibleChild?.description).toContain(

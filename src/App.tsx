@@ -16306,18 +16306,20 @@ export function Phase9RunnerApprovalPanel({
           </div>
         </dl>
         <div
-          aria-label={`Phase 9 desktop probe gate ${desktopProbeGate.canRun ? "ready" : "held"}`}
+          aria-label={desktopProbeGate.ariaLabel}
           className={classNames(
             "phase9-desktop-probe-gate",
+            `phase9-desktop-probe-gate-${desktopProbeGate.state}`,
             desktopProbeGate.canRun
               ? "phase9-desktop-probe-gate-ready"
               : "phase9-desktop-probe-gate-held"
           )}
-          title={desktopProbeGate.holdReason}
+          title={desktopProbeGate.safety}
         >
-          <strong>Desktop probe gate</strong>
-          <span>{desktopProbeGate.canRun ? "Ready" : "Held"}</span>
+          <strong>Phase 9 request gate</strong>
+          <span>{desktopProbeGate.statusLabel} / {desktopProbeGate.readiness}%</span>
           <small>{desktopProbeGate.holdReason}</small>
+          <small>{desktopProbeGate.phase9RequestGateProof}</small>
         </div>
         <ol className="phase9-runner-items" aria-label="Phase 9 runner approval targets">
           {snapshot.items.map((item) => (
