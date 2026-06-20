@@ -149,7 +149,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Harden command, skill, plugin, MCP, automation, and personalization readiness states while keeping refresh proof metadata-only, fresh, and tied to the current six-surface catalog fingerprint.",
     status: "active",
     priority: "high",
-    completionPercent: 80,
+    completionPercent: 84,
     current: true,
     pmTaskIds: [
       "phase-04-provider-surfaces",
@@ -169,7 +169,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-04-child-refresh-safety-depth"
     ],
     nextAction:
-      "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, Surface Depth, local approval, audit, rollback, and permission record validation, tested recorded provider-review artifact loading with offline fingerprint verification and attached local record evidence, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered."
+      "Use the Phase 4 Provider Readiness catalog depth, Refresh Safety depth, Surface Depth, local approval, audit, rollback, and permission record validation, tested recorded provider-review artifact loading with offline fingerprint verification, attached local record evidence, and missing-record review enforcement, traceability, blocker-priority panels, and owner-visible provider readiness check to keep source coverage, setup blockers, capability gaps, preview rows, approval, audit, rollback, permission, fresh fingerprint-matched metadata-only refresh proof, PM links, and execution locks ready before provider execution is considered."
   },
   {
     id: "goal-phase-5-migration-hardening",

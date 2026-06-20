@@ -88,6 +88,7 @@ export interface Phase4ProviderReviewArtifactVerifyOptions {
   readonly verifiedAt?: string | Date;
   readonly maxArtifactAgeMs?: number;
   readonly expectedCatalogFingerprint?: string;
+  readonly requireLocalRecords?: boolean;
 }
 
 const STATUS_LABELS: Record<Phase4ProviderReviewArtifactState, string> = {
@@ -205,7 +206,8 @@ interface ProviderReviewRecordValidationEvidence {
 }
 
 function findRecordValidationReview(
-  artifact: Phase4ProviderReviewArtifact
+  artifact: Phase4ProviderReviewArtifact,
+  options: { readonly requireLocalRecords?: boolean } = {}
 ): { detail: string; nextAction: string } | undefined {
   const evidence: ProviderReviewRecordValidationEvidence[] = [
     {
@@ -231,6 +233,13 @@ function findRecordValidationReview(
   ];
 
   for (const item of evidence) {
+    if (options.requireLocalRecords && !item.record && !item.validation) {
+      return {
+        detail: `Phase 4 recorded provider review artifact is missing ${item.label} local record evidence.`,
+        nextAction: `Record and export Phase 4 provider review evidence after the ${item.label} local record and validation are attached.`
+      };
+    }
+
     if (item.record && !item.validation) {
       return {
         detail: `Phase 4 provider review artifact includes a ${item.label} record without matching validation evidence.`,
@@ -445,7 +454,9 @@ export function verifyPhase4ProviderReviewArtifact(
     );
   }
 
-  const recordValidationReview = findRecordValidationReview(artifact);
+  const recordValidationReview = findRecordValidationReview(artifact, {
+    requireLocalRecords: options.requireLocalRecords
+  });
   if (recordValidationReview) {
     return result(
       "review",
@@ -493,6 +504,7 @@ export function verifyRecordedPhase4ProviderReviewArtifact(
 
   return verifyPhase4ProviderReviewArtifact(artifact, {
     ...options,
-    expectedCatalogFingerprint: artifact?.currentCatalogFingerprint
+    expectedCatalogFingerprint: artifact?.currentCatalogFingerprint,
+    requireLocalRecords: true
   });
 }
