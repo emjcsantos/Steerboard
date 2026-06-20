@@ -179,7 +179,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Finish preview, apply-intent lock, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, and review-depth records for metadata-only migration work.",
     status: "active",
     priority: "high",
-    completionPercent: 66,
+    completionPercent: 72,
     current: true,
     pmTaskIds: [
       "phase-05-migration-center",
@@ -193,7 +193,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-05-child-blocker-priority"
     ],
     nextAction:
-      "Use the Migration review gate as the current active implementation target with migrationReviewDepthProof, migrationTraceabilityProof, migrationBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, and keep profile activation locked before any migration apply path."
+      "Use the Migration review gate as the current active implementation target with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, traceability rows, blocker-priority queue, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, and keep profile activation locked before any migration apply path."
   },
   {
     id: "goal-phase-7-dispatch-loop",
