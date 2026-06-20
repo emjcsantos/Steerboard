@@ -57,6 +57,10 @@ describe("phase 7 integration ownership depth", () => {
     expect(snapshot.state).toBe("ready");
     expect(snapshot.readiness).toBe(100);
     expect(snapshot.openDepthCount).toBe(0);
+    expect(snapshot.integrationOwnershipProof).toContain("items=5/5");
+    expect(snapshot.integrationOwnershipProof).toContain("integrationOwner=Main Codex");
+    expect(snapshot.integrationOwnershipProof).toContain("traceabilityLinks=5/5");
+    expect(snapshot.integrationOwnershipProof).toContain("execution=locked");
     expect(snapshot.items.every((item) => item.status === "ready")).toBe(true);
     expect(snapshot.items).toEqual(
       expect.arrayContaining([

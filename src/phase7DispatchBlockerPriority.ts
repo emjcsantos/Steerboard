@@ -45,6 +45,7 @@ export interface Phase7DispatchBlockerPrioritySummary {
   readonly topPriorityLabel: string;
   readonly topPriorityAction: string;
   readonly dispatchReviewCanAddressTopBlocker: boolean;
+  readonly dispatchBlockerPriorityProof: string;
   readonly nextAction: string;
   readonly safety: string;
   readonly ariaLabel: string;
@@ -311,6 +312,18 @@ function buildAriaLabel(
   );
 }
 
+function buildDispatchBlockerPriorityProof(
+  summary: Omit<Phase7DispatchBlockerPrioritySummary, "ariaLabel" | "dispatchBlockerPriorityProof">,
+  traceability: Phase7DispatchTraceabilitySummary
+): string {
+  return (
+    `open=${summary.openBlockerCount} dispatchReviewAddressable=${summary.dispatchReviewAddressableCount} ` +
+    `top=${summary.topPriorityLabel} topActionable=${summary.dispatchReviewCanAddressTopBlocker ? "yes" : "no"} ` +
+    `traceability=${traceability.canTrustDispatchReview ? "ready" : traceability.state} ` +
+    `pmLinks=${traceability.linkedPmTaskCount}/10 liveWorkerLocks=${traceability.liveWorkerLockCount}/2 execution=locked`
+  );
+}
+
 export function buildPhase7DispatchBlockerPriority(
   input: Phase7DispatchBlockerPriorityInput
 ): Phase7DispatchBlockerPrioritySummary {
@@ -330,7 +343,7 @@ export function buildPhase7DispatchBlockerPriority(
   const state = resolveState(items, input.traceability);
   const topItem = items[0];
   const dispatchReviewAddressableCount = items.filter((item) => item.canUseDispatchReview).length;
-  const draft = {
+  const draftWithoutProof = {
     id: SNAPSHOT_ID,
     label: SNAPSHOT_LABEL,
     state,
@@ -348,6 +361,11 @@ export function buildPhase7DispatchBlockerPriority(
       "No Phase 7 dispatch blockers remain; keep live worker spawning locked before expanding dispatch.",
     safety: SAFETY,
     items
+  };
+
+  const draft = {
+    ...draftWithoutProof,
+    dispatchBlockerPriorityProof: buildDispatchBlockerPriorityProof(draftWithoutProof, input.traceability)
   };
 
   return {

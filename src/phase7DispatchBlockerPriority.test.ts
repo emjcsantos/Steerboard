@@ -191,6 +191,10 @@ describe("phase 7 dispatch blocker priority", () => {
     expect(summary.openBlockerCount).toBe(0);
     expect(summary.dispatchReviewAddressableCount).toBe(0);
     expect(summary.topPriorityLabel).toBe("No open Phase 7 dispatch blocker");
+    expect(summary.dispatchBlockerPriorityProof).toContain("open=0");
+    expect(summary.dispatchBlockerPriorityProof).toContain("dispatchReviewAddressable=0");
+    expect(summary.dispatchBlockerPriorityProof).toContain("traceability=ready");
+    expect(summary.dispatchBlockerPriorityProof).toContain("execution=locked");
   });
 
   it("keeps dispatch blocker-priority text public-safe", () => {

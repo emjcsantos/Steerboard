@@ -34,6 +34,7 @@ export interface Phase7IntegrationOwnershipDepthSnapshot {
   readonly reviewCount: number;
   readonly blockedCount: number;
   readonly waitingCount: number;
+  readonly integrationOwnershipProof: string;
   readonly nextAction: string;
   readonly ariaLabel: string;
   readonly items: readonly Phase7IntegrationOwnershipDepthItem[];
@@ -222,6 +223,19 @@ function buildAriaLabel(
   );
 }
 
+function buildIntegrationOwnershipProof(
+  record: DispatchReviewRecord,
+  items: readonly Phase7IntegrationOwnershipDepthItem[]
+): string {
+  return (
+    `items=${items.length}/5 open=${items.filter((item) => item.status !== "ready").length} ` +
+    `ready=${items.filter((item) => item.status === "ready").length} ` +
+    `integrationOwner=${record.integrationOwner} finalValidationOwner=${record.finalValidationOwner} ` +
+    `commitPushReportingOwner=${record.commitPushReportingOwner} ` +
+    `traceabilityLinks=${record.traceabilityLinkCount}/5 closure=${record.closureState} execution=locked`
+  );
+}
+
 export function buildPhase7IntegrationOwnershipDepth(
   record: DispatchReviewRecord
 ): Phase7IntegrationOwnershipDepthSnapshot {
@@ -238,6 +252,7 @@ export function buildPhase7IntegrationOwnershipDepth(
     reviewCount: items.filter((item) => item.status === "review").length,
     blockedCount: items.filter((item) => item.status === "blocked").length,
     waitingCount: items.filter((item) => item.status === "waiting").length,
+    integrationOwnershipProof: buildIntegrationOwnershipProof(record, items),
     nextAction: firstNextAction(items),
     items
   };

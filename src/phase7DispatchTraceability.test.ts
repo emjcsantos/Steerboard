@@ -88,6 +88,8 @@ function traceability(options: {
         reviewCount: 0,
         blockedCount: 0,
         waitingCount: 5,
+        integrationOwnershipProof:
+          "items=1/5 open=1 ready=0 integrationOwner=missing finalValidationOwner=missing commitPushReportingOwner=missing traceabilityLinks=0/5 closure=waiting execution=locked",
         nextAction: "Create a dispatch review record before ownership can be verified.",
         ariaLabel: "Phase 7 integration ownership depth: Waiting.",
         items: [
@@ -171,6 +173,10 @@ describe("phase 7 dispatch traceability", () => {
     expect(summary.state).toBe("ready");
     expect(summary.canTrustDispatchReview).toBe(true);
     expect(summary.readyCount).toBe(5);
+    expect(summary.dispatchTraceabilityProof).toContain("items=5/5");
+    expect(summary.dispatchTraceabilityProof).toContain("pmLinks=10/10");
+    expect(summary.dispatchTraceabilityProof).toContain("liveWorkerLocks=2/2");
+    expect(summary.dispatchTraceabilityProof).toContain("trust=ready");
   });
 
   it("does not trust dispatch traceability when Phase 7 is current but still next", () => {

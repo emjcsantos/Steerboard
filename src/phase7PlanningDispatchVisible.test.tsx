@@ -75,6 +75,9 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain(currentFingerprint);
     expect(html).toContain("Live worker lock");
     expect(html).toContain("do not launch");
+    expect(html).toContain("records=1 open=0");
+    expect(html).toContain("roles=4/4");
+    expect(html).toContain("execution=locked");
     expect(html).toContain("Integration ownership");
     expect(html).toContain("Integration owner");
     expect(html).toContain("Final validation owner");
@@ -83,6 +86,8 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("Closure boundary");
     expect(html).toContain("Main Codex");
     expect(html).toContain("push approval");
+    expect(html).toContain("items=5/5 open=0 ready=5");
+    expect(html).toContain("traceabilityLinks=5/5");
     expect(html).toContain("Phase 7 dispatch traceability");
     expect(html).toContain("Remaining goal link");
     expect(html).toContain("PM row coverage");
@@ -92,10 +97,13 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("PM");
     expect(html).toContain("Locks");
     expect(html).toContain("Open");
+    expect(html).toContain("pmLinks=10/10");
+    expect(html).toContain("liveWorkerLocks=2/2");
     expect(html).toContain("Phase 7 dispatch blocker priority");
     expect(html).toContain("Remaining goal link");
     expect(html).toContain("Review");
     expect(html).toContain("Status");
+    expect(html).toContain("open=1 dispatchReviewAddressable=0");
     expect(html).toContain("local metadata only");
   });
 

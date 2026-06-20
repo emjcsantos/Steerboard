@@ -99,6 +99,10 @@ describe("phase 7 dispatch review depth", () => {
     expect(snapshot.handoffTaskCount).toBeGreaterThan(0);
     expect(snapshot.validationGateCount).toBe(1);
     expect(snapshot.openDepthCount).toBe(0);
+    expect(snapshot.dispatchReviewDepthProof).toContain("records=1");
+    expect(snapshot.dispatchReviewDepthProof).toContain("roles=4/4");
+    expect(snapshot.dispatchReviewDepthProof).toContain("handoffTasks=");
+    expect(snapshot.dispatchReviewDepthProof).toContain("execution=locked");
     expect(snapshot.items.every((item) => item.status === "ready")).toBe(true);
     expect(snapshot.safety).toContain("does not spawn workers");
   });

@@ -7204,6 +7204,7 @@ export function DispatchReviewRecordCard({
             </li>
           ))}
         </ol>
+        <small>{ownershipDepth.integrationOwnershipProof}</small>
       </div>
       <div
         aria-label={traceability.ariaLabel}
@@ -7249,6 +7250,7 @@ export function DispatchReviewRecordCard({
             </li>
           ))}
         </ol>
+        <small>{traceability.dispatchTraceabilityProof}</small>
       </div>
       <div
         aria-label={blockerPriority.ariaLabel}
@@ -7309,6 +7311,7 @@ export function DispatchReviewRecordCard({
             </li>
           )}
         </ol>
+        <small>{blockerPriority.dispatchBlockerPriorityProof}</small>
       </div>
       <small>{record.noRuntimeExecutionNote}</small>
     </article>
@@ -7369,6 +7372,7 @@ function DispatchReviewDepthSummary({
           </li>
         ))}
       </ol>
+      <small>{snapshot.dispatchReviewDepthProof}</small>
     </div>
   );
 }

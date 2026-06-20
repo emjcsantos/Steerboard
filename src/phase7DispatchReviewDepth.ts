@@ -39,6 +39,7 @@ export interface Phase7DispatchReviewDepthSnapshot {
   latestRecordId?: string;
   recordEvidenceFingerprint?: string;
   currentEvidenceFingerprint?: string;
+  dispatchReviewDepthProof: string;
   nextAction: string;
   safety: string;
   ariaLabel: string;
@@ -463,6 +464,24 @@ function newestRecord(records: readonly DispatchReviewRecord[]): DispatchReviewR
   return [...records].sort((left, right) => recordTimestamp(right) - recordTimestamp(left))[0];
 }
 
+function buildDispatchReviewDepthProof(input: {
+  readonly record?: DispatchReviewRecord;
+  readonly reviewRecordCount: number;
+  readonly openDepthCount: number;
+  readonly roleCoverageCount: number;
+  readonly handoffTaskCount: number;
+  readonly validationGateCount: number;
+  readonly currentEvidenceFingerprint?: string;
+}): string {
+  return (
+    `records=${input.reviewRecordCount} open=${input.openDepthCount} ` +
+    `roles=${input.roleCoverageCount}/4 attempts=${input.record?.maxAttemptLimit ?? 0} ` +
+    `handoffTasks=${input.handoffTaskCount} validationGates=${input.validationGateCount} ` +
+    `recordFingerprint=${input.record?.reviewEvidenceFingerprint ?? "missing"} ` +
+    `currentFingerprint=${input.currentEvidenceFingerprint ?? "missing"} execution=locked`
+  );
+}
+
 export function buildPhase7DispatchReviewDepth(
   input: Phase7DispatchReviewDepthInput
 ): Phase7DispatchReviewDepthSnapshot {
@@ -472,21 +491,34 @@ export function buildPhase7DispatchReviewDepth(
   const readiness = calculateReadiness(items);
   const roleCount = record ? roleCoverageCount(record) : 0;
   const nextAction = findNextAction(items);
+  const reviewRecordCount = input.records.length;
+  const openDepthCount = items.filter((item) => item.status !== "ready").length;
+  const handoffTaskCount = record?.handoffTaskCount ?? 0;
+  const validationGateCount = record?.validationGateCount ?? 0;
   const draft = {
     id: SNAPSHOT_ID,
     label: SNAPSHOT_LABEL,
     state,
     statusLabel: STATUS_LABELS[state],
     readiness,
-    reviewRecordCount: input.records.length,
-    openDepthCount: items.filter((item) => item.status !== "ready").length,
+    reviewRecordCount,
+    openDepthCount,
     roleCoverageCount: roleCount,
     maxAttemptLimit: record?.maxAttemptLimit ?? 0,
-    handoffTaskCount: record?.handoffTaskCount ?? 0,
-    validationGateCount: record?.validationGateCount ?? 0,
+    handoffTaskCount,
+    validationGateCount,
     latestRecordId: record?.id,
     recordEvidenceFingerprint: record?.reviewEvidenceFingerprint,
     currentEvidenceFingerprint: input.currentEvidenceFingerprint,
+    dispatchReviewDepthProof: buildDispatchReviewDepthProof({
+      record,
+      reviewRecordCount,
+      openDepthCount,
+      roleCoverageCount: roleCount,
+      handoffTaskCount,
+      validationGateCount,
+      currentEvidenceFingerprint: input.currentEvidenceFingerprint
+    }),
     nextAction,
     safety: SAFETY,
     items

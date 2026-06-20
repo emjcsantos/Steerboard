@@ -42,6 +42,7 @@ export interface Phase7DispatchTraceabilitySummary {
   readonly linkedGoalId: string;
   readonly linkedPmTaskCount: number;
   readonly liveWorkerLockCount: number;
+  readonly dispatchTraceabilityProof: string;
   readonly nextAction: string;
   readonly safety: string;
   readonly ariaLabel: string;
@@ -321,6 +322,26 @@ function buildAriaLabel(
   );
 }
 
+function buildDispatchTraceabilityProof(input: {
+  readonly items: readonly Phase7DispatchTraceabilityItem[];
+  readonly missingPmTaskIds: readonly string[];
+  readonly linkedPmTaskCount: number;
+  readonly liveWorkerLockCount: number;
+  readonly canTrustDispatchReview: boolean;
+}): string {
+  const itemKinds = input.items.map((item) => item.kind).join("|");
+
+  return (
+    `items=${input.items.length}/5 ready=${input.items.filter((item) => item.status === "ready").length} ` +
+    `review=${input.items.filter((item) => item.status === "review").length} ` +
+    `blocked=${input.items.filter((item) => item.status === "blocked").length} ` +
+    `waiting=${input.items.filter((item) => item.status === "waiting").length} ` +
+    `itemKinds=${itemKinds} pmLinks=${input.linkedPmTaskCount}/10 ` +
+    `missingPm=${input.missingPmTaskIds.length} liveWorkerLocks=${input.liveWorkerLockCount}/2 ` +
+    `trust=${input.canTrustDispatchReview ? "ready" : "review"} execution=locked`
+  );
+}
+
 export function buildPhase7DispatchTraceability(
   input: Phase7DispatchTraceabilityInput
 ): Phase7DispatchTraceabilitySummary {
@@ -342,20 +363,21 @@ export function buildPhase7DispatchTraceability(
   const liveWorkerLockCount =
     input.depth.items.filter((item) => item.kind === "execution-lock" && item.status === "ready").length +
     input.ownership.items.filter((item) => item.kind === "closure-boundary" && item.status === "ready").length;
+  const canTrustDispatchReview =
+    state === "ready" &&
+    isCurrentActiveRemainingGoal(goal) &&
+    currentActiveGoalIds.length === 1 &&
+    input.depth.state === "ready" &&
+    input.ownership.state === "ready" &&
+    missingPmTaskIds.length === 0 &&
+    Boolean(input.record);
   const draft = {
     id: TRACE_ID,
     label: TRACE_LABEL,
     state,
     statusLabel: STATUS_LABELS[state],
     readiness: readiness(items),
-    canTrustDispatchReview:
-      state === "ready" &&
-      isCurrentActiveRemainingGoal(goal) &&
-      currentActiveGoalIds.length === 1 &&
-      input.depth.state === "ready" &&
-      input.ownership.state === "ready" &&
-      missingPmTaskIds.length === 0 &&
-      Boolean(input.record),
+    canTrustDispatchReview,
     readyCount: items.filter((item) => item.status === "ready").length,
     reviewCount: items.filter((item) => item.status === "review").length,
     blockedCount: items.filter((item) => item.status === "blocked").length,
@@ -364,6 +386,13 @@ export function buildPhase7DispatchTraceability(
     linkedGoalId: goal?.id ?? "",
     linkedPmTaskCount: goal?.pmTaskIds.length ?? 0,
     liveWorkerLockCount,
+    dispatchTraceabilityProof: buildDispatchTraceabilityProof({
+      items,
+      missingPmTaskIds,
+      linkedPmTaskCount: goal?.pmTaskIds.length ?? 0,
+      liveWorkerLockCount,
+      canTrustDispatchReview
+    }),
     nextAction: firstNextAction(items),
     safety: SAFETY,
     items

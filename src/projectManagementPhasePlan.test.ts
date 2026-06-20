@@ -213,14 +213,22 @@ describe("project management phase plan", () => {
     expect(integrationOwnerChild?.completionPercent).toBeGreaterThanOrEqual(
       integrationDepthChild?.completionPercent ?? 0
     );
+    expect(phase7Epic?.completionPercent).toBe(65);
+    expect(rolePanelParent?.completionPercent).toBe(65);
+    expect(workerPreviewChild?.completionPercent).toBe(65);
+    expect(integrationOwnerChild?.completionPercent).toBe(65);
+    expect(integrationDepthChild?.completionPercent).toBe(65);
     expect(rolePanelParent?.description).toContain("handoff packet integrity");
     expect(rolePanelParent?.description).toContain("PM coverage");
+    expect(rolePanelParent?.description).toContain("integrationOwnershipProof");
     expect(workerPreviewChild?.description).toContain("validation gate depth");
+    expect(workerPreviewChild?.description).toContain("dispatchReviewDepthProof");
     expect(workerPreviewChild?.description).toContain("PM coverage");
-    expect(integrationOwnerChild?.description).toContain("ownership-depth evidence");
+    expect(integrationOwnerChild?.description).toContain("integrationOwnershipProof");
     expect(integrationOwnerChild?.description).toContain("five-link traceability coverage");
     expect(integrationDepthChild?.description).toContain("five traceability links");
     expect(integrationDepthChild?.description).toContain("open-depth counts");
+    expect(integrationDepthChild?.description).toContain("integrationOwnershipProof");
     expect(traceabilityChild?.completionPercent).toBeGreaterThanOrEqual(
       integrationDepthChild?.completionPercent ?? 0
     );
@@ -229,7 +237,9 @@ describe("project management phase plan", () => {
     );
     expect(traceabilityChild?.description).toContain("PM coverage");
     expect(traceabilityChild?.description).toContain("five-link traceability");
+    expect(traceabilityChild?.description).toContain("dispatchTraceabilityProof");
     expect(blockerPriorityChild?.description).toContain("PM coverage");
+    expect(blockerPriorityChild?.description).toContain("dispatchBlockerPriorityProof");
   });
 
   it("keeps Phase 7 handoff trace progress aligned with dispatch packet proof", () => {
