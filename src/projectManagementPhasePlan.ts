@@ -298,7 +298,7 @@ const phaseSpecs: PhaseSpec[] = [
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
     description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, and current six-surface fingerprint checks after Phase 3 clears.",
-    completionPercent: 74,
+    completionPercent: 75,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -395,7 +395,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-04-parent-refresh-safety",
         title: "Metadata-Only Refresh Safety",
         description: "Keep refresh and readiness paths read-only, fresh, and matched to current catalog evidence until provider permissions and approval gates are explicit.",
-        completionPercent: 62,
+        completionPercent: 66,
         complexity: "high",
         sourceDocument: "Provider catalog safety",
         children: [
@@ -403,14 +403,14 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-04-child-refresh-smoke",
             title: "All-Catalog Refresh Smoke",
             description: "Refresh and classify catalog status with checkedAt and catalog fingerprint proof without running commands, tools, automations, or mutations.",
-            completionPercent: 58,
+            completionPercent: 62,
             sourceDocument: "Catalog refresh owner validation"
           },
           {
             id: "phase-04-child-refresh-safety-depth",
             title: "Refresh Safety Depth",
             description: "Show refresh run state, six-surface order, validation result, proof freshness, catalog fingerprint match, metadata-only contract, provider execution lock, and reload-safe metadata-only proof as separate review rows.",
-            completionPercent: 62,
+            completionPercent: 68,
             complexity: "high",
             sourceDocument: "Phase 4 refresh safety depth"
           }

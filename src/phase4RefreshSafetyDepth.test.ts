@@ -119,7 +119,7 @@ describe("phase 4 refresh safety depth", () => {
       }
     );
 
-    expect(depth.readyCount).toBe(7);
+    expect(depth.readyCount).toBe(8);
     expect(depth.previewCount).toBe(0);
     expect(depth.blockedCount).toBe(0);
     expect(depth.records.every((record) => record.status === "ready")).toBe(true);
@@ -142,6 +142,11 @@ describe("phase 4 refresh safety depth", () => {
           kind: "catalog-fingerprint",
           status: "ready",
           evidence: expect.stringContaining("matches")
+        }),
+        expect.objectContaining({
+          kind: "reload-safe-proof",
+          status: "ready",
+          evidence: expect.stringContaining("six-surface metadata-only chain")
         })
       ])
     );
@@ -158,7 +163,7 @@ describe("phase 4 refresh safety depth", () => {
       }
     );
 
-    expect(depth.previewCount).toBe(1);
+    expect(depth.previewCount).toBe(2);
     expect(depth.records).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -166,6 +171,11 @@ describe("phase 4 refresh safety depth", () => {
           status: "preview",
           evidence: expect.stringContaining("does not match"),
           nextAction: expect.stringContaining("Rerun catalog smoke")
+        }),
+        expect.objectContaining({
+          kind: "reload-safe-proof",
+          status: "preview",
+          evidence: expect.stringContaining("does not match")
         })
       ])
     );
@@ -204,13 +214,18 @@ describe("phase 4 refresh safety depth", () => {
       }
     );
 
-    expect(depth.previewCount).toBe(1);
+    expect(depth.previewCount).toBe(2);
     expect(depth.records).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           kind: "proof-freshness",
           status: "preview",
           evidence: expect.stringContaining("no valid checkedAt")
+        }),
+        expect.objectContaining({
+          kind: "reload-safe-proof",
+          status: "preview",
+          evidence: expect.stringContaining("checkedAt timestamp")
         })
       ])
     );
@@ -248,7 +263,7 @@ describe("phase 4 refresh safety depth", () => {
     });
     const depth = buildPhase4RefreshSafetyDepth(smoke);
 
-    expect(depth.blockedCount).toBe(2);
+    expect(depth.blockedCount).toBe(3);
     expect(depth.records).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -258,6 +273,10 @@ describe("phase 4 refresh safety depth", () => {
         expect.objectContaining({
           kind: "execution-lock",
           status: "ready"
+        }),
+        expect.objectContaining({
+          kind: "reload-safe-proof",
+          status: "blocked"
         })
       ])
     );

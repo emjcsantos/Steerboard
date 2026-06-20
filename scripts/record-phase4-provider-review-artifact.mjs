@@ -223,7 +223,7 @@ const artifact = {
     state: "ready",
     statusLabel: "Ready",
     readiness: 100,
-    readyCount: surfaceNames.length + 1,
+    readyCount: surfaceNames.length + 2,
     previewCount: 0,
     blockedCount: 0,
     openProofCount: 0,
@@ -238,6 +238,15 @@ const artifact = {
         status: "ready",
         detail: `Recorded catalog fingerprint ${currentCatalogFingerprint} is attached.`,
         nextAction: "Keep the recorded fingerprint matched to the provider review artifact.",
+        catalogFingerprint: currentCatalogFingerprint
+      },
+      {
+        id: "phase-04-refresh-safety:reload-safe-proof",
+        label: "Reload-safe proof",
+        kind: "reload-safe-proof",
+        status: "ready",
+        detail: "Recorded catalog smoke proof reloads as the same six-surface metadata-only chain while provider execution remains locked.",
+        nextAction: "Keep reload-safe refresh proof attached to the provider review artifact.",
         catalogFingerprint: currentCatalogFingerprint
       },
       ...surfaceNames.map(refreshRecord)
@@ -282,7 +291,7 @@ const artifact = {
     linkedGoalId: "goal-phase-4-provider-surfaces",
     linkedPmTaskCount: 15,
     catalogDepthRecordCount: surfaceNames.length,
-    refreshSafetyRecordCount: surfaceNames.length + 1,
+    refreshSafetyRecordCount: surfaceNames.length + 2,
     surfaceDepthItemCount: 9,
     executionLockCount: surfaceNames.length,
     missingPmTaskIds: [],

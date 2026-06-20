@@ -127,10 +127,13 @@ function verifyArtifact(artifact) {
   assertReadyRows(catalogRecords, "catalogDepth");
 
   const refreshRecords = assertArray(refreshSafety.records, "refreshSafety.records");
-  if (refreshRecords.length < requiredSurfaceCount + 1) {
-    throw new Error(`expected at least ${requiredSurfaceCount + 1} refresh records, found ${refreshRecords.length}`);
+  if (refreshRecords.length < requiredSurfaceCount + 2) {
+    throw new Error(`expected at least ${requiredSurfaceCount + 2} refresh records, found ${refreshRecords.length}`);
   }
   assertReadyRows(refreshRecords, "refreshSafety");
+  if (!refreshRecords.some((record) => record.kind === "reload-safe-proof")) {
+    throw new Error("refreshSafety is missing reload-safe-proof");
+  }
 
   const surfaceItems = assertArray(surfaceDepth.items, "surfaceDepth.items");
   if (surfaceItems.length < requiredSurfaceItemCount) {

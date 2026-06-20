@@ -12,6 +12,7 @@ export type Phase4RefreshSafetyDepthKind =
   | "proof-freshness"
   | "catalog-fingerprint"
   | "metadata-only-contract"
+  | "reload-safe-proof"
   | "execution-lock";
 
 export interface Phase4RefreshSafetyDepthRecord {
@@ -242,6 +243,58 @@ function metadataOnlyRecord(
   };
 }
 
+function reloadSafeProofRecord(
+  smoke: CatalogRefreshProviderSmokeResult,
+  options: Phase4RefreshSafetyDepthOptions
+): Phase4RefreshSafetyDepthRecord {
+  const expectedCount = 6;
+  const executedSurfaceCount = smoke.surfaces.filter((surface) => surface.executed).length;
+  const hasExpectedFingerprint =
+    !options.expectedCatalogFingerprint ||
+    smoke.catalogFingerprint === options.expectedCatalogFingerprint;
+  let status: Phase4RefreshSafetyDepthState = "ready";
+  let evidence =
+    "Recorded catalog smoke proof can be reloaded as a six-surface metadata-only chain while provider execution remains locked.";
+  let nextAction =
+    "Keep reload-safe refresh proof attached to the owner-visible provider review artifact.";
+
+  if (!smoke.executed) {
+    status = "preview";
+    evidence = "Catalog smoke proof has not run yet, so no reload-safe metadata-only record is attached.";
+    nextAction = "Run catalog smoke from the explicit owner action before trusting reload-safe refresh proof.";
+  } else if (!smoke.ok || smoke.state === "blocked") {
+    status = "blocked";
+    evidence = "Catalog smoke proof reload is not safe while catalog validation is blocked.";
+    nextAction = "Resolve catalog validation blockers before trusting reload-safe refresh proof.";
+  } else if (!smoke.checkedAt) {
+    status = "preview";
+    evidence = "Executed catalog smoke proof cannot be reloaded with a checkedAt timestamp.";
+    nextAction = "Rerun catalog smoke from the explicit owner action to attach reload-safe timestamp evidence.";
+  } else if (!smoke.catalogFingerprint) {
+    status = "preview";
+    evidence = "Executed catalog smoke proof cannot be reloaded with a catalog fingerprint.";
+    nextAction = "Rerun catalog smoke from the explicit owner action to attach reload-safe fingerprint evidence.";
+  } else if (!hasExpectedFingerprint) {
+    status = "preview";
+    evidence = "Reload-safe catalog smoke proof fingerprint does not match the current six-surface catalog snapshot.";
+    nextAction = "Rerun catalog smoke from the explicit owner action before trusting reload-safe refresh proof.";
+  } else if (smoke.surfaces.length !== expectedCount || executedSurfaceCount !== expectedCount) {
+    status = "blocked";
+    evidence = `${executedSurfaceCount}/${expectedCount} catalog surfaces can be reloaded as executed metadata-only proof.`;
+    nextAction = "Restore all six executed metadata-only catalog surfaces before trusting reload-safe refresh proof.";
+  }
+
+  return {
+    id: `${SUMMARY_ID}:reload-safe-proof`,
+    label: "Reload-safe proof",
+    kind: "reload-safe-proof",
+    status,
+    statusLabel: statusLabel(status),
+    evidence,
+    nextAction
+  };
+}
+
 function executionLockRecord(): Phase4RefreshSafetyDepthRecord {
   return {
     id: `${SUMMARY_ID}:execution-lock`,
@@ -284,6 +337,7 @@ export function buildPhase4RefreshSafetyDepth(
     proofFreshnessRecord(smoke, options),
     catalogFingerprintRecord(smoke, options),
     metadataOnlyRecord(smoke),
+    reloadSafeProofRecord(smoke, options),
     executionLockRecord()
   ];
   const draft = {

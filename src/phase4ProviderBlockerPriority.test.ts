@@ -6,6 +6,7 @@ import {
   type CatalogSurface
 } from "./catalogRefreshOwnerValidation";
 import {
+  buildCatalogRefreshProviderFingerprint,
   buildCatalogRefreshProviderSmoke,
   CATALOG_REFRESH_PROVIDER_SMOKE_NOT_RUN_PREVIEW
 } from "./catalogRefreshProviderSmoke";
@@ -162,16 +163,15 @@ function priority({
   });
 }
 
-const readyRefreshSafety: Phase4RefreshSafetyDepthSummary = {
-  id: "phase-4-refresh-safety-depth",
-  label: "Phase 4 refresh safety depth",
-  records: [],
-  readyCount: 7,
-  previewCount: 0,
-  blockedCount: 0,
-  nextAction: "Keep refresh safety attached.",
-  ariaLabel: "Refresh safety ready."
-};
+const readyRefreshSafety: Phase4RefreshSafetyDepthSummary = buildPhase4RefreshSafetyDepth(
+  buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+    checkedAt: "2026-06-18T10:00:00.000Z"
+  }),
+  {
+    evaluatedAt: "2026-06-18T10:05:00.000Z",
+    expectedCatalogFingerprint: buildCatalogRefreshProviderFingerprint(snapshotPayloads)
+  }
+);
 
 const readyApprovalRecord = createPhase4ProviderApprovalRecord({
   catalogFingerprint: "phase4-catalog-current",
@@ -467,7 +467,9 @@ describe("phase 4 provider blocker priority", () => {
       rollbackValidation,
       permissionValidation: readyPermissionValidation(rollbackValidation),
       validation: validationFixture(),
-      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads),
+      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+        checkedAt: "2026-06-18T10:00:00.000Z"
+      }),
       goals: remainingGoalPlan.map((goal) =>
         goal.id === "goal-phase-3-proof-clearance"
           ? { ...goal, status: "active" as const, current: true, completionPercent: 99 }
@@ -500,7 +502,9 @@ describe("phase 4 provider blocker priority", () => {
       rollbackValidation,
       permissionValidation: readyPermissionValidation(rollbackValidation),
       validation: validationFixture(),
-      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads),
+      smoke: buildCatalogRefreshProviderSmoke(snapshotPayloads, {
+        checkedAt: "2026-06-18T10:00:00.000Z"
+      }),
       goals: withCurrentActivePhase4Goal()
     });
 

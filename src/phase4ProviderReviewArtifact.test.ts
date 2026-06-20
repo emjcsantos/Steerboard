@@ -228,7 +228,7 @@ describe("phase 4 provider review artifact", () => {
     expect(verification).toMatchObject({
       state: "review",
       catalogDepthRecordCount: 6,
-      refreshSafetyRecordCount: 7,
+      refreshSafetyRecordCount: 8,
       surfaceDepthItemCount: 9,
       traceabilityItemCount: 7,
       executionLocked: true,

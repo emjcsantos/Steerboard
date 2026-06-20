@@ -141,11 +141,11 @@ describe("phase 4 provider traceability", () => {
     expect(summary.missingPmTaskIds).toEqual([]);
     expect(summary.linkedPmTaskCount).toBe(15);
     expect(summary.catalogDepthRecordCount).toBe(6);
-    expect(summary.refreshSafetyRecordCount).toBe(7);
+    expect(summary.refreshSafetyRecordCount).toBe(8);
     expect(summary.surfaceDepthItemCount).toBe(9);
     expect(summary.executionLockCount).toBe(6);
     expect(summary.nextAction).toContain(
-      "Add an explicit owner approval gate before provider execution can leave preview"
+      "Rerun catalog smoke from the explicit owner action to attach reload-safe timestamp evidence"
     );
     expect(summary.items.map((item) => item.kind)).toEqual([
       "active-goal",
