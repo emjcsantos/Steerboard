@@ -405,16 +405,7 @@ function permissionGateItem(
         `Expected audit ${permissionValidation.expectedAuditRecordId ?? "missing"}, record audit ${permissionValidation.recordAuditRecordId ?? "missing"}. ` +
         `Expected rollback ${permissionValidation.expectedRollbackRecordId ?? "missing"}, record rollback ${permissionValidation.recordRollbackRecordId ?? "missing"}. ` +
         `Covered surfaces ${permissionValidation.coveredSurfaceCount}/6; missing scopes ${missingScopes}.`,
-      ownerBoundaryProof:
-        `approval=${valueOrMissing(permissionValidation.recordApprovalRecordId)} ` +
-        `audit=${valueOrMissing(permissionValidation.recordAuditRecordId)} ` +
-        `rollback=${valueOrMissing(permissionValidation.recordRollbackRecordId)} ` +
-        `catalog=${valueOrMissing(permissionValidation.recordCatalogFingerprint)} ` +
-        `surfaceDepth=${valueOrMissing(permissionValidation.recordSurfaceDepthEvidenceFingerprint)} ` +
-        `permissionEvidence=${valueOrMissing(permissionValidation.recordPermissionEvidenceFingerprint)} ` +
-        `surfaces=${permissionValidation.coveredSurfaceCount}/6 missingScopes=${missingScopes} ` +
-        `permissionMatch=${permissionValidation.matchesCurrentPermissionEvidence ? "matched" : "review"} ` +
-        `mutation=locked execution=locked`,
+      ownerBoundaryProof: permissionValidation.permissionChainProof,
       nextAction: permissionValidation.nextAction
     };
   }

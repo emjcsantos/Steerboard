@@ -145,10 +145,17 @@ describe("phase 4 provider permission record", () => {
       matchesCurrentRollbackEvidence: true,
       matchesCurrentSurfaceDepthEvidence: true,
       matchesCurrentPermissionEvidence: true,
+      mutationLocked: true,
       coveredSurfaceCount: 6,
       missingSurfaceScopes: [],
-      recordAgeMs: 300_000
+      recordAgeMs: 300_000,
+      permissionChainProof: expect.stringContaining(
+        "approvalMatch=matched auditMatch=matched rollbackMatch=matched catalogMatch=matched"
+      )
     });
+    expect(validate().permissionChainProof).toContain(
+      "owner=present scope=present action=present mutation=locked execution=locked"
+    );
   });
 
   it("returns preview when no permission record is attached", () => {
@@ -171,8 +178,21 @@ describe("phase 4 provider permission record", () => {
       matchesCurrentAudit: false,
       matchesCurrentRollback: false,
       matchesCurrentPermissionEvidence: false,
+      mutationLocked: false,
       missingSurfaceScopes: EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
     });
+    expect(
+      derivePhase4ProviderPermissionRecordValidation({
+        approvalRecord,
+        auditRecord,
+        rollbackRecord,
+        rollbackValidation,
+        expectedCatalogFingerprint: "phase4-catalog-current",
+        expectedSurfaceDepthEvidenceFingerprint: "phase4-provider-rollback-current",
+        expectedPermissionEvidenceFingerprint: "phase4-provider-permission-current",
+        options: { evaluatedAt: "2026-06-18T10:35:00.000Z" }
+      }).permissionChainProof
+    ).toContain("mutation=review execution=locked");
   });
 
   it("reviews stale, future-dated, mismatched, incomplete, and mutation-unlocked permission records", () => {
@@ -228,7 +248,9 @@ describe("phase 4 provider permission record", () => {
     });
     expect(validate({ ...record, mutationLocked: false })).toMatchObject({
       state: "review",
-      detail: expect.stringContaining("mutation lock")
+      detail: expect.stringContaining("mutation lock"),
+      mutationLocked: false,
+      permissionChainProof: expect.stringContaining("mutation=review execution=locked")
     });
     expect(
       derivePhase4ProviderPermissionRecordValidation({

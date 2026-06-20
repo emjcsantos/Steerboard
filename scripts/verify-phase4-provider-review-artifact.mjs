@@ -75,6 +75,39 @@ const requiredRollbackChainProofTerms = [
   "mutation=locked",
   "execution=locked"
 ];
+const requiredPermissionChainProofTerms = [
+  "approval=",
+  "expectedApproval=",
+  "audit=",
+  "expectedAudit=",
+  "rollback=",
+  "expectedRollback=",
+  "catalog=",
+  "expectedCatalog=",
+  "auditEvidence=",
+  "expectedAuditEvidence=",
+  "rollbackEvidence=",
+  "expectedRollbackEvidence=",
+  "surfaceDepth=",
+  "expectedSurfaceDepth=",
+  "permissionEvidence=",
+  "expectedPermissionEvidence=",
+  "surfaces=6/6",
+  "missingScopes=none",
+  "approvalMatch=",
+  "auditMatch=",
+  "rollbackMatch=",
+  "catalogMatch=",
+  "auditEvidenceMatch=",
+  "rollbackEvidenceMatch=",
+  "surfaceMatch=",
+  "permissionMatch=",
+  "owner=present",
+  "scope=present",
+  "action=present",
+  "mutation=locked",
+  "execution=locked"
+];
 const maxArtifactAgeMs = 24 * 60 * 60 * 1000;
 
 function fail(message) {
@@ -377,6 +410,15 @@ function verifyArtifact(artifact) {
   }
   if (!Array.isArray(permission.record.providerSurfaceScopes) || permission.record.providerSurfaceScopes.length !== requiredSurfaceCount) {
     throw new Error("permission record does not cover all six provider surfaces");
+  }
+  assertNonEmptyString(permission.validation.permissionChainProof, "permission validation permissionChainProof");
+  {
+    const missingTerms = requiredPermissionChainProofTerms.filter(
+      (term) => !permission.validation.permissionChainProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`permission validation permissionChainProof is missing ${missingTerms.join(", ")}`);
+    }
   }
 
   return {

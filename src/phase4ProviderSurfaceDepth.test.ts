@@ -402,7 +402,10 @@ describe("phase 4 provider surface depth", () => {
     );
     expect(permissionGate?.detail).toContain("Covered surfaces 6/6; missing scopes none.");
     expect(permissionGate?.ownerBoundaryProof).toContain(
-      "surfaces=6/6 missingScopes=none permissionMatch=matched mutation=locked execution=locked"
+      "surfaces=6/6 missingScopes=none"
+    );
+    expect(permissionGate?.ownerBoundaryProof).toContain(
+      "permissionMatch=matched owner=present scope=present action=present mutation=locked execution=locked"
     );
   });
 

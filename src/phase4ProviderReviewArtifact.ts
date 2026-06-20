@@ -184,6 +184,39 @@ const REQUIRED_ROLLBACK_CHAIN_PROOF_TERMS = [
   "mutation=locked",
   "execution=locked"
 ] as const;
+const REQUIRED_PERMISSION_CHAIN_PROOF_TERMS = [
+  "approval=",
+  "expectedApproval=",
+  "audit=",
+  "expectedAudit=",
+  "rollback=",
+  "expectedRollback=",
+  "catalog=",
+  "expectedCatalog=",
+  "auditEvidence=",
+  "expectedAuditEvidence=",
+  "rollbackEvidence=",
+  "expectedRollbackEvidence=",
+  "surfaceDepth=",
+  "expectedSurfaceDepth=",
+  "permissionEvidence=",
+  "expectedPermissionEvidence=",
+  "surfaces=6/6",
+  "missingScopes=none",
+  "approvalMatch=",
+  "auditMatch=",
+  "rollbackMatch=",
+  "catalogMatch=",
+  "auditEvidenceMatch=",
+  "rollbackEvidenceMatch=",
+  "surfaceMatch=",
+  "permissionMatch=",
+  "owner=present",
+  "scope=present",
+  "action=present",
+  "mutation=locked",
+  "execution=locked"
+] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -459,6 +492,33 @@ function findRollbackValidationChainProofReview(
   return undefined;
 }
 
+function findPermissionValidationChainProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const permissionChainProof = artifact.permissionValidation?.permissionChainProof?.trim();
+
+  if (!artifact.permissionValidation || !permissionChainProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing permission validation chain proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after permission validation chain proof shows approval, audit, rollback, catalog, surface-depth, permission evidence, owner/scope/action, mutation-lock, and execution-lock proof."
+    };
+  }
+
+  const missingTerms = REQUIRED_PERMISSION_CHAIN_PROOF_TERMS.filter(
+    (term) => !permissionChainProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete permission validation chain proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Re-export Phase 4 provider review evidence after permission validation chain proof includes the required record-chain proof terms."
+    };
+  }
+
+  return undefined;
+}
+
 function findRefreshSmokeProofReview(
   artifact: Phase4ProviderReviewArtifact
 ): { detail: string; nextAction: string } | undefined {
@@ -728,6 +788,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       rollbackValidationChainProofReview.detail,
       rollbackValidationChainProofReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const permissionValidationChainProofReview = findPermissionValidationChainProofReview(artifact);
+  if (permissionValidationChainProofReview) {
+    return result(
+      "review",
+      artifact,
+      permissionValidationChainProofReview.detail,
+      permissionValidationChainProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

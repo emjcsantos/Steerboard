@@ -240,6 +240,19 @@ const permissionRecord = {
   mutationLocked: true,
   detail: "Recorded Phase 4 permission evidence covers all six provider surfaces while execution remains locked."
 };
+const permissionChainProof =
+  `approval=${approvalRecordId} expectedApproval=${approvalRecordId} ` +
+  `audit=${auditRecordId} expectedAudit=${auditRecordId} ` +
+  `rollback=${rollbackRecordId} expectedRollback=${rollbackRecordId} ` +
+  `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
+  `auditEvidence=${auditEvidenceFingerprint} expectedAuditEvidence=${auditEvidenceFingerprint} ` +
+  `rollbackEvidence=${rollbackEvidenceFingerprint} expectedRollbackEvidence=${rollbackEvidenceFingerprint} ` +
+  `surfaceDepth=${surfaceDepthEvidenceFingerprint} expectedSurfaceDepth=${surfaceDepthEvidenceFingerprint} ` +
+  `permissionEvidence=${permissionEvidenceFingerprint} expectedPermissionEvidence=${permissionEvidenceFingerprint} ` +
+  "surfaces=6/6 missingScopes=none " +
+  "approvalMatch=matched auditMatch=matched rollbackMatch=matched catalogMatch=matched " +
+  "auditEvidenceMatch=matched rollbackEvidenceMatch=matched surfaceMatch=matched permissionMatch=matched " +
+  "owner=present scope=present action=present mutation=locked execution=locked";
 const permissionValidation = {
   state: "ready",
   detail: "Provider permission record matches approval, audit, rollback, catalog, surface-depth, permission evidence, and all six provider surfaces.",
@@ -271,7 +284,9 @@ const permissionValidation = {
   matchesCurrentSurfaceDepthEvidence: true,
   matchesCurrentPermissionEvidence: true,
   coveredSurfaceCount: surfaceNames.length,
-  missingSurfaceScopes: []
+  missingSurfaceScopes: [],
+  mutationLocked: true,
+  permissionChainProof
 };
 
 const artifact = {
@@ -372,7 +387,7 @@ const artifact = {
         "permission-gate",
         "Permission gate",
         "Provider permission metadata is ready.",
-        `approval=${approvalRecordId} audit=${auditRecordId} rollback=${rollbackRecordId} catalog=${currentCatalogFingerprint} surfaceDepth=${surfaceDepthEvidenceFingerprint} permissionEvidence=${permissionEvidenceFingerprint} surfaces=6/6 missingScopes=none permissionMatch=matched mutation=locked execution=locked`
+        permissionValidation.permissionChainProof
       ),
       surfaceItem("execution-lock", "Execution lock", "Provider execution remains disabled.")
     ]

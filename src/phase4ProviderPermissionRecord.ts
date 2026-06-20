@@ -73,8 +73,10 @@ export interface Phase4ProviderPermissionRecordValidation {
   readonly matchesCurrentRollbackEvidence: boolean;
   readonly matchesCurrentSurfaceDepthEvidence: boolean;
   readonly matchesCurrentPermissionEvidence: boolean;
+  readonly mutationLocked: boolean;
   readonly coveredSurfaceCount: number;
   readonly missingSurfaceScopes: readonly Phase4ProviderPermissionSurfaceScope[];
+  readonly permissionChainProof: string;
 }
 
 export interface Phase4ProviderPermissionRecordValidationOptions {
@@ -176,6 +178,69 @@ function recordAgeMs(
   return evaluatedAtMs !== undefined && createdAtMs !== undefined
     ? evaluatedAtMs - createdAtMs
     : undefined;
+}
+
+function valueOrMissing(value: string | undefined): string {
+  return value ?? "missing";
+}
+
+function buildPermissionChainProof(input: {
+  readonly expectedCatalogFingerprint?: string;
+  readonly recordCatalogFingerprint?: string;
+  readonly expectedApprovalRecordId?: string;
+  readonly recordApprovalRecordId?: string;
+  readonly expectedAuditRecordId?: string;
+  readonly recordAuditRecordId?: string;
+  readonly expectedRollbackRecordId?: string;
+  readonly recordRollbackRecordId?: string;
+  readonly expectedAuditEvidenceFingerprint?: string;
+  readonly recordAuditEvidenceFingerprint?: string;
+  readonly expectedRollbackEvidenceFingerprint?: string;
+  readonly recordRollbackEvidenceFingerprint?: string;
+  readonly expectedSurfaceDepthEvidenceFingerprint?: string;
+  readonly recordSurfaceDepthEvidenceFingerprint?: string;
+  readonly expectedPermissionEvidenceFingerprint?: string;
+  readonly recordPermissionEvidenceFingerprint?: string;
+  readonly matchesCurrentCatalog: boolean;
+  readonly matchesCurrentApproval: boolean;
+  readonly matchesCurrentAudit: boolean;
+  readonly matchesCurrentRollback: boolean;
+  readonly matchesCurrentAuditEvidence: boolean;
+  readonly matchesCurrentRollbackEvidence: boolean;
+  readonly matchesCurrentSurfaceDepthEvidence: boolean;
+  readonly matchesCurrentPermissionEvidence: boolean;
+  readonly coveredSurfaceCount: number;
+  readonly missingSurfaceScopes: readonly Phase4ProviderPermissionSurfaceScope[];
+  readonly ownerPresent: boolean;
+  readonly scopePresent: boolean;
+  readonly actionPresent: boolean;
+  readonly mutationLocked: boolean;
+}): string {
+  const missingScopes = input.missingSurfaceScopes.join(",") || "none";
+
+  return (
+    `approval=${valueOrMissing(input.recordApprovalRecordId)} expectedApproval=${valueOrMissing(input.expectedApprovalRecordId)} ` +
+    `audit=${valueOrMissing(input.recordAuditRecordId)} expectedAudit=${valueOrMissing(input.expectedAuditRecordId)} ` +
+    `rollback=${valueOrMissing(input.recordRollbackRecordId)} expectedRollback=${valueOrMissing(input.expectedRollbackRecordId)} ` +
+    `catalog=${valueOrMissing(input.recordCatalogFingerprint)} expectedCatalog=${valueOrMissing(input.expectedCatalogFingerprint)} ` +
+    `auditEvidence=${valueOrMissing(input.recordAuditEvidenceFingerprint)} expectedAuditEvidence=${valueOrMissing(input.expectedAuditEvidenceFingerprint)} ` +
+    `rollbackEvidence=${valueOrMissing(input.recordRollbackEvidenceFingerprint)} expectedRollbackEvidence=${valueOrMissing(input.expectedRollbackEvidenceFingerprint)} ` +
+    `surfaceDepth=${valueOrMissing(input.recordSurfaceDepthEvidenceFingerprint)} expectedSurfaceDepth=${valueOrMissing(input.expectedSurfaceDepthEvidenceFingerprint)} ` +
+    `permissionEvidence=${valueOrMissing(input.recordPermissionEvidenceFingerprint)} expectedPermissionEvidence=${valueOrMissing(input.expectedPermissionEvidenceFingerprint)} ` +
+    `surfaces=${input.coveredSurfaceCount}/6 missingScopes=${missingScopes} ` +
+    `approvalMatch=${input.matchesCurrentApproval ? "matched" : "review"} ` +
+    `auditMatch=${input.matchesCurrentAudit ? "matched" : "review"} ` +
+    `rollbackMatch=${input.matchesCurrentRollback ? "matched" : "review"} ` +
+    `catalogMatch=${input.matchesCurrentCatalog ? "matched" : "review"} ` +
+    `auditEvidenceMatch=${input.matchesCurrentAuditEvidence ? "matched" : "review"} ` +
+    `rollbackEvidenceMatch=${input.matchesCurrentRollbackEvidence ? "matched" : "review"} ` +
+    `surfaceMatch=${input.matchesCurrentSurfaceDepthEvidence ? "matched" : "review"} ` +
+    `permissionMatch=${input.matchesCurrentPermissionEvidence ? "matched" : "review"} ` +
+    `owner=${input.ownerPresent ? "present" : "review"} ` +
+    `scope=${input.scopePresent ? "present" : "review"} ` +
+    `action=${input.actionPresent ? "present" : "review"} ` +
+    `mutation=${input.mutationLocked ? "locked" : "review"} execution=locked`
+  );
 }
 
 function normalizeSurfaceScopes(
@@ -464,6 +529,8 @@ export function derivePhase4ProviderPermissionRecordValidation(input: {
     input.rollbackRecord?.surfaceDepthEvidenceFingerprint;
 
   if (!input.record) {
+    const missingSurfaceScopes = EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES;
+
     return {
       state: "preview",
       detail: "Provider permission record is not attached yet.",
@@ -487,8 +554,35 @@ export function derivePhase4ProviderPermissionRecordValidation(input: {
       matchesCurrentRollbackEvidence: false,
       matchesCurrentSurfaceDepthEvidence: false,
       matchesCurrentPermissionEvidence: false,
+      mutationLocked: false,
       coveredSurfaceCount: 0,
-      missingSurfaceScopes: EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
+      missingSurfaceScopes,
+      permissionChainProof: buildPermissionChainProof({
+        expectedCatalogFingerprint: input.expectedCatalogFingerprint,
+        expectedApprovalRecordId: input.approvalRecord?.id,
+        expectedAuditRecordId: input.auditRecord?.id,
+        expectedRollbackRecordId: input.rollbackRecord?.id,
+        expectedAuditEvidenceFingerprint,
+        expectedRollbackEvidenceFingerprint,
+        expectedSurfaceDepthEvidenceFingerprint:
+          input.expectedSurfaceDepthEvidenceFingerprint,
+        expectedPermissionEvidenceFingerprint:
+          input.expectedPermissionEvidenceFingerprint,
+        matchesCurrentCatalog: false,
+        matchesCurrentApproval: false,
+        matchesCurrentAudit: false,
+        matchesCurrentRollback: false,
+        matchesCurrentAuditEvidence: false,
+        matchesCurrentRollbackEvidence: false,
+        matchesCurrentSurfaceDepthEvidence: false,
+        matchesCurrentPermissionEvidence: false,
+        coveredSurfaceCount: 0,
+        missingSurfaceScopes,
+        ownerPresent: false,
+        scopePresent: false,
+        actionPresent: false,
+        mutationLocked: false
+      })
     };
   }
 
@@ -520,6 +614,10 @@ export function derivePhase4ProviderPermissionRecordValidation(input: {
     Boolean(input.expectedPermissionEvidenceFingerprint) &&
     input.record.permissionEvidenceFingerprint ===
       input.expectedPermissionEvidenceFingerprint;
+  const ownerPresent = input.record.permissionOwner.trim().length > 0;
+  const scopePresent = input.record.permissionScope.trim().length > 0;
+  const actionPresent = input.record.permissionAction.trim().length > 0;
+  const mutationLocked = input.record.mutationLocked;
   const base = {
     expectedCatalogFingerprint: input.expectedCatalogFingerprint,
     recordCatalogFingerprint: input.record.catalogFingerprint,
@@ -549,8 +647,44 @@ export function derivePhase4ProviderPermissionRecordValidation(input: {
     matchesCurrentRollbackEvidence,
     matchesCurrentSurfaceDepthEvidence,
     matchesCurrentPermissionEvidence,
+    mutationLocked,
     coveredSurfaceCount: input.record.providerSurfaceScopes.length,
-    missingSurfaceScopes: missingScopes
+    missingSurfaceScopes: missingScopes,
+    permissionChainProof: buildPermissionChainProof({
+      expectedCatalogFingerprint: input.expectedCatalogFingerprint,
+      recordCatalogFingerprint: input.record.catalogFingerprint,
+      expectedApprovalRecordId: input.approvalRecord?.id,
+      recordApprovalRecordId: input.record.approvalRecordId,
+      expectedAuditRecordId: input.auditRecord?.id,
+      recordAuditRecordId: input.record.auditRecordId,
+      expectedRollbackRecordId: input.rollbackRecord?.id,
+      recordRollbackRecordId: input.record.rollbackRecordId,
+      expectedAuditEvidenceFingerprint,
+      recordAuditEvidenceFingerprint: input.record.auditEvidenceFingerprint,
+      expectedRollbackEvidenceFingerprint,
+      recordRollbackEvidenceFingerprint: input.record.rollbackEvidenceFingerprint,
+      expectedSurfaceDepthEvidenceFingerprint:
+        input.expectedSurfaceDepthEvidenceFingerprint,
+      recordSurfaceDepthEvidenceFingerprint:
+        input.record.surfaceDepthEvidenceFingerprint,
+      expectedPermissionEvidenceFingerprint:
+        input.expectedPermissionEvidenceFingerprint,
+      recordPermissionEvidenceFingerprint: input.record.permissionEvidenceFingerprint,
+      matchesCurrentCatalog,
+      matchesCurrentApproval,
+      matchesCurrentAudit,
+      matchesCurrentRollback,
+      matchesCurrentAuditEvidence,
+      matchesCurrentRollbackEvidence,
+      matchesCurrentSurfaceDepthEvidence,
+      matchesCurrentPermissionEvidence,
+      coveredSurfaceCount: input.record.providerSurfaceScopes.length,
+      missingSurfaceScopes: missingScopes,
+      ownerPresent,
+      scopePresent,
+      actionPresent,
+      mutationLocked
+    })
   };
 
   if (input.rollbackValidation.state !== "ready") {
@@ -662,9 +796,9 @@ export function derivePhase4ProviderPermissionRecordValidation(input: {
   }
 
   if (
-    !input.record.permissionOwner.trim() ||
-    !input.record.permissionScope.trim() ||
-    !input.record.permissionAction.trim()
+    !ownerPresent ||
+    !scopePresent ||
+    !actionPresent
   ) {
     return {
       state: "review",
@@ -676,7 +810,7 @@ export function derivePhase4ProviderPermissionRecordValidation(input: {
     };
   }
 
-  if (!input.record.mutationLocked) {
+  if (!mutationLocked) {
     return {
       state: "review",
       detail:

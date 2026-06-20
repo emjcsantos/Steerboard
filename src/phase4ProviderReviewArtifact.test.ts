@@ -238,14 +238,7 @@ function withReadyLocalRecords(
       if (item.kind === "permission-gate") {
         return {
           ...item,
-          ownerBoundaryProof:
-            `approval=${permissionValidation.recordApprovalRecordId} ` +
-            `audit=${permissionValidation.recordAuditRecordId} ` +
-            `rollback=${permissionValidation.recordRollbackRecordId} ` +
-            `catalog=${permissionValidation.recordCatalogFingerprint} ` +
-            `surfaceDepth=${permissionValidation.recordSurfaceDepthEvidenceFingerprint} ` +
-            `permissionEvidence=${permissionValidation.recordPermissionEvidenceFingerprint} ` +
-            `surfaces=6/6 missingScopes=none permissionMatch=matched mutation=locked execution=locked`
+          ownerBoundaryProof: permissionValidation.permissionChainProof
         };
       }
 
@@ -531,6 +524,31 @@ describe("phase 4 provider review artifact", () => {
       state: "review",
       detail: expect.stringContaining("rollback validation chain proof"),
       nextAction: expect.stringContaining("rollback validation chain proof")
+    });
+  });
+
+  it("reviews no-blocker artifacts missing permission validation chain proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutPermissionChainProof: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      permissionValidation: artifact.permissionValidation
+        ? { ...artifact.permissionValidation, permissionChainProof: "" }
+        : artifact.permissionValidation
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutPermissionChainProof, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("permission validation chain proof"),
+      nextAction: expect.stringContaining("permission validation chain proof")
     });
   });
 
