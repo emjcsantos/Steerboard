@@ -187,6 +187,36 @@ function canUseAuditReview(
   return status !== "ready" || kind === "risk-exception";
 }
 
+function auditDepthRequirementProof(
+  item: Phase8PermissionAuditDepthItem,
+  auditReview: boolean
+): string {
+  return (
+    `riskBlockerProof=source=${item.id} kind=${item.kind} status=${item.status} ` +
+    `pm=${item.pmTaskId} evidence=${item.evidenceKey} auditReview=${auditReview ? "yes" : "no"}`
+  );
+}
+
+function exceptionRequirementProof(
+  exception: Phase8PermissionAuditException,
+  auditReview: boolean
+): string {
+  return (
+    `riskBlockerProof=source=${exception.id} kind=risk-exception status=${exception.status} ` +
+    `pm=${exception.pmTaskId} evidence=${exception.evidenceKey} auditReview=${auditReview ? "yes" : "no"}`
+  );
+}
+
+function traceabilityRequirementProof(
+  item: Phase8RiskTraceabilityItem,
+  auditReview: boolean
+): string {
+  return (
+    `riskBlockerProof=source=${item.id} kind=${item.kind} status=${item.status} ` +
+    `auditReview=${auditReview ? "yes" : "no"}`
+  );
+}
+
 function auditDepthItems(
   snapshot: Phase8PermissionAuditDepthSnapshot
 ): readonly Phase8RiskBlockerPriorityItem[] {
@@ -209,7 +239,9 @@ function buildItemFromAuditDepth(
     severity: severityForState(item.status),
     priority: 0,
     canUseAuditReview: auditReview,
-    detail: `${item.label} is ${STATUS_LABELS[item.status]}; ${item.detail}`,
+    detail:
+      `${item.label} is ${STATUS_LABELS[item.status]}; ${item.detail} ` +
+      auditDepthRequirementProof(item, auditReview),
     nextAction: auditReview
       ? `${AUDIT_REVIEW_ACTION} for ${item.evidenceKey}; ${publicText(item.nextAction, "resolve this Phase 8 audit-depth blocker.")}`
       : publicText(item.nextAction, "Resolve this Phase 8 audit-depth blocker.")
@@ -240,7 +272,8 @@ function buildItemFromException(
     canUseAuditReview: auditReview,
     detail:
       `${exception.label} exception is ${STATUS_LABELS[exception.status]}; ` +
-      `${exception.disabledPath} Evidence required: ${exception.evidenceRequired} Rollback: ${exception.rollbackExpectation}`,
+      `${exception.disabledPath} Evidence required: ${exception.evidenceRequired} ` +
+      `Rollback: ${exception.rollbackExpectation} ${exceptionRequirementProof(exception, auditReview)}`,
     nextAction: auditReview
       ? `${AUDIT_REVIEW_ACTION} for ${exception.evidenceKey}; keep ${exception.auditSource} attached before mutation paths grow.`
       : "Keep this exception attached while permission and audit evidence remain ready."
@@ -274,7 +307,9 @@ function buildItemFromTraceability(
     severity: severityForState(item.status),
     priority: 0,
     canUseAuditReview: auditReview,
-    detail: `${item.label} trace is ${STATUS_LABELS[item.status]}; ${item.detail}`,
+    detail:
+      `${item.label} trace is ${STATUS_LABELS[item.status]}; ${item.detail} ` +
+      traceabilityRequirementProof(item, auditReview),
     nextAction: auditReview
       ? `${AUDIT_REVIEW_ACTION}, then re-check Phase 8 risk traceability.`
       : publicText(item.nextAction, "Resolve this Phase 8 traceability blocker.")

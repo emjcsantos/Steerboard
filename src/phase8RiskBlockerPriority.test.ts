@@ -235,10 +235,21 @@ describe("phase 8 risk blocker priority", () => {
       severity: "medium",
       priority: 1
     });
+    expect(summary.items[0]?.detail).toContain(
+      "riskBlockerProof=source=phase8-live-action-terminal:permission kind=permission status=waiting pm=phase-08-child-permission-labels evidence=phase8.permission-scope.phase8-live-action-terminal-permission auditReview=yes"
+    );
     expect(summary.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: "risk-exception", status: "waiting" }),
-        expect.objectContaining({ kind: "traceability", status: "waiting" })
+        expect.objectContaining({
+          kind: "risk-exception",
+          status: "waiting",
+          detail: expect.stringContaining("riskBlockerProof=")
+        }),
+        expect.objectContaining({
+          kind: "traceability",
+          status: "waiting",
+          detail: expect.stringContaining("riskBlockerProof=")
+        })
       ])
     );
   });
