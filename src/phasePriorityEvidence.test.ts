@@ -127,6 +127,9 @@ describe("phase priority evidence", () => {
     expect(phase1?.detail).toContain("methodCount=4");
     expect(phase1?.detail).toContain("uniqueMethods=4");
     const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
+    expect(phase2?.detail).toContain("panelProof=2/2");
+    expect(phase2?.detail).toContain("expectedTokenPanels=2");
+    expect(phase2?.detail).toContain("foreignTokenPanels=0");
     expect(phase2?.detail).toContain("Restored 2/2 saved panel session labels");
   });
 
@@ -292,6 +295,36 @@ describe("phase priority evidence", () => {
         "Reload the app and confirm at least two fresh saved panel session labels restore before trusting Phase 2 persistence."
     });
     expect(phase2?.detail).toContain("No saved panel session labels restored after reload.");
+  });
+
+  it("names compact Phase 2 panel proof counts when smoke proof is incomplete", () => {
+    const result = buildPhasePriorityEvidence({
+      liveSmokeProof: readyLiveSmoke,
+      twoPanelSmokeProof: {
+        ...readyTwoPanelSmoke,
+        ok: false,
+        bothCompleted: false,
+        panels: [
+          readyTwoPanelSmoke.panels[0],
+          {
+            ...readyTwoPanelSmoke.panels[1],
+            completed: false,
+            expectedTokenSeen: false,
+            foreignTokenSeen: true
+          }
+        ]
+      },
+      projectManagementTasks: createDefaultProjectManagementTasks()
+    });
+    const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
+
+    expect(result.state).toBe("review");
+    expect(phase2).toMatchObject({
+      state: "review"
+    });
+    expect(phase2?.detail).toContain("panelProof=1/2");
+    expect(phase2?.detail).toContain("expectedTokenPanels=1");
+    expect(phase2?.detail).toContain("foreignTokenPanels=1");
   });
 
   it("blocks Phase 2 when route isolation proof reports quarantined stream events", () => {

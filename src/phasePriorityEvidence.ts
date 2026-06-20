@@ -137,6 +137,25 @@ function stringArrayLength(value: unknown): number {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string").length : 0;
 }
 
+function countReadyPanels(
+  panels: readonly unknown[],
+  predicate: (panel: Record<string, unknown>) => boolean
+): number {
+  return panels.filter((panel) => isRecord(panel) && predicate(panel)).length;
+}
+
+function buildTwoPanelSmokeProofSummary(twoPanelSmokeProof: Record<string, unknown>, panels: readonly unknown[]): string {
+  const panelCount = nonNegativeNumber(twoPanelSmokeProof.panelCount);
+  const completedPanels = countReadyPanels(panels, (panel) => bool(panel.completed));
+  const expectedTokenPanels = countReadyPanels(panels, (panel) => bool(panel.expectedTokenSeen));
+  const foreignTokenPanels = countReadyPanels(panels, (panel) => bool(panel.foreignTokenSeen));
+
+  return (
+    `panelProof=${completedPanels}/${Math.max(panelCount, panels.length)} ` +
+    `expectedTokenPanels=${expectedTokenPanels} foreignTokenPanels=${foreignTokenPanels}`
+  );
+}
+
 function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenceItem {
   if (!isRecord(liveSmokeProof)) {
     return item(
@@ -259,6 +278,7 @@ function buildPhase2IsolationItem(
   const executed = bool(twoPanelSmokeProof.executed);
   const crossTalkDetected = bool(twoPanelSmokeProof.crossTalkDetected);
   const panels = Array.isArray(twoPanelSmokeProof.panels) ? twoPanelSmokeProof.panels : [];
+  const panelProofSummary = buildTwoPanelSmokeProofSummary(twoPanelSmokeProof, panels);
   const panelsReady = panels.length >= 2 && panels.every((panel) =>
     isRecord(panel) &&
     bool(panel.completed) &&
@@ -296,7 +316,7 @@ function buildPhase2IsolationItem(
       "phase-2-panel-isolation",
       "Phase 2 multi-panel isolation",
       "ready",
-      `Two live panels completed with distinct session/thread identities and no foreign token evidence.${routeProofDetail}${restoreProofDetail}`,
+      `Two live panels completed with distinct session/thread identities and no foreign token evidence. ${panelProofSummary}.${routeProofDetail}${restoreProofDetail}`,
       "Keep two-panel smoke as the isolation regression before worker dispatch work."
     );
   }
@@ -325,7 +345,7 @@ function buildPhase2IsolationItem(
     "phase-2-panel-isolation",
     "Phase 2 multi-panel isolation",
     "review",
-    "Two-panel proof ran, but completion, identity, or expected-token signals are incomplete.",
+    `Two-panel proof ran with ${panelProofSummary}, but completion, identity, or expected-token signals are incomplete.`,
     "Review panel proof details and rerun until both panels complete with distinct identities."
   );
 }
