@@ -368,6 +368,8 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("Expected rollback phase4-provider-rollback:2026-06-18T10:20:00.000Z");
     expect(html).toContain("Covered surfaces 6/6; missing scopes none.");
     expect(html).toContain("refreshSafety=ready ready=8 preview=0 blocked=0");
+    expect(html).toContain("records=8/8 ready=8 preview=0 blocked=0 refreshSmoke=present reloadSafe=ready");
+    expect(html).toContain("checkedAt=present fingerprint=present");
     expect(html).toContain("catalogMatch=matched execution=locked");
     expect(html).toContain("auditMatch=matched mutation=locked execution=locked");
     expect(html).toContain("surfaceMatch=matched owner=present action=present mutation=locked execution=locked");

@@ -107,6 +107,10 @@ describe("phase 4 refresh safety depth", () => {
     );
     expect(depth.refreshSmokeProof).toContain("surfaces=6/6 executed=0/6");
     expect(depth.refreshSmokeProof).toContain("metadataOnly=locked execution=locked");
+    expect(depth.refreshSafetyDepthProof).toContain("records=8/8");
+    expect(depth.refreshSafetyDepthProof).toContain("refreshSmoke=present reloadSafe=preview");
+    expect(depth.refreshSafetyDepthProof).toContain("checkedAt=missing fingerprint=missing");
+    expect(depth.refreshSafetyDepthProof).toContain("metadataOnly=locked execution=locked");
     expect(depth.nextAction).toContain("explicit owner action");
   });
 
@@ -158,6 +162,13 @@ describe("phase 4 refresh safety depth", () => {
       `catalog=${buildCatalogRefreshProviderFingerprint(snapshotPayloads)}`
     );
     expect(depth.refreshSmokeProof).toContain("metadataOnly=locked execution=locked");
+    expect(depth.refreshSafetyDepthProof).toContain("records=8/8 ready=8 preview=0 blocked=0");
+    expect(depth.refreshSafetyDepthProof).toContain("refreshSmoke=present reloadSafe=ready");
+    expect(depth.refreshSafetyDepthProof).toContain("checkedAt=present fingerprint=present");
+    expect(depth.refreshSafetyDepthProof).toContain(
+      "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready"
+    );
+    expect(depth.refreshSafetyDepthProof).toContain("metadataOnly=locked execution=locked");
   });
 
   it("marks catalog smoke proof as preview when the fingerprint no longer matches", () => {
@@ -299,6 +310,8 @@ describe("phase 4 refresh safety depth", () => {
       depth.label,
       depth.ariaLabel,
       depth.nextAction,
+      depth.refreshSmokeProof,
+      depth.refreshSafetyDepthProof,
       ...depth.records.flatMap((record) => [
         record.label,
         record.kind,

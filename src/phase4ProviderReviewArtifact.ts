@@ -130,6 +130,24 @@ const REQUIRED_REFRESH_SMOKE_PROOF_TERMS = [
   "metadataOnly=locked",
   "execution=locked"
 ] as const;
+const REQUIRED_REFRESH_SAFETY_DEPTH_PROOF_TERMS = [
+  "records=8/8",
+  "ready=8",
+  "preview=0",
+  "blocked=0",
+  "refreshSmoke=present",
+  "reloadSafe=ready",
+  "checkedAt=present",
+  "fingerprint=present",
+  "command=ready",
+  "skill=ready",
+  "plugin=ready",
+  "mcp=ready",
+  "automation=ready",
+  "personalization=ready",
+  "metadataOnly=locked",
+  "execution=locked"
+] as const;
 const REQUIRED_CATALOG_DEPTH_PROOF_TERMS = [
   "records=6/6",
   "ready=6",
@@ -720,6 +738,33 @@ function findRefreshSmokeProofReview(
   return undefined;
 }
 
+function findRefreshSafetyDepthProofReview(
+  artifact: Phase4ProviderReviewArtifact
+): { detail: string; nextAction: string } | undefined {
+  const refreshSafetyDepthProof = artifact.refreshSafety.refreshSafetyDepthProof?.trim();
+
+  if (!refreshSafetyDepthProof) {
+    return {
+      detail: "Phase 4 provider review artifact is missing refresh-safety depth aggregate proof.",
+      nextAction:
+        "Re-export Phase 4 provider review evidence after the refresh-safety depth summary includes row coverage, refresh-smoke, reload-safe, fingerprint, metadata-only, and execution-lock proof."
+    };
+  }
+
+  const missingTerms = REQUIRED_REFRESH_SAFETY_DEPTH_PROOF_TERMS.filter(
+    (term) => !refreshSafetyDepthProof.includes(term)
+  );
+  if (missingTerms.length > 0) {
+    return {
+      detail: `Phase 4 provider review artifact has incomplete refresh-safety depth aggregate proof: missing ${missingTerms.join(", ")}.`,
+      nextAction:
+        "Rerun catalog smoke and re-export Phase 4 provider review evidence after refresh-safety depth proof includes all row, surface, reload-safe, metadata-only, and execution-lock terms."
+    };
+  }
+
+  return undefined;
+}
+
 export function buildPhase4ProviderReviewArtifact(
   input: Phase4ProviderReviewArtifactBuildInput
 ): Phase4ProviderReviewArtifact {
@@ -916,6 +961,17 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       refreshSmokeProofReview.detail,
       refreshSmokeProofReview.nextAction,
+      expectedCatalogFingerprint
+    );
+  }
+
+  const refreshSafetyDepthProofReview = findRefreshSafetyDepthProofReview(artifact);
+  if (refreshSafetyDepthProofReview) {
+    return result(
+      "review",
+      artifact,
+      refreshSafetyDepthProofReview.detail,
+      refreshSafetyDepthProofReview.nextAction,
       expectedCatalogFingerprint
     );
   }

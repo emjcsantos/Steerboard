@@ -42,6 +42,24 @@ const requiredRefreshSmokeProofTerms = [
   "metadataOnly=locked",
   "execution=locked"
 ];
+const requiredRefreshSafetyDepthProofTerms = [
+  "records=8/8",
+  "ready=8",
+  "preview=0",
+  "blocked=0",
+  "refreshSmoke=present",
+  "reloadSafe=ready",
+  "checkedAt=present",
+  "fingerprint=present",
+  "command=ready",
+  "skill=ready",
+  "plugin=ready",
+  "mcp=ready",
+  "automation=ready",
+  "personalization=ready",
+  "metadataOnly=locked",
+  "execution=locked"
+];
 const requiredCatalogDepthProofTerms = [
   "records=6/6",
   "ready=6",
@@ -396,6 +414,15 @@ function verifyArtifact(artifact) {
     );
     if (missingTerms.length > 0) {
       throw new Error(`refreshSafety refreshSmokeProof is missing ${missingTerms.join(", ")}`);
+    }
+  }
+  assertNonEmptyString(refreshSafety.refreshSafetyDepthProof, "refreshSafety.refreshSafetyDepthProof");
+  {
+    const missingTerms = requiredRefreshSafetyDepthProofTerms.filter(
+      (term) => !refreshSafety.refreshSafetyDepthProof.includes(term)
+    );
+    if (missingTerms.length > 0) {
+      throw new Error(`refreshSafety refreshSafetyDepthProof is missing ${missingTerms.join(", ")}`);
     }
   }
 

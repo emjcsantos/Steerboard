@@ -27,6 +27,8 @@ const readyRefreshSafety: Phase4RefreshSafetyDepthSummary = {
   blockedCount: 0,
   refreshSmokeProof:
     "surfaces=6/6 executed=6/6 ready=6 preview=0 blocked=0 checkedAt=2026-06-18T00:00:00.000Z catalog=phase4-catalog-current expectedCatalog=phase4-catalog-current metadataOnly=locked execution=locked",
+  refreshSafetyDepthProof:
+    "records=8/8 ready=7 preview=0 blocked=0 refreshSmoke=present reloadSafe=ready checkedAt=present fingerprint=present command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready metadataOnly=locked execution=locked",
   nextAction: "Keep refresh safety attached.",
   ariaLabel: "Refresh safety ready."
 };

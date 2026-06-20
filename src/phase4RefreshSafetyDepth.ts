@@ -33,6 +33,7 @@ export interface Phase4RefreshSafetyDepthSummary {
   readonly previewCount: number;
   readonly blockedCount: number;
   readonly refreshSmokeProof: string;
+  readonly refreshSafetyDepthProof: string;
   readonly nextAction: string;
   readonly ariaLabel: string;
 }
@@ -331,6 +332,35 @@ function refreshSmokeProof(
   );
 }
 
+function surfaceStatus(
+  smoke: CatalogRefreshProviderSmokeResult,
+  surfaceName: string
+): Phase4RefreshSafetyDepthState | "missing" {
+  return smoke.surfaces.find((surface) => surface.surface === surfaceName)?.state ?? "missing";
+}
+
+function refreshSafetyDepthProof(
+  smoke: CatalogRefreshProviderSmokeResult,
+  records: readonly Phase4RefreshSafetyDepthRecord[],
+  smokeProof: string
+): string {
+  const readyCount = records.filter((record) => record.status === "ready").length;
+  const previewCount = records.filter((record) => record.status === "preview").length;
+  const blockedCount = records.filter((record) => record.status === "blocked").length;
+  const reloadSafeRecord = records.find((record) => record.kind === "reload-safe-proof");
+  const metadataOnly = smoke.safety.includes("must not execute") ? "locked" : "review";
+
+  return (
+    `records=${records.length}/8 ready=${readyCount} preview=${previewCount} blocked=${blockedCount} ` +
+    `refreshSmoke=${smokeProof.trim() ? "present" : "missing"} reloadSafe=${reloadSafeRecord?.status ?? "missing"} ` +
+    `checkedAt=${smoke.checkedAt ? "present" : "missing"} fingerprint=${smoke.catalogFingerprint ? "present" : "missing"} ` +
+    `command=${surfaceStatus(smoke, "command")} skill=${surfaceStatus(smoke, "skill")} ` +
+    `plugin=${surfaceStatus(smoke, "plugin")} mcp=${surfaceStatus(smoke, "mcp")} ` +
+    `automation=${surfaceStatus(smoke, "automation")} personalization=${surfaceStatus(smoke, "personalization")} ` +
+    `metadataOnly=${metadataOnly} execution=locked`
+  );
+}
+
 function firstNextAction(records: readonly Phase4RefreshSafetyDepthRecord[]): string {
   return (
     records.find((record) => record.status === "blocked")?.nextAction ??
@@ -362,6 +392,7 @@ export function buildPhase4RefreshSafetyDepth(
     reloadSafeProofRecord(smoke, options),
     executionLockRecord()
   ];
+  const smokeProof = refreshSmokeProof(smoke, options);
   const draft = {
     id: SUMMARY_ID,
     label: SUMMARY_LABEL,
@@ -369,7 +400,8 @@ export function buildPhase4RefreshSafetyDepth(
     readyCount: records.filter((record) => record.status === "ready").length,
     previewCount: records.filter((record) => record.status === "preview").length,
     blockedCount: records.filter((record) => record.status === "blocked").length,
-    refreshSmokeProof: refreshSmokeProof(smoke, options),
+    refreshSmokeProof: smokeProof,
+    refreshSafetyDepthProof: refreshSafetyDepthProof(smoke, records, smokeProof),
     nextAction: firstNextAction(records)
   };
 

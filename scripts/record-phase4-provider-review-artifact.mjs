@@ -10,6 +10,11 @@ const refreshSmokeProof =
   `surfaces=6/6 executed=6/6 ready=6 preview=0 blocked=0 checkedAt=${createdAt} ` +
   `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
   "metadataOnly=locked execution=locked";
+const refreshSafetyDepthProof =
+  "records=8/8 ready=8 preview=0 blocked=0 refreshSmoke=present reloadSafe=ready " +
+  "checkedAt=present fingerprint=present " +
+  "command=ready skill=ready plugin=ready mcp=ready automation=ready personalization=ready " +
+  "metadataOnly=locked execution=locked";
 const approvalRecordId = `phase4-provider-approval:${createdAt}`;
 const auditRecordId = `phase4-provider-audit:${createdAt}`;
 const rollbackRecordId = `phase4-provider-rollback:${createdAt}`;
@@ -158,7 +163,9 @@ const approvalValidation = {
   maxRecordAgeMs: 24 * 60 * 60 * 1000,
   matchesCurrentCatalog: true,
   refreshSafetyReady: true,
-  refreshSafetyProof: `refreshSafety=ready ready=8 preview=0 blocked=0 ${refreshSmokeProof}`
+  refreshSafetyProof:
+    `refreshSafety=ready ready=8 preview=0 blocked=0 ${refreshSmokeProof} ` +
+    refreshSafetyDepthProof
 };
 const auditRecord = {
   id: auditRecordId,
@@ -346,6 +353,7 @@ const artifact = {
     blockedCount: 0,
     openProofCount: 0,
     refreshSmokeProof,
+    refreshSafetyDepthProof,
     nextAction: "Keep metadata-only refresh proof attached while provider execution remains locked.",
     safety: "Recorded Phase 4 refresh proof does not run provider actions.",
     ariaLabel: "Phase 4 refresh safety depth: Ready; 100% ready.",
@@ -394,7 +402,9 @@ const artifact = {
         "approval-gate",
         "Approval gate",
         "Provider approval metadata is ready.",
-        `catalog=${currentCatalogFingerprint} recordCatalog=${currentCatalogFingerprint} refreshSafety=ready ready=8 preview=0 blocked=0 ${refreshSmokeProof} catalogMatch=matched execution=locked`
+        `catalog=${currentCatalogFingerprint} recordCatalog=${currentCatalogFingerprint} ` +
+        `refreshSafety=ready ready=8 preview=0 blocked=0 ${refreshSmokeProof} ` +
+        `${refreshSafetyDepthProof} catalogMatch=matched execution=locked`
       ),
       surfaceItem(
         "audit-gate",

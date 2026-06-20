@@ -5587,6 +5587,7 @@ function AppDialogSurface({
                   </b>
                 </div>
                 <small>{catalogRefreshSafetyDepth.refreshSmokeProof}</small>
+                <small>{catalogRefreshSafetyDepth.refreshSafetyDepthProof}</small>
                 <ol className="transport-catalog-safety-list">
                   {catalogRefreshSafetyDepth.records.map((record) => (
                     <li
