@@ -159,7 +159,7 @@ describe("phase 4 provider permission record", () => {
     });
     expect(validation.permissionChainProof).toContain("rollbackValidation=ready rollbackChain=present");
     expect(validation.permissionChainProof).toContain(
-      "owner=present scope=present action=present mutation=locked execution=locked"
+      "recordFreshness=fresh owner=present scope=present action=present mutation=locked execution=locked"
     );
   });
 
@@ -187,7 +187,9 @@ describe("phase 4 provider permission record", () => {
       missingSurfaceScopes: EXPECTED_PHASE4_PROVIDER_PERMISSION_SURFACES
     });
     expect(validation.permissionChainProof).toContain("rollbackValidation=ready rollbackChain=present");
-    expect(validation.permissionChainProof).toContain("mutation=review execution=locked");
+    expect(validation.permissionChainProof).toContain(
+      "recordFreshness=missing owner=review scope=review action=review mutation=review execution=locked"
+    );
   });
 
   it("reviews stale, future-dated, mismatched, incomplete, and mutation-unlocked permission records", () => {
@@ -262,7 +264,11 @@ describe("phase 4 provider permission record", () => {
           maxRecordAgeMs: 24 * 60 * 60 * 1000
         }
       })
-    ).toMatchObject({ state: "review", detail: expect.stringContaining("stale") });
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("stale"),
+      permissionChainProof: expect.stringContaining("recordFreshness=review")
+    });
     expect(
       derivePhase4ProviderPermissionRecordValidation({
         record,

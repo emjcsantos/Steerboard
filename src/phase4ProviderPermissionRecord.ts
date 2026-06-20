@@ -211,6 +211,8 @@ function buildPermissionChainProof(input: {
   readonly matchesCurrentRollbackEvidence: boolean;
   readonly matchesCurrentSurfaceDepthEvidence: boolean;
   readonly matchesCurrentPermissionEvidence: boolean;
+  readonly recordAgeMs?: number;
+  readonly maxRecordAgeMs: number;
   readonly coveredSurfaceCount: number;
   readonly missingSurfaceScopes: readonly Phase4ProviderPermissionSurfaceScope[];
   readonly ownerPresent: boolean;
@@ -219,6 +221,12 @@ function buildPermissionChainProof(input: {
   readonly mutationLocked: boolean;
 }): string {
   const missingScopes = input.missingSurfaceScopes.join(",") || "none";
+  const recordFreshness =
+    input.recordAgeMs === undefined
+      ? "missing"
+      : input.recordAgeMs >= 0 && input.recordAgeMs <= input.maxRecordAgeMs
+        ? "fresh"
+        : "review";
 
   return (
     `approval=${valueOrMissing(input.recordApprovalRecordId)} expectedApproval=${valueOrMissing(input.expectedApprovalRecordId)} ` +
@@ -240,6 +248,7 @@ function buildPermissionChainProof(input: {
     `rollbackEvidenceMatch=${input.matchesCurrentRollbackEvidence ? "matched" : "review"} ` +
     `surfaceMatch=${input.matchesCurrentSurfaceDepthEvidence ? "matched" : "review"} ` +
     `permissionMatch=${input.matchesCurrentPermissionEvidence ? "matched" : "review"} ` +
+    `recordFreshness=${recordFreshness} ` +
     `owner=${input.ownerPresent ? "present" : "review"} ` +
     `scope=${input.scopePresent ? "present" : "review"} ` +
     `action=${input.actionPresent ? "present" : "review"} ` +
@@ -574,6 +583,7 @@ export function derivePhase4ProviderPermissionRecordValidation(input: {
           input.expectedSurfaceDepthEvidenceFingerprint,
         expectedPermissionEvidenceFingerprint:
           input.expectedPermissionEvidenceFingerprint,
+        maxRecordAgeMs,
         matchesCurrentCatalog: false,
         matchesCurrentApproval: false,
         matchesCurrentAudit: false,
@@ -678,6 +688,8 @@ export function derivePhase4ProviderPermissionRecordValidation(input: {
       expectedPermissionEvidenceFingerprint:
         input.expectedPermissionEvidenceFingerprint,
       recordPermissionEvidenceFingerprint: input.record.permissionEvidenceFingerprint,
+      recordAgeMs: ageMs,
+      maxRecordAgeMs,
       matchesCurrentCatalog,
       matchesCurrentApproval,
       matchesCurrentAudit,

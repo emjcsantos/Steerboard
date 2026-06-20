@@ -368,8 +368,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-permission-record",
             title: "Provider Permission Record",
-            description: "Record and clear local provider permission review only when the current approval, audit, rollback, ready rollback validation, structured rollback-chain proof, six-surface catalog, audit evidence, rollback evidence, surface-depth, permission evidence, owner/scope/action evidence, structured permission-chain proof, aggregate local record-validation proof, and every provider surface scope match while mutation remains locked.",
-            completionPercent: 70,
+            description: "Record and clear local provider permission review only when the current approval, audit, rollback, ready rollback validation, structured rollback-chain proof, six-surface catalog, audit evidence, rollback evidence, surface-depth, permission evidence, owner/scope/action evidence, structured permission-chain proof with compact record-freshness verdict, aggregate local record-validation proof, and every provider surface scope match while mutation remains locked.",
+            completionPercent: 72,
             complexity: "high",
             sourceDocument: "Phase 4 provider permission record"
           },

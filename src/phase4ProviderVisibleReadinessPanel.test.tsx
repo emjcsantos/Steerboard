@@ -402,9 +402,11 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain(
       "surfaceMatch=matched recordFreshness=fresh owner=present action=present mutation=locked execution=locked"
     );
-    expect(html).toContain("permissionMatch=matched");
+    expect(html).toContain("permissionMatch=matched recordFreshness=fresh");
     expect(html).toContain("rollbackValidation=ready rollbackChain=present");
-    expect(html).toContain("owner=present scope=present action=present mutation=locked execution=locked");
+    expect(html).toContain(
+      "recordFreshness=fresh owner=present scope=present action=present mutation=locked execution=locked"
+    );
     expect(html).toContain("active-goal");
     expect(html).toContain("items=7/7 ready=7 preview=0 setupRequired=0 held=0");
     expect(html).toContain(

@@ -444,7 +444,7 @@ describe("phase 4 provider surface depth", () => {
       "surfaces=6/6 missingScopes=none"
     );
     expect(permissionGate?.ownerBoundaryProof).toContain(
-      "permissionMatch=matched owner=present scope=present action=present mutation=locked execution=locked"
+      "permissionMatch=matched recordFreshness=fresh owner=present scope=present action=present mutation=locked execution=locked"
     );
   });
 

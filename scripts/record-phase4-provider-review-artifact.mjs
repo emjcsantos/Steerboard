@@ -293,7 +293,7 @@ const permissionChainProof =
   "surfaces=6/6 missingScopes=none " +
   "approvalMatch=matched auditMatch=matched rollbackMatch=matched catalogMatch=matched " +
   "auditEvidenceMatch=matched rollbackEvidenceMatch=matched surfaceMatch=matched permissionMatch=matched " +
-  "owner=present scope=present action=present mutation=locked execution=locked";
+  "recordFreshness=fresh owner=present scope=present action=present mutation=locked execution=locked";
 const permissionValidation = {
   state: "ready",
   detail: "Provider permission record matches approval, audit, rollback, catalog, surface-depth, permission evidence, and all six provider surfaces.",

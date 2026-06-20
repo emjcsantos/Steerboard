@@ -337,6 +337,7 @@ const REQUIRED_PERMISSION_CHAIN_PROOF_TERMS = [
   "rollbackEvidenceMatch=",
   "surfaceMatch=",
   "permissionMatch=",
+  "recordFreshness=fresh",
   "owner=present",
   "scope=present",
   "action=present",
