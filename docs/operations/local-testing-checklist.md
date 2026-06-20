@@ -66,6 +66,7 @@ Do not proceed to the next section until the current item is at least `review`.
    - Switch to Adaptive Arena and confirm the Phase 10 Arena Polish panel reports layout regression, density/readability, keyboard controls, focus state, terminology, and acceptance gates separately.
    - Confirm the Phase 10 Arena polish traceability rows link the remaining goal, PM child coverage, Arena polish readiness, layout/density evidence, and acceptance gate before packaging can resume.
    - Confirm the Phase 10 Arena polish blocker-priority queue ranks layout, density, keyboard, focus, terminology, acceptance, PM coverage, and traceability blockers and shows whether Arena review can address the top blocker, with PM or remaining-goal link blockers treated as planning metadata repair instead of Arena-review addressable.
+   - Confirm the Phase 10 packaging resume gate shows `phase10PackagingResumeGateProof`, `canResume=no`, missing owner resume approval, locked install path, locked desktop packaging path, and required Phase 11 release gate before any packaging, signing, installer, Git push, or release action is considered.
    - Use drag, keyboard arrow movement, shift-arrow resize, hide, reveal, and reset paths on adaptive panels, then confirm no source session or project data is mutated.
 5. `Controls`
    - Exercise stop, retry, pause, and route controls.

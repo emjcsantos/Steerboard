@@ -760,6 +760,10 @@ import {
   type Phase10ArenaPolishCloseoutStatus
 } from "./phase10ArenaPolishCloseoutStatus";
 import {
+  buildPhase10PackagingResumeGate,
+  type Phase10PackagingResumeGate
+} from "./phase10PackagingResumeGate";
+import {
   buildPhase11OwnerCommandCenterSnapshot,
   type Phase11OwnerCommandCenterSnapshot
 } from "./phase11OwnerCommandCenter";
@@ -16979,6 +16983,7 @@ export function Phase10ArenaPolishPanel({
     traceability,
     blockerPriority
   });
+  const packagingResumeGate = buildPhase10PackagingResumeGate(closeoutStatus);
 
   return (
     <section className="panel-section">
@@ -17132,6 +17137,7 @@ export function Phase10ArenaPolishPanel({
           </ol>
         </div>
         <Phase10ArenaPolishCloseoutStatusPanel status={closeoutStatus} />
+        <Phase10PackagingResumeGatePanel gate={packagingResumeGate} />
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
     </section>
@@ -17173,6 +17179,46 @@ export function Phase10ArenaPolishCloseoutStatusPanel({
       </dl>
       <small>{status.phase10ArenaPolishCloseoutStatusProof}</small>
       <small title={status.nextAction}>{status.nextAction}</small>
+    </div>
+  );
+}
+
+export function Phase10PackagingResumeGatePanel({
+  gate
+}: {
+  gate: Phase10PackagingResumeGate;
+}) {
+  return (
+    <div
+      aria-label={gate.ariaLabel}
+      className={classNames(
+        "phase10-arena-blocker-priority",
+        `phase10-arena-blocker-priority-${gate.state}`
+      )}
+      title={gate.safety}
+    >
+      <div className="phase10-arena-blocker-priority-header">
+        <strong>{gate.label}</strong>
+        <span>{gate.statusLabel}</span>
+        <b>{gate.readiness}%</b>
+      </div>
+      <dl className="phase10-arena-blocker-priority-grid" aria-label="Phase 10 packaging resume gate counts">
+        <div>
+          <dt>Resume</dt>
+          <dd>{gate.canResumePackaging ? "Ready" : "Held"}</dd>
+        </div>
+        <div>
+          <dt>Owner</dt>
+          <dd>{gate.ownerResumeApproved ? "Approved" : "Missing"}</dd>
+        </div>
+        <div>
+          <dt>Package</dt>
+          <dd>{gate.desktopPackagingLocked ? "Locked" : "Review"}</dd>
+        </div>
+      </dl>
+      <small>{gate.detail}</small>
+      <small>{gate.phase10PackagingResumeGateProof}</small>
+      <small title={gate.nextAction}>{gate.nextAction}</small>
     </div>
   );
 }
