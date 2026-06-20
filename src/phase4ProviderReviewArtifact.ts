@@ -484,3 +484,15 @@ export function verifySerializedPhase4ProviderReviewArtifact(
     options
   );
 }
+
+export function verifyRecordedPhase4ProviderReviewArtifact(
+  serializedArtifact: string,
+  options: Omit<Phase4ProviderReviewArtifactVerifyOptions, "expectedCatalogFingerprint"> = {}
+): Phase4ProviderReviewArtifactVerification {
+  const artifact = parsePhase4ProviderReviewArtifact(serializedArtifact);
+
+  return verifyPhase4ProviderReviewArtifact(artifact, {
+    ...options,
+    expectedCatalogFingerprint: artifact?.currentCatalogFingerprint
+  });
+}

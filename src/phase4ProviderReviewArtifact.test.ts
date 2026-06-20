@@ -10,6 +10,7 @@ import {
   buildPhase4ProviderReviewArtifact,
   parsePhase4ProviderReviewArtifact,
   serializePhase4ProviderReviewArtifact,
+  verifyRecordedPhase4ProviderReviewArtifact,
   verifyPhase4ProviderReviewArtifact,
   verifySerializedPhase4ProviderReviewArtifact,
   type Phase4ProviderReviewArtifact
@@ -216,6 +217,46 @@ describe("phase 4 provider review artifact", () => {
       currentCatalogFingerprint: "phase4-catalog-current",
       expectedCatalogFingerprint: "phase4-catalog-current",
       matchesExpectedCatalog: true
+    });
+  });
+
+  it("verifies recorded artifacts against their own catalog fingerprint for offline load", () => {
+    const artifact = reviewArtifact({
+      refreshSmoke: buildCatalogRefreshProviderSmoke(liveCatalogPayload)
+    });
+    const readyArtifact: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      currentCatalogFingerprint: "phase4-catalog-recorded-offline",
+      traceability: { ...artifact.traceability, canTrustProviderReview: true },
+      blockerPriority: {
+        ...artifact.blockerPriority,
+        openBlockerCount: 0,
+        topPriorityAction: "No Phase 4 provider blockers remain.",
+        topPriorityLabel: "No open Phase 4 provider blocker"
+      }
+    };
+
+    expect(
+      verifyRecordedPhase4ProviderReviewArtifact(
+        serializePhase4ProviderReviewArtifact(readyArtifact),
+        { verifiedAt: "2026-06-18T10:05:00.000Z" }
+      )
+    ).toMatchObject({
+      state: "ready",
+      expectedCatalogFingerprint: "phase4-catalog-recorded-offline",
+      currentCatalogFingerprint: "phase4-catalog-recorded-offline",
+      matchesExpectedCatalog: true
+    });
+  });
+
+  it("keeps malformed recorded artifacts waiting instead of trusting offline load", () => {
+    expect(
+      verifyRecordedPhase4ProviderReviewArtifact("{}", {
+        verifiedAt: "2026-06-18T10:05:00.000Z"
+      })
+    ).toMatchObject({
+      state: "waiting",
+      detail: expect.stringContaining("missing or malformed")
     });
   });
 

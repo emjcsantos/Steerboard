@@ -156,7 +156,7 @@ import {
 } from "./phase4ProviderBlockerPriority";
 import {
   buildPhase4ProviderReviewArtifact,
-  parsePhase4ProviderReviewArtifact,
+  verifyRecordedPhase4ProviderReviewArtifact,
   serializePhase4ProviderReviewArtifact,
   verifyPhase4ProviderReviewArtifact,
   verifySerializedPhase4ProviderReviewArtifact,
@@ -3037,17 +3037,10 @@ export function App() {
         "phase4-provider-review-artifact.json",
         "phase4_provider_review_artifact_read"
       );
-      const artifact = parsePhase4ProviderReviewArtifact(serializedArtifact);
-
-      if (!artifact) {
-        verifyImportedPhase4ProviderReviewArtifact(serializedArtifact);
-        return;
-      }
 
       const now = new Date().toISOString();
-      const verification = verifyPhase4ProviderReviewArtifact(artifact, {
-        verifiedAt: now,
-        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      const verification = verifyRecordedPhase4ProviderReviewArtifact(serializedArtifact, {
+        verifiedAt: now
       });
 
       setImportedPhase4ProviderReviewArtifactVerification(verification);
@@ -3059,7 +3052,7 @@ export function App() {
         "Recorded Phase 4 provider review artifact is unavailable; run npm.cmd run smoke:phase4:record first"
       );
     }
-  }, [verifyImportedPhase4ProviderReviewArtifact]);
+  }, []);
   const clearPhase3CommandValidation = useCallback(() => {
     const now = new Date().toISOString();
 
