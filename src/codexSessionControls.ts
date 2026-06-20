@@ -51,6 +51,29 @@ export interface CodexUnsupportedSessionControlsSummary {
   detail: string;
 }
 
+export type CodexSessionLifecycleControlState = "ready" | "review" | "unsupported";
+
+export interface CodexSessionLifecycleControlsGate {
+  state: CodexSessionLifecycleControlState;
+  statusLabel: string;
+  canUseLifecycleControls: boolean;
+  supportedCount: number;
+  handlerReadyCount: number;
+  unsupportedCount: number;
+  disabledCount: number;
+  liveCount: number;
+  proof: string;
+  detail: string;
+  nextAction: string;
+  safety: string;
+}
+
+export interface CodexSessionLifecycleHandlerAvailability {
+  fork?: boolean;
+  resume?: boolean;
+  archive?: boolean;
+}
+
 const unsupportedControlLabelById: Record<CodexSessionControlId, string> = {
   interrupt: "Interrupt",
   retry: "Retry",
@@ -68,6 +91,13 @@ const unsupportedControlOrder: readonly CodexSessionControlId[] = [
   "resume",
   "archive"
 ];
+const lifecycleControlOrder: ReadonlyArray<"fork" | "resume" | "archive"> = [
+  "fork",
+  "resume",
+  "archive"
+];
+const LIFECYCLE_GATE_SAFETY =
+  "Lifecycle control gate is evidence-only. It does not fork, resume, archive, mutate sessions, call provider endpoints, or persist lifecycle changes.";
 
 export function summarizeUnsupportedSessionControls(
   controls: CodexSessionControls
@@ -93,6 +123,64 @@ export function summarizeUnsupportedSessionControls(
     count: entries.length,
     label: countLabel,
     detail: `${countLabel}: ${entries.join(" | ")}`
+  };
+}
+
+export function buildCodexSessionLifecycleControlsGate(
+  controls: CodexSessionControls,
+  handlers: CodexSessionLifecycleHandlerAvailability = {}
+): CodexSessionLifecycleControlsGate {
+  const liveCount = lifecycleControlOrder.filter(
+    (controlId) => controls[controlId].state === "live"
+  ).length;
+  const disabledCount = lifecycleControlOrder.filter(
+    (controlId) => controls[controlId].state === "disabled"
+  ).length;
+  const unsupportedCount = lifecycleControlOrder.filter(
+    (controlId) => controls[controlId].state === "unsupported"
+  ).length;
+  const supportedCount = lifecycleControlOrder.length - unsupportedCount;
+  const handlerReadyCount = lifecycleControlOrder.filter(
+    (controlId) => controls[controlId].state === "live" && handlers[controlId] === true
+  ).length;
+  const canUseLifecycleControls = liveCount > 0 && handlerReadyCount === liveCount;
+  const state: CodexSessionLifecycleControlState = canUseLifecycleControls
+    ? "ready"
+    : supportedCount > 0
+      ? "review"
+      : "unsupported";
+  const statusLabel =
+    state === "ready" ? "Lifecycle ready" : state === "review" ? "Lifecycle held" : "Unsupported";
+  const proof =
+    `lifecycleControls state=${state} canUse=${canUseLifecycleControls ? "yes" : "no"} ` +
+    `supported=${supportedCount}/3 live=${liveCount}/3 disabled=${disabledCount}/3 ` +
+    `handlers=${handlerReadyCount}/${liveCount} unsupported=${unsupportedCount}/3 safety=metadata-only`;
+  const detail =
+    state === "ready"
+      ? "Provider-supported lifecycle controls have matching action handlers."
+      : supportedCount > 0
+        ? "Provider-supported lifecycle controls are visible, but execution remains held until live state and matching handlers are present."
+        : "Provider lifecycle controls are honestly unsupported by the current adapter.";
+  const nextAction =
+    state === "ready"
+      ? "Route lifecycle controls only through provider-supported handlers with owner-visible evidence."
+      : supportedCount > 0
+        ? "Attach provider lifecycle handlers before enabling fork, resume, or archive."
+        : "Keep fork, resume, and archive disabled until the provider advertises lifecycle support.";
+
+  return {
+    state,
+    statusLabel,
+    canUseLifecycleControls,
+    supportedCount,
+    handlerReadyCount,
+    unsupportedCount,
+    disabledCount,
+    liveCount,
+    proof,
+    detail,
+    nextAction,
+    safety: LIFECYCLE_GATE_SAFETY
   };
 }
 

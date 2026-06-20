@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildCodexSessionLifecycleControlsGate,
   buildCodexSessionControls,
   summarizeUnsupportedSessionControls
 } from "./codexSessionControls";
@@ -212,5 +213,67 @@ describe("codex session controls", () => {
       label: "No unsupported controls",
       detail: "No unsupported controls are currently available."
     });
+  });
+
+  it("summarizes lifecycle controls as unsupported for the first app-server adapter", () => {
+    const controls = buildCodexSessionControls({
+      sessionStatus: "idle",
+      liveTransportAvailable: true,
+      lastUserPrompt: "Previous prompt"
+    });
+    const gate = buildCodexSessionLifecycleControlsGate(controls);
+
+    expect(gate.state).toBe("unsupported");
+    expect(gate.canUseLifecycleControls).toBe(false);
+    expect(gate.supportedCount).toBe(0);
+    expect(gate.unsupportedCount).toBe(3);
+    expect(gate.proof).toContain("supported=0/3");
+    expect(gate.proof).toContain("canUse=no");
+  });
+
+  it("keeps provider-supported lifecycle controls held until handlers are attached", () => {
+    const controls = buildCodexSessionControls({
+      sessionStatus: "failed",
+      liveTransportAvailable: true,
+      lastUserPrompt: "Previous prompt",
+      providerCapabilities: {
+        fork: true,
+        resume: true,
+        archive: true
+      }
+    });
+    const gate = buildCodexSessionLifecycleControlsGate(controls);
+
+    expect(gate.state).toBe("review");
+    expect(gate.supportedCount).toBe(3);
+    expect(gate.liveCount).toBe(3);
+    expect(gate.handlerReadyCount).toBe(0);
+    expect(gate.canUseLifecycleControls).toBe(false);
+    expect(gate.nextAction).toContain("Attach provider lifecycle handlers");
+  });
+
+  it("returns ready only when every live lifecycle control has a handler", () => {
+    const controls = buildCodexSessionControls({
+      sessionStatus: "failed",
+      liveTransportAvailable: true,
+      lastUserPrompt: "Previous prompt",
+      providerCapabilities: {
+        fork: true,
+        resume: true,
+        archive: true
+      }
+    });
+    const gate = buildCodexSessionLifecycleControlsGate(controls, {
+      fork: true,
+      resume: true,
+      archive: true
+    });
+
+    expect(gate.state).toBe("ready");
+    expect(gate.canUseLifecycleControls).toBe(true);
+    expect(gate.handlerReadyCount).toBe(3);
+    expect(gate.proof).toContain("handlers=3/3");
+    expect(gate.proof).toContain("canUse=yes");
+    expect(gate.safety).toContain("does not fork");
   });
 });

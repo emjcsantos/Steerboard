@@ -424,6 +424,7 @@ import {
   type CodexPanelTurnResultPayload
 } from "./codexSession";
 import {
+  buildCodexSessionLifecycleControlsGate,
   buildCodexSessionControls,
   summarizeUnsupportedSessionControls
 } from "./codexSessionControls";
@@ -6918,6 +6919,10 @@ function SessionCell({
     () => summarizeUnsupportedSessionControls(liveControlSnapshot),
     [liveControlSnapshot]
   );
+  const lifecycleControlGate = useMemo(
+    () => buildCodexSessionLifecycleControlsGate(liveControlSnapshot),
+    [liveControlSnapshot]
+  );
   const sessionControlReadinessEvidence = useMemo(
     () =>
       buildSessionControlReadinessEvidence(liveControlSnapshot, {
@@ -7398,6 +7403,15 @@ function SessionCell({
                 {unsupportedControlSummary.label}
               </span>
             ) : null}
+            <span
+              className={classNames(
+                "session-unsupported-summary",
+                `session-lifecycle-${lifecycleControlGate.state}`
+              )}
+              title={`${lifecycleControlGate.detail} ${lifecycleControlGate.proof}`}
+            >
+              {lifecycleControlGate.statusLabel}
+            </span>
             <button
               aria-label={`Interrupt ${identity.title}`}
               className="session-control-button"
@@ -7420,7 +7434,10 @@ function SessionCell({
             </button>
             <button
               aria-label={`Fork ${identity.title}`}
-              className="session-control-button is-unsupported"
+              className={classNames(
+                "session-control-button",
+                `is-${liveControlSnapshot.fork.state}`
+              )}
               disabled
               title={liveControlSnapshot.fork.reason}
               type="button"
@@ -7429,7 +7446,10 @@ function SessionCell({
             </button>
             <button
               aria-label={`Resume ${identity.title}`}
-              className="session-control-button is-unsupported"
+              className={classNames(
+                "session-control-button",
+                `is-${liveControlSnapshot.resume.state}`
+              )}
               disabled
               title={liveControlSnapshot.resume.reason}
               type="button"
@@ -7438,7 +7458,10 @@ function SessionCell({
             </button>
             <button
               aria-label={`Archive ${identity.title}`}
-              className="session-control-button is-unsupported"
+              className={classNames(
+                "session-control-button",
+                `is-${liveControlSnapshot.archive.state}`
+              )}
               disabled
               title={liveControlSnapshot.archive.reason}
               type="button"
