@@ -623,6 +623,37 @@ describe("phase 4 provider review artifact", () => {
     });
   });
 
+  it("reviews no-blocker artifacts with incomplete audit approval-chain linkage proof", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const withoutAuditApprovalLink: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      auditValidation: artifact.auditValidation
+        ? {
+            ...artifact.auditValidation,
+            auditChainProof: artifact.auditValidation.auditChainProof.replace(
+              "approvalValidation=ready approvalChain=present ",
+              ""
+            )
+          }
+        : artifact.auditValidation
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(withoutAuditApprovalLink, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "review",
+      detail: expect.stringContaining("audit validation chain proof"),
+      nextAction: expect.stringContaining("audit validation chain proof")
+    });
+  });
+
   it("reviews no-blocker artifacts missing rollback validation chain proof", () => {
     const artifact = withReadyLocalRecords(
       reviewArtifact({

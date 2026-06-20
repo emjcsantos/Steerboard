@@ -131,6 +131,7 @@ function valueOrMissing(value: string | undefined): string {
 function auditChainProof(input: {
   readonly record?: Phase4ProviderAuditRecord;
   readonly approvalRecord?: Phase4ProviderApprovalRecord;
+  readonly approvalValidation: Phase4ProviderApprovalRecordValidation;
   readonly expectedCatalogFingerprint?: string;
   readonly expectedAuditEvidenceFingerprint?: string;
   readonly matchesCurrentCatalog: boolean;
@@ -140,6 +141,8 @@ function auditChainProof(input: {
   return (
     `approval=${valueOrMissing(input.record?.approvalRecordId)} ` +
     `expectedApproval=${valueOrMissing(input.approvalRecord?.id)} ` +
+    `approvalValidation=${input.approvalValidation.state} ` +
+    `approvalChain=${input.approvalValidation.approvalChainProof.trim() ? "present" : "missing"} ` +
     `catalog=${valueOrMissing(input.record?.catalogFingerprint)} ` +
     `expectedCatalog=${valueOrMissing(input.expectedCatalogFingerprint)} ` +
     `auditEvidence=${valueOrMissing(input.record?.auditEvidenceFingerprint)} ` +
@@ -345,6 +348,7 @@ export function derivePhase4ProviderAuditRecordValidation(input: {
       mutationLocked: false,
       auditChainProof: auditChainProof({
         approvalRecord: input.approvalRecord,
+        approvalValidation: input.approvalValidation,
         expectedCatalogFingerprint: input.expectedCatalogFingerprint,
         expectedAuditEvidenceFingerprint: input.expectedAuditEvidenceFingerprint,
         matchesCurrentCatalog,
@@ -380,6 +384,7 @@ export function derivePhase4ProviderAuditRecordValidation(input: {
     auditChainProof: auditChainProof({
       record: input.record,
       approvalRecord: input.approvalRecord,
+      approvalValidation: input.approvalValidation,
       expectedCatalogFingerprint: input.expectedCatalogFingerprint,
       expectedAuditEvidenceFingerprint: input.expectedAuditEvidenceFingerprint,
       matchesCurrentCatalog,

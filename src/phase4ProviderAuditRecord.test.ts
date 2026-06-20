@@ -76,16 +76,16 @@ describe("phase 4 provider audit record", () => {
       createdAt: "2026-06-18T10:10:00.000Z"
     });
 
-    expect(
-      derivePhase4ProviderAuditRecordValidation({
-        record,
-        approvalRecord,
-        approvalValidation: readyApprovalValidation,
-        expectedAuditEvidenceFingerprint: auditEvidenceFingerprint,
-        expectedCatalogFingerprint: "phase4-catalog-current",
-        options: { evaluatedAt: "2026-06-18T10:15:00.000Z" }
-      })
-    ).toMatchObject({
+    const validation = derivePhase4ProviderAuditRecordValidation({
+      record,
+      approvalRecord,
+      approvalValidation: readyApprovalValidation,
+      expectedAuditEvidenceFingerprint: auditEvidenceFingerprint,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      options: { evaluatedAt: "2026-06-18T10:15:00.000Z" }
+    });
+
+    expect(validation).toMatchObject({
       state: "ready",
       matchesCurrentCatalog: true,
       matchesCurrentApproval: true,
@@ -96,18 +96,19 @@ describe("phase 4 provider audit record", () => {
       ),
       recordAgeMs: 300_000
     });
+    expect(validation.auditChainProof).toContain("approvalValidation=ready approvalChain=present");
   });
 
   it("returns preview when no audit record is attached", () => {
-    expect(
-      derivePhase4ProviderAuditRecordValidation({
-        approvalRecord,
-        approvalValidation: readyApprovalValidation,
-        expectedAuditEvidenceFingerprint: auditEvidenceFingerprint,
-        expectedCatalogFingerprint: "phase4-catalog-current",
-        options: { evaluatedAt: "2026-06-18T10:15:00.000Z" }
-      })
-    ).toMatchObject({
+    const validation = derivePhase4ProviderAuditRecordValidation({
+      approvalRecord,
+      approvalValidation: readyApprovalValidation,
+      expectedAuditEvidenceFingerprint: auditEvidenceFingerprint,
+      expectedCatalogFingerprint: "phase4-catalog-current",
+      options: { evaluatedAt: "2026-06-18T10:15:00.000Z" }
+    });
+
+    expect(validation).toMatchObject({
       state: "preview",
       detail: expect.stringContaining("not attached"),
       matchesCurrentCatalog: false,
@@ -116,6 +117,7 @@ describe("phase 4 provider audit record", () => {
       mutationLocked: false,
       auditChainProof: expect.stringContaining("mutation=review execution=locked")
     });
+    expect(validation.auditChainProof).toContain("approvalValidation=ready approvalChain=present");
   });
 
   it("reviews stale, future-dated, mismatched, and approval-held audit records", () => {

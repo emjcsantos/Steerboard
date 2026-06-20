@@ -200,6 +200,7 @@ const auditValidation = {
   mutationLocked: true,
   auditChainProof:
     `approval=${approvalRecordId} expectedApproval=${approvalRecordId} ` +
+    "approvalValidation=ready approvalChain=present " +
     `catalog=${currentCatalogFingerprint} expectedCatalog=${currentCatalogFingerprint} ` +
     `auditEvidence=${auditEvidenceFingerprint} expectedAuditEvidence=${auditEvidenceFingerprint} ` +
     `approvalMatch=matched catalogMatch=matched auditMatch=matched mutation=locked execution=locked`

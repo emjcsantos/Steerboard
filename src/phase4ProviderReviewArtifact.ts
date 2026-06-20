@@ -222,6 +222,8 @@ const REQUIRED_SURFACE_OWNER_BOUNDARY_PROOF_TERMS: ReadonlyArray<{
 const REQUIRED_AUDIT_CHAIN_PROOF_TERMS = [
   "approval=",
   "expectedApproval=",
+  "approvalValidation=ready",
+  "approvalChain=present",
   "catalog=",
   "expectedCatalog=",
   "auditEvidence=",
