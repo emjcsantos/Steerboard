@@ -21,7 +21,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 | Phase 6: Project and Program Planning Lane | In progress | The Project Management board carries the current Phase 0-11 Epic, Parent, and Child hierarchy, saved-state upgrades, staged Arena review packages, publish-hold traceability, and blocker-priority rows. |
 | Phase 7: Orchestrator-Worker Dispatch | Next | Dispatch review depth, role packet staging, integration ownership, traceability, blocker priority, and live-worker locks remain staged for review. |
 | Phase 8: Permissions and Audit | Next | Permission labels, risk blockers, risk exceptions, audit persistence, traceability, and blocker priority remain prerequisites before mutation paths grow. |
-| Phase 9: Desktop-Backed Runner | In progress | The fixed terminal read-only probe is the current active implementation target and remains behind permission, audit, validation, rollback, traceability, runner-review, request-gate, completion-gate, closeout, and owner approval gates. |
+| Phase 9: Desktop-Backed Runner | In progress | The fixed terminal read-only probe is the current active implementation target and remains behind permission, audit, validation, rollback, traceability, runner-review, visible desktop-probe gate status, request-gate, completion-gate, closeout, and owner approval gates. |
 | Phase 10: Adaptive Magnetic Arena | Next | Adaptive layout regression, density, keyboard controls, focus state, Arena terminology, traceability, and blocker priority remain polish work after core proof clears. |
 | Phase 11: Owner Testing and Release Readiness | Next | Owner Testing, evidence records, proof freshness, fresh checkout, release readiness, owner release traceability, blocker priority, and packaging holds remain the final release gate. |
 
@@ -92,7 +92,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 ## Phase 9: Desktop-Backed Runner
 
 - Fixed terminal read-only probe selection and owner approval.
-- Request preview, validation output, audit record, rollback evidence, local runner-review record, and unique evidence keys.
+- Visible desktop-probe gate status, request preview, validation output, audit record, rollback evidence, local runner-review record, and unique evidence keys.
 - Phase 8 owner-review linkage, Phase 9 traceability, blocker priority, and mutation lock before the desktop runner can advance.
 
 ## Phase 10: Adaptive Magnetic Arena
