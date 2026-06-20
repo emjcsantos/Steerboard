@@ -129,8 +129,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-01-child-reload-proof",
             title: "Reload-Safe One-Panel Evidence",
-            description: "Reload the app and confirm the completed proof remains visible, timestamped, storage-trusted, and accurately labeled while timestamp-missing desktop proof returns to review.",
-            completionPercent: 58,
+            description: "Reload the app and confirm the completed proof remains visible, timestamped, storage-trusted, accurately labeled, and backed by compact reloadProof evidence while timestamp-missing desktop proof returns to review.",
+            completionPercent: 60,
             sourceDocument: "Local testing checklist"
           }
         ]

@@ -131,6 +131,9 @@ describe("phase priority evidence", () => {
     expect(phase1?.detail).toContain("signalProof=7/7");
     expect(phase1?.detail).toContain("methodCount=4");
     expect(phase1?.detail).toContain("uniqueMethods=4");
+    expect(phase1?.detail).toContain(
+      "reloadProof=source:desktop executed=true timestamped=true storageTrusted=true"
+    );
     const phase2 = result.items.find((item) => item.id === "phase-2-panel-isolation");
     expect(phase2?.detail).toContain("panelProof=2/2");
     expect(phase2?.detail).toContain("sessionIdPanels=2/2");
@@ -269,6 +272,9 @@ describe("phase priority evidence", () => {
       state: "review"
     });
     expect(phase1?.detail).toContain("reload timestamp");
+    expect(phase1?.detail).toContain(
+      "reloadProof=source:desktop executed=true timestamped=false storageTrusted=false"
+    );
   });
 
   it("blocks Phase 2 when live panel identities are duplicated", () => {

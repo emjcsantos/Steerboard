@@ -174,6 +174,15 @@ function buildTwoPanelSmokeProofSummary(twoPanelSmokeProof: Record<string, unkno
   );
 }
 
+function buildReloadProofSummary(proof: Record<string, unknown>): string {
+  const source = typeof proof.source === "string" && proof.source.trim() ? proof.source.trim() : "unknown";
+  const executed = bool(proof.executed);
+  const timestamped = typeof proof.checkedAt === "string" && proof.checkedAt.trim().length > 0;
+  const storageTrusted = source === "desktop" && executed && timestamped;
+
+  return `reloadProof=source:${source} executed=${executed} timestamped=${timestamped} storageTrusted=${storageTrusted}`;
+}
+
 function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenceItem {
   if (!isRecord(liveSmokeProof)) {
     return item(
@@ -218,6 +227,7 @@ function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenc
     `signalProof=${readySignalCount}/${streamSignalChecks.length} ` +
     `methodCount=${nonNegativeNumber(liveSmokeProof.methodCount)} ` +
     `uniqueMethods=${stringArrayLength(liveSmokeProof.uniqueMethods)}`;
+  const reloadProof = buildReloadProofSummary(liveSmokeProof);
   const ready = executed && missingStreamSignals.length === 0;
 
   if (ready) {
@@ -225,7 +235,7 @@ function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenc
       "phase-1-live-panel",
       "Phase 1 live Arena panel",
       "ready",
-      `One live Arena panel has thread, turn, stream delta, completion, and expected-token evidence. ${streamSignalProof}.`,
+      `One live Arena panel has thread, turn, stream delta, completion, and expected-token evidence. ${streamSignalProof}. ${reloadProof}.`,
       "Keep this as the one-panel regression proof before expanding provider work."
     );
   }
@@ -244,7 +254,7 @@ function buildPhase1LivePanelItem(liveSmokeProof: unknown): PhasePriorityEvidenc
     "phase-1-live-panel",
     "Phase 1 live Arena panel",
     "review",
-    `Live panel proof ran with ${streamSignalProof}, but missing stream/completion signal${missingStreamSignals.length === 1 ? "" : "s"}: ${missingStreamSignals.map((signal) => signal.label).join(", ")}.`,
+    `Live panel proof ran with ${streamSignalProof} and ${reloadProof}, but missing stream/completion signal${missingStreamSignals.length === 1 ? "" : "s"}: ${missingStreamSignals.map((signal) => signal.label).join(", ")}.`,
     "Review the proof detail, rerun the desktop smoke, and keep browser fallback as waiting."
   );
 }
