@@ -1,4 +1,5 @@
 import type { Phase8AuditReviewArtifactVerification } from "./phase8AuditReviewArtifact";
+import type { Phase8AuditReviewHandoff } from "./phase8AuditReviewHandoff";
 import type { Phase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import type { Phase8PermissionAuditDepthSnapshot } from "./phase8PermissionAuditDepth";
 import type { Phase8RiskBlockerPrioritySummary } from "./phase8RiskBlockerPriority";
@@ -23,6 +24,9 @@ export interface Phase8PermissionAuditCompletionGate {
   readonly openExceptionCount: number;
   readonly traceabilityTrusted: boolean;
   readonly reviewedBlockerProof: boolean;
+  readonly ownerHandoffReady: boolean;
+  readonly ownerHandoffState: string;
+  readonly ownerHandoffFingerprintCurrent: boolean;
   readonly detail: string;
   readonly nextAction: string;
   readonly completionGateProof: string;
@@ -34,6 +38,7 @@ export interface Phase8PermissionAuditCompletionGateInput {
   readonly traceability: Phase8RiskTraceabilitySummary;
   readonly blockerPriority: Phase8RiskBlockerPrioritySummary;
   readonly artifactVerification?: Phase8AuditReviewArtifactVerification;
+  readonly auditReviewHandoff?: Phase8AuditReviewHandoff;
   readonly reviewRecord?: Phase8AuditReviewRecord;
 }
 
@@ -67,7 +72,10 @@ function proof(
     `openBlockers=${gate.openBlockerCount}`,
     `openExceptions=${gate.openExceptionCount}`,
     `traceability=${gate.traceabilityTrusted ? "ready" : "held"}`,
-    `reviewedBlocker=${gate.reviewedBlockerProof ? "attached" : "missing"}`
+    `reviewedBlocker=${gate.reviewedBlockerProof ? "attached" : "missing"}`,
+    `handoff=${gate.ownerHandoffReady ? "ready" : "held"}`,
+    `handoffState=${gate.ownerHandoffState}`,
+    `handoffFingerprint=${gate.ownerHandoffFingerprintCurrent ? "current" : "held"}`
   ].join(" ");
 }
 
@@ -106,6 +114,10 @@ function result(
     openExceptionCount: input.snapshot.openExceptionCount,
     traceabilityTrusted: input.traceability.canTrustPermissionAudit,
     reviewedBlockerProof: hasReviewedBlockerProof(input.reviewRecord),
+    ownerHandoffReady: input.auditReviewHandoff?.state === "ready",
+    ownerHandoffState: input.auditReviewHandoff?.state ?? "missing",
+    ownerHandoffFingerprintCurrent:
+      input.auditReviewHandoff?.auditFingerprintCurrent === true,
     detail,
     nextAction
   };
@@ -141,13 +153,14 @@ export function buildPhase8PermissionAuditCompletionGate(
     input.snapshot.state === "waiting" ||
     input.traceability.state === "waiting" ||
     !input.artifactVerification ||
+    !input.auditReviewHandoff ||
     !input.reviewRecord
   ) {
     return result(
       "waiting",
       input,
-      "Phase 8 permission audit completion is waiting for owner review, artifact verification, and current audit evidence.",
-      "Record owner audit review, verify the current Phase 8 audit artifact, and keep mutation paths locked before closing the lane."
+      "Phase 8 permission audit completion is waiting for owner review, owner-review handoff proof, artifact verification, and current audit evidence.",
+      "Record owner audit review, verify the current Phase 8 audit artifact, attach ready owner-review handoff proof, and keep mutation paths locked before closing the lane."
     );
   }
 
@@ -159,14 +172,19 @@ export function buildPhase8PermissionAuditCompletionGate(
     input.artifactVerification.state === "ready" &&
     input.artifactVerification.hasReviewRecord &&
     input.artifactVerification.mutationLocked &&
+    input.auditReviewHandoff.state === "ready" &&
+    input.auditReviewHandoff.auditFingerprintCurrent &&
+    input.auditReviewHandoff.reviewedBlockerProof &&
     hasReviewedBlockerProof(input.reviewRecord);
 
   if (!reviewReady) {
     return result(
       "review",
       input,
-      "Phase 8 permission audit completion remains in review until owner review, blocker closure, artifact verification, and reviewed-blocker proof are ready.",
-      input.blockerPriority.nextAction
+      "Phase 8 permission audit completion remains in review until owner review, owner-review handoff proof, blocker closure, artifact verification, current audit fingerprint, and reviewed-blocker proof are ready.",
+      input.auditReviewHandoff.state !== "ready"
+        ? input.auditReviewHandoff.nextAction
+        : input.blockerPriority.nextAction
     );
   }
 

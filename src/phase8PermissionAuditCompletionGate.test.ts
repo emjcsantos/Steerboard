@@ -7,6 +7,7 @@ import type { RuntimeProfilePermissionApprovalSnapshot } from "./runtimeProfileP
 import type { RuntimeProfilePermissionAuditSnapshot } from "./runtimeProfilePermissionAudit";
 import type { RuntimeProfilePermissionRequestRecord } from "./runtimeProfilePermissionRequestHistory";
 import type { Phase8AuditReviewArtifactVerification } from "./phase8AuditReviewArtifact";
+import { buildPhase8AuditReviewHandoff } from "./phase8AuditReviewHandoff";
 import { createPhase8AuditReviewRecord } from "./phase8AuditReviewRecord";
 import { buildPhase8PermissionAuditCompletionGate } from "./phase8PermissionAuditCompletionGate";
 import { buildPhase8PermissionAuditDepth } from "./phase8PermissionAuditDepth";
@@ -196,6 +197,8 @@ describe("phase 8 permission audit completion gate", () => {
     expect(gate.completionGateProof).toContain("phase8PermissionAuditCompletionGate");
     expect(gate.completionGateProof).toContain("ownerReview=missing");
     expect(gate.completionGateProof).toContain("artifact=held");
+    expect(gate.completionGateProof).toContain("handoff=held");
+    expect(gate.completionGateProof).toContain("handoffState=missing");
     expect(gate.canAdvanceMutationPaths).toBe(false);
   });
 
@@ -219,14 +222,52 @@ describe("phase 8 permission audit completion gate", () => {
     expect(gate.completionGateProof).toContain("mutation=unlocked");
   });
 
-  it("completes only with trusted traceability, no blockers, owner review, artifact proof, and reviewed-blocker proof", () => {
+  it("keeps completion in review until owner-review handoff proof is ready", () => {
     const { blockerPriority, reviewRecord, snapshot, traceability } = readySnapshot();
+    const heldHandoff = buildPhase8AuditReviewHandoff({
+      snapshot,
+      traceability,
+      blockerPriority,
+      reviewRecord,
+      artifactVerification: artifactVerification({
+        state: "review",
+        statusLabel: "Review"
+      })
+    });
     const gate = buildPhase8PermissionAuditCompletionGate({
       snapshot,
       traceability,
       blockerPriority,
       reviewRecord,
+      artifactVerification: artifactVerification(),
+      auditReviewHandoff: heldHandoff
+    });
+
+    expect(gate.state).toBe("review");
+    expect(gate.phaseComplete).toBe(false);
+    expect(gate.ownerHandoffReady).toBe(false);
+    expect(gate.ownerHandoffState).toBe("review");
+    expect(gate.completionGateProof).toContain("handoff=held");
+    expect(gate.completionGateProof).toContain("handoffState=review");
+    expect(gate.nextAction).toContain("Verify the current Phase 8 audit artifact");
+  });
+
+  it("completes only with trusted traceability, no blockers, owner review, artifact proof, and reviewed-blocker proof", () => {
+    const { blockerPriority, reviewRecord, snapshot, traceability } = readySnapshot();
+    const readyHandoff = buildPhase8AuditReviewHandoff({
+      snapshot,
+      traceability,
+      blockerPriority,
+      reviewRecord,
       artifactVerification: artifactVerification()
+    });
+    const gate = buildPhase8PermissionAuditCompletionGate({
+      snapshot,
+      traceability,
+      blockerPriority,
+      reviewRecord,
+      artifactVerification: artifactVerification(),
+      auditReviewHandoff: readyHandoff
     });
 
     expect(gate.state).toBe("complete");
@@ -234,9 +275,13 @@ describe("phase 8 permission audit completion gate", () => {
     expect(gate.traceabilityTrusted).toBe(true);
     expect(gate.ownerReviewAttached).toBe(true);
     expect(gate.artifactReady).toBe(true);
+    expect(gate.ownerHandoffReady).toBe(true);
+    expect(gate.ownerHandoffFingerprintCurrent).toBe(true);
     expect(gate.reviewedBlockerProof).toBe(true);
     expect(gate.canAdvanceMutationPaths).toBe(false);
     expect(gate.completionGateProof).toContain("phaseComplete=yes");
     expect(gate.completionGateProof).toContain("canAdvanceMutationPaths=no");
+    expect(gate.completionGateProof).toContain("handoff=ready");
+    expect(gate.completionGateProof).toContain("handoffFingerprint=current");
   });
 });

@@ -682,8 +682,8 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-08-permissions-audit",
     title: "Phase 8: Permissions and Audit",
-    description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, current owner audit-review fingerprints, record-specific rollback evidence, phase8RiskClosureProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof artifact/fingerprint/reviewed-blocker gates, and phase8PermissionAuditCompletionGate proof before mutation-capable paths expand.",
-    completionPercent: 84,
+    description: "Harden risk gates, audit trails, permission boundaries, risk exceptions, disabled-path explanations, current owner audit-review fingerprints, record-specific rollback evidence, phase8RiskClosureProof, auditPersistenceProof current-fingerprint review, phase8AuditReviewHandoffProof artifact/fingerprint/reviewed-blocker gates, and phase8PermissionAuditCompletionGate handoff-ready/fingerprint-current proof before mutation-capable paths expand.",
+    completionPercent: 90,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -746,8 +746,8 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-08-parent-audit-log",
         title: "Owner-Visible Audit Trail",
-        description: "Record attempted actions, owner audit reviews, approvals, blocked states, validation outcomes, record-specific rollback reviews, audit persistence depth, compact auditPersistenceProof state/readiness/record/open-exception counts, current-fingerprint proof, reviewed-blocker proof, phase8AuditReviewHandoffProof artifact-state/fingerprint-current/reviewed-blocker gates, and phase8PermissionAuditCompletionGate proof for local owner-review persistence.",
-        completionPercent: 84,
+        description: "Record attempted actions, owner audit reviews, approvals, blocked states, validation outcomes, record-specific rollback reviews, audit persistence depth, compact auditPersistenceProof state/readiness/record/open-exception counts, current-fingerprint proof, reviewed-blocker proof, phase8AuditReviewHandoffProof artifact-state/fingerprint-current/reviewed-blocker gates, and phase8PermissionAuditCompletionGate handoff-ready/fingerprint-current proof for local owner-review persistence.",
+        completionPercent: 90,
         complexity: "high",
         sourceDocument: "Audit requirements",
         children: [
@@ -770,8 +770,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-completion-gate",
             title: "Permission Audit Completion Gate",
-            description: "Show the owner-visible Phase 8 completion gate proof that permission and audit depth can close only when traceability is trusted, audit artifact verification is ready, owner audit review is attached, reviewed-blocker proof is present, open blockers and exceptions are zero, and phase8PermissionAuditCompletionGate keeps mutation paths locked.",
-            completionPercent: 68,
+            description: "Show the owner-visible Phase 8 completion gate proof that permission and audit depth can close only when traceability is trusted, audit artifact verification is ready, owner audit review is attached, phase8AuditReviewHandoffProof is ready with current fingerprint and reviewed-blocker proof, open blockers and exceptions are zero, and phase8PermissionAuditCompletionGate keeps mutation paths locked.",
+            completionPercent: 90,
             complexity: "high",
             sourceDocument: "Phase 8 permission audit completion gate"
           }

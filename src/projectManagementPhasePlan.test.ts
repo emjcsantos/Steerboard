@@ -97,10 +97,10 @@ describe("project management phase plan", () => {
     const ownerReviewHandoffChild = byId.get("phase-08-child-owner-review-handoff");
     const completionGateChild = byId.get("phase-08-child-completion-gate");
 
-    expect(auditParent?.completionPercent).toBe(84);
+    expect(auditParent?.completionPercent).toBe(90);
     expect(auditPersistenceChild?.completionPercent).toBe(80);
     expect(ownerReviewHandoffChild?.completionPercent).toBe(84);
-    expect(completionGateChild?.completionPercent).toBe(68);
+    expect(completionGateChild?.completionPercent).toBe(90);
     expect(auditParent?.completionPercent).toBeGreaterThanOrEqual(
       auditPersistenceChild?.completionPercent ?? 0
     );
@@ -116,6 +116,7 @@ describe("project management phase plan", () => {
     expect(auditParent?.description).toContain("phase8AuditReviewHandoffProof");
     expect(auditParent?.description).toContain("artifact-state/fingerprint-current/reviewed-blocker");
     expect(auditParent?.description).toContain("phase8PermissionAuditCompletionGate");
+    expect(auditParent?.description).toContain("handoff-ready/fingerprint-current proof");
     expect(auditParent?.description).toContain("state/readiness/record/open-exception counts");
     expect(auditPersistenceChild?.description).toContain("auditPersistenceProof");
     expect(auditPersistenceChild?.description).toContain(
@@ -124,6 +125,8 @@ describe("project management phase plan", () => {
     expect(auditPersistenceChild?.description).toContain("current-fingerprint");
     expect(auditPersistenceChild?.description).toContain("reviewed-blocker");
     expect(completionGateChild?.description).toContain("phase8PermissionAuditCompletionGate");
+    expect(completionGateChild?.description).toContain("phase8AuditReviewHandoffProof");
+    expect(completionGateChild?.description).toContain("current fingerprint");
     expect(completionGateChild?.description).toContain("mutation paths locked");
     expect(ownerReviewHandoffChild?.description).toContain("phase8AuditReviewHandoffProof");
     expect(ownerReviewHandoffChild?.description).toContain("artifactState/fingerprintCurrent/reviewedBlocker");

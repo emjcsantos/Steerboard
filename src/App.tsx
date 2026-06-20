@@ -15628,6 +15628,7 @@ export function Phase8PermissionAuditDepthPanel({
     snapshot,
     traceability,
     blockerPriority,
+    auditReviewHandoff,
     artifactVerification,
     reviewRecord
   });
