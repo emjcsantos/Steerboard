@@ -193,6 +193,20 @@ describe("phase 7 dispatch traceability", () => {
     expect(summary.dispatchTraceabilityProof).toContain("trust=ready");
   });
 
+  it("trusts completed Phase 7 dispatch handoff while Phase 9 remains active", () => {
+    const { record, run } = buildRecordBundle();
+    const summary = traceability({ record, run, goals: remainingGoalPlan });
+
+    expect(summary.state).toBe("ready");
+    expect(summary.canTrustDispatchReview).toBe(true);
+    expect(summary.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "active-goal", status: "ready" })
+      ])
+    );
+    expect(summary.dispatchTraceabilityProof).toContain("trust=ready");
+  });
+
   it("does not trust dispatch traceability when completed Phase 7 has a stale current flag", () => {
     const { record, run } = buildRecordBundle();
     const summary = traceability({
