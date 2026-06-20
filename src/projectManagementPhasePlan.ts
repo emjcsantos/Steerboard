@@ -666,15 +666,15 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-permission-labels",
             title: "Permission State Labels",
-            description: "Display unavailable, preview-only, approval-required, ready, waiting, review, and blocked states consistently across surfaces with compact permissionLabelProof provider, label, state, risk, requester evidence, and aggregate permissionLabelSummaryProof label counts.",
-            completionPercent: 60,
+            description: "Display unavailable, preview-only, approval-required, ready, waiting, review, and blocked states consistently across surfaces with compact permissionLabelProof provider, label, state, risk, requester evidence, and aggregate permissionLabelSummaryProof total/preview-only/approval-required/blocked/ready label counts.",
+            completionPercent: 64,
             sourceDocument: "Runtime profile permissions"
           },
           {
             id: "phase-08-child-risk-blockers",
             title: "Risk Blocker Explanations",
-            description: "Explain why an action is blocked and what permission, approval, evidence, or rollback requirement is needed to continue, with compact riskBlockerProof row detail, topBlockerProof source/status/severity detail, and blockerQueueProof kind/status/reviewable counts.",
-            completionPercent: 60,
+            description: "Explain why an action is blocked and what permission, approval, evidence, or rollback requirement is needed to continue, with compact riskBlockerProof row detail, topBlockerProof source/kind/status/severity/audit-review detail, and blockerQueueProof open/kind/status/reviewable counts.",
+            completionPercent: 64,
             sourceDocument: "Permission audit"
           },
           {

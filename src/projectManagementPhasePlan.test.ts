@@ -34,6 +34,33 @@ describe("project management phase plan", () => {
     expect(auditParent?.description).toContain("auditPersistenceProof");
   });
 
+  it("keeps Phase 8 risk gate progress aligned with permission and blocker proof", () => {
+    const tasks = createDefaultProjectManagementPhasePlan();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const riskGateParent = byId.get("phase-08-parent-risk-gates");
+    const permissionLabelsChild = byId.get("phase-08-child-permission-labels");
+    const riskBlockersChild = byId.get("phase-08-child-risk-blockers");
+    const blockerPriorityChild = byId.get("phase-08-child-blocker-priority");
+
+    expect(riskGateParent?.completionPercent).toBeGreaterThanOrEqual(
+      permissionLabelsChild?.completionPercent ?? 0
+    );
+    expect(riskGateParent?.completionPercent).toBeGreaterThanOrEqual(
+      riskBlockersChild?.completionPercent ?? 0
+    );
+    expect(permissionLabelsChild?.completionPercent).toBeGreaterThanOrEqual(
+      blockerPriorityChild?.completionPercent ?? 0
+    );
+    expect(riskBlockersChild?.completionPercent).toBeGreaterThanOrEqual(
+      blockerPriorityChild?.completionPercent ?? 0
+    );
+    expect(permissionLabelsChild?.description).toContain("permissionLabelProof");
+    expect(permissionLabelsChild?.description).toContain("permissionLabelSummaryProof total");
+    expect(riskBlockersChild?.description).toContain("riskBlockerProof");
+    expect(riskBlockersChild?.description).toContain("topBlockerProof source/kind/status");
+    expect(riskBlockersChild?.description).toContain("blockerQueueProof open/kind/status");
+  });
+
   it("keeps Phase 11 release traceability progress aligned with owner-visible proof depth", () => {
     const tasks = createDefaultProjectManagementPhasePlan();
     const byId = new Map(tasks.map((task) => [task.id, task]));
