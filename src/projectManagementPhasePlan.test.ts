@@ -190,10 +190,13 @@ describe("project management phase plan", () => {
     expect(releaseParent?.completionPercent).toBeGreaterThanOrEqual(
       blockerPriorityChild?.completionPercent ?? 0
     );
+    expect(phase11Epic?.completionPercent).toBe(74);
+    expect(releaseParent?.completionPercent).toBe(74);
+    expect(traceabilityChild?.completionPercent).toBe(74);
     expect(releaseParent?.description).toContain("owner release traceability status counts");
     expect(traceabilityChild?.description).toContain("linked goal and PM row coverage");
     expect(traceabilityChild?.description).toContain("release hold status");
-    expect(blockerPriorityChild?.completionPercent).toBe(64);
+    expect(blockerPriorityChild?.completionPercent).toBe(74);
     expect(blockerPriorityChild?.description).toContain("open blocker count");
     expect(blockerPriorityChild?.description).toContain("owner-review addressable count");
     expect(blockerPriorityChild?.description).toContain("top-priority action detail");
@@ -323,6 +326,9 @@ describe("project management phase plan", () => {
     expect(proofFreshnessChild?.completionPercent).toBeGreaterThanOrEqual(
       evidenceRecordsChild?.completionPercent ?? 0
     );
+    expect(ownerTestingParent?.completionPercent).toBe(72);
+    expect(proofFreshnessChild?.completionPercent).toBe(72);
+    expect(evidenceRecordsChild?.completionPercent).toBe(72);
     expect(proofFreshnessChild?.description).toContain("seven-row readiness");
     expect(proofFreshnessChild?.description).toContain("open-proof counts");
     expect(proofFreshnessChild?.description).toContain("owner-visible safety");
@@ -342,6 +348,9 @@ describe("project management phase plan", () => {
     expect(packageValidationChild?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
     );
+    expect(releaseParent?.completionPercent).toBe(74);
+    expect(packageValidationChild?.completionPercent).toBe(74);
+    expect(traceabilityChild?.completionPercent).toBe(74);
     expect(packageValidationChild?.description).toContain("packaging lock readiness");
     expect(packageValidationChild?.description).toContain("release-decision prerequisite detail");
     expect(packageValidationChild?.description).toContain("local storage repair");
@@ -369,6 +378,10 @@ describe("project management phase plan", () => {
     expect(freshCheckoutChild?.completionPercent).toBeGreaterThanOrEqual(
       proofFreshnessChild?.completionPercent ?? 0
     );
+    expect(ownerTestingParent?.completionPercent).toBe(72);
+    expect(ownerChecklistChild?.completionPercent).toBe(72);
+    expect(freshCheckoutChild?.completionPercent).toBe(72);
+    expect(proofFreshnessChild?.completionPercent).toBe(72);
     expect(ownerChecklistChild?.description).toContain("ready/total owner checklist counts");
     expect(ownerChecklistChild?.description).toContain("priority goal traces");
     expect(freshCheckoutChild?.description).toContain("structured evidence record states");
