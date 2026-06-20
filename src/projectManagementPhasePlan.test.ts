@@ -249,12 +249,17 @@ describe("project management phase plan", () => {
     const tasks = createDefaultProjectManagementPhasePlan();
     const byId = new Map(tasks.map((task) => [task.id, task]));
     const draftParent = byId.get("phase-05-parent-draft-workflow");
+    const profileDraftsChild = byId.get("phase-05-child-profile-drafts");
     const rollbackAuditParent = byId.get("phase-05-parent-rollback-audit");
     const previewMetadataChild = byId.get("phase-05-child-preview-metadata");
     const auditSummaryChild = byId.get("phase-05-child-audit-summary");
     const reviewDepthChild = byId.get("phase-05-child-review-depth");
     const traceabilityChild = byId.get("phase-05-child-traceability");
+    const blockerPriorityChild = byId.get("phase-05-child-blocker-priority");
 
+    expect(draftParent?.completionPercent).toBeGreaterThanOrEqual(
+      profileDraftsChild?.completionPercent ?? 0
+    );
     expect(draftParent?.completionPercent).toBeGreaterThanOrEqual(
       previewMetadataChild?.completionPercent ?? 0
     );
@@ -264,12 +269,23 @@ describe("project management phase plan", () => {
     expect(rollbackAuditParent?.completionPercent).toBeGreaterThanOrEqual(
       reviewDepthChild?.completionPercent ?? 0
     );
+    expect(rollbackAuditParent?.completionPercent).toBeGreaterThanOrEqual(
+      traceabilityChild?.completionPercent ?? 0
+    );
+    expect(rollbackAuditParent?.completionPercent).toBeGreaterThanOrEqual(
+      blockerPriorityChild?.completionPercent ?? 0
+    );
     expect(previewMetadataChild?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
     );
+    expect(profileDraftsChild?.description).toContain("apply-review-staged audit actions");
+    expect(profileDraftsChild?.description).toContain("without changing active profiles or source data");
+    expect(rollbackAuditParent?.description).toContain("sensitive-boundary traceability");
     expect(auditSummaryChild?.description).toContain("draft/audit fingerprint match");
     expect(previewMetadataChild?.description).toContain("sensitive-exclusion evidence keys");
     expect(reviewDepthChild?.description).toContain("six separate owner-review records");
     expect(reviewDepthChild?.description).toContain("unique evidence keys");
+    expect(traceabilityChild?.description).toContain("source-mutation locks");
+    expect(blockerPriorityChild?.description).toContain("source-mutation locks");
   });
 });

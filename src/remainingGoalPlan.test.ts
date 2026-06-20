@@ -434,6 +434,9 @@ describe("remaining goal plan", () => {
     const rollbackAuditParent = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-05-parent-rollback-audit"
     );
+    const profileDraftsChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-05-child-profile-drafts"
+    );
     const previewMetadataChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-05-child-preview-metadata"
     );
@@ -443,6 +446,12 @@ describe("remaining goal plan", () => {
     const reviewDepthChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-05-child-review-depth"
     );
+    const traceabilityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-05-child-traceability"
+    );
+    const blockerPriorityChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-05-child-blocker-priority"
+    );
 
     expect(phase5Goal).toMatchObject({
       target: "Migration Center hardening",
@@ -451,14 +460,22 @@ describe("remaining goal plan", () => {
       completionPercent: 65
     });
     expect(phase5Epic?.completionPercent).toBe(64);
-    expect(previewMetadataChild?.completionPercent).toBe(62);
+    expect(profileDraftsChild?.completionPercent).toBe(64);
+    expect(profileDraftsChild?.description).toContain("apply-review-staged audit actions");
+    expect(profileDraftsChild?.description).toContain("without changing active profiles or source data");
+    expect(previewMetadataChild?.completionPercent).toBe(64);
     expect(previewMetadataChild?.description).toContain("sensitive-exclusion evidence keys");
-    expect(auditSummaryChild?.completionPercent).toBe(62);
+    expect(auditSummaryChild?.completionPercent).toBe(64);
     expect(auditSummaryChild?.description).toContain("draft/audit fingerprint match");
-    expect(reviewDepthChild?.completionPercent).toBe(62);
+    expect(reviewDepthChild?.completionPercent).toBe(64);
     expect(reviewDepthChild?.description).toContain("six separate owner-review records");
     expect(reviewDepthChild?.description).toContain("unique evidence keys");
-    expect(rollbackAuditParent?.completionPercent).toBe(62);
+    expect(traceabilityChild?.completionPercent).toBe(64);
+    expect(traceabilityChild?.description).toContain("source-mutation locks");
+    expect(blockerPriorityChild?.completionPercent).toBe(64);
+    expect(blockerPriorityChild?.description).toContain("source-mutation locks");
+    expect(rollbackAuditParent?.completionPercent).toBe(64);
+    expect(rollbackAuditParent?.description).toContain("sensitive-boundary traceability");
     expect(phase5Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-05-child-profile-drafts",
