@@ -483,6 +483,7 @@ describe("project management phase plan", () => {
     const applyImplementationBoundaryChild = byId.get(
       "phase-05-child-apply-implementation-boundary"
     );
+    const completionGateChild = byId.get("phase-05-child-completion-gate");
 
     expect(draftParent?.completionPercent).toBeGreaterThanOrEqual(
       profileDraftsChild?.completionPercent ?? 0
@@ -511,20 +512,24 @@ describe("project management phase plan", () => {
     expect(rollbackAuditParent?.completionPercent).toBeGreaterThanOrEqual(
       applyImplementationBoundaryChild?.completionPercent ?? 0
     );
+    expect(rollbackAuditParent?.completionPercent).toBeGreaterThanOrEqual(
+      completionGateChild?.completionPercent ?? 0
+    );
     expect(previewMetadataChild?.completionPercent).toBeGreaterThanOrEqual(
       traceabilityChild?.completionPercent ?? 0
     );
-    expect(draftParent?.completionPercent).toBe(96);
-    expect(profileDraftsChild?.completionPercent).toBe(96);
-    expect(rollbackAuditParent?.completionPercent).toBe(96);
-    expect(previewMetadataChild?.completionPercent).toBe(96);
-    expect(auditSummaryChild?.completionPercent).toBe(96);
-    expect(reviewDepthChild?.completionPercent).toBe(96);
-    expect(traceabilityChild?.completionPercent).toBe(96);
-    expect(blockerPriorityChild?.completionPercent).toBe(96);
-    expect(applyDecisionChild?.completionPercent).toBe(96);
-    expect(ownerApprovalHandoffChild?.completionPercent).toBe(96);
-    expect(applyImplementationBoundaryChild?.completionPercent).toBe(96);
+    expect(draftParent?.completionPercent).toBe(100);
+    expect(profileDraftsChild?.completionPercent).toBe(100);
+    expect(rollbackAuditParent?.completionPercent).toBe(100);
+    expect(previewMetadataChild?.completionPercent).toBe(100);
+    expect(auditSummaryChild?.completionPercent).toBe(100);
+    expect(reviewDepthChild?.completionPercent).toBe(100);
+    expect(traceabilityChild?.completionPercent).toBe(100);
+    expect(blockerPriorityChild?.completionPercent).toBe(100);
+    expect(applyDecisionChild?.completionPercent).toBe(100);
+    expect(ownerApprovalHandoffChild?.completionPercent).toBe(100);
+    expect(applyImplementationBoundaryChild?.completionPercent).toBe(100);
+    expect(completionGateChild?.completionPercent).toBe(100);
     expect(profileDraftsChild?.description).toContain("apply-review-staged audit actions");
     expect(profileDraftsChild?.description).toContain("migrationReviewDepthProof");
     expect(profileDraftsChild?.description).toContain("evidenceKeys=6/6");
@@ -577,5 +582,9 @@ describe("project management phase plan", () => {
     expect(applyImplementationBoundaryChild?.description).toContain("executor=missing");
     expect(applyImplementationBoundaryChild?.description).toContain("mutationPath=locked");
     expect(applyImplementationBoundaryChild?.description).toContain("canApply=no");
+    expect(completionGateChild?.description).toContain("phase5MigrationCompletionGate");
+    expect(completionGateChild?.description).toContain("phaseComplete=yes");
+    expect(completionGateChild?.description).toContain("reviewOnly=complete");
+    expect(completionGateChild?.description).toContain("canApply=no");
   });
 });

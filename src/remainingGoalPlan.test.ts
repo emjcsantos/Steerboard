@@ -34,7 +34,7 @@ describe("remaining goal plan", () => {
       averageCompletionPercent: 84,
       currentTarget: "Migration Center hardening",
       currentNextAction:
-        "Use the Migration review gate as the current active implementation target with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, migrationOwnerApprovalHandoffProof requestable=yes/recorded=no/canApply=no with local owner approval record persistence, applyImplementationBoundaryProof executor=missing/mutationPath=locked/canApply=no, traceability rows, blocker-priority queue, apply-decision gate, owner-approval handoff, apply implementation boundary, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, record explicit owner approval only as local review evidence, and keep profile activation locked before any migration apply path.",
+        "Keep the Phase 5 migration completion gate as the current active implementation target handoff, with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, migrationOwnerApprovalHandoffProof requestable=yes/recorded=no/canApply=no with local owner approval record persistence, applyImplementationBoundaryProof executor=missing/mutationPath=locked/canApply=no, phase5MigrationCompletionGate phaseComplete=yes/reviewOnly=complete/canApply=no, traceability rows, blocker-priority queue, apply-decision gate, owner-approval handoff, apply implementation boundary, local apply-review-staged audit record proof, and owner-visible Phase 5 check attached as review-only completion evidence while the next pending lane becomes the active implementation target.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -76,7 +76,8 @@ describe("remaining goal plan", () => {
             "phase-05-child-traceability",
             "phase-05-child-blocker-priority",
             "phase-05-child-owner-approval-handoff",
-            "phase-05-child-apply-implementation-boundary"
+            "phase-05-child-apply-implementation-boundary",
+            "phase-05-child-completion-gate"
           ])
         }),
         expect.objectContaining({
@@ -474,15 +475,18 @@ describe("remaining goal plan", () => {
     const applyImplementationBoundaryChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-05-child-apply-implementation-boundary"
     );
+    const completionGateChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-05-child-completion-gate"
+    );
 
     expect(phase5Goal).toMatchObject({
       target: "Migration Center hardening",
       priority: "high",
       status: "active",
       current: true,
-      completionPercent: 96
+      completionPercent: 100
     });
-    expect(phase5Epic?.completionPercent).toBe(96);
+    expect(phase5Epic?.completionPercent).toBe(100);
     expect(phase5Epic?.description).toContain("migrationReviewDepthProof");
     expect(phase5Epic?.description).toContain("migrationTraceabilityProof");
     expect(phase5Epic?.description).toContain("trust=ready");
@@ -492,55 +496,60 @@ describe("remaining goal plan", () => {
     expect(phase5Epic?.description).toContain("canApply=no");
     expect(phase5Epic?.description).toContain("migrationOwnerApprovalHandoffProof");
     expect(phase5Epic?.description).toContain("applyImplementationBoundaryProof");
-    expect(profileDraftsChild?.completionPercent).toBe(96);
+    expect(phase5Epic?.description).toContain("phase5MigrationCompletionGate");
+    expect(profileDraftsChild?.completionPercent).toBe(100);
     expect(profileDraftsChild?.description).toContain("apply-review-staged audit actions");
     expect(profileDraftsChild?.description).toContain("migrationReviewDepthProof");
     expect(profileDraftsChild?.description).toContain("evidenceKeys=6/6");
     expect(profileDraftsChild?.description).toContain("without changing active profiles or source data");
     expect(profileDraftsChild?.description).toContain("migrationApplyDecisionProof");
     expect(profileDraftsChild?.description).toContain("migrationOwnerApprovalHandoffProof");
-    expect(previewMetadataChild?.completionPercent).toBe(96);
+    expect(previewMetadataChild?.completionPercent).toBe(100);
     expect(previewMetadataChild?.description).toContain("sensitive-exclusion evidence keys");
     expect(previewMetadataChild?.description).toContain("migrationReviewDepthProof");
     expect(previewMetadataChild?.description).toContain("sourceMutation=locked");
     expect(previewMetadataChild?.description).toContain("migrationApplyDecisionProof");
     expect(previewMetadataChild?.description).toContain("migrationOwnerApprovalHandoffProof");
     expect(previewMetadataChild?.description).toContain("applyImplementationBoundaryProof");
-    expect(auditSummaryChild?.completionPercent).toBe(96);
+    expect(auditSummaryChild?.completionPercent).toBe(100);
     expect(auditSummaryChild?.description).toContain("draft/audit fingerprint match");
     expect(auditSummaryChild?.description).toContain("migrationReviewDepthProof");
     expect(auditSummaryChild?.description).toContain("records=6/6");
     expect(auditSummaryChild?.description).toContain("migrationApplyDecisionProof");
     expect(auditSummaryChild?.description).toContain("migrationOwnerApprovalHandoffProof");
-    expect(reviewDepthChild?.completionPercent).toBe(96);
+    expect(reviewDepthChild?.completionPercent).toBe(100);
     expect(reviewDepthChild?.description).toContain("six separate ready owner-review records");
     expect(reviewDepthChild?.description).toContain("unique evidence keys");
     expect(reviewDepthChild?.description).toContain("migrationReviewDepthProof");
     expect(reviewDepthChild?.description).toContain("ready owner-review records");
     expect(reviewDepthChild?.description).toContain("migrationApplyDecisionProof");
     expect(reviewDepthChild?.description).toContain("migrationOwnerApprovalHandoffProof");
-    expect(traceabilityChild?.completionPercent).toBe(96);
+    expect(traceabilityChild?.completionPercent).toBe(100);
     expect(traceabilityChild?.description).toContain("source-mutation locks");
     expect(traceabilityChild?.description).toContain("migrationTraceabilityProof");
     expect(traceabilityChild?.description).toContain("trust=ready");
     expect(traceabilityChild?.description).toContain("openReview=0");
     expect(traceabilityChild?.description).toContain("owner-approval handoff");
-    expect(blockerPriorityChild?.completionPercent).toBe(96);
+    expect(blockerPriorityChild?.completionPercent).toBe(100);
     expect(blockerPriorityChild?.description).toContain("source-mutation locks");
     expect(blockerPriorityChild?.description).toContain("migrationBlockerPriorityProof");
     expect(blockerPriorityChild?.description).toContain("open=0");
     expect(blockerPriorityChild?.description).toContain("migrationApplyDecisionProof");
     expect(blockerPriorityChild?.description).toContain("migrationOwnerApprovalHandoffProof");
     expect(blockerPriorityChild?.description).toContain("applyImplementationBoundaryProof");
-    expect(ownerApprovalHandoffChild?.completionPercent).toBe(96);
+    expect(ownerApprovalHandoffChild?.completionPercent).toBe(100);
     expect(ownerApprovalHandoffChild?.description).toContain("migrationOwnerApprovalHandoffProof");
     expect(ownerApprovalHandoffChild?.description).toContain("recorded state");
     expect(ownerApprovalHandoffChild?.description).toContain("canApply=no");
-    expect(applyImplementationBoundaryChild?.completionPercent).toBe(96);
+    expect(applyImplementationBoundaryChild?.completionPercent).toBe(100);
     expect(applyImplementationBoundaryChild?.description).toContain("applyImplementationBoundaryProof");
     expect(applyImplementationBoundaryChild?.description).toContain("executor=missing");
     expect(applyImplementationBoundaryChild?.description).toContain("canApply=no");
-    expect(rollbackAuditParent?.completionPercent).toBe(96);
+    expect(completionGateChild?.completionPercent).toBe(100);
+    expect(completionGateChild?.description).toContain("phase5MigrationCompletionGate");
+    expect(completionGateChild?.description).toContain("phaseComplete=yes");
+    expect(completionGateChild?.description).toContain("canApply=no");
+    expect(rollbackAuditParent?.completionPercent).toBe(100);
     expect(rollbackAuditParent?.description).toContain("sensitive-boundary traceability");
     expect(rollbackAuditParent?.description).toContain("migrationTraceabilityProof");
     expect(rollbackAuditParent?.description).toContain("openReview=0");
@@ -554,7 +563,8 @@ describe("remaining goal plan", () => {
         "phase-05-child-blocker-priority",
         "phase-05-child-apply-decision-gate",
         "phase-05-child-owner-approval-handoff",
-        "phase-05-child-apply-implementation-boundary"
+        "phase-05-child-apply-implementation-boundary",
+        "phase-05-child-completion-gate"
       ])
     );
     expect(phase5Goal?.nextAction).toContain("blocker-priority queue");
@@ -572,6 +582,8 @@ describe("remaining goal plan", () => {
     expect(phase5Goal?.nextAction).toContain("local owner approval record persistence");
     expect(phase5Goal?.nextAction).toContain("applyImplementationBoundaryProof");
     expect(phase5Goal?.nextAction).toContain("executor=missing");
+    expect(phase5Goal?.nextAction).toContain("phase5MigrationCompletionGate");
+    expect(phase5Goal?.nextAction).toContain("phaseComplete=yes");
     expect(phase5Goal?.nextAction).toContain("owner-visible Phase 5 check");
     expect(phase5Goal?.nextAction).toContain("apply-review-staged audit record");
   });

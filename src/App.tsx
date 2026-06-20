@@ -381,6 +381,7 @@ import {
 } from "./migrationOwnerApprovalHandoff";
 import { buildMigrationApplyImplementationBoundary } from "./migrationApplyImplementationBoundary";
 import { buildMigrationTraceabilitySummary } from "./migrationTraceability";
+import { buildPhase5MigrationCompletionGate } from "./phase5MigrationCompletionGate";
 import {
   buildPersonalizationCatalogSnapshot,
   defaultPersonalizationCatalog,
@@ -5212,6 +5213,14 @@ export function MigrationReviewGatePanel({
     ownerApprovalHandoff: migrationOwnerApprovalHandoff,
     ownerApprovalRecord: migrationOwnerApprovalRecord
   });
+  const phase5MigrationCompletionGate = buildPhase5MigrationCompletionGate({
+    readiness: migrationHardeningReadiness,
+    traceability: migrationTraceability,
+    blockerPriority: migrationBlockerPriority,
+    applyDecision: migrationApplyDecisionGate,
+    ownerApprovalHandoff: migrationOwnerApprovalHandoff,
+    applyImplementationBoundary: migrationApplyImplementationBoundary
+  });
 
   return (
     <div
@@ -5467,6 +5476,39 @@ export function MigrationReviewGatePanel({
         <p>{migrationApplyImplementationBoundary.nextAction}</p>
         <small>{migrationApplyImplementationBoundary.applyImplementationBoundaryProof}</small>
       </div>
+      <div
+        aria-label={phase5MigrationCompletionGate.ariaLabel}
+        className={classNames(
+          "migration-completion-gate",
+          `migration-completion-gate-${phase5MigrationCompletionGate.state}`
+        )}
+        title={phase5MigrationCompletionGate.detail}
+      >
+        <div className="migration-completion-gate-header">
+          <strong>Phase 5 migration completion gate</strong>
+          <span>{phase5MigrationCompletionGate.statusLabel}</span>
+        </div>
+        <dl className="migration-completion-gate-grid" aria-label="Phase 5 migration completion gate counts">
+          <div>
+            <dt>Complete</dt>
+            <dd>{phase5MigrationCompletionGate.phaseComplete ? "Yes" : "No"}</dd>
+          </div>
+          <div>
+            <dt>Review-only</dt>
+            <dd>{phase5MigrationCompletionGate.reviewOnlyComplete ? "Done" : "Held"}</dd>
+          </div>
+          <div>
+            <dt>Apply</dt>
+            <dd>{phase5MigrationCompletionGate.canApplyMigration ? "Yes" : "No"}</dd>
+          </div>
+          <div>
+            <dt>Executor</dt>
+            <dd>{phase5MigrationCompletionGate.executorAvailable ? "Ready" : "Missing"}</dd>
+          </div>
+        </dl>
+        <p>{phase5MigrationCompletionGate.nextAction}</p>
+        <small>{phase5MigrationCompletionGate.completionGateProof}</small>
+      </div>
       <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
         {migrationHardeningReadiness.items.map((item) => (
           <li className={`migration-review-item-${item.status}`} key={item.id} title={item.detail}>
@@ -5639,6 +5681,14 @@ function AppDialogSurface({
   const migrationApplyImplementationBoundary = buildMigrationApplyImplementationBoundary({
     ownerApprovalHandoff: migrationOwnerApprovalHandoff,
     ownerApprovalRecord: migrationOwnerApprovalRecord
+  });
+  const phase5MigrationCompletionGate = buildPhase5MigrationCompletionGate({
+    readiness: migrationHardeningReadiness,
+    traceability: migrationTraceability,
+    blockerPriority: migrationBlockerPriority,
+    applyDecision: migrationApplyDecisionGate,
+    ownerApprovalHandoff: migrationOwnerApprovalHandoff,
+    applyImplementationBoundary: migrationApplyImplementationBoundary
   });
   const catalogRefreshSafetyDepth = buildPhase4RefreshSafetyDepth(
     catalogRefreshProviderSmokeProof,
@@ -6236,6 +6286,39 @@ function AppDialogSurface({
                 </dl>
                 <p>{migrationApplyImplementationBoundary.nextAction}</p>
                 <small>{migrationApplyImplementationBoundary.applyImplementationBoundaryProof}</small>
+              </div>
+              <div
+                aria-label={phase5MigrationCompletionGate.ariaLabel}
+                className={classNames(
+                  "migration-completion-gate",
+                  `migration-completion-gate-${phase5MigrationCompletionGate.state}`
+                )}
+                title={phase5MigrationCompletionGate.detail}
+              >
+                <div className="migration-completion-gate-header">
+                  <strong>Phase 5 migration completion gate</strong>
+                  <span>{phase5MigrationCompletionGate.statusLabel}</span>
+                </div>
+                <dl className="migration-completion-gate-grid" aria-label="Phase 5 migration completion gate counts">
+                  <div>
+                    <dt>Complete</dt>
+                    <dd>{phase5MigrationCompletionGate.phaseComplete ? "Yes" : "No"}</dd>
+                  </div>
+                  <div>
+                    <dt>Review-only</dt>
+                    <dd>{phase5MigrationCompletionGate.reviewOnlyComplete ? "Done" : "Held"}</dd>
+                  </div>
+                  <div>
+                    <dt>Apply</dt>
+                    <dd>{phase5MigrationCompletionGate.canApplyMigration ? "Yes" : "No"}</dd>
+                  </div>
+                  <div>
+                    <dt>Executor</dt>
+                    <dd>{phase5MigrationCompletionGate.executorAvailable ? "Ready" : "Missing"}</dd>
+                  </div>
+                </dl>
+                <p>{phase5MigrationCompletionGate.nextAction}</p>
+                <small>{phase5MigrationCompletionGate.completionGateProof}</small>
               </div>
               <ol className="migration-review-gate-list" aria-label="Migration hardening evidence">
                 {migrationHardeningReadiness.items.map((item) => (

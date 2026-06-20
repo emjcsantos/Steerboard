@@ -176,10 +176,10 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 5"],
     phaseIds: ["phase-05-migration-center"],
     goal:
-      "Finish preview, apply-intent lock, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, review-depth records, the apply-decision gate, owner-approval handoff, local owner approval record, and apply implementation boundary for metadata-only migration work.",
+      "Finish preview, apply-intent lock, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, review-depth records, the apply-decision gate, owner-approval handoff, local owner approval record, apply implementation boundary, and completion gate for metadata-only migration work.",
     status: "active",
     priority: "high",
-    completionPercent: 96,
+    completionPercent: 100,
     current: true,
     pmTaskIds: [
       "phase-05-migration-center",
@@ -193,10 +193,11 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-05-child-blocker-priority",
       "phase-05-child-apply-decision-gate",
       "phase-05-child-owner-approval-handoff",
-      "phase-05-child-apply-implementation-boundary"
+      "phase-05-child-apply-implementation-boundary",
+      "phase-05-child-completion-gate"
     ],
     nextAction:
-      "Use the Migration review gate as the current active implementation target with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, migrationOwnerApprovalHandoffProof requestable=yes/recorded=no/canApply=no with local owner approval record persistence, applyImplementationBoundaryProof executor=missing/mutationPath=locked/canApply=no, traceability rows, blocker-priority queue, apply-decision gate, owner-approval handoff, apply implementation boundary, and owner-visible Phase 5 check to keep apply intent locked, link PM child rows, confirm rollback evidence, repair fingerprint-mismatched audit blockers, persist and visibly verify the local apply-review-staged audit record, verify sensitive exclusions, rank the exact top blocker, record explicit owner approval only as local review evidence, and keep profile activation locked before any migration apply path."
+      "Keep the Phase 5 migration completion gate as the current active implementation target handoff, with migrationReviewDepthProof trust=ready, migrationTraceabilityProof openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, migrationOwnerApprovalHandoffProof requestable=yes/recorded=no/canApply=no with local owner approval record persistence, applyImplementationBoundaryProof executor=missing/mutationPath=locked/canApply=no, phase5MigrationCompletionGate phaseComplete=yes/reviewOnly=complete/canApply=no, traceability rows, blocker-priority queue, apply-decision gate, owner-approval handoff, apply implementation boundary, local apply-review-staged audit record proof, and owner-visible Phase 5 check attached as review-only completion evidence while the next pending lane becomes the active implementation target."
   },
   {
     id: "goal-phase-7-dispatch-loop",

@@ -421,16 +421,16 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-05-migration-center",
     title: "Phase 5: Migration Center",
-    description: "Turn the metadata-only migration foundations into a guarded, review-first migration workflow with apply-intent locks, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, migrationReviewDepthProof, migrationTraceabilityProof trust=ready/openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, migrationOwnerApprovalHandoffProof requestable=yes/recorded=no/canApply=no with local owner approval record persistence, applyImplementationBoundaryProof executor=missing/mutationPath=locked/canApply=no, and owner-visible no-open-blocker/no-apply proof.",
-    completionPercent: 96,
+    description: "Turn the metadata-only migration foundations into a guarded, review-first migration workflow with apply-intent locks, rollback evidence, fingerprint-matched audit consistency, persisted apply-review staging, sensitive exclusions, migrationReviewDepthProof, migrationTraceabilityProof trust=ready/openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof canApply=no/profileActivation=locked/approval=required, migrationOwnerApprovalHandoffProof requestable=yes/recorded=no/canApply=no with local owner approval record persistence, applyImplementationBoundaryProof executor=missing/mutationPath=locked/canApply=no, phase5MigrationCompletionGate phaseComplete=yes/reviewOnly=complete, and owner-visible no-open-blocker/no-apply proof.",
+    completionPercent: 100,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
       {
         id: "phase-05-parent-draft-workflow",
         title: "Migration Draft Workflow",
-        description: "Create, persist, preview, review, and stage metadata-only apply intent for migration profile drafts with migrationReviewDepthProof records=6/6 ready=6, migrationApplyDecisionProof canApply=no, migrationOwnerApprovalHandoffProof requestable=yes/recorded states, and applyImplementationBoundaryProof executor=missing before any mutation-capable action.",
-        completionPercent: 96,
+        description: "Create, persist, preview, review, and stage metadata-only apply intent for migration profile drafts with migrationReviewDepthProof records=6/6 ready=6, migrationApplyDecisionProof canApply=no, migrationOwnerApprovalHandoffProof requestable=yes/recorded states, applyImplementationBoundaryProof executor=missing, and phase5MigrationCompletionGate phaseComplete=yes before any mutation-capable action.",
+        completionPercent: 100,
         complexity: "high",
         sourceDocument: "Migration Center",
         children: [
@@ -438,14 +438,14 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-profile-drafts",
             title: "Profile Draft Persistence",
             description: "Persist migration profiles, draft history, import state, evidence fingerprints, apply-review-staged audit actions, rollback notes, audit summaries, migrationReviewDepthProof evidenceKeys=6/6, migrationApplyDecisionProof localAudit=ready, migrationOwnerApprovalHandoffProof record persistence, and local migration owner approval records without changing active profiles or source data.",
-            completionPercent: 96,
+            completionPercent: 100,
             sourceDocument: "Migration model"
           },
           {
             id: "phase-05-child-preview-metadata",
             title: "Metadata Preview",
             description: "Show migration impact, selected metadata category counts, review-gate previews, sensitive-exclusion evidence keys, unsupported category visibility, migrationReviewDepthProof sourceMutation=locked, migrationApplyDecisionProof sourceMutation=locked, migrationOwnerApprovalHandoffProof sourceMutation=locked, applyImplementationBoundaryProof sourceMutation=locked, and no-private-content/no-external-action boundaries.",
-            completionPercent: 96,
+            completionPercent: 100,
             sourceDocument: "Migration Center"
           }
         ]
@@ -454,7 +454,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-05-parent-rollback-audit",
         title: "Rollback and Audit Review",
         description: "Make rollback strategy, review-depth records, fingerprint-matched audit evidence, unique evidence keys, sensitive-boundary traceability, migrationTraceabilityProof trust=ready/openReview=0, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof approval=required/canApply=no, migrationOwnerApprovalHandoffProof approval=required/recorded states, applyImplementationBoundaryProof mutationPath=locked, and source-mutation locks mandatory before migration work can leave review-only mode.",
-        completionPercent: 96,
+        completionPercent: 100,
         complexity: "high",
         sourceDocument: "Permissions and audit",
         children: [
@@ -462,22 +462,22 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-audit-summary",
             title: "Audit Summary Review",
             description: "Surface who, what, when, risk level, draft/audit fingerprint match, selected/review-required/unsupported category counts, apply-intent lock, rollback path, migrationReviewDepthProof records=6/6, migrationApplyDecisionProof localAudit=ready, and migrationOwnerApprovalHandoffProof requestable=yes for every migration draft.",
-            completionPercent: 96,
+            completionPercent: 100,
             sourceDocument: "Migration audit summary"
           },
           {
             id: "phase-05-child-review-depth",
             title: "Migration Review Depth",
             description: "Show apply-intent lock, local apply-review-staged audit proof, rollback evidence, fingerprint-matched audit consistency, sensitive exclusions, profile activation lock, migrationReviewDepthProof, migrationApplyDecisionProof, and migrationOwnerApprovalHandoffProof as six separate ready owner-review records with unique evidence keys.",
-            completionPercent: 96,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Migration review gate"
           },
           {
             id: "phase-05-child-traceability",
             title: "Migration Traceability",
-            description: "Link Phase 5 remaining-goal status, PM child rows including the apply-decision gate and owner-approval handoff, migration review-depth evidence keys, draft/audit fingerprint coverage, sensitive exclusions, rollback/audit coverage, migrationTraceabilityProof trust=ready/openReview=0, source-mutation locks, and the profile activation lock before apply review can advance.",
-            completionPercent: 96,
+            description: "Link Phase 5 remaining-goal status, PM child rows including the apply-decision gate, owner-approval handoff, apply implementation boundary, and completion gate, migration review-depth evidence keys, draft/audit fingerprint coverage, sensitive exclusions, rollback/audit coverage, migrationTraceabilityProof trust=ready/openReview=0, source-mutation locks, and the profile activation lock before apply review can advance.",
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 5 migration traceability"
           },
@@ -485,7 +485,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-blocker-priority",
             title: "Migration Blocker Priority",
             description: "Rank exact Phase 5 blockers across migration hardening, review-depth records, traceability, apply intent, rollback, fingerprint-matched audit, sensitive exclusions, migrationBlockerPriorityProof open=0, migrationApplyDecisionProof openBlockers=0, migrationOwnerApprovalHandoffProof requestable/recorded state, applyImplementationBoundaryProof executor=missing/mutationPath=locked, source-mutation locks, and profile activation lock before apply review advances, while keeping remaining-goal and PM traceability repairs out of metadata-review actions.",
-            completionPercent: 96,
+            completionPercent: 100,
             complexity: "medium",
             sourceDocument: "Phase 5 migration blocker priority"
           },
@@ -493,7 +493,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-apply-decision-gate",
             title: "Migration Apply Decision Gate",
             description: "Show the owner-visible apply-decision proof that migration review can be staged locally while migrationApplyDecisionProof keeps canApply=no, profileActivation=locked, sourceMutation=locked, approval=required, rollback=ready, sensitiveExclusions=ready, and active profile changes locked.",
-            completionPercent: 96,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 5 migration apply decision gate"
           },
@@ -501,7 +501,7 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-owner-approval-handoff",
             title: "Migration Owner Approval Handoff",
             description: "Show the owner-visible handoff proof that explicit owner approval is requestable and locally persisted from the reviewed migration packet while migrationOwnerApprovalHandoffProof keeps recorded state, canApply=no, profileActivation=locked, sourceMutation=locked, and active profile changes locked.",
-            completionPercent: 96,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 5 migration owner approval handoff"
           },
@@ -509,9 +509,17 @@ const phaseSpecs: PhaseSpec[] = [
             id: "phase-05-child-apply-implementation-boundary",
             title: "Migration Apply Implementation Boundary",
             description: "Show the owner-visible final apply implementation boundary proof that a reviewed and locally approved migration packet can only enter a future implementation design while applyImplementationBoundaryProof keeps executor=missing, mutationPath=locked, canApply=no, profileActivation=locked, sourceMutation=locked, and active profile changes locked.",
-            completionPercent: 96,
+            completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 5 migration apply implementation boundary"
+          },
+          {
+            id: "phase-05-child-completion-gate",
+            title: "Migration Completion Gate",
+            description: "Show the owner-visible Phase 5 completion gate proof that the migration lane is complete as a review-only workflow while phase5MigrationCompletionGate keeps phaseComplete=yes, reviewOnly=complete, canApply=no, executor=missing, mutationPath=locked, and profileActivation=locked.",
+            completionPercent: 100,
+            complexity: "high",
+            sourceDocument: "Phase 5 migration completion gate"
           }
         ]
       }

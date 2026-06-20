@@ -70,7 +70,7 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("Profile activation lock");
     expect(html).toContain("Migration hardening is preview/apply-intent metadata only");
     expect(html).toContain("Phase 5 migration traceability");
-    expect(html).toContain("pmLinks=12/12");
+    expect(html).toContain("pmLinks=13/13");
     expect(html).toContain("trust=ready");
     expect(html).toContain("Phase 5 migration blocker priority");
     expect(html).toContain("metadataReviewAddressable=");
@@ -88,6 +88,10 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("enterImplementation=no");
     expect(html).toContain("executor=missing");
     expect(html).toContain("mutationPath=locked");
+    expect(html).toContain("Phase 5 migration completion gate");
+    expect(html).toContain("phase5MigrationCompletionGate");
+    expect(html).toContain("phaseComplete=yes");
+    expect(html).toContain("reviewOnly=complete");
   });
 
   it("renders staged apply-review evidence after saved draft history reload", () => {
@@ -142,6 +146,8 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("Phase 5 migration apply implementation boundary");
     expect(html).toContain("ownerApproval=missing");
     expect(html).toContain("enterImplementation=no");
+    expect(html).toContain("Phase 5 migration completion gate");
+    expect(html).toContain("phaseComplete=yes");
     expect(html).not.toContain("has not recorded a local apply-review-staged audit action yet");
     expect(html).not.toContain("top priority Apply review staging");
     expect(html).not.toContain("Review required");
@@ -191,6 +197,8 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("enterImplementation=yes");
     expect(html).toContain("executor=missing");
     expect(html).toContain("mutationPath=locked");
+    expect(html).toContain("Phase 5 migration completion gate");
+    expect(html).toContain("phaseComplete=yes");
   });
 
   it("keeps unstaged drafts visibly held before apply-review staging is recorded", () => {
@@ -222,5 +230,7 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("requestable=no");
     expect(html).toContain("Phase 5 migration apply implementation boundary");
     expect(html).toContain("ownerApproval=missing");
+    expect(html).toContain("Phase 5 migration completion gate");
+    expect(html).toContain("phaseComplete=no");
   });
 });
