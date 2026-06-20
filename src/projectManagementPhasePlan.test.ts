@@ -372,10 +372,15 @@ describe("project management phase plan", () => {
     expect(traceabilityChild?.completionPercent).toBeGreaterThanOrEqual(
       blockerPriorityChild?.completionPercent ?? 0
     );
+    expect(phase10Epic?.completionPercent).toBe(62);
+    expect(phase10Epic?.description).toContain("npm.cmd run test:phase10:owner-visible");
     expect(flexLayoutSpikeChild?.completionPercent).toBe(55);
     expect(flexLayoutSpikeChild?.description).toContain("dependency-install status");
     expect(flexLayoutSpikeChild?.description).toContain("custom adaptive-grid fallback");
-    expect(blockerPriorityChild?.completionPercent).toBe(55);
+    expect(traceabilityChild?.completionPercent).toBe(62);
+    expect(traceabilityChild?.description).toContain("npm.cmd run test:phase10:owner-visible");
+    expect(blockerPriorityChild?.completionPercent).toBe(62);
+    expect(blockerPriorityChild?.description).toContain("owner-visible proof");
     expect(blockerPriorityChild?.description).toContain("open blocker count");
     expect(blockerPriorityChild?.description).toContain("Arena-review addressable count");
     expect(blockerPriorityChild?.description).toContain("top-priority action detail");

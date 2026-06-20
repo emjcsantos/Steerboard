@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import packageJson from "../package.json";
 import { PHASE3_PROOF_EXPORT_PM_TASK_ID } from "./phase3ProofExportTrace";
 import { createDefaultProjectManagementPhasePlan } from "./projectManagementPhasePlan";
 import {
@@ -721,7 +722,7 @@ describe("remaining goal plan", () => {
       target: "Adaptive Arena polish",
       priority: "medium",
       status: "next",
-      completionPercent: 57
+      completionPercent: 62
     });
     expect(phase10Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -735,6 +736,10 @@ describe("remaining goal plan", () => {
     );
     expect(phase10Goal?.nextAction).toContain("traceability rows");
     expect(phase10Goal?.nextAction).toContain("blocker-priority queue");
+    expect(phase10Goal?.nextAction).toContain("npm.cmd run test:phase10:owner-visible");
+    expect(packageJson.scripts["test:phase10:owner-visible"]).toBe(
+      "vitest run src/phase10ArenaPolishOwnerVisible.test.tsx"
+    );
     const phase10Epic = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-10-adaptive-arena"
     );
@@ -747,12 +752,13 @@ describe("remaining goal plan", () => {
     const blockerPriorityChild = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-10-child-blocker-priority"
     );
-    expect(phase10Epic?.completionPercent).toBe(57);
+    expect(phase10Epic?.completionPercent).toBe(62);
+    expect(phase10Epic?.description).toContain("npm.cmd run test:phase10:owner-visible");
     expect(layoutFoundationParent?.completionPercent).toBe(62);
     expect(flexLayoutSpikeChild?.completionPercent).toBe(55);
     expect(flexLayoutSpikeChild?.description).toContain("dependency-install status");
     expect(flexLayoutSpikeChild?.description).toContain("custom adaptive-grid fallback");
-    expect(blockerPriorityChild?.completionPercent).toBe(55);
+    expect(blockerPriorityChild?.completionPercent).toBe(62);
     expect(blockerPriorityChild?.description).toContain("Arena-review addressable count");
     expect(blockerPriorityChild?.description).toContain("top-priority action detail");
   });

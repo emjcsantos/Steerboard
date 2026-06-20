@@ -15499,7 +15499,7 @@ export function Phase9RunnerApprovalPanel({
   );
 }
 
-function Phase10ArenaPolishPanel({
+export function Phase10ArenaPolishPanel({
   snapshot
 }: {
   snapshot: Phase10ArenaPolishSnapshot;

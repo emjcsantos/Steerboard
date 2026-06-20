@@ -277,7 +277,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "Polish adaptive layout, evaluate a FlexLayout-backed docking spike, density, keyboard controls, focus state, Arena terminology, traceability, and blocker priority after core live proof clears.",
     status: "next",
     priority: "medium",
-    completionPercent: 57,
+    completionPercent: 62,
     pmTaskIds: [
       "phase-10-adaptive-arena",
       "phase-10-parent-layout-foundation",
@@ -290,7 +290,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-10-child-blocker-priority"
     ],
     nextAction:
-      "Use the Phase 10 Arena Polish panel, FlexLayout docking spike, traceability rows, and blocker-priority queue to verify adaptive layout regression, MIT license notice impact, saved layout JSON feasibility, density, keyboard controls, focus state, terminology, acceptance gates, PM child links, and the exact top blocker before packaging resumes."
+      "Use the Phase 10 Arena Polish panel, FlexLayout docking spike, traceability rows, blocker-priority queue, and npm.cmd run test:phase10:owner-visible to verify adaptive layout regression, MIT license notice impact, saved layout JSON feasibility, density, keyboard controls, focus state, terminology, acceptance gates, PM child links, and the exact top blocker before packaging resumes."
   },
   {
     id: "goal-phase-11-owner-command-center",
