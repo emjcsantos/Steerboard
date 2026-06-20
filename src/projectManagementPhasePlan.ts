@@ -87,7 +87,7 @@ const phaseSpecs: PhaseSpec[] = [
     title: "Phase 1: One Live Chat Panel",
     description: "Prove one Arena chat panel can run against the desktop-backed session path with honest owner-visible evidence; local proof remains ongoing while publishing is owner-held by the Phase 1/2/6 publish blocker.",
     status: "ongoing",
-    completionPercent: 60,
+    completionPercent: 65,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -96,7 +96,7 @@ const phaseSpecs: PhaseSpec[] = [
         title: "Single-Panel Runtime Proof",
         description: "Confirm a single Arena panel can start, stream, complete, and record readiness from the real desktop path.",
         status: "ongoing",
-        completionPercent: 60,
+        completionPercent: 65,
         complexity: "high",
         sourceDocument: "Live functionality goal",
         children: [
@@ -123,7 +123,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-01-parent-owner-check",
         title: "Owner Test Confirmation",
         description: "Make the one-panel proof understandable from the Owner Testing panel without reading logs.",
-        completionPercent: 55,
+        completionPercent: 65,
         sourceDocument: "Owner testing panel",
         children: [
           {
@@ -142,7 +142,7 @@ const phaseSpecs: PhaseSpec[] = [
     title: "Phase 2: Multi-Panel Session Isolation",
     description: "Verify multiple Arena panels can run independently without cross-talk in identity, stream, or control state; local isolation proof remains ongoing while publishing is owner-held by the Phase 1/2/6 publish blocker.",
     status: "ongoing",
-    completionPercent: 57,
+    completionPercent: 65,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -151,7 +151,7 @@ const phaseSpecs: PhaseSpec[] = [
         title: "Panel Identity Isolation",
         description: "Keep each panel's session id, role, branch, runtime, stream, and transcript scoped to that panel.",
         status: "ongoing",
-        completionPercent: 62,
+        completionPercent: 65,
         complexity: "high",
         sourceDocument: "Arena chat lanes",
         children: [
@@ -177,7 +177,7 @@ const phaseSpecs: PhaseSpec[] = [
         id: "phase-02-parent-session-persistence",
         title: "Multi-Panel Persistence",
         description: "Persist and restore panel sessions without corrupting identity or owner-visible readiness evidence.",
-        completionPercent: 50,
+        completionPercent: 65,
         sourceDocument: "Session persistence",
         children: [
           {
@@ -498,7 +498,7 @@ const phaseSpecs: PhaseSpec[] = [
     title: "Phase 6: Project and Program Planning Lane",
     description: "Make the Project Management lane a useful phase board, hierarchy planner, and staged Arena packet source; local PM staging remains ongoing while publishing is owner-held by the Phase 1/2/6 publish blocker.",
     status: "ongoing",
-    completionPercent: 55,
+    completionPercent: 65,
     complexity: "high",
     sourceDocument: "Phase completion map",
     parents: [
@@ -507,7 +507,7 @@ const phaseSpecs: PhaseSpec[] = [
         title: "Phase Board Hierarchy",
         description: "Represent every roadmap phase as an Epic with needed Parent and Child tasks.",
         status: "ongoing",
-        completionPercent: 60,
+        completionPercent: 65,
         sourceDocument: "Project management lane",
         children: [
           {
@@ -532,7 +532,7 @@ const phaseSpecs: PhaseSpec[] = [
         title: "Arena Staging from PM Rows",
         description: "Let any phase, parent, or child stage a structured Arena review package with hierarchy context.",
         status: "ongoing",
-        completionPercent: 55,
+        completionPercent: 65,
         sourceDocument: "Project management lane",
         children: [
           {

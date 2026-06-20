@@ -210,7 +210,7 @@ describe("project management hierarchy", () => {
     expect(epicResult?.payload).toMatchObject({
       taskId: "phase-06-planning-lane",
       taskType: "Epic",
-      completion: 55,
+      completion: 65,
       sourceDocument: "Phase completion map",
       relationshipContext: {
         epic: { id: "phase-06-planning-lane", title: "Phase 6: Project and Program Planning Lane" }
@@ -227,7 +227,7 @@ describe("project management hierarchy", () => {
     ]);
     expect(epicResult?.dispatchPackage.risk).toBe("high");
     expect(epicResult?.dispatchPackage.scope).toContain(
-      'Run Context: runContextProof=task=phase-06-planning-lane type=Epic epic=phase-06-planning-lane parent=none descendants=7 descendantParents=2 descendantChildren=5 completion=55 source="Phase completion map" risk=high mode=staged_review'
+      'Run Context: runContextProof=task=phase-06-planning-lane type=Epic epic=phase-06-planning-lane parent=none descendants=7 descendantParents=2 descendantChildren=5 completion=65 source="Phase completion map" risk=high mode=staged_review'
     );
     expect(epicResult?.dispatchPackage.scope.join(" ")).toContain("Descendant Parent: Phase Board Hierarchy");
     expect(epicResult?.dispatchPackage.scope.join(" ")).toContain("Descendant Child: Publish Hold Blocker Priority");

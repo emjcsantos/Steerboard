@@ -180,7 +180,7 @@ describe("project management hierarchy storage", () => {
     expect(tasks.some((task) => task.id.startsWith("phase-06-planning-lane-"))).toBe(false);
     expect(tasks.find((task) => task.id === "phase-06-planning-lane")).toMatchObject({
       title: "Phase 6: Project and Program Planning Lane",
-      completionPercent: 55
+      completionPercent: 65
     });
     expect(tasks.find((task) => task.id === "custom-owner-note")).toMatchObject({
       title: "Owner Note"
