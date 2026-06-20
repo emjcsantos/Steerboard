@@ -72,6 +72,19 @@ function assertReadyRows(rows, label) {
   }
 }
 
+function assertReadyValidationPair(artifact, recordKey, validationKey, label) {
+  const record = assertRecord(artifact[recordKey], `${label} record`);
+  const validation = assertRecord(artifact[validationKey], `${label} validation`);
+
+  assertNonEmptyString(record.id, `${label} record id`);
+  assertReadyState(record, `${label} record`);
+  assertReadyState(validation, `${label} validation`);
+  assertNonEmptyString(validation.detail, `${label} validation detail`);
+  assertNonEmptyString(validation.nextAction, `${label} validation nextAction`);
+
+  return { record, validation };
+}
+
 function verifyArtifact(artifact) {
   assertRecord(artifact, "provider review artifact");
 
@@ -135,6 +148,53 @@ function verifyArtifact(artifact) {
     throw new Error(`blockerPriority openBlockerCount is ${blockerPriority.openBlockerCount}`);
   }
 
+  const approval = assertReadyValidationPair(
+    artifact,
+    "approvalRecord",
+    "approvalValidation",
+    "approval"
+  );
+  const audit = assertReadyValidationPair(
+    artifact,
+    "auditRecord",
+    "auditValidation",
+    "audit"
+  );
+  const rollback = assertReadyValidationPair(
+    artifact,
+    "rollbackRecord",
+    "rollbackValidation",
+    "rollback"
+  );
+  const permission = assertReadyValidationPair(
+    artifact,
+    "permissionRecord",
+    "permissionValidation",
+    "permission"
+  );
+
+  if (audit.record.approvalRecordId !== approval.record.id) {
+    throw new Error("audit record does not reference the approval record");
+  }
+  if (rollback.record.approvalRecordId !== approval.record.id) {
+    throw new Error("rollback record does not reference the approval record");
+  }
+  if (rollback.record.auditRecordId !== audit.record.id) {
+    throw new Error("rollback record does not reference the audit record");
+  }
+  if (permission.record.approvalRecordId !== approval.record.id) {
+    throw new Error("permission record does not reference the approval record");
+  }
+  if (permission.record.auditRecordId !== audit.record.id) {
+    throw new Error("permission record does not reference the audit record");
+  }
+  if (permission.record.rollbackRecordId !== rollback.record.id) {
+    throw new Error("permission record does not reference the rollback record");
+  }
+  if (!Array.isArray(permission.record.providerSurfaceScopes) || permission.record.providerSurfaceScopes.length !== requiredSurfaceCount) {
+    throw new Error("permission record does not cover all six provider surfaces");
+  }
+
   return {
     source: artifact.source,
     currentCatalogFingerprint: artifact.currentCatalogFingerprint,
@@ -143,7 +203,8 @@ function verifyArtifact(artifact) {
     surfaceItems: surfaceItems.length,
     traceabilityItems: traceabilityItems.length,
     openBlockers: blockerPriority.openBlockerCount,
-    executionLocked: surfaceDepth.canEnableExecution === false
+    executionLocked: surfaceDepth.canEnableExecution === false,
+    localRecordsAttached: ["approval", "audit", "rollback", "permission"]
   };
 }
 

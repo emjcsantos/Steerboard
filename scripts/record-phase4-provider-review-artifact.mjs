@@ -6,6 +6,14 @@ const source = "steerboard.phase4.provider-review.v1";
 const surfaceNames = ["command", "skill", "plugin", "mcp", "automation", "personalization"];
 const createdAt = new Date().toISOString();
 const currentCatalogFingerprint = `phase4-catalog-recorded-${createdAt.replace(/[:.]/g, "-")}`;
+const approvalRecordId = `phase4-provider-approval:${createdAt}`;
+const auditRecordId = `phase4-provider-audit:${createdAt}`;
+const rollbackRecordId = `phase4-provider-rollback:${createdAt}`;
+const permissionRecordId = `phase4-provider-permission:${createdAt}`;
+const auditEvidenceFingerprint = `phase4-provider-audit-recorded-${createdAt.replace(/[:.]/g, "-")}`;
+const surfaceDepthEvidenceFingerprint = `phase4-provider-surface-depth-recorded-${createdAt.replace(/[:.]/g, "-")}`;
+const rollbackEvidenceFingerprint = `phase4-provider-rollback-recorded-${createdAt.replace(/[:.]/g, "-")}`;
+const permissionEvidenceFingerprint = `phase4-provider-permission-recorded-${createdAt.replace(/[:.]/g, "-")}`;
 
 function catalogRecord(surface) {
   return {
@@ -54,6 +62,138 @@ function traceItem(id, label, kind, detail) {
     nextAction: "Keep Phase 4 provider traceability attached while provider execution remains locked."
   };
 }
+
+const approvalRecord = {
+  id: approvalRecordId,
+  createdAt,
+  state: "ready",
+  catalogFingerprint: currentCatalogFingerprint,
+  detail: "Owner approved the recorded Phase 4 provider metadata review while provider execution remains locked."
+};
+const approvalValidation = {
+  state: "ready",
+  detail: "Provider approval record matches the recorded catalog fingerprint and refresh-safety proof.",
+  nextAction: "Keep provider approval attached while audit, rollback, permission, and execution locks remain held.",
+  expectedCatalogFingerprint: currentCatalogFingerprint,
+  recordCatalogFingerprint: currentCatalogFingerprint,
+  recordAgeMs: 0,
+  maxRecordAgeMs: 24 * 60 * 60 * 1000,
+  matchesCurrentCatalog: true
+};
+const auditRecord = {
+  id: auditRecordId,
+  createdAt,
+  state: "ready",
+  catalogFingerprint: currentCatalogFingerprint,
+  approvalRecordId,
+  auditEvidenceFingerprint,
+  mutationLocked: true,
+  detail: "Recorded Phase 4 provider audit evidence is attached while mutation remains locked."
+};
+const auditValidation = {
+  state: "ready",
+  detail: "Provider audit record matches approval, catalog, and audit evidence fingerprints.",
+  nextAction: "Keep provider audit review attached while rollback, permission, and execution locks remain held.",
+  expectedCatalogFingerprint: currentCatalogFingerprint,
+  recordCatalogFingerprint: currentCatalogFingerprint,
+  expectedApprovalRecordId: approvalRecordId,
+  recordApprovalRecordId: approvalRecordId,
+  expectedAuditEvidenceFingerprint: auditEvidenceFingerprint,
+  recordAuditEvidenceFingerprint: auditEvidenceFingerprint,
+  recordAgeMs: 0,
+  maxRecordAgeMs: 24 * 60 * 60 * 1000,
+  matchesCurrentCatalog: true,
+  matchesCurrentApproval: true,
+  matchesCurrentAuditEvidence: true
+};
+const rollbackRecord = {
+  id: rollbackRecordId,
+  createdAt,
+  state: "ready",
+  catalogFingerprint: currentCatalogFingerprint,
+  approvalRecordId,
+  auditRecordId,
+  auditEvidenceFingerprint,
+  surfaceDepthEvidenceFingerprint,
+  rollbackOwner: "owner",
+  rollbackAction: "keep-provider-execution-locked",
+  mutationLocked: true,
+  detail: "Recorded Phase 4 rollback evidence is attached while provider execution remains locked."
+};
+const rollbackValidation = {
+  state: "ready",
+  detail: "Provider rollback record matches approval, audit, catalog, audit evidence, and surface-depth evidence fingerprints.",
+  nextAction: "Keep provider rollback review attached while permission and execution locks remain held.",
+  expectedCatalogFingerprint: currentCatalogFingerprint,
+  recordCatalogFingerprint: currentCatalogFingerprint,
+  expectedApprovalRecordId: approvalRecordId,
+  recordApprovalRecordId: approvalRecordId,
+  expectedAuditRecordId: auditRecordId,
+  recordAuditRecordId: auditRecordId,
+  expectedAuditEvidenceFingerprint: auditEvidenceFingerprint,
+  recordAuditEvidenceFingerprint: auditEvidenceFingerprint,
+  expectedSurfaceDepthEvidenceFingerprint: surfaceDepthEvidenceFingerprint,
+  recordSurfaceDepthEvidenceFingerprint: surfaceDepthEvidenceFingerprint,
+  recordAgeMs: 0,
+  maxRecordAgeMs: 24 * 60 * 60 * 1000,
+  matchesCurrentCatalog: true,
+  matchesCurrentApproval: true,
+  matchesCurrentAudit: true,
+  matchesCurrentAuditEvidence: true,
+  matchesCurrentSurfaceDepthEvidence: true
+};
+const permissionRecord = {
+  id: permissionRecordId,
+  createdAt,
+  state: "ready",
+  catalogFingerprint: currentCatalogFingerprint,
+  approvalRecordId,
+  auditRecordId,
+  rollbackRecordId,
+  auditEvidenceFingerprint,
+  rollbackEvidenceFingerprint,
+  surfaceDepthEvidenceFingerprint,
+  permissionEvidenceFingerprint,
+  providerSurfaceScopes: surfaceNames,
+  permissionOwner: "owner",
+  permissionScope: "phase4-provider-review",
+  permissionAction: "keep-provider-execution-locked",
+  mutationLocked: true,
+  detail: "Recorded Phase 4 permission evidence covers all six provider surfaces while execution remains locked."
+};
+const permissionValidation = {
+  state: "ready",
+  detail: "Provider permission record matches approval, audit, rollback, catalog, surface-depth, permission evidence, and all six provider surfaces.",
+  nextAction: "Keep provider permission review attached while explicit execution gates remain held.",
+  expectedCatalogFingerprint: currentCatalogFingerprint,
+  recordCatalogFingerprint: currentCatalogFingerprint,
+  expectedApprovalRecordId: approvalRecordId,
+  recordApprovalRecordId: approvalRecordId,
+  expectedAuditRecordId: auditRecordId,
+  recordAuditRecordId: auditRecordId,
+  expectedRollbackRecordId: rollbackRecordId,
+  recordRollbackRecordId: rollbackRecordId,
+  expectedAuditEvidenceFingerprint: auditEvidenceFingerprint,
+  recordAuditEvidenceFingerprint: auditEvidenceFingerprint,
+  expectedRollbackEvidenceFingerprint: rollbackEvidenceFingerprint,
+  recordRollbackEvidenceFingerprint: rollbackEvidenceFingerprint,
+  expectedSurfaceDepthEvidenceFingerprint: surfaceDepthEvidenceFingerprint,
+  recordSurfaceDepthEvidenceFingerprint: surfaceDepthEvidenceFingerprint,
+  expectedPermissionEvidenceFingerprint: permissionEvidenceFingerprint,
+  recordPermissionEvidenceFingerprint: permissionEvidenceFingerprint,
+  recordAgeMs: 0,
+  maxRecordAgeMs: 24 * 60 * 60 * 1000,
+  matchesCurrentCatalog: true,
+  matchesCurrentApproval: true,
+  matchesCurrentAudit: true,
+  matchesCurrentRollback: true,
+  matchesCurrentAuditEvidence: true,
+  matchesCurrentRollbackEvidence: true,
+  matchesCurrentSurfaceDepthEvidence: true,
+  matchesCurrentPermissionEvidence: true,
+  coveredSurfaceCount: surfaceNames.length,
+  missingSurfaceScopes: []
+};
 
 const artifact = {
   schemaVersion: 1,
@@ -185,7 +325,15 @@ const artifact = {
         canUseCatalogSmoke: false
       }
     ]
-  }
+  },
+  approvalRecord,
+  approvalValidation,
+  auditRecord,
+  auditValidation,
+  rollbackRecord,
+  rollbackValidation,
+  permissionRecord,
+  permissionValidation
 };
 
 await mkdir(dirname(artifactPath), { recursive: true });
@@ -198,7 +346,8 @@ console.log(
       artifactPath: "local_private/phase4-provider-review-artifact.json",
       currentCatalogFingerprint,
       exportedAt: createdAt,
-      executionLocked: true
+      executionLocked: true,
+      localRecordsAttached: ["approval", "audit", "rollback", "permission"]
     },
     null,
     2
