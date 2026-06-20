@@ -149,6 +149,15 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("Phase 7 dispatch completion gate");
     expect(html).toContain("phase7DispatchCompletionGate");
     expect(html).toContain("phaseComplete=");
+    expect(html).toContain("Worker session creation gate");
+    expect(html).toContain("Phase 7 worker session creation gate");
+    expect(html).toContain("Create");
+    expect(html).toContain("Handler");
+    expect(html).toContain("phase7WorkerSessionCreationGate");
+    expect(html).toContain("preflight=missing");
+    expect(html).toContain("ownerApproval=required");
+    expect(html).toContain("handler=missing");
+    expect(html).toContain("canCreate=no");
     expect(html).toContain("local metadata only");
   });
 
@@ -177,6 +186,8 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("phase7DispatchOwnerHandoffReport state=review");
     expect(html).toContain("Dispatch completion gate");
     expect(html).toContain("phase7DispatchCompletionGate state=review");
+    expect(html).toContain("Worker session creation gate");
+    expect(html).toContain("phase7WorkerSessionCreationGate state=review");
     expect(html).toContain("Reviewable");
   });
 
@@ -222,6 +233,8 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("phase7DispatchOwnerHandoffReport state=blocked");
     expect(html).toContain("Dispatch completion gate");
     expect(html).toContain("phase7DispatchCompletionGate state=blocked");
+    expect(html).toContain("Worker session creation gate");
+    expect(html).toContain("phase7WorkerSessionCreationGate state=blocked");
     expect(html).toContain("dispatch-review addressable");
   });
 });

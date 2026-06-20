@@ -285,6 +285,10 @@ import {
   type Phase7DispatchCompletionGate
 } from "./phase7DispatchCompletionGate";
 import {
+  buildPhase7WorkerSessionCreationGate,
+  type Phase7WorkerSessionCreationGate
+} from "./phase7WorkerSessionCreationGate";
+import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
 } from "./pipelineItemRunLink";
@@ -7763,6 +7767,10 @@ export function DispatchReviewRecordCard({
     closeout: dispatchCloseoutProof
   });
   const dispatchCompletionGate = buildPhase7DispatchCompletionGate(ownerHandoffReport);
+  const workerSessionCreationGate = buildPhase7WorkerSessionCreationGate(
+    dispatchCompletionGate,
+    liveWorkerLaunchGate
+  );
 
   return (
     <article
@@ -7952,8 +7960,56 @@ export function DispatchReviewRecordCard({
       <DispatchCloseoutProofSummary closeout={dispatchCloseoutProof} />
       <DispatchOwnerHandoffReportSummary report={ownerHandoffReport} />
       <DispatchCompletionGateSummary gate={dispatchCompletionGate} />
+      <WorkerSessionCreationGateSummary gate={workerSessionCreationGate} />
       <small>{record.noRuntimeExecutionNote}</small>
     </article>
+  );
+}
+
+function WorkerSessionCreationGateSummary({
+  gate
+}: {
+  gate: Phase7WorkerSessionCreationGate;
+}) {
+  return (
+    <div
+      aria-label={`Phase 7 worker session creation gate: ${gate.statusLabel}; can create ${gate.canCreateWorkerSession ? "yes" : "no"}; owner approval ${gate.ownerApprovalRecorded ? "recorded" : "required"}; next action: ${gate.nextAction}`}
+      className={classNames(
+        "worker-session-creation-gate",
+        `worker-session-creation-gate-${gate.state}`
+      )}
+      title={gate.detail}
+    >
+      <div className="worker-session-creation-gate-header">
+        <strong>Worker session creation gate</strong>
+        <span>{gate.statusLabel}</span>
+        <b>{gate.readiness}%</b>
+      </div>
+      <dl
+        className="worker-session-creation-gate-grid"
+        aria-label="Phase 7 worker session creation gate counts"
+      >
+        <div>
+          <dt>Create</dt>
+          <dd>{gate.canCreateWorkerSession ? "Yes" : "No"}</dd>
+        </div>
+        <div>
+          <dt>Preflight</dt>
+          <dd>{gate.preflightState}</dd>
+        </div>
+        <div>
+          <dt>Owner</dt>
+          <dd>{gate.ownerApprovalRecorded ? "Recorded" : "Required"}</dd>
+        </div>
+        <div>
+          <dt>Handler</dt>
+          <dd>{gate.liveSessionHandlerReady ? "Ready" : "Missing"}</dd>
+        </div>
+      </dl>
+      <p>{gate.detail}</p>
+      <small>{gate.nextAction}</small>
+      <small>{gate.sessionCreationProof}</small>
+    </div>
   );
 }
 
