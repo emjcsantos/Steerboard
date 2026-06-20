@@ -84,6 +84,7 @@ export interface Phase8PermissionAuditDepthSnapshot {
   reviewCount: number;
   blockedCount: number;
   waitingCount: number;
+  permissionLabelSummaryProof?: string;
   nextAction: string;
   safety: string;
   ariaLabel: string;
@@ -276,6 +277,41 @@ function permissionLabelProof(
   return (
     `permissionLabelProof=provider=${summary.provider} label=${label} ` +
     `state=${summary.state} risk=${summary.risk} requestedBy=${summary.requestedBy || "unknown"}`
+  );
+}
+
+function permissionLabelForSummary(
+  summary: LiveActionPermissionRequestSummary
+): "approval-required" | "blocked" | "preview-only" | "ready" {
+  if (summary.state === "denied" || summary.state === "timed-out") {
+    return "blocked";
+  }
+  if (summary.state === "requested") {
+    return "approval-required";
+  }
+  if (summary.state === "approved") {
+    return "ready";
+  }
+  return "preview-only";
+}
+
+function buildPermissionLabelSummaryProof(
+  summaries: readonly LiveActionPermissionRequestSummary[]
+): string {
+  const counts = {
+    "approval-required": 0,
+    blocked: 0,
+    "preview-only": 0,
+    ready: 0
+  };
+
+  for (const summary of summaries) {
+    counts[permissionLabelForSummary(summary)] += 1;
+  }
+
+  return (
+    `permissionLabelSummaryProof=total=${summaries.length} previewOnly=${counts["preview-only"]} ` +
+    `approvalRequired=${counts["approval-required"]} blocked=${counts.blocked} ready=${counts.ready}`
   );
 }
 
@@ -779,6 +815,7 @@ function buildAriaLabel(snapshot: Omit<Phase8PermissionAuditDepthSnapshot, "aria
     `${snapshot.readyCount} ready, ${snapshot.reviewCount} review, ` +
     `${snapshot.blockedCount} blocked, ${snapshot.waitingCount} waiting; ` +
     `${snapshot.openExceptionCount} open exceptions across ${snapshot.disabledPathCount} disabled paths; ` +
+    `${snapshot.permissionLabelSummaryProof ?? "permissionLabelSummaryProof=unavailable"}; ` +
     `next action: ${snapshot.nextAction}`
   );
 }
@@ -786,9 +823,13 @@ function buildAriaLabel(snapshot: Omit<Phase8PermissionAuditDepthSnapshot, "aria
 export function buildPhase8PermissionAuditDepth(
   input: Phase8PermissionAuditDepthInput
 ): Phase8PermissionAuditDepthSnapshot {
+  const riskyLiveActionSummaries = input.liveActionSummaries.filter(
+    (summary) => summary.isRiskGated
+  );
   const riskyLiveActionItems = input.liveActionSummaries
     .filter((summary) => summary.isRiskGated)
     .map(liveActionItem);
+  const permissionLabelSummaryProof = buildPermissionLabelSummaryProof(riskyLiveActionSummaries);
   const baseItems = [
     ...riskyLiveActionItems,
     runtimeLaunchApprovalItem(input.runtimeExecutionAudit),
@@ -823,6 +864,7 @@ export function buildPhase8PermissionAuditDepth(
     reviewCount: baseReviewCount,
     blockedCount: baseBlockedCount,
     waitingCount: baseWaitingCount,
+    permissionLabelSummaryProof,
     nextAction: findNextAction(baseItems),
     safety: PHASE8_AUDIT_SAFETY,
     ariaLabel: "",
@@ -860,6 +902,7 @@ export function buildPhase8PermissionAuditDepth(
     reviewCount,
     blockedCount,
     waitingCount,
+    permissionLabelSummaryProof,
     nextAction,
     safety: PHASE8_AUDIT_SAFETY,
     items,

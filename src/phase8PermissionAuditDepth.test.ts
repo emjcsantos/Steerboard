@@ -198,6 +198,10 @@ describe("phase 8 permission and audit depth", () => {
     expect(snapshot.disabledPathCount).toBe(snapshot.items.length);
     expect(snapshot.openExceptionCount).toBeGreaterThan(0);
     expect(snapshot.waitingCount).toBeGreaterThan(0);
+    expect(snapshot.permissionLabelSummaryProof).toBe(
+      "permissionLabelSummaryProof=total=3 previewOnly=3 approvalRequired=0 blocked=0 ready=0"
+    );
+    expect(snapshot.ariaLabel).toContain("permissionLabelSummaryProof=");
     expect(snapshot.nextAction).toContain("Request permission");
     expect(snapshot.items).toEqual(
       expect.arrayContaining([
@@ -259,6 +263,9 @@ describe("phase 8 permission and audit depth", () => {
     expect(snapshot.readiness).toBe(100);
     expect(snapshot.auditRecordCount).toBe(4);
     expect(snapshot.openExceptionCount).toBe(0);
+    expect(snapshot.permissionLabelSummaryProof).toBe(
+      "permissionLabelSummaryProof=total=3 previewOnly=0 approvalRequired=0 blocked=0 ready=3"
+    );
     expect(snapshot.items.every((item) => item.status === "ready")).toBe(true);
     expect(snapshot.exceptions.every((exception) => exception.status === "ready")).toBe(true);
     expect(snapshot.items).toEqual(
@@ -366,6 +373,9 @@ describe("phase 8 permission and audit depth", () => {
 
     expect(snapshot.state).toBe("blocked");
     expect(snapshot.blockedCount).toBeGreaterThanOrEqual(2);
+    expect(snapshot.permissionLabelSummaryProof).toBe(
+      "permissionLabelSummaryProof=total=1 previewOnly=0 approvalRequired=0 blocked=1 ready=0"
+    );
     expect(snapshot.openExceptionCount).toBeGreaterThanOrEqual(2);
     expect(snapshot.nextAction).toContain("Reset or re-request approval");
     expect(snapshot.items).toEqual(
@@ -416,6 +426,9 @@ describe("phase 8 permission and audit depth", () => {
 
     expect(snapshot.state).toBe("review");
     expect(snapshot.reviewCount).toBeGreaterThanOrEqual(3);
+    expect(snapshot.permissionLabelSummaryProof).toBe(
+      "permissionLabelSummaryProof=total=1 previewOnly=0 approvalRequired=1 blocked=0 ready=0"
+    );
     expect(snapshot.openExceptionCount).toBeGreaterThanOrEqual(3);
     expect(snapshot.items).toEqual(
       expect.arrayContaining([
