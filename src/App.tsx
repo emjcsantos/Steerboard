@@ -269,6 +269,10 @@ import {
   type Phase7DispatchCloseoutProof
 } from "./phase7DispatchCloseoutProof";
 import {
+  buildPhase7DispatchOwnerHandoffReport,
+  type Phase7DispatchOwnerHandoffReport
+} from "./phase7DispatchOwnerHandoffReport";
+import {
   buildPipelineItemRunLinks,
   type PipelineItemRunLink
 } from "./pipelineItemRunLink";
@@ -7177,6 +7181,10 @@ export function DispatchReviewRecordCard({
     launchGate: liveWorkerLaunchGate,
     closureGate: dispatchClosureGate
   });
+  const ownerHandoffReport = buildPhase7DispatchOwnerHandoffReport({
+    record,
+    closeout: dispatchCloseoutProof
+  });
 
   return (
     <article
@@ -7364,8 +7372,53 @@ export function DispatchReviewRecordCard({
       <DispatchLiveWorkerLaunchGateSummary gate={liveWorkerLaunchGate} />
       <DispatchClosureGateSummary gate={dispatchClosureGate} />
       <DispatchCloseoutProofSummary closeout={dispatchCloseoutProof} />
+      <DispatchOwnerHandoffReportSummary report={ownerHandoffReport} />
       <small>{record.noRuntimeExecutionNote}</small>
     </article>
+  );
+}
+
+function DispatchOwnerHandoffReportSummary({
+  report
+}: {
+  report: Phase7DispatchOwnerHandoffReport;
+}) {
+  return (
+    <div
+      aria-label={`Phase 7 dispatch owner handoff report: ${report.statusLabel}; final validation owner ${report.finalValidationOwner}; commit push reporting owner ${report.commitPushReportingOwner}; can spawn ${report.canSpawnLiveWorker ? "yes" : "no"}; next action: ${report.nextAction}`}
+      className={classNames(
+        "dispatch-owner-handoff-report",
+        `dispatch-owner-handoff-report-${report.state}`
+      )}
+      title={report.detail}
+    >
+      <div className="dispatch-owner-handoff-report-header">
+        <strong>Owner handoff report</strong>
+        <span>{report.statusLabel}</span>
+        <b>{report.readiness}%</b>
+      </div>
+      <dl className="dispatch-owner-handoff-report-grid" aria-label="Phase 7 dispatch owner handoff report counts">
+        <div>
+          <dt>Final</dt>
+          <dd>{report.finalValidationOwner}</dd>
+        </div>
+        <div>
+          <dt>Push</dt>
+          <dd>{report.pushApprovalRequired ? "Required" : "Recorded"}</dd>
+        </div>
+        <div>
+          <dt>Packets</dt>
+          <dd>{report.handoffPacketCount}</dd>
+        </div>
+        <div>
+          <dt>Spawn</dt>
+          <dd>{report.canSpawnLiveWorker ? "Yes" : "No"}</dd>
+        </div>
+      </dl>
+      <p>{report.detail}</p>
+      <small>{report.nextAction}</small>
+      <small>{report.ownerHandoffProof}</small>
+    </div>
   );
 }
 

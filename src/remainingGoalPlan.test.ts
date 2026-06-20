@@ -31,10 +31,10 @@ describe("remaining goal plan", () => {
       next: 8,
       planned: 0,
       paused: 0,
-      averageCompletionPercent: 80,
+      averageCompletionPercent: 81,
       currentTarget: "Planning and dispatch loop",
       currentNextAction:
-        "Use dispatch review records as the current active implementation target with review-depth checks, per-role handoff packet integrity, current evidence fingerprint matching, offline dispatch-review artifact verification, owner-visible artifact verification counts, integration ownership rows, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof to audit role counts, attempt limits, handoff tasks, validation dependencies, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, live-worker execution locks, canSpawn=no approval-required status, canClose metadata handoff status, and closeoutProof state before any live worker session spawning.",
+        "Use dispatch review records as the current active implementation target with review-depth checks, per-role handoff packet integrity, current evidence fingerprint matching, offline dispatch-review artifact verification, owner-visible artifact verification counts, integration ownership rows, live-worker launch-gate proof, metadata closure-gate proof, aggregate closeout proof, owner handoff report proof, dispatchReviewDepthProof, integrationOwnershipProof, dispatchTraceabilityProof, dispatchBlockerPriorityProof, traceability rows, blocker-priority queue, and owner-visible Phase 7 dispatch proof to audit role counts, attempt limits, handoff tasks, validation dependencies, final validation ownership, commit/push/reporting ownership, traceability, closure boundaries, exact top blocker, live-worker execution locks, canSpawn=no approval-required status, canClose metadata handoff status, closeoutProof state, and pushApproval=required owner handoff state before any live worker session spawning.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, and blocker-priority queue to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
@@ -735,7 +735,7 @@ describe("remaining goal plan", () => {
       priority: "high",
       status: "active",
       current: true,
-      completionPercent: 90
+      completionPercent: 94
     });
     expect(phase7Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
@@ -757,9 +757,11 @@ describe("remaining goal plan", () => {
     expect(phase7Goal?.nextAction).toContain("live-worker launch-gate proof");
     expect(phase7Goal?.nextAction).toContain("metadata closure-gate proof");
     expect(phase7Goal?.nextAction).toContain("aggregate closeout proof");
+    expect(phase7Goal?.nextAction).toContain("owner handoff report proof");
     expect(phase7Goal?.nextAction).toContain("canSpawn=no approval-required status");
     expect(phase7Goal?.nextAction).toContain("canClose metadata handoff status");
     expect(phase7Goal?.nextAction).toContain("closeoutProof state");
+    expect(phase7Goal?.nextAction).toContain("pushApproval=required owner handoff state");
     expect(phase7Goal?.nextAction).toContain("dispatchReviewDepthProof");
     expect(phase7Goal?.nextAction).toContain("integrationOwnershipProof");
     expect(phase7Goal?.nextAction).toContain("dispatchTraceabilityProof");
@@ -768,7 +770,7 @@ describe("remaining goal plan", () => {
     expect(phase7Goal?.nextAction).toContain("owner-visible Phase 7 dispatch proof");
     for (const rowId of phase7Goal?.pmTaskIds ?? []) {
       const row = createDefaultProjectManagementPhasePlan().find((task) => task.id === rowId);
-      expect(row?.completionPercent, rowId).toBeGreaterThanOrEqual(90);
+      expect(row?.completionPercent, rowId).toBeGreaterThanOrEqual(94);
     }
   });
 
