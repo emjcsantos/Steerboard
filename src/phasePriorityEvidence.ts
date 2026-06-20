@@ -439,10 +439,15 @@ function buildProjectManagementSavedStateProofSummary(tasks: readonly ProjectMan
     }
   }
 
+  const hasFullCurrentPlanCoverage = seenCurrentPlanIds.size === currentProjectManagementPhasePlanTaskIds.size;
+  const preservedUiState = stagedCurrentRows > 0 || collapsedCurrentRows > 0 ? "yes" : "no";
+  const trustStatus = hasFullCurrentPlanCoverage && duplicateCurrentRows === 0 ? "ready" : "review";
+
   return (
     `savedStateProof=currentPlanRows=${seenCurrentPlanIds.size}/${currentProjectManagementPhasePlanTaskIds.size} ` +
     `duplicateCurrentRows=${duplicateCurrentRows} stagedCurrentRows=${stagedCurrentRows} ` +
-    `collapsedCurrentRows=${collapsedCurrentRows}`
+    `collapsedCurrentRows=${collapsedCurrentRows} preservedUiState=${preservedUiState} ` +
+    `trust=${trustStatus}`
   );
 }
 

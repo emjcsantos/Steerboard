@@ -124,6 +124,8 @@ describe("phase priority evidence", () => {
     expect(phase6?.detail).toContain("duplicateCurrentRows=0");
     expect(phase6?.detail).toContain("stagedCurrentRows=0");
     expect(phase6?.detail).toContain("collapsedCurrentRows=0");
+    expect(phase6?.detail).toContain("preservedUiState=no");
+    expect(phase6?.detail).toContain("trust=ready");
     expect(phase6?.nextAction).toBe(
       "Use row-level Run buttons to stage Arena review packages while keeping execution locked."
     );
@@ -181,6 +183,8 @@ describe("phase priority evidence", () => {
     expect(phase6?.detail).toContain("duplicateCurrentRows=0");
     expect(phase6?.detail).toContain("stagedCurrentRows=2");
     expect(phase6?.detail).toContain("collapsedCurrentRows=2");
+    expect(phase6?.detail).toContain("preservedUiState=yes");
+    expect(phase6?.detail).toContain("trust=ready");
   });
 
   it("keeps Phase 6 PM board evidence in review when acceptance child rows are missing", () => {
@@ -225,6 +229,7 @@ describe("phase priority evidence", () => {
         "Restore Phase 6 publish-hold traceability and blocker-priority child rows before trusting PM board evidence."
     });
     expect(phase6?.detail).toContain("phase-06-child-publish-hold-blocker-priority");
+    expect(phase6?.detail).toContain("trust=review");
   });
 
   it("keeps live and isolation proof waiting in browser-only state while PM staging is ready", () => {
