@@ -374,8 +374,9 @@ describe("project management phase plan", () => {
     );
     expect(phase10Epic?.completionPercent).toBe(62);
     expect(phase10Epic?.description).toContain("npm.cmd run test:phase10:owner-visible");
-    expect(flexLayoutSpikeChild?.completionPercent).toBe(55);
+    expect(flexLayoutSpikeChild?.completionPercent).toBe(62);
     expect(flexLayoutSpikeChild?.description).toContain("dependency-install status");
+    expect(flexLayoutSpikeChild?.description).toContain("decisionProof");
     expect(flexLayoutSpikeChild?.description).toContain("custom adaptive-grid fallback");
     expect(traceabilityChild?.completionPercent).toBe(62);
     expect(traceabilityChild?.description).toContain("npm.cmd run test:phase10:owner-visible");

@@ -1,4 +1,5 @@
 export type Phase10FlexLayoutSpikeState = "ready" | "review" | "blocked" | "waiting";
+export type Phase10FlexLayoutSpikeDecision = "adopt" | "defer";
 
 export interface Phase10FlexLayoutSpikeInput {
   readonly repositoryName: string;
@@ -11,6 +12,7 @@ export interface Phase10FlexLayoutSpikeInput {
   readonly dependencyInstalled: boolean;
   readonly preservesCustomLayoutFallback: boolean;
   readonly ownerApprovedDependency: boolean;
+  readonly decision?: Phase10FlexLayoutSpikeDecision;
 }
 
 export interface Phase10FlexLayoutSpikeSummary {
@@ -23,6 +25,8 @@ export interface Phase10FlexLayoutSpikeSummary {
   readonly requiredCapabilityCount: number;
   readonly dependencyInstalled: boolean;
   readonly ownerApprovedDependency: boolean;
+  readonly decision: Phase10FlexLayoutSpikeDecision;
+  readonly decisionProof: string;
   readonly detail: string;
   readonly nextAction: string;
   readonly safety: string;
@@ -83,24 +87,43 @@ function capabilityCount(input: Phase10FlexLayoutSpikeInput): number {
   ].filter(Boolean).length;
 }
 
+function decisionFor(input: Phase10FlexLayoutSpikeInput): Phase10FlexLayoutSpikeDecision {
+  return input.decision ?? (input.dependencyInstalled && input.ownerApprovedDependency ? "adopt" : "defer");
+}
+
+function decisionProof(
+  input: Phase10FlexLayoutSpikeInput,
+  coveredCapabilityCount: number,
+  decision: Phase10FlexLayoutSpikeDecision
+): string {
+  return (
+    `decision=${decision} repository=${input.repositoryName} license=${input.expectedLicense} ` +
+    `capabilities=${coveredCapabilityCount}/${REQUIRED_CAPABILITY_COUNT} ` +
+    `dependencyInstalled=${input.dependencyInstalled ? "yes" : "no"} ` +
+    `ownerApproved=${input.ownerApprovedDependency ? "yes" : "no"} ` +
+    `fallback=${input.preservesCustomLayoutFallback ? "preserved" : "blocked"} execution=locked`
+  );
+}
+
 function detailFor(
   input: Phase10FlexLayoutSpikeInput,
   state: Phase10FlexLayoutSpikeState,
-  coveredCapabilityCount: number
+  coveredCapabilityCount: number,
+  proof: string
 ): string {
   if (state === "blocked") {
-    return `${input.repositoryName} cannot advance until MIT license notice and custom adaptive-grid fallback are both preserved.`;
+    return `${input.repositoryName} cannot advance until MIT license notice and custom adaptive-grid fallback are both preserved. ${proof}`;
   }
 
   if (state === "waiting") {
-    return `${input.repositoryName} covers ${coveredCapabilityCount}/${REQUIRED_CAPABILITY_COUNT} docking capabilities: tabsets, splitters, saved layout JSON, and dockable panels.`;
+    return `${input.repositoryName} covers ${coveredCapabilityCount}/${REQUIRED_CAPABILITY_COUNT} docking capabilities: tabsets, splitters, saved layout JSON, and dockable panels. ${proof}`;
   }
 
   if (state === "review") {
-    return `${input.repositoryName} has ${input.expectedLicense} license evidence and ${coveredCapabilityCount}/${REQUIRED_CAPABILITY_COUNT} docking capabilities, but dependency installation or owner approval is still held.`;
+    return `${input.repositoryName} has ${input.expectedLicense} license evidence and ${coveredCapabilityCount}/${REQUIRED_CAPABILITY_COUNT} docking capabilities, but dependency installation or owner approval is still held. ${proof}`;
   }
 
-  return `${input.repositoryName} has ${input.expectedLicense} license evidence, owner approval, installed dependency, fallback coverage, and all docking capabilities.`;
+  return `${input.repositoryName} has ${input.expectedLicense} license evidence, owner approval, installed dependency, fallback coverage, and all docking capabilities. ${proof}`;
 }
 
 function nextActionFor(
@@ -129,6 +152,8 @@ export function buildPhase10FlexLayoutSpikeSummary(
 ): Phase10FlexLayoutSpikeSummary {
   const coveredCapabilityCount = capabilityCount(input);
   const state = resolveState(input, coveredCapabilityCount);
+  const decision = decisionFor(input);
+  const proof = decisionProof(input, coveredCapabilityCount, decision);
 
   return {
     id: SPIKE_ID,
@@ -140,7 +165,9 @@ export function buildPhase10FlexLayoutSpikeSummary(
     requiredCapabilityCount: REQUIRED_CAPABILITY_COUNT,
     dependencyInstalled: input.dependencyInstalled,
     ownerApprovedDependency: input.ownerApprovedDependency,
-    detail: detailFor(input, state, coveredCapabilityCount),
+    decision,
+    decisionProof: proof,
+    detail: detailFor(input, state, coveredCapabilityCount, proof),
     nextAction: nextActionFor(input, state),
     safety: SAFETY
   };

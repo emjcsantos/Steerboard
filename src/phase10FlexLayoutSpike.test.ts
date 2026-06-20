@@ -25,7 +25,13 @@ describe("phase 10 FlexLayout docking spike", () => {
     expect(summary.state).toBe("review");
     expect(summary.readiness).toBe(65);
     expect(summary.coveredCapabilityCount).toBe(4);
+    expect(summary.decision).toBe("defer");
+    expect(summary.decisionProof).toContain("decision=defer");
+    expect(summary.decisionProof).toContain("dependencyInstalled=no");
+    expect(summary.decisionProof).toContain("ownerApproved=no");
+    expect(summary.decisionProof).toContain("fallback=preserved");
     expect(summary.detail).toContain("dependency installation or owner approval is still held");
+    expect(summary.detail).toContain("decision=defer");
     expect(summary.nextAction).toContain("defer package installation until owner approval");
     expect(summary.safety).toContain("evidence-only");
   });
@@ -58,6 +64,10 @@ describe("phase 10 FlexLayout docking spike", () => {
 
     expect(summary.state).toBe("ready");
     expect(summary.readiness).toBe(100);
+    expect(summary.decision).toBe("adopt");
+    expect(summary.decisionProof).toContain("decision=adopt");
+    expect(summary.decisionProof).toContain("dependencyInstalled=yes");
+    expect(summary.decisionProof).toContain("ownerApproved=yes");
     expect(summary.detail).toContain("all docking capabilities");
   });
 });

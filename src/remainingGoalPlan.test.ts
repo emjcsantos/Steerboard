@@ -755,8 +755,9 @@ describe("remaining goal plan", () => {
     expect(phase10Epic?.completionPercent).toBe(62);
     expect(phase10Epic?.description).toContain("npm.cmd run test:phase10:owner-visible");
     expect(layoutFoundationParent?.completionPercent).toBe(62);
-    expect(flexLayoutSpikeChild?.completionPercent).toBe(55);
+    expect(flexLayoutSpikeChild?.completionPercent).toBe(62);
     expect(flexLayoutSpikeChild?.description).toContain("dependency-install status");
+    expect(flexLayoutSpikeChild?.description).toContain("decisionProof");
     expect(flexLayoutSpikeChild?.description).toContain("custom adaptive-grid fallback");
     expect(blockerPriorityChild?.completionPercent).toBe(62);
     expect(blockerPriorityChild?.description).toContain("Arena-review addressable count");

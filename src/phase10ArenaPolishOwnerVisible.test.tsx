@@ -88,6 +88,7 @@ describe("phase 10 Arena polish owner-visible proof", () => {
     expect(html).toContain("Phase 10 adaptive Arena polish");
     expect(html).toContain("3/4");
     expect(html).toContain("FlexLayout docking spike");
+    expect(html).toContain("decision=defer");
     expect(html).toContain("defer package installation until owner approval");
     expect(html).toContain("Phase 10 Arena polish traceability");
     expect(html).toContain("Phase 10 Arena polish blocker priority");

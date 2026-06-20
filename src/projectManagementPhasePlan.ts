@@ -832,8 +832,8 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-10-child-flexlayout-spike",
             title: "FlexLayout Docking Spike",
-            description: "Evaluate caplin/FlexLayout as an MIT-licensed React docking layout option for Arena tabsets, splitters, saved layout JSON, dockable panels, dependency-install status, owner approval, and custom adaptive-grid fallback before replacing custom adaptive-grid behavior.",
-            completionPercent: 55,
+            description: "Evaluate caplin/FlexLayout as an MIT-licensed React docking layout option for Arena tabsets, splitters, saved layout JSON, dockable panels, dependency-install status, owner approval, decisionProof, and custom adaptive-grid fallback before replacing custom adaptive-grid behavior.",
+            completionPercent: 62,
             complexity: "medium",
             sourceDocument: "caplin/FlexLayout MIT license review"
           }
