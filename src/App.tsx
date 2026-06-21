@@ -728,6 +728,7 @@ import { buildPhase8RiskClosure } from "./phase8RiskClosure";
 import { buildPhase8AuditReviewBlockerHandoff } from "./phase8AuditReviewBlockerHandoff";
 import { buildPhase8CloseoutStatus } from "./phase8CloseoutStatus";
 import { buildPhase8FinalCompletionHandoff } from "./phase8FinalCompletionHandoff";
+import { buildPhase8MutationExpansionGate } from "./phase8MutationExpansionGate";
 import { buildPhase8OwnerActionHandoff } from "./phase8OwnerActionHandoff";
 import { buildPhase8OwnerReviewClosureReadiness } from "./phase8OwnerReviewClosureReadiness";
 import { buildPhase8RiskTraceabilitySummary } from "./phase8RiskTraceability";
@@ -16186,6 +16187,10 @@ export function Phase8PermissionAuditDepthPanel({
     ownerReviewClosureReadiness,
     finalCompletionHandoff
   });
+  const mutationExpansionGate = buildPhase8MutationExpansionGate(
+    completionGate,
+    closeoutStatus
+  );
   const handleAuditReviewArtifactImport = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.currentTarget.files?.[0];
@@ -16665,6 +16670,25 @@ export function Phase8PermissionAuditDepthPanel({
             </span>
             <small>{closeoutStatus.nextAction}</small>
             <small>{closeoutStatus.phase8CloseoutStatusProof}</small>
+          </div>
+        </div>
+        <div
+          aria-label={mutationExpansionGate.ariaLabel}
+          className={classNames(
+            "phase8-audit-review-record",
+            `phase8-audit-review-record-${mutationExpansionGate.state}`
+          )}
+          title={mutationExpansionGate.detail}
+        >
+          <div>
+            <strong>{mutationExpansionGate.label}</strong>
+            <span>
+              {mutationExpansionGate.statusLabel} / approvals{" "}
+              {mutationExpansionGate.approvedSurfaceCount}/
+              {mutationExpansionGate.requiredSurfaceCount}
+            </span>
+            <small>{mutationExpansionGate.nextAction}</small>
+            <small>{mutationExpansionGate.mutationExpansionGateProof}</small>
           </div>
         </div>
         <ol className="phase8-audit-items" aria-label="Phase 8 missing requirement explanations">
