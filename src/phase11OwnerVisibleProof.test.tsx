@@ -485,6 +485,10 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Refresh Phase 3 proof export before release readiness");
     expect(html).toContain("Phase readiness");
     expect(html).toContain("Prioritized remaining goal traces");
+    expect(html).toContain("Phase 11 priority trace gate");
+    expect(html).toContain("phase11PriorityTraceGate");
+    expect(html).toContain("canTrust=no");
+    expect(html).toContain("missingPm=");
     expect(html).toContain("Phase 11 owner release traceability");
     expect(html).toContain("Phase 11 owner release blocker priority");
     expect(html).toContain("Phase 11 owner command closeout status");

@@ -813,6 +813,10 @@ import {
 import { buildPhase11OwnerReleaseTraceability } from "./phase11OwnerReleaseTraceability";
 import { buildPhase11OwnerReleaseBlockerPriority } from "./phase11OwnerReleaseBlockerPriority";
 import {
+  buildPhase11PriorityTraceGate,
+  type Phase11PriorityTraceGate
+} from "./phase11PriorityTraceGate";
+import {
   buildPhase11ReleaseCloseoutStatus,
   type Phase11ReleaseCloseoutStatus
 } from "./phase11ReleaseCloseoutStatus";
@@ -17471,6 +17475,7 @@ export function Phase11OwnerCommandCenterPanel({
     goals,
     projectManagementTasks
   });
+  const priorityTraceGate = buildPhase11PriorityTraceGate(snapshot, traceability);
   const blockerPriority = buildPhase11OwnerReleaseBlockerPriority({
     ownerCommandCenter: snapshot,
     proofFreshnessDepth,
@@ -17577,6 +17582,7 @@ export function Phase11OwnerCommandCenterPanel({
             </li>
           ))}
         </ol>
+        <Phase11PriorityTraceGatePanel gate={priorityTraceGate} />
         <div
           aria-label={traceability.ariaLabel}
           className={classNames(
@@ -17684,6 +17690,52 @@ export function Phase11OwnerCommandCenterPanel({
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
     </section>
+  );
+}
+
+export function Phase11PriorityTraceGatePanel({
+  gate
+}: {
+  gate: Phase11PriorityTraceGate;
+}) {
+  return (
+    <div
+      aria-label={gate.ariaLabel}
+      className={classNames(
+        "phase11-owner-blocker-priority",
+        `phase11-owner-blocker-priority-${gate.state}`
+      )}
+      title={gate.detail}
+    >
+      <div className="phase11-owner-blocker-priority-header">
+        <strong>{gate.label}</strong>
+        <span>{gate.statusLabel}</span>
+        <b>{gate.readiness}%</b>
+      </div>
+      <dl
+        className="phase11-owner-blocker-priority-grid"
+        aria-label="Phase 11 priority trace gate counts"
+      >
+        <div>
+          <dt>Traces</dt>
+          <dd>{gate.priorityGoalTraceCount}</dd>
+        </div>
+        <div>
+          <dt>Current</dt>
+          <dd>{gate.currentActiveTraceCount}</dd>
+        </div>
+        <div>
+          <dt>Missing PM</dt>
+          <dd>{gate.missingPmTaskCount}</dd>
+        </div>
+        <div>
+          <dt>Trust</dt>
+          <dd>{gate.canTrustPriorityTrace ? "Yes" : "No"}</dd>
+        </div>
+      </dl>
+      <small>{gate.priorityTraceGateProof}</small>
+      <small title={gate.nextAction}>{gate.nextAction}</small>
+    </div>
   );
 }
 
