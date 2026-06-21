@@ -38,8 +38,11 @@ describe("phase 7 dispatch completion gate", () => {
       readiness: 100,
       phaseComplete: true,
       canSpawnLiveWorker: false,
+      canCreateWorkerSession: false,
+      workerSessionCreationHeld: true,
       ownerHandoffState: "ready",
       pushApprovalRequired: true,
+      sessionCreationApprovalRequired: true,
       finalValidationOwner: "Main Codex",
       commitPushReportingOwner: "Main Codex",
       handoffPacketCount: 4,
@@ -49,6 +52,9 @@ describe("phase 7 dispatch completion gate", () => {
     expect(gate.detail).toContain("local metadata handoff");
     expect(gate.completionGateProof).toContain("phaseComplete=yes");
     expect(gate.completionGateProof).toContain("canSpawn=no");
+    expect(gate.completionGateProof).toContain("workerSession=held");
+    expect(gate.completionGateProof).toContain("sessionApproval=required");
+    expect(gate.completionGateProof).toContain("canCreateSession=no");
   });
 
   it("keeps Phase 7 in review when owner handoff is incomplete", () => {

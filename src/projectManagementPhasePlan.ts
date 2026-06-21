@@ -742,7 +742,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-07-child-completion-gate",
             title: "Dispatch Completion Gate",
-            description: "Show phase7DispatchCompletionGate proof with phaseComplete, owner handoff state, canClose, canSpawn=no, pushApproval=required, packet counts, validation gates, and traceability link counts before Phase 7 completion can be trusted.",
+            description: "Show phase7DispatchCompletionGate proof with phaseComplete, owner handoff state, canClose, canSpawn=no, workerSession=held, sessionApproval=required, canCreateSession=no, pushApproval=required, packet counts, validation gates, and traceability link counts before Phase 7 completion can be trusted.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 7 dispatch completion gate"

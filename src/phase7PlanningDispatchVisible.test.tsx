@@ -149,6 +149,9 @@ describe("phase 7 planning dispatch visible proof", () => {
     expect(html).toContain("Phase 7 dispatch completion gate");
     expect(html).toContain("phase7DispatchCompletionGate");
     expect(html).toContain("phaseComplete=");
+    expect(html).toContain("workerSession=held");
+    expect(html).toContain("sessionApproval=required");
+    expect(html).toContain("canCreateSession=no");
     expect(html).toContain("Worker session creation gate");
     expect(html).toContain("Phase 7 worker session creation gate");
     expect(html).toContain("Create");

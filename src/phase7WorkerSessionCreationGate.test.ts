@@ -12,8 +12,11 @@ function completionGate(
     readiness: 100,
     phaseComplete: true,
     canSpawnLiveWorker: false,
+    canCreateWorkerSession: false,
+    workerSessionCreationHeld: true,
     ownerHandoffState: "ready",
     pushApprovalRequired: true,
+    sessionCreationApprovalRequired: true,
     finalValidationOwner: "Main Codex",
     commitPushReportingOwner: "Main Codex",
     handoffPacketCount: 4,
@@ -24,7 +27,7 @@ function completionGate(
     nextAction:
       "Move active implementation to the next pending lane while preserving Phase 7 completion proof for owner review.",
     completionGateProof:
-      "phase7DispatchCompletionGate state=complete phaseComplete=yes ownerHandoff=ready pushApproval=required canSpawn=no finalValidationOwner=Main Codex commitPushReportingOwner=Main Codex packets=4/4 validationGates=2 traceabilityLinks=5/5",
+      "phase7DispatchCompletionGate state=complete phaseComplete=yes ownerHandoff=ready pushApproval=required canSpawn=no workerSession=held sessionApproval=required canCreateSession=no finalValidationOwner=Main Codex commitPushReportingOwner=Main Codex packets=4/4 validationGates=2 traceabilityLinks=5/5",
     ...overrides
   };
 }

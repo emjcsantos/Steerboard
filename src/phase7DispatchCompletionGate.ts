@@ -8,8 +8,11 @@ export interface Phase7DispatchCompletionGate {
   readonly readiness: number;
   readonly phaseComplete: boolean;
   readonly canSpawnLiveWorker: boolean;
+  readonly canCreateWorkerSession: boolean;
+  readonly workerSessionCreationHeld: boolean;
   readonly ownerHandoffState: Phase7DispatchOwnerHandoffReport["state"];
   readonly pushApprovalRequired: boolean;
+  readonly sessionCreationApprovalRequired: boolean;
   readonly finalValidationOwner: string;
   readonly commitPushReportingOwner: string;
   readonly handoffPacketCount: number;
@@ -35,6 +38,9 @@ function proof(gate: Omit<Phase7DispatchCompletionGate, "completionGateProof">):
     `ownerHandoff=${gate.ownerHandoffState}`,
     `pushApproval=${gate.pushApprovalRequired ? "required" : "recorded"}`,
     `canSpawn=${gate.canSpawnLiveWorker ? "yes" : "no"}`,
+    `workerSession=${gate.workerSessionCreationHeld ? "held" : "ready"}`,
+    `sessionApproval=${gate.sessionCreationApprovalRequired ? "required" : "recorded"}`,
+    `canCreateSession=${gate.canCreateWorkerSession ? "yes" : "no"}`,
     `finalValidationOwner=${gate.finalValidationOwner}`,
     `commitPushReportingOwner=${gate.commitPushReportingOwner}`,
     `packets=${gate.handoffPacketCount}/4`,
@@ -55,8 +61,11 @@ function result(
     readiness: state === "complete" ? 100 : state === "review" ? 85 : state === "waiting" ? 35 : 15,
     phaseComplete: state === "complete",
     canSpawnLiveWorker: false,
+    canCreateWorkerSession: false,
+    workerSessionCreationHeld: true,
     ownerHandoffState: report.state,
     pushApprovalRequired: report.pushApprovalRequired,
+    sessionCreationApprovalRequired: true,
     finalValidationOwner: report.finalValidationOwner,
     commitPushReportingOwner: report.commitPushReportingOwner,
     handoffPacketCount: report.handoffPacketCount,
@@ -111,7 +120,7 @@ export function buildPhase7DispatchCompletionGate(
   return result(
     "complete",
     report,
-    "Phase 7 dispatch loop is complete as a local metadata handoff; live-worker spawning remains locked behind separate owner approval.",
-    "Move active implementation to the next pending lane while preserving Phase 7 completion proof for owner review."
+    "Phase 7 dispatch loop is complete as a local metadata handoff; live-worker spawning and worker/session creation remain locked behind separate owner approval.",
+    "Move active implementation to the next pending lane while preserving Phase 7 completion proof and worker/session creation hold proof for owner review."
   );
 }

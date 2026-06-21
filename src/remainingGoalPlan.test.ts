@@ -975,6 +975,7 @@ describe("remaining goal plan", () => {
     expect(phase7Goal?.nextAction).toContain("offline dispatch-review artifact verification");
     expect(phase7Goal?.nextAction).toContain("owner-visible artifact verification counts");
     expect(phase7Goal?.nextAction).toContain("live-worker launch-gate proof");
+    expect(phase7Goal?.nextAction).toContain("workerSession=held/sessionApproval=required/canCreateSession=no proof");
     expect(phase7Goal?.nextAction).toContain("metadata closure-gate proof");
     expect(phase7Goal?.nextAction).toContain("aggregate closeout proof");
     expect(phase7Goal?.nextAction).toContain("owner handoff report proof");
@@ -990,6 +991,13 @@ describe("remaining goal plan", () => {
       const row = createDefaultProjectManagementPhasePlan().find((task) => task.id === rowId);
       expect(row?.completionPercent, rowId).toBe(100);
     }
+    const completionGateChild = createDefaultProjectManagementPhasePlan().find(
+      (task) => task.id === "phase-07-child-completion-gate"
+    );
+
+    expect(completionGateChild?.description).toContain("workerSession=held");
+    expect(completionGateChild?.description).toContain("sessionApproval=required");
+    expect(completionGateChild?.description).toContain("canCreateSession=no");
   });
 
   it("keeps the Phase 10 Arena polish target linked to traceability and blocker priority", () => {
