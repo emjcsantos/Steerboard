@@ -222,6 +222,7 @@ describe("phase 9 runner approval owner-visible proof", () => {
     expect(html).toContain("Phase 9 desktop runner approval");
     expect(html).toContain("items=8/8");
     expect(html).toContain("requestGate=held");
+    expect(html).toContain("backendScope=ready");
     expect(html).toContain("execution=locked");
     expect(html).toContain("terminal-readonly-probe");
     expect(html).toContain("No local runner review record");
@@ -333,6 +334,7 @@ describe("phase 9 runner approval owner-visible proof", () => {
     );
     expect(html).toContain("Desktop terminal read-only probe executed through the approved runner contract");
     expect(html).toContain("Phase 9 remains limited to terminal-readonly-probe");
+    expect(html).toContain("backendScope=ready");
     expect(html).toContain("broad terminal, Git, MCP, plugin, automation, runtime, profile, and external-service mutation paths stay locked");
     expect(html).toContain("No open Phase 9 runner blocker");
     expect(html).toContain("Clear");

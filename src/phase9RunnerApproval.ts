@@ -350,6 +350,19 @@ function validationItem(result: DesktopActionRunnerExecuteResult): Phase9RunnerA
     };
   }
 
+  if (!isFixedProbeBackendScope(result)) {
+    return {
+      id: `${SNAPSHOT_ID}:validation`,
+      label: "Validation output",
+      kind: "validation",
+      status: "blocked",
+      detail:
+        "Desktop runner validation returned outside the fixed terminal-readonly-probe scope.",
+      nextAction:
+        "Discard the out-of-scope result and re-run only the fixed terminal-readonly-probe through the approved desktop runner."
+    };
+  }
+
   if (result.status === "executed") {
     return {
       id: `${SNAPSHOT_ID}:validation`,
@@ -381,6 +394,10 @@ function validationItem(result: DesktopActionRunnerExecuteResult): Phase9RunnerA
     nextAction:
       "Resolve the blocked or failed probe result before treating the runner path as approved."
   };
+}
+
+function isFixedProbeBackendScope(result: DesktopActionRunnerExecuteResult): boolean {
+  return result.provider === "terminal" && result.intent === "terminal-readonly-probe";
 }
 
 function auditItem(records: readonly LiveActionAuditRecord[]): Phase9RunnerApprovalItem {
@@ -615,13 +632,15 @@ function buildAriaLabel(snapshot: Omit<Phase9RunnerApprovalSnapshot, "ariaLabel"
 
 function buildRunnerApprovalProof(
   snapshot: Omit<Phase9RunnerApprovalSnapshot, "ariaLabel" | "runnerApprovalProof">,
-  currentRunnerEvidenceFingerprint: string
+  currentRunnerEvidenceFingerprint: string,
+  desktopRunnerResult: DesktopActionRunnerExecuteResult
 ): string {
   return (
     `items=${snapshot.items.length}/8 ready=${snapshot.readyCount} review=${snapshot.reviewCount} ` +
     `blocked=${snapshot.blockedCount} waiting=${snapshot.waitingCount} ` +
     `selected=${snapshot.selectedAction} auditRecords=${snapshot.auditRecordCount} ` +
     `requestGate=${snapshot.canRequestDesktopProbe ? "ready" : "held"} ` +
+    `backendScope=${isFixedProbeBackendScope(desktopRunnerResult) ? "ready" : "held"} ` +
     `runnerFingerprint=${currentRunnerEvidenceFingerprint} execution=locked`
   );
 }
@@ -724,7 +743,8 @@ export function buildPhase9RunnerApprovalSnapshot(
         safety: SAFETY,
         items
       },
-      currentRunnerEvidenceFingerprint
+      currentRunnerEvidenceFingerprint,
+      input.desktopRunnerResult
     ),
     nextAction: firstNextAction(items),
     safety: SAFETY,

@@ -201,6 +201,7 @@ describe("phase 9 runner approval", () => {
     expect(approval.runnerApprovalProof).toContain("items=8/8");
     expect(approval.runnerApprovalProof).toContain("selected=terminal-readonly-probe");
     expect(approval.runnerApprovalProof).toContain("requestGate=held");
+    expect(approval.runnerApprovalProof).toContain("backendScope=ready");
     expect(approval.runnerApprovalProof).toContain("execution=locked");
     expect(approval.items).toEqual(
       expect.arrayContaining([
@@ -486,8 +487,40 @@ describe("phase 9 runner approval", () => {
     expect(approval.runnerApprovalProof).toContain("ready=8");
     expect(approval.runnerApprovalProof).toContain("auditRecords=2");
     expect(approval.runnerApprovalProof).toContain("requestGate=ready");
+    expect(approval.runnerApprovalProof).toContain("backendScope=ready");
     expect(approval.runnerApprovalProof).toContain("runnerFingerprint=phase9-runner-");
     expect(approval.items.every((item) => item.status === "ready")).toBe(true);
+  });
+
+  it("blocks executed desktop results outside the fixed backend scope", () => {
+    const approval = snapshot({
+      request: permissionRequest({ state: "approved" }),
+      result: desktopResult({
+        provider: "git",
+        intent: "terminal-readonly-probe",
+        requestId: "terminal-permission-1",
+        status: "executed",
+        code: "ok",
+        canExecute: true,
+        summary: "Unexpected backend execution result.",
+        detail: "Unexpected backend execution detail."
+      }),
+      auditRecords: [terminalAuditRecord("approved"), terminalAuditRecord("executed")]
+    });
+
+    expect(approval.state).toBe("blocked");
+    expect(approval.canRequestDesktopProbe).toBe(false);
+    expect(approval.runnerApprovalProof).toContain("backendScope=held");
+    expect(approval.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Validation output",
+          kind: "validation",
+          status: "blocked",
+          detail: expect.stringContaining("outside the fixed terminal-readonly-probe scope")
+        })
+      ])
+    );
   });
 
   it("reviews executed probe records that lack record-specific rollback proof", () => {
