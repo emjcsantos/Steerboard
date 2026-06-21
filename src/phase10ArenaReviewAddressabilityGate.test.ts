@@ -70,13 +70,18 @@ function closeoutStatus(
     blockerPriorityClear: true,
     flexLayoutDeferred: true,
     packagingPaused: true,
+    canResumePackaging: false,
+    ownerResumeApproved: false,
+    installPathLocked: true,
+    desktopPackagingLocked: true,
+    releaseGateRequired: true,
     linkedPmTaskCount: 10,
     requiredPmTaskCount: 10,
     openBlockerCount: 0,
     arenaReviewAddressableCount: 0,
     topHold: "none",
     phase10ArenaPolishCloseoutStatusProof:
-      "phase10ArenaPolishCloseoutStatusProof=state=complete readiness=100 implementationComplete=yes polish=ready traceability=ready blockers=clear flexLayout=defer packaging=paused pmLinks=10/10 open=0 review=0 topHold=none",
+      "phase10ArenaPolishCloseoutStatusProof=state=complete readiness=100 implementationComplete=yes polish=ready traceability=ready blockers=clear flexLayout=defer packaging=paused canResumePackaging=no ownerResume=missing installPath=locked desktopPackaging=locked releaseGate=required pmLinks=10/10 open=0 review=0 topHold=none",
     nextAction:
       "Phase 10 Arena polish closeout proof is ready; keep packaging paused until the owner explicitly resumes release actions.",
     safety:

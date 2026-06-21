@@ -1037,6 +1037,11 @@ describe("remaining goal plan", () => {
     expect(phase10Goal?.nextAction).toContain("traceabilityProof rows");
     expect(phase10Goal?.nextAction).toContain("blockerPriorityProof queue");
     expect(phase10Goal?.nextAction).toContain("phase10ArenaPolishCloseoutStatusProof");
+    expect(phase10Goal?.nextAction).toContain("canResumePackaging=no");
+    expect(phase10Goal?.nextAction).toContain("ownerResume=missing");
+    expect(phase10Goal?.nextAction).toContain("installPath=locked");
+    expect(phase10Goal?.nextAction).toContain("desktopPackaging=locked");
+    expect(phase10Goal?.nextAction).toContain("releaseGate=required");
     expect(phase10Goal?.nextAction).toContain("owner-visible Phase 10 proof");
     expect(phase10Goal?.nextAction).toContain("npm.cmd run test:phase10:owner-visible");
     expect(packageJson.scripts["test:phase10:owner-visible"]).toBe(
@@ -1077,6 +1082,11 @@ describe("remaining goal plan", () => {
     expect(blockerPriorityChild?.description).toContain("top-priority action detail");
     expect(closeoutStatusChild?.completionPercent).toBe(100);
     expect(closeoutStatusChild?.description).toContain("phase10ArenaPolishCloseoutStatusProof");
+    expect(closeoutStatusChild?.description).toContain("canResumePackaging");
+    expect(closeoutStatusChild?.description).toContain("ownerResume");
+    expect(closeoutStatusChild?.description).toContain("installPath");
+    expect(closeoutStatusChild?.description).toContain("desktopPackaging");
+    expect(closeoutStatusChild?.description).toContain("releaseGate");
   });
 
   it("keeps the Phase 11 owner and release targets linked to traceability and blocker priority", () => {

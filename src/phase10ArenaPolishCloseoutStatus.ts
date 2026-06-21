@@ -20,6 +20,11 @@ export interface Phase10ArenaPolishCloseoutStatus {
   readonly blockerPriorityClear: boolean;
   readonly flexLayoutDeferred: boolean;
   readonly packagingPaused: boolean;
+  readonly canResumePackaging: boolean;
+  readonly ownerResumeApproved: boolean;
+  readonly installPathLocked: boolean;
+  readonly desktopPackagingLocked: boolean;
+  readonly releaseGateRequired: boolean;
   readonly linkedPmTaskCount: number;
   readonly requiredPmTaskCount: number;
   readonly openBlockerCount: number;
@@ -163,7 +168,7 @@ function nextAction(
     return "Repair blocked Phase 10 Arena polish, traceability, PM-link, or blocker-priority evidence before closeout can be trusted.";
   }
   if (state === "complete") {
-    return "Phase 10 Arena polish closeout proof is ready; keep packaging paused until the owner explicitly resumes release actions.";
+    return "Phase 10 Arena polish closeout proof is ready; keep packaging paused, install paths locked, and release-gate review required until the owner explicitly resumes release actions.";
   }
   if (hold === "arena-polish") {
     return input.snapshot.nextAction;
@@ -191,6 +196,11 @@ function proof(
     `blockers=${status.blockerPriorityClear ? "clear" : "open"} ` +
     `flexLayout=${status.flexLayoutDeferred ? "defer" : "ready"} ` +
     `packaging=${status.packagingPaused ? "paused" : "review"} ` +
+    `canResumePackaging=${status.canResumePackaging ? "yes" : "no"} ` +
+    `ownerResume=${status.ownerResumeApproved ? "approved" : "missing"} ` +
+    `installPath=${status.installPathLocked ? "locked" : "review"} ` +
+    `desktopPackaging=${status.desktopPackagingLocked ? "locked" : "review"} ` +
+    `releaseGate=${status.releaseGateRequired ? "required" : "not-required"} ` +
     `pmLinks=${status.linkedPmTaskCount}/${status.requiredPmTaskCount} ` +
     `open=${status.openBlockerCount} review=${status.arenaReviewAddressableCount} topHold=${status.topHold}`
   );
@@ -224,6 +234,11 @@ export function buildPhase10ArenaPolishCloseoutStatus(
     blockerPriorityClear: effectiveOpen === 0,
     flexLayoutDeferred: flexLayoutDeferred(input.snapshot),
     packagingPaused: true,
+    canResumePackaging: false,
+    ownerResumeApproved: false,
+    installPathLocked: true,
+    desktopPackagingLocked: true,
+    releaseGateRequired: true,
     linkedPmTaskCount: input.traceability.linkedPmTaskCount,
     requiredPmTaskCount: REQUIRED_PM_TASK_COUNT,
     openBlockerCount: effectiveOpen,

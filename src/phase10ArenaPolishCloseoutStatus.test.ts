@@ -107,10 +107,20 @@ describe("phase 10 Arena polish closeout status", () => {
     expect(status.implementationComplete).toBe(true);
     expect(status.arenaPolishReady).toBe(true);
     expect(status.packagingPaused).toBe(true);
+    expect(status.canResumePackaging).toBe(false);
+    expect(status.ownerResumeApproved).toBe(false);
+    expect(status.installPathLocked).toBe(true);
+    expect(status.desktopPackagingLocked).toBe(true);
+    expect(status.releaseGateRequired).toBe(true);
     expect(status.phase10ArenaPolishCloseoutStatusProof).toContain(
       "phase10ArenaPolishCloseoutStatusProof=state=complete"
     );
     expect(status.phase10ArenaPolishCloseoutStatusProof).toContain("pmLinks=10/10");
+    expect(status.phase10ArenaPolishCloseoutStatusProof).toContain("canResumePackaging=no");
+    expect(status.phase10ArenaPolishCloseoutStatusProof).toContain("ownerResume=missing");
+    expect(status.phase10ArenaPolishCloseoutStatusProof).toContain("installPath=locked");
+    expect(status.phase10ArenaPolishCloseoutStatusProof).toContain("desktopPackaging=locked");
+    expect(status.phase10ArenaPolishCloseoutStatusProof).toContain("releaseGate=required");
   });
 
   it("allows a deferred FlexLayout package install without counting it as an open closeout blocker", () => {

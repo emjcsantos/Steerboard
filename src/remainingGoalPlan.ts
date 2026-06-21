@@ -315,7 +315,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-10-child-closeout-status"
     ],
     nextAction:
-      "Keep the Phase 10 Arena polish closeout status proof attached with phase10ArenaPolishCloseoutStatusProof, adaptive layout regression, density, keyboard controls, focus state, terminology, acceptance gates, FlexLayout defer/adopt decision, traceabilityProof rows, blockerPriorityProof queue, PM-link, owner-visible Phase 10 proof, npm.cmd run test:phase10:owner-visible, and packaging-paused evidence visible before packaging resumes."
+      "Keep the Phase 10 Arena polish closeout status proof attached with phase10ArenaPolishCloseoutStatusProof, adaptive layout regression, density, keyboard controls, focus state, terminology, acceptance gates, FlexLayout defer/adopt decision, traceabilityProof rows, blockerPriorityProof queue, PM-link, owner-visible Phase 10 proof, npm.cmd run test:phase10:owner-visible, and packaging-paused evidence with canResumePackaging=no/ownerResume=missing/installPath=locked/desktopPackaging=locked/releaseGate=required visible before packaging resumes."
   },
   {
     id: "goal-phase-11-owner-command-center",

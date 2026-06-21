@@ -1067,7 +1067,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-10-child-closeout-status",
             title: "Arena Polish Closeout Status",
-            description: "Show phase10ArenaPolishCloseoutStatusProof state/readiness/implementation-complete/polish/traceability/blocker/FlexLayout/packaging/PM-link/open/review/top-hold counts so Phase 10 Arena polish is visibly closed out while FlexLayout package installation and release packaging stay owner-held.",
+            description: "Show phase10ArenaPolishCloseoutStatusProof state/readiness/implementation-complete/polish/traceability/blocker/FlexLayout/packaging/canResumePackaging/ownerResume/installPath/desktopPackaging/releaseGate/PM-link/open/review/top-hold counts so Phase 10 Arena polish is visibly closed out while FlexLayout package installation and release packaging stay owner-held.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 10 Arena polish closeout status"
