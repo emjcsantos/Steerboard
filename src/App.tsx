@@ -2421,14 +2421,16 @@ export function App() {
         refreshSafety: phase4RefreshSafetyDepth,
         surfaceDepth: phase4ProviderSurfaceDepth,
         traceability: phase4ProviderTraceability,
-        blockerPriority: phase4ProviderBlockerPriority
+        blockerPriority: phase4ProviderBlockerPriority,
+        executionGate: providerExecutionGate
       }),
     [
       phase4ProviderBlockerPriority,
       phase4ProviderCatalogDepth,
       phase4ProviderSurfaceDepth,
       phase4ProviderTraceability,
-      phase4RefreshSafetyDepth
+      phase4RefreshSafetyDepth,
+      providerExecutionGate
     ]
   );
   const phase4ProviderReviewArtifactVerification = useMemo(() => {

@@ -913,6 +913,7 @@ describe("remaining goal plan", () => {
     expect(blockerPriorityChild?.description).toContain("blockerPriorityProof");
     expect(completionStatusChild?.completionPercent).toBe(100);
     expect(completionStatusChild?.description).toContain("phase4ProviderCompletionStatusProof");
+    expect(completionStatusChild?.description).toContain("providerGate held proof");
     expect(phase4Goal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-04-child-command-skill",
@@ -930,7 +931,9 @@ describe("remaining goal plan", () => {
       ])
     );
     expect(phase4Goal?.nextAction).toContain("Phase 4 provider completion status proof attached");
-    expect(phase4Goal?.nextAction).toContain("catalog-depth, refresh-safety, surface-depth, traceability, blocker-priority, PM-link");
+    expect(phase4Goal?.nextAction).toContain("catalog-depth, refresh-safety, surface-depth, traceability, blocker-priority");
+    expect(phase4Goal?.nextAction).toContain("PM-link");
+    expect(phase4Goal?.nextAction).toContain("providerGate hold proof");
     expect(phase4Goal?.nextAction).toContain("Provider execution remains locked");
   });
 

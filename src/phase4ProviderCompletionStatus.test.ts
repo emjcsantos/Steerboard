@@ -7,6 +7,7 @@ import type { Phase4ProviderCatalogDepthSummary } from "./phase4ProviderCatalogD
 import type { Phase4ProviderSurfaceDepthSnapshot } from "./phase4ProviderSurfaceDepth";
 import type { Phase4ProviderTraceabilitySummary } from "./phase4ProviderTraceability";
 import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
+import type { ProviderExecutionGate } from "./providerExecutionGate";
 
 function catalogDepth(
   overrides: Partial<Phase4ProviderCatalogDepthSummary> = {}
@@ -174,6 +175,31 @@ function blockerPriority(
   };
 }
 
+function executionGate(overrides: Partial<ProviderExecutionGate> = {}): ProviderExecutionGate {
+  return {
+    id: "provider-execution-gate",
+    label: "Provider execution gate",
+    state: "review",
+    statusLabel: "Review",
+    readiness: 65,
+    canRequestExecution: false,
+    providerSupportedCount: 4,
+    approvalRecordedCount: 0,
+    requiredSurfaceCount: 4,
+    readyCount: 0,
+    reviewCount: 4,
+    blockedCount: 0,
+    waitingCount: 0,
+    detail: "4/4 execution surfaces have explicit provider-live support; 0/4 have explicit approval evidence.",
+    nextAction: "Record explicit owner approval before provider execution can be requested.",
+    safety: "Provider execution gate is evidence-only.",
+    executionGateProof:
+      "providerExecutionGate state=review canRequest=no support=4/4 approval=0/4 surfaces=skill:review:support=yes:approval=no|plugin:review:support=yes:approval=no|mcp:review:support=yes:approval=no|automation:review:support=yes:approval=no safety=metadata-only",
+    items: [],
+    ...overrides
+  };
+}
+
 describe("phase 4 provider completion status", () => {
   it("marks Phase 4 complete only when all aggregate proof is trusted and execution stays locked", () => {
     const status = buildPhase4ProviderCompletionStatus({
@@ -181,17 +207,20 @@ describe("phase 4 provider completion status", () => {
       refreshSafety: refreshSafety(),
       surfaceDepth: surfaceDepth(),
       traceability: traceability(),
-      blockerPriority: blockerPriority()
+      blockerPriority: blockerPriority(),
+      executionGate: executionGate()
     });
 
     expect(status.state).toBe("complete");
     expect(status.phaseComplete).toBe(true);
     expect(status.canAdvanceMigrationReview).toBe(true);
     expect(status.providerExecutionLocked).toBe(true);
+    expect(status.providerExecutionGateHeld).toBe(true);
     expect(status.phase4ProviderCompletionStatusProof).toContain(
       "phase4ProviderCompletionStatusProof=state=complete"
     );
     expect(status.phase4ProviderCompletionStatusProof).toContain("pmLinks=16/16");
+    expect(status.phase4ProviderCompletionStatusProof).toContain("providerGate=held");
     expect(status.phase4ProviderCompletionStatusProof).toContain("execution=locked");
   });
 
@@ -201,6 +230,7 @@ describe("phase 4 provider completion status", () => {
       refreshSafety: refreshSafety(),
       surfaceDepth: surfaceDepth(),
       traceability: traceability(),
+      executionGate: executionGate(),
       blockerPriority: blockerPriority({
         state: "preview",
         statusLabel: "Preview",
@@ -237,12 +267,44 @@ describe("phase 4 provider completion status", () => {
       }),
       surfaceDepth: surfaceDepth(),
       traceability: traceability(),
-      blockerPriority: blockerPriority()
+      blockerPriority: blockerPriority(),
+      executionGate: executionGate()
     });
 
     expect(status.state).toBe("blocked");
     expect(status.phaseComplete).toBe(false);
     expect(status.topHold).toBe("refresh-safety");
     expect(status.phase4ProviderCompletionStatusProof).toContain("refresh=held");
+  });
+
+  it("keeps completion in review when provider execution can be requested", () => {
+    const status = buildPhase4ProviderCompletionStatus({
+      catalogDepth: catalogDepth(),
+      refreshSafety: refreshSafety(),
+      surfaceDepth: surfaceDepth(),
+      traceability: traceability(),
+      blockerPriority: blockerPriority(),
+      executionGate: executionGate({
+        state: "ready",
+        statusLabel: "Ready",
+        readiness: 100,
+        canRequestExecution: true,
+        approvalRecordedCount: 4,
+        readyCount: 4,
+        reviewCount: 0,
+        nextAction: "Keep provider execution requests attached to explicit support and approval evidence.",
+        executionGateProof:
+          "providerExecutionGate state=ready canRequest=yes support=4/4 approval=4/4 surfaces=skill:ready:support=yes:approval=yes|plugin:ready:support=yes:approval=yes|mcp:ready:support=yes:approval=yes|automation:ready:support=yes:approval=yes safety=metadata-only"
+      })
+    });
+
+    expect(status.state).toBe("review");
+    expect(status.phaseComplete).toBe(false);
+    expect(status.providerExecutionGateHeld).toBe(false);
+    expect(status.providerExecutionLocked).toBe(false);
+    expect(status.topHold).toBe("provider-execution-gate");
+    expect(status.nextAction).toContain("Hold provider execution requests");
+    expect(status.phase4ProviderCompletionStatusProof).toContain("providerGate=requestable");
+    expect(status.phase4ProviderCompletionStatusProof).toContain("execution=review");
   });
 });

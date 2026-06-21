@@ -400,7 +400,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-completion-status",
             title: "Provider Completion Status",
-            description: "Show owner-visible phase4ProviderCompletionStatusProof that ties catalog-depth, refresh-safety, surface-depth, traceability, blocker-priority, PM links, and provider execution-lock evidence together without unlocking provider execution.",
+            description: "Show owner-visible phase4ProviderCompletionStatusProof that ties catalog-depth, refresh-safety, surface-depth, traceability, blocker-priority, providerGate held proof, PM links, and provider execution-lock evidence together without unlocking provider execution.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 4 provider completion status"

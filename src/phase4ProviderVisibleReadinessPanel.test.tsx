@@ -291,6 +291,7 @@ describe("phase 4 provider visible readiness panel", () => {
       permissionValidation
     );
     const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
+    const executionGate = buildProviderExecutionGate(readiness);
     const traceability = buildPhase4ProviderTraceabilitySummary({
       catalogDepth,
       refreshSafety: readyRefreshSafety,
@@ -307,7 +308,8 @@ describe("phase 4 provider visible readiness panel", () => {
       refreshSafety: readyRefreshSafety,
       surfaceDepth,
       traceability,
-      blockerPriority
+      blockerPriority,
+      executionGate
     });
     const reviewArtifactVerification = verifyPhase4ProviderReviewArtifact(
       buildPhase4ProviderReviewArtifact({
@@ -456,6 +458,7 @@ describe("phase 4 provider visible readiness panel", () => {
     expect(html).toContain("catalogSmokeTop=no recordChain=ready traceability=review");
     expect(html).toContain("phase4ProviderCompletionStatusProof=state=review");
     expect(html).toContain("phase5=held");
+    expect(html).toContain("providerGate=held");
     expect(html).toContain("topHold=traceability");
     expect(html).toContain("Phase 4 provider blocker priority");
     expect(html).toContain("Remaining goal link");

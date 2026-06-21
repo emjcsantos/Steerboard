@@ -3,6 +3,7 @@ import type { Phase4ProviderCatalogDepthSummary } from "./phase4ProviderCatalogD
 import type { Phase4ProviderSurfaceDepthSnapshot } from "./phase4ProviderSurfaceDepth";
 import type { Phase4ProviderTraceabilitySummary } from "./phase4ProviderTraceability";
 import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
+import type { ProviderExecutionGate } from "./providerExecutionGate";
 
 export type Phase4ProviderCompletionStatusState =
   | "complete"
@@ -24,6 +25,7 @@ export interface Phase4ProviderCompletionStatus {
   readonly surfaceDepthReady: boolean;
   readonly traceabilityTrusted: boolean;
   readonly blockerPriorityClear: boolean;
+  readonly providerExecutionGateHeld: boolean;
   readonly linkedPmTaskCount: number;
   readonly requiredPmTaskCount: number;
   readonly openBlockerCount: number;
@@ -40,6 +42,7 @@ export interface Phase4ProviderCompletionStatusInput {
   readonly surfaceDepth: Phase4ProviderSurfaceDepthSnapshot;
   readonly traceability: Phase4ProviderTraceabilitySummary;
   readonly blockerPriority: Phase4ProviderBlockerPrioritySummary;
+  readonly executionGate: ProviderExecutionGate;
 }
 
 const STATUS_LABELS: Record<Phase4ProviderCompletionStatusState, string> = {
@@ -90,11 +93,20 @@ function providerExecutionLocked(input: Phase4ProviderCompletionStatusInput): bo
   return (
     input.catalogDepth.executionLockCount === 6 &&
     !input.surfaceDepth.canEnableExecution &&
+    providerExecutionGateHeld(input.executionGate) &&
     input.catalogDepth.catalogDepthProof.includes("execution=locked") &&
     input.refreshSafety.refreshSafetyDepthProof.includes("execution=locked") &&
     input.surfaceDepth.surfaceDepthProof.includes("execution=locked") &&
     input.traceability.traceabilityProof.includes("execution=locked") &&
     input.blockerPriority.blockerPriorityProof.includes("execution=locked")
+  );
+}
+
+function providerExecutionGateHeld(executionGate: ProviderExecutionGate): boolean {
+  return (
+    !executionGate.canRequestExecution &&
+    executionGate.executionGateProof.includes("canRequest=no") &&
+    executionGate.executionGateProof.includes("safety=metadata-only")
   );
 }
 
@@ -119,6 +131,9 @@ function topHold(input: Phase4ProviderCompletionStatusInput): string {
   }
   if (input.blockerPriority.openBlockerCount > 0) {
     return "blocker-priority";
+  }
+  if (!providerExecutionGateHeld(input.executionGate)) {
+    return "provider-execution-gate";
   }
   if (!providerExecutionLocked(input)) {
     return "execution-lock";
@@ -191,6 +206,9 @@ function nextAction(
   if (hold === "blocker-priority") {
     return input.blockerPriority.nextAction;
   }
+  if (hold === "provider-execution-gate") {
+    return "Hold provider execution requests before treating Phase 4 completion as trusted.";
+  }
   return "Restore provider execution lock proof before treating Phase 4 completion as trusted.";
 }
 
@@ -209,6 +227,7 @@ function proof(
     `surface=${status.surfaceDepthReady ? "ready" : "held"} ` +
     `traceability=${status.traceabilityTrusted ? "ready" : "held"} ` +
     `blockers=${status.blockerPriorityClear ? "clear" : "open"} ` +
+    `providerGate=${status.providerExecutionGateHeld ? "held" : "requestable"} ` +
     `pmLinks=${status.linkedPmTaskCount}/${status.requiredPmTaskCount} ` +
     `execution=${status.providerExecutionLocked ? "locked" : "review"} ` +
     `open=${status.openBlockerCount} topHold=${status.topHold}`
@@ -247,6 +266,7 @@ export function buildPhase4ProviderCompletionStatus(
     surfaceDepthReady: surfaceDepthReady(input.surfaceDepth),
     traceabilityTrusted: input.traceability.canTrustProviderReview,
     blockerPriorityClear: input.blockerPriority.openBlockerCount === 0,
+    providerExecutionGateHeld: providerExecutionGateHeld(input.executionGate),
     linkedPmTaskCount: input.traceability.linkedPmTaskCount,
     requiredPmTaskCount: REQUIRED_PM_TASK_COUNT,
     openBlockerCount: input.blockerPriority.openBlockerCount,
