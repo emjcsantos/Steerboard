@@ -890,7 +890,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-08-child-closeout-status",
             title: "Closeout Status",
-            description: "Show Phase 8 closeout status with phase8CloseoutStatusProof state/readiness/phase-complete/phase9-dependency/mutation-paths/owner-review-close/final-handoff/recorded/open/audit-review-blocker/top-hold counts so Phase 9 dependency review can advance while mutation paths stay locked.",
+            description: "Show Phase 8 closeout status with phase8CloseoutStatusProof state/readiness/phase-complete/phase9-dependency/mutation-paths/mutationExpansion/approvals/handlers/canAdvanceMutation/owner-review-close/final-handoff/recorded/open/audit-review-blocker/top-hold counts so Phase 9 dependency review can advance while mutation expansion and mutation paths stay locked.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 8 closeout status"

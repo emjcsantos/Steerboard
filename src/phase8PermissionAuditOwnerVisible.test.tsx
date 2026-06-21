@@ -296,6 +296,8 @@ describe("phase 8 permission audit owner-visible proof", () => {
     expect(html).toContain("phase8CloseoutStatusProof");
     expect(html).toContain("phase9Dependency=");
     expect(html).toContain("mutationPaths=locked");
+    expect(html).toContain("mutationExpansion=held");
+    expect(html).toContain("canAdvanceMutation=no");
     expect(html).toContain("Phase 8 mutation expansion gate");
     expect(html).toContain("phase8MutationExpansionGate");
     expect(html).toContain("approvals=0/9");

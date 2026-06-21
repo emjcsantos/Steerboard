@@ -82,12 +82,18 @@ describe("phase 8 closeout status", () => {
     expect(status.phaseComplete).toBe(false);
     expect(status.phase9DependencyReady).toBe(false);
     expect(status.mutationPathsLocked).toBe(true);
+    expect(status.canAdvanceMutationPaths).toBe(false);
+    expect(status.mutationExpansionHeld).toBe(true);
     expect(status.topHold).toBe("audit-review-blockers");
     expect(status.nextAction).toContain("owner audit review");
     expect(status.phase8CloseoutStatusProof).toContain("phase8CloseoutStatusProof");
     expect(status.phase8CloseoutStatusProof).toContain("phaseComplete=no");
     expect(status.phase8CloseoutStatusProof).toContain("phase9Dependency=held");
     expect(status.phase8CloseoutStatusProof).toContain("mutationPaths=locked");
+    expect(status.phase8CloseoutStatusProof).toContain("mutationExpansion=held");
+    expect(status.phase8CloseoutStatusProof).toContain("approvals=0/9");
+    expect(status.phase8CloseoutStatusProof).toContain("handlers=0/9");
+    expect(status.phase8CloseoutStatusProof).toContain("canAdvanceMutation=no");
   });
 
   it("closes Phase 8 for Phase 9 dependency while mutation paths stay locked", () => {
@@ -128,11 +134,17 @@ describe("phase 8 closeout status", () => {
     expect(status.phaseComplete).toBe(true);
     expect(status.phase9DependencyReady).toBe(true);
     expect(status.mutationPathsLocked).toBe(true);
+    expect(status.canAdvanceMutationPaths).toBe(false);
+    expect(status.mutationExpansionHeld).toBe(true);
     expect(status.ownerReviewClosed).toBe(true);
     expect(status.finalHandoffReady).toBe(true);
     expect(status.topHold).toBe("none");
     expect(status.phase8CloseoutStatusProof).toContain("phaseComplete=yes");
     expect(status.phase8CloseoutStatusProof).toContain("phase9Dependency=ready");
     expect(status.phase8CloseoutStatusProof).toContain("mutationPaths=locked");
+    expect(status.phase8CloseoutStatusProof).toContain("mutationExpansion=held");
+    expect(status.phase8CloseoutStatusProof).toContain("approvals=0/9");
+    expect(status.phase8CloseoutStatusProof).toContain("handlers=0/9");
+    expect(status.phase8CloseoutStatusProof).toContain("canAdvanceMutation=no");
   });
 });

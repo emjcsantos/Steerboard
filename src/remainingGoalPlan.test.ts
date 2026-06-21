@@ -776,7 +776,11 @@ describe("remaining goal plan", () => {
     expect(closeoutStatusChild?.completionPercent).toBe(100);
     expect(closeoutStatusChild?.description).toContain("phase8CloseoutStatusProof");
     expect(closeoutStatusChild?.description).toContain("phase9-dependency");
-    expect(closeoutStatusChild?.description).toContain("mutation paths stay locked");
+    expect(closeoutStatusChild?.description).toContain("mutationExpansion");
+    expect(closeoutStatusChild?.description).toContain("approvals");
+    expect(closeoutStatusChild?.description).toContain("handlers");
+    expect(closeoutStatusChild?.description).toContain("canAdvanceMutation");
+    expect(closeoutStatusChild?.description).toContain("mutation expansion and mutation paths stay locked");
     expect(ownerReviewHandoffChild?.completionPercent).toBe(100);
     expect(ownerReviewHandoffChild?.description).toContain("phase8AuditReviewHandoffProof");
     expect(ownerReviewHandoffChild?.description).toContain("artifactState/fingerprintCurrent/reviewedBlocker");
@@ -827,6 +831,10 @@ describe("remaining goal plan", () => {
     expect(phase8Goal?.nextAction).toContain("final completion handoff");
     expect(phase8Goal?.nextAction).toContain("phase8CloseoutStatusProof");
     expect(phase8Goal?.nextAction).toContain("closeout status");
+    expect(phase8Goal?.nextAction).toContain("mutationExpansion=held");
+    expect(phase8Goal?.nextAction).toContain("approvals=0/9");
+    expect(phase8Goal?.nextAction).toContain("handlers=0/9");
+    expect(phase8Goal?.nextAction).toContain("canAdvanceMutation=no");
     expect(phase8Goal?.nextAction).toContain("local owner audit-review record");
     expect(phase8Goal?.nextAction).toContain("current audit evidence fingerprint");
     expect(phase8Goal?.nextAction).toContain("record-specific rollback review");

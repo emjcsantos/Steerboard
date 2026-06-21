@@ -47,6 +47,11 @@ function closeoutStatus(overrides: Partial<Phase8CloseoutStatus> = {}): Phase8Cl
     phaseComplete: true,
     phase9DependencyReady: true,
     mutationPathsLocked: true,
+    canAdvanceMutationPaths: false,
+    mutationExpansionHeld: true,
+    approvedMutationSurfaceCount: 0,
+    handlerMutationSurfaceCount: 0,
+    requiredMutationSurfaceCount: 9,
     ownerReviewClosed: true,
     finalHandoffReady: true,
     ownerReviewRecorded: true,
@@ -55,7 +60,7 @@ function closeoutStatus(overrides: Partial<Phase8CloseoutStatus> = {}): Phase8Cl
     auditReviewBlockersRemaining: 0,
     topHold: "none",
     phase8CloseoutStatusProof:
-      "phase8CloseoutStatusProof=state=ready readiness=100 phaseComplete=yes phase9Dependency=ready mutationPaths=locked ownerReviewClose=ready finalHandoff=ready recorded=yes open=0 openExceptions=0 auditReviewBlockers=0 topHold=none",
+      "phase8CloseoutStatusProof=state=ready readiness=100 phaseComplete=yes phase9Dependency=ready mutationPaths=locked mutationExpansion=held approvals=0/9 handlers=0/9 canAdvanceMutation=no ownerReviewClose=ready finalHandoff=ready recorded=yes open=0 openExceptions=0 auditReviewBlockers=0 topHold=none",
     nextAction:
       "Phase 8 closeout proof is ready for Phase 9 dependency review; keep mutation paths locked.",
     safety:
