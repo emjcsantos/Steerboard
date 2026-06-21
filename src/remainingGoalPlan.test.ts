@@ -37,7 +37,7 @@ describe("remaining goal plan", () => {
         "Use the Phase 9 runner closeout status proof as the current active implementation target with approval, approval-depth, traceability, blocker-priority, visible desktop-probe gate status, complete Phase 8 dependency proof, phase9RequestGateProof, phase9RunnerCompletionGateProof, backendScope provider/intent proof, PM-link, and runner-expansion lock evidence visible. Phase 9 runner closeout status proof attached. Only the fixed terminal-readonly-probe may advance after live gates are ready; broader runner actions remain locked.",
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
-        "Use the Phase 1/2/6 priority evidence, publish-hold traceability, blocker-priority queue, and phase126PublishHoldCloseoutStatusProof to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
+        "Use the Phase 1/2/6 priority evidence, publish-hold traceability, blocker-priority queue, phase126PublishHoldCloseoutStatusProof, and phase126PublishExecutionGateProof proofCommits=held/noPush=active evidence to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
       coveredPhaseCount: 11,
       remainingPhaseCount: 11,
       priorityGoalTraceCount: 9,
@@ -234,6 +234,9 @@ describe("remaining goal plan", () => {
     expect(publishGoal?.nextAction).toContain("publish-hold traceability");
     expect(publishGoal?.nextAction).toContain("blocker-priority queue");
     expect(publishGoal?.nextAction).toContain("phase126PublishHoldCloseoutStatusProof");
+    expect(publishGoal?.nextAction).toContain("phase126PublishExecutionGateProof");
+    expect(publishGoal?.nextAction).toContain("proofCommits=held");
+    expect(publishGoal?.nextAction).toContain("noPush=active");
     expect(phase3Goal?.target).toBe("Phase 3 desktop proof clearance");
     expect(phase3Goal?.current).toBeUndefined();
     expect(phase3Goal?.completionPercent).toBe(100);
@@ -340,6 +343,7 @@ describe("remaining goal plan", () => {
     expect(summary.currentNextAction).toContain("current active implementation target");
     expect(summary.ownerHoldTarget).toBe("Unblock Phase 1/2/6 publishing");
     expect(summary.ownerHoldNextAction).toContain("owner says to push");
+    expect(summary.ownerHoldNextAction).toContain("proofCommits=held");
     expect(summary.priorityGoalTraces[0]).toMatchObject({
       goalId: "goal-phase-9-runner",
       current: true

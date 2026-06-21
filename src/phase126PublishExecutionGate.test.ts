@@ -49,6 +49,7 @@ describe("phase 1/2/6 publish execution gate", () => {
     expect(gate.canPush).toBe(false);
     expect(gate.canPublish).toBe(false);
     expect(gate.noPushBoundaryActive).toBe(true);
+    expect(gate.localProofCommitQueueHeld).toBe(true);
     expect(gate.topHold).toBe("public-remote");
     expect(gate.phase126PublishExecutionGateProof).toContain(
       "phase126PublishExecutionGateProof=state=blocked"
@@ -58,6 +59,7 @@ describe("phase 1/2/6 publish execution gate", () => {
     expect(gate.phase126PublishExecutionGateProof).toContain("target=unverified");
     expect(gate.phase126PublishExecutionGateProof).toContain("canPush=no");
     expect(gate.phase126PublishExecutionGateProof).toContain("noPush=active");
+    expect(gate.phase126PublishExecutionGateProof).toContain("proofCommits=held");
   });
 
   it("stays blocked after remote restoration until owner approval is recorded", () => {
@@ -107,9 +109,11 @@ describe("phase 1/2/6 publish execution gate", () => {
     expect(gate.canPush).toBe(true);
     expect(gate.canPublish).toBe(true);
     expect(gate.noPushBoundaryActive).toBe(false);
+    expect(gate.localProofCommitQueueHeld).toBe(false);
     expect(gate.topHold).toBe("none");
     expect(gate.phase126PublishExecutionGateProof).toContain("canPush=yes");
     expect(gate.phase126PublishExecutionGateProof).toContain("noPush=cleared");
+    expect(gate.phase126PublishExecutionGateProof).toContain("proofCommits=released");
     expect(gate.phase126PublishExecutionGateProof).toContain(
       "branch=codex/remaining-goal-phase9-active"
     );

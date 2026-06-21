@@ -610,7 +610,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-06-child-publish-hold-closeout-status",
             title: "Publish Hold Closeout Status",
-            description: "Show phase126PublishHoldCloseoutStatusProof state/readiness/implementation-complete/priority/local-hold/publish/push/PM-link/open/review/top-hold/evidence counts so Phase 1, Phase 2, and Phase 6 local implementation is visibly closed out while remote publishing and pushing stay owner-held.",
+            description: "Show phase126PublishHoldCloseoutStatusProof and phase126PublishExecutionGateProof state/readiness/implementation-complete/priority/local-hold/publish/push/noPush/proofCommits/PM-link/open/review/top-hold/evidence counts so Phase 1, Phase 2, and Phase 6 local implementation is visibly closed out while remote publishing, proof commits, and pushing stay owner-held.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 1/2/6 publish hold closeout status"

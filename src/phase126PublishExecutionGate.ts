@@ -7,6 +7,7 @@ export interface Phase126PublishExecutionGateInput {
   readonly publicRemoteRestored?: boolean;
   readonly ownerPushApprovalRecorded?: boolean;
   readonly branchTargetVerified?: boolean;
+  readonly localProofCommitQueueHeld?: boolean;
   readonly targetBranch?: string;
 }
 
@@ -24,6 +25,7 @@ export interface Phase126PublishExecutionGate {
   readonly canPush: boolean;
   readonly canPublish: boolean;
   readonly noPushBoundaryActive: boolean;
+  readonly localProofCommitQueueHeld: boolean;
   readonly targetBranch: string;
   readonly topHold: string;
   readonly phase126PublishExecutionGateProof: string;
@@ -100,7 +102,7 @@ function readinessForState(state: Phase126PublishExecutionGateState, hold: strin
 
 function nextAction(input: Phase126PublishExecutionGateInput, hold: string): string {
   if (hold === "none") {
-    return "Phase 1/2/6 publish execution can be considered through the owner-approved push path.";
+    return "Phase 1/2/6 publish execution can be considered through the owner-approved push path with the local proof commit queue released.";
   }
   if (hold === "local-closeout") {
     return input.closeoutStatus.nextAction;
@@ -127,7 +129,9 @@ function proof(
     `ownerApproval=${gate.ownerPushApprovalRecorded ? "recorded" : "missing"} ` +
     `target=${gate.branchTargetVerified ? "verified" : "unverified"} ` +
     `canPush=${yesNo(gate.canPush)} canPublish=${yesNo(gate.canPublish)} ` +
-    `noPush=${gate.noPushBoundaryActive ? "active" : "cleared"} topHold=${gate.topHold} ` +
+    `noPush=${gate.noPushBoundaryActive ? "active" : "cleared"} ` +
+    `proofCommits=${gate.localProofCommitQueueHeld ? "held" : "released"} ` +
+    `topHold=${gate.topHold} ` +
     `branch=${gate.targetBranch}`
   );
 }
@@ -153,6 +157,8 @@ export function buildPhase126PublishExecutionGate(
     input.publicRemoteRestored === true &&
     input.ownerPushApprovalRecorded === true &&
     input.branchTargetVerified === true;
+  const localProofCommitQueueHeld =
+    input.localProofCommitQueueHeld ?? !canPush;
   const draft = {
     id: "phase-1-2-6-publish-execution-gate",
     label: "Phase 1/2/6 publish execution gate",
@@ -167,6 +173,7 @@ export function buildPhase126PublishExecutionGate(
     canPush,
     canPublish: canPush,
     noPushBoundaryActive: !canPush,
+    localProofCommitQueueHeld,
     targetBranch: input.targetBranch ?? "current-local-branch",
     topHold: hold,
     nextAction: nextAction(input, hold),
