@@ -19,6 +19,7 @@ import type {
 import type { Phase4ProviderSurfaceDepthSnapshot } from "./phase4ProviderSurfaceDepth";
 import type { Phase4ProviderTraceabilitySummary } from "./phase4ProviderTraceability";
 import type { Phase4RefreshSafetyDepthSummary } from "./phase4RefreshSafetyDepth";
+import type { ProviderExecutionGate } from "./providerExecutionGate";
 
 export type Phase4ProviderReviewArtifactState = "ready" | "review" | "blocked" | "waiting";
 
@@ -33,6 +34,7 @@ export interface Phase4ProviderReviewArtifact {
   readonly surfaceDepth: Phase4ProviderSurfaceDepthSnapshot;
   readonly traceability: Phase4ProviderTraceabilitySummary;
   readonly blockerPriority: Phase4ProviderBlockerPrioritySummary;
+  readonly providerExecutionGate: ProviderExecutionGate;
   readonly approvalRecord?: Phase4ProviderApprovalRecord;
   readonly approvalValidation?: Phase4ProviderApprovalRecordValidation;
   readonly auditRecord?: Phase4ProviderAuditRecord;
@@ -56,6 +58,7 @@ export interface Phase4ProviderReviewArtifactVerification {
   readonly traceabilityItemCount: number;
   readonly openBlockerCount: number;
   readonly executionLocked: boolean;
+  readonly providerExecutionGateHeld: boolean;
   readonly currentCatalogFingerprint?: string;
   readonly expectedCatalogFingerprint?: string;
   readonly matchesExpectedCatalog?: boolean;
@@ -74,6 +77,7 @@ export interface Phase4ProviderReviewArtifactBuildInput {
   readonly surfaceDepth: Phase4ProviderSurfaceDepthSnapshot;
   readonly traceability: Phase4ProviderTraceabilitySummary;
   readonly blockerPriority: Phase4ProviderBlockerPrioritySummary;
+  readonly providerExecutionGate: ProviderExecutionGate;
   readonly approvalRecord?: Phase4ProviderApprovalRecord;
   readonly approvalValidation?: Phase4ProviderApprovalRecordValidation;
   readonly auditRecord?: Phase4ProviderAuditRecord;
@@ -436,6 +440,7 @@ function counts(
   | "traceabilityItemCount"
   | "openBlockerCount"
   | "executionLocked"
+  | "providerExecutionGateHeld"
   | "currentCatalogFingerprint"
   | "expectedCatalogFingerprint"
   | "matchesExpectedCatalog"
@@ -453,7 +458,15 @@ function counts(
     surfaceDepthItemCount: artifact?.surfaceDepth.items.length ?? 0,
     traceabilityItemCount: artifact?.traceability.items.length ?? 0,
     openBlockerCount: artifact?.blockerPriority.openBlockerCount ?? 0,
-    executionLocked: artifact ? !artifact.surfaceDepth.canEnableExecution : false,
+    executionLocked: artifact
+      ? !artifact.surfaceDepth.canEnableExecution &&
+        !artifact.providerExecutionGate.canRequestExecution
+      : false,
+    providerExecutionGateHeld: artifact
+      ? !artifact.providerExecutionGate.canRequestExecution &&
+        artifact.providerExecutionGate.executionGateProof.includes("canRequest=no") &&
+        artifact.providerExecutionGate.executionGateProof.includes("safety=metadata-only")
+      : false,
     currentCatalogFingerprint: currentCatalogFingerprint || undefined,
     expectedCatalogFingerprint: expectedFingerprint || undefined,
     matchesExpectedCatalog:
@@ -984,6 +997,7 @@ export function buildPhase4ProviderReviewArtifact(
     surfaceDepth: input.surfaceDepth,
     traceability: input.traceability,
     blockerPriority: input.blockerPriority,
+    providerExecutionGate: input.providerExecutionGate,
     ...(input.approvalRecord ? { approvalRecord: input.approvalRecord } : {}),
     ...(input.approvalValidation ? { approvalValidation: input.approvalValidation } : {}),
     ...(input.auditRecord ? { auditRecord: input.auditRecord } : {}),
@@ -1018,7 +1032,8 @@ export function parsePhase4ProviderReviewArtifact(
       !isRecord(parsed.refreshSafety) ||
       !isRecord(parsed.surfaceDepth) ||
       !isRecord(parsed.traceability) ||
-      !isRecord(parsed.blockerPriority)
+      !isRecord(parsed.blockerPriority) ||
+      !isRecord(parsed.providerExecutionGate)
     ) {
       return undefined;
     }
@@ -1133,6 +1148,20 @@ export function verifyPhase4ProviderReviewArtifact(
       artifact,
       "Phase 4 provider review artifact cannot be trusted because provider execution is enabled.",
       "Restore the provider execution lock and export metadata-only review evidence again.",
+      expectedCatalogFingerprint
+    );
+  }
+
+  if (
+    artifact.providerExecutionGate.canRequestExecution ||
+    !artifact.providerExecutionGate.executionGateProof.includes("canRequest=no") ||
+    !artifact.providerExecutionGate.executionGateProof.includes("safety=metadata-only")
+  ) {
+    return result(
+      "blocked",
+      artifact,
+      "Phase 4 provider review artifact cannot be trusted because the provider execution gate is requestable.",
+      "Restore the provider execution gate hold and export metadata-only review evidence again.",
       expectedCatalogFingerprint
     );
   }
@@ -1348,7 +1377,7 @@ export function verifyPhase4ProviderReviewArtifact(
   return result(
     "ready",
     artifact,
-    "Phase 4 provider review artifact contains current catalog depth, refresh safety, surface depth, traceability, blocker priority, and execution-lock evidence.",
+    "Phase 4 provider review artifact contains current catalog depth, refresh safety, surface depth, traceability, blocker priority, provider execution gate hold, and execution-lock evidence.",
     "Keep the Phase 4 provider review artifact attached while provider execution remains locked.",
     expectedCatalogFingerprint
   );

@@ -41,6 +41,7 @@ import {
 import { buildPhase4ProviderSurfaceDepth } from "./phase4ProviderSurfaceDepth";
 import { buildPhase4ProviderTraceabilitySummary } from "./phase4ProviderTraceability";
 import { buildPhase4RefreshSafetyDepth } from "./phase4RefreshSafetyDepth";
+import { buildProviderExecutionGate } from "./providerExecutionGate";
 import { buildProviderIntegrationReadiness } from "./providerIntegrationReadiness";
 
 const liveCatalogPayload = {
@@ -86,6 +87,7 @@ function reviewArtifact({
   const currentCatalogFingerprint =
     refreshSmoke.catalogFingerprint ?? "phase4-catalog-current";
   const readiness = buildProviderIntegrationReadiness(buildCatalogRefreshOwnerValidation());
+  const providerExecutionGate = buildProviderExecutionGate(readiness);
   const catalogDepth = buildPhase4ProviderCatalogDepth(readiness);
   const refreshSafety = buildPhase4RefreshSafetyDepth(refreshSmoke, {
     evaluatedAt,
@@ -112,7 +114,8 @@ function reviewArtifact({
     refreshSafety,
     surfaceDepth,
     traceability,
-    blockerPriority
+    blockerPriority,
+    providerExecutionGate
   });
 }
 
@@ -468,9 +471,43 @@ describe("phase 4 provider review artifact", () => {
       readiness: 100,
       canVerifyOffline: true,
       executionLocked: true,
+      providerExecutionGateHeld: true,
       currentCatalogFingerprint: readyArtifact.currentCatalogFingerprint,
       expectedCatalogFingerprint: readyArtifact.currentCatalogFingerprint,
       matchesExpectedCatalog: true
+    });
+  });
+
+  it("blocks review artifacts when the provider execution gate is requestable", () => {
+    const artifact = withReadyLocalRecords(
+      reviewArtifact({
+        refreshSmoke: liveCatalogRefreshSmoke()
+      })
+    );
+    const requestableExecutionArtifact: Phase4ProviderReviewArtifact = {
+      ...artifact,
+      providerExecutionGate: {
+        ...artifact.providerExecutionGate,
+        state: "ready",
+        statusLabel: "Ready",
+        readiness: 100,
+        canRequestExecution: true,
+        approvalRecordedCount: 4,
+        executionGateProof:
+          "providerExecutionGate state=ready canRequest=yes support=4/4 approval=4/4 surfaces=skill:ready:support=yes:approval=yes|plugin:ready:support=yes:approval=yes|mcp:ready:support=yes:approval=yes|automation:ready:support=yes:approval=yes safety=metadata-only"
+      }
+    };
+
+    expect(
+      verifyPhase4ProviderReviewArtifact(requestableExecutionArtifact, {
+        verifiedAt: "2026-06-18T10:05:00.000Z",
+        expectedCatalogFingerprint: artifact.currentCatalogFingerprint
+      })
+    ).toMatchObject({
+      state: "blocked",
+      executionLocked: false,
+      providerExecutionGateHeld: false,
+      detail: expect.stringContaining("provider execution gate is requestable")
     });
   });
 

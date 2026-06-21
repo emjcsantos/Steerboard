@@ -321,6 +321,7 @@ describe("phase 4 provider visible readiness panel", () => {
         surfaceDepth,
         traceability,
         blockerPriority,
+        providerExecutionGate: executionGate,
         approvalRecord: record,
         approvalValidation,
         auditRecord,
@@ -559,7 +560,8 @@ describe("phase 4 provider visible readiness panel", () => {
               canTrustProviderReview: true,
               traceabilityProof: traceability.traceabilityProof.replace("trust=review", "trust=ready")
             },
-            blockerPriority: noOpenBlockerPriority
+            blockerPriority: noOpenBlockerPriority,
+            providerExecutionGate: buildProviderExecutionGate(readiness)
           })
         ),
         { verifiedAt: "2026-06-18T10:35:00.000Z" }

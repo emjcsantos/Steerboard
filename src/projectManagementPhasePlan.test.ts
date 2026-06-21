@@ -96,6 +96,7 @@ describe("project management phase plan", () => {
     expect(traceabilityChild?.description).toContain("traceabilityProof");
     expect(blockerPriorityChild?.description).toContain("blockerPriorityProof");
     expect(completionStatusChild?.description).toContain("phase4ProviderCompletionStatusProof");
+    expect(completionStatusChild?.description).toContain("providerExecutionGateHeld proof");
     expect(completionStatusChild?.description).toContain("providerGate held proof");
   });
 

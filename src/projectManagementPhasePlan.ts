@@ -305,7 +305,7 @@ const phaseSpecs: PhaseSpec[] = [
   {
     id: "phase-04-provider-surfaces",
     title: "Phase 4: Provider Integration Surfaces",
-    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof with item-order/source/metadata coverage, structured plugin/MCP aggregate proof with item-order/source/metadata coverage, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, owner-visible phase4ProviderCompletionStatusProof, and current six-surface fingerprint checks after Phase 3 clears.",
+    description: "Expand command, skill, plugin, MCP, automation, and personalization surfaces with metadata-only readiness depth, fresh catalog proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof with item-order/source/metadata coverage, structured plugin/MCP aggregate proof with item-order/source/metadata coverage, structured all-catalog refresh-smoke proof, structured refresh-safety depth aggregate proof, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, offline provider-review artifact providerExecutionGateHeld proof, owner-visible phase4ProviderCompletionStatusProof, and current six-surface fingerprint checks after Phase 3 clears.",
     completionPercent: 100,
     complexity: "extra_high",
     sourceDocument: "Phase completion map",
@@ -313,7 +313,7 @@ const phaseSpecs: PhaseSpec[] = [
       {
         id: "phase-04-parent-catalogs",
         title: "Provider Catalog Surfaces",
-        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof with item-order/source/metadata coverage, structured plugin/MCP aggregate proof with item-order/source/metadata coverage, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, phase4ProviderCompletionStatusProof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
+        description: "Render provider catalogs, readiness labels, current catalog fingerprints, metadata proof, structured catalog-depth aggregate proof, structured command/skill aggregate proof with item-order/source/metadata coverage, structured plugin/MCP aggregate proof with item-order/source/metadata coverage, structured plugin/MCP scoped proof, structured approval-chain proof, structured audit-chain proof, structured rollback-chain proof, structured permission-chain proof, structured surface-depth aggregate proof, aggregate local record-validation proof, aggregate record-chain traceability proof, offline provider-review artifact providerExecutionGateHeld proof, phase4ProviderCompletionStatusProof, and surface-depth blockers as metadata-first surfaces before execution is enabled.",
         completionPercent: 100,
         complexity: "high",
         sourceDocument: "Live platform capabilities",
@@ -400,7 +400,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-04-child-completion-status",
             title: "Provider Completion Status",
-            description: "Show owner-visible phase4ProviderCompletionStatusProof that ties catalog-depth, refresh-safety, surface-depth, traceability, blocker-priority, providerGate held proof, PM links, and provider execution-lock evidence together without unlocking provider execution.",
+            description: "Show owner-visible phase4ProviderCompletionStatusProof that ties catalog-depth, refresh-safety, surface-depth, traceability, blocker-priority, offline provider-review artifact providerExecutionGateHeld proof, providerGate held proof, PM links, and provider execution-lock evidence together without unlocking provider execution.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 4 provider completion status"

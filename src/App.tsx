@@ -2443,6 +2443,7 @@ export function App() {
       surfaceDepth: phase4ProviderSurfaceDepth,
       traceability: phase4ProviderTraceability,
       blockerPriority: phase4ProviderBlockerPriority,
+      providerExecutionGate,
       approvalRecord: phase4ProviderApprovalRecord,
       approvalValidation: phase4ProviderApprovalValidation,
       auditRecord: phase4ProviderAuditRecord,
@@ -2472,7 +2473,8 @@ export function App() {
     phase4ProviderRollbackValidation,
     phase4ProviderSurfaceDepth,
     phase4ProviderTraceability,
-    phase4RefreshSafetyDepth
+    phase4RefreshSafetyDepth,
+    providerExecutionGate
   ]);
   const recordPhase4ProviderApproval = useCallback(() => {
     if (phase4RefreshSafetyDepth.blockedCount > 0 || phase4RefreshSafetyDepth.previewCount > 0) {
@@ -3148,6 +3150,7 @@ export function App() {
       surfaceDepth: phase4ProviderSurfaceDepth,
       traceability: phase4ProviderTraceability,
       blockerPriority: phase4ProviderBlockerPriority,
+      providerExecutionGate,
       approvalRecord: phase4ProviderApprovalRecord,
       approvalValidation: phase4ProviderApprovalValidation,
       auditRecord: phase4ProviderAuditRecord,
@@ -3191,7 +3194,8 @@ export function App() {
     phase4ProviderRollbackValidation,
     phase4ProviderSurfaceDepth,
     phase4ProviderTraceability,
-    phase4RefreshSafetyDepth
+    phase4RefreshSafetyDepth,
+    providerExecutionGate
   ]);
   const verifyImportedPhase4ProviderReviewArtifact = useCallback(
     (serializedArtifact: string) => {

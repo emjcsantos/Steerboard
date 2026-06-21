@@ -171,7 +171,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-04-child-refresh-safety-depth"
     ],
     nextAction:
-      "Keep the Phase 4 provider completion status proof attached with catalog-depth, refresh-safety, surface-depth, traceability, blocker-priority, providerGate hold proof, PM-link, and provider execution-lock evidence visible. Provider execution remains locked while Phase 5 migration review stays separate."
+      "Keep the Phase 4 provider completion status proof attached with catalog-depth, refresh-safety, surface-depth, traceability, blocker-priority, offline provider-review artifact providerExecutionGateHeld proof, providerGate hold proof, PM-link, and provider execution-lock evidence visible. Provider execution remains locked while Phase 5 migration review stays separate."
   },
   {
     id: "goal-phase-5-migration-hardening",
