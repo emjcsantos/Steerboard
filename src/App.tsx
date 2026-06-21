@@ -533,6 +533,10 @@ import {
   type Phase126PublishHoldCloseoutStatus
 } from "./phase126PublishHoldCloseoutStatus";
 import {
+  buildPhase126PublishExecutionGate,
+  type Phase126PublishExecutionGate
+} from "./phase126PublishExecutionGate";
+import {
   loadPhase3SmokeProofBundleWithStorageProof,
   savePhase3SmokeProofBundle
 } from "./phase3SmokeProofStorage";
@@ -14599,6 +14603,9 @@ export function OwnerTestingReadinessPanel({
     traceability: phase126PublishHoldTraceability,
     blockerPriority: phase126PublishHoldBlockerPriority
   });
+  const phase126PublishExecutionGate = buildPhase126PublishExecutionGate({
+    closeoutStatus: phase126PublishHoldCloseoutStatus
+  });
   const phase6PmBoardEvidence = phasePriorityEvidence.items.find((item) => item.id === "phase-6-pm-board");
   const handleReviewPhase6PmBoard = () => {
     const target =
@@ -14868,6 +14875,7 @@ export function OwnerTestingReadinessPanel({
             </ol>
           </div>
           <Phase126PublishHoldCloseoutStatusPanel status={phase126PublishHoldCloseoutStatus} />
+          <Phase126PublishExecutionGatePanel gate={phase126PublishExecutionGate} />
         </div>
         <div
           aria-label={`Session control readiness evidence ${sessionControlReadinessEvidence.statusLabel}; ${sessionControlReadinessEvidence.readiness}% ready`}
@@ -16102,6 +16110,48 @@ function Phase126PublishHoldCloseoutStatusPanel({
       </dl>
       <small>{status.phase126PublishHoldCloseoutStatusProof}</small>
       <small title={status.nextAction}>{status.nextAction}</small>
+    </div>
+  );
+}
+
+function Phase126PublishExecutionGatePanel({
+  gate
+}: {
+  gate: Phase126PublishExecutionGate;
+}) {
+  return (
+    <div
+      aria-label={gate.ariaLabel}
+      className={classNames(
+        "owner-testing-publish-hold-blocker-priority",
+        `owner-testing-publish-hold-blocker-priority-${gate.state}`
+      )}
+      title={gate.safety}
+    >
+      <div className="owner-testing-publish-hold-blocker-priority-header">
+        <strong>{gate.label}</strong>
+        <span>{gate.statusLabel}</span>
+        <b>{gate.readiness}%</b>
+      </div>
+      <dl
+        className="owner-testing-publish-hold-blocker-priority-grid"
+        aria-label="Phase 1 2 6 publish execution gate counts"
+      >
+        <div>
+          <dt>Remote</dt>
+          <dd>{gate.publicRemoteRestored ? "Ready" : "Missing"}</dd>
+        </div>
+        <div>
+          <dt>Approval</dt>
+          <dd>{gate.ownerPushApprovalRecorded ? "Ready" : "Missing"}</dd>
+        </div>
+        <div>
+          <dt>Push</dt>
+          <dd>{gate.canPush ? "Ready" : "Held"}</dd>
+        </div>
+      </dl>
+      <small>{gate.phase126PublishExecutionGateProof}</small>
+      <small title={gate.nextAction}>{gate.nextAction}</small>
     </div>
   );
 }
