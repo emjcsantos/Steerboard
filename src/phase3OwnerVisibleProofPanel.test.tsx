@@ -781,6 +781,8 @@ describe("phase 3 owner-visible proof panel", () => {
     expect(html).toContain("phase3ClearanceCompletionStatusProof");
     expect(html).toContain("phaseComplete=yes");
     expect(html).toContain("phase4=ready");
+    expect(html).toContain("publishExecution=held");
+    expect(html).toContain("noPush=active");
     expect(html).toContain("pmLinks=13/13");
     expect(html).toContain(
       "phase-03-child-proof-export-boundary / phase3.proof-export.offline-verification"

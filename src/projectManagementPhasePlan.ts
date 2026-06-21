@@ -267,7 +267,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-03-child-clearance-completion-status",
             title: "Clearance Completion Status",
-            description: "Show phase3ClearanceCompletionStatusProof state/readiness/phase-complete/phase4/smokeRows/exit/commandPlan/cli/blockers/traceability/proofExport/handoff/pmLinks/open/topHold counts so Phase 3 only reaches completion when every clearance and handoff proof surface is ready while execution and pushing stay owner-held.",
+            description: "Show phase3ClearanceCompletionStatusProof state/readiness/phase-complete/phase4/smokeRows/exit/commandPlan/cli/blockers/traceability/proofExport/handoff/publishExecution/noPush/pmLinks/open/topHold counts so Phase 3 only reaches completion when every clearance and handoff proof surface is ready while execution and pushing stay owner-held.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 3 clearance completion status"

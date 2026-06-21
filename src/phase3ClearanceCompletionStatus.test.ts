@@ -229,6 +229,8 @@ describe("phase 3 clearance completion status", () => {
     );
     expect(status.phase3ClearanceCompletionStatusProof).toContain("smokeRows=1/3");
     expect(status.phase3ClearanceCompletionStatusProof).toContain("phase4=held");
+    expect(status.phase3ClearanceCompletionStatusProof).toContain("publishExecution=held");
+    expect(status.phase3ClearanceCompletionStatusProof).toContain("noPush=active");
   });
 
   it("marks completion ready only when every Phase 3 proof surface is ready", () => {
@@ -304,9 +306,96 @@ describe("phase 3 clearance completion status", () => {
     expect(status.state).toBe("ready");
     expect(status.phaseComplete).toBe(true);
     expect(status.canAdvancePhase4Review).toBe(true);
+    expect(status.publishExecutionHeld).toBe(true);
+    expect(status.publishExecutionTopHold).toBe("owner-held");
     expect(status.topHold).toBe("none");
     expect(status.phase3ClearanceCompletionStatusProof).toContain("phaseComplete=yes");
     expect(status.phase3ClearanceCompletionStatusProof).toContain("phase4=ready");
+    expect(status.phase3ClearanceCompletionStatusProof).toContain("publishExecution=held");
+    expect(status.phase3ClearanceCompletionStatusProof).toContain("noPush=active");
     expect(status.phase3ClearanceCompletionStatusProof).toContain("pmLinks=13/13");
+  });
+
+  it("reports publish execution ready only when the publish gate clears no-push", () => {
+    const status = buildPhase3ClearanceCompletionStatus({
+      smokeReadiness: smoke({
+        state: "ready",
+        readiness: 100,
+        storageAttestedCount: 3,
+        storageReviewCount: 0,
+        counts: { ready: 3, review: 0, blocked: 0, waiting: 0 }
+      }),
+      exitGate: exitGate({ state: "ready", readiness: 100, pass: true, statusLabel: "Ready" }),
+      clearancePackage: clearancePackage({
+        state: "ready",
+        readiness: 100,
+        statusLabel: "Ready",
+        canExit: true,
+        readyCount: 5,
+        openCount: 0,
+        waitingCount: 0
+      }),
+      commandPlan: commandPlan({
+        state: "ready",
+        statusLabel: "Ready",
+        readySmokeCount: 3,
+        openSmokeCount: 0
+      }),
+      commandValidation: commandValidation({
+        state: "ready",
+        statusLabel: "Ready",
+        isFresh: true
+      }),
+      blockerPriority: blockerPriority({
+        state: "ready",
+        statusLabel: "Ready",
+        readiness: 100,
+        openBlockerCount: 0,
+        commandAddressableCount: 0,
+        topPriorityLabel: "None",
+        topPriorityAction: "No open blocker.",
+        commandCanAddressTopBlocker: false
+      }),
+      traceability: traceability({
+        state: "ready",
+        statusLabel: "Ready",
+        readiness: 100,
+        linkedPmTaskCount: 13,
+        missingPmTaskIds: [],
+        missingGoalPmTaskIds: [],
+        openTraceCount: 0,
+        canTrustTrace: true
+      }),
+      proofExport: proofExport({
+        state: "ready",
+        statusLabel: "Ready",
+        readiness: 100,
+        canVerifyOffline: true,
+        readyPanelEvidenceCount: 2,
+        storageAttestedDesktopProofCount: 3,
+        hasCommandValidationRecord: true,
+        hasOwnerHandoffRecord: true
+      }),
+      handoffGate: handoffGate({
+        state: "ready",
+        statusLabel: "Ready",
+        readiness: 100,
+        canAdvanceProviderIntegration: true,
+        exactBlockerCount: 0,
+        waitingCount: 0
+      }),
+      publishExecutionGate: {
+        state: "ready",
+        noPushBoundaryActive: false,
+        topHold: "none",
+        canPublish: true
+      }
+    });
+
+    expect(status.publishExecutionGateState).toBe("ready");
+    expect(status.publishExecutionHeld).toBe(false);
+    expect(status.phase3ClearanceCompletionStatusProof).toContain("publishExecution=ready");
+    expect(status.phase3ClearanceCompletionStatusProof).toContain("noPush=cleared");
+    expect(status.phase3ClearanceCompletionStatusProof).toContain("publishTopHold=none");
   });
 });

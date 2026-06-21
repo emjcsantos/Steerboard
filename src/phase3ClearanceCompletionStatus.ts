@@ -7,6 +7,7 @@ import type { Phase3ExitGateEvidence } from "./phase3ExitGateEvidence";
 import type { Phase3HandoffGate } from "./phase3HandoffGate";
 import type { Phase3ProofExportVerification } from "./phase3ProofExport";
 import type { Phase3SmokeProofReadinessResult } from "./phase3SmokeProofReadiness";
+import type { Phase126PublishExecutionGate } from "./phase126PublishExecutionGate";
 
 export type Phase3ClearanceCompletionStatusState =
   | "ready"
@@ -30,6 +31,9 @@ export interface Phase3ClearanceCompletionStatus {
   readonly traceabilityTrusted: boolean;
   readonly proofExportReady: boolean;
   readonly handoffReady: boolean;
+  readonly publishExecutionGateState: Phase126PublishExecutionGate["state"] | "blocked";
+  readonly publishExecutionHeld: boolean;
+  readonly publishExecutionTopHold: string;
   readonly linkedPmTaskCount: number;
   readonly requiredPmTaskCount: number;
   readonly storageAttestedDesktopProofCount: number;
@@ -51,6 +55,10 @@ export interface Phase3ClearanceCompletionStatusInput {
   readonly traceability: Phase3ClearanceTraceabilitySnapshot;
   readonly proofExport: Phase3ProofExportVerification;
   readonly handoffGate: Phase3HandoffGate;
+  readonly publishExecutionGate?: Pick<
+    Phase126PublishExecutionGate,
+    "state" | "noPushBoundaryActive" | "topHold" | "canPublish"
+  >;
 }
 
 const STATUS_LABELS: Record<Phase3ClearanceCompletionStatusState, string> = {
@@ -146,7 +154,7 @@ function nextAction(
     return "Repair blocked Phase 3 smoke, exit, command, traceability, proof-export, or handoff evidence before completion can be trusted.";
   }
   if (state === "ready") {
-    return "Phase 3 clearance completion proof is ready for Phase 4 provider review dependency; keep live execution and pushing owner-held.";
+    return "Phase 3 clearance completion proof is ready for Phase 4 provider review dependency; keep live execution and pushing owner-held through the publish execution gate.";
   }
   if (hold === "smoke-rows") {
     return "Refresh storage-attested Phase 3 desktop smoke proof rows before completion is trusted.";
@@ -190,8 +198,11 @@ function proof(
     `traceability=${status.traceabilityTrusted ? "ready" : "held"} ` +
     `proofExport=${status.proofExportReady ? "ready" : "held"} ` +
     `handoff=${status.handoffReady ? "ready" : "held"} ` +
+    `publishExecution=${status.publishExecutionHeld ? "held" : "ready"} ` +
+    `noPush=${status.publishExecutionHeld ? "active" : "cleared"} ` +
     `pmLinks=${status.linkedPmTaskCount}/${status.requiredPmTaskCount} ` +
-    `open=${status.openBlockerCount} topHold=${status.topHold}`
+    `open=${status.openBlockerCount} topHold=${status.topHold} ` +
+    `publishTopHold=${status.publishExecutionTopHold}`
   );
 }
 
@@ -212,6 +223,8 @@ export function buildPhase3ClearanceCompletionStatus(
   const hold = topHold(input);
   const state = resolveState(input, hold);
   const phaseComplete = state === "ready";
+  const publishExecutionHeld =
+    input.publishExecutionGate?.noPushBoundaryActive ?? true;
   const draft = {
     id: "phase-3-clearance-completion-status",
     label: "Phase 3 clearance completion status",
@@ -232,6 +245,9 @@ export function buildPhase3ClearanceCompletionStatus(
     proofExportReady:
       input.proofExport.state === "ready" && input.proofExport.canVerifyOffline,
     handoffReady: input.handoffGate.canAdvanceProviderIntegration,
+    publishExecutionGateState: input.publishExecutionGate?.state ?? "blocked",
+    publishExecutionHeld,
+    publishExecutionTopHold: input.publishExecutionGate?.topHold ?? "owner-held",
     linkedPmTaskCount: input.traceability.linkedPmTaskCount,
     requiredPmTaskCount: input.traceability.requiredPmTaskCount,
     storageAttestedDesktopProofCount: input.smokeReadiness.storageAttestedCount,

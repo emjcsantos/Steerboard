@@ -120,7 +120,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 3"],
     phaseIds: ["phase-03-controls-slash"],
     goal:
-      "Clear live-control, active-turn interrupt, active-turn steer, slash, session-control, fail-closed proof-export rows, handoff rows, and phase3ClearanceCompletionStatusProof rows from desktop mode with prioritized blocker review, fresh proof checks, offline verification, and goal/PM traceability.",
+      "Clear live-control, active-turn interrupt, active-turn steer, slash, session-control, fail-closed proof-export rows, handoff rows, and phase3ClearanceCompletionStatusProof rows from desktop mode with prioritized blocker review, fresh proof checks, offline verification, goal/PM traceability, and owner-held publish execution proof.",
     status: "next",
     priority: "critical",
     completionPercent: 100,
@@ -140,7 +140,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-03-child-control-ready"
     ],
     nextAction:
-      "Keep the Phase 3 command plan, CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, proof-export offline verification, and phase3ClearanceCompletionStatusProof attached as audit evidence while Phase 4 provider integration remains staged behind the current Phase 9 runner implementation target."
+      "Keep the Phase 3 command plan, CLI validation, desktop smoke proof, current-panel slash/session storage proof, owner handoff, proof-export offline verification, and phase3ClearanceCompletionStatusProof with publishExecution/noPush proof attached as audit evidence while Phase 4 provider integration remains staged behind the current Phase 9 runner implementation target."
   },
   {
     id: "goal-phase-4-provider-surfaces",

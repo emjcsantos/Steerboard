@@ -248,9 +248,11 @@ describe("remaining goal plan", () => {
     expect(phase3Goal?.nextAction).toContain("desktop smoke proof");
     expect(phase3Goal?.nextAction).toContain("current-panel slash/session storage proof");
     expect(phase3Goal?.goal).toContain("fail-closed proof-export rows");
+    expect(phase3Goal?.goal).toContain("owner-held publish execution proof");
     expect(phase3Goal?.nextAction).toContain("proof-export offline verification");
     expect(phase3Goal?.goal).toContain("phase3ClearanceCompletionStatusProof");
     expect(phase3Goal?.nextAction).toContain("phase3ClearanceCompletionStatusProof");
+    expect(phase3Goal?.nextAction).toContain("publishExecution/noPush proof");
     expect(phase3Goal?.nextAction).toContain("Phase 4 provider integration remains staged behind the current Phase 9 runner implementation target");
   });
 
@@ -295,6 +297,7 @@ describe("remaining goal plan", () => {
     });
     expect(completionStatusChild?.description).toContain("phase3ClearanceCompletionStatusProof");
     expect(completionStatusChild?.description).toContain("smokeRows");
+    expect(completionStatusChild?.description).toContain("publishExecution/noPush");
     expect(completionStatusChild?.description).toContain("execution and pushing stay owner-held");
   });
 
