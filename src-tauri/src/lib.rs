@@ -666,6 +666,16 @@ mod runtime_bridge {
     }
 
     #[tauri::command]
+    pub fn phase3_panel_evidence_artifact_read() -> Result<String, String> {
+        read_phase3_local_artifact("phase3-panel-evidence-record.json")
+    }
+
+    #[tauri::command]
+    pub fn phase4_provider_review_artifact_read() -> Result<String, String> {
+        read_phase3_local_artifact("phase4-provider-review-artifact.json")
+    }
+
+    #[tauri::command]
     pub fn live_action_runner_execute(request: LiveActionRunnerRequest) -> LiveActionRunnerResult {
         let requested_timestamp = match parse_millis_timestamp(&request.requested_timestamp) {
             Some(value) => value,
@@ -4199,7 +4209,9 @@ pub fn run() {
             runtime_bridge::codex_panel_session_steer,
             runtime_bridge::codex_panel_session_close,
             runtime_bridge::phase3_command_validation_artifact_read,
-            runtime_bridge::phase3_smoke_proof_bundle_artifact_read
+            runtime_bridge::phase3_smoke_proof_bundle_artifact_read,
+            runtime_bridge::phase3_panel_evidence_artifact_read,
+            runtime_bridge::phase4_provider_review_artifact_read
         ])
         .run(tauri::generate_context!())
         .expect("error while running Steerboard");

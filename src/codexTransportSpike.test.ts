@@ -308,7 +308,7 @@ describe("codex transport spike", () => {
       preferredTransport: "app-server-stdio",
       canDetectRuntime: true,
       canStartSession: true,
-      canSendPanelMessage: false,
+      canSendPanelMessage: true,
       canStreamAgentDeltas: true,
       proof: "handshake"
     });
@@ -368,7 +368,7 @@ describe("codex transport spike", () => {
     });
     expect(decision).toMatchObject({
       state: "ready",
-      canSendPanelMessage: false,
+      canSendPanelMessage: true,
       proof: "handshake"
     });
   });

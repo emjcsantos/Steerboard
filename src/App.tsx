@@ -4935,9 +4935,10 @@ export function App() {
                     </div>
                     {rightPanelCollapsed ? (
                       <button
+                        aria-label="Restore environment panel"
                         className="run-chip"
                         onClick={() => setRightPanelCollapsed(false)}
-                        title="Show Environment panel"
+                        title="Restore Environment panel"
                         type="button"
                       >
                         <PanelRight size={14} />
@@ -5958,6 +5959,22 @@ function AppDialogSurface({
     skillCatalogSnapshot
   );
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const handleDialogKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleDialogKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleDialogKeyDown);
+    };
+  }, [onClose]);
+
   const searchNeedle = searchQuery.trim().toLowerCase();
   const searchRows = [
     ...projects.map((project) => ({
@@ -6043,7 +6060,20 @@ function AppDialogSurface({
             : platformCatalogView?.title ?? "Platform Catalog";
 
   return (
-    <div className="app-dialog-backdrop" role="presentation">
+    <div
+      className="app-dialog-backdrop"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          onClose();
+        }
+      }}
+      role="presentation"
+    >
       <section
         aria-label={title}
         aria-modal="true"

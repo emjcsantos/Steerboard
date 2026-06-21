@@ -723,15 +723,16 @@ export function decideCodexTransport(
   const protocolReady = hasPanelProtocol(probe);
   const appServerReady = probe.appServer.available && probe.appServer.stdioHandshake && protocolReady;
   const cliOnlyFallback = probe.cli.available && probe.execJson.available;
-  const canSendPanelMessage = appServerReady && (probe.execution.promptExecutionAllowed || liveProofOk);
-  const proof: CodexSendStreamProof = canSendPanelMessage
+  const sendStreamProven = appServerReady && (probe.execution.promptExecutionAllowed || liveProofOk);
+  const canSendPanelMessage = appServerReady;
+  const proof: CodexSendStreamProof = sendStreamProven
     ? "send-stream"
     : appServerReady
       ? "handshake"
       : protocolReady
         ? "schema"
         : "none";
-  const state: CodexTransportState = canSendPanelMessage
+  const state: CodexTransportState = sendStreamProven
     ? "live"
     : appServerReady
       ? "ready"
@@ -793,11 +794,13 @@ export function decideCodexTransport(
         id: "codex-send-stream",
         label: "Send/stream proof",
         detail: canSendPanelMessage
-          ? liveProofOk
+          ? sendStreamProven && liveProofOk
             ? "Live smoke returned the expected token via agent message delta."
-            : "Prompt send and stream path is unlocked."
-          : "Prompt send remains locked until an explicit execution approval bridge exists.",
-        status: canSendPanelMessage ? "live" : "preview"
+            : sendStreamProven
+              ? "Prompt send and stream path is explicitly unlocked."
+              : "Panel session commands can start and send live Codex turns; send/stream proof is pending."
+          : "Prompt send remains locked until the app-server panel protocol is ready.",
+        status: sendStreamProven ? "live" : canSendPanelMessage ? "ready" : "preview"
       }
     ]
   };
@@ -814,7 +817,7 @@ function buildSummary(
   }
 
   if (preferredTransport === "app-server-stdio" && proof === "handshake") {
-    return "Codex app-server stdio is the safest available transport: local detection and no-prompt handshake are proven, while prompt execution remains locked.";
+    return "Codex app-server stdio is ready: local detection, no-prompt handshake, and panel protocol are proven; live send/stream proof is pending.";
   }
 
   if (preferredTransport === "exec-json") {

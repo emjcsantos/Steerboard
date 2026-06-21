@@ -23,7 +23,7 @@ The bridge should remain locked until Steerboard has:
 - approval and audit recording,
 - fallback behavior when the app-server handshake fails.
 
-Readiness detection must remain no-prompt. Live send/stream proof is a separate user-triggered smoke action that spends model tokens only after the user asks for it.
+Readiness detection must remain no-prompt. In the Tauri app, a proven app-server handshake plus panel protocol support is enough to enable panel session start/send through the desktop backend. Live send/stream proof is a separate user-triggered smoke action that spends model tokens only after the user asks for it.
 
 ## Proven Send/Stream Path
 
