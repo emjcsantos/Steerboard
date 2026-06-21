@@ -35,6 +35,9 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
+  "overrides": {
+    "esbuild": "0.28.1"
+  },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.2",
     "@types/node": "^25.0.3",
