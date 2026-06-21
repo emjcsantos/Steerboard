@@ -94,6 +94,11 @@ describe("phase 10 Arena polish owner-visible proof", () => {
     expect(html).toContain("Phase 10 Arena polish blocker priority");
     expect(html).toContain("Phase 10 Arena polish closeout status");
     expect(html).toContain("phase10ArenaPolishCloseoutStatusProof");
+    expect(html).toContain("Phase 10 Arena review addressability gate");
+    expect(html).toContain("phase10ArenaReviewAddressabilityGate");
+    expect(html).toContain("canRequest=no");
+    expect(html).toContain("ownerReview=required");
+    expect(html).toContain("topSource=phase-10-adaptive-arena-polish:docking-spike");
     expect(html).toContain("Phase 10 packaging resume gate");
     expect(html).toContain("phase10PackagingResumeGateProof");
     expect(html).toContain("canResume=no");

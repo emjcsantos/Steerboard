@@ -770,6 +770,10 @@ import {
   type Phase10ArenaPolishCloseoutStatus
 } from "./phase10ArenaPolishCloseoutStatus";
 import {
+  buildPhase10ArenaReviewAddressabilityGate,
+  type Phase10ArenaReviewAddressabilityGate
+} from "./phase10ArenaReviewAddressabilityGate";
+import {
   buildPhase10PackagingResumeGate,
   type Phase10PackagingResumeGate
 } from "./phase10PackagingResumeGate";
@@ -17153,6 +17157,10 @@ export function Phase10ArenaPolishPanel({
     traceability,
     blockerPriority
   });
+  const arenaReviewAddressabilityGate = buildPhase10ArenaReviewAddressabilityGate(
+    blockerPriority,
+    closeoutStatus
+  );
   const packagingResumeGate = buildPhase10PackagingResumeGate(closeoutStatus);
 
   return (
@@ -17307,6 +17315,7 @@ export function Phase10ArenaPolishPanel({
           </ol>
         </div>
         <Phase10ArenaPolishCloseoutStatusPanel status={closeoutStatus} />
+        <Phase10ArenaReviewAddressabilityGatePanel gate={arenaReviewAddressabilityGate} />
         <Phase10PackagingResumeGatePanel gate={packagingResumeGate} />
         <small title={snapshot.safety}>{snapshot.safety}</small>
       </div>
@@ -17349,6 +17358,52 @@ export function Phase10ArenaPolishCloseoutStatusPanel({
       </dl>
       <small>{status.phase10ArenaPolishCloseoutStatusProof}</small>
       <small title={status.nextAction}>{status.nextAction}</small>
+    </div>
+  );
+}
+
+export function Phase10ArenaReviewAddressabilityGatePanel({
+  gate
+}: {
+  gate: Phase10ArenaReviewAddressabilityGate;
+}) {
+  return (
+    <div
+      aria-label={gate.ariaLabel}
+      className={classNames(
+        "phase10-arena-blocker-priority",
+        `phase10-arena-blocker-priority-${gate.state}`
+      )}
+      title={gate.detail}
+    >
+      <div className="phase10-arena-blocker-priority-header">
+        <strong>{gate.label}</strong>
+        <span>{gate.statusLabel}</span>
+        <b>{gate.readiness}%</b>
+      </div>
+      <dl
+        className="phase10-arena-blocker-priority-grid"
+        aria-label="Phase 10 Arena review addressability gate counts"
+      >
+        <div>
+          <dt>Addressable</dt>
+          <dd>{gate.addressableSourceCount}</dd>
+        </div>
+        <div>
+          <dt>Request</dt>
+          <dd>{gate.canRequestArenaReview ? "Yes" : "No"}</dd>
+        </div>
+        <div>
+          <dt>Packaging</dt>
+          <dd>{gate.packagingPaused ? "Paused" : "Review"}</dd>
+        </div>
+        <div>
+          <dt>Owner</dt>
+          <dd>{gate.ownerArenaReviewApprovalRecorded ? "Recorded" : "Required"}</dd>
+        </div>
+      </dl>
+      <small>{gate.arenaReviewAddressabilityGateProof}</small>
+      <small title={gate.nextAction}>{gate.nextAction}</small>
     </div>
   );
 }
