@@ -218,4 +218,40 @@ describe("desktop action runner fallback and summary", () => {
     expect(blocked.code).toBe("approval-expired");
     expect(blocked.canExecute).toBe(false);
   });
+
+  it("blocks backend results outside the fixed terminal readonly probe scope", () => {
+    const wrongProvider = normalizeDesktopActionRunnerBackendResult(
+      {
+        provider: "git",
+        intent: "terminal-readonly-probe",
+        executed: true,
+        blocked: false,
+        actionLabel: "Run terminal readonly probe",
+        resultSummary: "STEERBOARD_LIVE_ACTION_PROBE_TOKEN",
+        timestamp: "2026-06-06T00:10:00.000Z",
+        safety: "Unexpected provider returned an execution result."
+      },
+      "permission-terminal-1"
+    );
+    const wrongIntent = normalizeDesktopActionRunnerBackendResult(
+      {
+        provider: "terminal",
+        intent: "terminal-write-command",
+        executed: true,
+        blocked: false,
+        actionLabel: "Run terminal command",
+        resultSummary: "STEERBOARD_LIVE_ACTION_PROBE_TOKEN",
+        timestamp: "2026-06-06T00:10:00.000Z",
+        safety: "Unexpected intent returned an execution result."
+      },
+      "permission-terminal-1"
+    );
+
+    expect(wrongProvider.status).toBe("blocked");
+    expect(wrongProvider.code).toBe("unsupported-provider");
+    expect(wrongProvider.canExecute).toBe(false);
+    expect(wrongIntent.status).toBe("blocked");
+    expect(wrongIntent.code).toBe("unsupported-provider");
+    expect(wrongIntent.canExecute).toBe(false);
+  });
 });

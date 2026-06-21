@@ -306,6 +306,10 @@ export function buildDesktopActionRunnerBuildFailureResult(
 }
 
 function codeFromBackendResult(result: DesktopActionRunnerBackendResult): DesktopActionRunnerResultCode {
+  if (result.provider !== "terminal" || result.intent !== ACTION_ID) {
+    return "unsupported-provider";
+  }
+
   if (result.executed && !result.blocked) {
     return "ok";
   }
@@ -342,7 +346,9 @@ export function normalizeDesktopActionRunnerBackendResult(
   requestId: string
 ): DesktopActionRunnerExecuteResult {
   const code = codeFromBackendResult(result);
-  const status: DesktopActionRunnerStatus = result.executed && !result.blocked
+  const expectedScope = result.provider === "terminal" && result.intent === ACTION_ID;
+  const executed = expectedScope && result.executed && !result.blocked;
+  const status: DesktopActionRunnerStatus = executed
     ? "executed"
     : code === "execution-failed"
       ? "failed"
@@ -354,8 +360,8 @@ export function normalizeDesktopActionRunnerBackendResult(
     requestId,
     status,
     code,
-    canExecute: result.executed && !result.blocked,
-    summary: result.executed
+    canExecute: executed,
+    summary: executed
       ? "Desktop terminal read-only probe executed through the approved runner contract."
       : `Desktop terminal read-only probe blocked: ${result.resultSummary}.`,
     detail: result.safety,
