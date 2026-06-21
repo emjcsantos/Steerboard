@@ -36,7 +36,7 @@ const SPIKE_ID = "phase-10-flexlayout-docking-spike";
 const SPIKE_LABEL = "FlexLayout docking spike";
 const REQUIRED_CAPABILITY_COUNT = 4;
 const SAFETY =
-  "Phase 10 FlexLayout docking spike is evidence-only. It records license, tabset, splitter, saved-layout JSON, dockable-panel, dependency, owner approval, and fallback feasibility without installing packages, changing layout runtime, mutating saved sessions, or replacing the custom adaptive grid.";
+  "Phase 10 FlexLayout docking spike records license, tabset, splitter, saved-layout JSON, dockable-panel, dependency, owner approval, and fallback feasibility while preserving the custom adaptive grid and avoiding source-session mutation.";
 
 const STATUS_LABELS: Record<Phase10FlexLayoutSpikeState, string> = {
   ready: "Ready",

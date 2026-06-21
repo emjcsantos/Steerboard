@@ -97,7 +97,7 @@ The latest public handoff is maintained in [Current State And Pipeline](project/
 
 ## Phase 10: Adaptive Magnetic Arena
 
-- Adaptive layout regression, density/readability, keyboard controls, focus state, Arena terminology, and `phase10ArenaPolishCloseoutStatusProof`.
+- Adaptive layout regression, FlexLayout docked Arena surface, density/readability, keyboard controls, focus state, Arena terminology, and `phase10ArenaPolishCloseoutStatusProof`.
 - Current adaptive canvas behavior remains local UI work; release gating stays behind Phase 3 clearance and later packaging gates.
 - Traceability and blocker priority for Arena-review acceptance before packaging resumes.
 

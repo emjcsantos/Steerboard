@@ -32,8 +32,16 @@ import {
   UserRound,
   Workflow
 } from "lucide-react";
+import {
+  Layout as FlexLayoutDock,
+  Model as FlexLayoutModel,
+  type Action as FlexLayoutAction,
+  type IJsonModel as FlexLayoutJsonModel,
+  type TabNode as FlexLayoutTabNode
+} from "flexlayout-react";
 import type { ChangeEvent, DragEvent, FormEvent, KeyboardEvent, PointerEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import "flexlayout-react/style/dark.css";
 import {
   ADAPTIVE_COCKPIT_DROP_JSON_MIME,
   ADAPTIVE_COCKPIT_DROP_PANEL_ID_MIME,
@@ -766,6 +774,10 @@ import {
   buildPhase10ArenaPolishSnapshot,
   type Phase10ArenaPolishSnapshot
 } from "./phase10ArenaPolish";
+import {
+  buildPhase10FlexLayoutDockingModel,
+  summarizePhase10FlexLayoutDockingModel
+} from "./phase10FlexLayoutDockingModel";
 import { buildPhase10FlexLayoutSpikeSummary } from "./phase10FlexLayoutSpike";
 import { buildPhase10ArenaPolishTraceability } from "./phase10ArenaPolishTraceability";
 import { buildPhase10ArenaPolishBlockerPriority } from "./phase10ArenaPolishBlockerPriority";
@@ -1261,6 +1273,7 @@ type PipelineDispatchRequestIntent = "idle" | "requested";
 type AppMenuId = "file" | "view" | "connect" | "help";
 type PlatformCatalogDialog = "plugins" | "skills" | "mcp" | "automations" | "personalization";
 type AppDialog = "migration" | "connection" | "slash-help" | "search" | "terminal" | PlatformCatalogDialog;
+type AdaptiveArenaSurface = "grid" | "dock";
 
 type PlatformCatalogState =
   | "live"
@@ -1989,6 +2002,10 @@ export function App() {
   const [activeAppMenu, setActiveAppMenu] = useState<AppMenuId>();
   const [appDialog, setAppDialog] = useState<AppDialog>();
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
+  const [adaptiveArenaSurface, setAdaptiveArenaSurface] = useState<AdaptiveArenaSurface>("grid");
+  const [flexLayoutDockingProof, setFlexLayoutDockingProof] = useState(
+    "FlexLayout docking model is ready; custom adaptive grid fallback is preserved."
+  );
   const [codexConnectionRequested, setCodexConnectionRequested] = useState(false);
   const [appNotice, setAppNotice] = useState("Local preview mode");
   const [codexTransportProbe, setCodexTransportProbe] = useState<CodexTransportProbe>(() =>
@@ -4853,6 +4870,26 @@ export function App() {
                           ))}
                         </select>
                       </label>
+                      <div className="adaptive-docking-toggle" aria-label="Adaptive Arena surface" role="group">
+                        <button
+                          className={classNames(adaptiveArenaSurface === "grid" && "is-active")}
+                          onClick={() => setAdaptiveArenaSurface("grid")}
+                          title="Use custom adaptive grid"
+                          type="button"
+                        >
+                          <Grid2X2 size={14} />
+                          <span>Grid</span>
+                        </button>
+                        <button
+                          className={classNames(adaptiveArenaSurface === "dock" && "is-active")}
+                          onClick={() => setAdaptiveArenaSurface("dock")}
+                          title={flexLayoutDockingProof}
+                          type="button"
+                        >
+                          <PanelRight size={14} />
+                          <span>Dock</span>
+                        </button>
+                      </div>
                       <button
                         disabled={hiddenAdaptivePanels.length === 0}
                         onClick={handleAddAdaptivePanel}
@@ -4910,98 +4947,119 @@ export function App() {
                   </div>
                 </div>
 
-                <div
-                  className={classNames(
-                    "cockpit-grid",
-                    layout.kind === "adaptive" && "cockpit-grid-adaptive",
-                    adaptiveDropPreview ? `is-drop-${adaptiveDropPreview.status}` : undefined
-                  )}
-                  onDragLeave={layout.kind === "adaptive" ? handleAdaptiveGridDragLeave : undefined}
-                  onDragOver={layout.kind === "adaptive" ? handleAdaptiveGridDragOver : undefined}
-                  onDrop={layout.kind === "adaptive" ? handleAdaptivePanelDrop : undefined}
-                  onPointerCancel={
-                    layout.kind === "adaptive"
-                      ? () => {
-                          clearAdaptiveDragState();
-                        }
-                      : undefined
-                  }
-                  onPointerUp={layout.kind === "adaptive" ? handleAdaptiveGridPointerDrop : undefined}
-                  style={{
-                    gridTemplateColumns: `repeat(${displayGrid.columns}, minmax(0, 1fr))`,
-                    gridTemplateRows: `repeat(${displayGrid.rows}, minmax(190px, 1fr))`
-                  }}
-                >
-                  {layout.kind === "adaptive" && adaptiveDropPreview ? (
-                    <div
-                      aria-live="polite"
-                      className={classNames(
-                        "adaptive-drop-preview",
-                        `is-${adaptiveDropPreview.tone}`
-                      )}
-                      data-adaptive-drop-preview={adaptiveDropPreview.status}
-                    >
-                      <strong>{adaptiveDropPreview.label}</strong>
-                      <span>{adaptiveDropPreview.detail}</span>
-                    </div>
-                  ) : null}
-                  {layout.kind === "adaptive"
-                    ? visibleAdaptivePanels.map((panel) => {
-                        const session = sessionById.get(panel.id);
-                        return session ? (
-                          <AdaptivePanelFrame
-                            columns={syncedAdaptiveLayout.columns}
-                            key={panel.id}
-                            onDragStart={handleAdaptivePanelDragStart}
-                            onHide={handleHideAdaptivePanel}
-                            onKeyboardAdjust={handleAdaptivePanelKeyboard}
-                            onPointerStart={handleAdaptivePanelPointerStart}
-                            onResize={handleResizeAdaptivePanel}
-                            panel={panel}
-                            rows={syncedAdaptiveLayout.rows}
-                            title={session.title}
-                          >
-                            <SessionCell
-                              commandCatalog={commandCatalogSnapshot.catalog}
-                              isFocused={session.id === focusedPanelId}
-                              liveCodexEnabled={codexTransportDecision.canStartSession}
-                              onPanelSessionStart={recordLivePanelSessionStart}
-                              onPanelSessionStatus={recordLivePanelSessionStatus}
-                              onSessionControlReadinessEvidence={recordSessionControlReadinessEvidence}
-                              onSlashCommandExecutionEvidence={recordSlashCommandExecutionEvidence}
-                              panelSessionIssue={panelSessionIdentityIssueByPanel.get(session.id)}
-                              panelSessionRecord={panelSessionState[session.id]}
-                              projectLabel={
-                                projectLabelById.get(session.projectId) ??
-                                registryByProject.get(session.projectId)?.workspaceLabel ??
-                                session.projectId
-                              }
-                              session={session}
-                            />
-                          </AdaptivePanelFrame>
-                        ) : null;
-                      })
-                    : visibleSessions.map((session) => (
-                        <SessionCell
-                          commandCatalog={commandCatalogSnapshot.catalog}
-                          isFocused={session.id === focusedPanelId}
-                          key={session.id}
-                          liveCodexEnabled={codexTransportDecision.canStartSession}
-                          onPanelSessionStart={recordLivePanelSessionStart}
-                          onPanelSessionStatus={recordLivePanelSessionStatus}
-                          onSessionControlReadinessEvidence={recordSessionControlReadinessEvidence}
-                          onSlashCommandExecutionEvidence={recordSlashCommandExecutionEvidence}
-                          panelSessionIssue={panelSessionIdentityIssueByPanel.get(session.id)}
-                          panelSessionRecord={panelSessionState[session.id]}
-                          projectLabel={
-                            projectLabelById.get(session.projectId) ??
-                            registryByProject.get(session.projectId)?.workspaceLabel ??
-                            session.projectId
+                {layout.kind === "adaptive" && adaptiveArenaSurface === "dock" ? (
+                  <FlexLayoutDockingArena
+                    commandCatalog={commandCatalogSnapshot.catalog}
+                    focusedPanelId={focusedPanelId}
+                    liveCodexEnabled={codexTransportDecision.canStartSession}
+                    onDockingModelChange={setFlexLayoutDockingProof}
+                    onPanelSessionStart={recordLivePanelSessionStart}
+                    onPanelSessionStatus={recordLivePanelSessionStatus}
+                    onSessionControlReadinessEvidence={recordSessionControlReadinessEvidence}
+                    onSlashCommandExecutionEvidence={recordSlashCommandExecutionEvidence}
+                    panelSessionIdentityIssueByPanel={panelSessionIdentityIssueByPanel}
+                    panelSessionState={panelSessionState}
+                    projectLabelForSession={(session) =>
+                      projectLabelById.get(session.projectId) ??
+                      registryByProject.get(session.projectId)?.workspaceLabel ??
+                      session.projectId
+                    }
+                    sessions={adaptiveVisibleSessions}
+                  />
+                ) : (
+                  <div
+                    className={classNames(
+                      "cockpit-grid",
+                      layout.kind === "adaptive" && "cockpit-grid-adaptive",
+                      adaptiveDropPreview ? `is-drop-${adaptiveDropPreview.status}` : undefined
+                    )}
+                    onDragLeave={layout.kind === "adaptive" ? handleAdaptiveGridDragLeave : undefined}
+                    onDragOver={layout.kind === "adaptive" ? handleAdaptiveGridDragOver : undefined}
+                    onDrop={layout.kind === "adaptive" ? handleAdaptivePanelDrop : undefined}
+                    onPointerCancel={
+                      layout.kind === "adaptive"
+                        ? () => {
+                            clearAdaptiveDragState();
                           }
-                          session={session}
-                        />
-                      ))}
-                </div>
+                        : undefined
+                    }
+                    onPointerUp={layout.kind === "adaptive" ? handleAdaptiveGridPointerDrop : undefined}
+                    style={{
+                      gridTemplateColumns: `repeat(${displayGrid.columns}, minmax(0, 1fr))`,
+                      gridTemplateRows: `repeat(${displayGrid.rows}, minmax(190px, 1fr))`
+                    }}
+                  >
+                    {layout.kind === "adaptive" && adaptiveDropPreview ? (
+                      <div
+                        aria-live="polite"
+                        className={classNames(
+                          "adaptive-drop-preview",
+                          `is-${adaptiveDropPreview.tone}`
+                        )}
+                        data-adaptive-drop-preview={adaptiveDropPreview.status}
+                      >
+                        <strong>{adaptiveDropPreview.label}</strong>
+                        <span>{adaptiveDropPreview.detail}</span>
+                      </div>
+                    ) : null}
+                    {layout.kind === "adaptive"
+                      ? visibleAdaptivePanels.map((panel) => {
+                          const session = sessionById.get(panel.id);
+                          return session ? (
+                            <AdaptivePanelFrame
+                              columns={syncedAdaptiveLayout.columns}
+                              key={panel.id}
+                              onDragStart={handleAdaptivePanelDragStart}
+                              onHide={handleHideAdaptivePanel}
+                              onKeyboardAdjust={handleAdaptivePanelKeyboard}
+                              onPointerStart={handleAdaptivePanelPointerStart}
+                              onResize={handleResizeAdaptivePanel}
+                              panel={panel}
+                              rows={syncedAdaptiveLayout.rows}
+                              title={session.title}
+                            >
+                              <SessionCell
+                                commandCatalog={commandCatalogSnapshot.catalog}
+                                isFocused={session.id === focusedPanelId}
+                                liveCodexEnabled={codexTransportDecision.canStartSession}
+                                onPanelSessionStart={recordLivePanelSessionStart}
+                                onPanelSessionStatus={recordLivePanelSessionStatus}
+                                onSessionControlReadinessEvidence={recordSessionControlReadinessEvidence}
+                                onSlashCommandExecutionEvidence={recordSlashCommandExecutionEvidence}
+                                panelSessionIssue={panelSessionIdentityIssueByPanel.get(session.id)}
+                                panelSessionRecord={panelSessionState[session.id]}
+                                projectLabel={
+                                  projectLabelById.get(session.projectId) ??
+                                  registryByProject.get(session.projectId)?.workspaceLabel ??
+                                  session.projectId
+                                }
+                                session={session}
+                              />
+                            </AdaptivePanelFrame>
+                          ) : null;
+                        })
+                      : visibleSessions.map((session) => (
+                          <SessionCell
+                            commandCatalog={commandCatalogSnapshot.catalog}
+                            isFocused={session.id === focusedPanelId}
+                            key={session.id}
+                            liveCodexEnabled={codexTransportDecision.canStartSession}
+                            onPanelSessionStart={recordLivePanelSessionStart}
+                            onPanelSessionStatus={recordLivePanelSessionStatus}
+                            onSessionControlReadinessEvidence={recordSessionControlReadinessEvidence}
+                            onSlashCommandExecutionEvidence={recordSlashCommandExecutionEvidence}
+                            panelSessionIssue={panelSessionIdentityIssueByPanel.get(session.id)}
+                            panelSessionRecord={panelSessionState[session.id]}
+                            projectLabel={
+                              projectLabelById.get(session.projectId) ??
+                              registryByProject.get(session.projectId)?.workspaceLabel ??
+                              session.projectId
+                            }
+                            session={session}
+                          />
+                        ))}
+                  </div>
+                )}
               </>
             ) : view === "pipeline" ? (
               <PipelineView
@@ -6876,6 +6934,127 @@ function AppDialogSurface({
           </div>
         ) : null}
       </section>
+    </div>
+  );
+}
+
+function FlexLayoutDockingArena({
+  commandCatalog,
+  focusedPanelId,
+  liveCodexEnabled,
+  onDockingModelChange,
+  onPanelSessionStart,
+  onPanelSessionStatus,
+  onSessionControlReadinessEvidence,
+  onSlashCommandExecutionEvidence,
+  panelSessionIdentityIssueByPanel,
+  panelSessionState,
+  projectLabelForSession,
+  sessions
+}: {
+  commandCatalog: readonly PanelSlashCommand[];
+  focusedPanelId?: string;
+  liveCodexEnabled: boolean;
+  onDockingModelChange: (proof: string) => void;
+  onPanelSessionStart: (result: CodexPanelSessionStartPayload) => void;
+  onPanelSessionStatus: (
+    panelId: string,
+    status: CodexPanelSessionStatus,
+    detail: string
+  ) => void;
+  onSessionControlReadinessEvidence: (
+    panelId: string,
+    evidence: SessionControlReadinessEvidence
+  ) => void;
+  onSlashCommandExecutionEvidence: (
+    panelId: string,
+    evidence: SlashCommandExecutionEvidence
+  ) => void;
+  panelSessionIdentityIssueByPanel: ReadonlyMap<string, CodexPanelSessionIdentityIssue>;
+  panelSessionState: CodexPanelSessionState;
+  projectLabelForSession: (session: SessionSummary) => string;
+  sessions: readonly SessionSummary[];
+}) {
+  const sessionById = useMemo(
+    () => new Map(sessions.map((session) => [session.id, session])),
+    [sessions]
+  );
+  const sessionKey = sessions.map((session) => session.id).join("|");
+  const flexLayoutModelJson = useMemo(
+    () => buildPhase10FlexLayoutDockingModel(sessions),
+    [sessionKey, sessions]
+  );
+  const flexLayoutModel = useMemo(
+    () => FlexLayoutModel.fromJson(flexLayoutModelJson),
+    [flexLayoutModelJson]
+  );
+
+  useEffect(() => {
+    onDockingModelChange(summarizePhase10FlexLayoutDockingModel(flexLayoutModel.toJson() as FlexLayoutJsonModel));
+  }, [flexLayoutModel, onDockingModelChange]);
+
+  const factory = useCallback(
+    (node: FlexLayoutTabNode) => {
+      if (node.getComponent() === "empty") {
+        return <div className="flexlayout-empty-panel">No visible Arena panels</div>;
+      }
+
+      const sessionId = node.getConfig()?.sessionId;
+      const session = typeof sessionId === "string" ? sessionById.get(sessionId) : undefined;
+
+      if (!session) {
+        return <div className="flexlayout-empty-panel">Missing Arena session</div>;
+      }
+
+      return (
+        <div className="flexlayout-panel-host">
+          <SessionCell
+            commandCatalog={commandCatalog}
+            isFocused={session.id === focusedPanelId}
+            liveCodexEnabled={liveCodexEnabled}
+            onPanelSessionStart={onPanelSessionStart}
+            onPanelSessionStatus={onPanelSessionStatus}
+            onSessionControlReadinessEvidence={onSessionControlReadinessEvidence}
+            onSlashCommandExecutionEvidence={onSlashCommandExecutionEvidence}
+            panelSessionIssue={panelSessionIdentityIssueByPanel.get(session.id)}
+            panelSessionRecord={panelSessionState[session.id]}
+            projectLabel={projectLabelForSession(session)}
+            session={session}
+          />
+        </div>
+      );
+    },
+    [
+      commandCatalog,
+      focusedPanelId,
+      liveCodexEnabled,
+      onPanelSessionStart,
+      onPanelSessionStatus,
+      onSessionControlReadinessEvidence,
+      onSlashCommandExecutionEvidence,
+      panelSessionIdentityIssueByPanel,
+      panelSessionState,
+      projectLabelForSession,
+      sessionById
+    ]
+  );
+
+  function handleFlexLayoutModelChange(model: FlexLayoutModel, _action: FlexLayoutAction) {
+    onDockingModelChange(summarizePhase10FlexLayoutDockingModel(model.toJson() as FlexLayoutJsonModel));
+  }
+
+  return (
+    <div
+      aria-label="FlexLayout docked Adaptive Arena"
+      className="flexlayout-arena flexlayout__theme_dark"
+    >
+      <FlexLayoutDock
+        factory={factory}
+        model={flexLayoutModel}
+        onModelChange={handleFlexLayoutModelChange}
+        realtimeResize
+        supportsPopout={false}
+      />
     </div>
   );
 }
@@ -11693,9 +11872,10 @@ function RightPanel({
           supportsSplitters: true,
           supportsSavedLayoutJson: true,
           supportsDockablePanels: true,
-          dependencyInstalled: false,
+          dependencyInstalled: true,
           preservesCustomLayoutFallback: true,
-          ownerApprovedDependency: false
+          ownerApprovedDependency: true,
+          decision: "adopt"
         }),
         terminologyIssues: []
       }),

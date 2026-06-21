@@ -51,7 +51,7 @@ const STATUS_LABELS: Record<Phase10ArenaPolishCloseoutStatusState, string> = {
 
 const REQUIRED_PM_TASK_COUNT = 10;
 const SAFETY =
-  "Phase 10 Arena polish closeout status is evidence-only. It summarizes adaptive layout regression, density, keyboard, focus, terminology, acceptance, FlexLayout decision, traceability, blocker-priority, PM-link, and packaging-paused proof without installing dependencies, launching runtime, mutating sources, changing saved sessions, or resuming packaging.";
+  "Phase 10 Arena polish closeout status is evidence-only. It summarizes adaptive layout regression, density, keyboard, focus, terminology, acceptance, FlexLayout decision, traceability, blocker-priority, PM-link, and packaging-paused proof without launching runtime, mutating sources, changing saved sessions, or resuming packaging.";
 
 function flexLayoutDeferred(snapshot: Phase10ArenaPolishSnapshot): boolean {
   const flexLayoutItem = snapshot.items.find((item) => item.kind === "docking-spike");

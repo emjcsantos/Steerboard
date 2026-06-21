@@ -1024,7 +1024,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-10-child-flexlayout-spike",
             title: "FlexLayout Docking Spike",
-            description: "Evaluate caplin/FlexLayout as an MIT-licensed React docking layout option for Arena tabsets, splitters, saved layout JSON, dockable panels, dependency-install status, owner approval, decisionProof, traceabilityProof, blockerPriorityProof, phase10ArenaPolishCloseoutStatusProof, and custom adaptive-grid fallback before replacing custom adaptive-grid behavior.",
+            description: "Implement flexlayout-react from caplin/FlexLayout as an MIT-licensed opt-in React docking surface for Arena tabsets, splitters, saved layout JSON proof, dockable panels, dependency-install status, owner approval, decisionProof, traceabilityProof, blockerPriorityProof, phase10ArenaPolishCloseoutStatusProof, and custom adaptive-grid fallback before replacing custom adaptive-grid behavior.",
             completionPercent: 100,
             complexity: "medium",
             sourceDocument: "caplin/FlexLayout MIT license review"
@@ -1067,7 +1067,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-10-child-closeout-status",
             title: "Arena Polish Closeout Status",
-            description: "Show phase10ArenaPolishCloseoutStatusProof state/readiness/implementation-complete/polish/traceability/blocker/FlexLayout/packaging/canResumePackaging/ownerResume/installPath/desktopPackaging/releaseGate/PM-link/open/review/top-hold counts so Phase 10 Arena polish is visibly closed out while FlexLayout package installation and release packaging stay owner-held.",
+            description: "Show phase10ArenaPolishCloseoutStatusProof state/readiness/implementation-complete/polish/traceability/blocker/FlexLayout/packaging/canResumePackaging/ownerResume/installPath/desktopPackaging/releaseGate/PM-link/open/review/top-hold counts so Phase 10 Arena polish is visibly closed out while FlexLayout is installed/adopted and release packaging stays owner-held.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 10 Arena polish closeout status"

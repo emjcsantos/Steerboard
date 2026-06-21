@@ -70,16 +70,17 @@ function phase10Snapshot() {
       supportsSplitters: true,
       supportsSavedLayoutJson: true,
       supportsDockablePanels: true,
-      dependencyInstalled: false,
+      dependencyInstalled: true,
       preservesCustomLayoutFallback: true,
-      ownerApprovedDependency: false
+      ownerApprovedDependency: true,
+      decision: "adopt"
     }),
     terminologyIssues: []
   });
 }
 
 describe("phase 10 Arena polish owner-visible proof", () => {
-  it("renders polish counts, traceability, blocker priority, and the held FlexLayout action", () => {
+  it("renders polish counts, traceability, blocker priority, and the adopted FlexLayout action", () => {
     const html = renderToStaticMarkup(
       <Phase10ArenaPolishPanel snapshot={phase10Snapshot()} />
     );
@@ -88,8 +89,9 @@ describe("phase 10 Arena polish owner-visible proof", () => {
     expect(html).toContain("Phase 10 adaptive Arena polish");
     expect(html).toContain("3/4");
     expect(html).toContain("FlexLayout docking spike");
-    expect(html).toContain("decision=defer");
-    expect(html).toContain("defer package installation until owner approval");
+    expect(html).toContain("decision=adopt");
+    expect(html).toContain("dependencyInstalled=yes");
+    expect(html).toContain("ownerApproved=yes");
     expect(html).toContain("Phase 10 Arena polish traceability");
     expect(html).toContain("Phase 10 Arena polish blocker priority");
     expect(html).toContain("Phase 10 Arena polish closeout status");
@@ -103,7 +105,7 @@ describe("phase 10 Arena polish owner-visible proof", () => {
     expect(html).toContain("phase10ArenaReviewAddressabilityGate");
     expect(html).toContain("canRequest=no");
     expect(html).toContain("ownerReview=required");
-    expect(html).toContain("topSource=phase-10-adaptive-arena-polish:docking-spike");
+    expect(html).toContain("topSource=none");
     expect(html).toContain("Phase 10 packaging resume gate");
     expect(html).toContain("phase10PackagingResumeGateProof");
     expect(html).toContain("canResume=no");

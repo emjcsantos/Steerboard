@@ -85,7 +85,7 @@ function closeoutStatus(
     nextAction:
       "Phase 10 Arena polish closeout proof is ready; keep packaging paused until the owner explicitly resumes release actions.",
     safety:
-      "Phase 10 Arena polish closeout status is evidence-only. It summarizes proof without installing dependencies, launching runtime, mutating sources, changing saved sessions, or resuming packaging.",
+      "Phase 10 Arena polish closeout status is evidence-only. It summarizes proof without launching runtime, mutating sources, changing saved sessions, or resuming packaging.",
     ariaLabel:
       "Phase 10 Arena polish closeout status: Complete; 100% ready; packaging paused.",
     ...overrides

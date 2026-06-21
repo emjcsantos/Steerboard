@@ -33,7 +33,7 @@ describe("phase 10 FlexLayout docking spike", () => {
     expect(summary.detail).toContain("dependency installation or owner approval is still held");
     expect(summary.detail).toContain("decision=defer");
     expect(summary.nextAction).toContain("defer package installation until owner approval");
-    expect(summary.safety).toContain("evidence-only");
+    expect(summary.safety).toContain("preserving the custom adaptive grid");
   });
 
   it("blocks without license evidence or custom fallback protection", () => {

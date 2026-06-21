@@ -28,7 +28,7 @@ export interface Phase10PackagingResumeGate {
 const GATE_ID = "phase-10-packaging-resume-gate";
 const GATE_LABEL = "Phase 10 packaging resume gate";
 const SAFETY =
-  "Phase 10 packaging resume gate is evidence-only. It summarizes Arena closeout and explicit owner resume approval without installing dependencies, preparing installers, building packages, signing artifacts, pushing Git state, mutating files, or running release actions.";
+  "Phase 10 packaging resume gate is evidence-only. It summarizes Arena closeout and explicit owner resume approval without preparing installers, building packages, signing artifacts, pushing Git state, mutating files, or running release actions.";
 
 const STATUS_LABELS: Record<Phase10PackagingResumeGateState, string> = {
   ready: "Ready",

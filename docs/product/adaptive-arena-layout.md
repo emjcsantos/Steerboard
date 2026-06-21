@@ -13,6 +13,7 @@ The visual direction is dense, calm, and workbench-like: one compact control row
 | Compact Arena control row | In progress | Layout, focus, roster, hidden queue, and monitor indicators share one dense row; adaptive controls now join that row only when needed. |
 | Layout dropdown | Complete | Fixed presets and `Adaptive` are presented from one dropdown. |
 | Adaptive canvas | In progress | Adaptive mode renders Arena panels as user-added frames with add/reveal, hide, resize, reset, keyboard adjustment, drag-to-move, project stack drop-in, session drag-in, and drop-preview controls. |
+| FlexLayout docking surface | Complete | `flexlayout-react` is installed as the Phase 10 docked Arena surface for tabsets, splitters, dockable panels, saved layout JSON proof, and fallback comparison against the custom adaptive grid. |
 | Magnetic behavior | In progress | Panels snap to a bounded 3x3 grid with deterministic collision handling and safe saved-state repair. |
 | Drag-in sessions and projects | In progress | Projects and chats can be dragged from the left rail into Adaptive Arena with visible ready, unsupported, and unavailable drop-preview states; whole-project drops support a template picker with safe defaults. |
 | Persistence and recovery | In progress | Adaptive geometry is saved locally and repaired when saved state is malformed or no longer matches active Arena sessions. |
@@ -24,6 +25,7 @@ The visual direction is dense, calm, and workbench-like: one compact control row
 The Phase 10 readiness panel is the owner-facing bridge between implemented adaptive mechanics and release polish. It does not launch runtime work or mutate source sessions; it reports whether the current Arena state is ready for:
 
 - adaptive layout regression with drop preview and saved-state repair,
+- FlexLayout docked tabsets, splitters, dockable panels, and saved layout JSON proof with the custom adaptive grid preserved as fallback,
 - dense but readable panel/control/evidence layout,
 - keyboard movement and resize paths,
 - synchronized focused-panel and clear-focus state,
@@ -102,3 +104,4 @@ Adaptive panels should feel free, but not sloppy. The first implementation shoul
 8. Add direct chat/session drag-in from navigation and richer drop-zone previews.
 9. Add richer panel templates for whole-project drops and cross-project session stacks.
 10. Ship the adaptive project-drop template picker with safe defaults and clear fallback behavior.
+11. Add the package-backed FlexLayout dock surface as an opt-in Adaptive Arena mode while preserving the custom adaptive grid fallback.
