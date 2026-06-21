@@ -536,10 +536,12 @@ describe("project management phase plan", () => {
     expect(closeoutStatusChild?.completionPercent).toBe(100);
     expect(runnerProbeParent?.description).toContain("runner approval proof summary");
     expect(runnerProbeParent?.description).toContain("visible Phase 9 desktop probe gate status");
+    expect(runnerProbeParent?.description).toContain("backendScope provider/intent proof");
     expect(runnerProbeParent?.description).toContain("phase9RequestGateProof");
     expect(runnerProbeParent?.description).toContain("phase9RunnerCompletionGateProof");
     expect(runnerProbeParent?.description).toContain("phase9RunnerCloseoutStatusProof");
     expect(observabilityChild?.description).toContain("validation output evidence key");
+    expect(observabilityChild?.description).toContain("backendScope provider/intent proof");
     expect(observabilityChild?.description).toContain("visible Phase 9 desktop probe gate held/ready status");
     expect(observabilityChild?.description).toContain("current runner evidence fingerprint");
     expect(observabilityChild?.description).toContain("phase9RequestGateProof");
@@ -548,6 +550,7 @@ describe("project management phase plan", () => {
     expect(observabilityChild?.description).toContain("mutation-lock count");
     expect(traceabilityChild?.description).toContain("phase9RequestGateProof");
     expect(traceabilityChild?.description).toContain("phase9RunnerCompletionGateProof");
+    expect(traceabilityChild?.description).toContain("backendScope provider/intent proof");
     expect(traceabilityChild?.description).toContain("traceability proof summary");
     expect(completionGateChild?.description).toContain("phase9RunnerCompletionGateProof");
     expect(completionGateChild?.description).toContain("fixed terminal-readonly-probe");

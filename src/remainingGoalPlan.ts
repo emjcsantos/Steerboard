@@ -271,7 +271,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
     phases: ["Phase 9"],
     phaseIds: ["phase-09-desktop-runner"],
     goal:
-      "Allow the fixed terminal read-only desktop probe only after permission, audit, validation, rollback, complete Phase 8 owner-review fingerprint and reviewed-blocker proof, owner-visible Phase 9 proof summaries, visible Phase 9 desktop probe gate status, phase9RequestGateProof, phase9RunnerCompletionGateProof, current runner evidence fingerprints, trusted Phase 9 traceability/current active goal proof, and persisted runner-review gates pass.",
+      "Allow the fixed terminal read-only desktop probe only after permission, audit, validation, rollback, complete Phase 8 owner-review fingerprint and reviewed-blocker proof, owner-visible Phase 9 proof summaries, visible Phase 9 desktop probe gate status, phase9RequestGateProof, phase9RunnerCompletionGateProof, backendScope provider/intent proof, current runner evidence fingerprints, trusted Phase 9 traceability/current active goal proof, and persisted runner-review gates pass.",
     status: "active",
     priority: "high",
     completionPercent: 100,
@@ -290,7 +290,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-09-child-closeout-status"
     ],
     nextAction:
-      "Use the Phase 9 runner closeout status proof as the current active implementation target with approval, approval-depth, traceability, blocker-priority, visible desktop-probe gate status, complete Phase 8 dependency proof, phase9RequestGateProof, phase9RunnerCompletionGateProof, PM-link, and runner-expansion lock evidence visible. Phase 9 runner closeout status proof attached. Only the fixed terminal-readonly-probe may advance after live gates are ready; broader runner actions remain locked."
+      "Use the Phase 9 runner closeout status proof as the current active implementation target with approval, approval-depth, traceability, blocker-priority, visible desktop-probe gate status, complete Phase 8 dependency proof, phase9RequestGateProof, phase9RunnerCompletionGateProof, backendScope provider/intent proof, PM-link, and runner-expansion lock evidence visible. Phase 9 runner closeout status proof attached. Only the fixed terminal-readonly-probe may advance after live gates are ready; broader runner actions remain locked."
   },
   {
     id: "goal-phase-10-arena-polish",
