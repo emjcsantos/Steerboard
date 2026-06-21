@@ -45,6 +45,9 @@ export interface RemainingGoalPlanSummary {
   currentNextAction: string;
   ownerHoldTarget: string;
   ownerHoldNextAction: string;
+  localCompletionReady: boolean;
+  externalBlockerCount: number;
+  remainingGoalCloseoutProof: string;
   coveredPhaseCount: number;
   remainingPhaseCount: number;
   priorityGoalTraceCount: number;
@@ -462,6 +465,10 @@ export function summarizeRemainingGoalPlan(
     currentNextAction: "No remaining action.",
     ownerHoldTarget: "No owner hold",
     ownerHoldNextAction: "No owner hold action.",
+    localCompletionReady: false,
+    externalBlockerCount: 0,
+    remainingGoalCloseoutProof:
+      "remainingGoalCloseoutProof=localPlan=held externalHolds=0 ownerHold=clear publish=clear liveGates=clear coverage=0/0 current=none",
     coveredPhaseCount: 0,
     remainingPhaseCount: remainingProjectManagementPhaseIds.length,
     priorityGoalTraceCount: 0,
@@ -511,6 +518,24 @@ export function summarizeRemainingGoalPlan(
   ).length;
   summary.priorityGoalTraces = buildRemainingGoalPriorityTraces(goals);
   summary.priorityGoalTraceCount = summary.priorityGoalTraces.length;
+  summary.localCompletionReady =
+    summary.total > 0 &&
+    summary.planned === 0 &&
+    summary.paused === 0 &&
+    summary.coveredPhaseCount === summary.remainingPhaseCount &&
+    goals.every((goal) => goal.completionPercent >= 99);
+
+  const ownerHoldHeld = ownerHoldGoal !== undefined;
+  const liveGateHeld = currentGoal?.nextAction.toLowerCase().includes("live gates") === true;
+  summary.externalBlockerCount = Number(ownerHoldHeld) + Number(liveGateHeld);
+  summary.remainingGoalCloseoutProof =
+    `remainingGoalCloseoutProof=localPlan=${summary.localCompletionReady ? "ready" : "held"} ` +
+    `externalHolds=${summary.externalBlockerCount} ` +
+    `ownerHold=${ownerHoldHeld ? "held" : "clear"} ` +
+    `publish=${ownerHoldHeld ? "no-push" : "clear"} ` +
+    `liveGates=${liveGateHeld ? "held" : "clear"} ` +
+    `coverage=${summary.coveredPhaseCount}/${summary.remainingPhaseCount} ` +
+    `current=${currentGoal?.id ?? "none"}`;
 
   return summary;
 }

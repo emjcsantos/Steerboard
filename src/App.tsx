@@ -9133,7 +9133,7 @@ function RemainingGoalsPanel({
         </span>
       </div>
       <div
-        aria-label={`Remaining goals summary: ${summary.total} goals across ${summary.coveredPhaseCount} remaining phases. Current implementation target: ${summary.currentTarget}. Next action: ${summary.currentNextAction} Owner hold: ${summary.ownerHoldTarget}. Owner hold action: ${summary.ownerHoldNextAction}`}
+        aria-label={`Remaining goals summary: ${summary.total} goals across ${summary.coveredPhaseCount} remaining phases. Current implementation target: ${summary.currentTarget}. Next action: ${summary.currentNextAction} Owner hold: ${summary.ownerHoldTarget}. Owner hold action: ${summary.ownerHoldNextAction}. Closeout proof: ${summary.remainingGoalCloseoutProof}`}
         className="remaining-goals-summary"
       >
         <div>
@@ -9152,6 +9152,15 @@ function RemainingGoalsPanel({
           <strong>{summary.coveredPhaseCount}/{summary.remainingPhaseCount}</strong>
           <span>Phases</span>
         </div>
+        <div title={summary.remainingGoalCloseoutProof}>
+          <strong>{summary.externalBlockerCount}</strong>
+          <span>External Holds</span>
+        </div>
+      </div>
+      <div className="remaining-goals-current" title={summary.remainingGoalCloseoutProof}>
+        <small>Closeout proof</small>
+        <strong>{summary.localCompletionReady ? "Local ready" : "Local review"}</strong>
+        <span>{summary.remainingGoalCloseoutProof}</span>
       </div>
       <div className="remaining-goals-current" title={summary.currentNextAction}>
         <small>Current implementation</small>

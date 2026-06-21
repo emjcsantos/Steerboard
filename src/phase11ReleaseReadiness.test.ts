@@ -162,6 +162,10 @@ function remainingSummary(
     currentNextAction: "Attach release readiness proof.",
     ownerHoldTarget: "No owner hold",
     ownerHoldNextAction: "No owner hold action.",
+    localCompletionReady: true,
+    externalBlockerCount: 0,
+    remainingGoalCloseoutProof:
+      "remainingGoalCloseoutProof=localPlan=ready externalHolds=0 ownerHold=clear publish=clear liveGates=clear coverage=11/11 current=goal-phase-11-release-readiness",
     coveredPhaseCount: 11,
     remainingPhaseCount: 11,
     priorityGoalTraceCount: 9,

@@ -38,6 +38,10 @@ describe("remaining goal plan", () => {
       ownerHoldTarget: "Unblock Phase 1/2/6 publishing",
       ownerHoldNextAction:
         "Use the Phase 1/2/6 priority evidence, publish-hold traceability, blocker-priority queue, phase126PublishHoldCloseoutStatusProof, and phase126PublishExecutionGateProof proofCommits=held/noPush=active evidence to keep the branch local, preserve proof commits, rank the owner/remote publish hold above proof review, and push only after the remote is recreated and the owner says to push.",
+      localCompletionReady: true,
+      externalBlockerCount: 2,
+      remainingGoalCloseoutProof:
+        "remainingGoalCloseoutProof=localPlan=ready externalHolds=2 ownerHold=held publish=no-push liveGates=held coverage=11/11 current=goal-phase-9-runner",
       coveredPhaseCount: 11,
       remainingPhaseCount: 11,
       priorityGoalTraceCount: 9,
@@ -344,6 +348,10 @@ describe("remaining goal plan", () => {
     expect(summary.ownerHoldTarget).toBe("Unblock Phase 1/2/6 publishing");
     expect(summary.ownerHoldNextAction).toContain("owner says to push");
     expect(summary.ownerHoldNextAction).toContain("proofCommits=held");
+    expect(summary.remainingGoalCloseoutProof).toContain("localPlan=ready");
+    expect(summary.remainingGoalCloseoutProof).toContain("externalHolds=2");
+    expect(summary.remainingGoalCloseoutProof).toContain("publish=no-push");
+    expect(summary.remainingGoalCloseoutProof).toContain("liveGates=held");
     expect(summary.priorityGoalTraces[0]).toMatchObject({
       goalId: "goal-phase-9-runner",
       current: true
