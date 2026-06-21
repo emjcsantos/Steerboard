@@ -619,6 +619,8 @@ describe("remaining goal plan", () => {
     expect(completionGateChild?.description).toContain("phase5MigrationCompletionGate");
     expect(completionGateChild?.description).toContain("phaseComplete=yes");
     expect(completionGateChild?.description).toContain("canApply=no");
+    expect(completionGateChild?.description).toContain("profileActivationApproval=required");
+    expect(completionGateChild?.description).toContain("profileActivationHandler=missing");
     expect(rollbackAuditParent?.completionPercent).toBe(100);
     expect(rollbackAuditParent?.description).toContain("sensitive-boundary traceability");
     expect(rollbackAuditParent?.description).toContain("migrationTraceabilityProof");
@@ -655,6 +657,8 @@ describe("remaining goal plan", () => {
     expect(phase5Goal?.nextAction).toContain("executor=missing");
     expect(phase5Goal?.nextAction).toContain("phase5MigrationCompletionGate");
     expect(phase5Goal?.nextAction).toContain("phaseComplete=yes");
+    expect(phase5Goal?.nextAction).toContain("profileActivationApproval=required");
+    expect(phase5Goal?.nextAction).toContain("profileActivationHandler=missing");
     expect(phase5Goal?.nextAction).toContain("owner-visible Phase 5 check");
     expect(phase5Goal?.nextAction).toContain("apply-review-staged audit record");
   });

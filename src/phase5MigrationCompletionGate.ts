@@ -15,6 +15,8 @@ export interface Phase5MigrationCompletionGate {
   readonly reviewOnlyComplete: boolean;
   readonly canApplyMigration: boolean;
   readonly canActivateProfile: boolean;
+  readonly profileActivationApprovalRequired: boolean;
+  readonly profileActivationHandlerReady: boolean;
   readonly ownerApprovalRequestable: boolean;
   readonly ownerApprovalRecorded: boolean;
   readonly openBlockerCount: number;
@@ -51,6 +53,8 @@ function proof(gate: Omit<Phase5MigrationCompletionGate, "completionGateProof" |
     `reviewOnly=${gate.reviewOnlyComplete ? "complete" : "held"}`,
     `canApply=${gate.canApplyMigration ? "yes" : "no"}`,
     `profileActivation=${gate.canActivateProfile ? "unlocked" : "locked"}`,
+    `profileActivationApproval=${gate.profileActivationApprovalRequired ? "required" : "recorded"}`,
+    `profileActivationHandler=${gate.profileActivationHandlerReady ? "ready" : "missing"}`,
     `ownerApprovalRequestable=${gate.ownerApprovalRequestable ? "yes" : "no"}`,
     `ownerApprovalRecorded=${gate.ownerApprovalRecorded ? "yes" : "no"}`,
     `openBlockers=${gate.openBlockerCount}`,
@@ -82,6 +86,8 @@ function result(
     reviewOnlyComplete: state === "complete",
     canApplyMigration: false,
     canActivateProfile: false,
+    profileActivationApprovalRequired: true,
+    profileActivationHandlerReady: false,
     ownerApprovalRequestable: input.ownerApprovalHandoff.canRequestOwnerApproval,
     ownerApprovalRecorded: input.ownerApprovalHandoff.ownerApprovalRecorded,
     openBlockerCount: input.blockerPriority.openBlockerCount,

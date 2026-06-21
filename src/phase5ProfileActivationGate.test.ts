@@ -14,6 +14,8 @@ function completionGate(
     reviewOnlyComplete: true,
     canApplyMigration: false,
     canActivateProfile: false,
+    profileActivationApprovalRequired: true,
+    profileActivationHandlerReady: false,
     ownerApprovalRequestable: true,
     ownerApprovalRecorded: false,
     openBlockerCount: 0,
@@ -25,7 +27,7 @@ function completionGate(
     nextAction:
       "Move active implementation to the next pending lane while preserving Phase 5 completion proof for owner review.",
     completionGateProof:
-      "phase5MigrationCompletionGate state=complete phaseComplete=yes reviewOnly=complete canApply=no profileActivation=locked ownerApprovalRequestable=yes ownerApprovalRecorded=no openBlockers=0 traceability=ready executor=missing mutationPath=locked",
+      "phase5MigrationCompletionGate state=complete phaseComplete=yes reviewOnly=complete canApply=no profileActivation=locked profileActivationApproval=required profileActivationHandler=missing ownerApprovalRequestable=yes ownerApprovalRecorded=no openBlockers=0 traceability=ready executor=missing mutationPath=locked",
     ariaLabel:
       "Phase 5 migration completion gate: Complete; phase complete yes; review-only complete; can apply no; next action: Move active implementation to the next pending lane while preserving Phase 5 completion proof for owner review.",
     ...overrides

@@ -92,6 +92,8 @@ describe("phase 5 migration visible readiness panel", () => {
     expect(html).toContain("phase5MigrationCompletionGate");
     expect(html).toContain("phaseComplete=yes");
     expect(html).toContain("reviewOnly=complete");
+    expect(html).toContain("profileActivationApproval=required");
+    expect(html).toContain("profileActivationHandler=missing");
     expect(html).toContain("Phase 5 profile activation gate");
     expect(html).toContain("phase5ProfileActivationGate");
     expect(html).toContain("ownerActivationApproval=required");

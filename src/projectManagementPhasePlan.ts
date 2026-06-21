@@ -532,7 +532,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-05-child-completion-gate",
             title: "Migration Completion Gate",
-            description: "Show the owner-visible Phase 5 completion gate proof that the migration lane is complete as a review-only workflow while phase5MigrationCompletionGate keeps phaseComplete=yes, reviewOnly=complete, canApply=no, executor=missing, mutationPath=locked, and profileActivation=locked.",
+            description: "Show the owner-visible Phase 5 completion gate proof that the migration lane is complete as a review-only workflow while phase5MigrationCompletionGate keeps phaseComplete=yes, reviewOnly=complete, canApply=no, executor=missing, mutationPath=locked, profileActivation=locked, profileActivationApproval=required, and profileActivationHandler=missing.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 5 migration completion gate"

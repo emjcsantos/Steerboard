@@ -75,6 +75,8 @@ describe("phase 5 migration completion gate", () => {
       reviewOnlyComplete: true,
       canApplyMigration: false,
       canActivateProfile: false,
+      profileActivationApprovalRequired: true,
+      profileActivationHandlerReady: false,
       ownerApprovalRequestable: true,
       ownerApprovalRecorded: false,
       openBlockerCount: 0,
@@ -86,6 +88,8 @@ describe("phase 5 migration completion gate", () => {
     expect(gate.completionGateProof).toContain("phaseComplete=yes");
     expect(gate.completionGateProof).toContain("reviewOnly=complete");
     expect(gate.completionGateProof).toContain("canApply=no");
+    expect(gate.completionGateProof).toContain("profileActivationApproval=required");
+    expect(gate.completionGateProof).toContain("profileActivationHandler=missing");
     expect(gate.completionGateProof).toContain("executor=missing");
     expect(gate.completionGateProof).toContain("mutationPath=locked");
   });
