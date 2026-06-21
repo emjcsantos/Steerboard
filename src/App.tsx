@@ -1260,7 +1260,7 @@ type RuntimeProfilePermissionRequestIntent = "idle" | "requested";
 type PipelineDispatchRequestIntent = "idle" | "requested";
 type AppMenuId = "file" | "view" | "connect" | "help";
 type PlatformCatalogDialog = "plugins" | "skills" | "mcp" | "automations" | "personalization";
-type AppDialog = "migration" | "connection" | "slash-help" | PlatformCatalogDialog;
+type AppDialog = "migration" | "connection" | "slash-help" | "search" | "terminal" | PlatformCatalogDialog;
 
 type PlatformCatalogState =
   | "live"
@@ -1988,6 +1988,7 @@ export function App() {
   const [adaptiveDropPreview, setAdaptiveDropPreview] = useState<AdaptiveCockpitDropPreview | null>(null);
   const [activeAppMenu, setActiveAppMenu] = useState<AppMenuId>();
   const [appDialog, setAppDialog] = useState<AppDialog>();
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   const [codexConnectionRequested, setCodexConnectionRequested] = useState(false);
   const [appNotice, setAppNotice] = useState("Local preview mode");
   const [codexTransportProbe, setCodexTransportProbe] = useState<CodexTransportProbe>(() =>
@@ -3711,6 +3712,24 @@ export function App() {
     setActiveAppMenu(undefined);
   }
 
+  function handleNewChatAction() {
+    updatePreferences({ layoutId: "adaptive", view: "cockpit" });
+
+    const nextHiddenPanel = hiddenAdaptivePanels[0];
+    if (nextHiddenPanel) {
+      setAdaptiveCockpitLayout((currentLayout) =>
+        revealAdaptiveCockpitPanel(currentLayout, nextHiddenPanel.id)
+      );
+      setFocusedPanelId(nextHiddenPanel.id);
+      setAppNotice(`${sessionById.get(nextHiddenPanel.id)?.title ?? "Chat panel"} added to Adaptive Arena`);
+      return;
+    }
+
+    const nextPanelId = visibleSessions[0]?.id ?? adaptivePanelIds[0];
+    setFocusedPanelId(nextPanelId);
+    setAppNotice("Adaptive Arena is ready for a local chat panel");
+  }
+
   function handleAddAdaptivePanel() {
     const nextHiddenPanel = hiddenAdaptivePanels[0];
     if (!nextHiddenPanel) {
@@ -4591,11 +4610,11 @@ export function App() {
       />
       <aside className="sidebar" aria-label="Steerboard navigation">
         <nav className="sidebar-command-list" aria-label="Primary actions">
-          <button type="button">
+          <button onClick={handleNewChatAction} type="button">
             <Plus size={16} />
             <span>New chat</span>
           </button>
-          <button type="button">
+          <button onClick={() => openAppDialog("search")} type="button">
             <Search size={16} />
             <span>Search</span>
           </button>
@@ -4721,7 +4740,12 @@ export function App() {
             <Settings2 size={18} />
             <span>Settings</span>
           </button>
-          <button aria-label="Open local terminal" title="Terminal" type="button">
+          <button
+            aria-label="Open local terminal"
+            onClick={() => openAppDialog("terminal")}
+            title="Terminal"
+            type="button"
+          >
             <Terminal size={18} />
           </button>
         </div>
@@ -4872,6 +4896,17 @@ export function App() {
                       <Play size={14} />
                       {visibleSessions.length} visible
                     </div>
+                    {rightPanelCollapsed ? (
+                      <button
+                        className="run-chip"
+                        onClick={() => setRightPanelCollapsed(false)}
+                        title="Show Environment panel"
+                        type="button"
+                      >
+                        <PanelRight size={14} />
+                        Environment
+                      </button>
+                    ) : null}
                   </div>
                 </div>
 
@@ -4996,6 +5031,7 @@ export function App() {
             )}
           </section>
 
+          {!rightPanelCollapsed ? (
           <RightPanel
             adaptiveHiddenPanelCount={hiddenAdaptivePanels.length}
             adaptivePanelCount={syncedAdaptiveLayout.panels.length}
@@ -5021,6 +5057,7 @@ export function App() {
             onLoadRecordedPhase3ProofArtifacts={loadRecordedPhase3ProofArtifacts}
             onClearPhase3CommandValidation={clearPhase3CommandValidation}
             onClearPhase11EvidenceRecord={clearPhase11EvidenceRecord}
+            onCollapse={() => setRightPanelCollapsed(true)}
             onImportPhase11EvidenceRecords={importPhase11EvidenceRecords}
             onRecordPhase11Evidence={recordPhase11Evidence}
             onSelectRun={setSelectedRunId}
@@ -5123,6 +5160,7 @@ export function App() {
             sessions={visibleSessions}
             tasks={projectTasks}
           />
+          ) : null}
         </div>
       </section>
       {appDialog ? (
@@ -5150,6 +5188,9 @@ export function App() {
           codexTransportDecision={codexTransportDecision}
           codexTransportLoading={codexTransportLoading}
           dialog={appDialog}
+          projectManagementTasks={projectManagementTasks}
+          projects={projects}
+          searchSessions={allKnownSessions}
           migrationHardeningReadiness={migrationHardeningReadiness}
           migrationPreview={migrationPreview}
           migrationPreviewLoading={migrationPreviewLoading}
@@ -5739,6 +5780,9 @@ function AppDialogSurface({
   codexTransportDecision,
   codexTransportLoading,
   dialog,
+  projectManagementTasks,
+  projects,
+  searchSessions,
   migrationPreview,
   migrationPreviewLoading,
   migrationHardeningReadiness,
@@ -5803,6 +5847,9 @@ function AppDialogSurface({
   codexTransportDecision: CodexTransportDecision;
   codexTransportLoading: boolean;
   dialog: AppDialog;
+  projectManagementTasks: ProjectManagementTask[];
+  projects: ProjectSummary[];
+  searchSessions: SessionSummary[];
   migrationPreview: MigrationPreview;
   migrationPreviewLoading: boolean;
   migrationHardeningReadiness: MigrationHardeningReadiness;
@@ -5852,6 +5899,36 @@ function AppDialogSurface({
     pluginCatalogSnapshot,
     skillCatalogSnapshot
   );
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchNeedle = searchQuery.trim().toLowerCase();
+  const searchRows = [
+    ...projects.map((project) => ({
+      id: `project-${project.id}`,
+      kind: "Project",
+      title: project.name,
+      detail: `${project.status}; ${project.runs} runs; updated ${project.updated}`
+    })),
+    ...searchSessions.map((session) => ({
+      id: `session-${session.id}`,
+      kind: "Arena",
+      title: session.title,
+      detail: `${session.role}; ${session.state}; ${session.branch}; ${session.files.join(", ")}`
+    })),
+    ...projectManagementTasks.map((task) => ({
+      id: `pm-${task.id}`,
+      kind: task.type === "epic" ? "Phase" : task.type === "parent" ? "Parent" : "Child",
+      title: task.title,
+      detail: `${task.status}; ${task.completionPercent}% complete; ${task.sourceDocument}; ${task.description}`
+    }))
+  ]
+    .filter((row) => {
+      if (!searchNeedle) {
+        return true;
+      }
+
+      return `${row.kind} ${row.title} ${row.detail}`.toLowerCase().includes(searchNeedle);
+    })
+    .slice(0, 12);
   const migrationCounts = buildMigrationPreviewCounts(migrationPreview);
   const selectedCategoryCount = migrationPreview.categories.filter((category) => category.selected).length;
   const migrationProfileDraftHistoryLatestAudit = migrationProfileDraftHistory[0]?.audit;
@@ -5895,13 +5972,17 @@ function AppDialogSurface({
     }
   );
   const title =
-    dialog === "connection"
-      ? "Codex Connection"
+    dialog === "connection" || dialog === "terminal"
+      ? dialog === "terminal"
+        ? "Local Terminal"
+        : "Codex Connection"
       : dialog === "migration"
         ? "Migration Preview"
-        : dialog === "slash-help"
-          ? "Slash Commands"
-          : platformCatalogView?.title ?? "Platform Catalog";
+        : dialog === "search"
+          ? "Search"
+          : dialog === "slash-help"
+            ? "Slash Commands"
+            : platformCatalogView?.title ?? "Platform Catalog";
 
   return (
     <div className="app-dialog-backdrop" role="presentation">
@@ -5913,7 +5994,9 @@ function AppDialogSurface({
       >
         <header>
           <div>
-            <span className="eyebrow">{platformCatalogView?.eyebrow ?? "Local setup"}</span>
+            <span className="eyebrow">
+              {dialog === "search" ? "Local index" : dialog === "terminal" ? "Runtime bridge" : platformCatalogView?.eyebrow ?? "Local setup"}
+            </span>
             <h3>{title}</h3>
           </div>
           <button aria-label="Close dialog" onClick={onClose} type="button">
@@ -5921,7 +6004,41 @@ function AppDialogSurface({
           </button>
         </header>
 
-        {dialog === "connection" ? (
+        {dialog === "search" ? (
+          <div className="app-dialog-body">
+            <p>Search current projects, Arena sessions, and Project Management rows.</p>
+            <label className="migration-controls" aria-label="Search Steerboard">
+              <span>Query</span>
+              <input
+                aria-label="Search Steerboard"
+                autoFocus
+                onChange={(event) => setSearchQuery(event.currentTarget.value)}
+                placeholder="Search projects, sessions, phases..."
+                type="search"
+                value={searchQuery}
+              />
+            </label>
+            <div className="migration-scan-list" aria-label="Search results">
+              {searchRows.length > 0 ? (
+                searchRows.map((row) => (
+                  <span key={row.id} title={row.detail}>
+                    <strong>{row.title}</strong>
+                    <b>{row.kind}</b>
+                    <small>{row.detail}</small>
+                  </span>
+                ))
+              ) : (
+                <span>
+                  <strong>No local matches</strong>
+                  <b>Search</b>
+                  <small>Try another project, session, phase, parent, or child name.</small>
+                </span>
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {dialog === "connection" || dialog === "terminal" ? (
           <div className="app-dialog-body">
             <div className="connection-summary">
               <ShieldCheck size={18} />
@@ -5929,7 +6046,13 @@ function AppDialogSurface({
                 <span className={classNames("transport-state-pill", `transport-${codexTransportDecision.state}`)}>
                   {transportStatusLabel(codexTransportDecision.state)}
                 </span>
-                <strong>{codexConnectionRequested ? "Connection request staged" : "Codex transport spike"}</strong>
+                <strong>
+                  {dialog === "terminal"
+                    ? "Terminal runtime readiness"
+                    : codexConnectionRequested
+                      ? "Connection request staged"
+                      : "Codex transport spike"}
+                </strong>
                 <p>{codexTransportDecision.summary}</p>
               </div>
             </div>
@@ -7358,6 +7481,25 @@ function SessionCell({
     setDraftMessage("");
   }
 
+  function handleAttachContext() {
+    const contextLine = [
+      `Context: ${identity.title}`,
+      `project=${projectLabel}`,
+      `status=${session.state}`,
+      `files=${fileScope.detail}`
+    ].join("; ");
+
+    setDraftMessage((currentDraft) =>
+      currentDraft.trim().length > 0
+        ? `${currentDraft.trimEnd()}\n${contextLine}`
+        : contextLine
+    );
+  }
+
+  function handleOpenLaneOptions() {
+    setDraftMessage((currentDraft) => (currentDraft.trim().startsWith("/") ? currentDraft : "/"));
+  }
+
   return (
     <article
       aria-current={isFocused ? "true" : undefined}
@@ -7420,7 +7562,12 @@ function SessionCell({
 
       <footer className="cell-footer chat-composer-shell">
         <form className="chat-composer" onSubmit={handlePanelChatSubmit}>
-          <button aria-label="Attach context" title="Attach context" type="button">
+          <button
+            aria-label="Attach context"
+            onClick={handleAttachContext}
+            title="Attach panel context"
+            type="button"
+          >
             <Paperclip size={15} />
           </button>
           <textarea
@@ -7550,7 +7697,12 @@ function SessionCell({
             >
               <Folder size={15} />
             </button>
-            <button aria-label="Open lane options" title="Lane options" type="button">
+            <button
+              aria-label="Open lane options"
+              onClick={handleOpenLaneOptions}
+              title="Show panel slash commands"
+              type="button"
+            >
               <MoreHorizontal size={15} />
             </button>
             <button
@@ -10344,6 +10496,7 @@ function RightPanel({
   modeHandoffQa,
   mockRuns,
   onAppNotice,
+  onCollapse,
   onClearPhase3CommandValidation,
   onClearPhase3OwnerHandoff,
   onClearPhase11EvidenceRecord,
@@ -10450,6 +10603,7 @@ function RightPanel({
   modeHandoffQa: CockpitModeHandoffQa;
   mockRuns: MockOrchestratorRun[];
   onAppNotice: (notice: string) => void;
+  onCollapse: () => void;
   onFocusPanel: (panelId: string | undefined) => void;
   onClearPhase3CommandValidation: () => void;
   onClearPhase3OwnerHandoff: () => void;
@@ -11945,7 +12099,12 @@ function RightPanel({
           <span className="eyebrow">Environment</span>
           <h3>{project.name}</h3>
         </div>
-        <button aria-label="Collapse environment panel" title="Panel" type="button">
+        <button
+          aria-label="Collapse environment panel"
+          onClick={onCollapse}
+          title="Hide Environment panel"
+          type="button"
+        >
           <PanelRight size={17} />
         </button>
       </header>
