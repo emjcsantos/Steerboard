@@ -1089,6 +1089,7 @@ describe("remaining goal plan", () => {
     expect(ownerGoal?.nextAction).toContain("blocker-priority");
     expect(ownerGoal?.nextAction).toContain("Phase 11 owner command closeout status proof attached");
     expect(ownerGoal?.nextAction).toContain("packaging-paused");
+    expect(ownerGoal?.nextAction).toContain("publishExecution/noPush");
     const phase11Epic = createDefaultProjectManagementPhasePlan().find(
       (task) => task.id === "phase-11-owner-packaging"
     );
@@ -1136,6 +1137,7 @@ describe("remaining goal plan", () => {
     expect(freshCheckoutChild?.description).toContain("phase11OwnerCommandCloseoutStatusProof");
     expect(ownerCommandCloseoutChild?.completionPercent).toBe(100);
     expect(ownerCommandCloseoutChild?.description).toContain("phase11OwnerCommandCloseoutStatusProof");
+    expect(ownerCommandCloseoutChild?.description).toContain("publishExecution/noPush");
     expect(traceabilityChild?.completionPercent).toBe(100);
     expect(blockerPriorityChild?.completionPercent).toBe(100);
     expect(blockerPriorityChild?.description).toContain("open blocker count");
@@ -1167,6 +1169,7 @@ describe("remaining goal plan", () => {
     expect(signedAuditExportChild?.description).toContain("signed audit export metadata");
     expect(signedAuditExportChild?.description).toContain("rollback references");
     expect(releaseCloseoutChild?.description).toContain("phase11ReleaseCloseoutStatusProof");
+    expect(releaseCloseoutChild?.description).toContain("publishExecution/noPush");
     expect(releaseGoal?.pmTaskIds).toEqual(
       expect.arrayContaining([
         "phase-11-child-package-validation",
@@ -1190,7 +1193,8 @@ describe("remaining goal plan", () => {
     expect(releaseGoal?.nextAction).toContain("signed audit export and rollback reference evidence");
     expect(releaseGoal?.nextAction).toContain("owner release traceability");
     expect(releaseGoal?.nextAction).toContain("packaging-paused evidence");
-    expect(releaseGoal?.nextAction).toContain("Release actions remain paused");
+    expect(releaseGoal?.nextAction).toContain("publishExecution/noPush evidence");
+    expect(releaseGoal?.nextAction).toContain("Release and publish execution actions remain paused");
   });
 
   it("keeps remaining goal text public-safe", () => {

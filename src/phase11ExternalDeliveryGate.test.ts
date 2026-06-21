@@ -15,6 +15,9 @@ function closeout(
     implementationComplete: true,
     canRecommendRelease: true,
     packagingPaused: true,
+    publishExecutionGateState: "blocked",
+    publishExecutionHeld: true,
+    publishExecutionTopHold: "owner-held",
     ownerCommandReady: true,
     proofFreshnessTrusted: true,
     evidenceRecordsReady: true,
@@ -27,7 +30,7 @@ function closeout(
     releaseHoldCount: 0,
     topHold: "none",
     phase11ReleaseCloseoutStatusProof:
-      "phase11ReleaseCloseoutStatusProof=state=complete release=ready packaging=paused owner=ready proof=ready evidence=ready readiness=ready traceability=ready blockers=clear",
+      "phase11ReleaseCloseoutStatusProof=state=complete release=ready packaging=paused publishExecution=held noPush=active owner=ready proof=ready evidence=ready readiness=ready traceability=ready blockers=clear",
     nextAction:
       "Phase 11 release closeout proof is ready; keep packaging paused until the owner explicitly resumes release actions.",
     safety: "Evidence-only.",

@@ -10607,6 +10607,38 @@ function RightPanel({
     () => buildProviderExecutionGate(providerIntegrationReadiness),
     [providerIntegrationReadiness]
   );
+  const phase126PublishHoldTraceability = useMemo(
+    () => buildPhase126PublishHoldTraceability({ phasePriorityEvidence }),
+    [phasePriorityEvidence]
+  );
+  const phase126PublishHoldBlockerPriority = useMemo(
+    () =>
+      buildPhase126PublishHoldBlockerPriority({
+        phasePriorityEvidence,
+        traceability: phase126PublishHoldTraceability
+      }),
+    [phase126PublishHoldTraceability, phasePriorityEvidence]
+  );
+  const phase126PublishHoldCloseoutStatus = useMemo(
+    () =>
+      buildPhase126PublishHoldCloseoutStatus({
+        phasePriorityEvidence,
+        traceability: phase126PublishHoldTraceability,
+        blockerPriority: phase126PublishHoldBlockerPriority
+      }),
+    [
+      phase126PublishHoldBlockerPriority,
+      phase126PublishHoldTraceability,
+      phasePriorityEvidence
+    ]
+  );
+  const phase126PublishExecutionGate = useMemo(
+    () =>
+      buildPhase126PublishExecutionGate({
+        closeoutStatus: phase126PublishHoldCloseoutStatus
+      }),
+    [phase126PublishHoldCloseoutStatus]
+  );
   const selectedRunTasks = selectedRun?.tasks ?? [];
   const workerHandoffSummary = useMemo(
     () => summarizeWorkerHandoff(selectedRunTasks),
@@ -12049,6 +12081,7 @@ function RightPanel({
 
       <Phase11OwnerCommandCenterPanel
         evidenceRecords={phase11EvidenceRecords}
+        publishExecutionGate={phase126PublishExecutionGate}
         proofFreshnessDepth={phase11ProofFreshnessDepth}
         projectManagementTasks={projectManagementTasks}
         releaseReadiness={phase11ReleaseReadiness}
@@ -17511,6 +17544,7 @@ export function Phase10PackagingResumeGatePanel({
 export function Phase11OwnerCommandCenterPanel({
   evidenceRecords,
   goals,
+  publishExecutionGate,
   proofFreshnessDepth,
   projectManagementTasks,
   releaseReadiness,
@@ -17518,6 +17552,7 @@ export function Phase11OwnerCommandCenterPanel({
 }: {
   evidenceRecords: Phase11EvidenceRecordsSnapshot;
   goals?: readonly RemainingGoalPlanItem[];
+  publishExecutionGate?: Phase126PublishExecutionGate;
   proofFreshnessDepth: Phase11ProofFreshnessDepthSnapshot;
   projectManagementTasks: readonly ProjectManagementTask[];
   releaseReadiness: Phase11ReleaseReadinessSnapshot;
@@ -17545,7 +17580,8 @@ export function Phase11OwnerCommandCenterPanel({
     evidenceRecords,
     releaseReadiness,
     traceability,
-    blockerPriority
+    blockerPriority,
+    publishExecutionGate
   });
   const closeoutStatus = buildPhase11ReleaseCloseoutStatus({
     ownerCommandCenter: snapshot,
@@ -17553,7 +17589,8 @@ export function Phase11OwnerCommandCenterPanel({
     evidenceRecords,
     releaseReadiness,
     traceability,
-    blockerPriority
+    blockerPriority,
+    publishExecutionGate
   });
   const externalDeliveryGate = buildPhase11ExternalDeliveryGate(
     closeoutStatus,

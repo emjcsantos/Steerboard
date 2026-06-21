@@ -4,6 +4,7 @@ import type { Phase11OwnerReleaseBlockerPrioritySummary } from "./phase11OwnerRe
 import type { Phase11OwnerReleaseTraceabilitySummary } from "./phase11OwnerReleaseTraceability";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { Phase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
+import type { Phase126PublishExecutionGate } from "./phase126PublishExecutionGate";
 
 export type Phase11OwnerCommandCloseoutStatusState =
   | "complete"
@@ -25,6 +26,9 @@ export interface Phase11OwnerCommandCloseoutStatus {
   readonly blockerPriorityClear: boolean;
   readonly releaseHeld: boolean;
   readonly packagingPaused: boolean;
+  readonly publishExecutionGateState: Phase126PublishExecutionGate["state"] | "blocked";
+  readonly publishExecutionHeld: boolean;
+  readonly publishExecutionTopHold: string;
   readonly linkedPmTaskCount: number;
   readonly requiredPmTaskCount: number;
   readonly openBlockerCount: number;
@@ -43,6 +47,10 @@ export interface Phase11OwnerCommandCloseoutStatusInput {
   readonly releaseReadiness: Phase11ReleaseReadinessSnapshot;
   readonly traceability: Phase11OwnerReleaseTraceabilitySummary;
   readonly blockerPriority: Phase11OwnerReleaseBlockerPrioritySummary;
+  readonly publishExecutionGate?: Pick<
+    Phase126PublishExecutionGate,
+    "state" | "noPushBoundaryActive" | "topHold" | "canPublish"
+  >;
 }
 
 const STATUS_LABELS: Record<Phase11OwnerCommandCloseoutStatusState, string> = {
@@ -152,7 +160,7 @@ function nextAction(
     return "Repair blocked Phase 11 Owner Testing, proof freshness, evidence records, traceability, or blocker-priority evidence before owner-command closeout can be trusted.";
   }
   if (state === "complete") {
-    return "Phase 11 owner command closeout proof is ready; keep release and packaging actions paused until the owner explicitly resumes them.";
+    return "Phase 11 owner command closeout proof is ready; keep release, packaging, and publish execution actions paused until the owner explicitly resumes them.";
   }
   if (hold === "owner-command") {
     return input.ownerCommandCenter.nextAction;
@@ -188,8 +196,11 @@ function proof(
     `blockers=${status.blockerPriorityClear ? "clear" : "open"} ` +
     `release=${status.releaseHeld ? "held" : "ready"} ` +
     `packaging=${status.packagingPaused ? "paused" : "review"} ` +
+    `publishExecution=${status.publishExecutionHeld ? "held" : "ready"} ` +
+    `noPush=${status.publishExecutionHeld ? "active" : "cleared"} ` +
     `pmLinks=${status.linkedPmTaskCount}/${status.requiredPmTaskCount} ` +
-    `open=${status.openBlockerCount} review=${status.ownerReviewAddressableCount} topHold=${status.topHold}`
+    `open=${status.openBlockerCount} review=${status.ownerReviewAddressableCount} topHold=${status.topHold} ` +
+    `publishTopHold=${status.publishExecutionTopHold}`
   );
 }
 
@@ -208,6 +219,8 @@ export function buildPhase11OwnerCommandCloseoutStatus(
 ): Phase11OwnerCommandCloseoutStatus {
   const hold = topHold(input);
   const state = resolveState(input, hold);
+  const publishExecutionHeld =
+    input.publishExecutionGate?.noPushBoundaryActive ?? true;
   const draft = {
     id: "phase-11-owner-command-closeout-status",
     label: "Phase 11 owner command closeout status",
@@ -222,6 +235,9 @@ export function buildPhase11OwnerCommandCloseoutStatus(
     blockerPriorityClear: input.blockerPriority.openBlockerCount === 0,
     releaseHeld: !input.releaseReadiness.canRecommendRelease,
     packagingPaused: packagingPaused(input.releaseReadiness),
+    publishExecutionGateState: input.publishExecutionGate?.state ?? "blocked",
+    publishExecutionHeld,
+    publishExecutionTopHold: input.publishExecutionGate?.topHold ?? "owner-held",
     linkedPmTaskCount: input.traceability.linkedPmTaskCount,
     requiredPmTaskCount: REQUIRED_PM_TASK_COUNT,
     openBlockerCount: input.blockerPriority.openBlockerCount,

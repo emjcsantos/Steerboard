@@ -249,11 +249,39 @@ describe("phase 11 owner command closeout status", () => {
     expect(status.implementationComplete).toBe(true);
     expect(status.ownerCommandReady).toBe(true);
     expect(status.packagingPaused).toBe(true);
+    expect(status.publishExecutionHeld).toBe(true);
     expect(status.phase11OwnerCommandCloseoutStatusProof).toContain(
       "phase11OwnerCommandCloseoutStatusProof=state=complete"
     );
     expect(status.phase11OwnerCommandCloseoutStatusProof).toContain("pmLinks=12/12");
     expect(status.phase11OwnerCommandCloseoutStatusProof).toContain("packaging=paused");
+    expect(status.phase11OwnerCommandCloseoutStatusProof).toContain("publishExecution=held");
+    expect(status.phase11OwnerCommandCloseoutStatusProof).toContain("noPush=active");
+  });
+
+  it("shows publish execution ready only when the publish gate clears no-push", () => {
+    const status = buildPhase11OwnerCommandCloseoutStatus({
+      ownerCommandCenter: ownerCommand(),
+      proofFreshnessDepth: proofFreshness(),
+      evidenceRecords: evidenceRecords(),
+      releaseReadiness: releaseReadiness(),
+      traceability: traceability(),
+      blockerPriority: blockerPriority(),
+      publishExecutionGate: {
+        state: "ready",
+        noPushBoundaryActive: false,
+        topHold: "none",
+        canPublish: true
+      }
+    });
+
+    expect(status.publishExecutionGateState).toBe("ready");
+    expect(status.publishExecutionHeld).toBe(false);
+    expect(status.phase11OwnerCommandCloseoutStatusProof).toContain(
+      "publishExecution=ready"
+    );
+    expect(status.phase11OwnerCommandCloseoutStatusProof).toContain("noPush=cleared");
+    expect(status.phase11OwnerCommandCloseoutStatusProof).toContain("publishTopHold=none");
   });
 
   it("keeps closeout in review while structured evidence remains held", () => {

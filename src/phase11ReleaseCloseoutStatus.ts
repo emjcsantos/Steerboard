@@ -4,6 +4,7 @@ import type { Phase11OwnerReleaseBlockerPrioritySummary } from "./phase11OwnerRe
 import type { Phase11OwnerReleaseTraceabilitySummary } from "./phase11OwnerReleaseTraceability";
 import type { Phase11ProofFreshnessDepthSnapshot } from "./phase11ProofFreshnessDepth";
 import type { Phase11ReleaseReadinessSnapshot } from "./phase11ReleaseReadiness";
+import type { Phase126PublishExecutionGate } from "./phase126PublishExecutionGate";
 
 export type Phase11ReleaseCloseoutStatusState =
   | "complete"
@@ -24,6 +25,9 @@ export interface Phase11ReleaseCloseoutStatus {
   readonly proofFreshnessTrusted: boolean;
   readonly evidenceRecordsReady: boolean;
   readonly releaseReadinessReady: boolean;
+  readonly publishExecutionGateState: Phase126PublishExecutionGate["state"] | "blocked";
+  readonly publishExecutionHeld: boolean;
+  readonly publishExecutionTopHold: string;
   readonly traceabilityTrusted: boolean;
   readonly blockerPriorityClear: boolean;
   readonly linkedPmTaskCount: number;
@@ -44,6 +48,10 @@ export interface Phase11ReleaseCloseoutStatusInput {
   readonly releaseReadiness: Phase11ReleaseReadinessSnapshot;
   readonly traceability: Phase11OwnerReleaseTraceabilitySummary;
   readonly blockerPriority: Phase11OwnerReleaseBlockerPrioritySummary;
+  readonly publishExecutionGate?: Pick<
+    Phase126PublishExecutionGate,
+    "state" | "noPushBoundaryActive" | "topHold" | "canPublish"
+  >;
 }
 
 const STATUS_LABELS: Record<Phase11ReleaseCloseoutStatusState, string> = {
@@ -158,7 +166,7 @@ function nextAction(
     return "Repair blocked Phase 11 Owner Testing, proof freshness, evidence records, release readiness, traceability, or blocker-priority evidence before closeout can be trusted.";
   }
   if (state === "complete") {
-    return "Phase 11 release closeout proof is ready; keep packaging paused until the owner explicitly resumes release actions.";
+    return "Phase 11 release closeout proof is ready; keep packaging paused and publish execution owner-held until the owner explicitly resumes release actions.";
   }
   if (hold === "owner-command") {
     return input.ownerCommandCenter.nextAction;
@@ -193,10 +201,13 @@ function proof(
     `proof=${status.proofFreshnessTrusted ? "ready" : "held"} ` +
     `evidence=${status.evidenceRecordsReady ? "ready" : "held"} ` +
     `readiness=${status.releaseReadinessReady ? "ready" : "held"} ` +
+    `publishExecution=${status.publishExecutionHeld ? "held" : "ready"} ` +
+    `noPush=${status.publishExecutionHeld ? "active" : "cleared"} ` +
     `traceability=${status.traceabilityTrusted ? "ready" : "held"} ` +
     `blockers=${status.blockerPriorityClear ? "clear" : "open"} ` +
     `pmLinks=${status.linkedPmTaskCount}/${status.requiredPmTaskCount} ` +
-    `open=${status.openBlockerCount} holds=${status.releaseHoldCount} topHold=${status.topHold}`
+    `open=${status.openBlockerCount} holds=${status.releaseHoldCount} topHold=${status.topHold} ` +
+    `publishTopHold=${status.publishExecutionTopHold}`
   );
 }
 
@@ -214,6 +225,8 @@ export function buildPhase11ReleaseCloseoutStatus(
 ): Phase11ReleaseCloseoutStatus {
   const hold = topHold(input);
   const state = resolveState(input, hold);
+  const publishExecutionHeld =
+    input.publishExecutionGate?.noPushBoundaryActive ?? true;
   const draft = {
     id: "phase-11-release-closeout-status",
     label: "Phase 11 release closeout status",
@@ -227,6 +240,9 @@ export function buildPhase11ReleaseCloseoutStatus(
     proofFreshnessTrusted: input.proofFreshnessDepth.canTrustOwnerProof,
     evidenceRecordsReady: evidenceRecordsReady(input.evidenceRecords),
     releaseReadinessReady: input.releaseReadiness.canRecommendRelease,
+    publishExecutionGateState: input.publishExecutionGate?.state ?? "blocked",
+    publishExecutionHeld,
+    publishExecutionTopHold: input.publishExecutionGate?.topHold ?? "owner-held",
     traceabilityTrusted: input.traceability.canTrustOwnerReleaseGate,
     blockerPriorityClear: input.blockerPriority.openBlockerCount === 0,
     linkedPmTaskCount: input.traceability.linkedPmTaskCount,

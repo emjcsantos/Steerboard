@@ -1125,7 +1125,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-owner-command-closeout-status",
             title: "Owner Command Closeout Status",
-            description: "Show phase11OwnerCommandCloseoutStatusProof state/readiness/implementation-complete/owner/proof/evidence/traceability/blocker/release/packaging/PM-link/open/review/top-hold counts so Owner Testing command-center implementation is visibly closed out while release and packaging stay paused for owner resume.",
+            description: "Show phase11OwnerCommandCloseoutStatusProof state/readiness/implementation-complete/owner/proof/evidence/traceability/blocker/release/packaging/publishExecution/noPush/PM-link/open/review/top-hold counts so Owner Testing command-center implementation is visibly closed out while release, packaging, and publish execution stay paused for owner resume.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 11 owner command closeout status"
@@ -1175,7 +1175,7 @@ const phaseSpecs: PhaseSpec[] = [
           {
             id: "phase-11-child-release-closeout-status",
             title: "Release Closeout Status",
-            description: "Show phase11ReleaseCloseoutStatusProof state/readiness/implementation-complete/release/packaging/owner/proof/evidence/readiness/traceability/blocker/PM-link/open/hold/top-hold counts so release readiness is visibly closed out while packaging stays paused for owner resume.",
+            description: "Show phase11ReleaseCloseoutStatusProof state/readiness/implementation-complete/release/packaging/publishExecution/noPush/owner/proof/evidence/readiness/traceability/blocker/PM-link/open/hold/top-hold counts so release readiness is visibly closed out while packaging and publish execution stay paused for owner resume.",
             completionPercent: 100,
             complexity: "high",
             sourceDocument: "Phase 11 release closeout status"

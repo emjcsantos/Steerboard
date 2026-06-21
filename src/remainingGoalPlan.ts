@@ -339,7 +339,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-blocker-priority"
     ],
     nextAction:
-      "Keep the Phase 11 owner command closeout status proof attached with Owner Command, Proof Freshness Depth, Evidence Records, owner release traceability, blocker-priority, PM-link, release-hold, packaging-paused, next-action, and fresh-checkout evidence visible. Release and packaging actions remain paused until the owner explicitly resumes them."
+      "Keep the Phase 11 owner command closeout status proof attached with Owner Command, Proof Freshness Depth, Evidence Records, owner release traceability, blocker-priority, PM-link, release-hold, packaging-paused, publishExecution/noPush, next-action, and fresh-checkout evidence visible. Release, packaging, and publish execution actions remain paused until the owner explicitly resumes them."
   },
   {
     id: "goal-phase-11-release-readiness",
@@ -361,7 +361,7 @@ export const remainingGoalPlan: RemainingGoalPlanItem[] = [
       "phase-11-child-release-closeout-status"
     ],
     nextAction:
-      "Keep the Phase 11 release closeout status proof attached with release readiness, evidence records, signed audit export and rollback reference evidence, owner release traceability, blocker-priority, PM-link, security closure, and packaging-paused evidence visible. Release actions remain paused until the owner explicitly resumes packaging."
+      "Keep the Phase 11 release closeout status proof attached with release readiness, evidence records, signed audit export and rollback reference evidence, owner release traceability, blocker-priority, PM-link, security closure, packaging-paused evidence, and publishExecution/noPush evidence visible. Release and publish execution actions remain paused until the owner explicitly resumes packaging."
   }
 ];
 

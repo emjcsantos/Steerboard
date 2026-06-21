@@ -493,6 +493,8 @@ describe("phase 11 owner-visible proof", () => {
     expect(html).toContain("Phase 11 owner release blocker priority");
     expect(html).toContain("Phase 11 owner command closeout status");
     expect(html).toContain("phase11OwnerCommandCloseoutStatusProof");
+    expect(html).toContain("publishExecution=held");
+    expect(html).toContain("noPush=active");
     expect(html).toContain("Phase 11 release closeout status");
     expect(html).toContain("phase11ReleaseCloseoutStatusProof");
     expect(html).toContain("Phase 11 clean install packaging gate");
