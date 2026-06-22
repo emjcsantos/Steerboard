@@ -866,6 +866,30 @@ textarea {
   font-weight: 800;
 }
 
+.search-query-control {
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+}
+
+.search-query-control span {
+  color: #8793a0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.search-query-control input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #303844;
+  border-radius: 8px;
+  background: #121820;
+  color: #edf3f8;
+  padding: 8px 10px;
+  font: inherit;
+  font-weight: 800;
+}
+
 .migration-summary-strip {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -979,6 +1003,7 @@ textarea {
 
 .migration-scan-list span {
   display: grid;
+  min-width: 0;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 3px 8px;
   border: 1px solid #28313b;
@@ -1006,9 +1031,23 @@ textarea {
 }
 
 .migration-scan-list small {
+  min-width: 0;
   grid-column: 1 / -1;
   color: #9fa9b4;
   line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.search-result-list {
+  max-height: min(42vh, 340px);
+  overflow-x: hidden;
+}
+
+.search-result-list small {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
 }
 
 .migration-category-list {
@@ -2874,6 +2913,11 @@ textarea {
 
 .flexlayout-arena .flexlayout__layout {
   inset: 0;
+  overflow: hidden;
+}
+
+.flexlayout-arena .flexlayout__layout_main {
+  overflow: hidden;
 }
 
 .flexlayout-panel-host {
@@ -2956,12 +3000,16 @@ textarea {
 .cell-title-block {
   display: grid;
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   gap: 2px;
 }
 
 .panel-identity-row {
   display: flex;
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   align-items: center;
   gap: 6px;
 }
@@ -3783,12 +3831,33 @@ textarea {
 .right-panel {
   display: flex;
   min-height: 0;
+  min-width: 0;
   flex-direction: column;
   gap: 12px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   border-left: 1px solid #252a31;
   background: #171b21;
   padding: 14px;
+}
+
+.right-panel > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.right-panel :where(section, div, ol, li, dl, dt, dd, p, small, strong, span, b, em) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.right-panel :where(section, div, ol, li, dl) {
+  overflow-x: hidden;
+}
+
+.right-panel :where(p, small, strong, span, b, em, dt, dd) {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .right-panel header {
@@ -5532,6 +5601,15 @@ textarea {
   white-space: nowrap;
 }
 
+.provider-catalog-depth > small {
+  min-width: 0;
+  overflow: hidden;
+  color: #8f99a4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+}
+
 .provider-catalog-depth-header strong {
   color: #edf3f8;
   font-size: 11px;
@@ -5875,6 +5953,46 @@ textarea {
   font-size: 11px;
 }
 
+.phase4-provider-depth-actions {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  border: 1px solid #27303a;
+  border-radius: 8px;
+  background: #10161d;
+  padding: 7px;
+}
+
+.phase4-provider-depth-actions div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.phase4-provider-depth-actions strong,
+.phase4-provider-depth-actions small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase4-provider-depth-actions strong {
+  color: #edf3f8;
+  font-size: 11px;
+}
+
+.phase4-provider-depth-actions small {
+  color: #8f99a5;
+  font-size: 9px;
+}
+
+.phase4-provider-depth-actions button {
+  justify-self: start;
+  max-width: 100%;
+}
+
 .phase4-provider-depth-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -6101,6 +6219,7 @@ textarea {
 
 .phase4-provider-traceability-item > span,
 .phase4-provider-traceability-item strong,
+.phase4-provider-traceability-item em,
 .phase4-provider-traceability-item small,
 .phase4-provider-traceability-item b,
 .phase4-provider-traceability > small {
@@ -6159,6 +6278,12 @@ textarea {
 .phase4-provider-traceability > small {
   color: #8f99a5;
   font-size: 10px;
+}
+
+.phase4-provider-traceability-item em {
+  color: #aeb8c4;
+  font-size: 10px;
+  font-style: normal;
 }
 
 .phase4-provider-traceability-item b {
@@ -6357,6 +6482,38 @@ textarea {
   color: #cfd8e3;
   font-size: 9px;
   text-transform: uppercase;
+}
+
+.phase4-provider-completion-status {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  border: 1px solid #303844;
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: #121820;
+  padding: 8px;
+}
+
+.phase4-provider-completion-status-review {
+  border-left-color: #74b8f2;
+}
+
+.phase4-provider-completion-status-complete {
+  border-left-color: #78d99d;
+}
+
+.phase4-provider-completion-status-blocked {
+  border-left-color: #ff928c;
+}
+
+.phase4-provider-completion-status small {
+  min-width: 0;
+  overflow: hidden;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
 }
 
 .mode-summary,
@@ -7386,6 +7543,7 @@ textarea {
   display: grid;
   min-width: 0;
   gap: 8px;
+  overflow: hidden;
   border: 1px solid #303844;
   border-radius: 8px;
   background: #151b22;
@@ -7558,6 +7716,7 @@ textarea {
 .owner-testing-phase3-gate {
   display: grid;
   gap: 6px;
+  overflow: hidden;
   border: 1px solid #303844;
   border-radius: 8px;
   background: #10161d;
@@ -7611,6 +7770,7 @@ textarea {
 
 .owner-testing-control-evidence p,
 .owner-testing-slash-execution p,
+.owner-testing-priority-evidence p,
 .owner-testing-phase3-gate p {
   overflow: hidden;
   margin: 0;
@@ -7828,6 +7988,7 @@ textarea {
   display: grid;
   min-width: 0;
   gap: 6px;
+  overflow: hidden;
   border: 1px solid #26303a;
   border-radius: 8px;
   background: #10161d;
@@ -8000,6 +8161,16 @@ textarea {
   margin: 0;
   color: #c3ccd6;
   font-size: 11px;
+}
+
+.owner-testing-publish-hold-blocker-priority small,
+.owner-testing-publish-hold-traceability small {
+  min-width: 0;
+  overflow: hidden;
+  color: #8f99a5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
 }
 
 .owner-testing-publish-hold-traceability-item-ready,
@@ -19238,7 +19409,10 @@ textarea {
   }
 
   .toolbar-status {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
     gap: 4px;
+    overflow: visible;
   }
 
   .layout-capacity-chip {
@@ -19300,6 +19474,63 @@ textarea {
   .run-chip svg {
     flex: 0 0 auto;
     color: #b8c0ca;
+  }
+
+  .right-panel .provider-catalog-depth-header,
+  .right-panel .phase4-provider-depth-header,
+  .right-panel .phase4-provider-traceability-header,
+  .right-panel .phase4-provider-blocker-priority-header,
+  .right-panel .owner-testing-header,
+  .right-panel .owner-testing-priority-header,
+  .right-panel .owner-testing-publish-hold-traceability-header,
+  .right-panel .owner-testing-publish-hold-blocker-priority-header {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .right-panel .provider-catalog-depth-item,
+  .right-panel .phase4-provider-depth-item,
+  .right-panel .phase4-provider-traceability-item,
+  .right-panel .phase4-provider-blocker-priority-item,
+  .right-panel .owner-testing-list li,
+  .right-panel .owner-testing-priority-items li,
+  .right-panel .owner-testing-publish-hold-traceability-list li,
+  .right-panel .owner-testing-publish-hold-blocker-priority-list li {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .right-panel .provider-catalog-depth-item > span,
+  .right-panel .phase4-provider-depth-item > span,
+  .right-panel .phase4-provider-traceability-item > span,
+  .right-panel .phase4-provider-blocker-priority-item > span,
+  .right-panel .owner-testing-list span,
+  .right-panel .owner-testing-publish-hold-traceability-list span,
+  .right-panel .owner-testing-publish-hold-blocker-priority-list span {
+    justify-self: start;
+  }
+
+  .right-panel .provider-catalog-depth-item b,
+  .right-panel .phase4-provider-depth-item b,
+  .right-panel .phase4-provider-traceability-item b,
+  .right-panel .phase4-provider-blocker-priority-item b,
+  .right-panel .owner-testing-publish-hold-traceability-list b,
+  .right-panel .owner-testing-publish-hold-blocker-priority-list b {
+    justify-self: start;
+    text-align: left;
+  }
+
+  .right-panel .phase4-provider-depth-grid,
+  .right-panel .phase4-provider-traceability-grid,
+  .right-panel .phase4-provider-blocker-priority-grid,
+  .right-panel .owner-testing-grid,
+  .right-panel .owner-testing-control-grid,
+  .right-panel .owner-testing-slash-grid,
+  .right-panel .owner-testing-priority-grid,
+  .right-panel .owner-testing-phase3-grid,
+  .right-panel .owner-testing-publish-hold-traceability-grid,
+  .right-panel .owner-testing-publish-hold-blocker-priority-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

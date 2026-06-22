@@ -6139,7 +6139,7 @@ function AppDialogSurface({
         {dialog === "search" ? (
           <div className="app-dialog-body">
             <p>Search current projects, Arena sessions, and Project Management rows.</p>
-            <label className="migration-controls" aria-label="Search Steerboard">
+            <label className="migration-controls search-query-control" aria-label="Search Steerboard">
               <span>Query</span>
               <input
                 aria-label="Search Steerboard"
@@ -6150,7 +6150,7 @@ function AppDialogSurface({
                 value={searchQuery}
               />
             </label>
-            <div className="migration-scan-list" aria-label="Search results">
+            <div className="migration-scan-list search-result-list" aria-label="Search results">
               {searchRows.length > 0 ? (
                 searchRows.map((row) => (
                   <span key={row.id} title={row.detail}>
@@ -9912,7 +9912,17 @@ export function Phase4ProviderSurfaceDepthPanel({
           >
             Record approval
           </button>
-          <button type="button" disabled={!record} onClick={onClearApproval}>
+          <button
+            aria-label="Clear Phase 4 provider approval evidence"
+            disabled={!record}
+            title={
+              record
+                ? "Clear local Phase 4 approval evidence."
+                : "No Phase 4 approval evidence has been recorded yet."
+            }
+            type="button"
+            onClick={onClearApproval}
+          >
             Clear approval
           </button>
         </div>
@@ -9945,7 +9955,17 @@ export function Phase4ProviderSurfaceDepthPanel({
           >
             Record audit
           </button>
-          <button type="button" disabled={!auditRecord} onClick={onClearAudit}>
+          <button
+            aria-label="Clear Phase 4 provider audit evidence"
+            disabled={!auditRecord}
+            title={
+              auditRecord
+                ? "Clear local Phase 4 audit evidence."
+                : "No Phase 4 audit evidence has been recorded yet."
+            }
+            type="button"
+            onClick={onClearAudit}
+          >
             Clear audit
           </button>
         </div>
@@ -9976,7 +9996,17 @@ export function Phase4ProviderSurfaceDepthPanel({
           >
             Record rollback
           </button>
-          <button type="button" disabled={!rollbackRecord} onClick={onClearRollback}>
+          <button
+            aria-label="Clear Phase 4 provider rollback evidence"
+            disabled={!rollbackRecord}
+            title={
+              rollbackRecord
+                ? "Clear local Phase 4 rollback evidence."
+                : "No Phase 4 rollback evidence has been recorded yet."
+            }
+            type="button"
+            onClick={onClearRollback}
+          >
             Clear rollback
           </button>
         </div>
@@ -10008,7 +10038,17 @@ export function Phase4ProviderSurfaceDepthPanel({
           >
             Record permission
           </button>
-          <button type="button" disabled={!permissionRecord} onClick={onClearPermission}>
+          <button
+            aria-label="Clear Phase 4 provider permission evidence"
+            disabled={!permissionRecord}
+            title={
+              permissionRecord
+                ? "Clear local Phase 4 permission evidence."
+                : "No Phase 4 permission evidence has been recorded yet."
+            }
+            type="button"
+            onClick={onClearPermission}
+          >
             Clear permission
           </button>
         </div>
