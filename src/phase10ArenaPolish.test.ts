@@ -64,8 +64,8 @@ function snapshot(
     hasSavedLayoutRepair: true,
     flexLayoutSpike: buildPhase10FlexLayoutSpikeSummary({
       repositoryName: "caplin/FlexLayout",
-      expectedLicense: "MIT",
-      hasMitLicenseNotice: true,
+      expectedLicense: "ISC",
+      hasPackageLicenseNotice: true,
       supportsTabsets: true,
       supportsSplitters: true,
       supportsSavedLayoutJson: true,
@@ -96,8 +96,8 @@ describe("phase 10 Arena polish", () => {
     const result = snapshot({
       flexLayoutSpike: buildPhase10FlexLayoutSpikeSummary({
         repositoryName: "caplin/FlexLayout",
-        expectedLicense: "MIT",
-        hasMitLicenseNotice: true,
+        expectedLicense: "ISC",
+        hasPackageLicenseNotice: true,
         supportsTabsets: true,
         supportsSplitters: true,
         supportsSavedLayoutJson: true,

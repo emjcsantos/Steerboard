@@ -19316,6 +19316,17 @@ textarea {
     grid-template-columns: minmax(0, 1fr) 260px;
   }
 
+  .surface-toolbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-status {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
   .topbar {
     align-items: flex-start;
     flex-wrap: wrap;

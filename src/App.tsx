@@ -776,8 +776,14 @@ import {
 } from "./phase10ArenaPolish";
 import {
   buildPhase10FlexLayoutDockingModel,
+  phase10FlexLayoutExpectedLicense,
+  repairPhase10FlexLayoutDockingModel,
   summarizePhase10FlexLayoutDockingModel
 } from "./phase10FlexLayoutDockingModel";
+import {
+  loadPhase10FlexLayoutDockingModel,
+  savePhase10FlexLayoutDockingModel
+} from "./phase10FlexLayoutDockingStorage";
 import { buildPhase10FlexLayoutSpikeSummary } from "./phase10FlexLayoutSpike";
 import { buildPhase10ArenaPolishTraceability } from "./phase10ArenaPolishTraceability";
 import { buildPhase10ArenaPolishBlockerPriority } from "./phase10ArenaPolishBlockerPriority";
@@ -2004,8 +2010,9 @@ export function App() {
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   const [adaptiveArenaSurface, setAdaptiveArenaSurface] = useState<AdaptiveArenaSurface>("grid");
   const [flexLayoutDockingProof, setFlexLayoutDockingProof] = useState(
-    "FlexLayout docking model is ready; custom adaptive grid fallback is preserved."
+    `FlexLayout docking model: package=flexlayout-react repository=caplin/FlexLayout license=${phase10FlexLayoutExpectedLicense} savedLayoutJson=waiting fallback=custom-adaptive-grid-preserved`
   );
+  const [flexLayoutDockResetToken, setFlexLayoutDockResetToken] = useState(0);
   const [codexConnectionRequested, setCodexConnectionRequested] = useState(false);
   const [appNotice, setAppNotice] = useState("Local preview mode");
   const [codexTransportProbe, setCodexTransportProbe] = useState<CodexTransportProbe>(() =>
@@ -3759,9 +3766,44 @@ export function App() {
     setFocusedPanelId(nextHiddenPanel.id);
   }
 
+  const handleDockVisibleSessionIdsChange = useCallback(
+    (visibleSessionIds: readonly string[], activeSessionId?: string) => {
+      const visibleSessionIdSet = new Set(visibleSessionIds);
+      if (visibleSessionIdSet.size === 0) {
+        return;
+      }
+
+      setAdaptiveCockpitLayout((currentLayout) => {
+        const syncedLayout = syncAdaptiveCockpitLayoutToPanelIds(currentLayout, adaptivePanelIds);
+        const nextLayout = {
+          ...syncedLayout,
+          panels: syncedLayout.panels.map((panel) => ({
+            ...panel,
+            hidden: !visibleSessionIdSet.has(panel.id)
+          }))
+        };
+
+        return JSON.stringify(nextLayout) === JSON.stringify(syncedLayout)
+          ? currentLayout
+          : nextLayout;
+      });
+      setFocusedPanelId((currentPanelId) => {
+        if (activeSessionId && visibleSessionIdSet.has(activeSessionId)) {
+          return activeSessionId;
+        }
+
+        return currentPanelId && visibleSessionIdSet.has(currentPanelId)
+          ? currentPanelId
+          : visibleSessionIds[0];
+      });
+    },
+    [adaptivePanelIds]
+  );
+
   function handleResetAdaptiveLayout() {
     setAdaptiveCockpitLayout(createAdaptiveCockpitLayoutForPanelIds(adaptivePanelIds));
     setFocusedPanelId(adaptivePanelIds[0]);
+    setFlexLayoutDockResetToken((currentToken) => currentToken + 1);
   }
 
   function handleHideAdaptivePanel(panelId: string) {
@@ -4954,6 +4996,7 @@ export function App() {
                     focusedPanelId={focusedPanelId}
                     liveCodexEnabled={codexTransportDecision.canStartSession}
                     onDockingModelChange={setFlexLayoutDockingProof}
+                    onDockVisibleSessionIdsChange={handleDockVisibleSessionIdsChange}
                     onPanelSessionStart={recordLivePanelSessionStart}
                     onPanelSessionStatus={recordLivePanelSessionStatus}
                     onSessionControlReadinessEvidence={recordSessionControlReadinessEvidence}
@@ -4965,6 +5008,7 @@ export function App() {
                       registryByProject.get(session.projectId)?.workspaceLabel ??
                       session.projectId
                     }
+                    resetToken={flexLayoutDockResetToken}
                     sessions={adaptiveVisibleSessions}
                   />
                 ) : (
@@ -6973,6 +7017,7 @@ function FlexLayoutDockingArena({
   focusedPanelId,
   liveCodexEnabled,
   onDockingModelChange,
+  onDockVisibleSessionIdsChange,
   onPanelSessionStart,
   onPanelSessionStatus,
   onSessionControlReadinessEvidence,
@@ -6980,12 +7025,17 @@ function FlexLayoutDockingArena({
   panelSessionIdentityIssueByPanel,
   panelSessionState,
   projectLabelForSession,
+  resetToken,
   sessions
 }: {
   commandCatalog: readonly PanelSlashCommand[];
   focusedPanelId?: string;
   liveCodexEnabled: boolean;
   onDockingModelChange: (proof: string) => void;
+  onDockVisibleSessionIdsChange: (
+    visibleSessionIds: readonly string[],
+    activeSessionId?: string
+  ) => void;
   onPanelSessionStart: (result: CodexPanelSessionStartPayload) => void;
   onPanelSessionStatus: (
     panelId: string,
@@ -7003,6 +7053,7 @@ function FlexLayoutDockingArena({
   panelSessionIdentityIssueByPanel: ReadonlyMap<string, CodexPanelSessionIdentityIssue>;
   panelSessionState: CodexPanelSessionState;
   projectLabelForSession: (session: SessionSummary) => string;
+  resetToken: number;
   sessions: readonly SessionSummary[];
 }) {
   const sessionById = useMemo(
@@ -7010,18 +7061,43 @@ function FlexLayoutDockingArena({
     [sessions]
   );
   const sessionKey = sessions.map((session) => session.id).join("|");
-  const flexLayoutModelJson = useMemo(
-    () => buildPhase10FlexLayoutDockingModel(sessions),
-    [sessionKey, sessions]
+  const [dockModelState, setDockModelState] = useState(() =>
+    loadPhase10FlexLayoutDockingModel(sessions)
   );
+  const lastAppliedResetTokenRef = useRef(resetToken);
+
+  useEffect(() => {
+    const shouldReset = resetToken !== lastAppliedResetTokenRef.current;
+    lastAppliedResetTokenRef.current = resetToken;
+
+    setDockModelState((currentState) => {
+      const sourceModel = shouldReset
+        ? buildPhase10FlexLayoutDockingModel(sessions)
+        : currentState.model;
+      const nextState = repairPhase10FlexLayoutDockingModel(sourceModel, sessions, {
+        appendMissingSessions: true,
+        fallbackState: shouldReset ? "reset" : currentState.state
+      });
+
+      return JSON.stringify(nextState.model) === JSON.stringify(currentState.model) &&
+        nextState.state === currentState.state
+        ? currentState
+        : nextState;
+    });
+  }, [resetToken, sessionKey, sessions]);
+
   const flexLayoutModel = useMemo(
-    () => FlexLayoutModel.fromJson(flexLayoutModelJson),
-    [flexLayoutModelJson]
+    () => FlexLayoutModel.fromJson(dockModelState.model),
+    [dockModelState.model]
   );
 
   useEffect(() => {
-    onDockingModelChange(summarizePhase10FlexLayoutDockingModel(flexLayoutModel.toJson() as FlexLayoutJsonModel));
-  }, [flexLayoutModel, onDockingModelChange]);
+    savePhase10FlexLayoutDockingModel(dockModelState.model);
+    onDockingModelChange(
+      summarizePhase10FlexLayoutDockingModel(dockModelState.model, dockModelState.state)
+    );
+    onDockVisibleSessionIdsChange(dockModelState.visibleSessionIds, dockModelState.activeSessionId);
+  }, [dockModelState, onDockingModelChange, onDockVisibleSessionIdsChange]);
 
   const factory = useCallback(
     (node: FlexLayoutTabNode) => {
@@ -7070,7 +7146,12 @@ function FlexLayoutDockingArena({
   );
 
   function handleFlexLayoutModelChange(model: FlexLayoutModel, _action: FlexLayoutAction) {
-    onDockingModelChange(summarizePhase10FlexLayoutDockingModel(model.toJson() as FlexLayoutJsonModel));
+    setDockModelState(
+      repairPhase10FlexLayoutDockingModel(model.toJson() as FlexLayoutJsonModel, sessions, {
+        appendMissingSessions: false,
+        fallbackState: "saved"
+      })
+    );
   }
 
   return (
@@ -11896,8 +11977,8 @@ function RightPanel({
         hasSavedLayoutRepair: true,
         flexLayoutSpike: buildPhase10FlexLayoutSpikeSummary({
           repositoryName: "caplin/FlexLayout",
-          expectedLicense: "MIT",
-          hasMitLicenseNotice: true,
+          expectedLicense: phase10FlexLayoutExpectedLicense,
+          hasPackageLicenseNotice: true,
           supportsTabsets: true,
           supportsSplitters: true,
           supportsSavedLayoutJson: true,

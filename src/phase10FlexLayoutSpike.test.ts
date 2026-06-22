@@ -3,8 +3,8 @@ import { buildPhase10FlexLayoutSpikeSummary } from "./phase10FlexLayoutSpike";
 
 const readyInput = {
   repositoryName: "caplin/FlexLayout",
-  expectedLicense: "MIT",
-  hasMitLicenseNotice: true,
+  expectedLicense: "ISC",
+  hasPackageLicenseNotice: true,
   supportsTabsets: true,
   supportsSplitters: true,
   supportsSavedLayoutJson: true,
@@ -39,12 +39,12 @@ describe("phase 10 FlexLayout docking spike", () => {
   it("blocks without license evidence or custom fallback protection", () => {
     const summary = buildPhase10FlexLayoutSpikeSummary({
       ...readyInput,
-      hasMitLicenseNotice: false,
+      hasPackageLicenseNotice: false,
       preservesCustomLayoutFallback: false
     });
 
     expect(summary.state).toBe("blocked");
-    expect(summary.nextAction).toContain("MIT license evidence");
+    expect(summary.nextAction).toContain("ISC license evidence");
   });
 
   it("waits when required docking capabilities are incomplete", () => {

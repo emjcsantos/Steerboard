@@ -4,7 +4,7 @@ export type Phase10FlexLayoutSpikeDecision = "adopt" | "defer";
 export interface Phase10FlexLayoutSpikeInput {
   readonly repositoryName: string;
   readonly expectedLicense: string;
-  readonly hasMitLicenseNotice: boolean;
+  readonly hasPackageLicenseNotice: boolean;
   readonly supportsTabsets: boolean;
   readonly supportsSplitters: boolean;
   readonly supportsSavedLayoutJson: boolean;
@@ -63,7 +63,7 @@ function resolveState(
   input: Phase10FlexLayoutSpikeInput,
   coveredCapabilityCount: number
 ): Phase10FlexLayoutSpikeState {
-  if (!input.hasMitLicenseNotice || !input.preservesCustomLayoutFallback) {
+  if (!hasLicenseNotice(input) || !input.preservesCustomLayoutFallback) {
     return "blocked";
   }
 
@@ -85,6 +85,10 @@ function capabilityCount(input: Phase10FlexLayoutSpikeInput): number {
     input.supportsSavedLayoutJson,
     input.supportsDockablePanels
   ].filter(Boolean).length;
+}
+
+function hasLicenseNotice(input: Phase10FlexLayoutSpikeInput): boolean {
+  return input.hasPackageLicenseNotice;
 }
 
 function decisionFor(input: Phase10FlexLayoutSpikeInput): Phase10FlexLayoutSpikeDecision {
@@ -112,7 +116,7 @@ function detailFor(
   proof: string
 ): string {
   if (state === "blocked") {
-    return `${input.repositoryName} cannot advance until MIT license notice and custom adaptive-grid fallback are both preserved. ${proof}`;
+    return `${input.repositoryName} cannot advance until ${input.expectedLicense} license notice and custom adaptive-grid fallback are both preserved. ${proof}`;
   }
 
   if (state === "waiting") {
@@ -131,7 +135,7 @@ function nextActionFor(
   state: Phase10FlexLayoutSpikeState
 ): string {
   if (state === "blocked") {
-    return "Restore MIT license evidence and custom adaptive-grid fallback before FlexLayout can be considered.";
+    return `Restore ${input.expectedLicense} license evidence and custom adaptive-grid fallback before FlexLayout can be considered.`;
   }
 
   if (state === "waiting") {
