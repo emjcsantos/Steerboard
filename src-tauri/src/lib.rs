@@ -259,6 +259,18 @@ pub struct CodexPanelEvent {
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CodexPanelStreamEvent {
+    pub source: String,
+    pub panel_id: String,
+    pub session_id: String,
+    pub thread_id: String,
+    pub turn_id: Option<String>,
+    pub event: CodexPanelEvent,
+    pub transcript: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CodexPanelTurnResult {
     pub source: String,
     pub panel_id: String,
@@ -525,7 +537,8 @@ mod runtime_bridge {
         CodexActiveTurnSteerSmokeProof,
         CodexLiveControlSmokeMethodProof, CodexLiveControlSmokeProof,
         CodexPanelEvent, CodexPanelInterruptResult, CodexPanelSessionReadiness,
-        CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelTurnResult, CodexTransportProbe,
+        CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelStreamEvent,
+        CodexPanelTurnResult, CodexTransportProbe,
         CodexTwoPanelSmokePanelProof, CodexTwoPanelSmokeProof,
         LiveActionRunnerRequest, LiveActionRunnerResult, MigrationSourceCategoryPreview,
         MigrationSourcePreview, MigrationSourcePreviewCounts, PermissionApprovalStatus,
@@ -548,6 +561,7 @@ mod runtime_bridge {
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
     #[cfg(windows)]
     use std::os::windows::process::CommandExt;
+    use tauri::Emitter;
 
     static PANEL_SESSIONS: OnceLock<Mutex<BTreeMap<String, Arc<CodexPanelSession>>>> =
         OnceLock::new();
@@ -2021,6 +2035,7 @@ mod runtime_bridge {
 
     #[tauri::command]
     pub fn codex_panel_session_send_turn(
+        window: tauri::Window,
         panel_id: Option<String>,
         prompt: String,
     ) -> Result<CodexPanelTurnResult, String> {
@@ -2034,15 +2049,16 @@ mod runtime_bridge {
             "No Codex panel session is active. Start a session before sending a turn.".to_string()
         })?;
 
-        send_panel_turn(session, prompt)
+        send_panel_turn(session, prompt, Some(&window))
     }
 
     #[tauri::command]
     pub fn codex_panel_session_retry(
+        window: tauri::Window,
         panel_id: Option<String>,
         prompt: String,
     ) -> Result<CodexPanelTurnResult, String> {
-        codex_panel_session_send_turn(panel_id, prompt)
+        codex_panel_session_send_turn(window, panel_id, prompt)
     }
 
     #[tauri::command]
@@ -3564,7 +3580,7 @@ mod runtime_bridge {
         };
 
         let prompt = format!("Reply with exactly this token and nothing else: {expected_token}");
-        match send_panel_turn(session, prompt) {
+        match send_panel_turn(session, prompt, None) {
             Ok(result) => two_panel_panel_proof_from_turn(&result, expected_token, foreign_token),
             Err(error) => CodexTwoPanelSmokePanelProof {
                 panel_id: panel_id.to_string(),
@@ -3731,6 +3747,7 @@ mod runtime_bridge {
     fn send_panel_turn(
         session: Arc<CodexPanelSession>,
         prompt: String,
+        stream_window: Option<&tauri::Window>,
     ) -> Result<CodexPanelTurnResult, String> {
         mark_turn_starting(&session)?;
         let request_id = session.next_request_id();
@@ -3809,6 +3826,7 @@ mod runtime_bridge {
                 failed = failed
                     || event.status.as_deref() == Some("failed")
                     || event.event_type == "error";
+                emit_panel_stream_event(stream_window, &session, turn_id.as_deref(), &event, &transcript);
                 events.push(event);
             }
 
@@ -4088,6 +4106,31 @@ mod runtime_bridge {
             })
             .map(|message| message.trim().to_string())
             .filter(|message| !message.is_empty())
+    }
+
+    fn emit_panel_stream_event(
+        window: Option<&tauri::Window>,
+        session: &Arc<CodexPanelSession>,
+        fallback_turn_id: Option<&str>,
+        event: &CodexPanelEvent,
+        transcript: &str,
+    ) {
+        let Some(window) = window else {
+            return;
+        };
+        let payload = CodexPanelStreamEvent {
+            source: "desktop".to_string(),
+            panel_id: session.panel_id.clone(),
+            session_id: session.session_id.clone(),
+            thread_id: session.thread_id.clone(),
+            turn_id: event
+                .turn_id
+                .clone()
+                .or_else(|| fallback_turn_id.map(ToOwned::to_owned)),
+            event: event.clone(),
+            transcript: transcript.to_string(),
+        };
+        let _ = window.emit("codex-panel-session-event", payload);
     }
 
     pub(crate) fn normalize_panel_event(value: &Value) -> Option<CodexPanelEvent> {

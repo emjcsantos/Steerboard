@@ -433,6 +433,7 @@ import { loadProviderSkillCatalogSnapshot } from "./providerSkillCatalog";
 import {
   normalizeCodexPanelTurnResultEvents,
   reduceCodexSessionEvents,
+  type CodexPanelEventPayload,
   type CodexPanelTurnResultPayload
 } from "./codexSession";
 import {
@@ -1962,6 +1963,16 @@ interface CodexPanelSessionStartPayload {
   threadId: string;
   started: boolean;
   detail: string;
+}
+
+interface CodexPanelStreamEventPayload {
+  source: string;
+  panelId: string;
+  sessionId: string;
+  threadId: string;
+  turnId: string | null;
+  event: CodexPanelEventPayload;
+  transcript: string;
 }
 
 interface CodexPanelInterruptResultPayload {
@@ -7682,6 +7693,30 @@ function SessionCell({
       "running"
     );
     const liveMessageSequenceStart = sequence + (providerSlashStatusMessage ? 3 : 2);
+    const streamingMessageId = `${session.id}:live-stream:${liveMessageSequenceStart}`;
+    let unlistenStream: (() => void) | undefined;
+    let streamedText = "";
+    const updateStreamingMessage = (body: string, meta = "streaming") => {
+      setChatMessages((currentMessages) => {
+        const withoutPending = currentMessages.filter((message) => message.id !== pendingMessage.id);
+        const streamingMessage = {
+          id: streamingMessageId,
+          role: "codex" as const,
+          label: "Codex Live",
+          body,
+          meta
+        };
+        const existingIndex = withoutPending.findIndex((message) => message.id === streamingMessageId);
+
+        if (existingIndex >= 0) {
+          return withoutPending.map((message, index) =>
+            index === existingIndex ? streamingMessage : message
+          );
+        }
+
+        return [...withoutPending, streamingMessage];
+      });
+    };
 
     setLastLivePrompt(trimmedMessage);
     setLiveChatStatus(liveSessionStarted ? "running" : "starting");
@@ -7701,6 +7736,39 @@ function SessionCell({
     setDraftMessage("");
 
     try {
+      if (hasDesktopRuntime()) {
+        const { listen } = await import("@tauri-apps/api/event");
+        unlistenStream = await listen<CodexPanelStreamEventPayload>(
+          "codex-panel-session-event",
+          (streamEvent) => {
+            const payload = streamEvent.payload;
+
+            if (payload.panelId !== session.id) {
+              return;
+            }
+
+            if (payload.transcript.trim().length > 0) {
+              streamedText = payload.transcript;
+              updateStreamingMessage(streamedText, "streaming");
+              setLiveChatDetail("Streaming Codex response.");
+              return;
+            }
+
+            if (payload.event.delta) {
+              streamedText += payload.event.delta;
+              updateStreamingMessage(streamedText, "streaming");
+              setLiveChatDetail("Streaming Codex response.");
+              return;
+            }
+
+            if (payload.event.status === "completed") {
+              setLiveChatDetail("Codex turn completed.");
+            } else if (payload.event.message) {
+              setLiveChatDetail(payload.event.message);
+            }
+          }
+        );
+      }
       await ensureLivePanelSession();
       setLiveChatStatus("running");
       setLiveChatDetail("Codex turn is running.");
@@ -7752,7 +7820,12 @@ function SessionCell({
         result.detail
       );
       setChatMessages((currentMessages) => [
-        ...currentMessages.filter((message) => message.id !== pendingMessage.id),
+        ...currentMessages.filter(
+          (message) =>
+            message.id !== pendingMessage.id &&
+            message.id !== streamingMessageId &&
+            message.meta !== "live recovery"
+        ),
         ...nextMessages,
         turnEvidenceMessage,
         ...statusMessages
@@ -7775,7 +7848,9 @@ function SessionCell({
       setLiveChatDetail(message);
       onPanelSessionStatus?.(session.id, "error", message);
       setChatMessages((currentMessages) => [
-        ...currentMessages.filter((item) => item.id !== pendingMessage.id),
+        ...currentMessages.filter(
+          (item) => item.id !== pendingMessage.id && item.id !== streamingMessageId
+        ),
         createPanelLiveErrorMessage(session, liveMessageSequenceStart, message),
         createPanelLiveRecoveryMessage(
           session,
@@ -7785,6 +7860,7 @@ function SessionCell({
         )
       ]);
     } finally {
+      unlistenStream?.();
       liveSendInFlightRef.current = false;
     }
   }
