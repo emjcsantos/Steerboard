@@ -3633,6 +3633,52 @@ textarea {
   white-space: nowrap;
 }
 
+.chat-composer-meta .agent-setting-select {
+  display: inline-flex;
+  min-width: 118px;
+  max-width: 160px;
+  height: 25px;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid #343d49;
+  border-radius: 7px;
+  background: #171d24;
+  padding: 0 6px;
+}
+
+.chat-composer-meta .agent-setting-select span {
+  flex: 0 0 auto;
+  max-width: none;
+  color: #8f9baa;
+  font-size: 9px;
+}
+
+.chat-composer-meta .agent-setting-select select {
+  min-width: 0;
+  flex: 1 1 auto;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #eceff3;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.chat-composer-meta .agent-setting-select select:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.chat-composer-meta .agent-session-pill {
+  max-width: 132px;
+  border: 1px solid #315977;
+  border-radius: 999px;
+  background: #16202a;
+  color: #8bd7f4;
+  padding: 2px 7px;
+  line-height: 1.2;
+}
+
 .chat-composer-meta .composer-status-idle,
 .chat-composer-meta .composer-status-completed {
   color: #82dba9;

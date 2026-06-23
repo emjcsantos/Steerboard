@@ -562,6 +562,17 @@ import {
   type CodexPanelSessionStatus
 } from "./codexPanelSessionState";
 import {
+  codexPanelModelOptions,
+  codexPanelReasoningOptions,
+  getCodexPanelModelLabel,
+  getCodexPanelReasoningLabel,
+  loadCodexPanelAgentSettings,
+  saveCodexPanelAgentSettings,
+  type CodexPanelAgentSettings,
+  type CodexPanelModel,
+  type CodexPanelReasoning
+} from "./codexPanelAgentSettings";
+import {
   decideCodexTransport,
   getFallbackCodexTransportProbe,
   loadCodexActiveTurnControlSmokeProof,
@@ -7470,6 +7481,9 @@ function SessionCell({
   const [chatMessages, setChatMessages] = useState<PanelChatMessage[]>(() =>
     loadPanelChatMessages(session)
   );
+  const [agentSettings, setAgentSettings] = useState<CodexPanelAgentSettings>(() =>
+    loadCodexPanelAgentSettings(session.id)
+  );
   const [draftMessage, setDraftMessage] = useState("");
   const [lastLivePrompt, setLastLivePrompt] = useState("");
   const sessionIdentityBlocked = Boolean(panelSessionIssue);
@@ -7592,9 +7606,18 @@ function SessionCell({
     : sessionIdentityBlocked
       ? "Session conflict"
       : "Codex local preview";
+  const agentModelLabel = getCodexPanelModelLabel(agentSettings.model);
+  const agentReasoningLabel = getCodexPanelReasoningLabel(agentSettings.reasoning);
+  const agentSessionIdentity = panelSessionRecord && !panelSessionRecord.stale
+    ? panelSessionRecord.threadId
+    : session.id;
+  const agentSessionLabel = panelSessionRecord && !panelSessionRecord.stale
+    ? `Agent ${agentSessionIdentity.slice(-6)}`
+    : "New agent";
 
   useEffect(() => {
     setChatMessages(loadPanelChatMessages(session));
+    setAgentSettings(loadCodexPanelAgentSettings(session.id));
     setDraftMessage("");
     setLastLivePrompt("");
     const restored = Boolean(
@@ -7634,6 +7657,10 @@ function SessionCell({
   }, [chatMessages, session.id]);
 
   useEffect(() => {
+    saveCodexPanelAgentSettings(session.id, agentSettings);
+  }, [agentSettings, session.id]);
+
+  useEffect(() => {
     onSlashCommandExecutionEvidence?.(session.id, slashCommandExecutionEvidence);
   }, [onSlashCommandExecutionEvidence, session.id, slashCommandExecutionEvidence]);
 
@@ -7658,6 +7685,21 @@ function SessionCell({
     if (result.started) {
       onPanelSessionStart?.(result);
     }
+  }
+
+  function updateAgentSettings(patch: Partial<CodexPanelAgentSettings>) {
+    setAgentSettings((currentSettings) => ({
+      ...currentSettings,
+      ...patch
+    }));
+  }
+
+  function handleAgentModelChange(event: ChangeEvent<HTMLSelectElement>) {
+    updateAgentSettings({ model: event.target.value as CodexPanelModel });
+  }
+
+  function handleAgentReasoningChange(event: ChangeEvent<HTMLSelectElement>) {
+    updateAgentSettings({ reasoning: event.target.value as CodexPanelReasoning });
   }
 
   async function sendLivePanelPrompt(
@@ -7772,7 +7814,12 @@ function SessionCell({
       setLiveChatDetail("Codex turn is running.");
       const result = await invokeDesktopCommand<CodexPanelTurnResultPayload>(
         mode === "retry" ? "codex_panel_session_retry" : "codex_panel_session_send_turn",
-        { panelId: session.id, prompt: trimmedMessage },
+        {
+          panelId: session.id,
+          prompt: trimmedMessage,
+          model: agentSettings.model,
+          reasoningEffort: agentSettings.reasoning
+        },
         DESKTOP_PANEL_TURN_TIMEOUT_MS
       );
       const state = reduceCodexSessionEvents(
@@ -8128,6 +8175,48 @@ function SessionCell({
             </div>
           ) : null}
           <div className="chat-composer-meta">
+            <label
+              className="agent-setting-select"
+              title={`Model for this panel agent: ${agentModelLabel}`}
+            >
+              <span>Model</span>
+              <select
+                aria-label={`Model for ${identity.title}`}
+                disabled={liveChatBusy}
+                onChange={handleAgentModelChange}
+                value={agentSettings.model}
+              >
+                {codexPanelModelOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label
+              className="agent-setting-select"
+              title={`Reasoning for this panel agent: ${agentReasoningLabel}`}
+            >
+              <span>Reasoning</span>
+              <select
+                aria-label={`Reasoning for ${identity.title}`}
+                disabled={liveChatBusy}
+                onChange={handleAgentReasoningChange}
+                value={agentSettings.reasoning}
+              >
+                {codexPanelReasoningOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <span
+              className="agent-session-pill"
+              title={`Panel ${session.id}; Codex thread ${agentSessionIdentity}`}
+            >
+              {agentSessionLabel}
+            </span>
             <span className={classNames("composer-status", `composer-status-${liveChatStatus}`)} title={liveChatDetail}>
               {composerStatusLabel}
             </span>

@@ -269,6 +269,12 @@ pub struct CodexPanelStreamEvent {
     pub transcript: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct CodexPanelTurnSettings {
+    pub(crate) model: Option<String>,
+    pub(crate) reasoning_effort: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CodexPanelTurnResult {
@@ -538,7 +544,7 @@ mod runtime_bridge {
         CodexLiveControlSmokeMethodProof, CodexLiveControlSmokeProof,
         CodexPanelEvent, CodexPanelInterruptResult, CodexPanelSessionReadiness,
         CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelStreamEvent,
-        CodexPanelTurnResult, CodexTransportProbe,
+        CodexPanelTurnResult, CodexPanelTurnSettings, CodexTransportProbe,
         CodexTwoPanelSmokePanelProof, CodexTwoPanelSmokeProof,
         LiveActionRunnerRequest, LiveActionRunnerResult, MigrationSourceCategoryPreview,
         MigrationSourcePreview, MigrationSourcePreviewCounts, PermissionApprovalStatus,
@@ -2034,10 +2040,12 @@ mod runtime_bridge {
     }
 
     #[tauri::command]
-    pub fn codex_panel_session_send_turn(
+    pub async fn codex_panel_session_send_turn(
         window: tauri::Window,
         panel_id: Option<String>,
         prompt: String,
+        model: Option<String>,
+        reasoning_effort: Option<String>,
     ) -> Result<CodexPanelTurnResult, String> {
         let panel_id = panel_session_key(panel_id);
         let prompt = prompt.trim().to_string();
@@ -2049,16 +2057,23 @@ mod runtime_bridge {
             "No Codex panel session is active. Start a session before sending a turn.".to_string()
         })?;
 
-        send_panel_turn(session, prompt, Some(&window))
+        let settings = panel_turn_settings(model, reasoning_effort);
+        tauri::async_runtime::spawn_blocking(move || {
+            send_panel_turn(session, prompt, Some(window), settings)
+        })
+        .await
+        .map_err(|error| format!("Codex panel turn worker failed: {error}"))?
     }
 
     #[tauri::command]
-    pub fn codex_panel_session_retry(
+    pub async fn codex_panel_session_retry(
         window: tauri::Window,
         panel_id: Option<String>,
         prompt: String,
+        model: Option<String>,
+        reasoning_effort: Option<String>,
     ) -> Result<CodexPanelTurnResult, String> {
-        codex_panel_session_send_turn(window, panel_id, prompt)
+        codex_panel_session_send_turn(window, panel_id, prompt, model, reasoning_effort).await
     }
 
     #[tauri::command]
@@ -3580,7 +3595,7 @@ mod runtime_bridge {
         };
 
         let prompt = format!("Reply with exactly this token and nothing else: {expected_token}");
-        match send_panel_turn(session, prompt, None) {
+        match send_panel_turn(session, prompt, None, panel_turn_settings(None, None)) {
             Ok(result) => two_panel_panel_proof_from_turn(&result, expected_token, foreign_token),
             Err(error) => CodexTwoPanelSmokePanelProof {
                 panel_id: panel_id.to_string(),
@@ -3747,29 +3762,36 @@ mod runtime_bridge {
     fn send_panel_turn(
         session: Arc<CodexPanelSession>,
         prompt: String,
-        stream_window: Option<&tauri::Window>,
+        stream_window: Option<tauri::Window>,
+        settings: CodexPanelTurnSettings,
     ) -> Result<CodexPanelTurnResult, String> {
         mark_turn_starting(&session)?;
         let request_id = session.next_request_id();
+        let mut params = serde_json::json!({
+            "threadId": session.thread_id,
+            "input": [
+                {
+                    "type": "text",
+                    "text": prompt
+                }
+            ],
+            "approvalPolicy": "never",
+            "sandboxPolicy": {
+                "type": "readOnly",
+                "networkAccess": false
+            },
+            "effort": settings.reasoning_effort
+        });
+        if let Some(model) = settings.model {
+            if let Some(object) = params.as_object_mut() {
+                object.insert("model".to_string(), Value::String(model));
+            }
+        }
         let turn_start = serde_json::json!({
             "jsonrpc": "2.0",
             "id": request_id,
             "method": "turn/start",
-            "params": {
-                "threadId": session.thread_id,
-                "input": [
-                    {
-                        "type": "text",
-                        "text": prompt
-                    }
-                ],
-                "approvalPolicy": "never",
-                "sandboxPolicy": {
-                    "type": "readOnly",
-                    "networkAccess": false
-                },
-                "effort": "low"
-            }
+            "params": params
         });
 
         if !session.send(&turn_start)? {
@@ -3826,7 +3848,13 @@ mod runtime_bridge {
                 failed = failed
                     || event.status.as_deref() == Some("failed")
                     || event.event_type == "error";
-                emit_panel_stream_event(stream_window, &session, turn_id.as_deref(), &event, &transcript);
+                emit_panel_stream_event(
+                    stream_window.as_ref(),
+                    &session,
+                    turn_id.as_deref(),
+                    &event,
+                    &transcript,
+                );
                 events.push(event);
             }
 
@@ -3985,6 +4013,36 @@ mod runtime_bridge {
             .map(|value| value.trim().to_string())
             .filter(|value| !value.is_empty())
             .unwrap_or_else(|| "default".to_string())
+    }
+
+    pub(crate) fn panel_turn_settings(
+        model: Option<String>,
+        reasoning_effort: Option<String>,
+    ) -> CodexPanelTurnSettings {
+        CodexPanelTurnSettings {
+            model: normalize_panel_model(model),
+            reasoning_effort: normalize_panel_reasoning(reasoning_effort),
+        }
+    }
+
+    fn normalize_panel_model(model: Option<String>) -> Option<String> {
+        let value = model?.trim().to_ascii_lowercase();
+        match value.as_str() {
+            "gpt-5.5" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex-spark" => Some(value),
+            _ => None,
+        }
+    }
+
+    fn normalize_panel_reasoning(reasoning_effort: Option<String>) -> String {
+        let value = reasoning_effort
+            .unwrap_or_else(|| "low".to_string())
+            .trim()
+            .to_ascii_lowercase()
+            .replace('_', "-");
+        match value.as_str() {
+            "medium" | "high" | "extra-high" => value,
+            _ => "low".to_string(),
+        }
     }
 
     fn panel_session_registry() -> &'static Mutex<BTreeMap<String, Arc<CodexPanelSession>>> {
@@ -5183,6 +5241,24 @@ mod tests {
             runtime_bridge::panel_session_key(Some("   ".to_string())),
             "default"
         );
+    }
+
+    #[test]
+    fn panel_turn_settings_preserve_supported_model_and_reasoning() {
+        let settings = runtime_bridge::panel_turn_settings(
+            Some(" GPT-5.4-Mini ".to_string()),
+            Some("extra_high".to_string()),
+        );
+
+        assert_eq!(settings.model.as_deref(), Some("gpt-5.4-mini"));
+        assert_eq!(settings.reasoning_effort, "extra-high");
+
+        let fallback = runtime_bridge::panel_turn_settings(
+            Some("unknown-model".to_string()),
+            Some("unknown-effort".to_string()),
+        );
+        assert_eq!(fallback.model, None);
+        assert_eq!(fallback.reasoning_effort, "low");
     }
 
     #[test]
