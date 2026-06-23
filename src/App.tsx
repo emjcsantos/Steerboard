@@ -7458,6 +7458,7 @@ function SessionCell({
         ? "Codex live session ready"
         : "Codex local preview"
   );
+  const liveSendInFlightRef = useRef(false);
   const canUseLiveCodex = liveCodexEnabled && hasDesktopRuntime() && !sessionIdentityBlocked;
   const slashSuggestions = useMemo(
     () => getPanelSlashCommandSuggestions(draftMessage, commandCatalog),
@@ -7628,6 +7629,12 @@ function SessionCell({
     mode: "send" | "retry" = "send",
     providerSlashCommandDecision?: PanelSlashCommandDecision
   ) {
+    if (liveSendInFlightRef.current) {
+      setLiveChatDetail("Codex is still starting or sending the current turn. Wait for the response or use Interrupt.");
+      return;
+    }
+
+    liveSendInFlightRef.current = true;
     const sequence = chatMessages.length;
     const providerSlashStatusMessage =
       providerSlashCommandDecision?.route === "provider"
@@ -7650,6 +7657,8 @@ function SessionCell({
     const liveMessageSequenceStart = sequence + (providerSlashStatusMessage ? 3 : 2);
 
     setLastLivePrompt(trimmedMessage);
+    setLiveChatStatus(liveSessionStarted ? "running" : "starting");
+    setLiveChatDetail(liveSessionStarted ? "Sending prompt to live Codex." : "Starting Codex app-server panel session.");
     setChatMessages((currentMessages) => [
       ...currentMessages,
       {
@@ -7735,6 +7744,8 @@ function SessionCell({
           trimmedMessage
         )
       ]);
+    } finally {
+      liveSendInFlightRef.current = false;
     }
   }
 
@@ -7858,6 +7869,11 @@ function SessionCell({
     }
 
     if (canUseLiveCodex) {
+      if (liveSendInFlightRef.current && !liveChatRunning) {
+        setLiveChatDetail("Codex is still starting or sending the current turn. Wait for the response or use Interrupt.");
+        return;
+      }
+
       if (liveChatRunning) {
         await handleSteerLiveTurn(trimmedMessage);
       } else {

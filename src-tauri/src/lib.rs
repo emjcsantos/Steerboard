@@ -546,9 +546,14 @@ mod runtime_bridge {
     use std::sync::{Arc, Mutex, OnceLock};
     use std::thread;
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
+    #[cfg(windows)]
+    use std::os::windows::process::CommandExt;
 
     static PANEL_SESSIONS: OnceLock<Mutex<BTreeMap<String, Arc<CodexPanelSession>>>> =
         OnceLock::new();
+    #[cfg(windows)]
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
+    const PANEL_TURN_TIMEOUT_SECS: u64 = 60;
 
     fn migration_category(
         id: &str,
@@ -611,9 +616,11 @@ mod runtime_bridge {
 
     fn execute_readonly_probe_command() -> Result<String, String> {
         #[cfg(windows)]
-        let output = Command::new("cmd")
-            .args(["/C", "echo", LIVE_ACTION_PROBE_TOKEN])
-            .output();
+        let output = {
+            let mut command = Command::new("cmd");
+            hide_command_window(&mut command);
+            command.args(["/C", "echo", LIVE_ACTION_PROBE_TOKEN]).output()
+        };
 
         #[cfg(not(windows))]
         let output = Command::new("printf").arg(LIVE_ACTION_PROBE_TOKEN).output();
@@ -628,6 +635,11 @@ mod runtime_bridge {
 
         let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
         Ok(stdout)
+    }
+
+    #[cfg(windows)]
+    fn hide_command_window(command: &mut Command) {
+        command.creation_flags(CREATE_NO_WINDOW);
     }
 
     pub(crate) fn read_phase3_local_artifact_from(
@@ -2152,12 +2164,11 @@ mod runtime_bridge {
 
     fn run_codex_output(args: &[&str]) -> Option<String> {
         #[cfg(windows)]
-        let output = Command::new("cmd")
-            .arg("/C")
-            .arg("codex")
-            .args(args)
-            .output()
-            .ok()?;
+        let output = {
+            let mut command = Command::new("cmd");
+            hide_command_window(&mut command);
+            command.arg("/C").arg("codex").args(args).output().ok()?
+        };
 
         #[cfg(not(windows))]
         let output = Command::new("codex").args(args).output().ok()?;
@@ -2173,6 +2184,7 @@ mod runtime_bridge {
         #[cfg(windows)]
         {
             let mut command = Command::new("cmd");
+            hide_command_window(&mut command);
             command.arg("/C").arg("codex").args(args);
             command
                 .stdin(Stdio::piped())
@@ -3758,6 +3770,22 @@ mod runtime_bridge {
                     clear_current_turn(&session);
                     "Codex app-server did not return turn/start response.".to_string()
                 })?;
+        if let Some(error_message) = json_rpc_error_message(&turn_response) {
+            clear_current_turn(&session);
+            return Ok(CodexPanelTurnResult {
+                source: "desktop".to_string(),
+                panel_id: session.panel_id.clone(),
+                session_id: session.session_id.clone(),
+                thread_id: session.thread_id.clone(),
+                turn_id: None,
+                completed: false,
+                interrupted: false,
+                failed: true,
+                events: Vec::new(),
+                transcript: String::new(),
+                detail: format!("Codex app-server rejected turn/start: {error_message}"),
+            });
+        }
         let turn_id = extract_turn_id(&turn_response);
         set_current_turn(&session, turn_id.clone());
 
@@ -3766,7 +3794,7 @@ mod runtime_bridge {
         let mut completed = false;
         let mut interrupted = false;
         let mut failed = false;
-        let deadline = std::time::Instant::now() + Duration::from_secs(120);
+        let deadline = std::time::Instant::now() + Duration::from_secs(PANEL_TURN_TIMEOUT_SECS);
 
         while std::time::Instant::now() < deadline {
             let Some(value) = recv_session_value(&session, Duration::from_millis(500))? else {
@@ -3790,6 +3818,8 @@ mod runtime_bridge {
         }
 
         clear_current_turn(&session);
+        let timed_out = !completed && !interrupted && !failed;
+        failed = failed || timed_out;
         Ok(CodexPanelTurnResult {
             source: "desktop".to_string(),
             panel_id: session.panel_id.clone(),
@@ -3805,6 +3835,10 @@ mod runtime_bridge {
                 "Codex panel turn completed.".to_string()
             } else if interrupted {
                 "Codex panel turn was interrupted.".to_string()
+            } else if timed_out {
+                format!(
+                    "Codex panel turn timed out after {PANEL_TURN_TIMEOUT_SECS}s before completion. Try again or refresh the Codex connection."
+                )
             } else if failed {
                 "Codex panel turn failed.".to_string()
             } else {
@@ -4040,6 +4074,20 @@ mod runtime_bridge {
             .and_then(|turn| turn.get("id"))
             .and_then(Value::as_str)
             .map(ToOwned::to_owned)
+    }
+
+    fn json_rpc_error_message(value: &Value) -> Option<String> {
+        value
+            .get("error")
+            .and_then(|error| {
+                error
+                    .get("message")
+                    .and_then(Value::as_str)
+                    .map(ToOwned::to_owned)
+                    .or_else(|| Some(error.to_string()))
+            })
+            .map(|message| message.trim().to_string())
+            .filter(|message| !message.is_empty())
     }
 
     pub(crate) fn normalize_panel_event(value: &Value) -> Option<CodexPanelEvent> {
