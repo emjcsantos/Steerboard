@@ -117,6 +117,13 @@ function repairStaleLivePendingMessage(message: PanelChatMessage): PanelChatMess
   };
 }
 
+function isLiveEvidenceMessage(message: PanelChatMessage): boolean {
+  return (
+    message.label === "Live evidence" ||
+    message.meta.toLowerCase().startsWith("live evidence")
+  );
+}
+
 function eventType(event: CodexPanelEventPayload): string {
   return event.eventType || event.method || "unknown";
 }
@@ -469,7 +476,10 @@ export function normalizePanelChatMessages(
     return fallback;
   }
 
-  const messages = value.filter(isPanelChatMessage).map(repairStaleLivePendingMessage);
+  const messages = value
+    .filter(isPanelChatMessage)
+    .filter((message) => !isLiveEvidenceMessage(message))
+    .map(repairStaleLivePendingMessage);
   return messages.length > 0 ? messages : fallback;
 }
 

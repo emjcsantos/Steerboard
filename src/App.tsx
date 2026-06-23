@@ -340,12 +340,10 @@ import {
   createPanelSlashCommandStatusMessage,
   getPanelSlashCommandDecision,
   getPanelSlashCommandSuggestions,
-  buildPanelLiveTurnEvidence,
   loadPanelChatMessages,
   panelSlashCommands,
   savePanelChatMessages,
   createPanelLiveRecoveryMessage,
-  createPanelLiveTurnEvidenceMessage,
   type PanelChatMessage,
   type PanelSlashCommandDecision,
   type PanelSlashCommand
@@ -7781,12 +7779,6 @@ function SessionCell({
         normalizeCodexPanelTurnResultEvents(result, trimmedMessage)
       );
       const nextMessages = codexSessionStateToPanelMessages(session, state, liveMessageSequenceStart);
-      const turnEvidence = buildPanelLiveTurnEvidence(result);
-      const turnEvidenceMessage = createPanelLiveTurnEvidenceMessage(
-        session,
-        liveMessageSequenceStart + nextMessages.length,
-        turnEvidence
-      );
       const statusMessages = result.failed || result.interrupted || nextMessages.length === 0
         ? [
             result.failed
@@ -7827,7 +7819,6 @@ function SessionCell({
             message.meta !== "live recovery"
         ),
         ...nextMessages,
-        turnEvidenceMessage,
         ...statusMessages
       ]);
     } catch (error) {

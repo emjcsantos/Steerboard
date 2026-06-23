@@ -499,4 +499,36 @@ describe("panel chat helpers", () => {
       }
     ]);
   });
+
+  it("drops saved live evidence cards from visible panel chat", () => {
+    const messages = normalizePanelChatMessages(
+      [
+        {
+          id: "panel-1:live:assistant-a:0",
+          role: "codex",
+          label: "Codex Live",
+          body: "Master, ready.",
+          meta: "completed"
+        },
+        {
+          id: "panel-1:live-evidence:1",
+          role: "system",
+          label: "Live evidence",
+          body: "Ready: streamProof events=49",
+          meta: "live evidence ready"
+        }
+      ],
+      []
+    );
+
+    expect(messages).toEqual([
+      {
+        id: "panel-1:live:assistant-a:0",
+        role: "codex",
+        label: "Codex Live",
+        body: "Master, ready.",
+        meta: "completed"
+      }
+    ]);
+  });
 });
