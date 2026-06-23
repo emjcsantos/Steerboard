@@ -197,12 +197,7 @@ import {
   orchestrationTasks,
   permissionSurfaces,
   planningDrafts,
-  pipelineItems,
-  projects,
-  registryEntries,
-  runtimeAdapters,
   type PermissionSurface,
-  sessions,
   type PipelineItem,
   type ProjectSummary,
   type SessionState,
@@ -1136,6 +1131,20 @@ import {
   type ToolEvidenceCaptureRecord,
   type ToolEvidenceCaptureRecordAction
 } from "./toolEvidenceCaptureHistory";
+
+const emptyWorkspaceProject: ProjectSummary = {
+  id: "steerboard-workspace",
+  name: "Steerboard",
+  status: "queued",
+  updated: "now",
+  runs: 0
+};
+
+const projects: ProjectSummary[] = [];
+const sessions: SessionSummary[] = [];
+const pipelineItems: PipelineItem[] = [];
+const registryEntries: RegistryEntry[] = [];
+const runtimeAdapters: RuntimeAdapter[] = [];
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -3396,7 +3405,7 @@ export function App() {
       .filter((session): session is SessionSummary => Boolean(session));
   }, [preset.sessionIds]);
 
-  const project = projects.find((item) => item.id === selectedProjectId) ?? projects[0];
+  const project = projects.find((item) => item.id === selectedProjectId) ?? emptyWorkspaceProject;
   const registryEntry = registryByProject.get(project.id);
   const runtimeAdapter = runtimeByProject.get(project.id);
   const registrySummary = summarizeRegistry(registryEntries);
@@ -4688,105 +4697,100 @@ export function App() {
         </nav>
 
         <nav className="project-list codex-sidebar-list" aria-label="Pinned chats and projects">
-          <span className="sidebar-section-label">Pinned</span>
-          <div className="sidebar-workspace-group">
-            <div className="sidebar-workspace-heading">
-              <span>STEERBOARD</span>
-              <small>now</small>
-            </div>
-            <button
-              className="project-folder-button"
-              data-adaptive-drop-source={projects[0].id}
-              draggable
-              onDragEnd={clearAdaptiveDragState}
-              onDragStart={(event) => handleAdaptiveProjectDragStart(event, projects[0])}
-              onClick={() => {
-                setAdaptiveDraggingProjectId(undefined);
-                updatePreferences({ selectedProjectId: projects[0].id, view: "cockpit" });
-              }}
-              onPointerDown={(event) => handleAdaptiveProjectPointerStart(event, projects[0].id)}
-              title="Drag project into Adaptive arena"
-              type="button"
-            >
-              <Folder size={16} />
-              <span>Steerboard</span>
-            </button>
-            {projects.slice(0, 3).map((item) => (
-              <button
-                className={classNames("project-button", selectedProjectId === item.id && "is-selected")}
-                data-adaptive-drop-source={item.id}
-                draggable
-                key={item.id}
-                onDragEnd={clearAdaptiveDragState}
-                onDragStart={(event) => handleAdaptiveProjectDragStart(event, item)}
-                onClick={() => {
-                  setAdaptiveDraggingProjectId(undefined);
-                  updatePreferences({ selectedProjectId: item.id, view: "cockpit" });
-                }}
-                onPointerDown={(event) => handleAdaptiveProjectPointerStart(event, item.id)}
-                title="Drag project into Adaptive arena"
-                type="button"
-              >
-                <span className={classNames("project-status", `is-${item.status}`)} />
-                <span className="project-copy">
-                  <span>{item.name}</span>
-                </span>
-                <span className="project-time">{item.updated}</span>
-              </button>
-            ))}
-          </div>
+          {projects.length > 0 ? (
+            <>
+              <span className="sidebar-section-label">Pinned</span>
+              <div className="sidebar-workspace-group">
+                <div className="sidebar-workspace-heading">
+                  <span>STEERBOARD</span>
+                  <small>now</small>
+                </div>
+                {projects.slice(0, 3).map((item) => (
+                  <button
+                    className={classNames("project-button", selectedProjectId === item.id && "is-selected")}
+                    data-adaptive-drop-source={item.id}
+                    draggable
+                    key={item.id}
+                    onDragEnd={clearAdaptiveDragState}
+                    onDragStart={(event) => handleAdaptiveProjectDragStart(event, item)}
+                    onClick={() => {
+                      setAdaptiveDraggingProjectId(undefined);
+                      updatePreferences({ selectedProjectId: item.id, view: "cockpit" });
+                    }}
+                    onPointerDown={(event) => handleAdaptiveProjectPointerStart(event, item.id)}
+                    title="Drag project into Adaptive arena"
+                    type="button"
+                  >
+                    <span className={classNames("project-status", `is-${item.status}`)} />
+                    <span className="project-copy">
+                      <span>{item.name}</span>
+                    </span>
+                    <span className="project-time">{item.updated}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : null}
 
-          <span className="sidebar-section-label">Chats</span>
-          {sidebarSessions.map((session) => (
-            <button
-              className={classNames(
-                "project-button",
-                "sidebar-session-button",
-                focusedPanelId === session.id && "is-selected"
-              )}
-              data-adaptive-session-source={session.id}
-              draggable
-              key={session.id}
-              onClick={() => openSessionInAdaptiveCockpit(session)}
-              onDragEnd={clearAdaptiveDragState}
-              onDragStart={(event) => handleAdaptiveSessionDragStart(event, session)}
-              title="Drag chat into Adaptive arena"
-              type="button"
-            >
-              <MessageSquare size={14} />
-              <span className="project-copy">
-                <span>{session.title}</span>
-                <small>{projectLabelById.get(session.projectId) ?? session.role}</small>
-              </span>
-              <span className="project-time">{session.state}</span>
-            </button>
-          ))}
+          {sidebarSessions.length > 0 ? (
+            <>
+              <span className="sidebar-section-label">Chats</span>
+              {sidebarSessions.map((session) => (
+                <button
+                  className={classNames(
+                    "project-button",
+                    "sidebar-session-button",
+                    focusedPanelId === session.id && "is-selected"
+                  )}
+                  data-adaptive-session-source={session.id}
+                  draggable
+                  key={session.id}
+                  onClick={() => openSessionInAdaptiveCockpit(session)}
+                  onDragEnd={clearAdaptiveDragState}
+                  onDragStart={(event) => handleAdaptiveSessionDragStart(event, session)}
+                  title="Drag chat into Adaptive arena"
+                  type="button"
+                >
+                  <MessageSquare size={14} />
+                  <span className="project-copy">
+                    <span>{session.title}</span>
+                    <small>{projectLabelById.get(session.projectId) ?? session.role}</small>
+                  </span>
+                  <span className="project-time">{session.state}</span>
+                </button>
+              ))}
+            </>
+          ) : null}
 
-          <span className="sidebar-section-label">Projects</span>
-          {projects.slice(3).map((item) => (
-            <button
-              className={classNames("project-button", selectedProjectId === item.id && "is-selected")}
-              data-adaptive-drop-source={item.id}
-              draggable
-              key={item.id}
-              onDragEnd={clearAdaptiveDragState}
-              onDragStart={(event) => handleAdaptiveProjectDragStart(event, item)}
-              onClick={() => {
-                setAdaptiveDraggingProjectId(undefined);
-                updatePreferences({ selectedProjectId: item.id, view: "cockpit" });
-              }}
-              onPointerDown={(event) => handleAdaptiveProjectPointerStart(event, item.id)}
-              title="Drag project into Adaptive arena"
-              type="button"
-            >
-              <span className={classNames("project-status", `is-${item.status}`)} />
-              <span className="project-copy">
-                <span>{item.name}</span>
-                <small>{registryByProject.get(item.id)?.workspaceLabel ?? `${item.runs} runs`}</small>
-              </span>
-              <span className="project-time">{item.updated}</span>
-            </button>
-          ))}
+          {projects.length > 3 ? (
+            <>
+              <span className="sidebar-section-label">Projects</span>
+              {projects.slice(3).map((item) => (
+                <button
+                  className={classNames("project-button", selectedProjectId === item.id && "is-selected")}
+                  data-adaptive-drop-source={item.id}
+                  draggable
+                  key={item.id}
+                  onDragEnd={clearAdaptiveDragState}
+                  onDragStart={(event) => handleAdaptiveProjectDragStart(event, item)}
+                  onClick={() => {
+                    setAdaptiveDraggingProjectId(undefined);
+                    updatePreferences({ selectedProjectId: item.id, view: "cockpit" });
+                  }}
+                  onPointerDown={(event) => handleAdaptiveProjectPointerStart(event, item.id)}
+                  title="Drag project into Adaptive arena"
+                  type="button"
+                >
+                  <span className={classNames("project-status", `is-${item.status}`)} />
+                  <span className="project-copy">
+                    <span>{item.name}</span>
+                    <small>{registryByProject.get(item.id)?.workspaceLabel ?? `${item.runs} runs`}</small>
+                  </span>
+                  <span className="project-time">{item.updated}</span>
+                </button>
+              ))}
+            </>
+          ) : null}
         </nav>
 
         <div className="sidebar-footer">
