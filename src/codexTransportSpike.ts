@@ -5,6 +5,12 @@ export type CodexTransportState = "unavailable" | "preview" | "ready" | "live" |
 export type CodexTransportId = "app-server-stdio" | "app-server-daemon" | "exec-json" | "none";
 export type CodexDaemonLifecycle = "available" | "unsupported" | "unknown";
 export type CodexSendStreamProof = "none" | "schema" | "handshake" | "send-stream";
+export type CodexAuthMode = "chatgpt" | "api-key" | "present-unknown" | "missing";
+export type CodexAuthBilling =
+  | "chatgpt-entitlement"
+  | "api-billing"
+  | "unknown"
+  | "not-connected";
 
 export interface CodexCliProbe {
   available: boolean;
@@ -15,6 +21,9 @@ export interface CodexHomeProbe {
   present: boolean;
   configPresent: boolean;
   authPresent: boolean;
+  authMode: CodexAuthMode;
+  authBilling: CodexAuthBilling;
+  authDetail: string;
   skillsCount: number;
   pluginsPresent: boolean;
 }
@@ -219,6 +228,9 @@ const fallbackProbe: CodexTransportProbe = {
     present: false,
     configPresent: false,
     authPresent: false,
+    authMode: "missing",
+    authBilling: "not-connected",
+    authDetail: "No Codex account is available in browser preview.",
     skillsCount: 0,
     pluginsPresent: false
   },
@@ -366,6 +378,51 @@ function daemonLifecycle(value: unknown): CodexDaemonLifecycle {
     : "unknown";
 }
 
+function authMode(value: unknown, authPresent: boolean): CodexAuthMode {
+  if (
+    value === "chatgpt" ||
+    value === "api-key" ||
+    value === "present-unknown" ||
+    value === "missing"
+  ) {
+    return value;
+  }
+
+  return authPresent ? "present-unknown" : "missing";
+}
+
+function authBilling(value: unknown, mode: CodexAuthMode): CodexAuthBilling {
+  if (
+    value === "chatgpt-entitlement" ||
+    value === "api-billing" ||
+    value === "unknown" ||
+    value === "not-connected"
+  ) {
+    return value;
+  }
+
+  if (mode === "chatgpt") return "chatgpt-entitlement";
+  if (mode === "api-key") return "api-billing";
+  if (mode === "missing") return "not-connected";
+  return "unknown";
+}
+
+function defaultAuthDetail(mode: CodexAuthMode): string {
+  if (mode === "chatgpt") {
+    return "ChatGPT/Codex sign-in detected; usage should follow that entitlement.";
+  }
+
+  if (mode === "api-key") {
+    return "API key sign-in detected; API billing may apply.";
+  }
+
+  if (mode === "present-unknown") {
+    return "Codex auth is present; sign-in type could not be classified safely.";
+  }
+
+  return "No Codex sign-in was detected. Sign in with Codex, then refresh.";
+}
+
 function normalizeProtocol(value: unknown): CodexAppServerProtocolProbe {
   const protocol = isRecord(value) ? value : {};
   return {
@@ -405,6 +462,9 @@ export function normalizeCodexTransportProbe(value: unknown): CodexTransportProb
   const execJson = isRecord(value.execJson) ? value.execJson : {};
   const execution = isRecord(value.execution) ? value.execution : {};
   const fallback = getFallbackCodexTransportProbe();
+  const codexHomeAuthPresent = bool(codexHome.authPresent);
+  const codexHomeAuthMode = authMode(codexHome.authMode, codexHomeAuthPresent);
+  const codexHomeAuthBilling = authBilling(codexHome.authBilling, codexHomeAuthMode);
 
   return {
     source: value.source === "desktop" ? "desktop" : "browser",
@@ -416,7 +476,10 @@ export function normalizeCodexTransportProbe(value: unknown): CodexTransportProb
     codexHome: {
       present: bool(codexHome.present),
       configPresent: bool(codexHome.configPresent),
-      authPresent: bool(codexHome.authPresent),
+      authPresent: codexHomeAuthPresent,
+      authMode: codexHomeAuthMode,
+      authBilling: codexHomeAuthBilling,
+      authDetail: optionalString(codexHome.authDetail) ?? defaultAuthDetail(codexHomeAuthMode),
       skillsCount: nonNegativeInteger(codexHome.skillsCount),
       pluginsPresent: bool(codexHome.pluginsPresent)
     },
@@ -769,12 +832,15 @@ export function decideCodexTransport(
         status: evidenceStatus(probe.cli.available)
       },
       {
-        id: "codex-home",
-        label: "Local profile",
-        detail: probe.codexHome.present
-          ? `Config ${probe.codexHome.configPresent ? "present" : "missing"}, auth ${probe.codexHome.authPresent ? "present" : "not copied"}, skills ${probe.codexHome.skillsCount}`
-          : "Codex profile directory was not detected.",
-        status: evidenceStatus(probe.codexHome.present, "preview")
+        id: "codex-account",
+        label: "Codex account",
+        detail: probe.codexHome.authDetail,
+        status:
+          probe.codexHome.authMode === "chatgpt" || probe.codexHome.authMode === "api-key"
+            ? "ready"
+            : probe.codexHome.authMode === "present-unknown"
+              ? "preview"
+              : "unavailable"
       },
       {
         id: "codex-app-server",
@@ -794,7 +860,7 @@ export function decideCodexTransport(
       },
       {
         id: "codex-send-stream",
-        label: "Send/stream proof",
+        label: "Live test",
         detail: canSendPanelMessage
           ? sendStreamProven && liveProofOk
             ? "Live smoke returned the expected token via agent message delta."
@@ -815,7 +881,7 @@ function buildSummary(
   proof: CodexSendStreamProof
 ): string {
   if (state === "live") {
-    return "Codex panel transport is live: Steerboard can start a session, send a turn, and stream normalized events.";
+    return "Codex app-server is live: Steerboard can start a session, send a turn, and stream normalized events.";
   }
 
   if (preferredTransport === "app-server-stdio" && proof === "handshake") {
@@ -823,11 +889,11 @@ function buildSummary(
   }
 
   if (preferredTransport === "exec-json") {
-    return "Codex CLI JSON exec is available as a one-shot fallback, but it is not a live multi-panel session transport.";
+    return "Codex CLI JSON exec is available as a one-shot fallback, but it is not a live multi-panel app-server session.";
   }
 
   if (probe.cli.available) {
-    return "Codex CLI is detected, but Steerboard has not proven a stable panel session transport yet.";
+    return "Codex CLI is detected, but Steerboard has not proven a stable app-server connection yet.";
   }
 
   return "Codex is not reachable from this Steerboard surface.";
@@ -836,15 +902,15 @@ function buildSummary(
 function buildFallback(probe: CodexTransportProbe, preferredTransport: CodexTransportId): string {
   if (preferredTransport === "app-server-stdio") {
     return probe.appServer.daemonLifecycle === "unsupported"
-      ? "Managed app-server daemon lifecycle is unavailable on this platform, so Steerboard should launch a supervised stdio app-server only after explicit desktop approval."
-      : "Use supervised app-server stdio before daemon mode unless daemon health checks are available.";
+      ? "Use the supervised local app-server stdio path; managed daemon lifecycle is not available on this platform."
+      : "Use the supervised local app-server stdio path before daemon mode unless daemon health checks are available.";
   }
 
   if (preferredTransport === "exec-json") {
     return "Use codex exec --json only for deliberate one-shot tasks; it cannot resume panel chat state or provide full Arena session control.";
   }
 
-  return "Keep panel chat in local preview mode and show setup guidance until Codex CLI and app-server protocol readiness are detected.";
+  return "Keep panel chat in local preview mode and show setup guidance until Codex CLI, account, and app-server readiness are detected.";
 }
 
 async function invokeCodexTransportProbe(): Promise<unknown> {
@@ -914,12 +980,12 @@ export async function loadCodexTransportProbe(
     return {
       ...getFallbackCodexTransportProbe(),
       source: "desktop",
-      execution: {
-        processExecutionAllowed: false,
-        promptExecutionAllowed: false,
-        detail: "Codex transport probe failed; execution remains locked."
-      }
-    };
+        execution: {
+          processExecutionAllowed: false,
+          promptExecutionAllowed: false,
+          detail: "Codex app-server probe failed; execution remains locked."
+        }
+      };
   }
 }
 

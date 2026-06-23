@@ -38,6 +38,9 @@ const readyProbe: CodexTransportProbe = {
     present: true,
     configPresent: true,
     authPresent: true,
+    authMode: "chatgpt",
+    authBilling: "chatgpt-entitlement",
+    authDetail: "ChatGPT/Codex sign-in detected; usage should follow that entitlement.",
     skillsCount: 12,
     pluginsPresent: true
   },
@@ -243,7 +246,7 @@ const twoPanelProof: CodexTwoPanelSmokeProof = {
   ]
 };
 
-describe("codex transport spike", () => {
+describe("codex app-server connection", () => {
   it("returns a defensive browser fallback", () => {
     const first = getFallbackCodexTransportProbe();
     const second = getFallbackCodexTransportProbe();
@@ -286,6 +289,88 @@ describe("codex transport spike", () => {
     });
   });
 
+  it("repairs older auth-present payloads to a safe unknown account mode", () => {
+    const probe = normalizeCodexTransportProbe({
+      ...readyProbe,
+      codexHome: {
+        present: true,
+        configPresent: true,
+        authPresent: true,
+        skillsCount: 3,
+        pluginsPresent: false
+      }
+    });
+
+    expect(probe.codexHome).toMatchObject({
+      authMode: "present-unknown",
+      authBilling: "unknown",
+      authDetail: "Codex auth is present; sign-in type could not be classified safely."
+    });
+  });
+
+  it("normalizes ChatGPT account metadata without exposing secret-shaped text", () => {
+    const probe = normalizeCodexTransportProbe({
+      ...readyProbe,
+      codexHome: {
+        ...readyProbe.codexHome,
+        authMode: "chatgpt",
+        authBilling: "chatgpt-entitlement",
+        authDetail: "ChatGPT/Codex sign-in detected; usage should follow that entitlement."
+      }
+    });
+    const decision = decideCodexTransport(probe);
+    const account = decision.evidence.find((item) => item.id === "codex-account");
+    const serialized = JSON.stringify(decision);
+
+    expect(account).toMatchObject({
+      label: "Codex account",
+      status: "ready",
+      detail: "ChatGPT/Codex sign-in detected; usage should follow that entitlement."
+    });
+    expect(serialized).not.toContain("auth.json");
+    expect(serialized).not.toContain("config.toml");
+    expect(serialized).not.toContain("OPENAI_API_KEY");
+    expect(serialized).not.toContain("sk-secret");
+  });
+
+  it("normalizes API key metadata with API billing copy", () => {
+    const decision = decideCodexTransport({
+      ...readyProbe,
+      codexHome: {
+        ...readyProbe.codexHome,
+        authMode: "api-key",
+        authBilling: "api-billing",
+        authDetail: "API key sign-in detected; API billing may apply."
+      }
+    });
+
+    expect(decision.evidence.find((item) => item.id === "codex-account")).toMatchObject({
+      status: "ready",
+      detail: "API key sign-in detected; API billing may apply."
+    });
+  });
+
+  it("marks missing auth as unavailable account setup", () => {
+    const decision = decideCodexTransport({
+      ...readyProbe,
+      codexHome: {
+        present: false,
+        configPresent: false,
+        authPresent: false,
+        authMode: "missing",
+        authBilling: "not-connected",
+        authDetail: "No Codex sign-in was detected. Sign in with Codex, then refresh.",
+        skillsCount: 0,
+        pluginsPresent: false
+      }
+    });
+
+    expect(decision.evidence.find((item) => item.id === "codex-account")).toMatchObject({
+      status: "unavailable",
+      detail: "No Codex sign-in was detected. Sign in with Codex, then refresh."
+    });
+  });
+
   it("normalizes numeric checkedAt timestamps from goal metadata", () => {
     const secondsProbe = normalizeCodexTransportProbe({
       ...readyProbe,
@@ -313,7 +398,7 @@ describe("codex transport spike", () => {
       proof: "handshake"
     });
     expect(decision.summary).toContain("stdio");
-    expect(decision.fallback).toContain("supervised stdio");
+    expect(decision.fallback).toContain("app-server stdio");
   });
 
   it("marks transport live only after prompt execution is explicitly unlocked", () => {

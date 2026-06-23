@@ -117,7 +117,7 @@
 - Each Arena panel should expose a local chat composer and transcript surface even before live provider execution is enabled.
 - Local panel chat messages should persist per panel and repair malformed saved state to a safe initial transcript.
 - Slash command suggestions should appear from the panel composer as local previews before provider-backed slash execution exists.
-- A Codex connection dialog should allow users to stage a local connection request without authenticating, launching a runtime, or enabling execution.
+- A Codex connection dialog should show sanitized local Codex account posture, app-server readiness, panel protocol readiness, and an explicit live-test action without exposing secrets.
 
 ## Later Functional Scope
 

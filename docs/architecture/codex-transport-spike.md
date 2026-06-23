@@ -1,19 +1,20 @@
-# Codex Transport Spike
+# Codex App-Server Connection
 
-This note records the first Steerboard transport target for Codex integration.
+This note records the first Steerboard app-server target for Codex integration.
 
 ## Findings
 
 - Codex exposes an experimental `app-server` command with `stdio://`, Unix socket, and WebSocket transport options.
 - The generated app-server protocol includes the panel primitives Steerboard needs: `thread/start`, `turn/start`, `turn/steer`, `turn/interrupt`, `item/agentMessage/delta`, plugin listing, MCP status, skills listing, and approval-related events.
-- A no-prompt `initialize` handshake over `app-server --listen stdio://` is enough to prove local transport reachability without sending a model prompt.
+- A no-prompt `initialize` handshake over `app-server --listen stdio://` is enough to prove local app-server reachability without sending a model prompt.
+- The desktop probe classifies Codex auth through sanitized markers only: ChatGPT/Codex sign-in, API-key sign-in, present-unknown, or missing. Raw auth files, tokens, API keys, and full config paths are never returned to React.
 - An explicit live smoke can start an ephemeral read-only thread, send one tiny text turn, observe `item/agentMessage/delta`, and complete the turn without storing the transcript.
 - Managed app-server daemon lifecycle is not the safest first Windows path because daemon lifecycle support can be platform-limited.
 - `codex exec --json` is useful as a one-shot fallback, but it is not a full Arena session transport because it does not provide the same multi-panel thread lifecycle.
 
-## Selected Transport Direction
+## Selected Connection Direction
 
-Use a desktop-gated, supervised `app-server stdio` bridge as the first live Codex session transport.
+Use a desktop-gated, supervised `app-server stdio` bridge as the first live Codex session connection.
 
 The bridge should remain locked until Steerboard has:
 
@@ -27,7 +28,7 @@ Readiness detection must remain no-prompt. In the Tauri app, a proven app-server
 
 ## Proven Send/Stream Path
 
-The working spike proves this path:
+The working app-server path proves this flow:
 
 1. launch `codex app-server --listen stdio://`,
 2. send JSON-RPC `initialize`,
@@ -55,7 +56,7 @@ If app-server stdio is unavailable or the handshake fails:
 - do not silently switch panel chat to a non-session transport,
 - keep prompt execution locked and explain the missing transport evidence.
 
-## Non-Goals For This Spike
+## Non-Goals For This Connection
 
 - Do not store Codex credentials in Steerboard.
 - Do not read or copy auth caches, cookies, tokens, raw transcripts, or private browser state.

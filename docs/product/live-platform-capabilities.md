@@ -27,7 +27,8 @@ The first adapter should use a local provider runtime instead of storing runtime
 
 - Authentication delegates to runtime-specific login or trusted access-token setup.
 - Session transport uses local adapter transport where available.
-- The first transport spike targets supervised `stdio://` transport because it can prove local reachability with a no-prompt initialize handshake before any request is sent.
+- The first Codex connection target is supervised `app-server --listen stdio://` because it can prove local reachability with a no-prompt initialize handshake before any request is sent.
+- Codex account status is displayed from sanitized local markers only: ChatGPT/Codex entitlement, API-key billing, present-unknown auth, or missing auth.
 - A separate explicit live smoke should prove one ephemeral read-only send/stream turn by observing `item/agentMessage/delta` and `turn/completed`.
 - Command-line fallback is treated as a one-shot fallback, not a replacement for live multi-panel session transport.
 - Session, tool, approval, and stream events are normalized into Steerboard Arena events.

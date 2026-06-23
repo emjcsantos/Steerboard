@@ -571,6 +571,8 @@ import {
   loadCodexLiveControlSmokeProof,
   loadCodexTwoPanelSmokeProof,
   loadCodexTransportProbe,
+  type CodexAuthBilling,
+  type CodexAuthMode,
   type CodexActiveTurnControlSmokeProof,
   type CodexActiveTurnSteerSmokeProof,
   type CodexLiveSmokeProof,
@@ -1626,11 +1628,11 @@ function formatPhase3HandoffAge(valueMs: number | undefined): string {
 
 function codexNotice(decision: CodexTransportDecision): string {
   if (decision.state === "live") {
-    return "Codex live transport enabled";
+    return "Codex app-server live";
   }
 
   if (decision.preferredTransport === "app-server-stdio") {
-    return "Codex stdio transport ready";
+    return "Codex app-server ready";
   }
 
   if (decision.preferredTransport === "exec-json") {
@@ -1642,6 +1644,32 @@ function codexNotice(decision: CodexTransportDecision): string {
   }
 
   return "Local preview mode";
+}
+
+function codexAuthModeLabel(mode: CodexAuthMode): string {
+  switch (mode) {
+    case "chatgpt":
+      return "ChatGPT";
+    case "api-key":
+      return "API key";
+    case "present-unknown":
+      return "Signed in";
+    case "missing":
+      return "Missing";
+  }
+}
+
+function codexBillingDetail(billing: CodexAuthBilling): string {
+  switch (billing) {
+    case "chatgpt-entitlement":
+      return "Using the local Codex login; usage should follow your ChatGPT/Codex entitlement.";
+    case "api-billing":
+      return "API key sign-in was detected; OpenAI API billing may apply.";
+    case "unknown":
+      return "Codex auth is present, but billing cannot be classified safely from local markers.";
+    case "not-connected":
+      return "Sign in with Codex locally, then refresh the connection.";
+  }
 }
 
 function transportStatusLabel(state: CodexTransportState): string {
@@ -4220,7 +4248,7 @@ export function App() {
     setCodexConnectionRequested(true);
     setAppNotice(
       codexTransportDecision.preferredTransport === "app-server-stdio"
-        ? "Codex stdio bridge staged"
+        ? "Codex app-server connection staged"
         : "Codex connection request staged locally"
     );
   }
@@ -5386,6 +5414,7 @@ export function App() {
           phase4CatalogProofEvaluationTime={phase4CatalogProofEvaluationTime}
           phase4CurrentCatalogFingerprint={phase4CurrentCatalogFingerprint}
           codexTransportDecision={codexTransportDecision}
+          codexTransportProbe={codexTransportProbe}
           codexTransportLoading={codexTransportLoading}
           dialog={appDialog}
           projectManagementTasks={projectManagementTasks}
@@ -5978,6 +6007,7 @@ function AppDialogSurface({
   phase4CatalogProofEvaluationTime,
   phase4CurrentCatalogFingerprint,
   codexTransportDecision,
+  codexTransportProbe,
   codexTransportLoading,
   dialog,
   projectManagementTasks,
@@ -6045,6 +6075,7 @@ function AppDialogSurface({
   phase4CatalogProofEvaluationTime: string;
   phase4CurrentCatalogFingerprint: string;
   codexTransportDecision: CodexTransportDecision;
+  codexTransportProbe: CodexTransportProbe;
   codexTransportLoading: boolean;
   dialog: AppDialog;
   projectManagementTasks: ProjectManagementTask[];
@@ -6202,16 +6233,21 @@ function AppDialogSurface({
   const connectionEvidenceById = new Map(
     codexTransportDecision.evidence.map((item) => [item.id, item])
   );
+  const codexAccountEvidence = connectionEvidenceById.get("codex-account");
+  const codexBillingSummary = codexBillingDetail(codexTransportProbe.codexHome.authBilling);
   const connectionStatusRows = [
     {
-      id: "codex-cli",
-      label: "Codex CLI",
-      value: connectionEvidenceById.get("codex-cli")?.status === "ready" ? "Ready" : "Check",
-      detail: connectionEvidenceById.get("codex-cli")?.detail ?? "Codex CLI status is unknown."
+      id: "codex-account",
+      label: "Codex account",
+      value: codexAuthModeLabel(codexTransportProbe.codexHome.authMode),
+      detail:
+        codexAccountEvidence?.detail ??
+        codexTransportProbe.codexHome.authDetail ??
+        "Codex account status is unknown."
     },
     {
       id: "codex-app-server",
-      label: "App-server stdio",
+      label: "App-server",
       value: codexTransportDecision.canStartSession ? "Ready" : "Not ready",
       detail:
         connectionEvidenceById.get("codex-app-server")?.detail ??
@@ -6227,7 +6263,7 @@ function AppDialogSurface({
     },
     {
       id: "codex-live-smoke",
-      label: "Live smoke",
+      label: "Live test",
       value: codexLiveSmokeProof.ok
         ? "Passed"
         : codexLiveSmokeProof.executed
@@ -6242,7 +6278,11 @@ function AppDialogSurface({
   ];
   const connectionAdvancedRows = [
     {
-      label: "Transport",
+      label: "Codex CLI",
+      value: connectionEvidenceById.get("codex-cli")?.status === "ready" ? "Ready" : "Check"
+    },
+    {
+      label: "Provider",
       value: codexTransportDecision.preferredTransport
     },
     {
@@ -6388,6 +6428,8 @@ function AppDialogSurface({
                   </button>
                 ))}
               </div>
+
+              <p className="transport-fallback">{codexBillingSummary}</p>
 
               <div className="connection-palette-actions" aria-label="Codex connection actions">
                 <button className="dialog-secondary-action" onClick={onRefreshCodexTransport} type="button">

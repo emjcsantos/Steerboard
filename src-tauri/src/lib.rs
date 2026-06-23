@@ -35,6 +35,9 @@ pub struct CodexHomeProbe {
     pub present: bool,
     pub config_present: bool,
     pub auth_present: bool,
+    pub auth_mode: String,
+    pub auth_billing: String,
+    pub auth_detail: String,
     pub skills_count: usize,
     pub plugins_present: bool,
 }
@@ -1086,9 +1089,8 @@ mod runtime_bridge {
             execution: CodexExecutionProbe {
                 process_execution_allowed: false,
                 prompt_execution_allowed: false,
-                detail:
-                    "Read-only transport spike: no prompt was sent and execution remains locked."
-                        .to_string(),
+                detail: "Read-only Codex app-server probe: no prompt was sent and execution remains locked."
+                    .to_string(),
             },
         }
     }
@@ -2229,12 +2231,101 @@ mod runtime_bridge {
 
     fn read_codex_home_probe() -> CodexHomeProbe {
         let codex_home = codex_home_path();
+        let auth_path = codex_home.join("auth.json");
+        let auth_present = auth_path.is_file();
+        let auth_contents = if auth_present {
+            fs::read_to_string(&auth_path).ok()
+        } else {
+            None
+        };
+        let api_key_env_present = std::env::var_os("OPENAI_API_KEY").is_some();
+        let (auth_mode, auth_billing, auth_detail) =
+            classify_codex_auth(auth_present, auth_contents.as_deref(), api_key_env_present);
+
         CodexHomeProbe {
             present: codex_home.is_dir(),
             config_present: codex_home.join("config.toml").is_file(),
-            auth_present: codex_home.join("auth.json").is_file(),
+            auth_present,
+            auth_mode,
+            auth_billing,
+            auth_detail,
             skills_count: count_skill_manifests(&codex_home.join("skills"), 0),
             plugins_present: codex_home.join("plugins").is_dir(),
+        }
+    }
+
+    pub(super) fn classify_codex_auth(
+        auth_present: bool,
+        auth_contents: Option<&str>,
+        api_key_env_present: bool,
+    ) -> (String, String, String) {
+        if !auth_present && api_key_env_present {
+            return (
+                "api-key".to_string(),
+                "api-billing".to_string(),
+                "API key environment detected; Steerboard will not display or store the key."
+                    .to_string(),
+            );
+        }
+
+        if !auth_present {
+            return (
+                "missing".to_string(),
+                "not-connected".to_string(),
+                "No Codex sign-in was detected. Sign in with Codex, then refresh.".to_string(),
+            );
+        }
+
+        let parsed_auth = auth_contents.and_then(|content| serde_json::from_str::<Value>(content).ok());
+        let api_key_marker = parsed_auth.as_ref().is_some_and(|value| {
+            json_has_auth_marker(value, &["openaiapikey", "apikey"])
+        });
+        let chatgpt_marker = parsed_auth.as_ref().is_some_and(|value| {
+            json_has_auth_marker(
+                value,
+                &[
+                    "tokens",
+                    "accesstoken",
+                    "refreshtoken",
+                    "idtoken",
+                    "accountid",
+                    "chatgptaccountid",
+                ],
+            )
+        });
+
+        match (api_key_marker, chatgpt_marker) {
+            (true, false) => (
+                "api-key".to_string(),
+                "api-billing".to_string(),
+                "API key sign-in detected; API billing may apply.".to_string(),
+            ),
+            (false, true) => (
+                "chatgpt".to_string(),
+                "chatgpt-entitlement".to_string(),
+                "ChatGPT/Codex sign-in detected; usage should follow that entitlement."
+                    .to_string(),
+            ),
+            _ => (
+                "present-unknown".to_string(),
+                "unknown".to_string(),
+                "Codex auth is present; sign-in type could not be classified safely.".to_string(),
+            ),
+        }
+    }
+
+    fn json_has_auth_marker(value: &Value, markers: &[&str]) -> bool {
+        match value {
+            Value::Object(object) => object.iter().any(|(key, child)| {
+                let normalized_key = key
+                    .chars()
+                    .filter(|character| character.is_ascii_alphanumeric())
+                    .collect::<String>()
+                    .to_ascii_lowercase();
+                markers.contains(&normalized_key.as_str()) || json_has_auth_marker(child, markers)
+            }),
+            Value::Array(items) => items.iter().any(|item| json_has_auth_marker(item, markers)),
+            _ => false,
         }
     }
 
@@ -4899,6 +4990,80 @@ mod tests {
     }
 
     #[test]
+    fn codex_auth_classifier_detects_chatgpt_without_leaking_tokens() {
+        let (mode, billing, detail) = runtime_bridge::classify_codex_auth(
+            true,
+            Some(r#"{"tokens":{"access_token":"sk-secret-chatgpt-token"}}"#),
+            false,
+        );
+
+        assert_eq!(mode, "chatgpt");
+        assert_eq!(billing, "chatgpt-entitlement");
+        assert!(detail.contains("ChatGPT"));
+        assert!(!detail.contains("sk-secret-chatgpt-token"));
+    }
+
+    #[test]
+    fn codex_auth_classifier_detects_api_key_without_leaking_key() {
+        let (mode, billing, detail) = runtime_bridge::classify_codex_auth(
+            true,
+            Some(r#"{"OPENAI_API_KEY":"sk-secret-api-key"}"#),
+            false,
+        );
+
+        assert_eq!(mode, "api-key");
+        assert_eq!(billing, "api-billing");
+        assert!(detail.contains("API key"));
+        assert!(!detail.contains("sk-secret-api-key"));
+    }
+
+    #[test]
+    fn codex_auth_classifier_marks_missing_auth_as_not_connected() {
+        let (mode, billing, detail) = runtime_bridge::classify_codex_auth(false, None, false);
+
+        assert_eq!(mode, "missing");
+        assert_eq!(billing, "not-connected");
+        assert!(detail.contains("No Codex sign-in"));
+    }
+
+    #[test]
+    fn codex_auth_classifier_keeps_malformed_auth_unknown() {
+        let (mode, billing, detail) =
+            runtime_bridge::classify_codex_auth(true, Some("{not-json"), false);
+
+        assert_eq!(mode, "present-unknown");
+        assert_eq!(billing, "unknown");
+        assert!(detail.contains("could not be classified safely"));
+    }
+
+    #[test]
+    fn codex_home_probe_serialization_omits_auth_paths_and_secrets() {
+        let (auth_mode, auth_billing, auth_detail) = runtime_bridge::classify_codex_auth(
+            true,
+            Some(r#"{"OPENAI_API_KEY":"sk-secret-serialized"}"#),
+            false,
+        );
+        let probe = CodexHomeProbe {
+            present: true,
+            config_present: true,
+            auth_present: true,
+            auth_mode,
+            auth_billing,
+            auth_detail,
+            skills_count: 2,
+            plugins_present: true,
+        };
+        let serialized = serde_json::to_string(&probe).expect("home probe should serialize");
+
+        assert!(serialized.contains("api-key"));
+        assert!(!serialized.contains("sk-secret-serialized"));
+        assert!(!serialized.contains("auth.json"));
+        assert!(!serialized.contains("config.toml"));
+        assert!(!serialized.contains("OPENAI_API_KEY"));
+        assert!(!serialized.contains("token"));
+    }
+
+    #[test]
     fn panel_initialize_request_does_not_start_thread_or_prompt() {
         let request = runtime_bridge::initialize_request(7, "unit-test-client");
         assert_eq!(
@@ -5136,6 +5301,10 @@ mod tests {
                 present: true,
                 config_present: true,
                 auth_present: true,
+                auth_mode: "chatgpt".to_string(),
+                auth_billing: "chatgpt-entitlement".to_string(),
+                auth_detail: "ChatGPT/Codex sign-in detected; usage should follow that entitlement."
+                    .to_string(),
                 skills_count: 4,
                 plugins_present: true,
             },
