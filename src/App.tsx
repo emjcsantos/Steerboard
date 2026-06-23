@@ -1145,6 +1145,7 @@ const sessions: SessionSummary[] = [];
 const pipelineItems: PipelineItem[] = [];
 const registryEntries: RegistryEntry[] = [];
 const runtimeAdapters: RuntimeAdapter[] = [];
+const LOCAL_CHAT_SESSIONS_STORAGE_KEY = "steerboard.localChatSessions.v1";
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -1161,6 +1162,96 @@ const stateIcon: Record<SessionState, ReactNode> = {
   failed: <AlertTriangle size={14} />,
   complete: <CheckCircle2 size={14} />
 };
+
+function isStoredLocalChatSession(value: unknown): value is SessionSummary {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const candidate = value as Partial<Record<keyof SessionSummary, unknown>>;
+
+  return (
+    typeof candidate.id === "string" &&
+    candidate.id.startsWith("local-chat-") &&
+    typeof candidate.projectId === "string" &&
+    typeof candidate.title === "string" &&
+    (candidate.role === "orchestrator" ||
+      candidate.role === "implementer" ||
+      candidate.role === "validator" ||
+      candidate.role === "integration") &&
+    (candidate.state === "idle" ||
+      candidate.state === "planning" ||
+      candidate.state === "implementing" ||
+      candidate.state === "validating" ||
+      candidate.state === "blocked" ||
+      candidate.state === "failed" ||
+      candidate.state === "complete") &&
+    typeof candidate.branch === "string" &&
+    typeof candidate.runtime === "string" &&
+    typeof candidate.attempt === "number" &&
+    typeof candidate.validation === "string" &&
+    Array.isArray(candidate.files) &&
+    Array.isArray(candidate.transcript) &&
+    Array.isArray(candidate.tools)
+  );
+}
+
+function loadLocalChatSessions(): SessionSummary[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(LOCAL_CHAT_SESSIONS_STORAGE_KEY) ?? "[]");
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    const seenSessionIds = new Set<string>();
+    const repairedSessions: SessionSummary[] = [];
+
+    for (const item of parsed) {
+      if (!isStoredLocalChatSession(item) || seenSessionIds.has(item.id)) {
+        continue;
+      }
+
+      seenSessionIds.add(item.id);
+      repairedSessions.push(item);
+    }
+
+    return repairedSessions;
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalChatSessions(localChatSessions: readonly SessionSummary[]) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(LOCAL_CHAT_SESSIONS_STORAGE_KEY, JSON.stringify(localChatSessions));
+}
+
+function createLocalChatSession(sequence: number): SessionSummary {
+  const normalizedSequence = Math.max(1, Math.floor(sequence));
+
+  return {
+    id: `local-chat-${Date.now()}-${normalizedSequence}`,
+    projectId: emptyWorkspaceProject.id,
+    title: `New chat ${normalizedSequence}`,
+    role: "orchestrator",
+    state: "idle",
+    branch: "local/chat",
+    runtime: "Local preview",
+    attempt: 1,
+    validation: "Ready for local chat.",
+    files: [],
+    transcript: ["New local chat started."],
+    tools: ["Panel chat"]
+  };
+}
 
 const missingFieldLabels: Record<PlanningDraftRequiredField, string> = {
   title: "Title",
@@ -2001,6 +2092,9 @@ export function App() {
     loadProjectManagementChat()
   );
   const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
+  const [localChatSessions, setLocalChatSessions] = useState<SessionSummary[]>(() =>
+    loadLocalChatSessions()
+  );
   const [mockRuns, setMockRuns] = useState<MockOrchestratorRun[]>(() => loadRunHistory());
   const [dispatchReviewRecords, setDispatchReviewRecords] = useState<DispatchReviewRecord[]>(() =>
     loadDispatchReviewRecords()
@@ -3346,6 +3440,10 @@ export function App() {
   }, [projectManagementChat]);
 
   useEffect(() => {
+    saveLocalChatSessions(localChatSessions);
+  }, [localChatSessions]);
+
+  useEffect(() => {
     saveRunHistory(mockRuns);
   }, [mockRuns]);
 
@@ -3391,7 +3489,7 @@ export function App() {
     []
   );
   const projectLabelById = useMemo(
-    () => new Map(projects.map((entry) => [entry.id, entry.name])),
+    () => new Map([[emptyWorkspaceProject.id, emptyWorkspaceProject.name], ...projects.map((entry) => [entry.id, entry.name] as const)]),
     []
   );
   const runtimeByProject = useMemo(
@@ -3479,7 +3577,7 @@ export function App() {
   );
   const adaptiveDropSessionIdsByProject = useMemo(() => {
     const nextMap: Record<string, string[]> = {};
-    for (const session of [...sessions, ...allMockSessions]) {
+    for (const session of [...sessions, ...localChatSessions, ...allMockSessions]) {
       nextMap[session.projectId] = nextMap[session.projectId] ?? [];
       if (!nextMap[session.projectId].includes(session.id)) {
         nextMap[session.projectId].push(session.id);
@@ -3487,7 +3585,7 @@ export function App() {
     }
 
     return nextMap;
-  }, [allMockSessions]);
+  }, [allMockSessions, localChatSessions]);
   const projectMockTasks = useMemo(
     () => projectMockRuns.flatMap((run) => runToOrchestrationTasks(run)),
     [projectMockRuns]
@@ -3504,19 +3602,19 @@ export function App() {
     [project.id, projectMockTasks]
   );
   const cockpitSessions = useMemo(
-    () => [...projectMockSessions, ...basePresetSessions],
-    [basePresetSessions, projectMockSessions]
+    () => [...localChatSessions, ...projectMockSessions, ...basePresetSessions],
+    [basePresetSessions, localChatSessions, projectMockSessions]
   );
   const allKnownSessions = useMemo(() => {
     const nextMap = new Map<string, SessionSummary>();
-    for (const session of [...sessions, ...allMockSessions, ...cockpitSessions]) {
+    for (const session of [...sessions, ...localChatSessions, ...allMockSessions, ...cockpitSessions]) {
       if (!nextMap.has(session.id)) {
         nextMap.set(session.id, session);
       }
     }
 
     return [...nextMap.values()];
-  }, [allMockSessions, cockpitSessions]);
+  }, [allMockSessions, cockpitSessions, localChatSessions]);
   const sessionById = useMemo(
     () => new Map(cockpitSessions.map((session) => [session.id, session])),
     [cockpitSessions]
@@ -3529,7 +3627,7 @@ export function App() {
     const seenSessionIds = new Set<string>();
     const nextSessions: SessionSummary[] = [];
 
-    for (const session of [...cockpitSessions, ...sessions]) {
+    for (const session of [...localChatSessions, ...cockpitSessions, ...sessions]) {
       if (seenSessionIds.has(session.id)) {
         continue;
       }
@@ -3539,7 +3637,7 @@ export function App() {
     }
 
     return nextSessions.slice(0, 6);
-  }, [cockpitSessions]);
+  }, [cockpitSessions, localChatSessions]);
   const adaptivePanelIds = useMemo(
     () => cockpitSessions.slice(0, ADAPTIVE_LAYOUT_MAX_PANELS).map((session) => session.id),
     [cockpitSessions]
@@ -3747,20 +3845,14 @@ export function App() {
 
   function handleNewChatAction() {
     updatePreferences({ layoutId: "adaptive", view: "cockpit" });
+    const nextSession = createLocalChatSession(localChatSessions.length + 1);
 
-    const nextHiddenPanel = hiddenAdaptivePanels[0];
-    if (nextHiddenPanel) {
-      setAdaptiveCockpitLayout((currentLayout) =>
-        revealAdaptiveCockpitPanel(currentLayout, nextHiddenPanel.id)
-      );
-      setFocusedPanelId(nextHiddenPanel.id);
-      setAppNotice(`${sessionById.get(nextHiddenPanel.id)?.title ?? "Chat panel"} added to Adaptive Arena`);
-      return;
-    }
-
-    const nextPanelId = visibleSessions[0]?.id ?? adaptivePanelIds[0];
-    setFocusedPanelId(nextPanelId);
-    setAppNotice("Adaptive Arena is ready for a local chat panel");
+    setLocalChatSessions((currentSessions) => [nextSession, ...currentSessions]);
+    setAdaptiveCockpitLayout((currentLayout) =>
+      syncAdaptiveCockpitLayoutToPanelIds(currentLayout, [nextSession.id, ...adaptivePanelIds])
+    );
+    setFocusedPanelId(nextSession.id);
+    setAppNotice(`${nextSession.title} created in Adaptive Arena`);
   }
 
   function handleAddAdaptivePanel() {
