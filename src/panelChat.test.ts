@@ -473,4 +473,30 @@ describe("panel chat helpers", () => {
       "panel-1": [{ id: "ok", role: "user", label: "You", body: "Hello", meta: "draft" }]
     });
   });
+
+  it("repairs stale live Codex pending messages from persisted chat state", () => {
+    const messages = normalizePanelChatMessages(
+      [
+        {
+          id: "panel-1:live-status:5",
+          role: "system",
+          label: "Steerboard",
+          body: "Sending to live Codex...",
+          meta: "running"
+        }
+      ],
+      []
+    );
+
+    expect(messages).toEqual([
+      {
+        id: "panel-1:live-status:5",
+        role: "system",
+        label: "Codex connection",
+        body:
+          "Previous live Codex turn did not finish before the panel was reloaded. Retry after refreshing the Codex connection.",
+        meta: "live recovery"
+      }
+    ]);
+  });
 });

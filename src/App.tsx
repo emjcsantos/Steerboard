@@ -2025,10 +2025,36 @@ function hasPhase3RecordedArtifactLoadAccess(): boolean {
 }
 
 const PHASE3_PROOF_EVALUATION_REFRESH_MS = 60 * 1000;
+const DESKTOP_PANEL_SESSION_START_TIMEOUT_MS = 20_000;
+const DESKTOP_PANEL_TURN_TIMEOUT_MS = 75_000;
+const DESKTOP_PANEL_CLEANUP_TIMEOUT_MS = 5_000;
 
-async function invokeDesktopCommand<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+async function invokeDesktopCommand<T>(
+  command: string,
+  args?: Record<string, unknown>,
+  timeoutMs?: number
+): Promise<T> {
   const { invoke } = await import("@tauri-apps/api/core");
-  return invoke<T>(command, args);
+  const commandPromise = invoke<T>(command, args);
+
+  if (!timeoutMs || timeoutMs <= 0) {
+    return commandPromise;
+  }
+
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${command} timed out after ${Math.round(timeoutMs / 1000)}s.`));
+    }, timeoutMs);
+  });
+
+  try {
+    return await Promise.race([commandPromise, timeoutPromise]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
 }
 
 async function readPhase3RecordedArtifact(
@@ -7615,7 +7641,8 @@ function SessionCell({
     setLiveChatDetail("Starting Codex app-server panel session.");
     const result = await invokeDesktopCommand<CodexPanelSessionStartPayload>(
       "codex_panel_session_start",
-      { panelId: session.id }
+      { panelId: session.id },
+      DESKTOP_PANEL_SESSION_START_TIMEOUT_MS
     );
     setLiveSessionStarted(result.started);
     setLiveChatDetail(result.detail);
@@ -7679,7 +7706,8 @@ function SessionCell({
       setLiveChatDetail("Codex turn is running.");
       const result = await invokeDesktopCommand<CodexPanelTurnResultPayload>(
         mode === "retry" ? "codex_panel_session_retry" : "codex_panel_session_send_turn",
-        { panelId: session.id, prompt: trimmedMessage }
+        { panelId: session.id, prompt: trimmedMessage },
+        DESKTOP_PANEL_TURN_TIMEOUT_MS
       );
       const state = reduceCodexSessionEvents(
         normalizeCodexPanelTurnResultEvents(result, trimmedMessage)
@@ -7731,6 +7759,18 @@ function SessionCell({
       ]);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      if (
+        message.includes("codex_panel_session_start timed out") ||
+        message.includes("codex_panel_session_send_turn timed out") ||
+        message.includes("codex_panel_session_retry timed out")
+      ) {
+        invokeDesktopCommand(
+          "codex_panel_session_close",
+          { panelId: session.id },
+          DESKTOP_PANEL_CLEANUP_TIMEOUT_MS
+        ).catch(() => undefined);
+        setLiveSessionStarted(false);
+      }
       setLiveChatStatus("failed");
       setLiveChatDetail(message);
       onPanelSessionStatus?.(session.id, "error", message);

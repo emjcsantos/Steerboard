@@ -94,6 +94,29 @@ function isPanelChatMessage(value: unknown): value is PanelChatMessage {
   );
 }
 
+function isStaleLivePendingMessage(message: PanelChatMessage): boolean {
+  return (
+    message.role === "system" &&
+    message.label === "Steerboard" &&
+    message.meta === "running" &&
+    /live Codex|Codex turn is running|Starting Codex/i.test(message.body)
+  );
+}
+
+function repairStaleLivePendingMessage(message: PanelChatMessage): PanelChatMessage {
+  if (!isStaleLivePendingMessage(message)) {
+    return message;
+  }
+
+  return {
+    ...message,
+    label: "Codex connection",
+    body:
+      "Previous live Codex turn did not finish before the panel was reloaded. Retry after refreshing the Codex connection.",
+    meta: "live recovery"
+  };
+}
+
 function eventType(event: CodexPanelEventPayload): string {
   return event.eventType || event.method || "unknown";
 }
@@ -446,7 +469,7 @@ export function normalizePanelChatMessages(
     return fallback;
   }
 
-  const messages = value.filter(isPanelChatMessage);
+  const messages = value.filter(isPanelChatMessage).map(repairStaleLivePendingMessage);
   return messages.length > 0 ? messages : fallback;
 }
 
