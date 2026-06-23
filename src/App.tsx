@@ -6199,6 +6199,103 @@ function AppDialogSurface({
           : dialog === "slash-help"
             ? "Slash Commands"
             : platformCatalogView?.title ?? "Platform Catalog";
+  const connectionEvidenceById = new Map(
+    codexTransportDecision.evidence.map((item) => [item.id, item])
+  );
+  const connectionStatusRows = [
+    {
+      id: "codex-cli",
+      label: "Codex CLI",
+      value: connectionEvidenceById.get("codex-cli")?.status === "ready" ? "Ready" : "Check",
+      detail: connectionEvidenceById.get("codex-cli")?.detail ?? "Codex CLI status is unknown."
+    },
+    {
+      id: "codex-app-server",
+      label: "App-server stdio",
+      value: codexTransportDecision.canStartSession ? "Ready" : "Not ready",
+      detail:
+        connectionEvidenceById.get("codex-app-server")?.detail ??
+        "Codex app-server session support is not ready yet."
+    },
+    {
+      id: "codex-panel-protocol",
+      label: "Panel protocol",
+      value: codexTransportDecision.canSendPanelMessage ? "Ready" : "Locked",
+      detail:
+        connectionEvidenceById.get("codex-panel-protocol")?.detail ??
+        "Panel chat protocol support is unavailable."
+    },
+    {
+      id: "codex-live-smoke",
+      label: "Live smoke",
+      value: codexLiveSmokeProof.ok
+        ? "Passed"
+        : codexLiveSmokeProof.executed
+          ? "Failed"
+          : "Optional",
+      detail: codexLiveSmokeProof.executed
+        ? `${codexLiveSmokeProof.agentDeltaMethodSeen ? "Delta seen" : "No delta"}; ${
+            codexLiveSmokeProof.turnCompletedSeen ? "turn completed" : "turn incomplete"
+          }`
+        : "Run this only when you want to verify a live turn."
+    }
+  ];
+  const connectionAdvancedRows = [
+    {
+      label: "Transport",
+      value: codexTransportDecision.preferredTransport
+    },
+    {
+      label: "Proof",
+      value: codexTransportDecision.proof
+    },
+    {
+      label: "Control smoke",
+      value: codexLiveControlSmokeProof.ok
+        ? "Passed"
+        : codexLiveControlSmokeProof.unsupported
+          ? "Unsupported"
+          : codexLiveControlSmokeProof.executed
+            ? "Failed"
+            : "Not run"
+    },
+    {
+      label: "Interrupt",
+      value: codexActiveTurnControlSmokeProof.ok
+        ? "Passed"
+        : codexActiveTurnControlSmokeProof.unsupported
+          ? "Unsupported"
+          : codexActiveTurnControlSmokeProof.executed
+            ? "Failed"
+            : "Not run"
+    },
+    {
+      label: "Steer",
+      value: codexActiveTurnSteerSmokeProof.ok
+        ? "Passed"
+        : codexActiveTurnSteerSmokeProof.unsupported
+          ? "Unsupported"
+          : codexActiveTurnSteerSmokeProof.executed
+            ? "Failed"
+            : "Not run"
+    },
+    {
+      label: "Two-panel",
+      value: codexTwoPanelSmokeProof.ok
+        ? "Passed"
+        : codexTwoPanelSmokeProof.executed
+          ? "Failed"
+          : "Not run"
+    },
+    {
+      label: "Catalog",
+      value: catalogRefreshProviderSmokeProof.ok
+        ? "Passed"
+        : catalogRefreshProviderSmokeProof.executed
+          ? "Failed"
+          : "Not run"
+    }
+  ];
 
   return (
     <div
@@ -6269,223 +6366,100 @@ function AppDialogSurface({
 
         {dialog === "connection" || dialog === "terminal" ? (
           <div className="app-dialog-body">
-            <div className="connection-summary">
-              <ShieldCheck size={18} />
-              <div>
-                <span className={classNames("transport-state-pill", `transport-${codexTransportDecision.state}`)}>
-                  {transportStatusLabel(codexTransportDecision.state)}
-                </span>
-                <strong>
-                  {dialog === "terminal"
-                    ? "Terminal runtime readiness"
-                    : codexConnectionRequested
-                      ? "Connection request staged"
-                      : "Codex transport spike"}
-                </strong>
-                <p>{codexTransportDecision.summary}</p>
-              </div>
-            </div>
-            <div className="transport-proof-grid" aria-label="Codex transport proof">
-              <span>Preferred transport</span>
-              <strong>{codexTransportDecision.preferredTransport}</strong>
-              <span>Proof level</span>
-              <strong>{codexTransportDecision.proof}</strong>
-              <span>Can start session</span>
-              <strong>{codexTransportDecision.canStartSession ? "Yes" : "No"}</strong>
-              <span>Can send prompt</span>
-              <strong>{codexTransportDecision.canSendPanelMessage ? "Yes" : "Locked"}</strong>
-            </div>
-            <div className="connection-checks" aria-label="Codex connection readiness">
-              {codexTransportDecision.evidence.map((item) => (
-                <span className={`is-${item.status}`} key={item.id} title={item.detail}>
-                  {item.label}
-                </span>
-              ))}
-            </div>
-            <div className="transport-live-proof" aria-label="Codex live smoke proof">
-              <span>Live smoke</span>
-              <strong>{codexLiveSmokeProof.ok ? "Passed" : codexLiveSmokeProof.executed ? "Failed" : "Not run"}</strong>
-              <small>
-                {codexLiveSmokeProof.executed
-                  ? `${codexLiveSmokeProof.agentDeltaMethodSeen ? "Delta seen" : "No delta"}; ${codexLiveSmokeProof.turnCompletedSeen ? "turn completed" : "turn incomplete"}`
-                  : "Runs one tiny explicit Codex turn with read-only sandbox."}
-              </small>
-            </div>
-            <div className="transport-live-proof" aria-label="Codex control smoke proof">
-              <span>Control smoke</span>
-              <strong>
-                {codexLiveControlSmokeProof.ok
-                  ? "Passed"
-                  : codexLiveControlSmokeProof.unsupported
-                    ? "Unsupported"
-                    : codexLiveControlSmokeProof.executed
-                    ? "Failed"
-                    : "Not run"}
-              </strong>
-              <small>
-                {codexLiveControlSmokeProof.executed
-                  ? `${codexLiveControlSmokeProof.supportedMethodCount}/${codexLiveControlSmokeProof.totalMethodCount} controls; ${codexLiveControlSmokeProof.protocolReady ? "protocol ready" : codexLiveControlSmokeProof.appServerReady ? "protocol issue" : "app-server not ready"}`
-                  : "Checks live control protocol readiness without workspace mutation."}
-              </small>
-            </div>
-            <div className="transport-live-proof" aria-label="Codex active-turn control smoke proof">
-              <span>Active-turn interrupt</span>
-              <strong>
-                {codexActiveTurnControlSmokeProof.ok
-                  ? "Passed"
-                  : codexActiveTurnControlSmokeProof.unsupported
-                    ? "Unsupported"
-                    : codexActiveTurnControlSmokeProof.executed
-                    ? "Failed"
-                    : "Not run"}
-              </strong>
-              <small>
-                {codexActiveTurnControlSmokeProof.executed
-                  ? `${codexActiveTurnControlSmokeProof.completed ? "Completed" : "Incomplete"}; ${codexActiveTurnControlSmokeProof.interruptObserved ? "interrupt observed" : codexActiveTurnControlSmokeProof.interruptSent ? "interrupt sent" : "interrupt not observed"}; ${codexActiveTurnControlSmokeProof.controls.length} controls`
-                  : "Checks active-turn interrupt and completion flow for an explicit read-only run."}
-              </small>
-            </div>
-            <div className="transport-live-proof" aria-label="Codex active-turn steer smoke proof">
-              <span>Active-turn steer</span>
-              <strong>
-                {codexActiveTurnSteerSmokeProof.ok
-                  ? "Passed"
-                  : codexActiveTurnSteerSmokeProof.unsupported
-                    ? "Unsupported"
-                    : codexActiveTurnSteerSmokeProof.executed
-                    ? "Failed"
-                    : "Not run"}
-              </strong>
-              <small>
-                {codexActiveTurnSteerSmokeProof.executed
-                  ? `${codexActiveTurnSteerSmokeProof.completed ? "Completed" : "Incomplete"}; ${codexActiveTurnSteerSmokeProof.steerObserved ? "steer observed" : codexActiveTurnSteerSmokeProof.steerSent ? "steer sent" : "steer not observed"}; ${codexActiveTurnSteerSmokeProof.controls.length} controls`
-                  : "Checks active-turn steering for an explicit read-only run."}
-              </small>
-            </div>
-            <div className="transport-live-proof" aria-label="Codex two-panel live smoke proof">
-              <span>Two-panel smoke</span>
-              <strong>
-                {codexTwoPanelSmokeProof.ok
-                  ? "Passed"
-                  : codexTwoPanelSmokeProof.executed
-                    ? "Failed"
-                    : "Not run"}
-              </strong>
-              <small>
-                {codexTwoPanelSmokeProof.executed
-                  ? `${codexTwoPanelSmokeProof.distinctThreadIds ? "Distinct threads" : "Thread issue"}; ${codexTwoPanelSmokeProof.crossTalkDetected ? "crosstalk detected" : "no crosstalk"}`
-                  : "Runs two explicit read-only Codex panel turns and checks identity isolation."}
-              </small>
-            </div>
-            <div
-              className="transport-live-proof transport-catalog-proof"
-              aria-label="Provider catalog refresh smoke proof"
-              title={catalogRefreshProviderSmokeProof.safety}
-            >
-              <span>Catalog smoke</span>
-              <strong>
-                {catalogRefreshProviderSmokeProof.ok
-                  ? "Passed"
-                  : catalogRefreshProviderSmokeProof.executed
-                    ? "Failed"
-                    : "Not run"}
-              </strong>
-              <small>
-                {catalogRefreshProviderSmokeProof.executed
-                  ? `${catalogRefreshProviderSmokeProof.surfaces.filter((surface) => surface.pass).length}/${catalogRefreshProviderSmokeProof.surfaces.length} surfaces; ${catalogRefreshProviderSmokeProof.detail}`
-                  : "Refreshes all catalog metadata/status surfaces without running commands, tools, automations, or mutations."}
-              </small>
-              <ul className="transport-catalog-sources" aria-label="Catalog smoke surface sources">
-                {catalogRefreshProviderSmokeProof.surfaces.map((surface) => (
-                  <li className={classNames(`catalog-smoke-${surface.state}`)} key={surface.surface}>
-                    <span>{surface.surface}</span>
-                    <b>{surface.source}</b>
-                  </li>
+            <div className="connection-palette" aria-label="Codex connection status">
+              <label className="connection-palette-search">
+                <span>Status</span>
+                <strong>{transportStatusLabel(codexTransportDecision.state)}</strong>
+                <small>{codexTransportDecision.canStartSession ? "Ready to use" : "Needs setup"}</small>
+              </label>
+
+              <div className="connection-palette-group" aria-label="Codex providers">
+                <span className="connection-palette-label">Provider</span>
+                {connectionStatusRows.map((row, index) => (
+                  <button
+                    className={classNames("connection-provider-row", index === 0 && "is-selected")}
+                    key={row.id}
+                    title={row.detail}
+                    type="button"
+                  >
+                    <span>{row.label}</span>
+                    <small>{row.detail}</small>
+                    <b>{row.value}</b>
+                  </button>
                 ))}
-              </ul>
-              <div className="transport-catalog-safety" aria-label={catalogRefreshSafetyDepth.ariaLabel}>
-                <div className="transport-catalog-safety-header">
-                  <strong>{catalogRefreshSafetyDepth.label}</strong>
-                  <b>
-                    {catalogRefreshSafetyDepth.readyCount} ready / {catalogRefreshSafetyDepth.previewCount} preview
-                  </b>
-                </div>
-                <small>{catalogRefreshSafetyDepth.refreshSmokeProof}</small>
-                <small>{catalogRefreshSafetyDepth.refreshSafetyDepthProof}</small>
-                <ol className="transport-catalog-safety-list">
-                  {catalogRefreshSafetyDepth.records.map((record) => (
-                    <li
-                      className={classNames(
-                        "transport-catalog-safety-item",
-                        `catalog-safety-${record.status}`
-                      )}
-                      key={record.id}
-                      title={`${record.evidence} ${record.nextAction}`}
-                    >
-                      <span>{record.statusLabel}</span>
-                      <strong>{record.label}</strong>
-                      <small>{record.nextAction}</small>
-                    </li>
-                  ))}
-                </ol>
               </div>
-            </div>
-            <p className="transport-fallback">{codexTransportDecision.fallback}</p>
-            <div className="dialog-action-row">
-              <button className="dialog-secondary-action" onClick={onRefreshCodexTransport} type="button">
-                {codexTransportLoading ? "Checking..." : "Refresh probe"}
-              </button>
-              <button
-                className="dialog-secondary-action"
-                disabled={!codexTransportDecision.canStartSession || codexLiveSmokeLoading}
-                onClick={onRunCodexLiveSmokeProof}
-                type="button"
-              >
-                {codexLiveSmokeLoading ? "Running smoke..." : "Run live smoke"}
-              </button>
-              <button
-                className="dialog-secondary-action"
-                disabled={!codexTransportDecision.canStartSession || codexLiveControlSmokeLoading}
-                onClick={onRunCodexLiveControlSmokeProof}
-                type="button"
-              >
-                {codexLiveControlSmokeLoading ? "Running control smoke..." : "Run control smoke"}
-              </button>
-              <button
-                className="dialog-secondary-action"
-                disabled={!codexTransportDecision.canStartSession || codexActiveTurnControlSmokeLoading}
-                onClick={onRunCodexActiveTurnControlSmokeProof}
-                type="button"
-              >
-                {codexActiveTurnControlSmokeLoading ? "Running interrupt smoke..." : "Run interrupt smoke"}
-              </button>
-              <button
-                className="dialog-secondary-action"
-                disabled={!codexTransportDecision.canStartSession || codexActiveTurnSteerSmokeLoading}
-                onClick={onRunCodexActiveTurnSteerSmokeProof}
-                type="button"
-              >
-                {codexActiveTurnSteerSmokeLoading ? "Running steer smoke..." : "Run steer smoke"}
-              </button>
-              <button
-                className="dialog-secondary-action"
-                disabled={!codexTransportDecision.canStartSession || codexTwoPanelSmokeLoading}
-                onClick={onRunCodexTwoPanelSmokeProof}
-                type="button"
-              >
-                {codexTwoPanelSmokeLoading ? "Running panels..." : "Run two-panel smoke"}
-              </button>
-              <button
-                className="dialog-secondary-action"
-                disabled={catalogRefreshProviderSmokeLoading}
-                onClick={onRunCatalogRefreshProviderSmokeProof}
-                type="button"
-              >
-                {catalogRefreshProviderSmokeLoading ? "Refreshing catalogs..." : "Run catalog smoke"}
-              </button>
-              <button className="dialog-primary-action" onClick={onStageCodexConnection} type="button">
-                {codexConnectionRequested ? "Connection request staged" : "Stage Codex connection request"}
-              </button>
+
+              <div className="connection-palette-actions" aria-label="Codex connection actions">
+                <button className="dialog-secondary-action" onClick={onRefreshCodexTransport} type="button">
+                  {codexTransportLoading ? "Checking..." : "Refresh"}
+                </button>
+                <button
+                  className="dialog-secondary-action"
+                  disabled={!codexTransportDecision.canStartSession || codexLiveSmokeLoading}
+                  onClick={onRunCodexLiveSmokeProof}
+                  type="button"
+                >
+                  {codexLiveSmokeLoading ? "Testing..." : "Test"}
+                </button>
+                <button className="dialog-primary-action" onClick={onStageCodexConnection} type="button">
+                  {codexConnectionRequested ? "Staged" : "Connect"}
+                </button>
+              </div>
+
+              <details className="connection-advanced">
+                <summary>Advanced checks</summary>
+                <div className="connection-advanced-grid">
+                  {connectionAdvancedRows.map((row) => (
+                    <span key={row.label}>
+                      <small>{row.label}</small>
+                      <strong>{row.value}</strong>
+                    </span>
+                  ))}
+                </div>
+                <div className="connection-advanced-actions">
+                  <button
+                    className="dialog-secondary-action"
+                    disabled={!codexTransportDecision.canStartSession || codexLiveControlSmokeLoading}
+                    onClick={onRunCodexLiveControlSmokeProof}
+                    type="button"
+                  >
+                    Control
+                  </button>
+                  <button
+                    className="dialog-secondary-action"
+                    disabled={!codexTransportDecision.canStartSession || codexActiveTurnControlSmokeLoading}
+                    onClick={onRunCodexActiveTurnControlSmokeProof}
+                    type="button"
+                  >
+                    Interrupt
+                  </button>
+                  <button
+                    className="dialog-secondary-action"
+                    disabled={!codexTransportDecision.canStartSession || codexActiveTurnSteerSmokeLoading}
+                    onClick={onRunCodexActiveTurnSteerSmokeProof}
+                    type="button"
+                  >
+                    Steer
+                  </button>
+                  <button
+                    className="dialog-secondary-action"
+                    disabled={!codexTransportDecision.canStartSession || codexTwoPanelSmokeLoading}
+                    onClick={onRunCodexTwoPanelSmokeProof}
+                    type="button"
+                  >
+                    Two-panel
+                  </button>
+                  <button
+                    className="dialog-secondary-action"
+                    disabled={catalogRefreshProviderSmokeLoading}
+                    onClick={onRunCatalogRefreshProviderSmokeProof}
+                    type="button"
+                  >
+                    Catalog
+                  </button>
+                </div>
+                <p className="transport-fallback">{codexTransportDecision.fallback}</p>
+              </details>
             </div>
           </div>
         ) : null}
