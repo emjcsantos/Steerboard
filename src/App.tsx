@@ -2048,6 +2048,7 @@ const PHASE3_PROOF_EVALUATION_REFRESH_MS = 60 * 1000;
 const DESKTOP_PANEL_SESSION_START_TIMEOUT_MS = 20_000;
 const DESKTOP_PANEL_TURN_TIMEOUT_MS = 75_000;
 const DESKTOP_PANEL_CLEANUP_TIMEOUT_MS = 5_000;
+const LIVE_STREAM_RENDER_INTERVAL_MS = 90;
 
 async function invokeDesktopCommand<T>(
   command: string,
@@ -7652,9 +7653,17 @@ function SessionCell({
     session
   ]);
 
+  const hasTransientStreamingMessage = chatMessages.some(
+    (message) => message.meta === "streaming" && message.id.includes(":live-stream:")
+  );
+
   useEffect(() => {
+    if (hasTransientStreamingMessage) {
+      return;
+    }
+
     savePanelChatMessages(session.id, chatMessages);
-  }, [chatMessages, session.id]);
+  }, [chatMessages, hasTransientStreamingMessage, session.id]);
 
   useEffect(() => {
     saveCodexPanelAgentSettings(session.id, agentSettings);
@@ -7736,6 +7745,8 @@ function SessionCell({
     const streamingMessageId = `${session.id}:live-stream:${liveMessageSequenceStart}`;
     let unlistenStream: (() => void) | undefined;
     let streamedText = "";
+    let pendingStreamBody = "";
+    let streamRenderTimer: ReturnType<typeof setTimeout> | undefined;
     const updateStreamingMessage = (body: string, meta = "streaming") => {
       setChatMessages((currentMessages) => {
         const withoutPending = currentMessages.filter((message) => message.id !== pendingMessage.id);
@@ -7756,6 +7767,27 @@ function SessionCell({
 
         return [...withoutPending, streamingMessage];
       });
+    };
+    const scheduleStreamingMessage = (body: string) => {
+      pendingStreamBody = body;
+      if (streamRenderTimer) {
+        return;
+      }
+
+      streamRenderTimer = setTimeout(() => {
+        streamRenderTimer = undefined;
+        if (pendingStreamBody.trim().length > 0) {
+          updateStreamingMessage(pendingStreamBody, "streaming");
+        }
+      }, LIVE_STREAM_RENDER_INTERVAL_MS);
+    };
+    const cancelScheduledStreamingMessage = () => {
+      if (!streamRenderTimer) {
+        return;
+      }
+
+      clearTimeout(streamRenderTimer);
+      streamRenderTimer = undefined;
     };
 
     setLastLivePrompt(trimmedMessage);
@@ -7789,14 +7821,14 @@ function SessionCell({
 
             if (payload.transcript.trim().length > 0) {
               streamedText = payload.transcript;
-              updateStreamingMessage(streamedText, "streaming");
+              scheduleStreamingMessage(streamedText);
               setLiveChatDetail("Streaming Codex response.");
               return;
             }
 
             if (payload.event.delta) {
               streamedText += payload.event.delta;
-              updateStreamingMessage(streamedText, "streaming");
+              scheduleStreamingMessage(streamedText);
               setLiveChatDetail("Streaming Codex response.");
               return;
             }
@@ -7858,6 +7890,7 @@ function SessionCell({
         result.failed ? "error" : result.interrupted ? "idle" : "active",
         result.detail
       );
+      cancelScheduledStreamingMessage();
       setChatMessages((currentMessages) => [
         ...currentMessages.filter(
           (message) =>
@@ -7885,6 +7918,7 @@ function SessionCell({
       setLiveChatStatus("failed");
       setLiveChatDetail(message);
       onPanelSessionStatus?.(session.id, "error", message);
+      cancelScheduledStreamingMessage();
       setChatMessages((currentMessages) => [
         ...currentMessages.filter(
           (item) => item.id !== pendingMessage.id && item.id !== streamingMessageId
@@ -7898,6 +7932,7 @@ function SessionCell({
         )
       ]);
     } finally {
+      cancelScheduledStreamingMessage();
       unlistenStream?.();
       liveSendInFlightRef.current = false;
     }
