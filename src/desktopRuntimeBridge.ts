@@ -1,3 +1,5 @@
+import { hasTauriRuntime } from "./tauriRuntime";
+
 export type DesktopRuntimeBridgeState = "unavailable" | "locked" | "ready" | "error";
 export type DesktopRuntimeBridgeSource = "browser" | "desktop";
 
@@ -27,10 +29,6 @@ const fallbackStatus: DesktopRuntimeBridgeStatus = {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function hasTauriRuntime(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
 function normalizeState(value: unknown): DesktopRuntimeBridgeState {

@@ -1,3 +1,5 @@
+import { hasTauriRuntime } from "./tauriRuntime";
+
 export type CodexProbeSource = "browser" | "desktop";
 export type CodexTransportState = "unavailable" | "preview" | "ready" | "live" | "blocked";
 export type CodexTransportId = "app-server-stdio" | "app-server-daemon" | "exec-json" | "none";
@@ -843,10 +845,6 @@ function buildFallback(probe: CodexTransportProbe, preferredTransport: CodexTran
   }
 
   return "Keep panel chat in local preview mode and show setup guidance until Codex CLI and app-server protocol readiness are detected.";
-}
-
-function hasTauriRuntime(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
 async function invokeCodexTransportProbe(): Promise<unknown> {

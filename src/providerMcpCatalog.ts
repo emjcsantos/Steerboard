@@ -5,10 +5,7 @@ import {
   type McpCatalogEntry,
   type McpCatalogSnapshot
 } from "./mcpCatalog";
-
-function hasTauriRuntime(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-}
+import { hasTauriRuntime } from "./tauriRuntime";
 
 async function invokeProviderMcpCatalogPreview(): Promise<unknown> {
   if (!hasTauriRuntime()) {

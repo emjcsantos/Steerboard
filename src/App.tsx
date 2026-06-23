@@ -330,6 +330,7 @@ import {
   saveProjectManagementChat,
   saveProjectManagementTasks
 } from "./projectManagementHierarchyStorage";
+import { hasTauriRuntime } from "./tauriRuntime";
 import {
   codexSessionStateToPanelMessages,
   createPanelReplyMessage,
@@ -1975,7 +1976,7 @@ interface MigrationSourcePreviewPayload {
 }
 
 function hasDesktopRuntime(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return hasTauriRuntime();
 }
 
 function hasLocalDevArtifactAccess(): boolean {

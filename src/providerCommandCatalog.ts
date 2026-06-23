@@ -8,6 +8,7 @@ import {
   type CommandCatalogRefreshSource,
   type CommandCatalogSnapshot
 } from "./commandCatalog";
+import { hasTauriRuntime } from "./tauriRuntime";
 
 interface ProviderCommandCatalogPreviewPayload {
   source?: unknown;
@@ -21,10 +22,6 @@ const REFRESH_SOURCES: readonly CommandCatalogRefreshSource[] = [
   "empty-refresh",
   "unavailable"
 ];
-
-function hasTauriRuntime(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-}
 
 function isRecord(value: unknown): value is ProviderCommandCatalogPreviewPayload {
   return typeof value === "object" && value !== null && !Array.isArray(value);

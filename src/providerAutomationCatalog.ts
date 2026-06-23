@@ -8,6 +8,7 @@ import {
   type AutomationCatalogRefreshSource,
   type AutomationCatalogSnapshot
 } from "./automationCatalog";
+import { hasTauriRuntime } from "./tauriRuntime";
 
 const REFRESH_SOURCES: readonly AutomationCatalogRefreshSource[] = [
   "provider-live",
@@ -16,10 +17,6 @@ const REFRESH_SOURCES: readonly AutomationCatalogRefreshSource[] = [
   "empty-refresh",
   "unavailable"
 ];
-
-function hasTauriRuntime(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

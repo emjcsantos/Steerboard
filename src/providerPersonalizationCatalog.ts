@@ -8,6 +8,7 @@ import {
   type PersonalizationCatalogRefreshSource,
   type PersonalizationCatalogSnapshot
 } from "./personalizationCatalog";
+import { hasTauriRuntime } from "./tauriRuntime";
 
 const REFRESH_SOURCES: readonly PersonalizationCatalogRefreshSource[] = [
   "provider-live",
@@ -20,10 +21,6 @@ const REFRESH_SOURCES: readonly PersonalizationCatalogRefreshSource[] = [
 interface ProviderPersonalizationCatalogPayload {
   source?: unknown;
   entries?: unknown;
-}
-
-function hasTauriRuntime(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
 function isRecord(value: unknown): value is ProviderPersonalizationCatalogPayload {
