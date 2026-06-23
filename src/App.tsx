@@ -2016,7 +2016,7 @@ export function App() {
   const [adaptiveDropPreview, setAdaptiveDropPreview] = useState<AdaptiveCockpitDropPreview | null>(null);
   const [activeAppMenu, setActiveAppMenu] = useState<AppMenuId>();
   const [appDialog, setAppDialog] = useState<AppDialog>();
-  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(true);
   const [adaptiveArenaSurface, setAdaptiveArenaSurface] = useState<AdaptiveArenaSurface>("grid");
   const [flexLayoutDockingProof, setFlexLayoutDockingProof] = useState(
     `FlexLayout docking model: package=flexlayout-react repository=caplin/FlexLayout license=${phase10FlexLayoutExpectedLicense} savedLayoutJson=waiting fallback=custom-adaptive-grid-preserved`
