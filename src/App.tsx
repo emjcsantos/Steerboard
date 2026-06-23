@@ -3747,11 +3747,26 @@ export function App() {
     ? ADAPTIVE_LAYOUT_MAX_PANELS
     : maxVisibleCells(layoutId);
   const visibleSessions = useMemo(
-    () =>
-      layout.kind === "adaptive"
-        ? adaptiveVisibleSessions
-        : cockpitSessions.slice(0, maxVisibleSessions),
-    [adaptiveVisibleSessions, cockpitSessions, layout.kind, maxVisibleSessions]
+    () => {
+      if (layout.kind === "adaptive") {
+        return adaptiveVisibleSessions;
+      }
+
+      if (!focusedPanelId) {
+        return cockpitSessions.slice(0, maxVisibleSessions);
+      }
+
+      const focusedSession = cockpitSessions.find((session) => session.id === focusedPanelId);
+      if (!focusedSession) {
+        return cockpitSessions.slice(0, maxVisibleSessions);
+      }
+
+      return [
+        focusedSession,
+        ...cockpitSessions.filter((session) => session.id !== focusedPanelId)
+      ].slice(0, maxVisibleSessions);
+    },
+    [adaptiveVisibleSessions, cockpitSessions, focusedPanelId, layout.kind, maxVisibleSessions]
   );
   const displayGrid = useMemo(
     () =>
@@ -3920,7 +3935,7 @@ export function App() {
   }
 
   function handleNewChatAction() {
-    updatePreferences({ layoutId: "adaptive", view: "cockpit" });
+    updatePreferences({ view: "cockpit" });
     const nextSession = createLocalChatSession(localChatSessions.length + 1);
 
     setLocalChatSessions((currentSessions) => [nextSession, ...currentSessions]);
@@ -3928,7 +3943,7 @@ export function App() {
       syncAdaptiveCockpitLayoutToPanelIds(currentLayout, [nextSession.id, ...adaptivePanelIds])
     );
     setFocusedPanelId(nextSession.id);
-    setAppNotice(`${nextSession.title} created in Adaptive Arena`);
+    setAppNotice(`${nextSession.title} created`);
   }
 
   function handleAddAdaptivePanel() {
@@ -4114,7 +4129,6 @@ export function App() {
     updatePreferences({
       selectedProjectId: session.projectId,
       mode: nextMode,
-      layoutId: "adaptive",
       view: "cockpit"
     });
 
@@ -4130,7 +4144,7 @@ export function App() {
     }
 
     setFocusedPanelId(session.id);
-    setAppNotice(`${session.title} opened in Adaptive arena`);
+    setAppNotice(`${session.title} opened`);
   }
 
   function handleAdaptivePanelDragStart(
