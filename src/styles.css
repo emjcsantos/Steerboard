@@ -3626,6 +3626,183 @@ textarea {
   cursor: pointer;
 }
 
+.git-workbench {
+  display: grid;
+  gap: 14px;
+}
+
+.git-workbench-header,
+.git-workbench-actions,
+.git-workbench-diff > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.git-workbench-header {
+  justify-content: space-between;
+}
+
+.git-workbench-header > div:first-child {
+  min-width: 0;
+}
+
+.git-workbench-header strong,
+.git-workbench-header p,
+.git-workbench-diff strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-workbench-header p {
+  margin: 4px 0 0;
+  color: #8d97a6;
+  font-size: 12px;
+}
+
+.git-workbench-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border: 1px solid #252b34;
+  border-radius: 8px;
+  background: #111820;
+}
+
+.git-workbench-summary div {
+  min-width: 0;
+  padding: 10px;
+}
+
+.git-workbench-summary dt {
+  color: #7e8795;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.git-workbench-summary dd {
+  overflow: hidden;
+  margin: 4px 0 0;
+  color: #eef3f8;
+  font-size: 13px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-workbench-actions {
+  flex-wrap: wrap;
+}
+
+.git-workbench-actions input {
+  min-width: 220px;
+  flex: 1 1 240px;
+  border: 1px solid #2d3540;
+  border-radius: 8px;
+  background: #0f141b;
+  color: #eef3f8;
+  padding: 9px 10px;
+}
+
+.git-workbench-groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.git-workbench-group {
+  min-width: 0;
+  border: 1px solid #252b34;
+  border-radius: 8px;
+  background: #111820;
+}
+
+.git-workbench-group header,
+.git-workbench-group li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 9px;
+}
+
+.git-workbench-group header {
+  border-bottom: 1px solid #252b34;
+}
+
+.git-workbench-group header strong {
+  text-transform: capitalize;
+}
+
+.git-workbench-group ol {
+  display: grid;
+  max-height: 220px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+
+.git-workbench-group li {
+  border-bottom: 1px solid #202832;
+}
+
+.git-workbench-group li:last-child {
+  border-bottom: 0;
+}
+
+.git-workbench-group li div {
+  min-width: 0;
+}
+
+.git-workbench-group li strong,
+.git-workbench-group li small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-workbench-group li small,
+.git-workbench-group p {
+  color: #8d97a6;
+  font-size: 12px;
+}
+
+.git-workbench-group p {
+  margin: 0;
+  padding: 12px;
+}
+
+.git-workbench-diff {
+  min-height: 220px;
+  border: 1px solid #252b34;
+  border-radius: 8px;
+  background: #0f141b;
+}
+
+.git-workbench-diff > div {
+  justify-content: space-between;
+  border-bottom: 1px solid #252b34;
+  padding: 10px;
+}
+
+.git-workbench-diff span {
+  color: #8d97a6;
+  font-size: 12px;
+}
+
+.git-workbench-diff pre {
+  max-height: 360px;
+  margin: 0;
+  overflow: auto;
+  padding: 12px;
+  color: #dbe7f3;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 .chat-trace-section {
   min-width: 0;
   overflow: hidden;

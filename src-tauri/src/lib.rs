@@ -661,6 +661,65 @@ pub struct MigrationSourcePreview {
     pub safety_note: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GitWorkbenchBranchState {
+    pub branch: String,
+    pub upstream: String,
+    pub ahead: usize,
+    pub behind: usize,
+    pub detached: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GitWorkbenchFileChange {
+    pub path: String,
+    pub original_path: Option<String>,
+    pub index_status: String,
+    pub worktree_status: String,
+    pub groups: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GitWorkbenchStatus {
+    pub source: String,
+    pub checked_at: String,
+    pub available: bool,
+    pub workspace_path: String,
+    pub repository_path: String,
+    pub branch: GitWorkbenchBranchState,
+    pub files: Vec<GitWorkbenchFileChange>,
+    pub detail: String,
+    pub safety: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GitWorkbenchDiff {
+    pub source: String,
+    pub checked_at: String,
+    pub available: bool,
+    pub staged: bool,
+    pub file_path: String,
+    pub diff: String,
+    pub detail: String,
+    pub safety: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GitWorkbenchActionResult {
+    pub source: String,
+    pub checked_at: String,
+    pub action: String,
+    pub executed: bool,
+    pub blocked: bool,
+    pub detail: String,
+    pub safety: String,
+}
+
 mod runtime_bridge {
     const MIGRATION_STATUS_ACCEPTED: &str = "accepted";
     const MIGRATION_STATUS_REVIEW_REQUIRED: &str = "review-required";
@@ -691,7 +750,9 @@ mod runtime_bridge {
         ProviderPluginCatalogPreview, ProviderMcpCatalogEntry, ProviderMcpCatalogPreview,
         ProviderSkillCatalogEntry, ProviderSkillCatalogPreview, ProviderAutomationCatalogEntry,
         ProviderAutomationCatalogPreview, ProviderPersonalizationCatalogEntry,
-        ProviderPersonalizationCatalogPreview, RuntimeBridgeStatus,
+        GitWorkbenchActionResult, GitWorkbenchBranchState, GitWorkbenchDiff,
+        GitWorkbenchFileChange, GitWorkbenchStatus, ProviderPersonalizationCatalogPreview,
+        RuntimeBridgeStatus,
     };
     use serde_json::Value;
     use std::collections::{BTreeMap, BTreeSet};
@@ -799,6 +860,210 @@ mod runtime_bridge {
     #[cfg(windows)]
     fn hide_command_window(command: &mut Command) {
         command.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    struct GitRepositoryBoundary {
+        workspace_path: PathBuf,
+        repository_path: PathBuf,
+    }
+
+    fn resolve_git_repository(workspace_path: Option<String>) -> Result<GitRepositoryBoundary, String> {
+        let enforce_workspace_boundary = workspace_path
+            .as_ref()
+            .map(|raw| !raw.trim().is_empty())
+            .unwrap_or(false);
+        let workspace = match workspace_path {
+            Some(raw) if !raw.trim().is_empty() => PathBuf::from(raw.trim()),
+            _ => std::env::current_dir().map_err(|error| format!("git_workbench_cwd_failed:{error}"))?,
+        };
+        let workspace_path = workspace
+            .canonicalize()
+            .map_err(|error| format!("git_workbench_workspace_unavailable:{}", error.kind()))?;
+        let output = run_git_command(&workspace_path, &["rev-parse", "--show-toplevel"])?;
+        let repository_path = PathBuf::from(output.trim())
+            .canonicalize()
+            .map_err(|error| format!("git_workbench_repository_unavailable:{}", error.kind()))?;
+
+        if enforce_workspace_boundary
+            && !repository_path.starts_with(&workspace_path)
+            && repository_path != workspace_path
+        {
+            return Err("blocked_repository_outside_workspace_boundary".to_string());
+        }
+
+        Ok(GitRepositoryBoundary {
+            workspace_path,
+            repository_path,
+        })
+    }
+
+    fn run_git_command(cwd: &Path, args: &[&str]) -> Result<String, String> {
+        let mut command = Command::new("git");
+        command.current_dir(cwd);
+        command.args(args);
+        #[cfg(windows)]
+        hide_command_window(&mut command);
+        let output = command
+            .output()
+            .map_err(|error| format!("git_workbench_command_failed:{error}"))?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            let detail = if !stderr.is_empty() { stderr } else { stdout };
+            return Err(format!(
+                "git_exited_{}:{}",
+                output.status.code().unwrap_or(-1),
+                compact_git_output(&detail, "Git command failed.")
+            ));
+        }
+
+        Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    }
+
+    fn parse_git_porcelain_status(
+        output: &str,
+    ) -> (GitWorkbenchBranchState, Vec<GitWorkbenchFileChange>) {
+        let mut branch = GitWorkbenchBranchState {
+            branch: "unknown".to_string(),
+            upstream: "".to_string(),
+            ahead: 0,
+            behind: 0,
+            detached: false,
+        };
+        let mut files = Vec::new();
+
+        for line in output.lines() {
+            if let Some(head) = line.strip_prefix("# branch.head ") {
+                let head = head.trim();
+                branch.detached = head == "(detached)";
+                branch.branch = if branch.detached {
+                    "detached".to_string()
+                } else {
+                    head.to_string()
+                };
+            } else if let Some(upstream) = line.strip_prefix("# branch.upstream ") {
+                branch.upstream = upstream.trim().to_string();
+            } else if let Some(ab) = line.strip_prefix("# branch.ab ") {
+                let mut parts = ab.split_whitespace();
+                branch.ahead = parts
+                    .next()
+                    .and_then(|value| value.strip_prefix('+'))
+                    .and_then(|value| value.parse::<usize>().ok())
+                    .unwrap_or(0);
+                branch.behind = parts
+                    .next()
+                    .and_then(|value| value.strip_prefix('-'))
+                    .and_then(|value| value.parse::<usize>().ok())
+                    .unwrap_or(0);
+            } else if let Some(file) = parse_git_porcelain_file(line) {
+                files.push(file);
+            }
+        }
+
+        (branch, files)
+    }
+
+    fn parse_git_porcelain_file(line: &str) -> Option<GitWorkbenchFileChange> {
+        if let Some(path) = line.strip_prefix("? ") {
+            return Some(GitWorkbenchFileChange {
+                path: path.trim().to_string(),
+                original_path: None,
+                index_status: "?".to_string(),
+                worktree_status: "?".to_string(),
+                groups: vec!["untracked".to_string()],
+            });
+        }
+
+        if !line.starts_with("1 ") && !line.starts_with("2 ") {
+            return None;
+        }
+
+        let parts: Vec<&str> = line.split(' ').collect();
+        let status = parts.get(1).copied().unwrap_or("..");
+        let index_status = status.chars().next().unwrap_or('.').to_string();
+        let worktree_status = status.chars().nth(1).unwrap_or('.').to_string();
+        let path_field = if line.starts_with("2 ") {
+            parts.get(9..).unwrap_or(&[]).join(" ")
+        } else {
+            parts.get(8..).unwrap_or(&[]).join(" ")
+        };
+        let mut path_parts = path_field.split('\t');
+        let original_path = if line.starts_with("2 ") {
+            path_parts.next().map(|value| value.trim().to_string())
+        } else {
+            None
+        };
+        let path = if line.starts_with("2 ") {
+            path_parts.next().unwrap_or("").trim().to_string()
+        } else {
+            path_field.trim().to_string()
+        };
+        let mut groups = Vec::new();
+        if index_status != "." && index_status != "?" {
+            groups.push("staged".to_string());
+        }
+        if worktree_status != "." && worktree_status != "?" {
+            groups.push("unstaged".to_string());
+        }
+
+        Some(GitWorkbenchFileChange {
+            path,
+            original_path: original_path.filter(|value| !value.is_empty()),
+            index_status,
+            worktree_status,
+            groups,
+        })
+    }
+
+    fn sanitize_git_relative_path(path: &str) -> Result<String, String> {
+        let trimmed = path.trim();
+        if trimmed.is_empty()
+            || trimmed.contains('\0')
+            || trimmed.starts_with('/')
+            || trimmed.starts_with('\\')
+            || trimmed.contains("..")
+            || Path::new(trimmed).is_absolute()
+        {
+            return Err("blocked_invalid_git_path".to_string());
+        }
+
+        Ok(trimmed.replace('\\', "/"))
+    }
+
+    fn sanitize_git_commit_message(message: &str) -> Result<String, String> {
+        let trimmed = message.trim();
+        if trimmed.is_empty() {
+            return Err("blocked_empty_commit_message".to_string());
+        }
+        if trimmed.contains('\0') {
+            return Err("blocked_invalid_commit_message".to_string());
+        }
+
+        Ok(trimmed.lines().next().unwrap_or(trimmed).chars().take(200).collect())
+    }
+
+    fn compact_git_output(output: &str, fallback: &str) -> String {
+        let compacted = output
+            .split_whitespace()
+            .collect::<Vec<&str>>()
+            .join(" ");
+        if compacted.is_empty() {
+            fallback.to_string()
+        } else {
+            compacted.chars().take(500).collect()
+        }
+    }
+
+    fn blocked_git_workbench_action(action: &str, detail: &str) -> GitWorkbenchActionResult {
+        GitWorkbenchActionResult {
+            source: "desktop".to_string(),
+            checked_at: current_timestamp(),
+            action: action.to_string(),
+            executed: false,
+            blocked: true,
+            detail: detail.to_string(),
+            safety: "Git mutation was blocked before any Git process was started.".to_string(),
+        }
     }
 
     pub(crate) fn read_phase3_local_artifact_from(
@@ -919,6 +1184,135 @@ mod runtime_bridge {
             result_summary,
             timestamp: current_timestamp(),
             safety: "Executed fixed terminal read-only probe command for audit trail.".to_string(),
+        }
+    }
+
+    #[tauri::command]
+    pub fn git_workbench_status(workspace_path: Option<String>) -> Result<GitWorkbenchStatus, String> {
+        let repository = resolve_git_repository(workspace_path)?;
+        let output = run_git_command(
+            &repository.repository_path,
+            &["status", "--porcelain=v2", "--branch"],
+        )?;
+        let (branch, files) = parse_git_porcelain_status(&output);
+        let changed_count = files.len();
+
+        Ok(GitWorkbenchStatus {
+            source: "desktop".to_string(),
+            checked_at: current_timestamp(),
+            available: true,
+            workspace_path: repository.workspace_path.display().to_string(),
+            repository_path: repository.repository_path.display().to_string(),
+            branch,
+            files,
+            detail: format!("{changed_count} changed files detected."),
+            safety: "Read-only Git status; repository discovery stayed within the selected workspace boundary.".to_string(),
+        })
+    }
+
+    #[tauri::command]
+    pub fn git_workbench_diff(
+        workspace_path: Option<String>,
+        file_path: String,
+        staged: bool,
+    ) -> Result<GitWorkbenchDiff, String> {
+        let repository = resolve_git_repository(workspace_path)?;
+        let safe_file_path = sanitize_git_relative_path(&file_path)?;
+        let mut args = vec!["diff"];
+        if staged {
+            args.push("--cached");
+        }
+        args.push("--");
+        args.push(safe_file_path.as_str());
+        let diff = run_git_command(&repository.repository_path, &args)?;
+
+        Ok(GitWorkbenchDiff {
+            source: "desktop".to_string(),
+            checked_at: current_timestamp(),
+            available: true,
+            staged,
+            file_path: safe_file_path,
+            diff,
+            detail: if staged {
+                "Loaded staged diff.".to_string()
+            } else {
+                "Loaded unstaged diff.".to_string()
+            },
+            safety: "Read-only Git diff; no repository mutation was attempted.".to_string(),
+        })
+    }
+
+    #[tauri::command]
+    pub fn git_workbench_action(
+        workspace_path: Option<String>,
+        action: String,
+        file_path: Option<String>,
+        message: Option<String>,
+        approval_state: String,
+    ) -> Result<GitWorkbenchActionResult, String> {
+        let action = action.trim().to_lowercase();
+        if approval_state.trim().to_lowercase() != "approved" {
+            return Ok(blocked_git_workbench_action(
+                &action,
+                "blocked_git_approval_required",
+            ));
+        }
+
+        let repository = resolve_git_repository(workspace_path)?;
+        let mut owned_args: Vec<String> = Vec::new();
+        match action.as_str() {
+            "stage" => {
+                owned_args.push("add".to_string());
+                owned_args.push("--".to_string());
+                owned_args.push(sanitize_git_relative_path(file_path.as_deref().unwrap_or(""))?);
+            }
+            "unstage" => {
+                owned_args.push("restore".to_string());
+                owned_args.push("--staged".to_string());
+                owned_args.push("--".to_string());
+                owned_args.push(sanitize_git_relative_path(file_path.as_deref().unwrap_or(""))?);
+            }
+            "stage-all" => {
+                owned_args.push("add".to_string());
+                owned_args.push("-A".to_string());
+            }
+            "unstage-all" => {
+                owned_args.push("restore".to_string());
+                owned_args.push("--staged".to_string());
+                owned_args.push(".".to_string());
+            }
+            "commit" => {
+                let safe_message = sanitize_git_commit_message(message.as_deref().unwrap_or(""))?;
+                owned_args.push("commit".to_string());
+                owned_args.push("-m".to_string());
+                owned_args.push(safe_message);
+            }
+            "push" => {
+                owned_args.push("push".to_string());
+            }
+            _ => return Ok(blocked_git_workbench_action(&action, "blocked_unsupported_git_action")),
+        }
+
+        let args: Vec<&str> = owned_args.iter().map(String::as_str).collect();
+        match run_git_command(&repository.repository_path, &args) {
+            Ok(output) => Ok(GitWorkbenchActionResult {
+                source: "desktop".to_string(),
+                checked_at: current_timestamp(),
+                action,
+                executed: true,
+                blocked: false,
+                detail: compact_git_output(&output, "Git action completed."),
+                safety: "Git action executed after visible approval posture was supplied.".to_string(),
+            }),
+            Err(error) => Ok(GitWorkbenchActionResult {
+                source: "desktop".to_string(),
+                checked_at: current_timestamp(),
+                action,
+                executed: false,
+                blocked: false,
+                detail: error,
+                safety: "Git returned an error; success was not assumed.".to_string(),
+            }),
         }
     }
 
@@ -5599,6 +5993,9 @@ pub fn run() {
             runtime_bridge::codex_panel_session_steer,
             runtime_bridge::codex_panel_session_approval_response,
             runtime_bridge::codex_panel_session_close,
+            runtime_bridge::git_workbench_status,
+            runtime_bridge::git_workbench_diff,
+            runtime_bridge::git_workbench_action,
             runtime_bridge::phase3_command_validation_artifact_read,
             runtime_bridge::phase3_smoke_proof_bundle_artifact_read,
             runtime_bridge::phase3_panel_evidence_artifact_read,

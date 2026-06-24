@@ -371,6 +371,19 @@ import {
 } from "./mcpManager";
 import { loadProviderMcpCatalogSnapshot } from "./providerMcpCatalog";
 import {
+  canRunGitWorkbenchAction,
+  fallbackGitWorkbenchStatus,
+  type GitWorkbenchAction,
+  type GitWorkbenchDiff,
+  type GitWorkbenchFileChange,
+  type GitWorkbenchStatus
+} from "./gitWorkbench";
+import {
+  loadGitWorkbenchDiff,
+  loadGitWorkbenchStatus,
+  runGitWorkbenchAction
+} from "./providerGitWorkbench";
+import {
   buildDefaultMigrationPreview,
   buildMigrationPreviewCounts,
   appendMigrationProfileDraftHistory,
@@ -1444,7 +1457,7 @@ type RuntimeProfilePermissionRequestIntent = "idle" | "requested";
 type PipelineDispatchRequestIntent = "idle" | "requested";
 type AppMenuId = "file" | "view" | "connect" | "help";
 type PlatformCatalogDialog = "plugins" | "skills" | "mcp" | "automations" | "personalization";
-type AppDialog = "migration" | "connection" | "slash-help" | "search" | "terminal" | PlatformCatalogDialog;
+type AppDialog = "migration" | "connection" | "slash-help" | "search" | "terminal" | "git" | PlatformCatalogDialog;
 type AdaptiveArenaSurface = "grid" | "dock";
 
 type PlatformCatalogState =
@@ -2478,6 +2491,21 @@ export function App() {
   );
   const [mcpManagerState, setMcpManagerState] = useState<McpManagerState>(() =>
     buildMcpManagerState(emptyWorkspaceProject.id, defaultMcpManagerDefinitions)
+  );
+  const [gitWorkbenchStatus, setGitWorkbenchStatus] = useState<GitWorkbenchStatus>(() =>
+    fallbackGitWorkbenchStatus
+  );
+  const [gitWorkbenchDiff, setGitWorkbenchDiff] = useState<GitWorkbenchDiff>();
+  const [gitWorkbenchLoading, setGitWorkbenchLoading] = useState(false);
+  const [gitWorkbenchActionBusy, setGitWorkbenchActionBusy] = useState<GitWorkbenchAction>();
+  const [gitWorkbenchCommitMessage, setGitWorkbenchCommitMessage] = useState("");
+  const [gitWorkbenchNotice, setGitWorkbenchNotice] = useState("");
+  const [gitWorkbenchApprovalRequest, setGitWorkbenchApprovalRequest] = useState<LiveActionPermissionRequest>(() =>
+    createLiveActionPermissionRequest(
+      liveActionGateDefinitions.find((definition) => definition.provider === "git") ?? liveActionGateDefinitions[1],
+      "idle",
+      new Date().toISOString()
+    )
   );
   const [pluginCatalogSnapshot, setPluginCatalogSnapshot] = useState<PluginCatalogSnapshot>(() =>
     buildPluginCatalogSnapshot(defaultPluginCatalog, "default-fallback", defaultPluginCatalog)
@@ -4942,6 +4970,74 @@ export function App() {
     setAppNotice("MCP probe completed without invoking tools");
   }
 
+  async function refreshGitWorkbenchStatus() {
+    setGitWorkbenchLoading(true);
+    setAppNotice("Refreshing Git workbench");
+    try {
+      const nextStatus = await loadGitWorkbenchStatus();
+      setGitWorkbenchStatus(nextStatus);
+      setGitWorkbenchNotice(nextStatus.detail);
+      setAppNotice(nextStatus.available ? "Git workbench refreshed" : "Git workbench unavailable");
+    } finally {
+      setGitWorkbenchLoading(false);
+    }
+  }
+
+  async function handleLoadGitWorkbenchDiff(file: GitWorkbenchFileChange, staged: boolean) {
+    setGitWorkbenchLoading(true);
+    setAppNotice(`Loading ${staged ? "staged" : "unstaged"} diff`);
+    try {
+      const nextDiff = await loadGitWorkbenchDiff(file.path, staged);
+      setGitWorkbenchDiff(nextDiff);
+      setGitWorkbenchNotice(nextDiff.detail);
+      setAppNotice(nextDiff.available ? "Git diff loaded" : "Git diff unavailable");
+    } finally {
+      setGitWorkbenchLoading(false);
+    }
+  }
+
+  function handleGitWorkbenchApprovalDecision(decision: LiveActionPermissionDecision) {
+    const timestamp = new Date().toISOString();
+    setGitWorkbenchApprovalRequest((currentRequest) => ({
+      ...currentRequest,
+      state: applyLiveActionPermissionDecision(currentRequest.state, decision),
+      requestedAt: decision === "request" ? timestamp : currentRequest.requestedAt,
+      expiresAt:
+        decision === "request"
+          ? new Date(Date.parse(timestamp) + liveActionPermissionTimeoutMs).toISOString()
+          : currentRequest.expiresAt
+    }));
+    setGitWorkbenchNotice(`Git approval ${decision}.`);
+  }
+
+  async function handleRunGitWorkbenchAction(
+    action: GitWorkbenchAction,
+    file?: GitWorkbenchFileChange
+  ) {
+    const gitRequest = gitWorkbenchApprovalRequest;
+    if (!canRunGitWorkbenchAction(action, gitRequest)) {
+      setGitWorkbenchNotice("Git action blocked until the Git live-action gate is approved.");
+      setAppNotice("Git action approval required");
+      return;
+    }
+
+    setGitWorkbenchActionBusy(action);
+    setAppNotice(`Running Git ${action}`);
+    try {
+      const result = await runGitWorkbenchAction(action, {
+        filePath: file?.path,
+        message: gitWorkbenchCommitMessage,
+        approvalState: gitRequest?.state ?? "idle"
+      });
+      setGitWorkbenchNotice(result.detail);
+      setAppNotice(result.blocked ? "Git action blocked" : result.executed ? "Git action complete" : "Git action failed");
+      const nextStatus = await loadGitWorkbenchStatus();
+      setGitWorkbenchStatus(nextStatus);
+    } finally {
+      setGitWorkbenchActionBusy(undefined);
+    }
+  }
+
   async function refreshSkillCatalogSnapshot() {
     setSkillCatalogLoading(true);
     setAppNotice("Refreshing provider skill catalog");
@@ -5797,6 +5893,13 @@ export function App() {
           migrationDraftActionNotice={migrationProfileDraftActionNotice}
           migrationSourceId={migrationSourceId}
           migrationSourcePreview={migrationSourcePreview}
+          gitWorkbenchActionBusy={gitWorkbenchActionBusy}
+          gitWorkbenchCommitMessage={gitWorkbenchCommitMessage}
+          gitWorkbenchDiff={gitWorkbenchDiff}
+          gitWorkbenchLoading={gitWorkbenchLoading}
+          gitWorkbenchNotice={gitWorkbenchNotice}
+          gitWorkbenchStatus={gitWorkbenchStatus}
+          gitActionRequest={gitWorkbenchApprovalRequest}
           mcpCatalogLoading={mcpCatalogLoading}
           mcpCatalogSnapshot={mcpCatalogSnapshot}
           mcpManagerState={mcpManagerState}
@@ -5812,7 +5915,12 @@ export function App() {
           onRefreshAutomationCatalog={refreshAutomationCatalogSnapshot}
           onRefreshCodexTransport={refreshCodexTransportProbe}
           onRefreshMcpCatalog={refreshMcpCatalogSnapshot}
+          onRefreshGitWorkbench={refreshGitWorkbenchStatus}
           onAddMcpManagerServer={handleAddMcpManagerServer}
+          onGitWorkbenchCommitMessageChange={setGitWorkbenchCommitMessage}
+          onGitWorkbenchApprovalDecision={handleGitWorkbenchApprovalDecision}
+          onLoadGitWorkbenchDiff={handleLoadGitWorkbenchDiff}
+          onRunGitWorkbenchAction={handleRunGitWorkbenchAction}
           onProbeMcpManagerServer={handleProbeMcpManagerServer}
           onRemoveMcpManagerServer={handleRemoveMcpManagerServer}
           onRefreshMigrationPreview={() => refreshMigrationSourcePreview()}
@@ -5934,6 +6042,9 @@ function AppMenuBar({
                       </button>
                       <button onClick={() => onOpenDialog("mcp")} role="menuitem" type="button">
                         MCP servers
+                      </button>
+                      <button onClick={() => onOpenDialog("git")} role="menuitem" type="button">
+                        Git workbench
                       </button>
                       <button onClick={() => onOpenDialog("personalization")} role="menuitem" type="button">
                         Personalization
@@ -6394,6 +6505,13 @@ function AppDialogSurface({
   migrationDraftActionNotice,
   migrationSourceId,
   migrationSourcePreview,
+  gitWorkbenchActionBusy,
+  gitWorkbenchCommitMessage,
+  gitWorkbenchDiff,
+  gitWorkbenchLoading,
+  gitWorkbenchNotice,
+  gitWorkbenchStatus,
+  gitActionRequest,
   mcpCatalogLoading,
   mcpCatalogSnapshot,
   mcpManagerState,
@@ -6408,8 +6526,13 @@ function AppDialogSurface({
   onRefreshCommandCatalog,
   onRefreshAutomationCatalog,
   onRefreshCodexTransport,
+  onRefreshGitWorkbench,
   onRefreshMcpCatalog,
   onAddMcpManagerServer,
+  onGitWorkbenchCommitMessageChange,
+  onGitWorkbenchApprovalDecision,
+  onLoadGitWorkbenchDiff,
+  onRunGitWorkbenchAction,
   onProbeMcpManagerServer,
   onRemoveMcpManagerServer,
   onRefreshMigrationPreview,
@@ -6466,6 +6589,13 @@ function AppDialogSurface({
   migrationDraftActionNotice?: string;
   migrationSourceId: MigrationSourceId;
   migrationSourcePreview: MigrationSourcePreviewPayload;
+  gitWorkbenchActionBusy?: GitWorkbenchAction;
+  gitWorkbenchCommitMessage: string;
+  gitWorkbenchDiff?: GitWorkbenchDiff;
+  gitWorkbenchLoading: boolean;
+  gitWorkbenchNotice: string;
+  gitWorkbenchStatus: GitWorkbenchStatus;
+  gitActionRequest?: LiveActionPermissionRequest;
   mcpCatalogLoading: boolean;
   mcpCatalogSnapshot: McpCatalogSnapshot;
   mcpManagerState: McpManagerState;
@@ -6480,8 +6610,13 @@ function AppDialogSurface({
   onRefreshCommandCatalog: () => void;
   onRefreshAutomationCatalog: () => void;
   onRefreshCodexTransport: () => void;
+  onRefreshGitWorkbench: () => void;
   onRefreshMcpCatalog: () => void;
   onAddMcpManagerServer: () => void;
+  onGitWorkbenchCommitMessageChange: (message: string) => void;
+  onGitWorkbenchApprovalDecision: (decision: LiveActionPermissionDecision) => void;
+  onLoadGitWorkbenchDiff: (file: GitWorkbenchFileChange, staged: boolean) => void;
+  onRunGitWorkbenchAction: (action: GitWorkbenchAction, file?: GitWorkbenchFileChange) => void;
   onProbeMcpManagerServer: (serverId: string) => void;
   onRemoveMcpManagerServer: (serverId: string) => void;
   onRefreshMigrationPreview: () => void;
@@ -6598,9 +6733,11 @@ function AppDialogSurface({
     }
   );
   const title =
-    dialog === "connection" || dialog === "terminal"
+    dialog === "connection" || dialog === "terminal" || dialog === "git"
       ? dialog === "terminal"
         ? "Local Terminal"
+        : dialog === "git"
+          ? "Git Workbench"
         : "Codex Connection"
       : dialog === "migration"
         ? "Migration Preview"
@@ -6715,6 +6852,9 @@ function AppDialogSurface({
           : "Not run"
     }
   ];
+  const gitCanMutate = canRunGitWorkbenchAction("stage", gitActionRequest);
+  const gitBranch = gitWorkbenchStatus.branch;
+  const gitRepositoryLabel = gitWorkbenchStatus.repositoryPath || "No repository selected";
 
   return (
     <div
@@ -6740,7 +6880,7 @@ function AppDialogSurface({
         <header>
           <div>
             <span className="eyebrow">
-              {dialog === "search" ? "Local index" : dialog === "terminal" ? "Runtime bridge" : platformCatalogView?.eyebrow ?? "Local setup"}
+              {dialog === "search" ? "Local index" : dialog === "terminal" ? "Runtime bridge" : dialog === "git" ? "Repository review" : platformCatalogView?.eyebrow ?? "Local setup"}
             </span>
             <h3>{title}</h3>
           </div>
@@ -6881,6 +7021,140 @@ function AppDialogSurface({
                 </div>
                 <p className="transport-fallback">{codexTransportDecision.fallback}</p>
               </details>
+            </div>
+          </div>
+        ) : null}
+
+        {dialog === "git" ? (
+          <div className="app-dialog-body">
+            <div className="git-workbench" aria-label="Git workbench">
+              <div className="git-workbench-header">
+                <div>
+                  <span className={classNames("migration-source-state", gitWorkbenchStatus.available ? "is-detected" : "is-preview")}>
+                    {gitWorkbenchStatus.available ? "Ready" : "Unavailable"}
+                  </span>
+                  <strong>{gitBranch.branch}</strong>
+                  <p title={gitRepositoryLabel}>{gitRepositoryLabel}</p>
+                </div>
+                <div className="connection-palette-actions">
+                  <button className="dialog-secondary-action" disabled={gitWorkbenchLoading} onClick={onRefreshGitWorkbench} type="button">
+                    {gitWorkbenchLoading ? "Refreshing..." : "Refresh"}
+                  </button>
+                </div>
+              </div>
+              <dl className="git-workbench-summary">
+                <div>
+                  <dt>Upstream</dt>
+                  <dd>{gitBranch.upstream || "none"}</dd>
+                </div>
+                <div>
+                  <dt>Ahead</dt>
+                  <dd>{gitBranch.ahead}</dd>
+                </div>
+                <div>
+                  <dt>Behind</dt>
+                  <dd>{gitBranch.behind}</dd>
+                </div>
+                <div>
+                  <dt>Approval</dt>
+                  <dd>{gitCanMutate ? "Approved" : "Required"}</dd>
+                </div>
+              </dl>
+              <p className="transport-fallback">
+                {gitWorkbenchNotice || gitWorkbenchStatus.detail}
+              </p>
+              <div className="git-workbench-actions" aria-label="Git repository actions">
+                <button
+                  disabled={gitActionRequest?.state === "requested"}
+                  onClick={() => onGitWorkbenchApprovalDecision("request")}
+                  type="button"
+                >
+                  Request approval
+                </button>
+                <button
+                  disabled={gitActionRequest?.state !== "requested"}
+                  onClick={() => onGitWorkbenchApprovalDecision("approve")}
+                  type="button"
+                >
+                  Approve Git
+                </button>
+                <button
+                  disabled={gitActionRequest?.state === "idle"}
+                  onClick={() => onGitWorkbenchApprovalDecision("reset")}
+                  type="button"
+                >
+                  Reset gate
+                </button>
+                <button
+                  disabled={!gitCanMutate || gitWorkbenchActionBusy === "stage-all"}
+                  onClick={() => onRunGitWorkbenchAction("stage-all")}
+                  title={gitCanMutate ? "Stage all changed files." : "Approve the Git live-action gate first."}
+                  type="button"
+                >
+                  Stage all
+                </button>
+                <button
+                  disabled={!gitCanMutate || gitWorkbenchActionBusy === "unstage-all"}
+                  onClick={() => onRunGitWorkbenchAction("unstage-all")}
+                  title={gitCanMutate ? "Unstage all staged files." : "Approve the Git live-action gate first."}
+                  type="button"
+                >
+                  Unstage all
+                </button>
+                <input
+                  aria-label="Commit message"
+                  onChange={(event) => onGitWorkbenchCommitMessageChange(event.currentTarget.value)}
+                  placeholder="Commit message"
+                  value={gitWorkbenchCommitMessage}
+                />
+                <button
+                  disabled={!gitCanMutate || gitWorkbenchCommitMessage.trim().length === 0 || gitWorkbenchActionBusy === "commit"}
+                  onClick={() => onRunGitWorkbenchAction("commit")}
+                  title={gitCanMutate ? "Commit staged files." : "Approve the Git live-action gate first."}
+                  type="button"
+                >
+                  Commit
+                </button>
+                <button
+                  disabled={!gitCanMutate || gitWorkbenchActionBusy === "push"}
+                  onClick={() => onRunGitWorkbenchAction("push")}
+                  title="Push requires explicit visible Git approval."
+                  type="button"
+                >
+                  Push
+                </button>
+              </div>
+              <div className="git-workbench-groups" aria-label="Git changed file groups">
+                <GitWorkbenchGroup
+                  files={gitWorkbenchStatus.staged}
+                  group="staged"
+                  gitCanMutate={gitCanMutate}
+                  onDiff={(file) => onLoadGitWorkbenchDiff(file, true)}
+                  onRunAction={onRunGitWorkbenchAction}
+                />
+                <GitWorkbenchGroup
+                  files={gitWorkbenchStatus.unstaged}
+                  group="unstaged"
+                  gitCanMutate={gitCanMutate}
+                  onDiff={(file) => onLoadGitWorkbenchDiff(file, false)}
+                  onRunAction={onRunGitWorkbenchAction}
+                />
+                <GitWorkbenchGroup
+                  files={gitWorkbenchStatus.untracked}
+                  group="untracked"
+                  gitCanMutate={gitCanMutate}
+                  onDiff={(file) => onLoadGitWorkbenchDiff(file, false)}
+                  onRunAction={onRunGitWorkbenchAction}
+                />
+              </div>
+              <div className="git-workbench-diff" aria-label="Git file diff">
+                <div>
+                  <strong>{gitWorkbenchDiff?.filePath ?? "No diff selected"}</strong>
+                  <span>{gitWorkbenchDiff?.staged ? "Staged" : gitWorkbenchDiff ? "Unstaged" : "Select a file"}</span>
+                </div>
+                <pre>{gitWorkbenchDiff?.diff || "Select a changed file to review its diff."}</pre>
+              </div>
+              <small className="transport-fallback">{gitWorkbenchStatus.safety}</small>
             </div>
           </div>
         ) : null}
@@ -7531,6 +7805,60 @@ function AppDialogSurface({
         ) : null}
       </section>
     </div>
+  );
+}
+
+function GitWorkbenchGroup({
+  files,
+  group,
+  gitCanMutate,
+  onDiff,
+  onRunAction
+}: {
+  files: GitWorkbenchFileChange[];
+  group: "staged" | "unstaged" | "untracked";
+  gitCanMutate: boolean;
+  onDiff: (file: GitWorkbenchFileChange) => void;
+  onRunAction: (action: GitWorkbenchAction, file?: GitWorkbenchFileChange) => void;
+}) {
+  const action: GitWorkbenchAction = group === "staged" ? "unstage" : "stage";
+  const actionLabel = group === "staged" ? "Unstage" : "Stage";
+
+  return (
+    <section className="git-workbench-group" aria-label={`${group} files`}>
+      <header>
+        <strong>{group}</strong>
+        <span>{files.length}</span>
+      </header>
+      {files.length > 0 ? (
+        <ol>
+          {files.map((file) => (
+            <li key={`${group}-${file.path}`}>
+              <div>
+                <strong title={file.path}>{file.path}</strong>
+                <small>
+                  {file.indexStatus}/{file.worktreeStatus}
+                  {file.originalPath ? ` from ${file.originalPath}` : ""}
+                </small>
+              </div>
+              <button onClick={() => onDiff(file)} type="button">
+                Diff
+              </button>
+              <button
+                disabled={!gitCanMutate}
+                onClick={() => onRunAction(action, file)}
+                title={gitCanMutate ? `${actionLabel} this file.` : "Approve the Git live-action gate first."}
+                type="button"
+              >
+                {actionLabel}
+              </button>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p>No {group} files.</p>
+      )}
+    </section>
   );
 }
 
