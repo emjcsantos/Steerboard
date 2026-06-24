@@ -39,24 +39,27 @@ describe("run history storage", () => {
 
   it("keeps valid runs and removes malformed entries", () => {
     const validRun = buildRun();
+    const parsed = parseStoredRunHistory(
+      JSON.stringify([
+        validRun,
+        {
+          ...validRun,
+          id: "run-b",
+          status: "unsupported"
+        },
+        {
+          ...validRun,
+          id: "run-c",
+          sessions: "missing"
+        }
+      ])
+    );
 
-    expect(
-      parseStoredRunHistory(
-        JSON.stringify([
-          validRun,
-          {
-            ...validRun,
-            id: "run-b",
-            status: "unsupported"
-          },
-          {
-            ...validRun,
-            id: "run-c",
-            sessions: "missing"
-          }
-        ])
-      )
-    ).toEqual([validRun]);
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0]).toMatchObject(validRun);
+    expect(parsed[0].mainWorksheet?.title).toBe("Main Worksheet");
+    expect(parsed[0].phaseWorksheets).toHaveLength(8);
+    expect(parsed[0].activeWorksheetQueue).toHaveLength(8);
   });
 
   it("dedupes by run id and source package id before applying the limit", () => {
@@ -71,5 +74,18 @@ describe("run history storage", () => {
       "run-a",
       "run-d"
     ]);
+  });
+
+  it("repairs completed legacy runs into removed worksheets and main receipts", () => {
+    const parsed = parseStoredRunHistory(
+      JSON.stringify([buildRun({ id: "run-complete", sourcePackageId: "package-complete", status: "complete" })])
+    );
+
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].phaseWorksheets).toHaveLength(8);
+    expect(parsed[0].phaseWorksheets?.every((worksheet) => worksheet.state === "removed")).toBe(true);
+    expect(parsed[0].activeWorksheetQueue).toEqual([]);
+    expect(parsed[0].mainWorksheet?.acceptedPhaseIds).toHaveLength(8);
+    expect(parsed[0].mainWorksheet?.integrationReceipts).toHaveLength(8);
   });
 });

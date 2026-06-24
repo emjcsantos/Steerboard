@@ -955,6 +955,35 @@ export function integratePhaseWorksheetIntoMain(
   };
 }
 
+export function repairMockRunWorksheets(run: MockOrchestratorRun): MockOrchestratorRun {
+  const storedWorksheets = Array.isArray(run.phaseWorksheets)
+    ? run.phaseWorksheets.map(clonePhaseWorksheet)
+    : [];
+  const phaseWorksheets =
+    storedWorksheets.length > 0
+      ? storedWorksheets
+      : createPhaseWorksheets(run.id, run.status, run.createdAt);
+  const activeWorksheetIds = new Set(
+    phaseWorksheets
+      .filter((worksheet) => worksheet.state !== "removed")
+      .map((worksheet) => worksheet.id)
+  );
+  const storedQueue = Array.isArray(run.activeWorksheetQueue)
+    ? run.activeWorksheetQueue.filter((worksheetId) => activeWorksheetIds.has(worksheetId))
+    : [];
+  const activeWorksheetQueue =
+    storedQueue.length > 0 ? storedQueue : createActiveWorksheetQueue(phaseWorksheets);
+
+  return {
+    ...run,
+    phaseWorksheets,
+    activeWorksheetQueue,
+    mainWorksheet: run.mainWorksheet
+      ? cloneMainWorksheet(run.mainWorksheet)
+      : createMainWorksheet(run.id, phaseWorksheets, run.createdAt)
+  };
+}
+
 export function runToSessionSummaries(run: MockOrchestratorRun): MockRunSessionSummary[] {
   if (run.sessions.length > 0) {
     return run.sessions.map((session) => ({ ...session }));

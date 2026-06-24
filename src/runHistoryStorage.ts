@@ -1,4 +1,4 @@
-import type { MockOrchestratorRun, MockRunStatus } from "./run";
+import { repairMockRunWorksheets, type MockOrchestratorRun, type MockRunStatus } from "./run";
 
 export const RUN_HISTORY_STORAGE_KEY = "steerboard.mockRunHistory";
 
@@ -68,7 +68,7 @@ export function parseStoredRunHistory(serialized: string | null, limit = 12): Mo
 
       seenIds.add(item.id);
       seenPackageIds.add(item.sourcePackageId);
-      repairedRuns.push(item);
+      repairedRuns.push(repairMockRunWorksheets(item));
     }
 
     return repairedRuns.slice(0, Math.max(0, Math.floor(limit)));
