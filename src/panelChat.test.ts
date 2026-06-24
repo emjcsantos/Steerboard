@@ -440,6 +440,7 @@ describe("panel chat helpers", () => {
           }
         ],
         turns: [],
+        ledger: [],
         usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
         errors: [],
         unknownEvents: [

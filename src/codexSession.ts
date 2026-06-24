@@ -19,11 +19,28 @@ export type CodexSessionEventKind =
   | "turn_started"
   | "agent_delta"
   | "item_completed"
+  | "protocol_item"
   | "turn_completed"
   | "error"
   | "token_usage"
   | "connection_status"
   | "provider_unknown";
+
+export type CodexProtocolLedgerKind =
+  | "reasoning"
+  | "command_execution"
+  | "command_output_delta"
+  | "file_change"
+  | "mcp_call"
+  | "web_search"
+  | "image_view"
+  | "plan_update"
+  | "approval_request"
+  | "agent_message"
+  | "turn_status"
+  | "error"
+  | "usage"
+  | "unknown";
 
 export interface CodexTokenUsage {
   inputTokens: number;
@@ -35,6 +52,25 @@ export interface CodexSessionEventBase {
   id: string;
   kind: CodexSessionEventKind;
   provider?: string;
+  receivedAt?: string;
+  raw?: unknown;
+}
+
+export interface CodexProtocolLedgerEntry {
+  id: string;
+  kind: CodexProtocolLedgerKind;
+  method: string;
+  threadId?: string;
+  turnId?: string;
+  itemId?: string;
+  itemType?: string;
+  status?: string;
+  title?: string;
+  detail?: string;
+  delta?: string;
+  message?: string;
+  summary?: string;
+  usage?: CodexTokenUsage;
   receivedAt?: string;
   raw?: unknown;
 }
@@ -66,6 +102,23 @@ export interface CodexItemCompletedEvent extends CodexSessionEventBase {
   role: CodexSessionMessageRole;
   content: string;
   status?: "completed" | "failed" | "interrupted";
+}
+
+export interface CodexProtocolItemEvent extends CodexSessionEventBase {
+  kind: "protocol_item";
+  ledgerKind: CodexProtocolLedgerKind;
+  method: string;
+  threadId?: string;
+  turnId?: string;
+  itemId?: string;
+  itemType?: string;
+  status?: string;
+  title?: string;
+  detail?: string;
+  delta?: string;
+  message?: string;
+  summary?: string;
+  usage?: CodexTokenUsage;
 }
 
 export interface CodexTurnCompletedEvent extends CodexSessionEventBase {
@@ -107,6 +160,7 @@ export type CodexSessionEvent =
   | CodexTurnStartedEvent
   | CodexAgentDeltaEvent
   | CodexItemCompletedEvent
+  | CodexProtocolItemEvent
   | CodexTurnCompletedEvent
   | CodexSessionErrorEvent
   | CodexTokenUsageEvent
@@ -116,7 +170,9 @@ export type CodexSessionEvent =
 export interface CodexPanelEventPayload {
   method: string;
   eventType: string;
+  threadId?: string | null;
   turnId: string | null;
+  itemId?: string | null;
   status: string | null;
   delta: string | null;
   message: string | null;
@@ -125,6 +181,10 @@ export interface CodexPanelEventPayload {
   itemStatus?: string | null;
   itemTitle?: string | null;
   itemDetail?: string | null;
+  providerTimestamp?: string | null;
+  usageInputTokens?: number | null;
+  usageOutputTokens?: number | null;
+  usageTotalTokens?: number | null;
 }
 
 export interface CodexPanelTurnResultPayload {
@@ -170,6 +230,7 @@ export interface CodexSessionState {
   title?: string;
   activeTurnId?: string;
   connection: CodexSessionConnection;
+  ledger: CodexProtocolLedgerEntry[];
   turns: CodexSessionTurn[];
   messages: CodexSessionMessage[];
   usage: CodexTokenUsage;
@@ -190,6 +251,7 @@ export function createInitialCodexSessionState(
     connection: {
       status: connectionStatus
     },
+    ledger: [],
     turns: [],
     messages: [],
     usage: { ...EMPTY_USAGE },
@@ -226,6 +288,29 @@ function nestedRecord(raw: Record<string, unknown>, key: string): Record<string,
 
 function firstString(...values: unknown[]): string | undefined {
   return values.find((value): value is string => typeof value === "string" && value.length > 0);
+}
+
+function shouldRedactKey(key: string): boolean {
+  return /token|secret|password|api[-_]?key|authorization|credential|cookie/i.test(key);
+}
+
+function redactProviderRaw(value: unknown, depth = 0): unknown {
+  if (depth > 6) {
+    return "[truncated]";
+  }
+  if (Array.isArray(value)) {
+    return value.slice(0, 50).map((item) => redactProviderRaw(item, depth + 1));
+  }
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, item]) => [
+      key,
+      shouldRedactKey(key) ? "[redacted]" : redactProviderRaw(item, depth + 1)
+    ])
+  );
 }
 
 function normalizeConnectionStatus(value: unknown): CodexSessionConnectionStatus {
@@ -299,7 +384,226 @@ function normalizeUsage(rawUsage: Record<string, unknown>): CodexTokenUsage {
   };
 }
 
+function normalizeMethodKind(method: string, itemType?: string | null): CodexProtocolLedgerKind {
+  const haystack = `${method} ${itemType ?? ""}`.toLowerCase();
+  if (haystack.includes("approval")) {
+    return "approval_request";
+  }
+  if (haystack.includes("reasoning")) {
+    return "reasoning";
+  }
+  if (haystack.includes("commandexecution/outputdelta")) {
+    return "command_output_delta";
+  }
+  if (haystack.includes("commandexecution") || /\b(exec|command|shell|terminal|bash)\b/.test(haystack)) {
+    return "command_execution";
+  }
+  if (haystack.includes("filechange") || haystack.includes("file_change") || haystack.includes("diff")) {
+    return "file_change";
+  }
+  if (haystack.includes("mcptoolcall") || haystack.includes("mcp")) {
+    return "mcp_call";
+  }
+  if (haystack.includes("websearch") || haystack.includes("web_search") || haystack.includes("search")) {
+    return "web_search";
+  }
+  if (haystack.includes("imageview") || haystack.includes("image_view") || haystack.includes("localimage")) {
+    return "image_view";
+  }
+  if (haystack.includes("plan")) {
+    return "plan_update";
+  }
+  if (haystack.includes("agentmessage")) {
+    return "agent_message";
+  }
+  if (haystack.includes("error") || haystack.includes("failed")) {
+    return "error";
+  }
+  if (haystack.includes("usage")) {
+    return "usage";
+  }
+  if (haystack.includes("turn/") || haystack.includes("turn.")) {
+    return "turn_status";
+  }
+  return "unknown";
+}
+
+function panelEventUsage(event: CodexPanelEventPayload): CodexTokenUsage | undefined {
+  const usage = normalizeUsage({
+    inputTokens: event.usageInputTokens,
+    outputTokens: event.usageOutputTokens,
+    totalTokens: event.usageTotalTokens
+  });
+  return usage.totalTokens > 0 || usage.inputTokens > 0 || usage.outputTokens > 0
+    ? usage
+    : undefined;
+}
+
+function protocolEventFromPanelEvent(
+  result: CodexPanelTurnResultPayload,
+  event: CodexPanelEventPayload,
+  index: number,
+  fallbackTurnId: string
+): CodexProtocolItemEvent {
+  const eventTurnId = event.turnId ?? fallbackTurnId;
+  const ledgerKind = normalizeMethodKind(event.method, event.itemType);
+  return {
+    id: `${result.sessionId}:${eventTurnId}:protocol:${index}`,
+    kind: "protocol_item",
+    ledgerKind,
+    provider: "codex",
+    method: event.method,
+    threadId: event.threadId ?? result.threadId,
+    turnId: eventTurnId,
+    itemId: event.itemId ?? undefined,
+    itemType: event.itemType ?? undefined,
+    status: event.itemStatus ?? event.status ?? undefined,
+    title: event.itemTitle ?? undefined,
+    detail: event.itemDetail ?? undefined,
+    delta: event.delta ?? undefined,
+    message: event.message ?? undefined,
+    summary: event.summary ?? undefined,
+    usage: panelEventUsage(event),
+    receivedAt: event.providerTimestamp ?? undefined,
+    raw: redactProviderRaw(event)
+  };
+}
+
+function ledgerEntryFromEvent(event: CodexSessionEvent): CodexProtocolLedgerEntry {
+  switch (event.kind) {
+    case "thread_started":
+      return {
+        id: event.id,
+        kind: "turn_status",
+        method: "thread/started",
+        threadId: event.threadId,
+        status: "started",
+        title: event.title,
+        receivedAt: event.receivedAt,
+        raw: event.raw
+      };
+    case "turn_started":
+      return {
+        id: event.id,
+        kind: "turn_status",
+        method: "turn/started",
+        threadId: event.threadId,
+        turnId: event.turnId,
+        status: "started",
+        detail: event.prompt,
+        receivedAt: event.receivedAt,
+        raw: event.raw
+      };
+    case "agent_delta":
+      return {
+        id: event.id,
+        kind: "agent_message",
+        method: "item/agentMessage/delta",
+        turnId: event.turnId,
+        itemId: event.itemId,
+        delta: event.delta,
+        receivedAt: event.receivedAt,
+        raw: event.raw
+      };
+    case "item_completed":
+      return {
+        id: event.id,
+        kind: event.role === "assistant" ? "agent_message" : "unknown",
+        method: "item/completed",
+        turnId: event.turnId,
+        itemId: event.itemId,
+        status: event.status,
+        delta: event.content,
+        receivedAt: event.receivedAt,
+        raw: event.raw
+      };
+    case "protocol_item":
+      return {
+        id: event.id,
+        kind: event.ledgerKind,
+        method: event.method,
+        threadId: event.threadId,
+        turnId: event.turnId,
+        itemId: event.itemId,
+        itemType: event.itemType,
+        status: event.status,
+        title: event.title,
+        detail: event.detail,
+        delta: event.delta,
+        message: event.message,
+        summary: event.summary,
+        usage: event.usage,
+        receivedAt: event.receivedAt,
+        raw: event.raw
+      };
+    case "turn_completed":
+      return {
+        id: event.id,
+        kind: "turn_status",
+        method: "turn/completed",
+        turnId: event.turnId,
+        status: event.status,
+        summary: event.summary,
+        receivedAt: event.receivedAt,
+        raw: event.raw
+      };
+    case "error":
+      return {
+        id: event.id,
+        kind: "error",
+        method: "error",
+        turnId: event.turnId,
+        status: "failed",
+        message: event.message,
+        detail: event.code,
+        receivedAt: event.receivedAt,
+        raw: event.raw
+      };
+    case "token_usage":
+      return {
+        id: event.id,
+        kind: "usage",
+        method: "turn/usage",
+        turnId: event.turnId,
+        usage: event.usage,
+        receivedAt: event.receivedAt,
+        raw: event.raw
+      };
+    case "connection_status":
+      return {
+        id: event.id,
+        kind: "turn_status",
+        method: "connection/status",
+        status: event.status,
+        message: event.reason,
+        receivedAt: event.receivedAt,
+        raw: event.raw
+      };
+    case "provider_unknown":
+      return {
+        id: event.id,
+        kind: "unknown",
+        method: event.name,
+        turnId: event.turnId,
+        summary: event.summary,
+        receivedAt: event.receivedAt,
+        raw: event.raw
+      };
+  }
+}
+
+function appendLedgerEvent(
+  state: CodexSessionState,
+  event: CodexSessionEvent
+): CodexSessionState {
+  return {
+    ...state,
+    ledger: [...state.ledger, ledgerEntryFromEvent(event)]
+  };
+}
+
 export function normalizeCodexProviderEvent(raw: unknown): CodexSessionEvent {
+  const safeRaw = redactProviderRaw(raw);
   if (!isRecord(raw)) {
     return {
       id: "provider_unknown:non-record",
@@ -307,7 +611,7 @@ export function normalizeCodexProviderEvent(raw: unknown): CodexSessionEvent {
       provider: "codex",
       name: "non-record",
       summary: "Ignored malformed provider event.",
-      raw
+      raw: safeRaw
     };
   }
 
@@ -324,7 +628,7 @@ export function normalizeCodexProviderEvent(raw: unknown): CodexSessionEvent {
         provider: "codex",
         threadId: safeString(payload.threadId ?? payload.thread_id, "thread:unknown"),
         title: firstString(payload.title),
-        raw
+        raw: safeRaw
       };
     case "turn.started":
     case "turn_started":
@@ -335,7 +639,7 @@ export function normalizeCodexProviderEvent(raw: unknown): CodexSessionEvent {
         turnId: safeString(payload.turnId ?? payload.turn_id, "turn:unknown"),
         threadId: firstString(payload.threadId, payload.thread_id),
         prompt: firstString(payload.prompt, payload.input),
-        raw
+        raw: safeRaw
       };
     case "agent.delta":
     case "agent_delta":
@@ -347,7 +651,7 @@ export function normalizeCodexProviderEvent(raw: unknown): CodexSessionEvent {
         turnId: safeString(payload.turnId ?? payload.turn_id, "turn:unknown"),
         itemId: firstString(payload.itemId, payload.item_id, payload.messageId, payload.message_id),
         delta: safeString(payload.delta ?? payload.text ?? payload.content),
-        raw
+        raw: safeRaw
       };
     case "item.completed":
     case "item_completed":
@@ -361,7 +665,7 @@ export function normalizeCodexProviderEvent(raw: unknown): CodexSessionEvent {
         role: normalizeRole(payload.role),
         content: safeString(payload.content ?? payload.text),
         status: normalizeTurnStatus(payload.status),
-        raw
+        raw: safeRaw
       };
     case "turn.completed":
     case "turn_completed":
@@ -374,7 +678,7 @@ export function normalizeCodexProviderEvent(raw: unknown): CodexSessionEvent {
         turnId: safeString(payload.turnId ?? payload.turn_id, "turn:unknown"),
         status: normalizeTurnStatus(payload.status ?? type.split(".").at(-1)),
         summary: firstString(payload.summary),
-        raw
+        raw: safeRaw
       };
     case "error":
     case "session.error":
@@ -386,7 +690,7 @@ export function normalizeCodexProviderEvent(raw: unknown): CodexSessionEvent {
         message: safeString(payload.message ?? payload.error, "Unknown provider error."),
         code: firstString(payload.code),
         recoverable: safeBoolean(payload.recoverable, false),
-        raw
+        raw: safeRaw
       };
     case "token_usage":
     case "usage":
@@ -398,7 +702,45 @@ export function normalizeCodexProviderEvent(raw: unknown): CodexSessionEvent {
         provider: "codex",
         turnId: firstString(payload.turnId, payload.turn_id),
         usage: normalizeUsage(Object.keys(usage).length > 0 ? usage : payload),
-        raw
+        raw: safeRaw
+      };
+    }
+    case "item/reasoning/summaryTextDelta":
+    case "item/reasoning/textDelta":
+    case "item/commandExecution/outputDelta":
+    case "item/fileChange/outputDelta":
+    case "turn/plan/updated":
+    case "item/plan/delta":
+    case "item/started":
+    case "item/completed":
+    case "item/updated":
+    case "approval_request":
+    case "codex:approval_request":
+    case "mcp/toolCall":
+    case "webSearch/completed":
+    case "imageView/opened": {
+      const item = nestedRecord(payload, "item");
+      const usage = nestedRecord(payload, "usage");
+      const itemType = firstString(item.type, payload.itemType, payload.item_type);
+      return {
+        id: eventId(raw, "protocol_item"),
+        kind: "protocol_item",
+        ledgerKind: normalizeMethodKind(type, itemType),
+        provider: "codex",
+        method: type,
+        threadId: firstString(payload.threadId, payload.thread_id),
+        turnId: firstString(payload.turnId, payload.turn_id),
+        itemId: firstString(payload.itemId, payload.item_id, item.id),
+        itemType,
+        status: firstString(payload.status, item.status),
+        title: firstString(payload.title, payload.name, item.title, item.name, item.command),
+        detail: firstString(payload.detail, payload.command, payload.text, item.command, item.text),
+        delta: firstString(payload.delta, payload.text, payload.content),
+        message: firstString(payload.message, payload.error),
+        summary: firstString(payload.summary, item.summary),
+        usage: Object.keys(usage).length > 0 ? normalizeUsage(usage) : undefined,
+        receivedAt: firstString(payload.timestamp, payload.createdAt, payload.created_at),
+        raw: safeRaw
       };
     }
     case "connection.status":
@@ -409,7 +751,7 @@ export function normalizeCodexProviderEvent(raw: unknown): CodexSessionEvent {
         provider: "codex",
         status: normalizeConnectionStatus(payload.status),
         reason: firstString(payload.reason, payload.message),
-        raw
+        raw: safeRaw
       };
     default:
       return {
@@ -418,7 +760,7 @@ export function normalizeCodexProviderEvent(raw: unknown): CodexSessionEvent {
         provider: "codex",
         name: type,
         summary: `Unsupported provider event: ${type}`,
-        raw
+        raw: safeRaw
       };
   }
 }
@@ -434,7 +776,7 @@ export function normalizeCodexPanelTurnResultEvents(
       kind: "thread_started",
       provider: "codex",
       threadId: result.threadId,
-      raw: result
+      raw: redactProviderRaw(result)
     },
     {
       id: `${result.sessionId}:${turnId}:turn-started`,
@@ -443,7 +785,7 @@ export function normalizeCodexPanelTurnResultEvents(
       threadId: result.threadId,
       turnId,
       prompt,
-      raw: result
+      raw: redactProviderRaw(result)
     }
   ];
 
@@ -456,7 +798,7 @@ export function normalizeCodexPanelTurnResultEvents(
         provider: "codex",
         turnId: eventTurnId,
         delta: event.delta,
-        raw: event
+        raw: redactProviderRaw(event)
       });
       return;
     }
@@ -469,7 +811,7 @@ export function normalizeCodexPanelTurnResultEvents(
         turnId: eventTurnId,
         status: normalizeTurnStatus(event.status),
         summary: event.message ?? result.detail,
-        raw: event
+        raw: redactProviderRaw(event)
       });
       return;
     }
@@ -482,20 +824,24 @@ export function normalizeCodexPanelTurnResultEvents(
         turnId: eventTurnId,
         message: event.message ?? result.detail,
         recoverable: false,
-        raw: event
+        raw: redactProviderRaw(event)
       });
       return;
     }
 
-    events.push({
-      id: `${result.sessionId}:${eventTurnId}:unknown:${index}`,
-      kind: "provider_unknown",
-      provider: "codex",
-      turnId: eventTurnId,
-      name: event.method,
-      summary: event.summary ?? event.message ?? event.itemTitle ?? `Provider event: ${event.method}`,
-      raw: event
-    });
+    const protocolEvent = protocolEventFromPanelEvent(result, event, index, turnId);
+    events.push(protocolEvent);
+    if (protocolEvent.ledgerKind === "unknown") {
+      events.push({
+        id: `${result.sessionId}:${eventTurnId}:unknown:${index}`,
+        kind: "provider_unknown",
+        provider: "codex",
+        turnId: eventTurnId,
+        name: event.method,
+        summary: event.summary ?? event.message ?? event.itemTitle ?? `Provider event: ${event.method}`,
+        raw: redactProviderRaw(event)
+      });
+    }
   });
 
   if (!events.some((event) => event.kind === "agent_delta") && result.transcript) {
@@ -505,7 +851,7 @@ export function normalizeCodexPanelTurnResultEvents(
       provider: "codex",
       turnId,
       delta: result.transcript,
-      raw: result
+      raw: redactProviderRaw(result)
     });
   }
 
@@ -523,7 +869,7 @@ export function normalizeCodexPanelTurnResultEvents(
             ? "completed"
             : normalizeTurnStatus("failed"),
       summary: result.detail,
-      raw: result
+      raw: redactProviderRaw(result)
     });
   }
 
@@ -633,46 +979,63 @@ export function reduceCodexSessionEvent(
   state: CodexSessionState,
   event: CodexSessionEvent
 ): CodexSessionState {
+  const stateWithLedger = appendLedgerEvent(state, event);
+
   switch (event.kind) {
     case "thread_started":
       return {
-        ...state,
+        ...stateWithLedger,
         threadId: event.threadId,
-        title: event.title ?? state.title
+        title: event.title ?? stateWithLedger.title
       };
     case "turn_started":
       return {
-        ...state,
-        threadId: event.threadId ?? state.threadId,
+        ...stateWithLedger,
+        threadId: event.threadId ?? stateWithLedger.threadId,
         activeTurnId: event.turnId,
-        turns: upsertTurn(state.turns, {
+        turns: upsertTurn(stateWithLedger.turns, {
           id: event.turnId,
-          threadId: event.threadId ?? state.threadId,
+          threadId: event.threadId ?? stateWithLedger.threadId,
           status: "streaming",
           prompt: event.prompt
         })
       };
     case "agent_delta":
       return {
-        ...state,
+        ...stateWithLedger,
         activeTurnId: event.turnId,
-        turns: updateTurn(state.turns, event.turnId, { status: "streaming" }),
-        messages: appendAssistantDelta(state.messages, event)
+        turns: updateTurn(stateWithLedger.turns, event.turnId, { status: "streaming" }),
+        messages: appendAssistantDelta(stateWithLedger.messages, event)
       };
     case "item_completed":
       return {
-        ...state,
+        ...stateWithLedger,
         turns: event.turnId
-          ? updateTurn(state.turns, event.turnId, { status: event.status ?? "completed" })
-          : state.turns,
-        messages: upsertCompletedItem(state.messages, event)
+          ? updateTurn(stateWithLedger.turns, event.turnId, { status: event.status ?? "completed" })
+          : stateWithLedger.turns,
+        messages: upsertCompletedItem(stateWithLedger.messages, event)
+      };
+    case "protocol_item":
+      return {
+        ...stateWithLedger,
+        activeTurnId: event.turnId ?? stateWithLedger.activeTurnId,
+        turns: event.turnId
+          ? updateTurn(stateWithLedger.turns, event.turnId, {
+              status:
+                event.status === "completed" ||
+                event.status === "failed" ||
+                event.status === "interrupted"
+                  ? normalizeSessionTurnStatus(event.status)
+                  : "streaming"
+            })
+          : stateWithLedger.turns
       };
     case "turn_completed": {
-      const messages = applyTurnStatusToMessages(state.messages, event.turnId, event.status);
+      const messages = applyTurnStatusToMessages(stateWithLedger.messages, event.turnId, event.status);
       return {
-        ...state,
-        activeTurnId: state.activeTurnId === event.turnId ? undefined : state.activeTurnId,
-        turns: updateTurn(state.turns, event.turnId, {
+        ...stateWithLedger,
+        activeTurnId: stateWithLedger.activeTurnId === event.turnId ? undefined : stateWithLedger.activeTurnId,
+        turns: updateTurn(stateWithLedger.turns, event.turnId, {
           status: event.status,
           summary: event.summary
         }),
@@ -680,39 +1043,39 @@ export function reduceCodexSessionEvent(
       };
     }
     case "error": {
-      const turnId = event.turnId ?? state.activeTurnId;
+      const turnId = event.turnId ?? stateWithLedger.activeTurnId;
       return {
-        ...state,
+        ...stateWithLedger,
         connection: {
-          status: event.recoverable ? state.connection.status : "error",
+          status: event.recoverable ? stateWithLedger.connection.status : "error",
           reason: event.message
         },
-        errors: [...state.errors, event],
+        errors: [...stateWithLedger.errors, event],
         turns: turnId
-          ? updateTurn(state.turns, turnId, { status: "failed", error: event.message })
-          : state.turns,
+          ? updateTurn(stateWithLedger.turns, turnId, { status: "failed", error: event.message })
+          : stateWithLedger.turns,
         messages: turnId
-          ? applyTurnStatusToMessages(state.messages, turnId, "failed")
-          : state.messages
+          ? applyTurnStatusToMessages(stateWithLedger.messages, turnId, "failed")
+          : stateWithLedger.messages
       };
     }
     case "token_usage": {
       const usage = {
-        inputTokens: state.usage.inputTokens + event.usage.inputTokens,
-        outputTokens: state.usage.outputTokens + event.usage.outputTokens,
-        totalTokens: state.usage.totalTokens + event.usage.totalTokens
+        inputTokens: stateWithLedger.usage.inputTokens + event.usage.inputTokens,
+        outputTokens: stateWithLedger.usage.outputTokens + event.usage.outputTokens,
+        totalTokens: stateWithLedger.usage.totalTokens + event.usage.totalTokens
       };
       return {
-        ...state,
+        ...stateWithLedger,
         usage,
         turns: event.turnId
-          ? updateTurn(state.turns, event.turnId, { usage: event.usage })
-          : state.turns
+          ? updateTurn(stateWithLedger.turns, event.turnId, { usage: event.usage })
+          : stateWithLedger.turns
       };
     }
     case "connection_status":
       return {
-        ...state,
+        ...stateWithLedger,
         connection: {
           status: event.status,
           reason: event.reason
@@ -720,8 +1083,8 @@ export function reduceCodexSessionEvent(
       };
     case "provider_unknown":
       return {
-        ...state,
-        unknownEvents: [...state.unknownEvents, event]
+        ...stateWithLedger,
+        unknownEvents: [...stateWithLedger.unknownEvents, event]
       };
   }
 }

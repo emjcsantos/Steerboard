@@ -299,7 +299,9 @@ pub struct CodexPanelProviderSnapshot {
 pub struct CodexPanelEvent {
     pub method: String,
     pub event_type: String,
+    pub thread_id: Option<String>,
     pub turn_id: Option<String>,
+    pub item_id: Option<String>,
     pub status: Option<String>,
     pub delta: Option<String>,
     pub message: Option<String>,
@@ -308,6 +310,10 @@ pub struct CodexPanelEvent {
     pub item_status: Option<String>,
     pub item_title: Option<String>,
     pub item_detail: Option<String>,
+    pub provider_timestamp: Option<String>,
+    pub usage_input_tokens: Option<u64>,
+    pub usage_output_tokens: Option<u64>,
+    pub usage_total_tokens: Option<u64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
@@ -4694,6 +4700,28 @@ mod runtime_bridge {
                     .and_then(Value::as_str)
                     .map(ToOwned::to_owned)
             });
+        let thread = params
+            .and_then(|object| object.get("thread"))
+            .and_then(Value::as_object);
+        let thread_id = params
+            .and_then(|object| object.get("threadId"))
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned)
+            .or_else(|| {
+                thread
+                    .and_then(|object| object.get("id"))
+                    .and_then(Value::as_str)
+                    .map(ToOwned::to_owned)
+            });
+        let item_id = params
+            .and_then(|object| object.get("itemId"))
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned)
+            .or_else(|| {
+                item.and_then(|object| object.get("id"))
+                    .and_then(Value::as_str)
+                    .map(ToOwned::to_owned)
+            });
         let item_type = item
             .and_then(|object| object.get("type"))
             .and_then(Value::as_str)
@@ -4721,11 +4749,39 @@ mod runtime_bridge {
                     .or_else(|| object.get("args"))
             })
             .map(compact_panel_event_value);
+        let provider_timestamp = params
+            .and_then(|object| {
+                object
+                    .get("timestamp")
+                    .or_else(|| object.get("createdAt"))
+                    .or_else(|| object.get("created_at"))
+                    .or_else(|| object.get("time"))
+            })
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned)
+            .or_else(|| {
+                value
+                    .get("timestamp")
+                    .or_else(|| value.get("createdAt"))
+                    .or_else(|| value.get("created_at"))
+                    .and_then(Value::as_str)
+                    .map(ToOwned::to_owned)
+            });
+        let usage = params
+            .and_then(|object| object.get("usage"))
+            .and_then(Value::as_object);
+        let usage_input_tokens =
+            usage_token_value(usage, &["inputTokens", "input_tokens", "prompt_tokens"]);
+        let usage_output_tokens =
+            usage_token_value(usage, &["outputTokens", "output_tokens", "completion_tokens"]);
+        let usage_total_tokens = usage_token_value(usage, &["totalTokens", "total_tokens"]);
 
         Some(CodexPanelEvent {
             event_type: panel_event_type(&method).to_string(),
             method,
+            thread_id,
             turn_id,
+            item_id,
             status,
             delta,
             message,
@@ -4734,7 +4790,19 @@ mod runtime_bridge {
             item_status,
             item_title,
             item_detail,
+            provider_timestamp,
+            usage_input_tokens,
+            usage_output_tokens,
+            usage_total_tokens,
         })
+    }
+
+    fn usage_token_value(
+        usage: Option<&serde_json::Map<String, Value>>,
+        keys: &[&str],
+    ) -> Option<u64> {
+        keys.iter()
+            .find_map(|key| usage.and_then(|object| object.get(*key)).and_then(Value::as_u64))
     }
 
     fn compact_panel_event_value(value: &Value) -> String {
@@ -6042,7 +6110,9 @@ mod tests {
         let reconnect = CodexPanelEvent {
             method: "turn/failed".to_string(),
             event_type: "error".to_string(),
+            thread_id: None,
             turn_id: None,
+            item_id: None,
             status: Some("failed".to_string()),
             delta: None,
             message: Some("Reconnecting... 2/5".to_string()),
@@ -6051,11 +6121,17 @@ mod tests {
             item_status: None,
             item_title: None,
             item_detail: None,
+            provider_timestamp: None,
+            usage_input_tokens: None,
+            usage_output_tokens: None,
+            usage_total_tokens: None,
         };
         let matching = CodexPanelEvent {
             method: "turn/completed".to_string(),
             event_type: "turn_status".to_string(),
+            thread_id: None,
             turn_id: Some("turn-1".to_string()),
+            item_id: None,
             status: Some("completed".to_string()),
             delta: None,
             message: None,
@@ -6064,6 +6140,10 @@ mod tests {
             item_status: None,
             item_title: None,
             item_detail: None,
+            provider_timestamp: None,
+            usage_input_tokens: None,
+            usage_output_tokens: None,
+            usage_total_tokens: None,
         };
         let other_turn = CodexPanelEvent {
             turn_id: Some("turn-2".to_string()),

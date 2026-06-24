@@ -337,6 +337,221 @@ describe("codex session event reducer", () => {
       status: "completed"
     });
   });
+
+  it("stores a protocol ledger for Codex app-server item types", () => {
+    const state = reduceCodexSessionEvents(
+      normalizeCodexPanelTurnResultEvents(
+        {
+          source: "desktop",
+          sessionId: "session-a",
+          threadId: "thread-a",
+          turnId: "turn-a",
+          completed: true,
+          interrupted: false,
+          failed: false,
+          transcript: "Done",
+          detail: "Codex panel turn completed.",
+          events: [
+            {
+              method: "item/reasoning/summaryTextDelta",
+              eventType: "event",
+              threadId: "thread-a",
+              turnId: "turn-a",
+              itemId: "reasoning-a",
+              status: null,
+              delta: "Checking files.",
+              message: null,
+              itemType: "reasoning",
+              providerTimestamp: "2026-06-24T01:02:03Z"
+            },
+            {
+              method: "item/commandExecution/outputDelta",
+              eventType: "event",
+              turnId: "turn-a",
+              itemId: "cmd-a",
+              status: null,
+              delta: "stdout",
+              message: null,
+              itemType: "commandExecution",
+              itemTitle: "npm test",
+              itemDetail: "npm.cmd run test"
+            },
+            {
+              method: "item/completed",
+              eventType: "event",
+              turnId: "turn-a",
+              itemId: "file-a",
+              status: "completed",
+              delta: null,
+              message: null,
+              itemType: "fileChange",
+              itemTitle: "src/codexSession.ts"
+            },
+            {
+              method: "item/completed",
+              eventType: "event",
+              turnId: "turn-a",
+              itemId: "mcp-a",
+              status: "completed",
+              delta: null,
+              message: null,
+              itemType: "mcpToolCall",
+              itemTitle: "mcp__server__tool"
+            },
+            {
+              method: "webSearch/completed",
+              eventType: "event",
+              turnId: "turn-a",
+              itemId: "web-a",
+              status: "completed",
+              delta: null,
+              message: null,
+              itemType: "webSearch",
+              itemTitle: "Codex app-server docs"
+            },
+            {
+              method: "imageView/opened",
+              eventType: "event",
+              turnId: "turn-a",
+              itemId: "image-a",
+              status: "completed",
+              delta: null,
+              message: null,
+              itemType: "imageView",
+              itemTitle: "screenshot.png"
+            },
+            {
+              method: "turn/plan/updated",
+              eventType: "event",
+              turnId: "turn-a",
+              itemId: "plan-a",
+              status: "completed",
+              delta: null,
+              message: null,
+              itemType: "plan"
+            },
+            {
+              method: "commandExecution/requestApproval",
+              eventType: "approval_request",
+              turnId: "turn-a",
+              itemId: "approval-a",
+              status: "pending",
+              delta: null,
+              message: "Command needs approval.",
+              itemType: "commandExecution"
+            },
+            {
+              method: "turn/usage",
+              eventType: "event",
+              turnId: "turn-a",
+              status: null,
+              delta: null,
+              message: null,
+              usageInputTokens: 10,
+              usageOutputTokens: 15,
+              usageTotalTokens: 25
+            },
+            {
+              method: "item/agentMessage/delta",
+              eventType: "agent_delta",
+              turnId: "turn-a",
+              status: null,
+              delta: "Done",
+              message: null,
+              itemType: "agentMessage"
+            },
+            {
+              method: "turn/completed",
+              eventType: "turn_status",
+              turnId: "turn-a",
+              status: "completed",
+              delta: null,
+              message: null
+            }
+          ]
+        },
+        "Run parity check"
+      )
+    );
+
+    expect(state.ledger.map((entry) => entry.kind)).toEqual(
+      expect.arrayContaining([
+        "reasoning",
+        "command_output_delta",
+        "file_change",
+        "mcp_call",
+        "web_search",
+        "image_view",
+        "plan_update",
+        "approval_request",
+        "usage",
+        "agent_message",
+        "turn_status"
+      ])
+    );
+    expect(state.ledger.find((entry) => entry.itemId === "reasoning-a")).toMatchObject({
+      threadId: "thread-a",
+      turnId: "turn-a",
+      receivedAt: "2026-06-24T01:02:03Z",
+      delta: "Checking files."
+    });
+    expect(state.ledger.find((entry) => entry.method === "turn/usage")?.usage).toEqual({
+      inputTokens: 10,
+      outputTokens: 15,
+      totalTokens: 25
+    });
+    expect(state.messages[0]).toMatchObject({
+      role: "assistant",
+      body: "Done",
+      status: "completed"
+    });
+  });
+
+  it("retains unknown panel events in the ledger and unknown bucket", () => {
+    const state = reduceCodexSessionEvents(
+      normalizeCodexPanelTurnResultEvents(
+        {
+          source: "desktop",
+          sessionId: "session-a",
+          threadId: "thread-a",
+          turnId: "turn-a",
+          completed: false,
+          interrupted: false,
+          failed: true,
+          transcript: "",
+          detail: "Unknown event failed.",
+          events: [
+            {
+              method: "provider/futureEvent",
+              eventType: "event",
+              turnId: "turn-a",
+              status: null,
+              delta: null,
+              message: "Future payload",
+              itemType: "futureThing"
+            }
+          ]
+        },
+        "Handle future event"
+      )
+    );
+
+    expect(state.ledger).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "unknown",
+          method: "provider/futureEvent",
+          message: "Future payload"
+        })
+      ])
+    );
+    expect(state.unknownEvents).toEqual([
+      expect.objectContaining({
+        name: "provider/futureEvent",
+        summary: "Future payload"
+      })
+    ]);
+  });
 });
 
 describe("codex provider event normalization", () => {
@@ -395,6 +610,40 @@ describe("codex provider event normalization", () => {
     });
   });
 
+  it("normalizes Codex app-server protocol item notifications", () => {
+    const event = normalizeCodexProviderEvent({
+      id: "raw-command-output",
+      type: "item/commandExecution/outputDelta",
+      data: {
+        threadId: "thread-a",
+        turnId: "turn-a",
+        itemId: "cmd-a",
+        itemType: "commandExecution",
+        delta: "stdout",
+        timestamp: "2026-06-24T02:00:00Z"
+      }
+    });
+    const state = reduceCodexSessionEvents([event]);
+
+    expect(event).toMatchObject({
+      kind: "protocol_item",
+      ledgerKind: "command_output_delta",
+      method: "item/commandExecution/outputDelta",
+      threadId: "thread-a",
+      turnId: "turn-a",
+      itemId: "cmd-a",
+      delta: "stdout",
+      receivedAt: "2026-06-24T02:00:00Z"
+    });
+    expect(state.ledger).toEqual([
+      expect.objectContaining({
+        kind: "command_output_delta",
+        itemId: "cmd-a",
+        delta: "stdout"
+      })
+    ]);
+  });
+
   it("defensively normalizes unknown or malformed provider events", () => {
     expect(normalizeCodexProviderEvent(null)).toMatchObject({
       kind: "provider_unknown",
@@ -418,5 +667,23 @@ describe("codex provider event normalization", () => {
       summary: "Unsupported provider event: provider.future_event"
     });
     expect(state.unknownEvents).toEqual([unknown]);
+  });
+
+  it("redacts obvious secret fields from retained raw provider events", () => {
+    const unknown = normalizeCodexProviderEvent({
+      id: "raw-secret",
+      type: "provider.future_event",
+      data: {
+        token: "sk-live",
+        nested: {
+          apiKey: "secret-key",
+          safe: "visible"
+        }
+      }
+    });
+
+    expect(JSON.stringify(unknown.raw)).not.toContain("sk-live");
+    expect(JSON.stringify(unknown.raw)).not.toContain("secret-key");
+    expect(JSON.stringify(unknown.raw)).toContain("visible");
   });
 });
