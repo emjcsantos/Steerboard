@@ -363,6 +363,12 @@ import {
   type McpCatalogRefreshSource,
   type McpCatalogSnapshot
 } from "./mcpCatalog";
+import {
+  applyMcpManagerProbe,
+  buildMcpManagerState,
+  type McpManagerServerDefinition,
+  type McpManagerState
+} from "./mcpManager";
 import { loadProviderMcpCatalogSnapshot } from "./providerMcpCatalog";
 import {
   buildDefaultMigrationPreview,
@@ -1293,6 +1299,35 @@ const missingFieldLabels: Record<PlanningDraftRequiredField, string> = {
   validationPlan: "Validation",
   rollbackNote: "Rollback"
 };
+
+const defaultMcpManagerDefinitions: McpManagerServerDefinition[] = [
+  {
+    id: "workspace-files",
+    label: "Workspace Files",
+    transport: "stdio",
+    command: "node",
+    args: ["mcp-server.js"],
+    tools: ["read_file", "list_directory"],
+    enabled: true
+  },
+  {
+    id: "docs-http",
+    label: "Docs HTTP",
+    transport: "http",
+    url: "https://example.invalid/mcp",
+    tools: ["search_docs"],
+    oauth: { enabled: true, connected: false },
+    enabled: true
+  },
+  {
+    id: "events-sse",
+    label: "Events SSE",
+    transport: "sse",
+    url: "https://example.invalid/events",
+    tools: ["subscribe"],
+    enabled: true
+  }
+];
 
 const runLifecycleActions: Array<{
   icon: ReactNode;
@@ -2440,6 +2475,9 @@ export function App() {
   );
   const [mcpCatalogSnapshot, setMcpCatalogSnapshot] = useState<McpCatalogSnapshot>(() =>
     buildMcpCatalogSnapshot(defaultMcpCatalog, "default-fallback", defaultMcpCatalog)
+  );
+  const [mcpManagerState, setMcpManagerState] = useState<McpManagerState>(() =>
+    buildMcpManagerState(emptyWorkspaceProject.id, defaultMcpManagerDefinitions)
   );
   const [pluginCatalogSnapshot, setPluginCatalogSnapshot] = useState<PluginCatalogSnapshot>(() =>
     buildPluginCatalogSnapshot(defaultPluginCatalog, "default-fallback", defaultPluginCatalog)
@@ -4856,6 +4894,54 @@ export function App() {
     }
   }
 
+  function handleAddMcpManagerServer() {
+    setMcpManagerState((currentState) =>
+      buildMcpManagerState(currentState.projectId, [
+        ...defaultMcpManagerDefinitions,
+        {
+          id: `project-mcp-${currentState.servers.length + 1}`,
+          label: `Project MCP ${currentState.servers.length + 1}`,
+          transport: "http",
+          url: "https://example.invalid/project-mcp",
+          tools: ["inspect"],
+          oauth: { enabled: true, connected: false },
+          enabled: true
+        }
+      ])
+    );
+    setAppNotice("Project-scoped MCP server row added locally");
+  }
+
+  function handleRemoveMcpManagerServer(serverId: string) {
+    setMcpManagerState((currentState) =>
+      buildMcpManagerState(
+        currentState.projectId,
+        currentState.servers
+          .filter((server) => server.id !== serverId)
+          .map((server) => ({
+            id: server.id,
+            label: server.label,
+            transport: server.transport === "unsupported" ? "http" : server.transport,
+            url: server.transport === "stdio" ? undefined : "https://example.invalid/mcp",
+            command: server.transport === "stdio" ? "node" : undefined,
+            tools: server.toolNames,
+            oauth: { enabled: server.authState === "oauth-required" || server.authState === "oauth-ready", connected: server.authState === "oauth-ready" },
+            enabled: server.setupState !== "disabled"
+          }))
+      )
+    );
+    setAppNotice("Project-scoped MCP server row removed locally");
+  }
+
+  function handleProbeMcpManagerServer(serverId: string) {
+    setMcpManagerState((currentState) => ({
+      ...currentState,
+      servers: applyMcpManagerProbe(currentState.servers, serverId),
+      updatedAt: new Date().toISOString()
+    }));
+    setAppNotice("MCP probe completed without invoking tools");
+  }
+
   async function refreshSkillCatalogSnapshot() {
     setSkillCatalogLoading(true);
     setAppNotice("Refreshing provider skill catalog");
@@ -5713,6 +5799,7 @@ export function App() {
           migrationSourcePreview={migrationSourcePreview}
           mcpCatalogLoading={mcpCatalogLoading}
           mcpCatalogSnapshot={mcpCatalogSnapshot}
+          mcpManagerState={mcpManagerState}
           onCreateMigrationProfileDraft={handleCreateMigrationProfileDraft}
           onClearMigrationOwnerApproval={handleClearMigrationOwnerApproval}
           onRecordMigrationOwnerApproval={handleRecordMigrationOwnerApproval}
@@ -5725,6 +5812,9 @@ export function App() {
           onRefreshAutomationCatalog={refreshAutomationCatalogSnapshot}
           onRefreshCodexTransport={refreshCodexTransportProbe}
           onRefreshMcpCatalog={refreshMcpCatalogSnapshot}
+          onAddMcpManagerServer={handleAddMcpManagerServer}
+          onProbeMcpManagerServer={handleProbeMcpManagerServer}
+          onRemoveMcpManagerServer={handleRemoveMcpManagerServer}
           onRefreshMigrationPreview={() => refreshMigrationSourcePreview()}
           onRefreshPluginCatalog={refreshPluginCatalogSnapshot}
           onRefreshPersonalizationCatalog={refreshPersonalizationCatalogSnapshot}
@@ -6306,6 +6396,7 @@ function AppDialogSurface({
   migrationSourcePreview,
   mcpCatalogLoading,
   mcpCatalogSnapshot,
+  mcpManagerState,
   onCreateMigrationProfileDraft,
   onClearMigrationOwnerApproval,
   onRecordMigrationOwnerApproval,
@@ -6318,6 +6409,9 @@ function AppDialogSurface({
   onRefreshAutomationCatalog,
   onRefreshCodexTransport,
   onRefreshMcpCatalog,
+  onAddMcpManagerServer,
+  onProbeMcpManagerServer,
+  onRemoveMcpManagerServer,
   onRefreshMigrationPreview,
   onRefreshPluginCatalog,
   onRefreshPersonalizationCatalog,
@@ -6374,6 +6468,7 @@ function AppDialogSurface({
   migrationSourcePreview: MigrationSourcePreviewPayload;
   mcpCatalogLoading: boolean;
   mcpCatalogSnapshot: McpCatalogSnapshot;
+  mcpManagerState: McpManagerState;
   onCreateMigrationProfileDraft: () => void;
   onClearMigrationOwnerApproval: () => void;
   onRecordMigrationOwnerApproval: () => void;
@@ -6386,6 +6481,9 @@ function AppDialogSurface({
   onRefreshAutomationCatalog: () => void;
   onRefreshCodexTransport: () => void;
   onRefreshMcpCatalog: () => void;
+  onAddMcpManagerServer: () => void;
+  onProbeMcpManagerServer: (serverId: string) => void;
+  onRemoveMcpManagerServer: (serverId: string) => void;
   onRefreshMigrationPreview: () => void;
   onRefreshPluginCatalog: () => void;
   onRefreshPersonalizationCatalog: () => void;
@@ -7354,11 +7452,41 @@ function AppDialogSurface({
               </div>
             ) : null}
             {dialog === "mcp" ? (
-              <div className="dialog-action-row">
-                <button className="dialog-secondary-action" onClick={onRefreshMcpCatalog} type="button">
-                  {mcpCatalogLoading ? "Refreshing..." : "Refresh MCP catalog"}
-                </button>
-              </div>
+              <>
+                <div className="dialog-action-row">
+                  <button className="dialog-secondary-action" onClick={onRefreshMcpCatalog} type="button">
+                    {mcpCatalogLoading ? "Refreshing..." : "Refresh MCP catalog"}
+                  </button>
+                  <button className="dialog-secondary-action" onClick={onAddMcpManagerServer} type="button">
+                    Add project MCP
+                  </button>
+                </div>
+                <div className="mcp-manager-list" aria-label="Project MCP manager">
+                  {mcpManagerState.servers.map((server) => (
+                    <article className="mcp-manager-row" key={server.id}>
+                      <div>
+                        <strong>{server.label}</strong>
+                        <p>{server.detail}</p>
+                        <div className="catalog-meta-row">
+                          <span>{server.transport}</span>
+                          <span>{server.setupState}</span>
+                          <span>{server.authState}</span>
+                          <span>{server.toolCount} tools</span>
+                          <span>{server.probeState}</span>
+                        </div>
+                      </div>
+                      <div className="mcp-manager-actions">
+                        <button onClick={() => onProbeMcpManagerServer(server.id)} type="button">
+                          Probe
+                        </button>
+                        <button onClick={() => onRemoveMcpManagerServer(server.id)} type="button">
+                          Remove
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </>
             ) : null}
             {dialog === "skills" ? (
               <div className="dialog-action-row">

@@ -3581,6 +3581,51 @@ textarea {
   opacity: 0.48;
 }
 
+.mcp-manager-list {
+  display: grid;
+  gap: 8px;
+}
+
+.mcp-manager-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #2b3541;
+  border-radius: 8px;
+  background: #121820;
+  padding: 9px;
+}
+
+.mcp-manager-row strong,
+.mcp-manager-row p {
+  overflow-wrap: anywhere;
+}
+
+.mcp-manager-row p {
+  margin: 3px 0 0;
+  color: #9da8b6;
+  font-size: 11px;
+}
+
+.mcp-manager-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.mcp-manager-actions button {
+  min-height: 30px;
+  border: 1px solid #334052;
+  border-radius: 7px;
+  background: #111820;
+  color: #dce3eb;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .chat-trace-section {
   min-width: 0;
   overflow: hidden;
