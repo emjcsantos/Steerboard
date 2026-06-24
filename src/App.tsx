@@ -384,6 +384,16 @@ import {
   runGitWorkbenchAction
 } from "./providerGitWorkbench";
 import {
+  canRunTerminalPaneAction,
+  loadTerminalPaneState,
+  saveTerminalPaneState,
+  terminalPaneStateWithTab,
+  terminalPaneStateWithoutTab,
+  type TerminalPaneAction,
+  type TerminalPaneState
+} from "./terminalWorkbench";
+import { runTerminalPaneAction } from "./providerTerminalWorkbench";
+import {
   buildDefaultMigrationPreview,
   buildMigrationPreviewCounts,
   appendMigrationProfileDraftHistory,
@@ -2507,6 +2517,14 @@ export function App() {
       new Date().toISOString()
     )
   );
+  const [terminalPaneState, setTerminalPaneState] = useState<TerminalPaneState>(() =>
+    loadTerminalPaneState()
+  );
+  const [terminalPaneInput, setTerminalPaneInput] = useState("");
+  const [terminalPaneBusy, setTerminalPaneBusy] = useState<TerminalPaneAction>();
+  const [terminalPaneApprovalRequest, setTerminalPaneApprovalRequest] = useState<LiveActionPermissionRequest>(() =>
+    createLiveActionPermissionRequest(liveActionGateDefinitions[0], "idle", new Date().toISOString())
+  );
   const [pluginCatalogSnapshot, setPluginCatalogSnapshot] = useState<PluginCatalogSnapshot>(() =>
     buildPluginCatalogSnapshot(defaultPluginCatalog, "default-fallback", defaultPluginCatalog)
   );
@@ -3762,6 +3780,10 @@ export function App() {
   useEffect(() => {
     savePanelSessionState(panelSessionState);
   }, [panelSessionState]);
+
+  useEffect(() => {
+    saveTerminalPaneState(terminalPaneState);
+  }, [terminalPaneState]);
 
   const panelSessionIdentityIssues = useMemo(
     () => findCodexPanelSessionIdentityIssues(panelSessionState),
@@ -5038,6 +5060,68 @@ export function App() {
     }
   }
 
+  function handleTerminalPaneApprovalDecision(decision: LiveActionPermissionDecision) {
+    const timestamp = new Date().toISOString();
+    setTerminalPaneApprovalRequest((currentRequest) => ({
+      ...currentRequest,
+      state: applyLiveActionPermissionDecision(currentRequest.state, decision),
+      requestedAt: decision === "request" ? timestamp : currentRequest.requestedAt,
+      expiresAt:
+        decision === "request"
+          ? new Date(Date.parse(timestamp) + liveActionPermissionTimeoutMs).toISOString()
+          : currentRequest.expiresAt
+    }));
+    setTerminalPaneState((currentState) => ({
+      ...currentState,
+      notice: `Terminal approval ${decision}.`
+    }));
+  }
+
+  function handleSelectTerminalPaneTab(tabId: string) {
+    setTerminalPaneState((currentState) => ({
+      ...currentState,
+      activeTabId: tabId
+    }));
+  }
+
+  async function handleRunTerminalPaneAction(action: TerminalPaneAction) {
+    const activeTab = terminalPaneState.tabs.find((tab) => tab.id === terminalPaneState.activeTabId);
+    if (!canRunTerminalPaneAction(action, terminalPaneApprovalRequest, activeTab)) {
+      setTerminalPaneState((currentState) => ({
+        ...currentState,
+        notice: "Terminal action blocked until the terminal gate is approved and the tab is running."
+      }));
+      setAppNotice("Terminal action approval required");
+      return;
+    }
+
+    setTerminalPaneBusy(action);
+    try {
+      const result = await runTerminalPaneAction(action, {
+        tabId: activeTab?.id,
+        input: terminalPaneInput,
+        cols: activeTab?.cols ?? 100,
+        rows: activeTab?.rows ?? 30,
+        approvalState: terminalPaneApprovalRequest.state
+      });
+      if (result.tab) {
+        setTerminalPaneState((currentState) =>
+          result.action === "destroy"
+            ? terminalPaneStateWithoutTab(currentState, result.tab!.id, result.detail)
+            : terminalPaneStateWithTab(currentState, result.tab!, result.detail)
+        );
+      } else {
+        setTerminalPaneState((currentState) => ({ ...currentState, notice: result.detail }));
+      }
+      if (action === "write") {
+        setTerminalPaneInput("");
+      }
+      setAppNotice(result.blocked ? "Terminal action blocked" : result.executed ? "Terminal action complete" : "Terminal action failed");
+    } finally {
+      setTerminalPaneBusy(undefined);
+    }
+  }
+
   async function refreshSkillCatalogSnapshot() {
     setSkillCatalogLoading(true);
     setAppNotice("Refreshing provider skill catalog");
@@ -5900,6 +5984,10 @@ export function App() {
           gitWorkbenchNotice={gitWorkbenchNotice}
           gitWorkbenchStatus={gitWorkbenchStatus}
           gitActionRequest={gitWorkbenchApprovalRequest}
+          terminalPaneApprovalRequest={terminalPaneApprovalRequest}
+          terminalPaneBusy={terminalPaneBusy}
+          terminalPaneInput={terminalPaneInput}
+          terminalPaneState={terminalPaneState}
           mcpCatalogLoading={mcpCatalogLoading}
           mcpCatalogSnapshot={mcpCatalogSnapshot}
           mcpManagerState={mcpManagerState}
@@ -5921,6 +6009,10 @@ export function App() {
           onGitWorkbenchApprovalDecision={handleGitWorkbenchApprovalDecision}
           onLoadGitWorkbenchDiff={handleLoadGitWorkbenchDiff}
           onRunGitWorkbenchAction={handleRunGitWorkbenchAction}
+          onRunTerminalPaneAction={handleRunTerminalPaneAction}
+          onSelectTerminalPaneTab={handleSelectTerminalPaneTab}
+          onTerminalPaneApprovalDecision={handleTerminalPaneApprovalDecision}
+          onTerminalPaneInputChange={setTerminalPaneInput}
           onProbeMcpManagerServer={handleProbeMcpManagerServer}
           onRemoveMcpManagerServer={handleRemoveMcpManagerServer}
           onRefreshMigrationPreview={() => refreshMigrationSourcePreview()}
@@ -6512,6 +6604,10 @@ function AppDialogSurface({
   gitWorkbenchNotice,
   gitWorkbenchStatus,
   gitActionRequest,
+  terminalPaneApprovalRequest,
+  terminalPaneBusy,
+  terminalPaneInput,
+  terminalPaneState,
   mcpCatalogLoading,
   mcpCatalogSnapshot,
   mcpManagerState,
@@ -6533,6 +6629,10 @@ function AppDialogSurface({
   onGitWorkbenchApprovalDecision,
   onLoadGitWorkbenchDiff,
   onRunGitWorkbenchAction,
+  onRunTerminalPaneAction,
+  onSelectTerminalPaneTab,
+  onTerminalPaneApprovalDecision,
+  onTerminalPaneInputChange,
   onProbeMcpManagerServer,
   onRemoveMcpManagerServer,
   onRefreshMigrationPreview,
@@ -6596,6 +6696,10 @@ function AppDialogSurface({
   gitWorkbenchNotice: string;
   gitWorkbenchStatus: GitWorkbenchStatus;
   gitActionRequest?: LiveActionPermissionRequest;
+  terminalPaneApprovalRequest: LiveActionPermissionRequest;
+  terminalPaneBusy?: TerminalPaneAction;
+  terminalPaneInput: string;
+  terminalPaneState: TerminalPaneState;
   mcpCatalogLoading: boolean;
   mcpCatalogSnapshot: McpCatalogSnapshot;
   mcpManagerState: McpManagerState;
@@ -6617,6 +6721,10 @@ function AppDialogSurface({
   onGitWorkbenchApprovalDecision: (decision: LiveActionPermissionDecision) => void;
   onLoadGitWorkbenchDiff: (file: GitWorkbenchFileChange, staged: boolean) => void;
   onRunGitWorkbenchAction: (action: GitWorkbenchAction, file?: GitWorkbenchFileChange) => void;
+  onRunTerminalPaneAction: (action: TerminalPaneAction) => void;
+  onSelectTerminalPaneTab: (tabId: string) => void;
+  onTerminalPaneApprovalDecision: (decision: LiveActionPermissionDecision) => void;
+  onTerminalPaneInputChange: (input: string) => void;
   onProbeMcpManagerServer: (serverId: string) => void;
   onRemoveMcpManagerServer: (serverId: string) => void;
   onRefreshMigrationPreview: () => void;
@@ -6923,7 +7031,7 @@ function AppDialogSurface({
           </div>
         ) : null}
 
-        {dialog === "connection" || dialog === "terminal" ? (
+        {dialog === "connection" ? (
           <div className="app-dialog-body">
             <div className="connection-palette" aria-label="Codex connection status">
               <label className="connection-palette-search">
@@ -7021,6 +7129,81 @@ function AppDialogSurface({
                 </div>
                 <p className="transport-fallback">{codexTransportDecision.fallback}</p>
               </details>
+            </div>
+          </div>
+        ) : null}
+
+        {dialog === "terminal" ? (
+          <div className="app-dialog-body">
+            <div className="terminal-pane" aria-label="Built-in terminal pane">
+              <div className="terminal-pane-header">
+                <div>
+                  <span className={classNames("migration-source-state", terminalPaneApprovalRequest.state === "approved" ? "is-detected" : "is-preview")}>
+                    {terminalPaneApprovalRequest.state}
+                  </span>
+                  <strong>Local shell</strong>
+                  <p>{terminalPaneState.notice}</p>
+                </div>
+                <div className="terminal-pane-actions">
+                  <button
+                    disabled={terminalPaneApprovalRequest.state === "requested"}
+                    onClick={() => onTerminalPaneApprovalDecision("request")}
+                    type="button"
+                  >
+                    Request
+                  </button>
+                  <button
+                    disabled={terminalPaneApprovalRequest.state !== "requested"}
+                    onClick={() => onTerminalPaneApprovalDecision("approve")}
+                    type="button"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    disabled={terminalPaneApprovalRequest.state === "idle"}
+                    onClick={() => onTerminalPaneApprovalDecision("reset")}
+                    type="button"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    disabled={!canRunTerminalPaneAction("create", terminalPaneApprovalRequest) || terminalPaneBusy === "create"}
+                    onClick={() => onRunTerminalPaneAction("create")}
+                    type="button"
+                  >
+                    New tab
+                  </button>
+                </div>
+              </div>
+              <div className="terminal-pane-tabs" aria-label="Terminal tabs">
+                {terminalPaneState.tabs.length > 0 ? (
+                  terminalPaneState.tabs.map((tab) => (
+                    <button
+                      className={classNames(tab.id === terminalPaneState.activeTabId && "is-selected")}
+                      key={tab.id}
+                      onClick={() => onSelectTerminalPaneTab(tab.id)}
+                      type="button"
+                    >
+                      <strong>{tab.title}</strong>
+                      <span>{tab.status}</span>
+                    </button>
+                  ))
+                ) : (
+                  <span>No terminal tabs.</span>
+                )}
+              </div>
+              {terminalPaneState.tabs.find((tab) => tab.id === terminalPaneState.activeTabId) ? (
+                <TerminalPaneActiveTab
+                  busy={terminalPaneBusy}
+                  input={terminalPaneInput}
+                  onAction={onRunTerminalPaneAction}
+                  onInputChange={onTerminalPaneInputChange}
+                  request={terminalPaneApprovalRequest}
+                  tab={terminalPaneState.tabs.find((tab) => tab.id === terminalPaneState.activeTabId)!}
+                />
+              ) : (
+                <div className="terminal-pane-empty">Create a terminal tab to start a local shell.</div>
+              )}
             </div>
           </div>
         ) : null}
@@ -7859,6 +8042,67 @@ function GitWorkbenchGroup({
         <p>No {group} files.</p>
       )}
     </section>
+  );
+}
+
+function TerminalPaneActiveTab({
+  busy,
+  input,
+  onAction,
+  onInputChange,
+  request,
+  tab
+}: {
+  busy?: TerminalPaneAction;
+  input: string;
+  onAction: (action: TerminalPaneAction) => void;
+  onInputChange: (input: string) => void;
+  request: LiveActionPermissionRequest;
+  tab: NonNullable<TerminalPaneState["tabs"][number]>;
+}) {
+  const canWrite = canRunTerminalPaneAction("write", request, tab);
+  const canResize = canRunTerminalPaneAction("resize", request, tab);
+  const canExit = canRunTerminalPaneAction("exit", request, tab);
+  const canDestroy = canRunTerminalPaneAction("destroy", request, tab);
+
+  return (
+    <div className="terminal-pane-active" aria-label={`Active terminal ${tab.title}`}>
+      <div className="terminal-pane-meta">
+        <span title={tab.workspacePath}>{tab.workspacePath || "Workspace"}</span>
+        <span>{tab.cols}x{tab.rows}</span>
+        <span>{tab.status}</span>
+        {tab.exitCode !== undefined ? <span>exit {tab.exitCode}</span> : null}
+      </div>
+      <pre>{tab.output || "Terminal output will appear here."}</pre>
+      <div className="terminal-pane-command">
+        <input
+          disabled={!canWrite}
+          onChange={(event) => onInputChange(event.currentTarget.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && canWrite && input.trim()) {
+              onAction("write");
+            }
+          }}
+          placeholder={canWrite ? "Command" : "Approve terminal gate and use a running tab"}
+          value={input}
+        />
+        <button disabled={!canWrite || !input.trim() || busy === "write"} onClick={() => onAction("write")} type="button">
+          Send
+        </button>
+        <button disabled={busy === "snapshot"} onClick={() => onAction("snapshot")} type="button">
+          Snapshot
+        </button>
+        <button disabled={!canResize || busy === "resize"} onClick={() => onAction("resize")} type="button">
+          Resize
+        </button>
+        <button disabled={!canExit || busy === "exit"} onClick={() => onAction("exit")} type="button">
+          Exit
+        </button>
+        <button disabled={!canDestroy || busy === "destroy"} onClick={() => onAction("destroy")} type="button">
+          Close
+        </button>
+      </div>
+    </div>
   );
 }
 

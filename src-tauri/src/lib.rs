@@ -720,6 +720,33 @@ pub struct GitWorkbenchActionResult {
     pub safety: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TerminalPaneTab {
+    pub id: String,
+    pub title: String,
+    pub status: String,
+    pub workspace_path: String,
+    pub cols: u16,
+    pub rows: u16,
+    pub output: String,
+    pub exit_code: Option<i32>,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TerminalPaneActionResult {
+    pub source: String,
+    pub checked_at: String,
+    pub action: String,
+    pub tab: Option<TerminalPaneTab>,
+    pub executed: bool,
+    pub blocked: bool,
+    pub detail: String,
+    pub safety: String,
+}
+
 mod runtime_bridge {
     const MIGRATION_STATUS_ACCEPTED: &str = "accepted";
     const MIGRATION_STATUS_REVIEW_REQUIRED: &str = "review-required";
@@ -752,12 +779,12 @@ mod runtime_bridge {
         ProviderAutomationCatalogPreview, ProviderPersonalizationCatalogEntry,
         GitWorkbenchActionResult, GitWorkbenchBranchState, GitWorkbenchDiff,
         GitWorkbenchFileChange, GitWorkbenchStatus, ProviderPersonalizationCatalogPreview,
-        RuntimeBridgeStatus,
+        RuntimeBridgeStatus, TerminalPaneActionResult, TerminalPaneTab,
     };
     use serde_json::Value;
     use std::collections::{BTreeMap, BTreeSet};
     use std::fs;
-    use std::io::{BufRead, BufReader, Write};
+    use std::io::{BufRead, BufReader, Read, Write};
     use std::path::{Path, PathBuf};
     use std::process::{Command, Stdio};
     use std::sync::atomic::{AtomicI64, Ordering};
@@ -771,9 +798,26 @@ mod runtime_bridge {
 
     static PANEL_SESSIONS: OnceLock<Mutex<BTreeMap<String, Arc<CodexPanelSession>>>> =
         OnceLock::new();
+    static TERMINAL_SESSIONS: OnceLock<Mutex<BTreeMap<String, Arc<Mutex<TerminalPaneSession>>>>> =
+        OnceLock::new();
     #[cfg(windows)]
     const CREATE_NO_WINDOW: u32 = 0x08000000;
     const PANEL_TURN_TIMEOUT_SECS: u64 = 60;
+    const TERMINAL_OUTPUT_LIMIT: usize = 30_000;
+
+    struct TerminalPaneSession {
+        id: String,
+        title: String,
+        workspace_path: PathBuf,
+        child: Option<std::process::Child>,
+        stdin: Option<std::process::ChildStdin>,
+        output: Arc<Mutex<String>>,
+        status: String,
+        exit_code: Option<i32>,
+        cols: u16,
+        rows: u16,
+        updated_at: String,
+    }
 
     fn migration_category(
         id: &str,
@@ -1066,6 +1110,214 @@ mod runtime_bridge {
         }
     }
 
+    fn terminal_sessions(
+    ) -> &'static Mutex<BTreeMap<String, Arc<Mutex<TerminalPaneSession>>>> {
+        TERMINAL_SESSIONS.get_or_init(|| Mutex::new(BTreeMap::new()))
+    }
+
+    fn create_terminal_pane(cols: u16, rows: u16) -> Result<TerminalPaneActionResult, String> {
+        let workspace_path = std::env::current_dir()
+            .map_err(|error| format!("terminal_pane_cwd_failed:{error}"))?
+            .canonicalize()
+            .map_err(|error| format!("terminal_pane_workspace_unavailable:{}", error.kind()))?;
+        let id = format!("terminal-{}", timestamp_millis());
+        let output_buffer = Arc::new(Mutex::new(String::new()));
+
+        #[cfg(windows)]
+        let mut command = {
+            let mut command = Command::new("cmd.exe");
+            hide_command_window(&mut command);
+            command.args(["/Q", "/K"]);
+            command
+        };
+
+        #[cfg(not(windows))]
+        let mut command = Command::new(std::env::var("SHELL").unwrap_or_else(|_| "sh".to_string()));
+
+        command.current_dir(&workspace_path);
+        command.stdin(Stdio::piped());
+        command.stdout(Stdio::piped());
+        command.stderr(Stdio::piped());
+
+        let mut child = command
+            .spawn()
+            .map_err(|error| format!("terminal_spawn_failed:{error}"))?;
+        let stdout = child.stdout.take();
+        let stderr = child.stderr.take();
+        let stdin = child.stdin.take();
+
+        if let Some(stdout) = stdout {
+            spawn_terminal_reader(stdout, Arc::clone(&output_buffer));
+        }
+        if let Some(stderr) = stderr {
+            spawn_terminal_reader(stderr, Arc::clone(&output_buffer));
+        }
+
+        let mut session = TerminalPaneSession {
+            id: id.clone(),
+            title: format!("Terminal {}", terminal_sessions().lock().unwrap().len() + 1),
+            workspace_path,
+            child: Some(child),
+            stdin,
+            output: output_buffer,
+            status: "running".to_string(),
+            exit_code: None,
+            cols: cols.clamp(20, 300),
+            rows: rows.clamp(5, 120),
+            updated_at: current_timestamp(),
+        };
+        let tab = terminal_tab_snapshot(&mut session);
+        terminal_sessions()
+            .lock()
+            .unwrap()
+            .insert(id, Arc::new(Mutex::new(session)));
+
+        Ok(terminal_action_result(
+            "create",
+            Some(tab),
+            true,
+            false,
+            "Terminal created.",
+            "Local shell process started after visible approval posture was supplied.",
+        ))
+    }
+
+    fn spawn_terminal_reader<R: Read + Send + 'static>(reader: R, output: Arc<Mutex<String>>) {
+        thread::spawn(move || {
+            let mut reader = BufReader::new(reader);
+            let mut buffer = [0_u8; 1024];
+            loop {
+                match reader.read(&mut buffer) {
+                    Ok(0) => break,
+                    Ok(count) => append_terminal_output(
+                        &output,
+                        &String::from_utf8_lossy(&buffer[..count]),
+                    ),
+                    Err(_) => break,
+                }
+            }
+        });
+    }
+
+    fn append_terminal_output(output: &Arc<Mutex<String>>, chunk: &str) {
+        let mut buffer = output.lock().unwrap();
+        buffer.push_str(chunk);
+        if buffer.len() > TERMINAL_OUTPUT_LIMIT {
+            let keep_from = buffer.len().saturating_sub(TERMINAL_OUTPUT_LIMIT);
+            *buffer = buffer[keep_from..].to_string();
+        }
+    }
+
+    fn require_terminal_tab_id(tab_id: Option<String>) -> Result<String, String> {
+        let tab_id = tab_id.unwrap_or_default();
+        if tab_id.trim().is_empty() {
+            return Err("missing_terminal_id".to_string());
+        }
+
+        Ok(tab_id.trim().to_string())
+    }
+
+    fn with_terminal_session<F>(tab_id: &str, callback: F) -> Result<TerminalPaneActionResult, String>
+    where
+        F: FnOnce(&mut TerminalPaneSession) -> TerminalPaneActionResult,
+    {
+        let sessions = terminal_sessions();
+        let session = sessions
+            .lock()
+            .unwrap()
+            .get(tab_id)
+            .cloned()
+            .ok_or_else(|| "missing_terminal_id".to_string())?;
+        let mut session = session.lock().unwrap();
+        Ok(callback(&mut session))
+    }
+
+    fn destroy_terminal_pane(tab_id: &str) -> Result<TerminalPaneActionResult, String> {
+        let session = terminal_sessions()
+            .lock()
+            .unwrap()
+            .remove(tab_id)
+            .ok_or_else(|| "missing_terminal_id".to_string())?;
+        let mut session = session.lock().unwrap();
+        if let Some(child) = session.child.as_mut() {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+        session.status = "destroyed".to_string();
+        session.stdin = None;
+        session.child = None;
+        session.updated_at = current_timestamp();
+        Ok(terminal_action_result(
+            "destroy",
+            Some(terminal_tab_snapshot(&mut session)),
+            true,
+            false,
+            "Terminal destroyed.",
+            "Shell process was stopped and removed after approval.",
+        ))
+    }
+
+    fn refresh_terminal_exit(session: &mut TerminalPaneSession) {
+        if session.status != "running" {
+            return;
+        }
+
+        if let Some(child) = session.child.as_mut() {
+            if let Ok(Some(status)) = child.try_wait() {
+                session.status = "exited".to_string();
+                session.exit_code = status.code();
+                session.stdin = None;
+                session.updated_at = current_timestamp();
+            }
+        }
+    }
+
+    fn terminal_tab_snapshot(session: &mut TerminalPaneSession) -> TerminalPaneTab {
+        refresh_terminal_exit(session);
+        TerminalPaneTab {
+            id: session.id.clone(),
+            title: session.title.clone(),
+            status: session.status.clone(),
+            workspace_path: session.workspace_path.display().to_string(),
+            cols: session.cols,
+            rows: session.rows,
+            output: session.output.lock().unwrap().clone(),
+            exit_code: session.exit_code,
+            updated_at: session.updated_at.clone(),
+        }
+    }
+
+    fn terminal_action_result(
+        action: &str,
+        tab: Option<TerminalPaneTab>,
+        executed: bool,
+        blocked: bool,
+        detail: &str,
+        safety: &str,
+    ) -> TerminalPaneActionResult {
+        TerminalPaneActionResult {
+            source: "desktop".to_string(),
+            checked_at: current_timestamp(),
+            action: action.to_string(),
+            tab,
+            executed,
+            blocked,
+            detail: detail.to_string(),
+            safety: safety.to_string(),
+        }
+    }
+
+    fn blocked_terminal_pane_action(action: &str, detail: &str) -> TerminalPaneActionResult {
+        terminal_action_result(
+            action,
+            None,
+            false,
+            true,
+            detail,
+            "Terminal action was blocked before any shell process was started or written.",
+        )
+    }
+
     pub(crate) fn read_phase3_local_artifact_from(
         base_dir: &std::path::Path,
         artifact_name: &str,
@@ -1313,6 +1565,137 @@ mod runtime_bridge {
                 detail: error,
                 safety: "Git returned an error; success was not assumed.".to_string(),
             }),
+        }
+    }
+
+    #[tauri::command]
+    pub fn terminal_pane_action(
+        action: String,
+        tab_id: Option<String>,
+        input: Option<String>,
+        cols: Option<u16>,
+        rows: Option<u16>,
+        approval_state: String,
+    ) -> Result<TerminalPaneActionResult, String> {
+        let action = action.trim().to_lowercase();
+        if action != "snapshot" && approval_state.trim().to_lowercase() != "approved" {
+            return Ok(blocked_terminal_pane_action(
+                &action,
+                "blocked_terminal_approval_required",
+            ));
+        }
+
+        match action.as_str() {
+            "create" => create_terminal_pane(cols.unwrap_or(100), rows.unwrap_or(30)),
+            "write" => {
+                let tab_id = require_terminal_tab_id(tab_id)?;
+                let input = input.unwrap_or_default();
+                with_terminal_session(&tab_id, |session| {
+                    refresh_terminal_exit(session);
+                    if session.status != "running" {
+                        return terminal_action_result(
+                            "write",
+                            Some(terminal_tab_snapshot(session)),
+                            false,
+                            true,
+                            "blocked_terminal_not_running",
+                            "Exited terminals do not accept writes.",
+                        );
+                    }
+                    if let Some(stdin) = session.stdin.as_mut() {
+                        if let Err(error) = writeln!(stdin, "{input}") {
+                            session.status = "exited".to_string();
+                            session.updated_at = current_timestamp();
+                            return terminal_action_result(
+                                "write",
+                                Some(terminal_tab_snapshot(session)),
+                                false,
+                                true,
+                                &format!("terminal_write_failed:{error}"),
+                                "Terminal write failed; no success was assumed.",
+                            );
+                        }
+                        let _ = stdin.flush();
+                    }
+                    session.updated_at = current_timestamp();
+                    terminal_action_result(
+                        "write",
+                        Some(terminal_tab_snapshot(session)),
+                        true,
+                        false,
+                        "Terminal input sent.",
+                        "Terminal input was sent after visible approval posture was supplied.",
+                    )
+                })
+            }
+            "resize" => {
+                let tab_id = require_terminal_tab_id(tab_id)?;
+                with_terminal_session(&tab_id, |session| {
+                    refresh_terminal_exit(session);
+                    if session.status != "running" {
+                        return terminal_action_result(
+                            "resize",
+                            Some(terminal_tab_snapshot(session)),
+                            false,
+                            true,
+                            "blocked_terminal_not_running",
+                            "Exited terminals do not accept resize updates.",
+                        );
+                    }
+                    session.cols = cols.unwrap_or(session.cols).clamp(20, 300);
+                    session.rows = rows.unwrap_or(session.rows).clamp(5, 120);
+                    session.updated_at = current_timestamp();
+                    terminal_action_result(
+                        "resize",
+                        Some(terminal_tab_snapshot(session)),
+                        true,
+                        false,
+                        "Terminal resize metadata updated.",
+                        "Resize was recorded for the running shell session.",
+                    )
+                })
+            }
+            "snapshot" => {
+                let tab_id = require_terminal_tab_id(tab_id)?;
+                with_terminal_session(&tab_id, |session| {
+                    refresh_terminal_exit(session);
+                    terminal_action_result(
+                        "snapshot",
+                        Some(terminal_tab_snapshot(session)),
+                        true,
+                        false,
+                        "Terminal snapshot loaded.",
+                        "Snapshot read buffered terminal output only.",
+                    )
+                })
+            }
+            "exit" => {
+                let tab_id = require_terminal_tab_id(tab_id)?;
+                with_terminal_session(&tab_id, |session| {
+                    refresh_terminal_exit(session);
+                    if session.status == "running" {
+                        if let Some(stdin) = session.stdin.as_mut() {
+                            let _ = writeln!(stdin, "exit");
+                            let _ = stdin.flush();
+                        }
+                        session.status = "exited".to_string();
+                        session.updated_at = current_timestamp();
+                    }
+                    terminal_action_result(
+                        "exit",
+                        Some(terminal_tab_snapshot(session)),
+                        true,
+                        false,
+                        "Terminal exit requested.",
+                        "Exit request was sent after approval; tab snapshot remains available.",
+                    )
+                })
+            }
+            "destroy" => {
+                let tab_id = require_terminal_tab_id(tab_id)?;
+                destroy_terminal_pane(&tab_id)
+            }
+            _ => Ok(blocked_terminal_pane_action(&action, "blocked_unsupported_terminal_action")),
         }
     }
 
@@ -5996,6 +6379,7 @@ pub fn run() {
             runtime_bridge::git_workbench_status,
             runtime_bridge::git_workbench_diff,
             runtime_bridge::git_workbench_action,
+            runtime_bridge::terminal_pane_action,
             runtime_bridge::phase3_command_validation_artifact_read,
             runtime_bridge::phase3_smoke_proof_bundle_artifact_read,
             runtime_bridge::phase3_panel_evidence_artifact_read,
