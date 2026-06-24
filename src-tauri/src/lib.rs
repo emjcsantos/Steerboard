@@ -394,6 +394,7 @@ pub(crate) struct CodexPanelTurnSettings {
     pub(crate) permission_mode: String,
     pub(crate) sandbox_policy: String,
     pub(crate) approval_policy: String,
+    pub(crate) plan_mode: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
@@ -2266,6 +2267,7 @@ mod runtime_bridge {
         model: Option<String>,
         reasoning_effort: Option<String>,
         permission_mode: Option<String>,
+        plan_mode: Option<bool>,
     ) -> Result<CodexPanelTurnResult, String> {
         let panel_id = panel_session_key(panel_id);
         let prompt = prompt.trim().to_string();
@@ -2277,7 +2279,8 @@ mod runtime_bridge {
             "No Codex panel session is active. Start a session before sending a turn.".to_string()
         })?;
 
-        let settings = panel_turn_settings(model, reasoning_effort, permission_mode);
+        let mut settings = panel_turn_settings(model, reasoning_effort, permission_mode);
+        settings.plan_mode = plan_mode.unwrap_or(false);
         tauri::async_runtime::spawn_blocking(move || {
             send_panel_turn(session, prompt, Some(window), settings)
         })
@@ -2293,6 +2296,7 @@ mod runtime_bridge {
         model: Option<String>,
         reasoning_effort: Option<String>,
         permission_mode: Option<String>,
+        plan_mode: Option<bool>,
     ) -> Result<CodexPanelTurnResult, String> {
         codex_panel_session_send_turn(
             window,
@@ -2301,6 +2305,7 @@ mod runtime_bridge {
             model,
             reasoning_effort,
             permission_mode,
+            plan_mode,
         )
         .await
     }
@@ -4381,6 +4386,26 @@ mod runtime_bridge {
                 object.insert("model".to_string(), Value::String(model));
             }
         }
+        if settings.plan_mode {
+            let plan_model = params
+                .get("model")
+                .and_then(Value::as_str)
+                .unwrap_or("gpt-5.5")
+                .to_string();
+            if let Some(object) = params.as_object_mut() {
+                object.insert(
+                    "collaborationMode".to_string(),
+                    serde_json::json!({
+                        "mode": "plan",
+                        "settings": {
+                            "model": plan_model,
+                            "reasoning_effort": settings.reasoning_effort,
+                            "developer_instructions": "Use Codex plan mode. Ask one to three concise clarification questions only when the plan target, scope, constraints, or success criteria are missing. Keep final plan output separate from progress, commands, and tool logs."
+                        }
+                    }),
+                );
+            }
+        }
         let turn_start = serde_json::json!({
             "jsonrpc": "2.0",
             "id": request_id,
@@ -4658,6 +4683,7 @@ mod runtime_bridge {
             sandbox_policy: panel_sandbox_policy_label(&permission_mode).to_string(),
             approval_policy: panel_approval_policy(&permission_mode).to_string(),
             permission_mode,
+            plan_mode: false,
         }
     }
 

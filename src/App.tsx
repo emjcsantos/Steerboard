@@ -340,6 +340,7 @@ import {
   createPanelLiveStatusMessage,
   createPanelProviderSlashCommandStatusMessage,
   createPanelProviderPrompt,
+  createPanelPlanCollaborationPrompt,
   createPanelLiveActivityMessage,
   createPanelSlashCommandStatusMessage,
   getPanelSlashCommandDecision,
@@ -8192,7 +8193,12 @@ function SessionCell({
 
     liveSendInFlightRef.current = true;
     const sequence = chatMessages.length;
-    const providerPrompt = createPanelProviderPrompt(trimmedMessage, providerSlashCommandDecision);
+    const providerPlanMode =
+      providerSlashCommandDecision?.command?.command === "/plan" &&
+      providerSlashCommandDecision.route === "provider";
+    const providerPrompt = providerPlanMode
+      ? createPanelPlanCollaborationPrompt(trimmedMessage)
+      : createPanelProviderPrompt(trimmedMessage, providerSlashCommandDecision);
     const providerSlashStatusMessage =
       providerSlashCommandDecision?.route === "provider"
         ? createPanelProviderSlashCommandStatusMessage(
@@ -8386,7 +8392,8 @@ function SessionCell({
           prompt: providerPrompt,
           model: agentSettings.model,
           reasoningEffort: agentSettings.reasoning,
-          permissionMode: agentSettings.permissionMode
+          permissionMode: agentSettings.permissionMode,
+          planMode: providerPlanMode
         },
         DESKTOP_PANEL_TURN_TIMEOUT_MS
       );

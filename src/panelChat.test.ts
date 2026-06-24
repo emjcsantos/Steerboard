@@ -13,6 +13,7 @@ import {
   createPanelSlashCommandStatusMessage,
   panelSlashCommands,
   createPanelProviderPrompt,
+  createPanelPlanCollaborationPrompt,
   createPanelReplyMessage,
   createPanelProviderSlashCommandStatusMessage,
   getPanelSlashCommandDecision,
@@ -271,6 +272,16 @@ describe("panel chat helpers", () => {
     expect(providerReply.body).toContain("provider");
   });
 
+  it("keeps provider plan collaboration prompt separate from fallback transformation", () => {
+    const planDecision = getPanelSlashCommandDecision("/plan build the crawler", true);
+    const fallbackPrompt = createPanelProviderPrompt("/plan build the crawler", planDecision);
+
+    expect(createPanelPlanCollaborationPrompt("/plan build the crawler")).toBe("build the crawler");
+    expect(createPanelPlanCollaborationPrompt("/plan")).toContain("Ask one to three concise clarification questions");
+    expect(fallbackPrompt).toContain("Use Codex /plan behavior");
+    expect(fallbackPrompt).toContain("First ask 1-3 concise clarification questions");
+  });
+
   it("creates live status and error messages for Codex panel activity", () => {
     expect(createPanelLiveStatusMessage(session, 2, "Starting live session")).toMatchObject({
       role: "system",
@@ -490,6 +501,15 @@ describe("panel chat helpers", () => {
         delta: "Checking current files"
       },
       {
+        id: "plan-a",
+        kind: "plan_update",
+        method: "turn/plan/updated",
+        turnId: "turn-a",
+        title: "Plan",
+        status: "completed",
+        delta: "1. Inspect\n2. Patch\n3. Validate"
+      },
+      {
         id: "cmd-a",
         kind: "command_output_delta",
         method: "item/commandExecution/outputDelta",
@@ -553,11 +573,13 @@ describe("panel chat helpers", () => {
 
     expect(sections.map((section) => section.title)).toEqual([
       "Reasoning and plan",
+      "Plan updates",
       "Command executions",
       "File changes",
       "Tool and context calls",
       "Turn status and requests"
     ]);
+    expect(sections.find((section) => section.id === "protocol-plan")?.body).toContain("Patch");
     expect(sections.find((section) => section.id === "protocol-commands")).toMatchObject({
       kind: "commands",
       body: expect.stringContaining("npm.cmd run test")

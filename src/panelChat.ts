@@ -262,7 +262,8 @@ export function buildCodexProtocolTraceSections(
       entry.method === "item/agentMessage/delta"
     )
   );
-  const reasoning = useful.filter((entry) => entry.kind === "reasoning" || entry.kind === "plan_update");
+  const reasoning = useful.filter((entry) => entry.kind === "reasoning");
+  const plans = useful.filter((entry) => entry.kind === "plan_update");
   const commands = useful.filter((entry) =>
     entry.kind === "command_execution" || entry.kind === "command_output_delta"
   );
@@ -279,6 +280,7 @@ export function buildCodexProtocolTraceSections(
 
   return [
     sectionFromEntries("protocol-reasoning", "steps", "Reasoning and plan", reasoning, `${reasoning.length} update${reasoning.length === 1 ? "" : "s"}`),
+    sectionFromEntries("protocol-plan", "steps", "Plan updates", plans, `${plans.length} update${plans.length === 1 ? "" : "s"}`),
     sectionFromEntries("protocol-commands", "commands", "Command executions", commands, `${commands.length} event${commands.length === 1 ? "" : "s"}`),
     sectionFromEntries("protocol-files", "trace", "File changes", files, `${files.length} change${files.length === 1 ? "" : "s"}`),
     sectionFromEntries("protocol-tools", "trace", "Tool and context calls", tools, `${tools.length} call${tools.length === 1 ? "" : "s"}`),
@@ -614,6 +616,11 @@ export function createPanelProviderPrompt(
     "- Format the plan with # Plan, ## Scope, ## Action items, and ## Open questions.",
     "- Keep action items ordered from discovery to changes to validation and rollout."
   ].join("\n");
+}
+
+export function createPanelPlanCollaborationPrompt(submittedMessage: string): string {
+  const request = submittedMessage.replace(/^\/plan\b/i, "").trim();
+  return request || "Make a plan for the current task. Ask one to three concise clarification questions first if needed.";
 }
 
 export function createPanelLiveStatusMessage(
