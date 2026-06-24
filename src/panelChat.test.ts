@@ -474,15 +474,29 @@ describe("panel chat helpers", () => {
     });
   });
 
-  it("repairs stale live Codex pending messages from persisted chat state", () => {
+  it("drops stale live Codex pending messages from visible persisted chat state", () => {
     const messages = normalizePanelChatMessages(
       [
+        {
+          id: "panel-1:live:assistant-a:0",
+          role: "codex",
+          label: "Codex Live",
+          body: "Master, ready.",
+          meta: "completed"
+        },
         {
           id: "panel-1:live-status:5",
           role: "system",
           label: "Steerboard",
           body: "Sending to live Codex...",
           meta: "running"
+        },
+        {
+          id: "panel-1:live-recovery:6",
+          role: "system",
+          label: "Recovery",
+          body: "Recovery evidence: live turn failed",
+          meta: "live recovery"
         }
       ],
       []
@@ -490,12 +504,11 @@ describe("panel chat helpers", () => {
 
     expect(messages).toEqual([
       {
-        id: "panel-1:live-status:5",
-        role: "system",
-        label: "Codex connection",
-        body:
-          "Previous live Codex turn did not finish before the panel was reloaded. Retry after refreshing the Codex connection.",
-        meta: "live recovery"
+        id: "panel-1:live:assistant-a:0",
+        role: "codex",
+        label: "Codex Live",
+        body: "Master, ready.",
+        meta: "completed"
       }
     ]);
   });

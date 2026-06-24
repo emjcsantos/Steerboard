@@ -103,24 +103,17 @@ function isStaleLivePendingMessage(message: PanelChatMessage): boolean {
   );
 }
 
-function repairStaleLivePendingMessage(message: PanelChatMessage): PanelChatMessage {
-  if (!isStaleLivePendingMessage(message)) {
-    return message;
-  }
-
-  return {
-    ...message,
-    label: "Codex connection",
-    body:
-      "Previous live Codex turn did not finish before the panel was reloaded. Retry after refreshing the Codex connection.",
-    meta: "live recovery"
-  };
-}
-
 function isLiveEvidenceMessage(message: PanelChatMessage): boolean {
   return (
     message.label === "Live evidence" ||
     message.meta.toLowerCase().startsWith("live evidence")
+  );
+}
+
+function isLiveRecoveryMessage(message: PanelChatMessage): boolean {
+  return (
+    isStaleLivePendingMessage(message) ||
+    message.meta.toLowerCase() === "live recovery"
   );
 }
 
@@ -479,7 +472,7 @@ export function normalizePanelChatMessages(
   const messages = value
     .filter(isPanelChatMessage)
     .filter((message) => !isLiveEvidenceMessage(message))
-    .map(repairStaleLivePendingMessage);
+    .filter((message) => !isLiveRecoveryMessage(message));
   return messages.length > 0 ? messages : fallback;
 }
 
