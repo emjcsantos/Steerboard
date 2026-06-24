@@ -334,6 +334,7 @@ import { hasTauriRuntime } from "./tauriRuntime";
 import {
   buildCodexProtocolTraceSections,
   codexSessionStateToPanelMessages,
+  createCodexApprovalRequestMessage,
   createPanelReplyMessage,
   createPanelLiveErrorMessage,
   createPanelLiveStatusMessage,
@@ -346,7 +347,9 @@ import {
   loadPanelChatMessages,
   panelSlashCommands,
   savePanelChatMessages,
+  updateCodexApprovalMessageState,
   createPanelLiveRecoveryMessage,
+  type PanelChatAction,
   type PanelChatMessage,
   type PanelChatSection,
   type PanelSlashCommandDecision,
@@ -2101,6 +2104,17 @@ interface CodexPanelStreamEventPayload {
   turnId: string | null;
   event: CodexPanelEventPayload;
   transcript: string;
+}
+
+interface CodexPanelApprovalResponsePayload {
+  source: string;
+  panelId: string;
+  sessionId: string;
+  threadId: string;
+  requestId: string;
+  decision: string;
+  responded: boolean;
+  detail: string;
 }
 
 interface CodexPanelInterruptResultPayload {
@@ -8196,14 +8210,30 @@ function SessionCell({
               return;
             }
 
-            activityProtocolLedger.push(
-              ...normalizeCodexPanelEventsToProtocolLedger({
+            const protocolEntries = normalizeCodexPanelEventsToProtocolLedger({
                 sessionId: payload.sessionId,
                 threadId: payload.threadId,
                 turnId: payload.turnId,
                 events: [payload.event]
-              })
-            );
+              });
+            activityProtocolLedger.push(...protocolEntries);
+            const approvalEntry = protocolEntries.find((entry) => entry.kind === "approval_request");
+            if (approvalEntry) {
+              const approvalMessage = createCodexApprovalRequestMessage(
+                session,
+                liveMessageSequenceStart + activityProtocolLedger.length,
+                approvalEntry
+              );
+              setChatMessages((currentMessages) => {
+                const existingIndex = currentMessages.findIndex((message) => message.id === approvalMessage.id);
+                if (existingIndex >= 0) {
+                  return currentMessages.map((message, index) =>
+                    index === existingIndex ? approvalMessage : message
+                  );
+                }
+                return [...currentMessages, approvalMessage];
+              });
+            }
             const activityLine = summarizeLivePanelEvent(payload.event);
             const commandText = commandActivityText(payload.event);
             if (activityLine && !activityLines.includes(activityLine)) {
@@ -8380,6 +8410,68 @@ function SessionCell({
         ...currentMessages,
         createPanelLiveErrorMessage(session, currentMessages.length, message)
       ]);
+    }
+  }
+
+  async function handlePanelChatAction(action: PanelChatAction) {
+    const requestId = action.payload?.requestId;
+    if (!requestId || !action.kind.startsWith("codex-approval-")) {
+      return;
+    }
+
+    const decision =
+      action.kind === "codex-approval-approve" ||
+      action.kind === "codex-approval-approve-session"
+        ? "accept"
+        : action.kind === "codex-approval-decline"
+          ? "decline"
+          : "cancel";
+    const approveForSession = action.kind === "codex-approval-approve-session";
+    const pendingState = approveForSession
+      ? "approved-session"
+      : decision === "accept"
+        ? "approved"
+        : decision === "decline"
+          ? "declined"
+          : "canceled";
+
+    setChatMessages((currentMessages) =>
+      currentMessages.map((message) =>
+        message.actions?.some((item) => item.id === action.id)
+          ? updateCodexApprovalMessageState(message, pendingState, "Sending decision to Codex.")
+          : message
+      )
+    );
+
+    try {
+      const result = await invokeDesktopCommand<CodexPanelApprovalResponsePayload>(
+        "codex_panel_session_approval_response",
+        {
+          panelId: session.id,
+          requestId,
+          decision,
+          approveForSession
+        },
+        DESKTOP_PANEL_TURN_TIMEOUT_MS
+      );
+      setLiveChatDetail(result.detail);
+      setChatMessages((currentMessages) =>
+        currentMessages.map((message) =>
+          message.actions?.some((item) => item.payload?.requestId === requestId)
+            ? updateCodexApprovalMessageState(message, pendingState, result.detail)
+            : message
+        )
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setLiveChatDetail(message);
+      setChatMessages((currentMessages) =>
+        currentMessages.map((chatMessage) =>
+          chatMessage.actions?.some((item) => item.payload?.requestId === requestId)
+            ? updateCodexApprovalMessageState(chatMessage, "failed", message)
+            : chatMessage
+        )
+      );
     }
   }
 
@@ -8591,6 +8683,21 @@ function SessionCell({
                         </summary>
                         <pre>{section.body}</pre>
                       </details>
+                    ))}
+                  </div>
+                ) : null}
+                {message.actions && message.actions.length > 0 ? (
+                  <div className="chat-message-actions" aria-label={`${message.label} actions`}>
+                    {message.actions.map((action) => (
+                      <button
+                        disabled={action.disabled}
+                        key={action.id}
+                        onClick={() => handlePanelChatAction(action)}
+                        title={action.title}
+                        type="button"
+                      >
+                        {action.label}
+                      </button>
                     ))}
                   </div>
                 ) : null}

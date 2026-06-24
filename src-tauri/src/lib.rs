@@ -299,6 +299,7 @@ pub struct CodexPanelProviderSnapshot {
 pub struct CodexPanelEvent {
     pub method: String,
     pub event_type: String,
+    pub request_id: Option<String>,
     pub thread_id: Option<String>,
     pub turn_id: Option<String>,
     pub item_id: Option<String>,
@@ -350,6 +351,19 @@ pub struct CodexPanelTurnResult {
     pub failed: bool,
     pub events: Vec<CodexPanelEvent>,
     pub transcript: String,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexPanelApprovalResponseResult {
+    pub source: String,
+    pub panel_id: String,
+    pub session_id: String,
+    pub thread_id: String,
+    pub request_id: String,
+    pub decision: String,
+    pub responded: bool,
     pub detail: String,
 }
 
@@ -604,7 +618,8 @@ mod runtime_bridge {
         CodexActiveTurnControlSmokeControlProof, CodexActiveTurnControlSmokeProof,
         CodexActiveTurnSteerSmokeProof,
         CodexLiveControlSmokeMethodProof, CodexLiveControlSmokeProof,
-        CodexPanelAuthStatus, CodexPanelEvent, CodexPanelInterruptResult,
+        CodexPanelApprovalResponseResult, CodexPanelAuthStatus, CodexPanelEvent,
+        CodexPanelInterruptResult,
         CodexPanelModelCatalogEntry, CodexPanelModelReasoningOption,
         CodexPanelProviderSnapshot, CodexPanelSessionReadiness, CodexPanelSessionStart,
         CodexPanelSteerResult, CodexPanelStreamEvent, CodexPanelTurnResult,
@@ -2221,6 +2236,39 @@ mod runtime_bridge {
         };
 
         steer_panel_turn(&session, message)
+    }
+
+    #[tauri::command]
+    pub fn codex_panel_session_approval_response(
+        panel_id: Option<String>,
+        request_id: String,
+        decision: String,
+        approve_for_session: Option<bool>,
+    ) -> Result<CodexPanelApprovalResponseResult, String> {
+        let panel_id = panel_session_key(panel_id);
+        let request_id = request_id.trim().to_string();
+        if request_id.is_empty() {
+            return Err("Approval request id is required.".to_string());
+        }
+        let decision = normalize_approval_decision(&decision, approve_for_session.unwrap_or(false))?;
+        let Some(session) = get_panel_session(&panel_id)? else {
+            return Err("No Codex panel session is active.".to_string());
+        };
+        let response = approval_response_message(&request_id, &decision);
+        if !session.send(&response)? {
+            return Err("Unable to write approval response to Codex app-server.".to_string());
+        }
+
+        Ok(CodexPanelApprovalResponseResult {
+            source: "desktop".to_string(),
+            panel_id: session.panel_id.clone(),
+            session_id: session.session_id.clone(),
+            thread_id: session.thread_id.clone(),
+            request_id,
+            decision,
+            responded: true,
+            detail: "Approval response sent to Codex app-server.".to_string(),
+        })
     }
 
     #[tauri::command]
@@ -3947,12 +3995,14 @@ mod runtime_bridge {
                 if let Some(delta) = event.delta.as_deref() {
                     transcript.push_str(delta);
                 }
+                let unsupported_approval =
+                    event.event_type == "approval_request" && !panel_approval_request_is_supported(&event);
                 completed = completed || event.status.as_deref() == Some("completed");
                 interrupted = interrupted || event.status.as_deref() == Some("interrupted");
                 failed = failed
                     || event.status.as_deref() == Some("failed")
                     || event.event_type == "error"
-                    || event.event_type == "approval_request";
+                    || unsupported_approval;
                 emit_panel_stream_event(
                     stream_window.as_ref(),
                     &session,
@@ -4097,6 +4147,38 @@ mod runtime_bridge {
                         "text": message
                     }
                 ]
+            }
+        })
+    }
+
+    pub(crate) fn normalize_approval_decision(
+        decision: &str,
+        approve_for_session: bool,
+    ) -> Result<String, String> {
+        match decision.trim().to_ascii_lowercase().replace('_', "-").as_str() {
+            "accept" | "approve" | "approved" if approve_for_session => {
+                Ok("acceptForSession".to_string())
+            }
+            "accept" | "approve" | "approved" => Ok("accept".to_string()),
+            "accept-for-session" | "acceptforsession" | "approve-session" | "approve-for-session" => {
+                Ok("acceptForSession".to_string())
+            }
+            "decline" | "declined" | "reject" | "rejected" => Ok("decline".to_string()),
+            "cancel" | "canceled" | "cancelled" => Ok("cancel".to_string()),
+            _ => Err("Unsupported approval decision.".to_string()),
+        }
+    }
+
+    pub(crate) fn approval_response_message(request_id: &str, decision: &str) -> Value {
+        let id = request_id
+            .parse::<i64>()
+            .map(Value::from)
+            .unwrap_or_else(|_| Value::String(request_id.to_string()));
+        serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": id,
+            "result": {
+                "decision": decision
             }
         })
     }
@@ -4654,6 +4736,13 @@ mod runtime_bridge {
 
     pub(crate) fn normalize_panel_event(value: &Value) -> Option<CodexPanelEvent> {
         let method = value.get("method").and_then(Value::as_str)?.to_string();
+        let request_id = value
+            .get("id")
+            .and_then(|id| {
+                id.as_str()
+                    .map(ToOwned::to_owned)
+                    .or_else(|| id.as_i64().map(|value| value.to_string()))
+            });
         let params = value.get("params").and_then(Value::as_object);
         let turn = params
             .and_then(|object| object.get("turn"))
@@ -4779,6 +4868,7 @@ mod runtime_bridge {
         Some(CodexPanelEvent {
             event_type: panel_event_type(&method).to_string(),
             method,
+            request_id,
             thread_id,
             turn_id,
             item_id,
@@ -4824,8 +4914,17 @@ mod runtime_bridge {
 
     fn panel_event_is_failure(event: &CodexPanelEvent) -> bool {
         event.status.as_deref() == Some("failed")
-            || event.event_type == "approval_request"
+            || (event.event_type == "approval_request" && !panel_approval_request_is_supported(event))
             || (event.event_type == "error" && !panel_event_is_transient_reconnect(event))
+    }
+
+    pub(crate) fn panel_approval_request_is_supported(event: &CodexPanelEvent) -> bool {
+        event.event_type == "approval_request"
+            && event.request_id.as_deref().is_some_and(|value| !value.trim().is_empty())
+            && matches!(
+                event.method.as_str(),
+                "item/commandExecution/requestApproval" | "item/fileChange/requestApproval"
+            )
     }
 
     fn panel_event_is_transient_reconnect(event: &CodexPanelEvent) -> bool {
@@ -5027,6 +5126,7 @@ pub fn run() {
             runtime_bridge::codex_panel_session_retry,
             runtime_bridge::codex_panel_session_interrupt,
             runtime_bridge::codex_panel_session_steer,
+            runtime_bridge::codex_panel_session_approval_response,
             runtime_bridge::codex_panel_session_close,
             runtime_bridge::phase3_command_validation_artifact_read,
             runtime_bridge::phase3_smoke_proof_bundle_artifact_read,
@@ -6068,6 +6168,55 @@ mod tests {
     }
 
     #[test]
+    fn panel_event_normalizes_supported_approval_request_id() {
+        let value = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 42,
+            "method": "item/commandExecution/requestApproval",
+            "params": {
+                "threadId": "thread-1",
+                "turnId": "turn-1",
+                "itemId": "item-1",
+                "command": "npm.cmd run test",
+                "reason": "Command needs approval."
+            }
+        });
+
+        let event = runtime_bridge::normalize_panel_event(&value).expect("event should normalize");
+        assert_eq!(event.event_type, "approval_request");
+        assert_eq!(event.request_id.as_deref(), Some("42"));
+        assert_eq!(event.thread_id.as_deref(), Some("thread-1"));
+        assert_eq!(event.turn_id.as_deref(), Some("turn-1"));
+        assert_eq!(event.item_id.as_deref(), Some("item-1"));
+        assert!(runtime_bridge::panel_approval_request_is_supported(&event));
+    }
+
+    #[test]
+    fn approval_response_message_matches_codex_rpc_shape() {
+        let accept = runtime_bridge::normalize_approval_decision("approve", false)
+            .expect("approve should normalize");
+        let request = runtime_bridge::approval_response_message("42", &accept);
+        assert_eq!(request.get("id").and_then(serde_json::Value::as_i64), Some(42));
+        assert_eq!(
+            request
+                .get("result")
+                .and_then(|result| result.get("decision"))
+                .and_then(serde_json::Value::as_str),
+            Some("accept")
+        );
+
+        let session_accept = runtime_bridge::normalize_approval_decision("approve", true)
+            .expect("approve for session should normalize");
+        assert_eq!(session_accept, "acceptForSession");
+        let uuid_request = runtime_bridge::approval_response_message("approval-id", "decline");
+        assert_eq!(
+            uuid_request.get("id").and_then(serde_json::Value::as_str),
+            Some("approval-id")
+        );
+        assert!(!uuid_request.to_string().contains("sk-secret"));
+    }
+
+    #[test]
     fn panel_event_normalizes_completed_turn_status() {
         let value = serde_json::json!({
             "jsonrpc": "2.0",
@@ -6110,6 +6259,7 @@ mod tests {
         let reconnect = CodexPanelEvent {
             method: "turn/failed".to_string(),
             event_type: "error".to_string(),
+            request_id: None,
             thread_id: None,
             turn_id: None,
             item_id: None,
@@ -6129,6 +6279,7 @@ mod tests {
         let matching = CodexPanelEvent {
             method: "turn/completed".to_string(),
             event_type: "turn_status".to_string(),
+            request_id: None,
             thread_id: None,
             turn_id: Some("turn-1".to_string()),
             item_id: None,

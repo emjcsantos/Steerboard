@@ -60,6 +60,7 @@ export interface CodexProtocolLedgerEntry {
   id: string;
   kind: CodexProtocolLedgerKind;
   method: string;
+  requestId?: string;
   threadId?: string;
   turnId?: string;
   itemId?: string;
@@ -108,6 +109,7 @@ export interface CodexProtocolItemEvent extends CodexSessionEventBase {
   kind: "protocol_item";
   ledgerKind: CodexProtocolLedgerKind;
   method: string;
+  requestId?: string;
   threadId?: string;
   turnId?: string;
   itemId?: string;
@@ -170,6 +172,7 @@ export type CodexSessionEvent =
 export interface CodexPanelEventPayload {
   method: string;
   eventType: string;
+  requestId?: string | null;
   threadId?: string | null;
   turnId: string | null;
   itemId?: string | null;
@@ -426,6 +429,7 @@ export function normalizeCodexProtocolLedgerEntry(value: unknown): CodexProtocol
     id,
     kind: normalizeLedgerKind(value.kind),
     method,
+    requestId: optionalString(value.requestId),
     threadId: optionalString(value.threadId),
     turnId: optionalString(value.turnId),
     itemId: optionalString(value.itemId),
@@ -578,6 +582,7 @@ function protocolEventFromPanelEvent(
     ledgerKind,
     provider: "codex",
     method: event.method,
+    requestId: event.requestId ?? undefined,
     threadId: event.threadId ?? result.threadId,
     turnId: eventTurnId,
     itemId: event.itemId ?? undefined,
@@ -647,6 +652,7 @@ function ledgerEntryFromEvent(event: CodexSessionEvent): CodexProtocolLedgerEntr
         id: event.id,
         kind: event.ledgerKind,
         method: event.method,
+        requestId: event.requestId,
         threadId: event.threadId,
         turnId: event.turnId,
         itemId: event.itemId,

@@ -4,6 +4,7 @@ import {
   buildCodexProtocolTraceSections,
   buildPanelLiveTurnEvidence,
   codexSessionStateToPanelMessages,
+  createCodexApprovalRequestMessage,
   createPanelLiveErrorMessage,
   createPanelLiveActivityMessage,
   createPanelLiveRecoveryMessage,
@@ -18,6 +19,7 @@ import {
   getPanelSlashCommandSuggestions,
   normalizePanelChatMessages,
   parseStoredPanelChatThreads,
+  updateCodexApprovalMessageState,
   type PanelSlashCommand,
   type PanelChatMessage
 } from "./panelChat";
@@ -593,6 +595,55 @@ describe("panel chat helpers", () => {
     expect(sections.find((section) => section.id === "protocol-commands")?.summary).toContain("active");
     expect(sections.find((section) => section.id === "protocol-status")?.summary).toContain("failed");
     expect(sections.find((section) => section.id === "protocol-status")?.body).toContain("provider/future");
+  });
+
+  it("creates actionable approval cards for supported Codex requests", () => {
+    const message = createCodexApprovalRequestMessage(session, 12, {
+      id: "approval-entry",
+      kind: "approval_request",
+      method: "item/commandExecution/requestApproval",
+      requestId: "42",
+      threadId: "thread-1",
+      turnId: "turn-1",
+      itemId: "item-1",
+      title: "npm.cmd run test",
+      detail: "npm.cmd run test"
+    });
+
+    expect(message).toMatchObject({
+      role: "system",
+      label: "Codex approval",
+      meta: "approval waiting",
+      body: expect.stringContaining("Choose an approval decision")
+    });
+    expect(message.actions?.map((action) => action.kind)).toEqual([
+      "codex-approval-approve",
+      "codex-approval-approve-session",
+      "codex-approval-decline",
+      "codex-approval-cancel"
+    ]);
+    expect(JSON.stringify(message)).not.toContain("sk-");
+
+    const approved = updateCodexApprovalMessageState(message, "approved-session", "Sent.");
+    expect(approved.meta).toBe("approval approved-session");
+    expect(approved.actions?.every((action) => action.disabled)).toBe(true);
+  });
+
+  it("creates blocked approval cards for unsupported Codex requests", () => {
+    const message = createCodexApprovalRequestMessage(session, 13, {
+      id: "approval-entry",
+      kind: "approval_request",
+      method: "item/tool/requestUserInput",
+      requestId: "43",
+      threadId: "thread-1",
+      turnId: "turn-1",
+      itemId: "item-2",
+      message: "Need unsupported input."
+    });
+
+    expect(message.meta).toBe("approval blocked");
+    expect(message.actions).toBeUndefined();
+    expect(message.body).toContain("Next action");
   });
 
   it("creates a live activity message with collapsible command sections", () => {

@@ -433,8 +433,9 @@ describe("codex session event reducer", () => {
               itemType: "plan"
             },
             {
-              method: "commandExecution/requestApproval",
+              method: "item/commandExecution/requestApproval",
               eventType: "approval_request",
+              requestId: "approval-rpc-1",
               turnId: "turn-a",
               itemId: "approval-a",
               status: "pending",
@@ -502,6 +503,14 @@ describe("codex session event reducer", () => {
       outputTokens: 15,
       totalTokens: 25
     });
+    expect(state.ledger.find((entry) => entry.itemId === "approval-a")).toMatchObject({
+      method: "item/commandExecution/requestApproval",
+      requestId: "approval-rpc-1",
+      kind: "approval_request"
+    });
+    expect(normalizeCodexProtocolLedger(state.ledger).find((entry) => entry.itemId === "approval-a")?.requestId).toBe(
+      "approval-rpc-1"
+    );
     expect(state.messages[0]).toMatchObject({
       role: "assistant",
       body: "Done",

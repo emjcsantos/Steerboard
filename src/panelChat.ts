@@ -20,6 +20,27 @@ export type PanelChatRole = "codex" | "user" | "tool" | "system";
 
 export type PanelChatSectionKind = "feedback" | "steps" | "commands" | "trace";
 
+export type PanelChatActionKind =
+  | "codex-approval-approve"
+  | "codex-approval-approve-session"
+  | "codex-approval-decline"
+  | "codex-approval-cancel";
+
+export interface PanelChatAction {
+  id: string;
+  kind: PanelChatActionKind;
+  label: string;
+  title: string;
+  disabled?: boolean;
+  payload?: {
+    requestId: string;
+    method: string;
+    threadId?: string;
+    turnId?: string;
+    itemId?: string;
+  };
+}
+
 export interface PanelChatSection {
   id: string;
   kind: PanelChatSectionKind;
@@ -35,6 +56,7 @@ export interface PanelChatMessage {
   body: string;
   meta: string;
   sections?: PanelChatSection[];
+  actions?: PanelChatAction[];
 }
 
 export type PanelSlashCommand = CommandCatalogEntry;
@@ -74,6 +96,11 @@ export interface PanelLiveTurnEvidence {
 export const PANEL_CHAT_STORAGE_KEY = "steerboard.panel.chat.v1";
 
 export const panelSlashCommands: readonly PanelSlashCommand[] = defaultCommandCatalog;
+
+const supportedApprovalMethods = new Set([
+  "item/commandExecution/requestApproval",
+  "item/fileChange/requestApproval"
+]);
 
 function compactTraceValue(value: string | undefined): string {
   return (value ?? "").replace(/\s+/g, " ").trim();
@@ -128,6 +155,101 @@ function sectionFromEntries(
     title,
     summary,
     body: entries.map((entry, index) => `${index + 1}. ${formatTraceLine(entry)}`).join("\n")
+  };
+}
+
+function isSupportedApprovalEntry(entry: CodexProtocolLedgerEntry): boolean {
+  return entry.kind === "approval_request" &&
+    typeof entry.requestId === "string" &&
+    entry.requestId.trim().length > 0 &&
+    supportedApprovalMethods.has(entry.method);
+}
+
+export function createCodexApprovalRequestMessage(
+  session: SessionSummary,
+  index: number,
+  entry: CodexProtocolLedgerEntry
+): PanelChatMessage {
+  const supported = isSupportedApprovalEntry(entry);
+  const state = supported ? "waiting" : "blocked";
+  const subject = entryLabel(entry);
+  const reason = compactTraceValue(entry.message ?? entry.summary ?? entry.detail) ||
+    (supported
+      ? "Codex is waiting for an approval decision."
+      : "This approval request method is not supported by Steerboard yet.");
+  const body = [
+    `${subject} approval is ${state}.`,
+    reason,
+    entry.threadId ? `Thread: ${entry.threadId}` : undefined,
+    entry.turnId ? `Turn: ${entry.turnId}` : undefined,
+    entry.itemId ? `Item: ${entry.itemId}` : undefined,
+    supported
+      ? "Choose an approval decision to continue the active Codex turn."
+      : "Next action: retry with a supported approval request or continue in Codex Desktop."
+  ].filter(Boolean).join("\n");
+
+  const payload = supported
+    ? {
+        requestId: entry.requestId as string,
+        method: entry.method,
+        threadId: entry.threadId,
+        turnId: entry.turnId,
+        itemId: entry.itemId
+      }
+    : undefined;
+
+  return {
+    id: `${session.id}:approval:${entry.requestId ?? entry.itemId ?? index}`,
+    role: "system",
+    label: "Codex approval",
+    body,
+    meta: `approval ${state}`,
+    actions: supported
+      ? [
+          {
+            id: `${session.id}:approval:${entry.requestId}:accept`,
+            kind: "codex-approval-approve",
+            label: "Approve",
+            title: "Approve this Codex request once.",
+            payload
+          },
+          {
+            id: `${session.id}:approval:${entry.requestId}:accept-session`,
+            kind: "codex-approval-approve-session",
+            label: "Approve session",
+            title: "Approve this request for the current Codex session when supported.",
+            payload
+          },
+          {
+            id: `${session.id}:approval:${entry.requestId}:decline`,
+            kind: "codex-approval-decline",
+            label: "Decline",
+            title: "Decline this Codex request.",
+            payload
+          },
+          {
+            id: `${session.id}:approval:${entry.requestId}:cancel`,
+            kind: "codex-approval-cancel",
+            label: "Cancel",
+            title: "Cancel this Codex request.",
+            payload
+          }
+        ]
+      : undefined
+  };
+}
+
+export function updateCodexApprovalMessageState(
+  message: PanelChatMessage,
+  state: "approved" | "approved-session" | "declined" | "canceled" | "failed" | "stale",
+  detail: string
+): PanelChatMessage {
+  const disabledActions = message.actions?.map((action) => ({ ...action, disabled: true }));
+  return {
+    ...message,
+    body: `${message.body}\n\nDecision: ${state}. ${detail}`.trim(),
+    meta: `approval ${state}`,
+    actions: disabledActions
   };
 }
 
@@ -195,6 +317,35 @@ function isPanelChatSection(value: unknown): value is PanelChatSection {
   );
 }
 
+function isPanelChatAction(value: unknown): value is PanelChatAction {
+  if (!isRecord(value)) {
+    return false;
+  }
+  const payload = value.payload;
+  const payloadValid = payload === undefined || (
+    isRecord(payload) &&
+    typeof payload.requestId === "string" &&
+    typeof payload.method === "string" &&
+    (payload.threadId === undefined || typeof payload.threadId === "string") &&
+    (payload.turnId === undefined || typeof payload.turnId === "string") &&
+    (payload.itemId === undefined || typeof payload.itemId === "string")
+  );
+
+  return (
+    typeof value.id === "string" &&
+    (
+      value.kind === "codex-approval-approve" ||
+      value.kind === "codex-approval-approve-session" ||
+      value.kind === "codex-approval-decline" ||
+      value.kind === "codex-approval-cancel"
+    ) &&
+    typeof value.label === "string" &&
+    typeof value.title === "string" &&
+    (value.disabled === undefined || typeof value.disabled === "boolean") &&
+    payloadValid
+  );
+}
+
 function isPanelChatMessage(value: unknown): value is PanelChatMessage {
   if (!isRecord(value)) {
     return false;
@@ -206,12 +357,20 @@ function isPanelChatMessage(value: unknown): value is PanelChatMessage {
     typeof value.label === "string" &&
     typeof value.body === "string" &&
     typeof value.meta === "string" &&
-    (value.sections === undefined || (Array.isArray(value.sections) && value.sections.every(isPanelChatSection)))
+    (value.sections === undefined || (Array.isArray(value.sections) && value.sections.every(isPanelChatSection))) &&
+    (value.actions === undefined || (Array.isArray(value.actions) && value.actions.every(isPanelChatAction)))
   );
 }
 
 function normalizePanelChatMessage(message: PanelChatMessage): PanelChatMessage {
-  if (!message.sections || message.sections.length === 0) {
+  const actions = message.actions
+    ?.filter(isPanelChatAction)
+    .filter((action) => action.label.trim().length > 0);
+  const sections = message.sections
+    ?.filter(isPanelChatSection)
+    .filter((section) => section.body.trim().length > 0);
+
+  if ((!sections || sections.length === 0) && (!actions || actions.length === 0)) {
     return {
       id: message.id,
       role: message.role,
@@ -227,9 +386,8 @@ function normalizePanelChatMessage(message: PanelChatMessage): PanelChatMessage 
     label: message.label,
     body: message.body,
     meta: message.meta,
-    sections: message.sections
-      .filter(isPanelChatSection)
-      .filter((section) => section.body.trim().length > 0)
+    sections,
+    actions
   };
 }
 

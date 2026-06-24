@@ -3549,6 +3549,38 @@ textarea {
   margin-top: 2px;
 }
 
+.chat-message-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.chat-message-actions button {
+  min-height: 30px;
+  border: 1px solid #334052;
+  border-radius: 7px;
+  background: #111820;
+  color: #dce3eb;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.chat-message-actions button:hover:not(:disabled),
+.chat-message-actions button:focus-visible {
+  border-color: #4d82d9;
+  background: #172231;
+  outline: none;
+}
+
+.chat-message-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
 .chat-trace-section {
   min-width: 0;
   overflow: hidden;
