@@ -3903,6 +3903,85 @@ textarea {
   padding: 18px;
 }
 
+.browser-context-pane {
+  display: grid;
+  gap: 12px;
+}
+
+.browser-context-bar,
+.browser-context-tabs,
+.browser-context-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.browser-context-bar input {
+  min-width: 260px;
+  flex: 1 1 auto;
+  border: 1px solid #2d3540;
+  border-radius: 8px;
+  background: #0f141b;
+  color: #eef3f8;
+  padding: 9px 10px;
+}
+
+.browser-context-tabs {
+  overflow-x: auto;
+  border-bottom: 1px solid #252b34;
+  padding-bottom: 8px;
+}
+
+.browser-context-tabs button {
+  min-width: 160px;
+  justify-content: space-between;
+}
+
+.browser-context-tabs .is-selected {
+  border-color: #5c8ee6;
+  background: #172231;
+}
+
+.browser-context-tabs strong,
+.browser-context-meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.browser-context-active {
+  display: grid;
+  gap: 10px;
+}
+
+.browser-context-meta {
+  color: #9da8b6;
+  font-size: 12px;
+}
+
+.browser-context-meta span:first-child {
+  flex: 1 1 auto;
+  border: 1px solid #252b34;
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+
+.browser-context-active iframe {
+  width: 100%;
+  min-height: 520px;
+  border: 1px solid #252b34;
+  border-radius: 8px;
+  background: #0a0f14;
+}
+
+.browser-context-empty {
+  border: 1px solid #252b34;
+  border-radius: 8px;
+  background: #111820;
+  color: #9da8b6;
+  padding: 18px;
+}
+
 .chat-trace-section {
   min-width: 0;
   overflow: hidden;

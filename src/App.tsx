@@ -394,6 +394,16 @@ import {
 } from "./terminalWorkbench";
 import { runTerminalPaneAction } from "./providerTerminalWorkbench";
 import {
+  browserContextPaneWithTab,
+  createBrowserContextTab,
+  loadBrowserContextPaneState,
+  removeBrowserContextTab,
+  saveBrowserContextPaneState,
+  updateBrowserContextTabState,
+  type BrowserContextPaneState,
+  type BrowserContextTabState
+} from "./browserContextPane";
+import {
   buildDefaultMigrationPreview,
   buildMigrationPreviewCounts,
   appendMigrationProfileDraftHistory,
@@ -1467,7 +1477,7 @@ type RuntimeProfilePermissionRequestIntent = "idle" | "requested";
 type PipelineDispatchRequestIntent = "idle" | "requested";
 type AppMenuId = "file" | "view" | "connect" | "help";
 type PlatformCatalogDialog = "plugins" | "skills" | "mcp" | "automations" | "personalization";
-type AppDialog = "migration" | "connection" | "slash-help" | "search" | "terminal" | "git" | PlatformCatalogDialog;
+type AppDialog = "migration" | "connection" | "slash-help" | "search" | "terminal" | "git" | "browser" | PlatformCatalogDialog;
 type AdaptiveArenaSurface = "grid" | "dock";
 
 type PlatformCatalogState =
@@ -2524,6 +2534,9 @@ export function App() {
   const [terminalPaneBusy, setTerminalPaneBusy] = useState<TerminalPaneAction>();
   const [terminalPaneApprovalRequest, setTerminalPaneApprovalRequest] = useState<LiveActionPermissionRequest>(() =>
     createLiveActionPermissionRequest(liveActionGateDefinitions[0], "idle", new Date().toISOString())
+  );
+  const [browserContextPaneState, setBrowserContextPaneState] = useState<BrowserContextPaneState>(() =>
+    loadBrowserContextPaneState()
   );
   const [pluginCatalogSnapshot, setPluginCatalogSnapshot] = useState<PluginCatalogSnapshot>(() =>
     buildPluginCatalogSnapshot(defaultPluginCatalog, "default-fallback", defaultPluginCatalog)
@@ -3784,6 +3797,10 @@ export function App() {
   useEffect(() => {
     saveTerminalPaneState(terminalPaneState);
   }, [terminalPaneState]);
+
+  useEffect(() => {
+    saveBrowserContextPaneState(browserContextPaneState);
+  }, [browserContextPaneState]);
 
   const panelSessionIdentityIssues = useMemo(
     () => findCodexPanelSessionIdentityIssues(panelSessionState),
@@ -5122,6 +5139,55 @@ export function App() {
     }
   }
 
+  function handleBrowserContextInputChange(input: string) {
+    setBrowserContextPaneState((currentState) => ({
+      ...currentState,
+      input
+    }));
+  }
+
+  function handleOpenBrowserContextTab() {
+    const tab = createBrowserContextTab(browserContextPaneState.input);
+    if (!tab.url) {
+      setBrowserContextPaneState((currentState) => ({
+        ...currentState,
+        notice: "Enter a URL or search terms."
+      }));
+      return;
+    }
+
+    setBrowserContextPaneState((currentState) =>
+      browserContextPaneWithTab({ ...currentState, input: "" }, tab)
+    );
+    setAppNotice("Browser context tab opened");
+  }
+
+  function handleSelectBrowserContextTab(tabId: string) {
+    setBrowserContextPaneState((currentState) => ({
+      ...currentState,
+      activeTabId: tabId
+    }));
+  }
+
+  function handleCloseBrowserContextTab(tabId: string) {
+    setBrowserContextPaneState((currentState) => removeBrowserContextTab(currentState, tabId));
+  }
+
+  function handleBrowserContextTabState(tabId: string, state: BrowserContextTabState) {
+    setBrowserContextPaneState((currentState) =>
+      updateBrowserContextTabState(
+        currentState,
+        tabId,
+        state,
+        state === "ready"
+          ? "Browser context loaded."
+          : state === "failed"
+            ? "Browser context failed to load."
+            : `Browser context ${state}.`
+      )
+    );
+  }
+
   async function refreshSkillCatalogSnapshot() {
     setSkillCatalogLoading(true);
     setAppNotice("Refreshing provider skill catalog");
@@ -5988,6 +6054,7 @@ export function App() {
           terminalPaneBusy={terminalPaneBusy}
           terminalPaneInput={terminalPaneInput}
           terminalPaneState={terminalPaneState}
+          browserContextPaneState={browserContextPaneState}
           mcpCatalogLoading={mcpCatalogLoading}
           mcpCatalogSnapshot={mcpCatalogSnapshot}
           mcpManagerState={mcpManagerState}
@@ -6013,6 +6080,11 @@ export function App() {
           onSelectTerminalPaneTab={handleSelectTerminalPaneTab}
           onTerminalPaneApprovalDecision={handleTerminalPaneApprovalDecision}
           onTerminalPaneInputChange={setTerminalPaneInput}
+          onBrowserContextInputChange={handleBrowserContextInputChange}
+          onBrowserContextTabState={handleBrowserContextTabState}
+          onCloseBrowserContextTab={handleCloseBrowserContextTab}
+          onOpenBrowserContextTab={handleOpenBrowserContextTab}
+          onSelectBrowserContextTab={handleSelectBrowserContextTab}
           onProbeMcpManagerServer={handleProbeMcpManagerServer}
           onRemoveMcpManagerServer={handleRemoveMcpManagerServer}
           onRefreshMigrationPreview={() => refreshMigrationSourcePreview()}
@@ -6137,6 +6209,9 @@ function AppMenuBar({
                       </button>
                       <button onClick={() => onOpenDialog("git")} role="menuitem" type="button">
                         Git workbench
+                      </button>
+                      <button onClick={() => onOpenDialog("browser")} role="menuitem" type="button">
+                        Browser context
                       </button>
                       <button onClick={() => onOpenDialog("personalization")} role="menuitem" type="button">
                         Personalization
@@ -6608,6 +6683,7 @@ function AppDialogSurface({
   terminalPaneBusy,
   terminalPaneInput,
   terminalPaneState,
+  browserContextPaneState,
   mcpCatalogLoading,
   mcpCatalogSnapshot,
   mcpManagerState,
@@ -6633,6 +6709,11 @@ function AppDialogSurface({
   onSelectTerminalPaneTab,
   onTerminalPaneApprovalDecision,
   onTerminalPaneInputChange,
+  onBrowserContextInputChange,
+  onBrowserContextTabState,
+  onCloseBrowserContextTab,
+  onOpenBrowserContextTab,
+  onSelectBrowserContextTab,
   onProbeMcpManagerServer,
   onRemoveMcpManagerServer,
   onRefreshMigrationPreview,
@@ -6700,6 +6781,7 @@ function AppDialogSurface({
   terminalPaneBusy?: TerminalPaneAction;
   terminalPaneInput: string;
   terminalPaneState: TerminalPaneState;
+  browserContextPaneState: BrowserContextPaneState;
   mcpCatalogLoading: boolean;
   mcpCatalogSnapshot: McpCatalogSnapshot;
   mcpManagerState: McpManagerState;
@@ -6725,6 +6807,11 @@ function AppDialogSurface({
   onSelectTerminalPaneTab: (tabId: string) => void;
   onTerminalPaneApprovalDecision: (decision: LiveActionPermissionDecision) => void;
   onTerminalPaneInputChange: (input: string) => void;
+  onBrowserContextInputChange: (input: string) => void;
+  onBrowserContextTabState: (tabId: string, state: BrowserContextTabState) => void;
+  onCloseBrowserContextTab: (tabId: string) => void;
+  onOpenBrowserContextTab: () => void;
+  onSelectBrowserContextTab: (tabId: string) => void;
   onProbeMcpManagerServer: (serverId: string) => void;
   onRemoveMcpManagerServer: (serverId: string) => void;
   onRefreshMigrationPreview: () => void;
@@ -6841,12 +6928,14 @@ function AppDialogSurface({
     }
   );
   const title =
-    dialog === "connection" || dialog === "terminal" || dialog === "git"
+    dialog === "connection" || dialog === "terminal" || dialog === "git" || dialog === "browser"
       ? dialog === "terminal"
         ? "Local Terminal"
         : dialog === "git"
           ? "Git Workbench"
-        : "Codex Connection"
+          : dialog === "browser"
+            ? "Browser Context"
+            : "Codex Connection"
       : dialog === "migration"
         ? "Migration Preview"
         : dialog === "search"
@@ -6988,7 +7077,7 @@ function AppDialogSurface({
         <header>
           <div>
             <span className="eyebrow">
-              {dialog === "search" ? "Local index" : dialog === "terminal" ? "Runtime bridge" : dialog === "git" ? "Repository review" : platformCatalogView?.eyebrow ?? "Local setup"}
+              {dialog === "search" ? "Local index" : dialog === "terminal" ? "Runtime bridge" : dialog === "git" ? "Repository review" : dialog === "browser" ? "Workspace web context" : platformCatalogView?.eyebrow ?? "Local setup"}
             </span>
             <h3>{title}</h3>
           </div>
@@ -7338,6 +7427,55 @@ function AppDialogSurface({
                 <pre>{gitWorkbenchDiff?.diff || "Select a changed file to review its diff."}</pre>
               </div>
               <small className="transport-fallback">{gitWorkbenchStatus.safety}</small>
+            </div>
+          </div>
+        ) : null}
+
+        {dialog === "browser" ? (
+          <div className="app-dialog-body">
+            <div className="browser-context-pane" aria-label="Browser context pane">
+              <form
+                className="browser-context-bar"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  onOpenBrowserContextTab();
+                }}
+              >
+                <input
+                  aria-label="Open URL or search"
+                  onChange={(event) => onBrowserContextInputChange(event.currentTarget.value)}
+                  placeholder="URL or search"
+                  value={browserContextPaneState.input}
+                />
+                <button type="submit">Open</button>
+              </form>
+              <p className="transport-fallback">{browserContextPaneState.notice}</p>
+              <div className="browser-context-tabs" aria-label="Browser context tabs">
+                {browserContextPaneState.tabs.length > 0 ? (
+                  browserContextPaneState.tabs.map((tab) => (
+                    <button
+                      className={classNames(tab.id === browserContextPaneState.activeTabId && "is-selected")}
+                      key={tab.id}
+                      onClick={() => onSelectBrowserContextTab(tab.id)}
+                      type="button"
+                    >
+                      <strong title={tab.title}>{tab.title}</strong>
+                      <span>{tab.state}</span>
+                    </button>
+                  ))
+                ) : (
+                  <span>No browser tabs.</span>
+                )}
+              </div>
+              {browserContextPaneState.tabs.find((tab) => tab.id === browserContextPaneState.activeTabId) ? (
+                <BrowserContextActiveTab
+                  onClose={onCloseBrowserContextTab}
+                  onState={onBrowserContextTabState}
+                  tab={browserContextPaneState.tabs.find((tab) => tab.id === browserContextPaneState.activeTabId)!}
+                />
+              ) : (
+                <div className="browser-context-empty">Open a URL or search terms to keep web context beside Codex.</div>
+              )}
             </div>
           </div>
         ) : null}
@@ -8102,6 +8240,37 @@ function TerminalPaneActiveTab({
           Close
         </button>
       </div>
+    </div>
+  );
+}
+
+function BrowserContextActiveTab({
+  onClose,
+  onState,
+  tab
+}: {
+  onClose: (tabId: string) => void;
+  onState: (tabId: string, state: BrowserContextTabState) => void;
+  tab: BrowserContextPaneState["tabs"][number];
+}) {
+  return (
+    <div className="browser-context-active" aria-label={`Browser context ${tab.title}`}>
+      <div className="browser-context-meta">
+        <span title={tab.url}>{tab.url}</span>
+        <span>{tab.state}</span>
+        <button onClick={() => onClose(tab.id)} type="button">
+          Close
+        </button>
+      </div>
+      <iframe
+        key={tab.id}
+        onError={() => onState(tab.id, "failed")}
+        onLoad={() => onState(tab.id, "ready")}
+        referrerPolicy="no-referrer"
+        sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+        src={tab.url}
+        title={tab.title}
+      />
     </div>
   );
 }
