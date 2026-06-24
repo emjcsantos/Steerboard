@@ -361,7 +361,7 @@ export function createPanelProviderPrompt(
     "",
     "Follow these rules:",
     "- Stay read-only and do not modify files.",
-    "- First ask 1-2 concise clarification questions if the target, scope, success criteria, or constraints are missing or risky.",
+    "- First ask 1-3 concise clarification questions if the target, scope, success criteria, or constraints are missing or risky.",
     "- If the request is clear enough, produce only a concise plan.",
     "- Format the plan with # Plan, ## Scope, ## Action items, and ## Open questions.",
     "- Keep action items ordered from discovery to changes to validation and rollout."

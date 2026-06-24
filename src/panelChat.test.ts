@@ -507,7 +507,7 @@ describe("panel chat helpers", () => {
 
     expect(prompt).toContain("Use Codex /plan behavior");
     expect(prompt).toContain("build a Lazada mapper");
-    expect(prompt).toContain("ask 1-2 concise clarification questions");
+    expect(prompt).toContain("ask 1-3 concise clarification questions");
     expect(prompt).toContain("Stay read-only");
   });
 
