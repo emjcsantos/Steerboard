@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   createMockRunFromDispatchPackage,
+  getActivePhaseWorksheets,
+  integratePhaseWorksheetIntoMain,
+  requestPhaseWorksheetRevision,
   runToOrchestrationTasks,
   runToSessionSummaries,
   type MockOrchestratorRun
@@ -127,6 +130,60 @@ describe("mock run creation", () => {
     expect(implementationTasks.every((task) => task.attemptLimit === 3)).toBe(true);
     expect(validationTasks.every((task) => task.attemptLimit === 3)).toBe(true);
   });
+
+  it("creates one phase worksheet per implementation phase with separate subagents", () => {
+    const dispatchPackage = buildDispatchPackage(basePlanningDraft, stagedProject, {
+      idSeed: "worksheet-seed",
+      createdAt: "2026-06-04T09:35:00.000Z",
+      status: "ready"
+    });
+    const run = createMockRunFromDispatchPackage(dispatchPackage, {
+      idSeed: "worksheet-run-seed",
+      createdAt: "2026-06-04T09:35:00.000Z",
+      status: "running"
+    });
+
+    expect(run.mainWorksheet?.title).toBe("Main Worksheet");
+    expect(run.mainWorksheet?.integrationReceipts).toEqual([]);
+    expect(run.phaseWorksheets).toHaveLength(8);
+    expect(run.activeWorksheetQueue).toHaveLength(8);
+    expect(run.phaseWorksheets?.map((worksheet) => worksheet.phaseId)).toEqual([
+      "phase-0",
+      "phase-1",
+      "phase-2",
+      "phase-3",
+      "phase-4",
+      "phase-5",
+      "phase-6",
+      "phase-7"
+    ]);
+    expect(run.phaseWorksheets?.every((worksheet) => worksheet.subagents.length > 0)).toBe(true);
+    expect(run.phaseWorksheets?.every((worksheet) => worksheet.state === "active")).toBe(true);
+    expect(new Set(run.phaseWorksheets?.flatMap((worksheet) => worksheet.subagents.map((agent) => agent.id))).size)
+      .toBe(run.phaseWorksheets?.reduce((count, worksheet) => count + worksheet.subagents.length, 0));
+  });
+
+  it("removes completed phase worksheets from active work and records main worksheet receipts", () => {
+    const dispatchPackage = buildDispatchPackage(basePlanningDraft, stagedProject, {
+      idSeed: "complete-worksheet-seed",
+      createdAt: "2026-06-04T09:36:00.000Z",
+      status: "ready"
+    });
+    const run = createMockRunFromDispatchPackage(dispatchPackage, {
+      idSeed: "complete-worksheet-run-seed",
+      createdAt: "2026-06-04T09:36:00.000Z",
+      status: "complete"
+    });
+
+    expect(run.phaseWorksheets).toHaveLength(8);
+    expect(run.phaseWorksheets?.every((worksheet) => worksheet.state === "removed")).toBe(true);
+    expect(run.activeWorksheetQueue).toEqual([]);
+    expect(getActivePhaseWorksheets(run)).toEqual([]);
+    expect(run.mainWorksheet?.acceptedPhaseIds).toHaveLength(8);
+    expect(run.mainWorksheet?.integrationReceipts).toHaveLength(8);
+    expect(run.mainWorksheet?.integrationReceipts.every((receipt) => receipt.integratedBy === "Main Orchestrator"))
+      .toBe(true);
+  });
 });
 
 describe("mock run resilience", () => {
@@ -220,6 +277,88 @@ describe("mock run resilience", () => {
       expect(task.validationCommands.every((command) => command.trim().length > 0)).toBe(true);
       expect(task.rollback.trim().length).toBeGreaterThan(0);
     }
+  });
+
+  it("keeps revision-needed worksheets active and routes issues back to the owning subagent", () => {
+    const dispatchPackage = buildDispatchPackage(basePlanningDraft, stagedProject, {
+      idSeed: "revision-worksheet-seed",
+      createdAt: "2026-06-04T09:42:00.000Z",
+      status: "ready"
+    });
+    const run = createMockRunFromDispatchPackage(dispatchPackage, {
+      idSeed: "revision-worksheet-run-seed",
+      createdAt: "2026-06-04T09:42:00.000Z",
+      status: "running"
+    });
+    const worksheet = run.phaseWorksheets?.find((item) => item.phaseId === "phase-5");
+    const subagent = worksheet?.subagents[0];
+
+    expect(worksheet).toBeDefined();
+    expect(subagent).toBeDefined();
+
+    const firstRevision = requestPhaseWorksheetRevision(run, {
+      worksheetId: worksheet!.id,
+      subagentId: subagent!.id,
+      notes: "Patch changed_files did not match the actual diff.",
+      requiredActions: ["Repair changed_files metadata", "Resubmit verification plan"],
+      createdAt: "2026-06-04T09:43:00.000Z"
+    });
+    const secondRevision = requestPhaseWorksheetRevision(firstRevision, {
+      worksheetId: worksheet!.id,
+      subagentId: subagent!.id,
+      notes: "Rollback notes are still missing.",
+      requiredActions: ["Add rollback notes"],
+      createdAt: "2026-06-04T09:44:00.000Z"
+    });
+    const revisedWorksheet = secondRevision.phaseWorksheets?.find((item) => item.id === worksheet!.id);
+
+    expect(revisedWorksheet?.state).toBe("revision_needed");
+    expect(revisedWorksheet?.revisionHistory).toHaveLength(2);
+    expect(revisedWorksheet?.revisionHistory.every((revision) => revision.subagentId === subagent!.id)).toBe(true);
+    expect(secondRevision.activeWorksheetQueue).toContain(worksheet!.id);
+    expect(secondRevision.mainWorksheet?.integrationReceipts).toEqual([]);
+  });
+
+  it("moves only accepted worksheet output into the main worksheet and removes the worksheet from active work", () => {
+    const dispatchPackage = buildDispatchPackage(basePlanningDraft, stagedProject, {
+      idSeed: "integrate-worksheet-seed",
+      createdAt: "2026-06-04T09:45:00.000Z",
+      status: "ready"
+    });
+    const run = createMockRunFromDispatchPackage(dispatchPackage, {
+      idSeed: "integrate-worksheet-run-seed",
+      createdAt: "2026-06-04T09:45:00.000Z",
+      status: "running"
+    });
+    const worksheet = run.phaseWorksheets?.find((item) => item.phaseId === "phase-4");
+
+    expect(worksheet).toBeDefined();
+
+    const integrated = integratePhaseWorksheetIntoMain(run, {
+      worksheetId: worksheet!.id,
+      acceptedEvidence: ["Readonly workers returned findings with no writes."],
+      integratedArtifacts: ["Readonly handoff summary"],
+      validatorNotes: "Main orchestrator accepted the readonly handoff.",
+      integratedAt: "2026-06-04T09:46:00.000Z"
+    });
+    const removedWorksheet = integrated.phaseWorksheets?.find((item) => item.id === worksheet!.id);
+
+    expect(removedWorksheet?.state).toBe("removed");
+    expect(removedWorksheet?.removedAt).toBe("2026-06-04T09:46:00.000Z");
+    expect(integrated.activeWorksheetQueue).not.toContain(worksheet!.id);
+    expect(getActivePhaseWorksheets(integrated).map((item) => item.id)).not.toContain(worksheet!.id);
+    expect(integrated.mainWorksheet?.acceptedPhaseIds).toContain("phase-4");
+    expect(integrated.mainWorksheet?.integrationReceipts).toEqual([
+      expect.objectContaining({
+        phaseWorksheetId: worksheet!.id,
+        phaseId: "phase-4",
+        acceptedEvidence: ["Readonly workers returned findings with no writes."],
+        integratedArtifacts: ["Readonly handoff summary"],
+        validatorNotes: "Main orchestrator accepted the readonly handoff.",
+        integratedBy: "Main Orchestrator",
+        validatedBy: "Main Orchestrator"
+      })
+    ]);
   });
 
   it("exposes handoff transcripts without claiming external runtime execution", () => {
