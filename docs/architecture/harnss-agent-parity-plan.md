@@ -253,6 +253,228 @@ subagent profiles over time.
 - Add ACP-compatible agent support only after the Codex adapter and native
   orchestration contracts are stable.
 
+## Implementation Phases
+
+### Phase 0: Contract Baseline And Safety Decisions
+
+Goal: turn the PRD into stable implementation contracts before runtime behavior
+changes.
+
+Scope:
+
+- define runtime adapter, agent session, agent profile, work packet,
+  OrchestratorRun, approval request, and normalized event contracts,
+- define hide, close, detach, archive, and kill-process lifecycle semantics,
+- define sanitized auth and model discovery payloads,
+- decide v1 permission posture for read-only, workspace-write, ask-first, and
+  accept-edits behavior,
+- keep full-access and allow-all out of v1.
+
+Exit criteria:
+
+- contracts have unit tests,
+- no secret-bearing field is returned to React,
+- browser preview remains non-live,
+- existing panel chat behavior is unchanged.
+
+### Phase 1: Codex Adapter Extraction
+
+Goal: move Codex app-server lifecycle out of the monolithic Tauri command module
+without changing visible behavior.
+
+Scope:
+
+- extract process start, initialize, request/response ids, thread start, turn
+  start, retry, interrupt, steer, stream reading, cleanup, and error handling,
+- preserve current Tauri command names where practical,
+- preserve per-panel session isolation,
+- keep one app-server process per live panel/session until shared-process
+  routing is proven safe.
+
+Exit criteria:
+
+- live readiness, session start, simple send, streaming, retry, interrupt,
+  steer, stale-session recovery, and close behavior pass existing tests,
+- desktop build still succeeds,
+- no provider-specific raw payloads leak into Arena state.
+
+### Phase 2: Provider Discovery And Profile Defaults
+
+Goal: make account, model, command, skill, plugin, MCP, and permission surfaces
+come from provider data rather than static labels.
+
+Scope:
+
+- add safe `account/read` handling,
+- add provider `model/list` handling,
+- map `Main Orchestrator` to GPT-5.5 only when available,
+- map `Spark Worker` to GPT-5.3 Spark only when available,
+- add validator and integrator default profiles,
+- support global and project-scoped profile storage with safe repair.
+
+Exit criteria:
+
+- unavailable models show setup/fallback state,
+- profile defaults are editable and disableable,
+- profile state survives reloads,
+- secret and raw-path exclusion tests pass.
+
+### Phase 3: OrchestratorRun Preview
+
+Goal: create native Steerboard orchestration state before any worker execution.
+
+Scope:
+
+- create OrchestratorRun records from Arena chat or dispatch package context,
+- generate work-packet previews with goal, task type, scope, acceptance,
+  forbidden paths, allowed commands, verification expectations, and rollback
+  requirements,
+- classify actions as worker-safe, validator-safe, blocked, or
+  main-orchestrator-only,
+- show planned graph nodes in the Arena and environment panel.
+
+Exit criteria:
+
+- users can inspect the run graph before execution,
+- blocked and Codex-only actions are visible,
+- no worker model call or filesystem mutation occurs in preview,
+- reload repair preserves visible run state.
+
+### Phase 4: Readonly Worker Dispatch
+
+Goal: ship the first safe multi-agent lane using readonly specialists.
+
+Scope:
+
+- dispatch search, explanation, documentation review, performance hints, test
+  planning, and code review packets to worker profiles,
+- track submitted, running, completed, failed, and timed-out worker lifecycle
+  states,
+- return findings, summaries, risk notes, and suggested next actions,
+- produce a handoff summary for the main orchestrator.
+
+Exit criteria:
+
+- readonly workers cannot write files,
+- failures return `needs_orchestrator`,
+- worker participation and results are visible per Arena session,
+- main orchestrator can continue from the handoff without losing context.
+
+### Phase 5: Bounded Patch Worker Dispatch
+
+Goal: allow workers to propose patches only inside strict work-packet
+boundaries.
+
+Scope:
+
+- require allowed files, forbidden paths, acceptance criteria, verification
+  plan, rollback notes, and max diff limits before patch dispatch,
+- reject empty patches, changed-file mismatches, duplicate file writes,
+  forbidden-path touches, missing verification plans, missing rollback notes,
+  and overlapping patches,
+- apply worker patches only to a temporary workspace or keep patch-only output
+  until the sandbox runner is implemented,
+- route failures, overlaps, and weak evidence back to the main orchestrator.
+
+Exit criteria:
+
+- no worker patch is applied directly to the real workspace without review,
+- patch policy tests cover every rejection path,
+- validators and the main orchestrator can inspect worker output and decide
+  whether to apply, revise, or reject it.
+
+### Phase 6: Approval Queue, Audit, And Handoff
+
+Goal: make provider and Steerboard permission requests visible, auditable, and
+recoverable.
+
+Scope:
+
+- add approval queue states: pending, approved, rejected, expired, failed, and
+  consumed,
+- show source panel, thread, turn, requested action, risk, and decision buttons,
+- keep active turns visibly waiting while approval is pending,
+- persist local approval and audit records,
+- attach approval, verification, rollback, and final-integration status to
+  OrchestratorRun handoff.
+
+Exit criteria:
+
+- no action requiring approval fails silently,
+- approval decisions are visible after reload,
+- rejected or expired approvals return a clear handoff to the main orchestrator,
+- audit records do not store secrets or raw private transcripts.
+
+### Phase 7: Configurable Subagents And ACP Readiness
+
+Goal: graduate from default Codex-only profiles to user-configurable subagents
+and prepare ACP support.
+
+Scope:
+
+- expose profile create, edit, disable, reorder, and project/global precedence,
+- support imported or project-scoped agent profiles without secrets,
+- add capability, cost, context, load, success, sandbox, and tool-policy fields,
+- add ACP registry design after Codex adapter and orchestration contracts are
+  stable.
+
+Exit criteria:
+
+- users can configure subagents without code changes,
+- invalid profiles repair to safe disabled states,
+- ACP support has a documented adapter boundary before any runtime integration
+  is attempted.
+
+## Project Impact Report
+
+This PRD helps Steerboard by turning the Arena from a single live chat surface
+into a controlled multi-agent workspace. The main orchestrator remains
+accountable for planning, risk, and final review, while lower-cost or specialized
+workers can handle bounded throughput.
+
+Expected benefits:
+
+- smoother agent experience because each chat/thread becomes a real session with
+  visible lifecycle state,
+- lower cost and better throughput because safe tasks can move from the main
+  orchestrator to worker profiles,
+- stronger trust because auth, models, commands, MCP, approvals, and worker
+  capabilities are discovered and shown instead of implied,
+- safer delegation because every worker packet has scope, forbidden paths,
+  acceptance criteria, verification, and rollback expectations,
+- better debugging because worker failures, blocked actions, approval waits, and
+  handoffs become visible product state,
+- cleaner architecture because Codex app-server behavior moves behind an adapter
+  boundary instead of staying spread across UI and Tauri command code,
+- better extensibility because Codex, ACP agents, and future providers can share
+  one runtime/session/orchestration model,
+- stronger product differentiation because Steerboard becomes an orchestration
+  Arena rather than a clone of a chat client or external reference app.
+
+Primary project risks reduced:
+
+- fake or stale model labels,
+- hidden auth/billing assumptions,
+- cross-talk between panels,
+- worker patch conflicts,
+- silent approval waits,
+- direct worker edits to sensitive areas,
+- brittle provider-specific UI state,
+- unclear handoff between planning, implementation, validation, and integration.
+
+Delivery value by phase:
+
+| Phase | Project Value |
+| --- | --- |
+| Phase 0 | Prevents abstraction drift by defining the contracts first. |
+| Phase 1 | Makes Codex integration maintainable without changing behavior. |
+| Phase 2 | Makes connection, model, and profile state honest and configurable. |
+| Phase 3 | Lets users inspect orchestration before spending model calls or mutating files. |
+| Phase 4 | Ships safe parallelism through readonly workers. |
+| Phase 5 | Adds controlled worker patch throughput with verification and fallback. |
+| Phase 6 | Turns approvals and audit from blockers into visible workflow state. |
+| Phase 7 | Opens the path to user-configurable subagents and ACP providers. |
+
 ## Testing Decisions
 
 - Test behavior through the highest practical seams: runtime adapter contract,
@@ -318,18 +540,7 @@ subagent profiles over time.
 
 ## Further Notes
 
-- The first implementation milestone should be Codex adapter extraction without
-  behavior changes.
-- The second milestone should be typed runtime, session, event, and agent
-  profile contracts.
-- The third milestone should be real account and model surfaces from provider
-  discovery.
-- The fourth milestone should be native OrchestratorRun preview with work-packet
-  routing and readonly worker dispatch records.
-- The fifth milestone should be bounded patch worker dispatch with verification,
-  rollback notes, overlap detection, and main-orchestrator handoff.
-- The sixth milestone should be approval queue UI and audit records.
-- The seventh milestone should be ACP-compatible agent profile support.
+- The implementation phases above are the delivery source of truth for this PRD.
 - Open decision: default new live sessions to workspace-write agent mode or
   read-only with an explicit permission upgrade.
 - Open decision: store initial main orchestrator and Spark worker profiles as
