@@ -11,11 +11,11 @@ describe("codex panel agent settings", () => {
   it("normalizes valid model and reasoning choices", () => {
     expect(
       normalizeCodexPanelAgentSettings({
-        model: "gpt-5.4-mini",
+        model: "codex-agent",
         reasoning: "extra-high"
       })
     ).toEqual({
-      model: "gpt-5.4-mini",
+      model: "codex-agent",
       reasoning: "extra-high"
     });
   });
@@ -34,19 +34,19 @@ describe("codex panel agent settings", () => {
     expect(
       parseStoredCodexPanelAgentSettings(
         JSON.stringify({
-          "panel-1": { model: "gpt-5.4", reasoning: "medium" },
-          " ": { model: "gpt-5.5", reasoning: "high" },
-          "panel-2": { model: "gpt-5.3-codex-spark", reasoning: "high" }
+          "panel-1": { model: "codex-agent", reasoning: "medium" },
+          " ": { model: "provider-default", reasoning: "high" },
+          "panel-2": { model: "provider-default", reasoning: "high" }
         })
       )
     ).toEqual({
-      "panel-1": { model: "gpt-5.4", reasoning: "medium" },
-      "panel-2": { model: "gpt-5.3-codex-spark", reasoning: "high" }
+      "panel-1": { model: "codex-agent", reasoning: "medium" },
+      "panel-2": { model: "provider-default", reasoning: "high" }
     });
   });
 
   it("returns display labels for selected settings", () => {
-    expect(getCodexPanelModelLabel("gpt-5.5")).toBe("GPT-5.5");
+    expect(getCodexPanelModelLabel("codex-agent")).toBe("Codex Agent");
     expect(getCodexPanelReasoningLabel("extra-high")).toBe("Extra High");
   });
 });

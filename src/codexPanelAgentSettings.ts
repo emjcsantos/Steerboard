@@ -1,10 +1,8 @@
 export const PANEL_AGENT_SETTINGS_STORAGE_KEY = "steerboard.panelAgentSettings.v1";
 
 export const codexPanelModelOptions = [
-  { label: "GPT-5.5", value: "gpt-5.5" },
-  { label: "GPT-5.4", value: "gpt-5.4" },
-  { label: "GPT-5.4-Mini", value: "gpt-5.4-mini" },
-  { label: "GPT-5.3-Codex-Spark", value: "gpt-5.3-codex-spark" }
+  { label: "Codex Agent", value: "codex-agent" },
+  { label: "Provider default", value: "provider-default" }
 ] as const;
 
 export const codexPanelReasoningOptions = [
@@ -23,7 +21,7 @@ export interface CodexPanelAgentSettings {
 }
 
 export const defaultCodexPanelAgentSettings: CodexPanelAgentSettings = {
-  model: "gpt-5.5",
+  model: "codex-agent",
   reasoning: "low"
 };
 

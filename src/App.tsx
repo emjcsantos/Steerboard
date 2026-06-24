@@ -8072,20 +8072,16 @@ function SessionCell({
     }
 
     if (canUseLiveCodex) {
-      if (liveSendInFlightRef.current && !liveChatRunning) {
+      if (liveSendInFlightRef.current || liveChatRunning) {
         setLiveChatDetail("Codex is still starting or sending the current turn. Wait for the response or use Interrupt.");
         return;
       }
 
-      if (liveChatRunning) {
-        await handleSteerLiveTurn(trimmedMessage);
-      } else {
-        await sendLivePanelPrompt(
-          trimmedMessage,
-          "send",
-          slashCommandDecision.route === "provider" ? slashCommandDecision : undefined
-        );
-      }
+      await sendLivePanelPrompt(
+        trimmedMessage,
+        "send",
+        slashCommandDecision.route === "provider" ? slashCommandDecision : undefined
+      );
       return;
     }
 
@@ -8371,8 +8367,8 @@ function SessionCell({
             </button>
             <button
               aria-label={`Send message to ${identity.title}`}
-              disabled={draftMessage.trim().length === 0 || liveChatStarting}
-              title={liveChatRunning ? liveControlSnapshot.steer.reason : "Send"}
+              disabled={draftMessage.trim().length === 0 || liveChatBusy}
+              title={liveChatBusy ? "Wait for the current Codex response before sending another message." : "Send"}
               type="submit"
             >
               <Send size={15} />

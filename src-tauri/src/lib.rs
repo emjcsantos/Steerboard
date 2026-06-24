@@ -3777,7 +3777,7 @@ mod runtime_bridge {
             ],
             "approvalPolicy": "never",
             "sandboxPolicy": {
-                "type": "readOnly",
+                "type": "workspaceWrite",
                 "networkAccess": false
             },
             "effort": settings.reasoning_effort
@@ -4028,7 +4028,7 @@ mod runtime_bridge {
     fn normalize_panel_model(model: Option<String>) -> Option<String> {
         let value = model?.trim().to_ascii_lowercase();
         match value.as_str() {
-            "gpt-5.5" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex-spark" => Some(value),
+            "codex-agent" | "provider-default" => None,
             _ => None,
         }
     }
@@ -5246,11 +5246,11 @@ mod tests {
     #[test]
     fn panel_turn_settings_preserve_supported_model_and_reasoning() {
         let settings = runtime_bridge::panel_turn_settings(
-            Some(" GPT-5.4-Mini ".to_string()),
+            Some(" Codex-Agent ".to_string()),
             Some("extra_high".to_string()),
         );
 
-        assert_eq!(settings.model.as_deref(), Some("gpt-5.4-mini"));
+        assert_eq!(settings.model, None);
         assert_eq!(settings.reasoning_effort, "extra-high");
 
         let fallback = runtime_bridge::panel_turn_settings(
