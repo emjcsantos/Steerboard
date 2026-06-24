@@ -404,6 +404,13 @@ import {
   type BrowserContextTabState
 } from "./browserContextPane";
 import {
+  createBackgroundAgentRecord,
+  defaultAcpAgentDefinitions,
+  transitionBackgroundAgent,
+  type AcpAgentDefinition,
+  type BackgroundAgentRecord
+} from "./backgroundAgents";
+import {
   buildDefaultMigrationPreview,
   buildMigrationPreviewCounts,
   appendMigrationProfileDraftHistory,
@@ -1477,7 +1484,7 @@ type RuntimeProfilePermissionRequestIntent = "idle" | "requested";
 type PipelineDispatchRequestIntent = "idle" | "requested";
 type AppMenuId = "file" | "view" | "connect" | "help";
 type PlatformCatalogDialog = "plugins" | "skills" | "mcp" | "automations" | "personalization";
-type AppDialog = "migration" | "connection" | "slash-help" | "search" | "terminal" | "git" | "browser" | PlatformCatalogDialog;
+type AppDialog = "migration" | "connection" | "slash-help" | "search" | "terminal" | "git" | "browser" | "agents" | PlatformCatalogDialog;
 type AdaptiveArenaSurface = "grid" | "dock";
 
 type PlatformCatalogState =
@@ -2538,6 +2545,22 @@ export function App() {
   const [browserContextPaneState, setBrowserContextPaneState] = useState<BrowserContextPaneState>(() =>
     loadBrowserContextPaneState()
   );
+  const [backgroundAgentRecords] = useState<BackgroundAgentRecord[]>(() => [
+    transitionBackgroundAgent(
+      createBackgroundAgentRecord({
+        id: "background-agent-foundation",
+        agentId: "codex-background-reviewer",
+        agentLabel: "Codex background reviewer",
+        sessionId: "setup-preview",
+        panelId: "main-panel",
+        now: new Date().toISOString()
+      }),
+      "waiting-permission",
+      "Background work is represented and waiting for explicit runtime setup.",
+      10
+    )
+  ]);
+  const [acpAgentDefinitions] = useState<AcpAgentDefinition[]>(() => defaultAcpAgentDefinitions);
   const [pluginCatalogSnapshot, setPluginCatalogSnapshot] = useState<PluginCatalogSnapshot>(() =>
     buildPluginCatalogSnapshot(defaultPluginCatalog, "default-fallback", defaultPluginCatalog)
   );
@@ -6055,6 +6078,8 @@ export function App() {
           terminalPaneInput={terminalPaneInput}
           terminalPaneState={terminalPaneState}
           browserContextPaneState={browserContextPaneState}
+          backgroundAgentRecords={backgroundAgentRecords}
+          acpAgentDefinitions={acpAgentDefinitions}
           mcpCatalogLoading={mcpCatalogLoading}
           mcpCatalogSnapshot={mcpCatalogSnapshot}
           mcpManagerState={mcpManagerState}
@@ -6212,6 +6237,9 @@ function AppMenuBar({
                       </button>
                       <button onClick={() => onOpenDialog("browser")} role="menuitem" type="button">
                         Browser context
+                      </button>
+                      <button onClick={() => onOpenDialog("agents")} role="menuitem" type="button">
+                        Background agents
                       </button>
                       <button onClick={() => onOpenDialog("personalization")} role="menuitem" type="button">
                         Personalization
@@ -6684,6 +6712,8 @@ function AppDialogSurface({
   terminalPaneInput,
   terminalPaneState,
   browserContextPaneState,
+  backgroundAgentRecords,
+  acpAgentDefinitions,
   mcpCatalogLoading,
   mcpCatalogSnapshot,
   mcpManagerState,
@@ -6782,6 +6812,8 @@ function AppDialogSurface({
   terminalPaneInput: string;
   terminalPaneState: TerminalPaneState;
   browserContextPaneState: BrowserContextPaneState;
+  backgroundAgentRecords: BackgroundAgentRecord[];
+  acpAgentDefinitions: AcpAgentDefinition[];
   mcpCatalogLoading: boolean;
   mcpCatalogSnapshot: McpCatalogSnapshot;
   mcpManagerState: McpManagerState;
@@ -6928,14 +6960,16 @@ function AppDialogSurface({
     }
   );
   const title =
-    dialog === "connection" || dialog === "terminal" || dialog === "git" || dialog === "browser"
+    dialog === "connection" || dialog === "terminal" || dialog === "git" || dialog === "browser" || dialog === "agents"
       ? dialog === "terminal"
         ? "Local Terminal"
         : dialog === "git"
           ? "Git Workbench"
           : dialog === "browser"
             ? "Browser Context"
-            : "Codex Connection"
+            : dialog === "agents"
+              ? "Background Agents"
+              : "Codex Connection"
       : dialog === "migration"
         ? "Migration Preview"
         : dialog === "search"
@@ -7077,7 +7111,7 @@ function AppDialogSurface({
         <header>
           <div>
             <span className="eyebrow">
-              {dialog === "search" ? "Local index" : dialog === "terminal" ? "Runtime bridge" : dialog === "git" ? "Repository review" : dialog === "browser" ? "Workspace web context" : platformCatalogView?.eyebrow ?? "Local setup"}
+              {dialog === "search" ? "Local index" : dialog === "terminal" ? "Runtime bridge" : dialog === "git" ? "Repository review" : dialog === "browser" ? "Workspace web context" : dialog === "agents" ? "ACP foundation" : platformCatalogView?.eyebrow ?? "Local setup"}
             </span>
             <h3>{title}</h3>
           </div>
@@ -7476,6 +7510,67 @@ function AppDialogSurface({
               ) : (
                 <div className="browser-context-empty">Open a URL or search terms to keep web context beside Codex.</div>
               )}
+            </div>
+          </div>
+        ) : null}
+
+        {dialog === "agents" ? (
+          <div className="app-dialog-body">
+            <div className="background-agents-pane" aria-label="Background agents and ACP foundation">
+              <div className="background-agent-summary">
+                <span>
+                  <strong>{backgroundAgentRecords.length}</strong>
+                  Background records
+                </span>
+                <span>
+                  <strong>{backgroundAgentRecords.filter((record) => record.pendingPermission).length}</strong>
+                  Pending permission
+                </span>
+                <span>
+                  <strong>{backgroundAgentRecords.filter((record) => record.completion?.reviewable).length}</strong>
+                  Handoffs
+                </span>
+                <span>
+                  <strong>{acpAgentDefinitions.length}</strong>
+                  ACP profiles
+                </span>
+              </div>
+              <div className="background-agent-list" aria-label="Background agent records">
+                {backgroundAgentRecords.map((record) => (
+                  <article className={`background-agent-row background-agent-${record.status}`} key={record.id}>
+                    <div>
+                      <strong>{record.agentLabel}</strong>
+                      <p>{record.latestActivity}</p>
+                      <small>{record.agentId} / {record.sessionId} / {record.panelId}</small>
+                    </div>
+                    <span>{record.status}</span>
+                    <b>{record.progressPercent}%</b>
+                    <small>
+                      {record.pendingPermission
+                        ? `Permission: ${record.pendingPermission.provider} ${record.pendingPermission.state}`
+                        : record.completion
+                          ? `Handoff: ${record.completion.targetPanelId}`
+                          : record.error
+                            ? `Error: ${record.error}`
+                            : `${record.ledger.length} protocol events`}
+                    </small>
+                  </article>
+                ))}
+              </div>
+              <div className="background-agent-list" aria-label="ACP agent profiles">
+                {acpAgentDefinitions.map((definition) => (
+                  <article className={`background-agent-row background-agent-${definition.setupState}`} key={definition.id}>
+                    <div>
+                      <strong>{definition.label}</strong>
+                      <p>{definition.detail}</p>
+                      <small>{definition.runtimeProfileId} / {definition.transport}</small>
+                    </div>
+                    <span>{definition.setupState}</span>
+                    <b>{definition.launchEnabled ? "Launch" : "Locked"}</b>
+                    <small>ACP launch remains disabled until setup and approval are explicit.</small>
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
         ) : null}

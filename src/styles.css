@@ -3982,6 +3982,91 @@ textarea {
   padding: 18px;
 }
 
+.background-agents-pane {
+  display: grid;
+  gap: 12px;
+}
+
+.background-agent-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.background-agent-summary span {
+  border: 1px solid #252b34;
+  border-radius: 8px;
+  background: #111820;
+  padding: 10px;
+}
+
+.background-agent-summary strong {
+  display: block;
+  color: #eef3f8;
+  font-size: 18px;
+}
+
+.background-agent-list {
+  display: grid;
+  gap: 8px;
+}
+
+.background-agent-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #252b34;
+  border-radius: 8px;
+  background: #111820;
+  padding: 10px;
+}
+
+.background-agent-row div {
+  min-width: 0;
+}
+
+.background-agent-row strong,
+.background-agent-row p,
+.background-agent-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.background-agent-row p {
+  margin: 3px 0;
+  color: #cfd8e3;
+}
+
+.background-agent-row small {
+  color: #8d97a6;
+}
+
+.background-agent-row > span,
+.background-agent-row > b {
+  border-radius: 999px;
+  background: #252b34;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.background-agent-waiting-permission > span,
+.background-agent-setup-required > span {
+  background: #352e18;
+  color: #f0d984;
+}
+
+.background-agent-completed > span {
+  background: #1d3929;
+  color: #89dda9;
+}
+
+.background-agent-failed > span,
+.background-agent-disabled > span {
+  background: #442119;
+  color: #ff9e85;
+}
+
 .chat-trace-section {
   min-width: 0;
   overflow: hidden;
