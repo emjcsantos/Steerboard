@@ -332,6 +332,7 @@ import {
 } from "./projectManagementHierarchyStorage";
 import { hasTauriRuntime } from "./tauriRuntime";
 import {
+  buildCodexProtocolTraceSections,
   codexSessionStateToPanelMessages,
   createPanelReplyMessage,
   createPanelLiveErrorMessage,
@@ -433,6 +434,7 @@ import {
 import { loadProviderSkillCatalogSnapshot } from "./providerSkillCatalog";
 import {
   loadCodexProtocolLedger,
+  normalizeCodexPanelEventsToProtocolLedger,
   normalizeCodexPanelTurnResultEvents,
   reduceCodexSessionEvents,
   saveCodexProtocolLedger,
@@ -8099,6 +8101,7 @@ function SessionCell({
     const activityMessageId = activityMessage.id;
     const activityLines = [activityMessage.body];
     const activityCommands: string[] = [];
+    const activityProtocolLedger: CodexProtocolLedgerEntry[] = [];
     let unlistenStream: (() => void) | undefined;
     let streamedText = "";
     let pendingStreamBody = "";
@@ -8146,14 +8149,17 @@ function SessionCell({
       streamRenderTimer = undefined;
     };
     const updateActivityMessage = () => {
-      const commandSection = buildCommandActivitySection(activityCommands);
+      const protocolSections = buildCodexProtocolTraceSections(activityProtocolLedger);
+      const commandSection = protocolSections.length === 0
+        ? buildCommandActivitySection(activityCommands)
+        : undefined;
       setChatMessages((currentMessages) =>
         currentMessages.map((message) =>
           message.id === activityMessageId
             ? {
                 ...message,
                 body: activityLines.join("\n\n"),
-                sections: commandSection ? [commandSection] : []
+                sections: protocolSections.length > 0 ? protocolSections : commandSection ? [commandSection] : []
               }
             : message
         )
@@ -8190,6 +8196,14 @@ function SessionCell({
               return;
             }
 
+            activityProtocolLedger.push(
+              ...normalizeCodexPanelEventsToProtocolLedger({
+                sessionId: payload.sessionId,
+                threadId: payload.threadId,
+                turnId: payload.turnId,
+                events: [payload.event]
+              })
+            );
             const activityLine = summarizeLivePanelEvent(payload.event);
             const commandText = commandActivityText(payload.event);
             if (activityLine && !activityLines.includes(activityLine)) {
@@ -8198,7 +8212,7 @@ function SessionCell({
             if (commandText) {
               activityCommands.push(commandText);
             }
-            if (activityLine || commandText) {
+            if (activityLine || commandText || activityProtocolLedger.length > 0) {
               updateActivityMessage();
             }
 
@@ -8246,6 +8260,7 @@ function SessionCell({
         ...state.ledger
       ]);
       const nextMessages = codexSessionStateToPanelMessages(session, state, liveMessageSequenceStart);
+      const finalProtocolSections = buildCodexProtocolTraceSections(state.ledger);
       const statusMessages = result.failed || result.interrupted || nextMessages.length === 0
         ? [
             result.failed
@@ -8280,12 +8295,18 @@ function SessionCell({
       );
       cancelScheduledStreamingMessage();
       setChatMessages((currentMessages) => [
-        ...currentMessages.filter(
-          (message) =>
-            message.id !== pendingMessage.id &&
-            message.id !== streamingMessageId &&
-            message.meta !== "live recovery"
-        ),
+        ...currentMessages
+          .filter(
+            (message) =>
+              message.id !== pendingMessage.id &&
+              message.id !== streamingMessageId &&
+              message.meta !== "live recovery"
+          )
+          .map((message) =>
+            message.id === activityMessageId && finalProtocolSections.length > 0
+              ? { ...message, sections: finalProtocolSections }
+              : message
+          ),
         ...nextMessages,
         ...statusMessages
       ]);

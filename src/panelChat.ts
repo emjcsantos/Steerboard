@@ -2,6 +2,7 @@ import type { SessionSummary } from "./fixtures";
 import type {
   CodexPanelEventPayload,
   CodexPanelTurnResultPayload,
+  CodexProtocolLedgerEntry,
   CodexSessionMessage,
   CodexSessionState
 } from "./codexSession";
@@ -73,6 +74,95 @@ export interface PanelLiveTurnEvidence {
 export const PANEL_CHAT_STORAGE_KEY = "steerboard.panel.chat.v1";
 
 export const panelSlashCommands: readonly PanelSlashCommand[] = defaultCommandCatalog;
+
+function compactTraceValue(value: string | undefined): string {
+  return (value ?? "").replace(/\s+/g, " ").trim();
+}
+
+function entryLabel(entry: CodexProtocolLedgerEntry): string {
+  return compactTraceValue(entry.title ?? entry.detail ?? entry.itemType ?? entry.method) || entry.kind;
+}
+
+function entryStatus(entry: CodexProtocolLedgerEntry): string {
+  return compactTraceValue(entry.status ?? entry.summary ?? entry.message) || "observed";
+}
+
+function formatTraceLine(entry: CodexProtocolLedgerEntry): string {
+  const subject = entryLabel(entry);
+  const status = entryStatus(entry);
+  const parts = [
+    subject,
+    status ? `status=${status}` : "",
+    entry.itemId ? `item=${entry.itemId}` : "",
+    entry.turnId ? `turn=${entry.turnId}` : "",
+    entry.delta ? `output=${entry.delta.trim()}` : "",
+    entry.message && entry.message !== status ? `message=${entry.message}` : "",
+    entry.summary && entry.summary !== status ? `summary=${entry.summary}` : "",
+    entry.detail && entry.detail !== subject ? `detail=${entry.detail}` : ""
+  ].filter(Boolean);
+  return parts.join(" | ");
+}
+
+function sectionFromEntries(
+  id: string,
+  kind: PanelChatSectionKind,
+  title: string,
+  entries: readonly CodexProtocolLedgerEntry[],
+  emptySummary: string
+): PanelChatSection | undefined {
+  if (entries.length === 0) {
+    return undefined;
+  }
+
+  const failed = entries.filter((entry) => entry.status === "failed" || entry.kind === "error").length;
+  const partial = entries.filter((entry) => !entry.status || entry.status === "inProgress" || entry.status === "running").length;
+  const summary = failed > 0
+    ? `${failed} failed / ${entries.length} total`
+    : partial > 0
+      ? `${partial} active / ${entries.length} total`
+      : emptySummary;
+
+  return {
+    id,
+    kind,
+    title,
+    summary,
+    body: entries.map((entry, index) => `${index + 1}. ${formatTraceLine(entry)}`).join("\n")
+  };
+}
+
+export function buildCodexProtocolTraceSections(
+  ledger: readonly CodexProtocolLedgerEntry[]
+): PanelChatSection[] {
+  const useful = ledger.filter((entry) =>
+    !(
+      entry.kind === "agent_message" &&
+      entry.method === "item/agentMessage/delta"
+    )
+  );
+  const reasoning = useful.filter((entry) => entry.kind === "reasoning" || entry.kind === "plan_update");
+  const commands = useful.filter((entry) =>
+    entry.kind === "command_execution" || entry.kind === "command_output_delta"
+  );
+  const files = useful.filter((entry) => entry.kind === "file_change");
+  const tools = useful.filter((entry) =>
+    entry.kind === "mcp_call" || entry.kind === "web_search" || entry.kind === "image_view"
+  );
+  const statuses = useful.filter((entry) =>
+    entry.kind === "turn_status" ||
+    entry.kind === "error" ||
+    entry.kind === "approval_request" ||
+    entry.kind === "unknown"
+  );
+
+  return [
+    sectionFromEntries("protocol-reasoning", "steps", "Reasoning and plan", reasoning, `${reasoning.length} update${reasoning.length === 1 ? "" : "s"}`),
+    sectionFromEntries("protocol-commands", "commands", "Command executions", commands, `${commands.length} event${commands.length === 1 ? "" : "s"}`),
+    sectionFromEntries("protocol-files", "trace", "File changes", files, `${files.length} change${files.length === 1 ? "" : "s"}`),
+    sectionFromEntries("protocol-tools", "trace", "Tool and context calls", tools, `${tools.length} call${tools.length === 1 ? "" : "s"}`),
+    sectionFromEntries("protocol-status", "trace", "Turn status and requests", statuses, `${statuses.length} event${statuses.length === 1 ? "" : "s"}`)
+  ].filter((section): section is PanelChatSection => section !== undefined);
+}
 
 function roleLabel(role: SessionSummary["role"]): string {
   switch (role) {

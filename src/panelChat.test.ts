@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildInitialPanelChat,
+  buildCodexProtocolTraceSections,
   buildPanelLiveTurnEvidence,
   codexSessionStateToPanelMessages,
   createPanelLiveErrorMessage,
@@ -21,6 +22,7 @@ import {
   type PanelChatMessage
 } from "./panelChat";
 import type { SessionSummary } from "./fixtures";
+import type { CodexProtocolLedgerEntry } from "./codexSession";
 
 const session: SessionSummary = {
   attempt: 1,
@@ -474,6 +476,123 @@ describe("panel chat helpers", () => {
         meta: "completed"
       }
     ]);
+  });
+
+  it("builds protocol-backed progress cards without mixing final output", () => {
+    const ledger: CodexProtocolLedgerEntry[] = [
+      {
+        id: "reasoning-a",
+        kind: "reasoning",
+        method: "item/reasoning/summaryTextDelta",
+        turnId: "turn-a",
+        delta: "Checking current files"
+      },
+      {
+        id: "cmd-a",
+        kind: "command_output_delta",
+        method: "item/commandExecution/outputDelta",
+        turnId: "turn-a",
+        itemId: "cmd-a",
+        title: "npm.cmd run test",
+        status: "completed",
+        delta: "21 passed"
+      },
+      {
+        id: "file-a",
+        kind: "file_change",
+        method: "item/completed",
+        turnId: "turn-a",
+        itemId: "file-a",
+        title: "src/App.tsx",
+        status: "completed",
+        detail: "diff --git a/src/App.tsx b/src/App.tsx"
+      },
+      {
+        id: "tool-a",
+        kind: "mcp_call",
+        method: "mcp/toolCall",
+        turnId: "turn-a",
+        title: "mcp__server__tool",
+        status: "completed"
+      },
+      {
+        id: "web-a",
+        kind: "web_search",
+        method: "webSearch/completed",
+        turnId: "turn-a",
+        title: "Codex app-server docs",
+        status: "completed"
+      },
+      {
+        id: "image-a",
+        kind: "image_view",
+        method: "imageView/opened",
+        turnId: "turn-a",
+        title: "screenshot.png",
+        status: "completed"
+      },
+      {
+        id: "answer-a",
+        kind: "agent_message",
+        method: "item/agentMessage/delta",
+        turnId: "turn-a",
+        delta: "Final answer should stay in the assistant message"
+      },
+      {
+        id: "status-a",
+        kind: "turn_status",
+        method: "turn/completed",
+        turnId: "turn-a",
+        status: "completed"
+      }
+    ];
+
+    const sections = buildCodexProtocolTraceSections(ledger);
+
+    expect(sections.map((section) => section.title)).toEqual([
+      "Reasoning and plan",
+      "Command executions",
+      "File changes",
+      "Tool and context calls",
+      "Turn status and requests"
+    ]);
+    expect(sections.find((section) => section.id === "protocol-commands")).toMatchObject({
+      kind: "commands",
+      body: expect.stringContaining("npm.cmd run test")
+    });
+    expect(sections.find((section) => section.id === "protocol-files")?.body).toContain("src/App.tsx");
+    expect(sections.find((section) => section.id === "protocol-tools")?.body).toContain("mcp__server__tool");
+    expect(sections.map((section) => section.body).join("\n")).not.toContain(
+      "Final answer should stay in the assistant message"
+    );
+  });
+
+  it("renders honest partial, failed, and unknown protocol card states", () => {
+    const sections = buildCodexProtocolTraceSections([
+      {
+        id: "cmd-active",
+        kind: "command_execution",
+        method: "item/started",
+        title: "npm.cmd run build"
+      },
+      {
+        id: "failed",
+        kind: "error",
+        method: "turn/failed",
+        status: "failed",
+        message: "Provider stopped"
+      },
+      {
+        id: "unknown",
+        kind: "unknown",
+        method: "provider/future",
+        summary: "Future event"
+      }
+    ]);
+
+    expect(sections.find((section) => section.id === "protocol-commands")?.summary).toContain("active");
+    expect(sections.find((section) => section.id === "protocol-status")?.summary).toContain("failed");
+    expect(sections.find((section) => section.id === "protocol-status")?.body).toContain("provider/future");
   });
 
   it("creates a live activity message with collapsible command sections", () => {

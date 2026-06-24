@@ -1001,6 +1001,82 @@ export function normalizeCodexPanelTurnResultEvents(
   return events;
 }
 
+export function normalizeCodexPanelEventsToProtocolLedger({
+  sessionId,
+  threadId,
+  turnId,
+  events
+}: {
+  sessionId: string;
+  threadId: string;
+  turnId: string | null;
+  events: readonly CodexPanelEventPayload[];
+}): CodexProtocolLedgerEntry[] {
+  const fallbackTurnId = turnId ?? "turn:unknown";
+  const result: CodexPanelTurnResultPayload = {
+    source: "desktop",
+    sessionId,
+    threadId,
+    turnId,
+    completed: false,
+    interrupted: false,
+    failed: false,
+    events: [],
+    transcript: "",
+    detail: "Codex panel stream event."
+  };
+
+  return events.flatMap((event, index) => {
+    const eventTurnId = event.turnId ?? fallbackTurnId;
+    if (event.eventType === "agent_delta" && event.delta) {
+      return [
+        ledgerEntryFromEvent({
+          id: `${sessionId}:${eventTurnId}:stream-delta:${index}`,
+          kind: "agent_delta",
+          provider: "codex",
+          turnId: eventTurnId,
+          itemId: event.itemId ?? undefined,
+          delta: event.delta,
+          receivedAt: event.providerTimestamp ?? undefined,
+          raw: redactProviderRaw(event)
+        })
+      ];
+    }
+
+    if (event.eventType === "turn_status") {
+      return [
+        ledgerEntryFromEvent({
+          id: `${sessionId}:${eventTurnId}:stream-status:${index}`,
+          kind: "turn_completed",
+          provider: "codex",
+          turnId: eventTurnId,
+          status: normalizeTurnStatus(event.status),
+          summary: event.message ?? event.summary ?? "Codex turn status updated.",
+          receivedAt: event.providerTimestamp ?? undefined,
+          raw: redactProviderRaw(event)
+        })
+      ];
+    }
+
+    if (event.eventType === "error") {
+      return [
+        ledgerEntryFromEvent({
+          id: `${sessionId}:${eventTurnId}:stream-error:${index}`,
+          kind: "error",
+          provider: "codex",
+          turnId: eventTurnId,
+          message: event.message ?? event.summary ?? "Codex reported an error.",
+          recoverable: false,
+          receivedAt: event.providerTimestamp ?? undefined,
+          raw: redactProviderRaw(event)
+        })
+      ];
+    }
+
+    return [ledgerEntryFromEvent(protocolEventFromPanelEvent(result, event, index, fallbackTurnId))];
+  });
+}
+
 function upsertTurn(
   turns: readonly CodexSessionTurn[],
   turn: CodexSessionTurn
