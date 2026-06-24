@@ -40,6 +40,9 @@ The first target experience is:
 7. Validators and the main orchestrator review worker output before integration.
 8. The Arena shows every panel/session, run, worker, blocker, approval, and
    evidence item as product state.
+9. Each implementation phase gets its own phase worksheet with its own subagent
+   set, while a main worksheet tracks the overall run and receives only validated
+   integrated results.
 
 Initial defaults should support a high-capability main orchestrator profile,
 mapped to GPT-5.5 only when the connected provider exposes that model, and a
@@ -175,6 +178,33 @@ subagent profiles over time.
     validator, and integrator roles, so that I can scan the Arena under pressure.
 55. As a Steerboard user, I want orchestration state to survive reloads, so that
     active runs do not disappear when the app restarts.
+56. As a Steerboard user, I want every implementation phase to have its own
+    worksheet, so that each phase can be planned, staffed, validated, and
+    integrated independently.
+57. As a Steerboard user, I want a main worksheet for the overall run, so that I
+    can see only the accepted integrated state instead of every draft worker
+    artifact.
+58. As a Steerboard user, I want each phase worksheet to own its own subagent
+    assignments, so that phase work does not blur across unrelated scopes.
+59. As a Steerboard user, I want phase worksheets to show active, reviewing,
+    revision-needed, integrated, and removed states, so that I can tell where
+    each phase sits in the loop.
+60. As a Steerboard user, I want the main orchestrator to validate every phase
+    worksheet before integration, so that worker output cannot move into the
+    main worksheet without review.
+61. As a Steerboard user, I want the main orchestrator to send failed validation
+    back to the owning subagent, so that revisions happen in the right worksheet.
+62. As a Steerboard user, I want the revise-validate-integrate loop to continue
+    until the phase worksheet meets its acceptance criteria, so that the main
+    worksheet stays clean.
+63. As a Steerboard user, I want completed phase worksheets to be removed from
+    the active worksheet queue after integration, so that finished work stops
+    cluttering the Arena.
+64. As a Steerboard user, I want removed phase worksheets to leave an audit trace
+    in the main worksheet, so that I can still understand what was integrated.
+65. As a Steerboard user, I want each phase worksheet to preserve its subagent
+    handoff history until integration is accepted, so that revision context is
+    not lost.
 
 ## Implementation Decisions
 
@@ -218,9 +248,26 @@ subagent profiles over time.
   Codex-only actions, worker results, validator results, aggregate patch state,
   conflict state, handoff summary, approvals, verification, rollback, and final
   integration state.
+- Add a main worksheet model inside OrchestratorRun for the accepted integrated
+  state of the full effort.
+- Add a phase worksheet model for each implementation phase. Each phase
+  worksheet owns phase scope, assigned subagents, work packets, validation
+  evidence, revision history, integration status, and removal state.
+- Keep phase worksheets separate from the main worksheet until the main
+  orchestrator validates and integrates the phase output.
+- Remove phase worksheets from the active worksheet queue only after validation
+  and integration into the main worksheet succeed. Removal means inactive in the
+  workspace queue, not deletion of audit evidence.
+- Preserve an integration receipt in the main worksheet for every removed phase
+  worksheet, including phase id, accepted evidence, integrated artifacts,
+  validator notes, revision count, and timestamp.
 - Use explicit lifecycle states for orchestration work: planned, queued,
   running, needs_orchestrator, blocked, failed, validated, integrating, and
   complete.
+- Use explicit phase worksheet states: active, reviewing, revision_needed,
+  integrated, removed, blocked, and failed.
+- Route failed validation from the main orchestrator back to the owning phase
+  worksheet and assigned subagent, with reviewer notes and required revisions.
 - Use bounded work packets for worker dispatch instead of loose prompts.
 - Include goal, task type, allowed files, forbidden paths, context files,
   acceptance criteria, allowed commands, max iterations, max diff lines,
@@ -255,6 +302,54 @@ subagent profiles over time.
 
 ## Implementation Phases
 
+### Phase Worksheet Operating Model
+
+Every implementation phase is represented by a separate phase worksheet. The
+phase worksheet is the working area for that phase's subagents, packets,
+evidence, validation notes, and revision loop. The main worksheet is the
+accepted source of truth for the whole orchestrated effort.
+
+Rules:
+
+- one phase worksheet exists for each implementation phase,
+- each phase worksheet has its own subagent roster and work packets,
+- subagent output remains inside the phase worksheet until reviewed,
+- the main orchestrator acts as validator and integrator for every phase,
+- if validation fails, the worksheet returns to `revision_needed` and the
+  owning subagent receives the revision request,
+- the validate-revise loop continues until the phase output satisfies the phase
+  exit criteria,
+- once the main orchestrator integrates the accepted output into the main
+  worksheet, the phase worksheet moves to `removed` and leaves the active
+  worksheet queue,
+- removed worksheets keep audit receipts but no longer appear as active work.
+
+Phase worksheet states:
+
+| State | Meaning |
+| --- | --- |
+| active | Phase worksheet is open and subagents may work. |
+| reviewing | Main orchestrator is validating phase output. |
+| revision_needed | Validation failed and revisions are assigned back to subagents. |
+| integrated | Output passed validation and was merged into the main worksheet. |
+| removed | Worksheet was removed from active work after integration. |
+| blocked | Worksheet cannot progress because a dependency or approval is missing. |
+| failed | Worksheet exhausted allowed attempts or hit a non-recoverable error. |
+
+Phase worksheet register:
+
+| Worksheet | Owning Scope | Default Subagents | Integration Gate | Removal Rule |
+| --- | --- | --- | --- | --- |
+| Main Worksheet | Full PRD implementation state | Main Orchestrator, Integrator | Holds only validated phase outputs | Never removed during the run |
+| Phase 0 Worksheet | Contracts and safety decisions | Contract Worker, Validator | Contract tests and no-secret proof accepted | Remove after contracts integrate into main worksheet |
+| Phase 1 Worksheet | Codex adapter extraction | Adapter Worker, Validator | Existing live panel behavior and desktop build pass | Remove after adapter extraction integrates into main worksheet |
+| Phase 2 Worksheet | Provider discovery and profile defaults | Provider Worker, Profile Worker, Validator | Sanitized discovery and profile repair pass | Remove after provider/profile outputs integrate into main worksheet |
+| Phase 3 Worksheet | OrchestratorRun preview | Orchestration Worker, UX Validator | Preview graph is inspectable and non-mutating | Remove after preview model integrates into main worksheet |
+| Phase 4 Worksheet | Readonly worker dispatch | Readonly Worker, Validator | Readonly workers cannot write and handoff is accepted | Remove after readonly dispatch integrates into main worksheet |
+| Phase 5 Worksheet | Bounded patch worker dispatch | Patch Worker, Validator, Integrator | Patch policy and overlap checks pass | Remove after bounded patch flow integrates into main worksheet |
+| Phase 6 Worksheet | Approval queue, audit, and handoff | Approval Worker, Audit Validator | Approval states, audit records, and handoff pass | Remove after approval/audit flow integrates into main worksheet |
+| Phase 7 Worksheet | Configurable subagents and ACP readiness | Profile Worker, ACP Planner, Validator | Profile configuration and ACP boundary accepted | Remove after subagent config integrates into main worksheet |
+
 ### Phase 0: Contract Baseline And Safety Decisions
 
 Goal: turn the PRD into stable implementation contracts before runtime behavior
@@ -264,6 +359,7 @@ Scope:
 
 - define runtime adapter, agent session, agent profile, work packet,
   OrchestratorRun, approval request, and normalized event contracts,
+- define main worksheet and phase worksheet contracts,
 - define hide, close, detach, archive, and kill-process lifecycle semantics,
 - define sanitized auth and model discovery payloads,
 - decide v1 permission posture for read-only, workspace-write, ask-first, and
@@ -273,6 +369,8 @@ Scope:
 Exit criteria:
 
 - contracts have unit tests,
+- worksheet lifecycle state tests cover active, reviewing, revision_needed,
+  integrated, removed, blocked, and failed,
 - no secret-bearing field is returned to React,
 - browser preview remains non-live,
 - existing panel chat behavior is unchanged.
@@ -326,16 +424,19 @@ Goal: create native Steerboard orchestration state before any worker execution.
 Scope:
 
 - create OrchestratorRun records from Arena chat or dispatch package context,
+- create one main worksheet and one phase worksheet per implementation phase,
 - generate work-packet previews with goal, task type, scope, acceptance,
   forbidden paths, allowed commands, verification expectations, and rollback
   requirements,
 - classify actions as worker-safe, validator-safe, blocked, or
   main-orchestrator-only,
+- attach each graph node to its owning phase worksheet and subagent roster,
 - show planned graph nodes in the Arena and environment panel.
 
 Exit criteria:
 
 - users can inspect the run graph before execution,
+- users can inspect phase worksheets separately from the main worksheet,
 - blocked and Codex-only actions are visible,
 - no worker model call or filesystem mutation occurs in preview,
 - reload repair preserves visible run state.
@@ -352,13 +453,17 @@ Scope:
   states,
 - return findings, summaries, risk notes, and suggested next actions,
 - produce a handoff summary for the main orchestrator.
+- keep readonly worker findings in the phase worksheet until the main
+  orchestrator validates and integrates them.
 
 Exit criteria:
 
 - readonly workers cannot write files,
 - failures return `needs_orchestrator`,
 - worker participation and results are visible per Arena session,
-- main orchestrator can continue from the handoff without losing context.
+- main orchestrator can continue from the handoff without losing context,
+- accepted readonly phase worksheets are removed from the active queue after
+  integration into the main worksheet.
 
 ### Phase 5: Bounded Patch Worker Dispatch
 
@@ -375,13 +480,17 @@ Scope:
 - apply worker patches only to a temporary workspace or keep patch-only output
   until the sandbox runner is implemented,
 - route failures, overlaps, and weak evidence back to the main orchestrator.
+- send failed validation back to the owning phase worksheet and subagent with
+  specific revision notes.
 
 Exit criteria:
 
 - no worker patch is applied directly to the real workspace without review,
 - patch policy tests cover every rejection path,
 - validators and the main orchestrator can inspect worker output and decide
-  whether to apply, revise, or reject it.
+  whether to apply, revise, or reject it,
+- revision-needed worksheets stay active until the main orchestrator accepts the
+  integrated result.
 
 ### Phase 6: Approval Queue, Audit, And Handoff
 
@@ -397,13 +506,15 @@ Scope:
 - persist local approval and audit records,
 - attach approval, verification, rollback, and final-integration status to
   OrchestratorRun handoff.
+- record phase worksheet integration receipts in the main worksheet.
 
 Exit criteria:
 
 - no action requiring approval fails silently,
 - approval decisions are visible after reload,
 - rejected or expired approvals return a clear handoff to the main orchestrator,
-- audit records do not store secrets or raw private transcripts.
+- audit records do not store secrets or raw private transcripts,
+- removed phase worksheets retain audit receipts without cluttering active work.
 
 ### Phase 7: Configurable Subagents And ACP Readiness
 
@@ -415,12 +526,14 @@ Scope:
 - expose profile create, edit, disable, reorder, and project/global precedence,
 - support imported or project-scoped agent profiles without secrets,
 - add capability, cost, context, load, success, sandbox, and tool-policy fields,
+- allow each phase worksheet to select or override its subagent roster,
 - add ACP registry design after Codex adapter and orchestration contracts are
   stable.
 
 Exit criteria:
 
 - users can configure subagents without code changes,
+- users can assign different subagents per phase worksheet,
 - invalid profiles repair to safe disabled states,
 - ACP support has a documented adapter boundary before any runtime integration
   is attempted.
@@ -442,6 +555,8 @@ Expected benefits:
   capabilities are discovered and shown instead of implied,
 - safer delegation because every worker packet has scope, forbidden paths,
   acceptance criteria, verification, and rollback expectations,
+- cleaner execution because each phase has its own worksheet and subagent roster
+  before accepted output is integrated into the main worksheet,
 - better debugging because worker failures, blocked actions, approval waits, and
   handoffs become visible product state,
 - cleaner architecture because Codex app-server behavior moves behind an adapter
@@ -459,6 +574,8 @@ Primary project risks reduced:
 - worker patch conflicts,
 - silent approval waits,
 - direct worker edits to sensitive areas,
+- stale completed phase worksheets cluttering active work,
+- unvalidated phase output leaking into the accepted main worksheet,
 - brittle provider-specific UI state,
 - unclear handoff between planning, implementation, validation, and integration.
 
@@ -469,11 +586,11 @@ Delivery value by phase:
 | Phase 0 | Prevents abstraction drift by defining the contracts first. |
 | Phase 1 | Makes Codex integration maintainable without changing behavior. |
 | Phase 2 | Makes connection, model, and profile state honest and configurable. |
-| Phase 3 | Lets users inspect orchestration before spending model calls or mutating files. |
-| Phase 4 | Ships safe parallelism through readonly workers. |
-| Phase 5 | Adds controlled worker patch throughput with verification and fallback. |
-| Phase 6 | Turns approvals and audit from blockers into visible workflow state. |
-| Phase 7 | Opens the path to user-configurable subagents and ACP providers. |
+| Phase 3 | Lets users inspect orchestration worksheets before spending model calls or mutating files. |
+| Phase 4 | Ships safe parallelism through readonly workers in phase worksheets. |
+| Phase 5 | Adds controlled worker patch throughput with revision loops and fallback. |
+| Phase 6 | Turns approvals, audit, integration receipts, and worksheet removal into visible workflow state. |
+| Phase 7 | Opens the path to user-configurable subagents per worksheet and ACP providers. |
 
 ## Testing Decisions
 
@@ -505,6 +622,13 @@ Delivery value by phase:
 - Add OrchestratorRun tests for graph planning, dependency readiness, worker
   status transitions, blocked action tracking, handoff generation, validator
   results, integration state, and reload repair.
+- Add phase worksheet tests for one worksheet per phase, per-worksheet subagent
+  rosters, main worksheet separation, revision-needed routing, integration
+  receipts, and removal from the active worksheet queue after successful
+  validation and integration.
+- Add validator/integrator loop tests that prove failed validation returns the
+  worksheet to the owning subagent, repeated revisions keep the worksheet active,
+  and only accepted results move into the main worksheet.
 - Add approval queue tests for pending, approved, rejected, expired, failed, and
   consumed states.
 - Add UI tests that verify the Arena distinguishes orchestrator, worker,
