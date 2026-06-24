@@ -411,6 +411,10 @@ import {
   type BackgroundAgentRecord
 } from "./backgroundAgents";
 import {
+  buildSessionSearchDocuments,
+  searchSessionDocuments
+} from "./desktopConvenienceLayer";
+import {
   buildDefaultMigrationPreview,
   buildMigrationPreviewCounts,
   appendMigrationProfileDraftHistory,
@@ -6889,6 +6893,26 @@ function AppDialogSurface({
   }, [onClose]);
 
   const searchNeedle = searchQuery.trim().toLowerCase();
+  const sessionSearchDocuments = buildSessionSearchDocuments({
+    sessions: searchSessions,
+    messagesBySession: Object.fromEntries(
+      searchSessions.map((session) => [
+        session.id,
+        session.transcript.map((line, index) => ({
+          id: `${session.id}:transcript:${index}`,
+          role: index % 2 === 0 ? "user" : "codex",
+          label: index % 2 === 0 ? "You" : "Codex",
+          body: line,
+          meta: "session transcript"
+        }))
+      ])
+    )
+  });
+  const sessionSearchResults = searchSessionDocuments(sessionSearchDocuments, searchQuery);
+  const matchedSessionIds = new Set(sessionSearchResults.map((document) => document.sessionId));
+  const sessionSearchDocumentById = new Map(
+    sessionSearchDocuments.map((document) => [document.sessionId, document])
+  );
   const searchRows = [
     ...projects.map((project) => ({
       id: `project-${project.id}`,
@@ -6896,11 +6920,13 @@ function AppDialogSurface({
       title: project.name,
       detail: `${project.status}; ${project.runs} runs; updated ${project.updated}`
     })),
-    ...searchSessions.map((session) => ({
+    ...searchSessions
+      .filter((session) => !searchNeedle || matchedSessionIds.has(session.id))
+      .map((session) => ({
       id: `session-${session.id}`,
       kind: "Arena",
       title: session.title,
-      detail: `${session.role}; ${session.state}; ${session.branch}; ${session.files.join(", ")}`
+      detail: sessionSearchDocumentById.get(session.id)?.safeText ?? `${session.role}; ${session.state}; ${session.branch}`
     })),
     ...projectManagementTasks.map((task) => ({
       id: `pm-${task.id}`,
