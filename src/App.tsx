@@ -40,7 +40,7 @@ import {
   type TabNode as FlexLayoutTabNode
 } from "flexlayout-react";
 import type { ChangeEvent, DragEvent, FormEvent, KeyboardEvent, PointerEvent, ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "flexlayout-react/style/dark.css";
 import {
   ADAPTIVE_COCKPIT_DROP_JSON_MIME,
@@ -8424,7 +8424,34 @@ function SessionCell({
                   <strong>{message.label}</strong>
                   <small>{message.meta}</small>
                 </div>
-                <p>{message.body}</p>
+                <div className="chat-message-body">
+                  {message.body.split(/\n{2,}/).map((paragraph, paragraphIndex) => (
+                    <p key={`${message.id}:paragraph:${paragraphIndex}`}>
+                      {paragraph.split("\n").map((line, lineIndex) => (
+                        <Fragment key={`${message.id}:line:${paragraphIndex}:${lineIndex}`}>
+                          {line}
+                          {lineIndex < paragraph.split("\n").length - 1 ? <br /> : null}
+                        </Fragment>
+                      ))}
+                    </p>
+                  ))}
+                </div>
+                {message.sections && message.sections.length > 0 ? (
+                  <div className="chat-trace-sections" aria-label="Codex turn trace">
+                    {message.sections.map((section) => (
+                      <details
+                        className={`chat-trace-section chat-trace-${section.kind}`}
+                        key={section.id}
+                      >
+                        <summary>
+                          <span>{section.title}</span>
+                          <small>{section.summary}</small>
+                        </summary>
+                        <pre>{section.body}</pre>
+                      </details>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </li>
           ))}

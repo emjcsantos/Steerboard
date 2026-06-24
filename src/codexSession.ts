@@ -97,6 +97,7 @@ export interface CodexConnectionStatusEvent extends CodexSessionEventBase {
 
 export interface CodexProviderUnknownEvent extends CodexSessionEventBase {
   kind: "provider_unknown";
+  turnId?: string;
   name: string;
   summary: string;
 }
@@ -119,6 +120,10 @@ export interface CodexPanelEventPayload {
   status: string | null;
   delta: string | null;
   message: string | null;
+  summary?: string | null;
+  itemType?: string | null;
+  itemStatus?: string | null;
+  itemTitle?: string | null;
 }
 
 export interface CodexPanelTurnResultPayload {
@@ -485,8 +490,9 @@ export function normalizeCodexPanelTurnResultEvents(
       id: `${result.sessionId}:${eventTurnId}:unknown:${index}`,
       kind: "provider_unknown",
       provider: "codex",
+      turnId: eventTurnId,
       name: event.method,
-      summary: `Unsupported panel event: ${event.method}`,
+      summary: event.summary ?? event.message ?? event.itemTitle ?? `Provider event: ${event.method}`,
       raw: event
     });
   });

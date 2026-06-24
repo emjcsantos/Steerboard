@@ -3510,8 +3510,7 @@ textarea {
 }
 
 .chat-message-header strong,
-.chat-message-header small,
-.chat-bubble p {
+.chat-message-header small {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3529,11 +3528,88 @@ textarea {
   font-weight: 700;
 }
 
-.chat-bubble p {
+.chat-message-body {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.chat-message-body p {
   margin: 0;
   color: #dce3eb;
   font-size: 12px;
   line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.chat-trace-sections {
+  display: grid;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.chat-trace-section {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #2b3541;
+  border-radius: 7px;
+  background: #121820;
+}
+
+.chat-trace-section summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 28px;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: #dce3eb;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.chat-trace-section summary span,
+.chat-trace-section summary small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-trace-section summary small {
+  color: #8d98a7;
+  font-size: 10px;
+}
+
+.chat-trace-section pre {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  border-top: 1px solid #2b3541;
+  padding: 8px;
+  color: #b9c5d4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.chat-trace-reasoning {
+  border-color: #304867;
+}
+
+.chat-trace-steps {
+  border-color: #354059;
+}
+
+.chat-trace-commands {
+  border-color: #244860;
+}
+
+.chat-trace-trace {
+  border-color: #3a3146;
 }
 
 .cell-footer {

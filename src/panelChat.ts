@@ -17,12 +17,23 @@ import {
 
 export type PanelChatRole = "codex" | "user" | "tool" | "system";
 
+export type PanelChatSectionKind = "reasoning" | "steps" | "commands" | "trace";
+
+export interface PanelChatSection {
+  id: string;
+  kind: PanelChatSectionKind;
+  title: string;
+  summary: string;
+  body: string;
+}
+
 export interface PanelChatMessage {
   id: string;
   role: PanelChatRole;
   label: string;
   body: string;
   meta: string;
+  sections?: PanelChatSection[];
 }
 
 export type PanelSlashCommand = CommandCatalogEntry;
@@ -80,6 +91,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isPanelChatSection(value: unknown): value is PanelChatSection {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    (value.kind === "reasoning" || value.kind === "steps" || value.kind === "commands" || value.kind === "trace") &&
+    typeof value.title === "string" &&
+    typeof value.summary === "string" &&
+    typeof value.body === "string"
+  );
+}
+
 function isPanelChatMessage(value: unknown): value is PanelChatMessage {
   if (!isRecord(value)) {
     return false;
@@ -90,8 +115,32 @@ function isPanelChatMessage(value: unknown): value is PanelChatMessage {
     (value.role === "codex" || value.role === "user" || value.role === "tool" || value.role === "system") &&
     typeof value.label === "string" &&
     typeof value.body === "string" &&
-    typeof value.meta === "string"
+    typeof value.meta === "string" &&
+    (value.sections === undefined || (Array.isArray(value.sections) && value.sections.every(isPanelChatSection)))
   );
+}
+
+function normalizePanelChatMessage(message: PanelChatMessage): PanelChatMessage {
+  if (!message.sections || message.sections.length === 0) {
+    return {
+      id: message.id,
+      role: message.role,
+      label: message.label,
+      body: message.body,
+      meta: message.meta
+    };
+  }
+
+  return {
+    id: message.id,
+    role: message.role,
+    label: message.label,
+    body: message.body,
+    meta: message.meta,
+    sections: message.sections
+      .filter(isPanelChatSection)
+      .filter((section) => section.body.trim().length > 0)
+  };
 }
 
 function isStaleLivePendingMessage(message: PanelChatMessage): boolean {
@@ -445,6 +494,104 @@ function codexRoleToPanelRole(role: CodexSessionMessage["role"]): PanelChatRole 
   }
 }
 
+function rawPanelEvent(value: unknown): CodexPanelEventPayload | undefined {
+  if (!isRecord(value) || typeof value.method !== "string") {
+    return undefined;
+  }
+
+  return value as unknown as CodexPanelEventPayload;
+}
+
+function compactLine(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function eventDisplayLine(event: CodexPanelEventPayload): string {
+  const parts = [
+    event.method,
+    event.itemType ? `type=${event.itemType}` : "",
+    event.itemStatus ? `status=${event.itemStatus}` : event.status ? `status=${event.status}` : "",
+    event.itemTitle ? `title=${event.itemTitle}` : "",
+    event.summary ? `summary=${event.summary}` : "",
+    event.message ? `message=${event.message}` : ""
+  ].filter(Boolean);
+
+  return compactLine(parts.join(" | "));
+}
+
+function traceSection(
+  turnId: string,
+  kind: PanelChatSectionKind,
+  title: string,
+  lines: readonly string[]
+): PanelChatSection | undefined {
+  const body = lines.map(compactLine).filter(Boolean).join("\n");
+  if (!body) {
+    return undefined;
+  }
+
+  return {
+    id: `${turnId}:${kind}`,
+    kind,
+    title,
+    summary: `${lines.length} ${lines.length === 1 ? "entry" : "entries"}`,
+    body
+  };
+}
+
+function buildCodexTraceSections(
+  state: CodexSessionState,
+  turnId: string | undefined
+): PanelChatSection[] {
+  if (!turnId) {
+    return [];
+  }
+
+  const providerEvents = state.unknownEvents
+    .filter((event) => !event.turnId || event.turnId === turnId)
+    .map((event) => rawPanelEvent(event.raw))
+    .filter((event): event is CodexPanelEventPayload => Boolean(event));
+  const turn = state.turns.find((item) => item.id === turnId);
+  const toolMessages = state.messages.filter(
+    (message) => message.turnId === turnId && message.role === "tool" && message.body.trim().length > 0
+  );
+  const reasoningLines = [
+    turn?.prompt ? `Prompt accepted: ${turn.prompt}` : "",
+    turn?.summary ? `Turn summary: ${turn.summary}` : "",
+    turn?.error ? `Turn error: ${turn.error}` : "",
+    ...providerEvents
+      .filter((event) =>
+        /reason|thinking|analysis|plan|status|tokenUsage|rateLimits/i.test(
+          `${event.method} ${event.itemType ?? ""} ${event.itemTitle ?? ""} ${event.summary ?? ""}`
+        )
+      )
+      .map(eventDisplayLine)
+  ];
+  const stepLines = [
+    ...providerEvents
+      .filter((event) => /thread|turn|item\/started|item\/completed|warning/i.test(event.method))
+      .map(eventDisplayLine)
+  ];
+  const commandLines = [
+    ...toolMessages.map((message) => compactLine(message.body)),
+    ...providerEvents
+      .filter((event) =>
+        /tool|command|exec|shell|terminal|mcp|patch|script/i.test(
+          `${event.method} ${event.itemType ?? ""} ${event.itemTitle ?? ""} ${event.summary ?? ""} ${event.message ?? ""}`
+        )
+      )
+      .map(eventDisplayLine)
+  ];
+  const rawTraceLines = providerEvents.map(eventDisplayLine);
+
+  return [
+    traceSection(turnId, "reasoning", "Reasoning and Status", reasoningLines),
+    traceSection(turnId, "steps", "Steps", stepLines),
+    traceSection(turnId, "commands", "Commands, Scripts, and Tools", commandLines),
+    traceSection(turnId, "trace", "Raw Event Trace", rawTraceLines)
+  ].filter((section): section is PanelChatSection => Boolean(section));
+}
+
 export function codexSessionStateToPanelMessages(
   session: SessionSummary,
   state: CodexSessionState,
@@ -457,7 +604,8 @@ export function codexSessionStateToPanelMessages(
       role: codexRoleToPanelRole(message.role),
       label: message.role === "assistant" ? "Codex Live" : message.role,
       body: message.body,
-      meta: message.status
+      meta: message.status,
+      sections: message.role === "assistant" ? buildCodexTraceSections(state, message.turnId) : undefined
     }));
 }
 
@@ -471,6 +619,7 @@ export function normalizePanelChatMessages(
 
   const messages = value
     .filter(isPanelChatMessage)
+    .map(normalizePanelChatMessage)
     .filter((message) => !isLiveEvidenceMessage(message))
     .filter((message) => !isLiveRecoveryMessage(message));
   return messages.length > 0 ? messages : fallback;

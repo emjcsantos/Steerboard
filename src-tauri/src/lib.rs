@@ -303,6 +303,10 @@ pub struct CodexPanelEvent {
     pub status: Option<String>,
     pub delta: Option<String>,
     pub message: Option<String>,
+    pub summary: Option<String>,
+    pub item_type: Option<String>,
+    pub item_status: Option<String>,
+    pub item_title: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
@@ -4647,6 +4651,9 @@ mod runtime_bridge {
         let turn = params
             .and_then(|object| object.get("turn"))
             .and_then(Value::as_object);
+        let item = params
+            .and_then(|object| object.get("item"))
+            .and_then(Value::as_object);
         let status = turn
             .and_then(|object| object.get("status"))
             .and_then(Value::as_str)
@@ -4677,6 +4684,32 @@ mod runtime_bridge {
                     .map(ToOwned::to_owned)
             })
             .or_else(|| value.get("error").map(|error| error.to_string()));
+        let summary = params
+            .and_then(|object| object.get("summary"))
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned)
+            .or_else(|| {
+                item.and_then(|object| object.get("summary"))
+                    .and_then(Value::as_str)
+                    .map(ToOwned::to_owned)
+            });
+        let item_type = item
+            .and_then(|object| object.get("type"))
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned);
+        let item_status = item
+            .and_then(|object| object.get("status"))
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned);
+        let item_title = item
+            .and_then(|object| {
+                object
+                    .get("title")
+                    .or_else(|| object.get("name"))
+                    .or_else(|| object.get("command"))
+            })
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned);
 
         Some(CodexPanelEvent {
             event_type: panel_event_type(&method).to_string(),
@@ -4685,6 +4718,10 @@ mod runtime_bridge {
             status,
             delta,
             message,
+            summary,
+            item_type,
+            item_status,
+            item_title,
         })
     }
 
@@ -5990,6 +6027,10 @@ mod tests {
             status: Some("failed".to_string()),
             delta: None,
             message: Some("Reconnecting... 2/5".to_string()),
+            summary: None,
+            item_type: None,
+            item_status: None,
+            item_title: None,
         };
         let matching = CodexPanelEvent {
             method: "turn/completed".to_string(),
@@ -5998,6 +6039,10 @@ mod tests {
             status: Some("completed".to_string()),
             delta: None,
             message: None,
+            summary: None,
+            item_type: None,
+            item_status: None,
+            item_title: None,
         };
         let other_turn = CodexPanelEvent {
             turn_id: Some("turn-2".to_string()),

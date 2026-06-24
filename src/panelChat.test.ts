@@ -425,6 +425,7 @@ describe("panel chat helpers", () => {
         messages: [
           {
             id: "assistant-a",
+            turnId: "turn-1",
             role: "assistant",
             body: "Live answer",
             status: "completed"
@@ -439,15 +440,47 @@ describe("panel chat helpers", () => {
         turns: [],
         usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
         errors: [],
-        unknownEvents: []
+        unknownEvents: [
+          {
+            id: "trace-1",
+            kind: "provider_unknown",
+            provider: "codex",
+            turnId: "turn-1",
+            name: "item/started",
+            summary: "Started command",
+            raw: {
+              method: "item/started",
+              eventType: "trace",
+              turnId: "turn-1",
+              status: null,
+              delta: null,
+              message: null,
+              itemType: "command",
+              itemStatus: "running",
+              itemTitle: "Get-Location"
+            }
+          }
+        ]
       })
-    ).toEqual([
+    ).toMatchObject([
       {
         id: "panel-1:live:assistant-a:0",
         role: "codex",
         label: "Codex Live",
         body: "Live answer",
-        meta: "completed"
+        meta: "completed",
+        sections: expect.arrayContaining([
+          expect.objectContaining({
+            kind: "commands",
+            title: "Commands, Scripts, and Tools",
+            body: expect.stringContaining("Get-Location")
+          }),
+          expect.objectContaining({
+            kind: "trace",
+            title: "Raw Event Trace",
+            body: expect.stringContaining("item/started")
+          })
+        ])
       }
     ]);
   });
@@ -464,13 +497,45 @@ describe("panel chat helpers", () => {
       parseStoredPanelChatThreads(
         JSON.stringify({
           "panel-1": [
-            { id: "ok", role: "user", label: "You", body: "Hello", meta: "draft" },
+            {
+              id: "ok",
+              role: "user",
+              label: "You",
+              body: "Hello",
+              meta: "draft",
+              sections: [
+                {
+                  id: "trace",
+                  kind: "steps",
+                  title: "Steps",
+                  summary: "1 entry",
+                  body: "Read file"
+                }
+              ]
+            },
             { id: "bad" }
           ]
         })
       )
     ).toEqual({
-      "panel-1": [{ id: "ok", role: "user", label: "You", body: "Hello", meta: "draft" }]
+      "panel-1": [
+        {
+          id: "ok",
+          role: "user",
+          label: "You",
+          body: "Hello",
+          meta: "draft",
+          sections: [
+            {
+              id: "trace",
+              kind: "steps",
+              title: "Steps",
+              summary: "1 entry",
+              body: "Read file"
+            }
+          ]
+        }
+      ]
     });
   });
 
