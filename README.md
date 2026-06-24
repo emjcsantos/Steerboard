@@ -48,6 +48,7 @@ The desktop shell uses Tauri and loads the same local Vite UI during development
 - [Architecture Overview](docs/architecture/architecture-plan.md)
 - [Platform Strategy](docs/architecture/platform-strategy.md)
 - [Codex Transport Spike](docs/architecture/codex-transport-spike.md)
+- [Harnss Agent Parity Plan](docs/architecture/harnss-agent-parity-plan.md)
 - [Security and Privacy Model](docs/architecture/security-privacy-model.md)
 - [Public Roadmap](docs/roadmap.md)
 - [Installation Strategy](docs/operations/installation-strategy.md)
