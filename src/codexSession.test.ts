@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   createInitialCodexSessionState,
+  normalizeCodexProtocolLedger,
   normalizeCodexPanelTurnResultEvents,
   normalizeCodexProviderEvent,
+  parseStoredCodexProtocolLedgers,
   reduceCodexSessionEvent,
   reduceCodexSessionEvents,
   type CodexPanelTurnResultPayload,
@@ -685,5 +687,78 @@ describe("codex provider event normalization", () => {
     expect(JSON.stringify(unknown.raw)).not.toContain("sk-live");
     expect(JSON.stringify(unknown.raw)).not.toContain("secret-key");
     expect(JSON.stringify(unknown.raw)).toContain("visible");
+  });
+});
+
+describe("codex protocol ledger persistence", () => {
+  it("repairs malformed saved ledgers and preserves valid entries", () => {
+    const stored = parseStoredCodexProtocolLedgers(
+      JSON.stringify({
+        "panel-a": [
+          {
+            id: "entry-a",
+            kind: "reasoning",
+            method: "item/reasoning/summaryTextDelta",
+            turnId: "turn-a",
+            delta: "Thinking"
+          },
+          {
+            id: "",
+            kind: "command_execution",
+            method: "item/commandExecution"
+          },
+          "bad"
+        ],
+        "panel-b": [
+          {
+            id: "entry-b",
+            kind: "surprise",
+            method: "provider/future"
+          }
+        ],
+        "panel-c": []
+      })
+    );
+
+    expect(stored).toEqual({
+      "panel-a": [
+        expect.objectContaining({
+          id: "entry-a",
+          kind: "reasoning",
+          method: "item/reasoning/summaryTextDelta",
+          turnId: "turn-a",
+          delta: "Thinking"
+        })
+      ],
+      "panel-b": [
+        expect.objectContaining({
+          id: "entry-b",
+          kind: "unknown",
+          method: "provider/future"
+        })
+      ]
+    });
+  });
+
+  it("redacts raw secret fields when normalizing persisted ledger entries", () => {
+    const [entry] = normalizeCodexProtocolLedger([
+      {
+        id: "entry-secret",
+        kind: "unknown",
+        method: "provider/future",
+        raw: {
+          authorization: "Bearer secret",
+          nested: {
+            password: "hunter2",
+            safe: "visible"
+          }
+        }
+      }
+    ]);
+
+    const serialized = JSON.stringify(entry.raw);
+    expect(serialized).not.toContain("Bearer secret");
+    expect(serialized).not.toContain("hunter2");
+    expect(serialized).toContain("visible");
   });
 });

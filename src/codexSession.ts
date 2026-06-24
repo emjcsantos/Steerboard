@@ -244,6 +244,8 @@ const EMPTY_USAGE: CodexTokenUsage = {
   totalTokens: 0
 };
 
+const CODEX_PROTOCOL_LEDGER_STORAGE_KEY = "steerboard.codexProtocolLedger.v1";
+
 export function createInitialCodexSessionState(
   connectionStatus: CodexSessionConnectionStatus = "disconnected"
 ): CodexSessionState {
@@ -382,6 +384,129 @@ function normalizeUsage(rawUsage: Record<string, unknown>): CodexTokenUsage {
     outputTokens,
     totalTokens: suppliedTotal || inputTokens + outputTokens
   };
+}
+
+function normalizeLedgerKind(value: unknown): CodexProtocolLedgerKind {
+  switch (value) {
+    case "reasoning":
+    case "command_execution":
+    case "command_output_delta":
+    case "file_change":
+    case "mcp_call":
+    case "web_search":
+    case "image_view":
+    case "plan_update":
+    case "approval_request":
+    case "agent_message":
+    case "turn_status":
+    case "error":
+    case "usage":
+      return value;
+    default:
+      return "unknown";
+  }
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+export function normalizeCodexProtocolLedgerEntry(value: unknown): CodexProtocolLedgerEntry | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  const id = optionalString(value.id);
+  const method = optionalString(value.method);
+  if (!id || !method) {
+    return null;
+  }
+
+  const usage = isRecord(value.usage) ? normalizeUsage(value.usage) : undefined;
+  return {
+    id,
+    kind: normalizeLedgerKind(value.kind),
+    method,
+    threadId: optionalString(value.threadId),
+    turnId: optionalString(value.turnId),
+    itemId: optionalString(value.itemId),
+    itemType: optionalString(value.itemType),
+    status: optionalString(value.status),
+    title: optionalString(value.title),
+    detail: optionalString(value.detail),
+    delta: optionalString(value.delta),
+    message: optionalString(value.message),
+    summary: optionalString(value.summary),
+    usage: usage && (usage.totalTokens > 0 || usage.inputTokens > 0 || usage.outputTokens > 0)
+      ? usage
+      : undefined,
+    receivedAt: optionalString(value.receivedAt),
+    raw: redactProviderRaw(value.raw)
+  };
+}
+
+export function normalizeCodexProtocolLedger(value: unknown): CodexProtocolLedgerEntry[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map(normalizeCodexProtocolLedgerEntry)
+    .filter((entry): entry is CodexProtocolLedgerEntry => entry !== null);
+}
+
+export function parseStoredCodexProtocolLedgers(
+  serialized: string | null
+): Record<string, CodexProtocolLedgerEntry[]> {
+  if (!serialized) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(serialized);
+    if (!isRecord(parsed)) {
+      return {};
+    }
+
+    return Object.fromEntries(
+      Object.entries(parsed)
+        .map(([panelId, ledger]) => [panelId, normalizeCodexProtocolLedger(ledger)] as const)
+        .filter(([, ledger]) => ledger.length > 0)
+    );
+  } catch {
+    return {};
+  }
+}
+
+export function loadCodexProtocolLedger(panelId: string): CodexProtocolLedgerEntry[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  const stored = parseStoredCodexProtocolLedgers(
+    window.localStorage.getItem(CODEX_PROTOCOL_LEDGER_STORAGE_KEY)
+  );
+  return stored[panelId] ?? [];
+}
+
+export function saveCodexProtocolLedger(
+  panelId: string,
+  ledger: readonly CodexProtocolLedgerEntry[]
+) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const stored = parseStoredCodexProtocolLedgers(
+    window.localStorage.getItem(CODEX_PROTOCOL_LEDGER_STORAGE_KEY)
+  );
+  const normalized = normalizeCodexProtocolLedger(ledger);
+  window.localStorage.setItem(
+    CODEX_PROTOCOL_LEDGER_STORAGE_KEY,
+    JSON.stringify({
+      ...stored,
+      [panelId]: normalized
+    })
+  );
 }
 
 function normalizeMethodKind(method: string, itemType?: string | null): CodexProtocolLedgerKind {

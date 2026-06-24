@@ -432,10 +432,13 @@ import {
 } from "./skillCatalog";
 import { loadProviderSkillCatalogSnapshot } from "./providerSkillCatalog";
 import {
+  loadCodexProtocolLedger,
   normalizeCodexPanelTurnResultEvents,
   reduceCodexSessionEvents,
+  saveCodexProtocolLedger,
   type CodexPanelEventPayload,
-  type CodexPanelTurnResultPayload
+  type CodexPanelTurnResultPayload,
+  type CodexProtocolLedgerEntry
 } from "./codexSession";
 import {
   buildCodexSessionLifecycleControlsGate,
@@ -7664,6 +7667,9 @@ function SessionCell({
   const [chatMessages, setChatMessages] = useState<PanelChatMessage[]>(() =>
     loadPanelChatMessages(session)
   );
+  const [codexProtocolLedger, setCodexProtocolLedger] = useState<CodexProtocolLedgerEntry[]>(() =>
+    loadCodexProtocolLedger(session.id)
+  );
   const [agentSettings, setAgentSettings] = useState<CodexPanelAgentSettings>(() =>
     loadCodexPanelAgentSettings(session.id)
   );
@@ -7853,6 +7859,7 @@ function SessionCell({
 
   useEffect(() => {
     setChatMessages(loadPanelChatMessages(session));
+    setCodexProtocolLedger(loadCodexProtocolLedger(session.id));
     setAgentSettings(loadCodexPanelAgentSettings(session.id));
     setDraftMessage("");
     setLastLivePrompt("");
@@ -7899,6 +7906,10 @@ function SessionCell({
 
     savePanelChatMessages(session.id, chatMessages);
   }, [chatMessages, hasTransientStreamingMessage, session.id]);
+
+  useEffect(() => {
+    saveCodexProtocolLedger(session.id, codexProtocolLedger);
+  }, [codexProtocolLedger, session.id]);
 
   useEffect(() => {
     saveCodexPanelAgentSettings(session.id, agentSettings);
@@ -8230,6 +8241,10 @@ function SessionCell({
       const state = reduceCodexSessionEvents(
         normalizeCodexPanelTurnResultEvents(result, trimmedMessage)
       );
+      setCodexProtocolLedger((currentLedger) => [
+        ...currentLedger,
+        ...state.ledger
+      ]);
       const nextMessages = codexSessionStateToPanelMessages(session, state, liveMessageSequenceStart);
       const statusMessages = result.failed || result.interrupted || nextMessages.length === 0
         ? [
