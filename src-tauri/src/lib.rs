@@ -243,6 +243,54 @@ pub struct CodexPanelSessionStart {
     pub session_id: String,
     pub thread_id: String,
     pub started: bool,
+    pub auth_status: CodexPanelAuthStatus,
+    pub model_catalog: Vec<CodexPanelModelCatalogEntry>,
+    pub model_catalog_state: String,
+    pub selected_model: Option<String>,
+    pub selected_reasoning: String,
+    pub permission_mode: String,
+    pub sandbox_policy: String,
+    pub approval_policy: String,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexPanelAuthStatus {
+    pub state: String,
+    pub auth_mode: Option<String>,
+    pub plan_type: Option<String>,
+    pub requires_openai_auth: bool,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexPanelModelReasoningOption {
+    pub reasoning_effort: String,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexPanelModelCatalogEntry {
+    pub id: String,
+    pub model: String,
+    pub label: String,
+    pub hidden: bool,
+    pub is_default: bool,
+    pub default_reasoning_effort: Option<String>,
+    pub supported_reasoning_efforts: Vec<CodexPanelModelReasoningOption>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexPanelProviderSnapshot {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub auth_status: CodexPanelAuthStatus,
+    pub model_catalog: Vec<CodexPanelModelCatalogEntry>,
+    pub model_catalog_state: String,
     pub detail: String,
 }
 
@@ -273,6 +321,9 @@ pub struct CodexPanelStreamEvent {
 pub(crate) struct CodexPanelTurnSettings {
     pub(crate) model: Option<String>,
     pub(crate) reasoning_effort: String,
+    pub(crate) permission_mode: String,
+    pub(crate) sandbox_policy: String,
+    pub(crate) approval_policy: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
@@ -542,9 +593,11 @@ mod runtime_bridge {
         CodexActiveTurnControlSmokeControlProof, CodexActiveTurnControlSmokeProof,
         CodexActiveTurnSteerSmokeProof,
         CodexLiveControlSmokeMethodProof, CodexLiveControlSmokeProof,
-        CodexPanelEvent, CodexPanelInterruptResult, CodexPanelSessionReadiness,
-        CodexPanelSessionStart, CodexPanelSteerResult, CodexPanelStreamEvent,
-        CodexPanelTurnResult, CodexPanelTurnSettings, CodexTransportProbe,
+        CodexPanelAuthStatus, CodexPanelEvent, CodexPanelInterruptResult,
+        CodexPanelModelCatalogEntry, CodexPanelModelReasoningOption,
+        CodexPanelProviderSnapshot, CodexPanelSessionReadiness, CodexPanelSessionStart,
+        CodexPanelSteerResult, CodexPanelStreamEvent, CodexPanelTurnResult,
+        CodexPanelTurnSettings, CodexTransportProbe,
         CodexTwoPanelSmokePanelProof, CodexTwoPanelSmokeProof,
         LiveActionRunnerRequest, LiveActionRunnerResult, MigrationSourceCategoryPreview,
         MigrationSourcePreview, MigrationSourcePreviewCounts, PermissionApprovalStatus,
@@ -2014,8 +2067,14 @@ mod runtime_bridge {
     #[tauri::command]
     pub fn codex_panel_session_start(
         panel_id: Option<String>,
+        model: Option<String>,
+        reasoning_effort: Option<String>,
+        permission_mode: Option<String>,
     ) -> Result<CodexPanelSessionStart, String> {
         let panel_id = panel_session_key(panel_id);
+        let settings = panel_turn_settings(model, reasoning_effort, permission_mode);
+        let provider_snapshot = codex_panel_provider_discovery()
+            .unwrap_or_else(|detail| fallback_provider_snapshot(Some(detail)));
         if let Some(session) = get_panel_session(&panel_id)? {
             return Ok(CodexPanelSessionStart {
                 source: "desktop".to_string(),
@@ -2023,11 +2082,19 @@ mod runtime_bridge {
                 session_id: session.session_id.clone(),
                 thread_id: session.thread_id.clone(),
                 started: true,
+                auth_status: provider_snapshot.auth_status,
+                model_catalog: provider_snapshot.model_catalog,
+                model_catalog_state: provider_snapshot.model_catalog_state,
+                selected_model: settings.model,
+                selected_reasoning: settings.reasoning_effort,
+                permission_mode: settings.permission_mode,
+                sandbox_policy: settings.sandbox_policy,
+                approval_policy: settings.approval_policy,
                 detail: "Reused existing Codex panel session for this cockpit panel.".to_string(),
             });
         }
 
-        let session = start_panel_session(&panel_id)?;
+        let session = start_panel_session(&panel_id, &settings)?;
         replace_panel_session(&panel_id, session.clone())?;
         Ok(CodexPanelSessionStart {
             source: "desktop".to_string(),
@@ -2035,8 +2102,21 @@ mod runtime_bridge {
             session_id: session.session_id.clone(),
             thread_id: session.thread_id.clone(),
             started: true,
-            detail: "Started one ephemeral read-only Codex panel session.".to_string(),
+            auth_status: provider_snapshot.auth_status,
+            model_catalog: provider_snapshot.model_catalog,
+            model_catalog_state: provider_snapshot.model_catalog_state,
+            selected_model: settings.model,
+            selected_reasoning: settings.reasoning_effort,
+            permission_mode: settings.permission_mode,
+            sandbox_policy: settings.sandbox_policy,
+            approval_policy: settings.approval_policy,
+            detail: "Started one ephemeral Codex panel agent session.".to_string(),
         })
+    }
+
+    #[tauri::command]
+    pub fn codex_panel_provider_discovery() -> Result<CodexPanelProviderSnapshot, String> {
+        discover_panel_provider()
     }
 
     #[tauri::command]
@@ -2046,6 +2126,7 @@ mod runtime_bridge {
         prompt: String,
         model: Option<String>,
         reasoning_effort: Option<String>,
+        permission_mode: Option<String>,
     ) -> Result<CodexPanelTurnResult, String> {
         let panel_id = panel_session_key(panel_id);
         let prompt = prompt.trim().to_string();
@@ -2057,7 +2138,7 @@ mod runtime_bridge {
             "No Codex panel session is active. Start a session before sending a turn.".to_string()
         })?;
 
-        let settings = panel_turn_settings(model, reasoning_effort);
+        let settings = panel_turn_settings(model, reasoning_effort, permission_mode);
         tauri::async_runtime::spawn_blocking(move || {
             send_panel_turn(session, prompt, Some(window), settings)
         })
@@ -2072,8 +2153,17 @@ mod runtime_bridge {
         prompt: String,
         model: Option<String>,
         reasoning_effort: Option<String>,
+        permission_mode: Option<String>,
     ) -> Result<CodexPanelTurnResult, String> {
-        codex_panel_session_send_turn(window, panel_id, prompt, model, reasoning_effort).await
+        codex_panel_session_send_turn(
+            window,
+            panel_id,
+            prompt,
+            model,
+            reasoning_effort,
+            permission_mode,
+        )
+        .await
     }
 
     #[tauri::command]
@@ -2837,7 +2927,8 @@ mod runtime_bridge {
 
     fn run_active_turn_control_smoke() -> CodexActiveTurnControlSmokeProof {
         let checked_at = Some(current_timestamp());
-        let session = match start_panel_session(ACTIVE_TURN_CONTROL_SMOKE_PANEL_ID) {
+        let settings = panel_turn_settings(None, None, Some("read-only-agent".to_string()));
+        let session = match start_panel_session(ACTIVE_TURN_CONTROL_SMOKE_PANEL_ID, &settings) {
             Ok(session) => session,
             Err(error) => {
                 return codex_transport_active_turn_control_smoke_from_values(
@@ -3206,7 +3297,8 @@ mod runtime_bridge {
 
     fn run_active_turn_steer_smoke() -> CodexActiveTurnSteerSmokeProof {
         let checked_at = Some(current_timestamp());
-        let session = match start_panel_session(ACTIVE_TURN_STEER_SMOKE_PANEL_ID) {
+        let settings = panel_turn_settings(None, None, Some("read-only-agent".to_string()));
+        let session = match start_panel_session(ACTIVE_TURN_STEER_SMOKE_PANEL_ID, &settings) {
             Ok(session) => session,
             Err(error) => {
                 return codex_transport_active_turn_steer_smoke_from_values(
@@ -3574,7 +3666,8 @@ mod runtime_bridge {
         expected_token: &str,
         foreign_token: &str,
     ) -> CodexTwoPanelSmokePanelProof {
-        let session = match start_panel_session(panel_id) {
+        let settings = panel_turn_settings(None, None, Some("read-only-agent".to_string()));
+        let session = match start_panel_session(panel_id, &settings) {
             Ok(session) => session,
             Err(error) => {
                 return CodexTwoPanelSmokePanelProof {
@@ -3595,7 +3688,7 @@ mod runtime_bridge {
         };
 
         let prompt = format!("Reply with exactly this token and nothing else: {expected_token}");
-        match send_panel_turn(session, prompt, None, panel_turn_settings(None, None)) {
+        match send_panel_turn(session, prompt, None, settings) {
             Ok(result) => two_panel_panel_proof_from_turn(&result, expected_token, foreign_token),
             Err(error) => CodexTwoPanelSmokePanelProof {
                 panel_id: panel_id.to_string(),
@@ -3691,7 +3784,10 @@ mod runtime_bridge {
         }
     }
 
-    fn start_panel_session(panel_id: &str) -> Result<Arc<CodexPanelSession>, String> {
+    fn start_panel_session(
+        panel_id: &str,
+        settings: &CodexPanelTurnSettings,
+    ) -> Result<Arc<CodexPanelSession>, String> {
         let mut child = spawn_codex(&["app-server", "--listen", "stdio://"])
             .map_err(|_| "Unable to launch Codex app-server stdio.".to_string())?;
 
@@ -3731,9 +3827,9 @@ mod runtime_bridge {
             "params": {
                 "cwd": cwd,
                 "ephemeral": true,
-                "approvalPolicy": "never",
-                "sandbox": "read-only",
-                "baseInstructions": "You are connected to one Steerboard live panel session. Keep responses concise, avoid tool use unless explicitly requested, and respect the read-only sandbox.",
+                "approvalPolicy": settings.approval_policy,
+                "sandbox": thread_sandbox_mode(&settings.permission_mode),
+                "baseInstructions": panel_permission_base_instructions(&settings.permission_mode),
                 "threadSource": "user"
             }
         });
@@ -3775,11 +3871,8 @@ mod runtime_bridge {
                     "text": prompt
                 }
             ],
-            "approvalPolicy": "never",
-            "sandboxPolicy": {
-                "type": "workspaceWrite",
-                "networkAccess": false
-            },
+            "approvalPolicy": settings.approval_policy,
+            "sandboxPolicy": turn_sandbox_policy(&settings.permission_mode),
             "effort": settings.reasoning_effort
         });
         if let Some(model) = settings.model {
@@ -3847,7 +3940,8 @@ mod runtime_bridge {
                 interrupted = interrupted || event.status.as_deref() == Some("interrupted");
                 failed = failed
                     || event.status.as_deref() == Some("failed")
-                    || event.event_type == "error";
+                    || event.event_type == "error"
+                    || event.event_type == "approval_request";
                 emit_panel_stream_event(
                     stream_window.as_ref(),
                     &session,
@@ -3866,6 +3960,20 @@ mod runtime_bridge {
         clear_current_turn(&session);
         let timed_out = !completed && !interrupted && !failed;
         failed = failed || timed_out;
+        let detail = if completed {
+            "Codex panel turn completed.".to_string()
+        } else if interrupted {
+            "Codex panel turn was interrupted.".to_string()
+        } else if timed_out {
+            format!(
+                "Codex panel turn timed out after {PANEL_TURN_TIMEOUT_SECS}s before completion. Try again or refresh the Codex connection."
+            )
+        } else if failed {
+            first_failure_message(&events)
+                .unwrap_or_else(|| "Codex panel turn blocked by an unsupported approval request or failed.".to_string())
+        } else {
+            "Codex panel turn timed out before completion.".to_string()
+        };
         Ok(CodexPanelTurnResult {
             source: "desktop".to_string(),
             panel_id: session.panel_id.clone(),
@@ -3877,19 +3985,7 @@ mod runtime_bridge {
             failed,
             events,
             transcript,
-            detail: if completed {
-                "Codex panel turn completed.".to_string()
-            } else if interrupted {
-                "Codex panel turn was interrupted.".to_string()
-            } else if timed_out {
-                format!(
-                    "Codex panel turn timed out after {PANEL_TURN_TIMEOUT_SECS}s before completion. Try again or refresh the Codex connection."
-                )
-            } else if failed {
-                "Codex panel turn failed.".to_string()
-            } else {
-                "Codex panel turn timed out before completion.".to_string()
-            },
+            detail,
         })
     }
 
@@ -4018,10 +4114,15 @@ mod runtime_bridge {
     pub(crate) fn panel_turn_settings(
         model: Option<String>,
         reasoning_effort: Option<String>,
+        permission_mode: Option<String>,
     ) -> CodexPanelTurnSettings {
+        let permission_mode = normalize_panel_permission_mode(permission_mode);
         CodexPanelTurnSettings {
             model: normalize_panel_model(model),
             reasoning_effort: normalize_panel_reasoning(reasoning_effort),
+            sandbox_policy: panel_sandbox_policy_label(&permission_mode).to_string(),
+            approval_policy: panel_approval_policy(&permission_mode).to_string(),
+            permission_mode,
         }
     }
 
@@ -4030,7 +4131,7 @@ mod runtime_bridge {
         match value.as_str() {
             "provider-default" => None,
             "codex-agent" => Some("gpt-5.5".to_string()),
-            "gpt-5.5" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex-spark" => Some(value),
+            _ if is_safe_model_id(&value) => Some(value),
             _ => None,
         }
     }
@@ -4042,9 +4143,356 @@ mod runtime_bridge {
             .to_ascii_lowercase()
             .replace('_', "-");
         match value.as_str() {
-            "medium" | "high" | "extra-high" => value,
+            "minimal" | "low" | "medium" | "high" => value,
+            "extra-high" => "xhigh".to_string(),
+            "xhigh" => value,
             _ => "low".to_string(),
         }
+    }
+
+    fn normalize_panel_permission_mode(permission_mode: Option<String>) -> String {
+        let value = permission_mode
+            .unwrap_or_else(|| "full-agent".to_string())
+            .trim()
+            .to_ascii_lowercase()
+            .replace('_', "-");
+        match value.as_str() {
+            "full-agent" | "workspace-agent" | "read-only-agent" | "chat-only" => value,
+            "full" | "danger-full-access" => "full-agent".to_string(),
+            "workspace" | "workspace-write" => "workspace-agent".to_string(),
+            "read-only" | "readonly" => "read-only-agent".to_string(),
+            "chat" => "chat-only".to_string(),
+            _ => "full-agent".to_string(),
+        }
+    }
+
+    fn is_safe_model_id(value: &str) -> bool {
+        let mut chars = value.chars();
+        matches!(chars.next(), Some(first) if first.is_ascii_lowercase() || first.is_ascii_digit())
+            && value.len() <= 100
+            && value
+                .chars()
+                .all(|character| character.is_ascii_lowercase() || character.is_ascii_digit() || matches!(character, '.' | '_' | '-'))
+    }
+
+    fn panel_approval_policy(permission_mode: &str) -> &'static str {
+        match permission_mode {
+            "workspace-agent" | "read-only-agent" => "on-request",
+            "full-agent" | "chat-only" => "never",
+            _ => "never",
+        }
+    }
+
+    fn panel_sandbox_policy_label(permission_mode: &str) -> &'static str {
+        match permission_mode {
+            "full-agent" => "dangerFullAccess",
+            "workspace-agent" => "workspaceWrite(network:false)",
+            "read-only-agent" | "chat-only" => "readOnly(workspace)",
+            _ => "dangerFullAccess",
+        }
+    }
+
+    fn thread_sandbox_mode(permission_mode: &str) -> &'static str {
+        match permission_mode {
+            "full-agent" => "danger-full-access",
+            "workspace-agent" => "workspace-write",
+            "read-only-agent" | "chat-only" => "read-only",
+            _ => "danger-full-access",
+        }
+    }
+
+    pub(crate) fn turn_sandbox_policy(permission_mode: &str) -> Value {
+        match permission_mode {
+            "full-agent" => serde_json::json!({ "type": "dangerFullAccess" }),
+            "workspace-agent" => serde_json::json!({
+                "type": "workspaceWrite",
+                "writableRoots": [],
+                "readOnlyAccess": "workspace",
+                "networkAccess": false,
+                "excludeTmpdirEnvVar": false,
+                "excludeSlashTmp": false
+            }),
+            "read-only-agent" | "chat-only" => {
+                serde_json::json!({ "type": "readOnly", "access": "workspace" })
+            }
+            _ => serde_json::json!({ "type": "dangerFullAccess" }),
+        }
+    }
+
+    fn panel_permission_base_instructions(permission_mode: &str) -> &'static str {
+        match permission_mode {
+            "full-agent" => {
+                "You are connected to one Steerboard live panel session. Behave like a Codex Desktop full agent with local filesystem and process access. Keep responses concise, act carefully, and surface blockers instead of pretending unsupported actions succeeded."
+            }
+            "workspace-agent" => {
+                "You are connected to one Steerboard live panel session. Work inside the workspace-write sandbox with network disabled. Ask for approval when the Codex runtime requires it and surface unsupported approval requests as blocked."
+            }
+            "read-only-agent" => {
+                "You are connected to one Steerboard live panel session. Respect the read-only sandbox: inspect and explain, but do not write files or make system changes."
+            }
+            "chat-only" => {
+                "You are connected to one Steerboard live panel session in Chat Only mode. Answer through provider chat and avoid tool, filesystem, and process execution intent unless the user changes permissions."
+            }
+            _ => {
+                "You are connected to one Steerboard live panel session. Keep responses concise and surface blockers clearly."
+            }
+        }
+    }
+
+    fn discover_panel_provider() -> Result<CodexPanelProviderSnapshot, String> {
+        let checked_at = Some(current_timestamp());
+        let mut child = spawn_codex(&["app-server", "--listen", "stdio://"])
+            .map_err(|_| "Unable to launch Codex app-server stdio.".to_string())?;
+
+        let (tx, rx) = mpsc::channel();
+        let stdout = child
+            .stdout
+            .take()
+            .ok_or_else(|| "Codex app-server stdout was not available.".to_string())?;
+        thread::spawn(move || {
+            let reader = BufReader::new(stdout);
+            for line in reader.lines().map_while(Result::ok) {
+                let _ = tx.send(line);
+            }
+        });
+        drain_stderr(&mut child);
+
+        if !send_json(
+            &mut child,
+            &initialize_request(1, "steerboard-panel-provider-discovery"),
+        ) {
+            cleanup_child(&mut child);
+            return Err("Unable to write initialize request to Codex app-server.".to_string());
+        }
+
+        if wait_for_json_rpc_id(&rx, 1, Duration::from_secs(8)).is_none() {
+            cleanup_child(&mut child);
+            return Err("Codex app-server did not return initialize response.".to_string());
+        }
+
+        let account_request = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "account/read",
+            "params": {}
+        });
+        let model_request = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "model/list",
+            "params": {}
+        });
+
+        let account_written = send_json(&mut child, &account_request);
+        let model_written = send_json(&mut child, &model_request);
+        let account_response = if account_written {
+            wait_for_json_rpc_id(&rx, 2, Duration::from_secs(8))
+        } else {
+            None
+        };
+        let model_response = if model_written {
+            wait_for_json_rpc_id(&rx, 3, Duration::from_secs(8))
+        } else {
+            None
+        };
+        cleanup_child(&mut child);
+
+        let auth_status = sanitize_panel_auth_status(account_response.as_ref());
+        let model_catalog = sanitize_panel_model_catalog(model_response.as_ref());
+        let model_catalog_state = if model_catalog.is_empty() {
+            "fallback".to_string()
+        } else {
+            "live".to_string()
+        };
+        let detail = if account_response.is_none() && model_response.is_none() {
+            "Codex provider discovery initialized, but account/read and model/list did not return usable responses."
+        } else if model_catalog.is_empty() {
+            "Codex provider auth was discovered; model catalog is using static fallback options."
+        } else {
+            "Codex provider auth and model catalog discovered through app-server."
+        }
+        .to_string();
+
+        Ok(CodexPanelProviderSnapshot {
+            source: "desktop".to_string(),
+            checked_at,
+            auth_status,
+            model_catalog,
+            model_catalog_state,
+            detail,
+        })
+    }
+
+    fn fallback_provider_snapshot(detail: Option<String>) -> CodexPanelProviderSnapshot {
+        CodexPanelProviderSnapshot {
+            source: "desktop".to_string(),
+            checked_at: Some(current_timestamp()),
+            auth_status: CodexPanelAuthStatus {
+                state: "unknown".to_string(),
+                auth_mode: None,
+                plan_type: None,
+                requires_openai_auth: false,
+                detail: detail.unwrap_or_else(|| "Codex provider discovery was unavailable.".to_string()),
+            },
+            model_catalog: Vec::new(),
+            model_catalog_state: "fallback".to_string(),
+            detail: "Using static panel model fallback options.".to_string(),
+        }
+    }
+
+    pub(crate) fn sanitize_panel_auth_status(value: Option<&Value>) -> CodexPanelAuthStatus {
+        let Some(value) = value else {
+            return CodexPanelAuthStatus {
+                state: "unknown".to_string(),
+                auth_mode: None,
+                plan_type: None,
+                requires_openai_auth: false,
+                detail: "account/read did not return a response.".to_string(),
+            };
+        };
+
+        if let Some(error) = json_rpc_error_message(value) {
+            return CodexPanelAuthStatus {
+                state: "error".to_string(),
+                auth_mode: None,
+                plan_type: None,
+                requires_openai_auth: false,
+                detail: format!("account/read failed: {error}"),
+            };
+        }
+
+        let result = value.get("result");
+        let account = result
+            .and_then(|result| result.get("account"))
+            .or_else(|| result.and_then(|result| result.get("auth")));
+        let auth_mode = account
+            .and_then(|account| {
+                account
+                    .get("type")
+                    .or_else(|| account.get("authMode"))
+                    .or_else(|| account.get("mode"))
+            })
+            .and_then(Value::as_str)
+            .map(str::to_string);
+        let plan_type = account
+            .and_then(|account| {
+                account
+                    .get("planType")
+                    .or_else(|| account.get("plan"))
+                    .or_else(|| account.get("subscription"))
+            })
+            .and_then(Value::as_str)
+            .map(str::to_string);
+        let requires_openai_auth = result
+            .and_then(|result| result.get("requiresOpenaiAuth"))
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+        let state = if requires_openai_auth {
+            "needs-auth"
+        } else if auth_mode.is_some() || plan_type.is_some() || account.is_some() {
+            "available"
+        } else {
+            "unknown"
+        };
+
+        CodexPanelAuthStatus {
+            state: state.to_string(),
+            auth_mode,
+            plan_type,
+            requires_openai_auth,
+            detail: if state == "available" {
+                "Codex account access is available."
+            } else if state == "needs-auth" {
+                "Codex account access requires OpenAI authentication."
+            } else {
+                "Codex account response did not include sanitized auth metadata."
+            }
+            .to_string(),
+        }
+    }
+
+    pub(crate) fn sanitize_panel_model_catalog(value: Option<&Value>) -> Vec<CodexPanelModelCatalogEntry> {
+        let Some(value) = value else {
+            return Vec::new();
+        };
+        if json_rpc_error_message(value).is_some() {
+            return Vec::new();
+        }
+
+        let data = value
+            .get("result")
+            .and_then(|result| result.get("data").or_else(|| result.get("models")))
+            .and_then(Value::as_array);
+        let Some(data) = data else {
+            return Vec::new();
+        };
+
+        data.iter()
+            .filter_map(|entry| {
+                let id = entry
+                    .get("id")
+                    .or_else(|| entry.get("model"))
+                    .and_then(Value::as_str)?
+                    .trim()
+                    .to_ascii_lowercase();
+                if !is_safe_model_id(&id) {
+                    return None;
+                }
+                let model = entry
+                    .get("model")
+                    .and_then(Value::as_str)
+                    .map(|value| value.trim().to_ascii_lowercase())
+                    .filter(|value| is_safe_model_id(value))
+                    .unwrap_or_else(|| id.clone());
+                let label = entry
+                    .get("displayName")
+                    .or_else(|| entry.get("label"))
+                    .and_then(Value::as_str)
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                    .map(str::to_string)
+                    .unwrap_or_else(|| id.clone());
+                let supported_reasoning_efforts = entry
+                    .get("supportedReasoningEfforts")
+                    .and_then(Value::as_array)
+                    .map(|efforts| {
+                        efforts
+                            .iter()
+                            .filter_map(|effort| {
+                                let reasoning_effort = effort
+                                    .get("reasoningEffort")
+                                    .or_else(|| effort.get("value"))
+                                    .and_then(Value::as_str)
+                                    .map(|value| normalize_panel_reasoning(Some(value.to_string())))?;
+                                Some(CodexPanelModelReasoningOption {
+                                    reasoning_effort,
+                                    description: effort
+                                        .get("description")
+                                        .and_then(Value::as_str)
+                                        .map(str::to_string),
+                                })
+                            })
+                            .collect()
+                    })
+                    .unwrap_or_default();
+
+                Some(CodexPanelModelCatalogEntry {
+                    id,
+                    model,
+                    label,
+                    hidden: entry.get("hidden").and_then(Value::as_bool).unwrap_or(false),
+                    is_default: entry
+                        .get("isDefault")
+                        .and_then(Value::as_bool)
+                        .unwrap_or(false),
+                    default_reasoning_effort: entry
+                        .get("defaultReasoningEffort")
+                        .and_then(Value::as_str)
+                        .map(|value| normalize_panel_reasoning(Some(value.to_string()))),
+                    supported_reasoning_efforts,
+                })
+            })
+            .collect()
     }
 
     fn panel_session_registry() -> &'static Mutex<BTreeMap<String, Arc<CodexPanelSession>>> {
@@ -4252,6 +4700,7 @@ mod runtime_bridge {
 
     fn panel_event_is_failure(event: &CodexPanelEvent) -> bool {
         event.status.as_deref() == Some("failed")
+            || event.event_type == "approval_request"
             || (event.event_type == "error" && !panel_event_is_transient_reconnect(event))
     }
 
@@ -4278,6 +4727,10 @@ mod runtime_bridge {
     }
 
     fn panel_event_type(method: &str) -> &str {
+        if method.to_ascii_lowercase().contains("approval") {
+            return "approval_request";
+        }
+
         match method {
             "item/agentMessage/delta" => "agent_delta",
             "turn/completed" => "turn_status",
@@ -4444,6 +4897,7 @@ pub fn run() {
             runtime_bridge::codex_transport_live_control_smoke,
             runtime_bridge::codex_transport_two_panel_smoke,
             runtime_bridge::codex_panel_session_readiness,
+            runtime_bridge::codex_panel_provider_discovery,
             runtime_bridge::codex_panel_session_start,
             runtime_bridge::codex_panel_session_send_turn,
             runtime_bridge::codex_panel_session_retry,
@@ -5250,28 +5704,115 @@ mod tests {
         let settings = runtime_bridge::panel_turn_settings(
             Some(" GPT-5.5 ".to_string()),
             Some("extra_high".to_string()),
+            Some("workspace".to_string()),
         );
 
         assert_eq!(settings.model.as_deref(), Some("gpt-5.5"));
-        assert_eq!(settings.reasoning_effort, "extra-high");
+        assert_eq!(settings.reasoning_effort, "xhigh");
+        assert_eq!(settings.permission_mode, "workspace-agent");
+        assert_eq!(settings.approval_policy, "on-request");
 
-        let legacy = runtime_bridge::panel_turn_settings(Some("Codex-Agent".to_string()), None);
+        let legacy = runtime_bridge::panel_turn_settings(Some("Codex-Agent".to_string()), None, None);
         assert_eq!(legacy.model.as_deref(), Some("gpt-5.5"));
         assert_eq!(legacy.reasoning_effort, "low");
+        assert_eq!(legacy.permission_mode, "full-agent");
 
         let spark = runtime_bridge::panel_turn_settings(
             Some("GPT-5.3-Codex-Spark".to_string()),
             Some("high".to_string()),
+            Some("read-only-agent".to_string()),
         );
         assert_eq!(spark.model.as_deref(), Some("gpt-5.3-codex-spark"));
         assert_eq!(spark.reasoning_effort, "high");
+        assert_eq!(spark.sandbox_policy, "readOnly(workspace)");
 
         let fallback = runtime_bridge::panel_turn_settings(
-            Some("unknown-model".to_string()),
+            Some("unknown model".to_string()),
             Some("unknown-effort".to_string()),
+            Some("sideways".to_string()),
         );
         assert_eq!(fallback.model, None);
         assert_eq!(fallback.reasoning_effort, "low");
+        assert_eq!(fallback.permission_mode, "full-agent");
+        assert_eq!(
+            runtime_bridge::turn_sandbox_policy("full-agent")
+                .get("type")
+                .and_then(serde_json::Value::as_str),
+            Some("dangerFullAccess")
+        );
+        assert_eq!(
+            runtime_bridge::turn_sandbox_policy("workspace-agent")
+                .get("networkAccess")
+                .and_then(serde_json::Value::as_bool),
+            Some(false)
+        );
+    }
+
+    #[test]
+    fn panel_auth_status_serializes_without_secret_fields() {
+        let response = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+                "requiresOpenaiAuth": false,
+                "account": {
+                    "type": "chatgpt",
+                    "planType": "plus",
+                    "email": "person@example.com",
+                    "apiKey": "sk-secret-value",
+                    "token": "private-token"
+                }
+            }
+        });
+        let status = runtime_bridge::sanitize_panel_auth_status(Some(&response));
+        let serialized = serde_json::to_string(&status).expect("auth status should serialize");
+
+        assert_eq!(status.state, "available");
+        assert_eq!(status.auth_mode.as_deref(), Some("chatgpt"));
+        assert_eq!(status.plan_type.as_deref(), Some("plus"));
+        assert!(!serialized.contains("person@example.com"));
+        assert!(!serialized.contains("sk-secret-value"));
+        assert!(!serialized.contains("private-token"));
+    }
+
+    #[test]
+    fn panel_model_catalog_parses_supported_reasoning() {
+        let response = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 3,
+            "result": {
+                "data": [
+                    {
+                        "id": "gpt-5.5",
+                        "model": "gpt-5.5",
+                        "displayName": "GPT-5.5",
+                        "isDefault": true,
+                        "defaultReasoningEffort": "medium",
+                        "supportedReasoningEfforts": [
+                            { "reasoningEffort": "minimal", "description": "Fastest" },
+                            { "reasoningEffort": "extra-high", "description": "Deepest" }
+                        ]
+                    },
+                    {
+                        "id": "bad model id",
+                        "displayName": "Bad"
+                    }
+                ]
+            }
+        });
+        let catalog = runtime_bridge::sanitize_panel_model_catalog(Some(&response));
+
+        assert_eq!(catalog.len(), 1);
+        assert_eq!(catalog[0].id, "gpt-5.5");
+        assert_eq!(catalog[0].default_reasoning_effort.as_deref(), Some("medium"));
+        assert_eq!(
+            catalog[0]
+                .supported_reasoning_efforts
+                .iter()
+                .map(|option| option.reasoning_effort.as_str())
+                .collect::<Vec<_>>(),
+            vec!["minimal", "xhigh"]
+        );
     }
 
     #[test]

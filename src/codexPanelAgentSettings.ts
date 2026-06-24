@@ -9,23 +9,34 @@ export const codexPanelModelOptions = [
 ] as const;
 
 export const codexPanelReasoningOptions = [
+  { label: "Minimal", value: "minimal" },
   { label: "Low", value: "low" },
   { label: "Medium", value: "medium" },
   { label: "High", value: "high" },
-  { label: "Extra High", value: "extra-high" }
+  { label: "X High", value: "xhigh" }
 ] as const;
 
-export type CodexPanelModel = (typeof codexPanelModelOptions)[number]["value"];
+export const codexPanelPermissionModeOptions = [
+  { label: "Full Agent", value: "full-agent" },
+  { label: "Workspace Agent", value: "workspace-agent" },
+  { label: "Read-only Agent", value: "read-only-agent" },
+  { label: "Chat Only", value: "chat-only" }
+] as const;
+
+export type CodexPanelModel = string;
 export type CodexPanelReasoning = (typeof codexPanelReasoningOptions)[number]["value"];
+export type CodexPanelPermissionMode = (typeof codexPanelPermissionModeOptions)[number]["value"];
 
 export interface CodexPanelAgentSettings {
   model: CodexPanelModel;
   reasoning: CodexPanelReasoning;
+  permissionMode: CodexPanelPermissionMode;
 }
 
 export const defaultCodexPanelAgentSettings: CodexPanelAgentSettings = {
   model: "gpt-5.5",
-  reasoning: "low"
+  reasoning: "low",
+  permissionMode: "full-agent"
 };
 
 export type CodexPanelAgentSettingsState = Record<string, CodexPanelAgentSettings>;
@@ -39,15 +50,30 @@ function normalizeModel(value: unknown): CodexPanelModel {
     return "gpt-5.5";
   }
 
-  return codexPanelModelOptions.some((option) => option.value === value)
-    ? (value as CodexPanelModel)
+  if (typeof value !== "string") {
+    return defaultCodexPanelAgentSettings.model;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return /^[a-z0-9][a-z0-9._-]{0,99}$/.test(normalized)
+    ? normalized
     : defaultCodexPanelAgentSettings.model;
 }
 
 function normalizeReasoning(value: unknown): CodexPanelReasoning {
+  if (value === "extra-high") {
+    return "xhigh";
+  }
+
   return codexPanelReasoningOptions.some((option) => option.value === value)
     ? (value as CodexPanelReasoning)
     : defaultCodexPanelAgentSettings.reasoning;
+}
+
+function normalizePermissionMode(value: unknown): CodexPanelPermissionMode {
+  return codexPanelPermissionModeOptions.some((option) => option.value === value)
+    ? (value as CodexPanelPermissionMode)
+    : defaultCodexPanelAgentSettings.permissionMode;
 }
 
 export function normalizeCodexPanelAgentSettings(value: unknown): CodexPanelAgentSettings {
@@ -57,7 +83,8 @@ export function normalizeCodexPanelAgentSettings(value: unknown): CodexPanelAgen
 
   return {
     model: normalizeModel(value.model),
-    reasoning: normalizeReasoning(value.reasoning)
+    reasoning: normalizeReasoning(value.reasoning),
+    permissionMode: normalizePermissionMode(value.permissionMode)
   };
 }
 
@@ -124,4 +151,10 @@ export function getCodexPanelModelLabel(model: CodexPanelModel): string {
 
 export function getCodexPanelReasoningLabel(reasoning: CodexPanelReasoning): string {
   return codexPanelReasoningOptions.find((option) => option.value === reasoning)?.label ?? reasoning;
+}
+
+export function getCodexPanelPermissionModeLabel(
+  permissionMode: CodexPanelPermissionMode
+): string {
+  return codexPanelPermissionModeOptions.find((option) => option.value === permissionMode)?.label ?? permissionMode;
 }

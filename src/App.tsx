@@ -563,13 +563,16 @@ import {
 } from "./codexPanelSessionState";
 import {
   codexPanelModelOptions,
+  codexPanelPermissionModeOptions,
   codexPanelReasoningOptions,
   getCodexPanelModelLabel,
+  getCodexPanelPermissionModeLabel,
   getCodexPanelReasoningLabel,
   loadCodexPanelAgentSettings,
   saveCodexPanelAgentSettings,
   type CodexPanelAgentSettings,
   type CodexPanelModel,
+  type CodexPanelPermissionMode,
   type CodexPanelReasoning
 } from "./codexPanelAgentSettings";
 import {
@@ -1974,6 +1977,46 @@ interface CodexPanelSessionStartPayload {
   sessionId: string;
   threadId: string;
   started: boolean;
+  authStatus: CodexPanelAuthStatusPayload;
+  modelCatalog: CodexPanelModelCatalogEntryPayload[];
+  modelCatalogState: string;
+  selectedModel: string | null;
+  selectedReasoning: CodexPanelReasoning;
+  permissionMode: CodexPanelPermissionMode;
+  sandboxPolicy: string;
+  approvalPolicy: string;
+  detail: string;
+}
+
+interface CodexPanelAuthStatusPayload {
+  state: string;
+  authMode: string | null;
+  planType: string | null;
+  requiresOpenaiAuth: boolean;
+  detail: string;
+}
+
+interface CodexPanelModelReasoningOptionPayload {
+  reasoningEffort: CodexPanelReasoning;
+  description: string | null;
+}
+
+interface CodexPanelModelCatalogEntryPayload {
+  id: string;
+  model: string;
+  label: string;
+  hidden: boolean;
+  isDefault: boolean;
+  defaultReasoningEffort: CodexPanelReasoning | null;
+  supportedReasoningEfforts: CodexPanelModelReasoningOptionPayload[];
+}
+
+interface CodexPanelProviderSnapshotPayload {
+  source: string;
+  checkedAt: string | null;
+  authStatus: CodexPanelAuthStatusPayload;
+  modelCatalog: CodexPanelModelCatalogEntryPayload[];
+  modelCatalogState: string;
   detail: string;
 }
 
@@ -7579,8 +7622,38 @@ function SessionCell({
         ? "Codex live session ready"
         : "Codex local preview"
   );
+  const [providerSnapshot, setProviderSnapshot] = useState<CodexPanelProviderSnapshotPayload | null>(null);
   const liveSendInFlightRef = useRef(false);
   const canUseLiveCodex = liveCodexEnabled && hasDesktopRuntime() && !sessionIdentityBlocked;
+  const panelModelOptions = useMemo(() => {
+    const liveOptions =
+      providerSnapshot?.modelCatalog
+        .filter((entry) => !entry.hidden)
+        .map((entry) => ({
+          label: entry.label,
+          value: entry.model || entry.id
+        })) ?? [];
+    const merged = new Map<string, { label: string; value: string }>();
+    liveOptions.forEach((option) => merged.set(option.value, option));
+    codexPanelModelOptions.forEach((option) => merged.set(option.value, option));
+    return Array.from(merged.values());
+  }, [providerSnapshot?.modelCatalog]);
+  const selectedCatalogModel = useMemo(
+    () =>
+      providerSnapshot?.modelCatalog.find(
+        (entry) => entry.model === agentSettings.model || entry.id === agentSettings.model
+      ),
+    [agentSettings.model, providerSnapshot?.modelCatalog]
+  );
+  const panelReasoningOptions = useMemo(() => {
+    const supported = selectedCatalogModel?.supportedReasoningEfforts ?? [];
+    if (supported.length === 0) {
+      return codexPanelReasoningOptions;
+    }
+
+    const supportedValues = new Set(supported.map((option) => option.reasoningEffort));
+    return codexPanelReasoningOptions.filter((option) => supportedValues.has(option.value));
+  }, [selectedCatalogModel?.supportedReasoningEfforts]);
   const slashSuggestions = useMemo(
     () => getPanelSlashCommandSuggestions(draftMessage, commandCatalog),
     [commandCatalog, draftMessage]
@@ -7678,8 +7751,31 @@ function SessionCell({
     : sessionIdentityBlocked
       ? "Session conflict"
       : "Codex local preview";
-  const agentModelLabel = getCodexPanelModelLabel(agentSettings.model);
+  const agentModelLabel =
+    panelModelOptions.find((option) => option.value === agentSettings.model)?.label ??
+    getCodexPanelModelLabel(agentSettings.model);
   const agentReasoningLabel = getCodexPanelReasoningLabel(agentSettings.reasoning);
+  const agentPermissionModeLabel = getCodexPanelPermissionModeLabel(agentSettings.permissionMode);
+  const agentAuthLabel = providerSnapshot?.authStatus.requiresOpenaiAuth
+    ? "Auth needed"
+    : providerSnapshot?.authStatus.authMode
+      ? `Auth ${providerSnapshot.authStatus.authMode}`
+      : providerSnapshot?.authStatus.state
+        ? `Auth ${providerSnapshot.authStatus.state}`
+        : "Auth unknown";
+  const agentRuntimePosture = providerSnapshot
+    ? `${providerSnapshot.modelCatalogState} catalog`
+    : "Catalog fallback";
+  const agentSandboxLabel = agentSettings.permissionMode === "full-agent"
+    ? "dangerFullAccess"
+    : agentSettings.permissionMode === "workspace-agent"
+      ? "workspaceWrite net-off"
+      : "readOnly";
+  const agentApprovalPolicyLabel =
+    agentSettings.permissionMode === "workspace-agent" ||
+    agentSettings.permissionMode === "read-only-agent"
+      ? "on-request"
+      : "never";
   const agentSessionIdentity = panelSessionRecord && !panelSessionRecord.stale
     ? panelSessionRecord.threadId
     : session.id;
@@ -7741,6 +7837,83 @@ function SessionCell({
   }, [agentSettings, session.id]);
 
   useEffect(() => {
+    if (!canUseLiveCodex) {
+      setProviderSnapshot(null);
+      return;
+    }
+
+    let cancelled = false;
+    invokeDesktopCommand<CodexPanelProviderSnapshotPayload>(
+      "codex_panel_provider_discovery",
+      {},
+      DESKTOP_PANEL_SESSION_START_TIMEOUT_MS
+    )
+      .then((snapshot) => {
+        if (!cancelled) {
+          setProviderSnapshot(snapshot);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setProviderSnapshot({
+            source: "desktop",
+            checkedAt: null,
+            authStatus: {
+              state: "unknown",
+              authMode: null,
+              planType: null,
+              requiresOpenaiAuth: false,
+              detail: error instanceof Error ? error.message : String(error)
+            },
+            modelCatalog: [],
+            modelCatalogState: "fallback",
+            detail: "Using static model fallback options."
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canUseLiveCodex, session.id]);
+
+  useEffect(() => {
+    const catalog = providerSnapshot?.modelCatalog.filter((entry) => !entry.hidden) ?? [];
+    if (catalog.length === 0) {
+      return;
+    }
+
+    const selectedEntry = catalog.find(
+      (entry) => entry.model === agentSettings.model || entry.id === agentSettings.model
+    );
+    if (!selectedEntry && agentSettings.model !== "provider-default") {
+      const defaultEntry = catalog.find((entry) => entry.isDefault) ?? catalog[0];
+      updateAgentSettings({
+        model: defaultEntry.model || defaultEntry.id,
+        reasoning:
+          defaultEntry.defaultReasoningEffort ??
+          defaultEntry.supportedReasoningEfforts[0]?.reasoningEffort ??
+          agentSettings.reasoning
+      });
+      return;
+    }
+
+    const supportedReasoning = selectedEntry?.supportedReasoningEfforts ?? [];
+    if (
+      selectedEntry &&
+      supportedReasoning.length > 0 &&
+      !supportedReasoning.some((option) => option.reasoningEffort === agentSettings.reasoning)
+    ) {
+      updateAgentSettings({
+        reasoning:
+          selectedEntry.defaultReasoningEffort ??
+          supportedReasoning[0]?.reasoningEffort ??
+          agentSettings.reasoning
+      });
+    }
+  }, [agentSettings.model, agentSettings.reasoning, providerSnapshot?.modelCatalog]);
+
+  useEffect(() => {
     onSlashCommandExecutionEvidence?.(session.id, slashCommandExecutionEvidence);
   }, [onSlashCommandExecutionEvidence, session.id, slashCommandExecutionEvidence]);
 
@@ -7757,11 +7930,29 @@ function SessionCell({
     setLiveChatDetail("Starting Codex app-server panel session.");
     const result = await invokeDesktopCommand<CodexPanelSessionStartPayload>(
       "codex_panel_session_start",
-      { panelId: session.id },
+      {
+        panelId: session.id,
+        model: agentSettings.model,
+        reasoningEffort: agentSettings.reasoning,
+        permissionMode: agentSettings.permissionMode
+      },
       DESKTOP_PANEL_SESSION_START_TIMEOUT_MS
     );
     setLiveSessionStarted(result.started);
     setLiveChatDetail(result.detail);
+    setProviderSnapshot({
+      source: result.source,
+      checkedAt: null,
+      authStatus: result.authStatus,
+      modelCatalog: result.modelCatalog,
+      modelCatalogState: result.modelCatalogState,
+      detail: result.detail
+    });
+    updateAgentSettings({
+      model: result.selectedModel ?? agentSettings.model,
+      reasoning: result.selectedReasoning,
+      permissionMode: result.permissionMode
+    });
     if (result.started) {
       onPanelSessionStart?.(result);
     }
@@ -7780,6 +7971,10 @@ function SessionCell({
 
   function handleAgentReasoningChange(event: ChangeEvent<HTMLSelectElement>) {
     updateAgentSettings({ reasoning: event.target.value as CodexPanelReasoning });
+  }
+
+  function handleAgentPermissionModeChange(event: ChangeEvent<HTMLSelectElement>) {
+    updateAgentSettings({ permissionMode: event.target.value as CodexPanelPermissionMode });
   }
 
   async function sendLivePanelPrompt(
@@ -7921,7 +8116,8 @@ function SessionCell({
           panelId: session.id,
           prompt: trimmedMessage,
           model: agentSettings.model,
-          reasoningEffort: agentSettings.reasoning
+          reasoningEffort: agentSettings.reasoning,
+          permissionMode: agentSettings.permissionMode
         },
         DESKTOP_PANEL_TURN_TIMEOUT_MS
       );
@@ -8288,7 +8484,7 @@ function SessionCell({
                 onChange={handleAgentModelChange}
                 value={agentSettings.model}
               >
-                {codexPanelModelOptions.map((option) => (
+                {panelModelOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -8306,7 +8502,25 @@ function SessionCell({
                 onChange={handleAgentReasoningChange}
                 value={agentSettings.reasoning}
               >
-                {codexPanelReasoningOptions.map((option) => (
+                {panelReasoningOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label
+              className="agent-setting-select"
+              title={`Permission mode for this panel agent: ${agentPermissionModeLabel}`}
+            >
+              <span>Access</span>
+              <select
+                aria-label={`Permission mode for ${identity.title}`}
+                disabled={liveChatBusy}
+                onChange={handleAgentPermissionModeChange}
+                value={agentSettings.permissionMode}
+              >
+                {codexPanelPermissionModeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -8318,6 +8532,24 @@ function SessionCell({
               title={`Panel ${session.id}; Codex thread ${agentSessionIdentity}`}
             >
               {agentSessionLabel}
+            </span>
+            <span
+              className="agent-session-pill"
+              title={providerSnapshot?.authStatus.detail ?? "Codex auth discovery is using fallback state."}
+            >
+              {agentAuthLabel}
+            </span>
+            <span
+              className="agent-session-pill"
+              title={`Sandbox ${agentSandboxLabel}; approval policy ${agentApprovalPolicyLabel}.`}
+            >
+              {agentPermissionModeLabel}
+            </span>
+            <span
+              className="agent-session-pill"
+              title={`Model ${agentModelLabel}; reasoning ${agentReasoningLabel}; ${agentRuntimePosture}.`}
+            >
+              {agentSandboxLabel} / {agentApprovalPolicyLabel}
             </span>
             <span className={classNames("composer-status", `composer-status-${liveChatStatus}`)} title={liveChatDetail}>
               {composerStatusLabel}
