@@ -1999,6 +1999,38 @@ interface CodexPanelSessionStartPayload {
   detail: string;
 }
 
+interface CodexPanelThreadSummaryPayload {
+  id: string;
+  name: string | null;
+  preview: string;
+  status: string;
+  modelProvider: string | null;
+  createdAt: number | null;
+  updatedAt: number | null;
+  cwdLabel: string | null;
+  turnCount: number;
+  itemCount: number;
+}
+
+interface CodexPanelThreadResumePayload {
+  source: string;
+  panelId: string;
+  sessionId: string;
+  threadId: string;
+  resumed: boolean;
+  thread: CodexPanelThreadSummaryPayload;
+  transcriptPreview: string[];
+  authStatus: CodexPanelAuthStatusPayload;
+  modelCatalog: CodexPanelModelCatalogEntryPayload[];
+  modelCatalogState: string;
+  selectedModel: string | null;
+  selectedReasoning: CodexPanelReasoning;
+  permissionMode: CodexPanelPermissionMode;
+  sandboxPolicy: string;
+  approvalPolicy: string;
+  detail: string;
+}
+
 interface CodexPanelAuthStatusPayload {
   state: string;
   authMode: string | null;
@@ -7778,13 +7810,19 @@ function SessionCell({
   const liveChatStarting = liveChatStatus === "starting";
   const liveChatRunning = liveChatStatus === "running";
   const liveChatBusy = liveChatStarting || liveChatRunning;
+  const resumableThreadId = panelSessionRecord &&
+    !panelSessionIssue &&
+    !panelSessionRecord.stale &&
+    !["closed", "error"].includes(panelSessionRecord.status)
+    ? panelSessionRecord.threadId
+    : undefined;
   const liveProviderLifecycleCapabilities = useMemo(
     () => ({
       fork: false,
-      resume: false,
+      resume: Boolean(resumableThreadId),
       archive: false
     }),
-    []
+    [resumableThreadId]
   );
   const liveControlSnapshot = useMemo(
     () =>
@@ -7796,6 +7834,7 @@ function SessionCell({
         },
         lastUserPrompt: lastLivePrompt,
         draftText: draftMessage,
+        resumableThreadId,
         providerCapabilities: liveProviderLifecycleCapabilities
       }),
     [
@@ -7805,6 +7844,7 @@ function SessionCell({
       liveChatRunning,
       liveChatStarting,
       liveChatStatus,
+      resumableThreadId,
       liveProviderLifecycleCapabilities
     ]
   );
@@ -7812,9 +7852,16 @@ function SessionCell({
     () => summarizeUnsupportedSessionControls(liveControlSnapshot),
     [liveControlSnapshot]
   );
+  const canInterruptLiveTurn = liveControlSnapshot.interrupt.state === "live";
+  const canRetryLiveTurn =
+    liveControlSnapshot.retry.state === "live" && !liveChatBusy;
+  const canResumeLiveThread =
+    liveControlSnapshot.resume.state === "live" && !liveChatBusy && Boolean(resumableThreadId);
   const lifecycleControlGate = useMemo(
-    () => buildCodexSessionLifecycleControlsGate(liveControlSnapshot),
-    [liveControlSnapshot]
+    () => buildCodexSessionLifecycleControlsGate(liveControlSnapshot, {
+      resume: canResumeLiveThread
+    }),
+    [canResumeLiveThread, liveControlSnapshot]
   );
   const sessionControlReadinessEvidence = useMemo(
     () =>
@@ -7823,9 +7870,6 @@ function SessionCell({
       }),
     [chatMessages, liveControlSnapshot]
   );
-  const canInterruptLiveTurn = liveControlSnapshot.interrupt.state === "live";
-  const canRetryLiveTurn =
-    liveControlSnapshot.retry.state === "live" && !liveChatBusy;
   const composerStatusLabel = canUseLiveCodex
     ? liveChatStatus === "idle"
       ? "Codex live ready"
@@ -7879,20 +7923,20 @@ function SessionCell({
     setAgentSettings(loadCodexPanelAgentSettings(session.id));
     setDraftMessage("");
     setLastLivePrompt("");
-    const restored = Boolean(
+    const resumable = Boolean(
       liveCodexEnabled &&
         panelSessionRecord &&
         !panelSessionIssue &&
         !panelSessionRecord.stale &&
         !["closed", "error"].includes(panelSessionRecord.status)
     );
-    setLiveSessionStarted(restored);
+    setLiveSessionStarted(false);
     setLiveChatStatus(panelSessionIssue ? "failed" : liveCodexEnabled ? "idle" : "preview");
     setLiveChatDetail(
       panelSessionIssue
         ? panelSessionIssue.detail
-        : restored
-        ? panelSessionRecord?.detail ?? "Restored Codex panel session metadata."
+        : resumable
+        ? "Saved Codex thread identity is available; resume will use provider history before the next turn."
         : panelSessionRecord?.stale
           ? "Saved Codex session is stale; a new session will start on next message."
           : liveCodexEnabled
@@ -8016,8 +8060,72 @@ function SessionCell({
     onSessionControlReadinessEvidence?.(session.id, sessionControlReadinessEvidence);
   }, [onSessionControlReadinessEvidence, session.id, sessionControlReadinessEvidence]);
 
+  async function resumeLivePanelThread(threadId: string) {
+    setLiveChatStatus("starting");
+    setLiveChatDetail("Resuming Codex provider thread history.");
+    const result = await invokeDesktopCommand<CodexPanelThreadResumePayload>(
+      "codex_panel_thread_resume",
+      {
+        panelId: session.id,
+        threadId,
+        model: agentSettings.model,
+        reasoningEffort: agentSettings.reasoning,
+        permissionMode: agentSettings.permissionMode
+      },
+      DESKTOP_PANEL_SESSION_START_TIMEOUT_MS
+    );
+    setLiveSessionStarted(result.resumed);
+    setLiveChatStatus("idle");
+    setLiveChatDetail(result.detail);
+    setProviderSnapshot({
+      source: result.source,
+      checkedAt: null,
+      authStatus: result.authStatus,
+      modelCatalog: result.modelCatalog,
+      modelCatalogState: result.modelCatalogState,
+      detail: result.detail
+    });
+    updateAgentSettings({
+      model: result.selectedModel ?? agentSettings.model,
+      reasoning: result.selectedReasoning,
+      permissionMode: result.permissionMode
+    });
+    if (result.resumed) {
+      onPanelSessionStart?.({
+        source: result.source,
+        panelId: result.panelId,
+        sessionId: result.sessionId,
+        threadId: result.threadId,
+        started: true,
+        authStatus: result.authStatus,
+        modelCatalog: result.modelCatalog,
+        modelCatalogState: result.modelCatalogState,
+        selectedModel: result.selectedModel,
+        selectedReasoning: result.selectedReasoning,
+        permissionMode: result.permissionMode,
+        sandboxPolicy: result.sandboxPolicy,
+        approvalPolicy: result.approvalPolicy,
+        detail: result.detail
+      });
+      setChatMessages((currentMessages) => [
+        ...currentMessages,
+        createPanelLiveStatusMessage(
+          session,
+          currentMessages.length,
+          `${result.detail} Provider transcript preview: ${result.transcriptPreview.slice(0, 3).join(" | ") || "no preview items"}`,
+          "resumed"
+        )
+      ]);
+    }
+  }
+
   async function ensureLivePanelSession() {
     if (liveSessionStarted) {
+      return;
+    }
+
+    if (resumableThreadId) {
+      await resumeLivePanelThread(resumableThreadId);
       return;
     }
 
@@ -8401,6 +8509,25 @@ function SessionCell({
           result.interrupted ? "interrupted" : "unsupported"
         )
       ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setLiveChatStatus("failed");
+      setLiveChatDetail(message);
+      onPanelSessionStatus?.(session.id, "error", message);
+      setChatMessages((currentMessages) => [
+        ...currentMessages,
+        createPanelLiveErrorMessage(session, currentMessages.length, message)
+      ]);
+    }
+  }
+
+  async function handleResumeLiveThread() {
+    if (!canResumeLiveThread || !resumableThreadId) {
+      return;
+    }
+
+    try {
+      await resumeLivePanelThread(resumableThreadId);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       setLiveChatStatus("failed");
@@ -8904,7 +9031,8 @@ function SessionCell({
                 "session-control-button",
                 `is-${liveControlSnapshot.resume.state}`
               )}
-              disabled
+              disabled={!canResumeLiveThread}
+              onClick={handleResumeLiveThread}
               title={liveControlSnapshot.resume.reason}
               type="button"
             >

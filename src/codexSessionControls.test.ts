@@ -146,6 +146,26 @@ describe("codex session controls", () => {
     });
   });
 
+  it("enables resume from a saved provider thread id without requiring prompt replay", () => {
+    const controls = buildCodexSessionControls({
+      sessionStatus: "idle",
+      liveTransportAvailable: true,
+      lastUserPrompt: "",
+      draftText: "",
+      resumableThreadId: "thread-abc",
+      providerCapabilities: {
+        resume: true
+      }
+    });
+
+    expect(controls.resume).toEqual({
+      state: "live",
+      reason: "Resume the saved provider thread without replaying local prompts."
+    });
+    expect(controls.fork.state).toBe("unsupported");
+    expect(controls.archive.state).toBe("unsupported");
+  });
+
   it("keeps provider-supported lifecycle controls disabled until prerequisites are met", () => {
     const controls = buildCodexSessionControls({
       sessionStatus: "running",
@@ -165,7 +185,7 @@ describe("codex session controls", () => {
     });
     expect(controls.resume).toEqual({
       state: "disabled",
-      reason: "Resume is available only after an interrupted or failed panel session."
+      reason: "Resume is available only after a provider thread id is available or the session is interrupted/failed."
     });
     expect(controls.archive).toEqual({
       state: "disabled",

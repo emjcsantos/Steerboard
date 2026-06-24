@@ -42,6 +42,7 @@ export interface CodexSessionControlInputs {
   } | null;
   lastUserPrompt?: string;
   draftText?: string;
+  resumableThreadId?: string;
   providerCapabilities?: Partial<Record<"fork" | "resume" | "archive", boolean>>;
 }
 
@@ -275,6 +276,7 @@ export function buildCodexSessionControls(
   const activeTurnStatus = normalizeTurnStatus(args.activeTurn?.status);
   const lastUserPrompt = trimOrEmpty(args.lastUserPrompt);
   const draftText = trimOrEmpty(args.draftText);
+  const resumableThreadId = trimOrEmpty(args.resumableThreadId);
 
   const turnRunning = isTurnRunning(activeTurnStatus);
   const turnStarting = isTurnStarting(activeTurnStatus);
@@ -356,9 +358,13 @@ export function buildCodexSessionControls(
       "Resume",
       args.providerCapabilities?.resume,
       args.liveTransportAvailable,
-      sessionStatus === "interrupted" || sessionStatus === "failed",
-      "Resume this interrupted or failed panel session.",
-      "Resume is available only after an interrupted or failed panel session."
+      (!sessionStarting && !sessionRunning && resumableThreadId.length > 0) ||
+        sessionStatus === "interrupted" ||
+        sessionStatus === "failed",
+      resumableThreadId.length > 0
+        ? "Resume the saved provider thread without replaying local prompts."
+        : "Resume this interrupted or failed panel session.",
+      "Resume is available only after a provider thread id is available or the session is interrupted/failed."
     ),
     archive: lifecycleControl(
       "Archive",

@@ -296,6 +296,64 @@ pub struct CodexPanelProviderSnapshot {
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CodexPanelThreadSummary {
+    pub id: String,
+    pub name: Option<String>,
+    pub preview: String,
+    pub status: String,
+    pub model_provider: Option<String>,
+    pub created_at: Option<u64>,
+    pub updated_at: Option<u64>,
+    pub cwd_label: Option<String>,
+    pub turn_count: usize,
+    pub item_count: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexPanelThreadListResult {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub available: bool,
+    pub threads: Vec<CodexPanelThreadSummary>,
+    pub next_cursor: Option<String>,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexPanelThreadReadResult {
+    pub source: String,
+    pub checked_at: Option<String>,
+    pub available: bool,
+    pub thread: Option<CodexPanelThreadSummary>,
+    pub transcript_preview: Vec<String>,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexPanelThreadResumeResult {
+    pub source: String,
+    pub panel_id: String,
+    pub session_id: String,
+    pub thread_id: String,
+    pub resumed: bool,
+    pub thread: CodexPanelThreadSummary,
+    pub transcript_preview: Vec<String>,
+    pub auth_status: CodexPanelAuthStatus,
+    pub model_catalog: Vec<CodexPanelModelCatalogEntry>,
+    pub model_catalog_state: String,
+    pub selected_model: Option<String>,
+    pub selected_reasoning: String,
+    pub permission_mode: String,
+    pub sandbox_policy: String,
+    pub approval_policy: String,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CodexPanelEvent {
     pub method: String,
     pub event_type: String,
@@ -622,8 +680,9 @@ mod runtime_bridge {
         CodexPanelInterruptResult,
         CodexPanelModelCatalogEntry, CodexPanelModelReasoningOption,
         CodexPanelProviderSnapshot, CodexPanelSessionReadiness, CodexPanelSessionStart,
-        CodexPanelSteerResult, CodexPanelStreamEvent, CodexPanelTurnResult,
-        CodexPanelTurnSettings, CodexTransportProbe,
+        CodexPanelSteerResult, CodexPanelStreamEvent, CodexPanelThreadListResult,
+        CodexPanelThreadReadResult, CodexPanelThreadResumeResult, CodexPanelThreadSummary,
+        CodexPanelTurnResult, CodexPanelTurnSettings, CodexTransportProbe,
         CodexTwoPanelSmokePanelProof, CodexTwoPanelSmokeProof,
         LiveActionRunnerRequest, LiveActionRunnerResult, MigrationSourceCategoryPreview,
         MigrationSourcePreview, MigrationSourcePreviewCounts, PermissionApprovalStatus,
@@ -2143,6 +2202,60 @@ mod runtime_bridge {
     #[tauri::command]
     pub fn codex_panel_provider_discovery() -> Result<CodexPanelProviderSnapshot, String> {
         discover_panel_provider()
+    }
+
+    #[tauri::command]
+    pub fn codex_panel_thread_list(
+        limit: Option<u64>,
+        cursor: Option<String>,
+        search_term: Option<String>,
+    ) -> Result<CodexPanelThreadListResult, String> {
+        list_panel_threads(limit, cursor, search_term)
+    }
+
+    #[tauri::command]
+    pub fn codex_panel_thread_read(thread_id: String) -> Result<CodexPanelThreadReadResult, String> {
+        read_panel_thread(thread_id)
+    }
+
+    #[tauri::command]
+    pub fn codex_panel_thread_resume(
+        panel_id: Option<String>,
+        thread_id: String,
+        model: Option<String>,
+        reasoning_effort: Option<String>,
+        permission_mode: Option<String>,
+    ) -> Result<CodexPanelThreadResumeResult, String> {
+        let panel_id = panel_session_key(panel_id);
+        let thread_id = thread_id.trim().to_string();
+        if thread_id.is_empty() {
+            return Err("Thread id is required to resume Codex history.".to_string());
+        }
+        let settings = panel_turn_settings(model, reasoning_effort, permission_mode);
+        let provider_snapshot = codex_panel_provider_discovery()
+            .unwrap_or_else(|detail| fallback_provider_snapshot(Some(detail)));
+        let (session, thread, transcript_preview) =
+            resume_panel_thread_session(&panel_id, &thread_id, &settings)?;
+        replace_panel_session(&panel_id, session.clone())?;
+
+        Ok(CodexPanelThreadResumeResult {
+            source: "desktop".to_string(),
+            panel_id,
+            session_id: session.session_id.clone(),
+            thread_id: session.thread_id.clone(),
+            resumed: true,
+            thread,
+            transcript_preview,
+            auth_status: provider_snapshot.auth_status,
+            model_catalog: provider_snapshot.model_catalog,
+            model_catalog_state: provider_snapshot.model_catalog_state,
+            selected_model: settings.model,
+            selected_reasoning: settings.reasoning_effort,
+            permission_mode: settings.permission_mode,
+            sandbox_policy: settings.sandbox_policy,
+            approval_policy: settings.approval_policy,
+            detail: "Resumed Codex thread from provider history without replaying local prompts.".to_string(),
+        })
     }
 
     #[tauri::command]
@@ -3914,6 +4027,335 @@ mod runtime_bridge {
         }))
     }
 
+    fn initialized_codex_app_server(
+        client_name: &str,
+    ) -> Result<(std::process::Child, mpsc::Receiver<String>), String> {
+        let mut child = spawn_codex(&["app-server", "--listen", "stdio://"])
+            .map_err(|_| "Unable to launch Codex app-server stdio.".to_string())?;
+
+        let (tx, rx) = mpsc::channel();
+        let stdout = child
+            .stdout
+            .take()
+            .ok_or_else(|| "Codex app-server stdout was not available.".to_string())?;
+        thread::spawn(move || {
+            let reader = BufReader::new(stdout);
+            for line in reader.lines().map_while(Result::ok) {
+                let _ = tx.send(line);
+            }
+        });
+        drain_stderr(&mut child);
+
+        if !send_json(&mut child, &initialize_request(1, client_name)) {
+            cleanup_child(&mut child);
+            return Err("Unable to write initialize request to Codex app-server.".to_string());
+        }
+        if wait_for_json_rpc_id(&rx, 1, Duration::from_secs(8)).is_none() {
+            cleanup_child(&mut child);
+            return Err("Codex app-server did not return initialize response.".to_string());
+        }
+
+        Ok((child, rx))
+    }
+
+    fn request_initialized_app_server(
+        method: &str,
+        params: Value,
+        client_name: &str,
+    ) -> Result<Value, String> {
+        let (mut child, rx) = initialized_codex_app_server(client_name)?;
+        let request = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": method,
+            "params": params
+        });
+
+        if !send_json(&mut child, &request) {
+            cleanup_child(&mut child);
+            return Err(format!("Unable to write {method} request."));
+        }
+        let response = wait_for_json_rpc_id(&rx, 2, Duration::from_secs(15))
+            .ok_or_else(|| format!("Codex app-server did not return {method} response."))?;
+        cleanup_child(&mut child);
+        if let Some(error_message) = json_rpc_error_message(&response) {
+            return Err(format!("Codex app-server rejected {method}: {error_message}"));
+        }
+        Ok(response)
+    }
+
+    fn list_panel_threads(
+        limit: Option<u64>,
+        cursor: Option<String>,
+        search_term: Option<String>,
+    ) -> Result<CodexPanelThreadListResult, String> {
+        let checked_at = Some(current_timestamp());
+        let safe_limit = limit.unwrap_or(20).clamp(1, 50);
+        let mut params = serde_json::json!({
+            "limit": safe_limit,
+            "archived": false
+        });
+        if let Some(cursor) = cursor.map(|value| value.trim().to_string()).filter(|value| !value.is_empty()) {
+            params["cursor"] = Value::String(cursor);
+        }
+        if let Some(search_term) = search_term.map(|value| value.trim().to_string()).filter(|value| !value.is_empty()) {
+            params["searchTerm"] = Value::String(search_term);
+        }
+
+        let response = request_initialized_app_server(
+            "thread/list",
+            params,
+            "steerboard-panel-thread-list",
+        )?;
+        let result = response.get("result").unwrap_or(&Value::Null);
+        let threads = result
+            .get("data")
+            .and_then(Value::as_array)
+            .map(|items| items.iter().map(sanitize_thread_summary).collect::<Vec<_>>())
+            .unwrap_or_default();
+        let next_cursor = result
+            .get("nextCursor")
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned);
+
+        Ok(CodexPanelThreadListResult {
+            source: "desktop".to_string(),
+            checked_at,
+            available: true,
+            detail: format!(
+                "Loaded {} Codex thread{} from provider history.",
+                threads.len(),
+                if threads.len() == 1 { "" } else { "s" }
+            ),
+            threads,
+            next_cursor,
+        })
+    }
+
+    fn read_panel_thread(thread_id: String) -> Result<CodexPanelThreadReadResult, String> {
+        let checked_at = Some(current_timestamp());
+        let thread_id = thread_id.trim().to_string();
+        if thread_id.is_empty() {
+            return Err("Thread id is required to read Codex history.".to_string());
+        }
+        let response = request_initialized_app_server(
+            "thread/read",
+            serde_json::json!({
+                "threadId": thread_id,
+                "includeTurns": true
+            }),
+            "steerboard-panel-thread-read",
+        )?;
+        let thread_value = response
+            .get("result")
+            .and_then(|result| result.get("thread"))
+            .ok_or_else(|| "thread/read response did not include a thread.".to_string())?;
+        let thread = sanitize_thread_summary(thread_value);
+        let transcript_preview = sanitize_thread_transcript_preview(thread_value);
+        Ok(CodexPanelThreadReadResult {
+            source: "desktop".to_string(),
+            checked_at,
+            available: true,
+            detail: format!(
+                "Read Codex thread {} from provider history; {} turn{} available.",
+                thread.id,
+                thread.turn_count,
+                if thread.turn_count == 1 { "" } else { "s" }
+            ),
+            thread: Some(thread),
+            transcript_preview,
+        })
+    }
+
+    fn resume_panel_thread_session(
+        panel_id: &str,
+        thread_id: &str,
+        settings: &CodexPanelTurnSettings,
+    ) -> Result<(Arc<CodexPanelSession>, CodexPanelThreadSummary, Vec<String>), String> {
+        let (mut child, rx) = initialized_codex_app_server("steerboard-panel-thread-resume")?;
+        let request = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "thread/resume",
+            "params": {
+                "threadId": thread_id,
+                "persistExtendedHistory": false,
+                "approvalPolicy": settings.approval_policy,
+                "sandbox": thread_sandbox_mode(&settings.permission_mode),
+                "baseInstructions": panel_permission_base_instructions(&settings.permission_mode)
+            }
+        });
+
+        if !send_json(&mut child, &request) {
+            cleanup_child(&mut child);
+            return Err("Unable to write thread/resume request.".to_string());
+        }
+        let response = wait_for_json_rpc_id(&rx, 2, Duration::from_secs(15))
+            .ok_or_else(|| "Codex app-server did not return thread/resume response.".to_string())?;
+        if let Some(error_message) = json_rpc_error_message(&response) {
+            cleanup_child(&mut child);
+            return Err(format!("Codex app-server rejected thread/resume: {error_message}"));
+        }
+        let thread_value = response
+            .get("result")
+            .and_then(|result| result.get("thread"))
+            .ok_or_else(|| "thread/resume response did not include a thread.".to_string())?;
+        let resumed_thread_id = thread_value
+            .get("id")
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned)
+            .filter(|value| !value.trim().is_empty())
+            .ok_or_else(|| "thread/resume response did not include a thread id.".to_string())?;
+        let thread = sanitize_thread_summary(thread_value);
+        let transcript_preview = sanitize_thread_transcript_preview(thread_value);
+
+        Ok((
+            Arc::new(CodexPanelSession {
+                panel_id: panel_id.to_string(),
+                session_id: format!("panel-session-{panel_id}-{}", timestamp_millis()),
+                thread_id: resumed_thread_id,
+                child: Mutex::new(child),
+                rx: Mutex::new(rx),
+                next_id: AtomicI64::new(3),
+                current_turn_id: Mutex::new(None),
+            }),
+            thread,
+            transcript_preview,
+        ))
+    }
+
+    pub(crate) fn redact_thread_text(value: &str) -> String {
+        value
+            .split_whitespace()
+            .map(|part| {
+                let lower = part.to_ascii_lowercase();
+                if lower.starts_with("sk-")
+                    || lower.contains("api_key")
+                    || lower.contains("access_token")
+                    || lower.contains("refresh_token")
+                    || lower.contains("secret")
+                {
+                    "[redacted]"
+                } else {
+                    part
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+            .chars()
+            .take(240)
+            .collect()
+    }
+
+    fn safe_cwd_label(value: Option<&str>) -> Option<String> {
+        let value = value?.trim();
+        if value.is_empty() {
+            return None;
+        }
+        Path::new(value)
+            .file_name()
+            .and_then(|name| name.to_str())
+            .map(redact_thread_text)
+            .or_else(|| Some("workspace".to_string()))
+    }
+
+    fn thread_turns(thread: &Value) -> &[Value] {
+        thread
+            .get("turns")
+            .and_then(Value::as_array)
+            .map(Vec::as_slice)
+            .unwrap_or(&[])
+    }
+
+    fn thread_item_count(thread: &Value) -> usize {
+        thread_turns(thread)
+            .iter()
+            .filter_map(|turn| turn.get("items").and_then(Value::as_array))
+            .map(Vec::len)
+            .sum()
+    }
+
+    pub(crate) fn sanitize_thread_summary(thread: &Value) -> CodexPanelThreadSummary {
+        let id = thread
+            .get("id")
+            .and_then(Value::as_str)
+            .map(redact_thread_text)
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| "thread:unknown".to_string());
+        let turns = thread_turns(thread);
+        CodexPanelThreadSummary {
+            id,
+            name: thread
+                .get("name")
+                .and_then(Value::as_str)
+                .map(redact_thread_text)
+                .filter(|value| !value.trim().is_empty()),
+            preview: thread
+                .get("preview")
+                .and_then(Value::as_str)
+                .map(redact_thread_text)
+                .filter(|value| !value.trim().is_empty())
+                .unwrap_or_else(|| "No preview available.".to_string()),
+            status: thread
+                .get("status")
+                .and_then(Value::as_str)
+                .map(redact_thread_text)
+                .filter(|value| !value.trim().is_empty())
+                .unwrap_or_else(|| "unknown".to_string()),
+            model_provider: thread
+                .get("modelProvider")
+                .and_then(Value::as_str)
+                .map(redact_thread_text),
+            created_at: thread.get("createdAt").and_then(Value::as_u64),
+            updated_at: thread.get("updatedAt").and_then(Value::as_u64),
+            cwd_label: safe_cwd_label(thread.get("cwd").and_then(Value::as_str)),
+            turn_count: turns.len(),
+            item_count: thread_item_count(thread),
+        }
+    }
+
+    fn first_item_text(item: &Value) -> Option<String> {
+        let item_type = item.get("type").and_then(Value::as_str).unwrap_or("item");
+        let text = item
+            .get("text")
+            .and_then(Value::as_str)
+            .or_else(|| item.get("command").and_then(Value::as_str))
+            .or_else(|| item.get("aggregatedOutput").and_then(Value::as_str))
+            .or_else(|| {
+                item.get("summary")
+                    .and_then(Value::as_array)
+                    .and_then(|items| items.iter().find_map(Value::as_str))
+            })
+            .or_else(|| {
+                item.get("content")
+                    .and_then(Value::as_array)
+                    .and_then(|items| {
+                        items.iter().find_map(|content| {
+                            content
+                                .get("text")
+                                .and_then(Value::as_str)
+                                .or_else(|| content.get("content").and_then(Value::as_str))
+                        })
+                    })
+            })?;
+        Some(format!("{item_type}: {}", redact_thread_text(text)))
+    }
+
+    pub(crate) fn sanitize_thread_transcript_preview(thread: &Value) -> Vec<String> {
+        thread_turns(thread)
+            .iter()
+            .flat_map(|turn| {
+                turn.get("items")
+                    .and_then(Value::as_array)
+                    .into_iter()
+                    .flatten()
+                    .filter_map(first_item_text)
+                    .collect::<Vec<_>>()
+            })
+            .take(8)
+            .collect()
+    }
+
     fn send_panel_turn(
         session: Arc<CodexPanelSession>,
         prompt: String,
@@ -5121,6 +5563,9 @@ pub fn run() {
             runtime_bridge::codex_transport_two_panel_smoke,
             runtime_bridge::codex_panel_session_readiness,
             runtime_bridge::codex_panel_provider_discovery,
+            runtime_bridge::codex_panel_thread_list,
+            runtime_bridge::codex_panel_thread_read,
+            runtime_bridge::codex_panel_thread_resume,
             runtime_bridge::codex_panel_session_start,
             runtime_bridge::codex_panel_session_send_turn,
             runtime_bridge::codex_panel_session_retry,
@@ -6214,6 +6659,42 @@ mod tests {
             Some("approval-id")
         );
         assert!(!uuid_request.to_string().contains("sk-secret"));
+    }
+
+    #[test]
+    fn thread_summary_sanitizes_paths_and_secret_like_values() {
+        let thread = serde_json::json!({
+            "id": "thread-1",
+            "name": "sk-secret-name",
+            "preview": "Use OPENAI_API_KEY=sk-secret-value here",
+            "status": "completed",
+            "modelProvider": "openai",
+            "createdAt": 1710000000_u64,
+            "updatedAt": 1710000100_u64,
+            "cwd": "C:\\Users\\MJ\\Projects\\ProjectAtlas\\Steerboard",
+            "turns": [
+                {
+                    "id": "turn-1",
+                    "items": [
+                        { "type": "userMessage", "id": "u1", "content": [{ "type": "input_text", "text": "hello sk-secret-token" }] },
+                        { "type": "agentMessage", "id": "a1", "text": "done" }
+                    ]
+                }
+            ]
+        });
+
+        let summary = runtime_bridge::sanitize_thread_summary(&thread);
+        let transcript = runtime_bridge::sanitize_thread_transcript_preview(&thread);
+        let serialized = serde_json::to_string(&summary).expect("summary should serialize");
+
+        assert_eq!(summary.id, "thread-1");
+        assert_eq!(summary.cwd_label.as_deref(), Some("Steerboard"));
+        assert_eq!(summary.turn_count, 1);
+        assert_eq!(summary.item_count, 2);
+        assert!(serialized.contains("[redacted]"));
+        assert!(!serialized.contains("sk-secret-value"));
+        assert!(!serialized.contains("C:\\Users\\MJ"));
+        assert!(transcript.iter().any(|line| line.contains("[redacted]")));
     }
 
     #[test]
