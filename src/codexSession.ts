@@ -124,6 +124,7 @@ export interface CodexPanelEventPayload {
   itemType?: string | null;
   itemStatus?: string | null;
   itemTitle?: string | null;
+  itemDetail?: string | null;
 }
 
 export interface CodexPanelTurnResultPayload {

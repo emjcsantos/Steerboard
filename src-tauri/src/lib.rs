@@ -307,6 +307,7 @@ pub struct CodexPanelEvent {
     pub item_type: Option<String>,
     pub item_status: Option<String>,
     pub item_title: Option<String>,
+    pub item_detail: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
@@ -4710,6 +4711,16 @@ mod runtime_bridge {
             })
             .and_then(Value::as_str)
             .map(ToOwned::to_owned);
+        let item_detail = item
+            .and_then(|object| {
+                object
+                    .get("command")
+                    .or_else(|| object.get("cmd"))
+                    .or_else(|| object.get("input"))
+                    .or_else(|| object.get("text"))
+                    .or_else(|| object.get("args"))
+            })
+            .map(compact_panel_event_value);
 
         Some(CodexPanelEvent {
             event_type: panel_event_type(&method).to_string(),
@@ -4722,7 +4733,15 @@ mod runtime_bridge {
             item_type,
             item_status,
             item_title,
+            item_detail,
         })
+    }
+
+    fn compact_panel_event_value(value: &Value) -> String {
+        match value {
+            Value::String(value) => value.trim().to_string(),
+            _ => value.to_string(),
+        }
     }
 
     fn first_failure_message(events: &[CodexPanelEvent]) -> Option<String> {
@@ -6031,6 +6050,7 @@ mod tests {
             item_type: None,
             item_status: None,
             item_title: None,
+            item_detail: None,
         };
         let matching = CodexPanelEvent {
             method: "turn/completed".to_string(),
@@ -6043,6 +6063,7 @@ mod tests {
             item_type: None,
             item_status: None,
             item_title: None,
+            item_detail: None,
         };
         let other_turn = CodexPanelEvent {
             turn_id: Some("turn-2".to_string()),

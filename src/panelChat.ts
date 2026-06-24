@@ -17,7 +17,7 @@ import {
 
 export type PanelChatRole = "codex" | "user" | "tool" | "system";
 
-export type PanelChatSectionKind = "reasoning" | "steps" | "commands" | "trace";
+export type PanelChatSectionKind = "feedback" | "steps" | "commands" | "trace";
 
 export interface PanelChatSection {
   id: string;
@@ -98,7 +98,7 @@ function isPanelChatSection(value: unknown): value is PanelChatSection {
 
   return (
     typeof value.id === "string" &&
-    (value.kind === "reasoning" || value.kind === "steps" || value.kind === "commands" || value.kind === "trace") &&
+    (value.kind === "feedback" || value.kind === "steps" || value.kind === "commands" || value.kind === "trace") &&
     typeof value.title === "string" &&
     typeof value.summary === "string" &&
     typeof value.body === "string"
@@ -344,6 +344,30 @@ export function createPanelProviderSlashCommandStatusMessage(
   };
 }
 
+export function createPanelProviderPrompt(
+  submittedMessage: string,
+  decision?: PanelSlashCommandDecision
+): string {
+  if (decision?.command?.command !== "/plan") {
+    return submittedMessage;
+  }
+
+  const request = submittedMessage.replace(/^\/plan\b/i, "").trim();
+  return [
+    "Use Codex /plan behavior for this request.",
+    "",
+    "Original planning request:",
+    request || "(No additional request text was provided.)",
+    "",
+    "Follow these rules:",
+    "- Stay read-only and do not modify files.",
+    "- First ask 1-2 concise clarification questions if the target, scope, success criteria, or constraints are missing or risky.",
+    "- If the request is clear enough, produce only a concise plan.",
+    "- Format the plan with # Plan, ## Scope, ## Action items, and ## Open questions.",
+    "- Keep action items ordered from discovery to changes to validation and rollout."
+  ].join("\n");
+}
+
 export function createPanelLiveStatusMessage(
   session: SessionSummary,
   sequence: number,
@@ -356,6 +380,22 @@ export function createPanelLiveStatusMessage(
     label: "Steerboard",
     body,
     meta
+  };
+}
+
+export function createPanelLiveActivityMessage(
+  session: SessionSummary,
+  sequence: number,
+  body: string,
+  sections: PanelChatSection[] = []
+): PanelChatMessage {
+  return {
+    id: `${session.id}:live-activity:${sequence}`,
+    role: "system",
+    label: "Codex Live",
+    body,
+    meta: "working",
+    sections
   };
 }
 
@@ -494,104 +534,6 @@ function codexRoleToPanelRole(role: CodexSessionMessage["role"]): PanelChatRole 
   }
 }
 
-function rawPanelEvent(value: unknown): CodexPanelEventPayload | undefined {
-  if (!isRecord(value) || typeof value.method !== "string") {
-    return undefined;
-  }
-
-  return value as unknown as CodexPanelEventPayload;
-}
-
-function compactLine(value: string): string {
-  return value.replace(/\s+/g, " ").trim();
-}
-
-function eventDisplayLine(event: CodexPanelEventPayload): string {
-  const parts = [
-    event.method,
-    event.itemType ? `type=${event.itemType}` : "",
-    event.itemStatus ? `status=${event.itemStatus}` : event.status ? `status=${event.status}` : "",
-    event.itemTitle ? `title=${event.itemTitle}` : "",
-    event.summary ? `summary=${event.summary}` : "",
-    event.message ? `message=${event.message}` : ""
-  ].filter(Boolean);
-
-  return compactLine(parts.join(" | "));
-}
-
-function traceSection(
-  turnId: string,
-  kind: PanelChatSectionKind,
-  title: string,
-  lines: readonly string[]
-): PanelChatSection | undefined {
-  const body = lines.map(compactLine).filter(Boolean).join("\n");
-  if (!body) {
-    return undefined;
-  }
-
-  return {
-    id: `${turnId}:${kind}`,
-    kind,
-    title,
-    summary: `${lines.length} ${lines.length === 1 ? "entry" : "entries"}`,
-    body
-  };
-}
-
-function buildCodexTraceSections(
-  state: CodexSessionState,
-  turnId: string | undefined
-): PanelChatSection[] {
-  if (!turnId) {
-    return [];
-  }
-
-  const providerEvents = state.unknownEvents
-    .filter((event) => !event.turnId || event.turnId === turnId)
-    .map((event) => rawPanelEvent(event.raw))
-    .filter((event): event is CodexPanelEventPayload => Boolean(event));
-  const turn = state.turns.find((item) => item.id === turnId);
-  const toolMessages = state.messages.filter(
-    (message) => message.turnId === turnId && message.role === "tool" && message.body.trim().length > 0
-  );
-  const reasoningLines = [
-    turn?.prompt ? `Prompt accepted: ${turn.prompt}` : "",
-    turn?.summary ? `Turn summary: ${turn.summary}` : "",
-    turn?.error ? `Turn error: ${turn.error}` : "",
-    ...providerEvents
-      .filter((event) =>
-        /reason|thinking|analysis|plan|status|tokenUsage|rateLimits/i.test(
-          `${event.method} ${event.itemType ?? ""} ${event.itemTitle ?? ""} ${event.summary ?? ""}`
-        )
-      )
-      .map(eventDisplayLine)
-  ];
-  const stepLines = [
-    ...providerEvents
-      .filter((event) => /thread|turn|item\/started|item\/completed|warning/i.test(event.method))
-      .map(eventDisplayLine)
-  ];
-  const commandLines = [
-    ...toolMessages.map((message) => compactLine(message.body)),
-    ...providerEvents
-      .filter((event) =>
-        /tool|command|exec|shell|terminal|mcp|patch|script/i.test(
-          `${event.method} ${event.itemType ?? ""} ${event.itemTitle ?? ""} ${event.summary ?? ""} ${event.message ?? ""}`
-        )
-      )
-      .map(eventDisplayLine)
-  ];
-  const rawTraceLines = providerEvents.map(eventDisplayLine);
-
-  return [
-    traceSection(turnId, "reasoning", "Reasoning and Status", reasoningLines),
-    traceSection(turnId, "steps", "Steps", stepLines),
-    traceSection(turnId, "commands", "Commands, Scripts, and Tools", commandLines),
-    traceSection(turnId, "trace", "Raw Event Trace", rawTraceLines)
-  ].filter((section): section is PanelChatSection => Boolean(section));
-}
-
 export function codexSessionStateToPanelMessages(
   session: SessionSummary,
   state: CodexSessionState,
@@ -604,8 +546,7 @@ export function codexSessionStateToPanelMessages(
       role: codexRoleToPanelRole(message.role),
       label: message.role === "assistant" ? "Codex Live" : message.role,
       body: message.body,
-      meta: message.status,
-      sections: message.role === "assistant" ? buildCodexTraceSections(state, message.turnId) : undefined
+      meta: message.status
     }));
 }
 

@@ -4,11 +4,13 @@ import {
   buildPanelLiveTurnEvidence,
   codexSessionStateToPanelMessages,
   createPanelLiveErrorMessage,
+  createPanelLiveActivityMessage,
   createPanelLiveRecoveryMessage,
   createPanelLiveStatusMessage,
   createPanelLiveTurnEvidenceMessage,
   createPanelSlashCommandStatusMessage,
   panelSlashCommands,
+  createPanelProviderPrompt,
   createPanelReplyMessage,
   createPanelProviderSlashCommandStatusMessage,
   getPanelSlashCommandDecision,
@@ -462,27 +464,51 @@ describe("panel chat helpers", () => {
           }
         ]
       })
-    ).toMatchObject([
+    ).toEqual([
       {
         id: "panel-1:live:assistant-a:0",
         role: "codex",
         label: "Codex Live",
         body: "Live answer",
-        meta: "completed",
-        sections: expect.arrayContaining([
-          expect.objectContaining({
-            kind: "commands",
-            title: "Commands, Scripts, and Tools",
-            body: expect.stringContaining("Get-Location")
-          }),
-          expect.objectContaining({
-            kind: "trace",
-            title: "Raw Event Trace",
-            body: expect.stringContaining("item/started")
-          })
-        ])
+        meta: "completed"
       }
     ]);
+  });
+
+  it("creates a live activity message with collapsible command sections", () => {
+    const message = createPanelLiveActivityMessage(session, 7, "Working on the live turn.", [
+      {
+        id: "commands",
+        kind: "commands",
+        title: "Ran 2 commands",
+        summary: "Show exact command text",
+        body: "1. Get-Location\n2. npm.cmd run test"
+      }
+    ]);
+
+    expect(message).toMatchObject({
+      role: "system",
+      label: "Codex Live",
+      body: "Working on the live turn.",
+      meta: "working",
+      sections: [
+        expect.objectContaining({
+          kind: "commands",
+          title: "Ran 2 commands",
+          body: expect.stringContaining("npm.cmd run test")
+        })
+      ]
+    });
+  });
+
+  it("expands /plan into Codex create-plan behavior for the provider", () => {
+    const decision = getPanelSlashCommandDecision("/plan build a Lazada mapper", true);
+    const prompt = createPanelProviderPrompt("/plan build a Lazada mapper", decision);
+
+    expect(prompt).toContain("Use Codex /plan behavior");
+    expect(prompt).toContain("build a Lazada mapper");
+    expect(prompt).toContain("ask 1-2 concise clarification questions");
+    expect(prompt).toContain("Stay read-only");
   });
 
   it("repairs malformed stored thread payloads", () => {

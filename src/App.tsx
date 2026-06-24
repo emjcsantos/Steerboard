@@ -337,6 +337,8 @@ import {
   createPanelLiveErrorMessage,
   createPanelLiveStatusMessage,
   createPanelProviderSlashCommandStatusMessage,
+  createPanelProviderPrompt,
+  createPanelLiveActivityMessage,
   createPanelSlashCommandStatusMessage,
   getPanelSlashCommandDecision,
   getPanelSlashCommandSuggestions,
@@ -345,6 +347,7 @@ import {
   savePanelChatMessages,
   createPanelLiveRecoveryMessage,
   type PanelChatMessage,
+  type PanelChatSection,
   type PanelSlashCommandDecision,
   type PanelSlashCommand
 } from "./panelChat";
@@ -2018,6 +2021,71 @@ interface CodexPanelProviderSnapshotPayload {
   modelCatalog: CodexPanelModelCatalogEntryPayload[];
   modelCatalogState: string;
   detail: string;
+}
+
+function compactLiveActivityLine(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function summarizeLivePanelEvent(event: CodexPanelEventPayload): string | undefined {
+  if (event.delta) {
+    return undefined;
+  }
+
+  const subject = event.itemTitle ?? event.itemType ?? event.method;
+  if (event.method === "turn/started") {
+    return "Started the Codex turn.";
+  }
+  if (event.method === "turn/completed" || event.status === "completed") {
+    return "Codex completed the turn.";
+  }
+  if (event.method === "turn/interrupted" || event.status === "interrupted") {
+    return "Codex turn was interrupted.";
+  }
+  if (event.eventType === "error" || event.status === "failed") {
+    return event.message ? `Blocked: ${event.message}` : "Codex reported a failed turn.";
+  }
+  if (event.method === "item/started") {
+    return `Started ${subject}.`;
+  }
+  if (event.method === "item/completed") {
+    return `Completed ${subject}.`;
+  }
+  if (event.method === "warning") {
+    return event.message ?? event.summary ?? "Codex reported a warning.";
+  }
+
+  return event.summary ?? event.message ?? undefined;
+}
+
+function commandActivityText(event: CodexPanelEventPayload): string | undefined {
+  const haystack = `${event.method} ${event.itemType ?? ""} ${event.itemTitle ?? ""} ${event.itemDetail ?? ""}`;
+  if (!/command|tool|terminal|shell|exec|script|patch|mcp/i.test(haystack)) {
+    return undefined;
+  }
+
+  return compactLiveActivityLine(
+    event.itemDetail ??
+      event.itemTitle ??
+      event.summary ??
+      event.message ??
+      event.method
+  );
+}
+
+function buildCommandActivitySection(commands: readonly string[]): PanelChatSection | undefined {
+  const uniqueCommands = Array.from(new Set(commands.map(compactLiveActivityLine).filter(Boolean)));
+  if (uniqueCommands.length === 0) {
+    return undefined;
+  }
+
+  return {
+    id: "live-commands",
+    kind: "commands",
+    title: `Ran ${uniqueCommands.length} ${uniqueCommands.length === 1 ? "command" : "commands"}`,
+    summary: "Show exact command text",
+    body: uniqueCommands.map((command, index) => `${index + 1}. ${command}`).join("\n")
+  };
 }
 
 interface CodexPanelStreamEventPayload {
@@ -7989,6 +8057,7 @@ function SessionCell({
 
     liveSendInFlightRef.current = true;
     const sequence = chatMessages.length;
+    const providerPrompt = createPanelProviderPrompt(trimmedMessage, providerSlashCommandDecision);
     const providerSlashStatusMessage =
       providerSlashCommandDecision?.route === "provider"
         ? createPanelProviderSlashCommandStatusMessage(
@@ -8007,8 +8076,18 @@ function SessionCell({
           : "Sending to live Codex...",
       "running"
     );
-    const liveMessageSequenceStart = sequence + (providerSlashStatusMessage ? 3 : 2);
+    const activityMessage = createPanelLiveActivityMessage(
+      session,
+      sequence + (providerSlashStatusMessage ? 3 : 2),
+      providerSlashCommandDecision?.command?.command === "/plan"
+        ? "I'm using Codex /plan behavior. I'll ask concise clarification questions first if the plan target, scope, or success criteria are missing."
+        : "I'm starting the Codex live turn and will report notable steps, tool activity, and blockers here."
+    );
+    const liveMessageSequenceStart = sequence + (providerSlashStatusMessage ? 4 : 3);
     const streamingMessageId = `${session.id}:live-stream:${liveMessageSequenceStart}`;
+    const activityMessageId = activityMessage.id;
+    const activityLines = [activityMessage.body];
+    const activityCommands: string[] = [];
     let unlistenStream: (() => void) | undefined;
     let streamedText = "";
     let pendingStreamBody = "";
@@ -8055,6 +8134,20 @@ function SessionCell({
       clearTimeout(streamRenderTimer);
       streamRenderTimer = undefined;
     };
+    const updateActivityMessage = () => {
+      const commandSection = buildCommandActivitySection(activityCommands);
+      setChatMessages((currentMessages) =>
+        currentMessages.map((message) =>
+          message.id === activityMessageId
+            ? {
+                ...message,
+                body: activityLines.join("\n\n"),
+                sections: commandSection ? [commandSection] : []
+              }
+            : message
+        )
+      );
+    };
 
     setLastLivePrompt(trimmedMessage);
     setLiveChatStatus(liveSessionStarted ? "running" : "starting");
@@ -8069,7 +8162,8 @@ function SessionCell({
         meta: providerSlashCommandDecision?.command?.command ?? (mode === "retry" ? "retry" : "live")
       },
       ...(providerSlashStatusMessage ? [providerSlashStatusMessage] : []),
-      pendingMessage
+      pendingMessage,
+      activityMessage
     ]);
     setDraftMessage("");
 
@@ -8083,6 +8177,18 @@ function SessionCell({
 
             if (payload.panelId !== session.id) {
               return;
+            }
+
+            const activityLine = summarizeLivePanelEvent(payload.event);
+            const commandText = commandActivityText(payload.event);
+            if (activityLine && !activityLines.includes(activityLine)) {
+              activityLines.push(activityLine);
+            }
+            if (commandText) {
+              activityCommands.push(commandText);
+            }
+            if (activityLine || commandText) {
+              updateActivityMessage();
             }
 
             if (payload.transcript.trim().length > 0) {
@@ -8114,7 +8220,7 @@ function SessionCell({
         mode === "retry" ? "codex_panel_session_retry" : "codex_panel_session_send_turn",
         {
           panelId: session.id,
-          prompt: trimmedMessage,
+          prompt: providerPrompt,
           model: agentSettings.model,
           reasoningEffort: agentSettings.reasoning,
           permissionMode: agentSettings.permissionMode
