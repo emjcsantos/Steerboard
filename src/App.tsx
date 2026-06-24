@@ -886,6 +886,9 @@ import {
 } from "./dispatch";
 import {
   createMockRunFromDispatchPackage,
+  getActivePhaseWorksheets,
+  integratePhaseWorksheetIntoMain,
+  requestPhaseWorksheetRevision,
   runToOrchestrationTasks,
   runToSessionSummaries,
   type MockRunStatus,
@@ -3915,6 +3918,58 @@ export function App() {
     updatePreferences({ view: "cockpit" });
   }
 
+  function handlePhaseWorksheetRevision(runId: string, worksheetId: string, subagentId: string) {
+    const createdAt = new Date().toISOString();
+
+    setSelectedRunId(runId);
+    setMockRuns((currentRuns) =>
+      currentRuns.map((run) =>
+        run.id === runId
+          ? requestPhaseWorksheetRevision(run, {
+              worksheetId,
+              subagentId,
+              notes: "Main orchestrator validation found issues before integration.",
+              requiredActions: [
+                "Revise the worksheet output against the phase acceptance gate.",
+                "Return evidence for main orchestrator validation."
+              ],
+              createdAt
+            })
+          : run
+      )
+    );
+    setAppNotice("Worksheet sent back to the owning subagent for revision");
+    updatePreferences({ view: "cockpit" });
+  }
+
+  function handlePhaseWorksheetIntegration(runId: string, worksheetId: string) {
+    const createdAt = new Date().toISOString();
+
+    setSelectedRunId(runId);
+    setMockRuns((currentRuns) =>
+      currentRuns.map((run) => {
+        if (run.id !== runId) {
+          return run;
+        }
+
+        const worksheet = run.phaseWorksheets?.find((candidate) => candidate.id === worksheetId);
+
+        return integratePhaseWorksheetIntoMain(run, {
+          worksheetId,
+          acceptedEvidence: worksheet?.validationEvidence ?? [
+            "Main orchestrator accepted worksheet evidence."
+          ],
+          integratedArtifacts: [`Integrated ${worksheet?.title ?? "phase worksheet"}`],
+          validatorNotes:
+            "Main orchestrator validated the phase worksheet and integrated it into the main worksheet.",
+          integratedAt: createdAt
+        });
+      })
+    );
+    setAppNotice("Worksheet validated, integrated, and removed from the active queue");
+    updatePreferences({ view: "cockpit" });
+  }
+
   function toggleAppMenu(menuId: AppMenuId) {
     setActiveAppMenu((currentMenu) => (currentMenu === menuId ? undefined : menuId));
   }
@@ -5334,6 +5389,8 @@ export function App() {
             mockRuns={projectMockRuns}
             onAppNotice={setAppNotice}
             onRecordWorkerValidationAttempt={handleWorkerValidationAttempt}
+            onRequestPhaseWorksheetRevision={handlePhaseWorksheetRevision}
+            onIntegratePhaseWorksheet={handlePhaseWorksheetIntegration}
             onExportPhase3ProofArtifact={exportPhase3ProofArtifact}
             onVerifyImportedPhase3ProofArtifact={verifyImportedPhase3ProofArtifact}
             onRecordPhase3OwnerHandoff={recordPhase3OwnerHandoff}
@@ -11217,6 +11274,8 @@ function RightPanel({
   onRecordPhase4ProviderPermission,
   onRecordPhase4ProviderRollback,
   onRecordWorkerValidationAttempt,
+  onRequestPhaseWorksheetRevision,
+  onIntegratePhaseWorksheet,
   onVerifyImportedPhase3ProofArtifact,
   onVerifyImportedPhase4ProviderReviewArtifact,
   onSelectRun,
@@ -11329,6 +11388,12 @@ function RightPanel({
     taskId: string,
     outcome: "pass" | "fail"
   ) => void;
+  onRequestPhaseWorksheetRevision: (
+    runId: string,
+    worksheetId: string,
+    subagentId: string
+  ) => void;
+  onIntegratePhaseWorksheet: (runId: string, worksheetId: string) => void;
   onVerifyImportedPhase3ProofArtifact: (serializedArtifact: string) => void;
   onVerifyImportedPhase4ProviderReviewArtifact: (serializedArtifact: string) => void;
   onSelectRun: (runId: string) => void;
@@ -11533,6 +11598,19 @@ function RightPanel({
     selectedRun?.status !== "complete" &&
     selectedRun?.status !== "failed" &&
     selectedRun?.status !== "blocked";
+  const selectedRunPhaseWorksheets = selectedRun?.phaseWorksheets ?? [];
+  const selectedRunActivePhaseWorksheets = useMemo(
+    () => (selectedRun ? getActivePhaseWorksheets(selectedRun) : []),
+    [selectedRun]
+  );
+  const selectedRunRemovedWorksheetCount = selectedRunPhaseWorksheets.filter(
+    (worksheet) => worksheet.state === "removed"
+  ).length;
+  const selectedRunRevisionWorksheetCount = selectedRunPhaseWorksheets.filter(
+    (worksheet) => worksheet.state === "revision_needed"
+  ).length;
+  const selectedRunMainWorksheetReceiptCount =
+    selectedRun?.mainWorksheet?.integrationReceipts.length ?? 0;
   const orchestrationDependencyReadiness: OrchestrationDependencyReadiness = useMemo(
     () => createOrchestrationDependencyReadiness(tasks),
     [tasks]
@@ -13392,6 +13470,136 @@ function RightPanel({
                       ? `Next: ${selectedRunHandoffBrief.title}`
                       : "No selected run task is ready for handoff."}
                   </p>
+                </section>
+
+                <section className="phase-worksheet-monitor" aria-label="Selected run phase worksheet loop">
+                  <div className="phase-worksheet-header">
+                    <div>
+                      <span className="eyebrow">Phase Worksheets</span>
+                      <strong>{selectedRun.mainWorksheet?.title ?? "Main Worksheet"}</strong>
+                    </div>
+                    <span className="phase-worksheet-state">
+                      {selectedRunActivePhaseWorksheets.length > 0 ? "active" : "integrated"}
+                    </span>
+                  </div>
+
+                  <div className="phase-worksheet-summary" aria-label="Selected run worksheet summary">
+                    <span>
+                      <strong>{selectedRunPhaseWorksheets.length}</strong>
+                      Worksheets
+                    </span>
+                    <span>
+                      <strong>{selectedRunActivePhaseWorksheets.length}</strong>
+                      Active queue
+                    </span>
+                    <span>
+                      <strong>{selectedRunRevisionWorksheetCount}</strong>
+                      Revisions
+                    </span>
+                    <span>
+                      <strong>{selectedRunRemovedWorksheetCount}</strong>
+                      Removed
+                    </span>
+                    <span>
+                      <strong>{selectedRunMainWorksheetReceiptCount}</strong>
+                      Receipts
+                    </span>
+                  </div>
+
+                  <div className="phase-worksheet-main-card" aria-label="Selected run main worksheet receipts">
+                    <div>
+                      <strong>Main worksheet integration record</strong>
+                      <small>
+                        Accepted phases {selectedRun.mainWorksheet?.acceptedPhaseIds.length ?? 0}/
+                        {selectedRunPhaseWorksheets.length}
+                      </small>
+                    </div>
+                    <p>
+                      Validated phase output moves here, then the phase worksheet leaves the active queue.
+                    </p>
+                    {selectedRun.mainWorksheet?.integrationReceipts.length ? (
+                      <ul className="phase-worksheet-receipts">
+                        {selectedRun.mainWorksheet.integrationReceipts.slice(-3).map((receipt) => (
+                          <li key={receipt.id} title={receipt.validatorNotes}>
+                            <strong>{receipt.title}</strong>
+                            <small>{receipt.revisionCount} revisions</small>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+
+                  {selectedRunActivePhaseWorksheets.length > 0 ? (
+                    <div className="phase-worksheet-list" aria-label="Active phase worksheet queue">
+                      {selectedRunActivePhaseWorksheets.map((worksheet) => {
+                        const revisionTarget =
+                          worksheet.subagents.find((subagent) => subagent.role === "implementer") ??
+                          worksheet.subagents[0];
+                        const worksheetIsBlocked =
+                          worksheet.state === "blocked" || worksheet.state === "failed";
+                        const revisionTitle = revisionTarget
+                          ? `Send ${worksheet.title} back to ${revisionTarget.label}`
+                          : "No subagent is assigned to this worksheet";
+
+                        return (
+                          <article className="phase-worksheet-card" key={worksheet.id}>
+                            <div className="phase-worksheet-card-header">
+                              <div>
+                                <strong title={worksheet.scope}>{worksheet.title}</strong>
+                                <small>{worksheet.scope}</small>
+                              </div>
+                              <span className={classNames("phase-worksheet-state", `state-${worksheet.state}`)}>
+                                {worksheet.state}
+                              </span>
+                            </div>
+
+                            <div className="phase-worksheet-roster" aria-label={`${worksheet.title} subagents`}>
+                              {worksheet.subagents.map((subagent) => (
+                                <span key={subagent.id} title={subagent.responsibilities.join(" | ")}>
+                                  {subagent.label}
+                                </span>
+                              ))}
+                            </div>
+
+                            <p title={worksheet.validationEvidence.join(" | ")}>
+                              Gate: {worksheet.validationEvidence[0] ?? "No validation gate recorded."}
+                            </p>
+
+                            <div className="phase-worksheet-actions">
+                              <button
+                                disabled={!revisionTarget || worksheetIsBlocked}
+                                onClick={() => {
+                                  if (revisionTarget) {
+                                    onRequestPhaseWorksheetRevision(
+                                      selectedRun.id,
+                                      worksheet.id,
+                                      revisionTarget.id
+                                    );
+                                  }
+                                }}
+                                title={revisionTitle}
+                                type="button"
+                              >
+                                Request revision
+                              </button>
+                              <button
+                                disabled={worksheetIsBlocked}
+                                onClick={() => onIntegratePhaseWorksheet(selectedRun.id, worksheet.id)}
+                                title={`Validate ${worksheet.title}, integrate it into the main worksheet, then remove it from the active queue`}
+                                type="button"
+                              >
+                                Validate & integrate
+                              </button>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="empty-preview">
+                      All phase worksheets are validated, integrated, and removed from the active queue.
+                    </p>
+                  )}
                 </section>
 
                 <section className="run-timeline" aria-label="Selected local run event timeline">

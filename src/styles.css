@@ -11800,6 +11800,202 @@ textarea {
   margin: 0;
 }
 
+.phase-worksheet-monitor {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  border-top: 1px solid #272d36;
+  padding-top: 10px;
+}
+
+.phase-worksheet-header,
+.phase-worksheet-card-header,
+.phase-worksheet-main-card > div:first-child {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.phase-worksheet-header div,
+.phase-worksheet-card-header div,
+.phase-worksheet-main-card > div:first-child div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.phase-worksheet-header strong,
+.phase-worksheet-card-header strong,
+.phase-worksheet-main-card strong,
+.phase-worksheet-card-header small,
+.phase-worksheet-main-card small,
+.phase-worksheet-card p,
+.phase-worksheet-main-card p,
+.phase-worksheet-receipts strong,
+.phase-worksheet-receipts small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phase-worksheet-header strong,
+.phase-worksheet-card-header strong,
+.phase-worksheet-main-card strong {
+  color: #eef3f8;
+  font-size: 12px;
+}
+
+.phase-worksheet-card-header small,
+.phase-worksheet-main-card small,
+.phase-worksheet-card p,
+.phase-worksheet-main-card p {
+  color: #8f99a5;
+  font-size: 11px;
+}
+
+.phase-worksheet-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.phase-worksheet-summary span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid #272d36;
+  border-radius: 8px;
+  background: #151a20;
+  color: #8f99a5;
+  padding: 7px;
+  font-size: 10px;
+}
+
+.phase-worksheet-summary strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.phase-worksheet-state {
+  border: 1px solid #303741;
+  border-radius: 999px;
+  background: #1b222b;
+  color: #aeb8c4;
+  padding: 3px 7px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.phase-worksheet-state.state-active,
+.phase-worksheet-state.state-reviewing {
+  border-color: #315f87;
+  background: #152337;
+  color: #91beff;
+}
+
+.phase-worksheet-state.state-revision_needed,
+.phase-worksheet-state.state-blocked,
+.phase-worksheet-state.state-failed {
+  border-color: #8e7130;
+  background: #2c2818;
+  color: #f4cf6d;
+}
+
+.phase-worksheet-list {
+  display: grid;
+  gap: 7px;
+}
+
+.phase-worksheet-card,
+.phase-worksheet-main-card {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  border: 1px solid #272d36;
+  border-radius: 8px;
+  background: #151a20;
+  padding: 8px;
+}
+
+.phase-worksheet-card p,
+.phase-worksheet-main-card p {
+  margin: 0;
+}
+
+.phase-worksheet-roster {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.phase-worksheet-roster span {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid #303741;
+  border-radius: 999px;
+  background: #10161d;
+  color: #cbd4de;
+  padding: 3px 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.phase-worksheet-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.phase-worksheet-actions button {
+  min-height: 32px;
+  border: 1px solid #303741;
+  border-radius: 7px;
+  background: #1b222b;
+  color: #dce3eb;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.phase-worksheet-actions button:hover:not(:disabled) {
+  border-color: #4d5968;
+  background: #252b34;
+}
+
+.phase-worksheet-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.64;
+}
+
+.phase-worksheet-receipts {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phase-worksheet-receipts li {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  border-radius: 7px;
+  background: #10161d;
+  padding: 6px;
+}
+
 .selected-dispatch-review {
   margin-top: 10px;
 }
