@@ -4028,7 +4028,9 @@ mod runtime_bridge {
     fn normalize_panel_model(model: Option<String>) -> Option<String> {
         let value = model?.trim().to_ascii_lowercase();
         match value.as_str() {
-            "codex-agent" | "provider-default" => None,
+            "provider-default" => None,
+            "codex-agent" => Some("gpt-5.5".to_string()),
+            "gpt-5.5" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex-spark" => Some(value),
             _ => None,
         }
     }
@@ -5246,12 +5248,23 @@ mod tests {
     #[test]
     fn panel_turn_settings_preserve_supported_model_and_reasoning() {
         let settings = runtime_bridge::panel_turn_settings(
-            Some(" Codex-Agent ".to_string()),
+            Some(" GPT-5.5 ".to_string()),
             Some("extra_high".to_string()),
         );
 
-        assert_eq!(settings.model, None);
+        assert_eq!(settings.model.as_deref(), Some("gpt-5.5"));
         assert_eq!(settings.reasoning_effort, "extra-high");
+
+        let legacy = runtime_bridge::panel_turn_settings(Some("Codex-Agent".to_string()), None);
+        assert_eq!(legacy.model.as_deref(), Some("gpt-5.5"));
+        assert_eq!(legacy.reasoning_effort, "low");
+
+        let spark = runtime_bridge::panel_turn_settings(
+            Some("GPT-5.3-Codex-Spark".to_string()),
+            Some("high".to_string()),
+        );
+        assert_eq!(spark.model.as_deref(), Some("gpt-5.3-codex-spark"));
+        assert_eq!(spark.reasoning_effort, "high");
 
         let fallback = runtime_bridge::panel_turn_settings(
             Some("unknown-model".to_string()),
