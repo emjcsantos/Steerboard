@@ -5810,6 +5810,13 @@ export function App() {
                         <span>{adaptiveDropPreview.detail}</span>
                       </div>
                     ) : null}
+                    {visibleSessions.length === 0 ? (
+                      <div className="cockpit-empty-state" role="status">
+                        <LayoutDashboard size={18} />
+                        <strong>No panels visible</strong>
+                        <span>Open a chat, reveal a hidden panel, or switch views.</span>
+                      </div>
+                    ) : null}
                     {layout.kind === "adaptive"
                       ? visibleAdaptivePanels.map((panel) => {
                           const session = sessionById.get(panel.id);

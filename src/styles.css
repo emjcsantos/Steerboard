@@ -2337,11 +2337,11 @@ textarea {
 .surface-toolbar {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   justify-content: flex-start;
   gap: 8px;
   min-width: 0;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
 }
 
 .layout-select {
@@ -2515,12 +2515,47 @@ textarea {
 .toolbar-status {
   display: flex;
   min-width: 0;
-  flex: 1 1 auto;
-  flex-wrap: nowrap;
+  flex: 1 1 380px;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
   gap: 5px;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.toolbar-status > * {
+  flex: 0 0 auto;
+}
+
+.cockpit-empty-state {
+  display: inline-grid;
+  grid-column: 1 / -1;
+  align-self: start;
+  justify-self: start;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 8px;
+  max-width: 360px;
+  border: 1px solid var(--sb-border);
+  border-radius: 8px;
+  background: #111820;
+  color: var(--sb-muted);
+  padding: 12px;
+}
+
+.cockpit-empty-state svg {
+  grid-row: 1 / span 2;
+  color: var(--sb-accent-blue);
+}
+
+.cockpit-empty-state strong {
+  color: var(--sb-text);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.cockpit-empty-state span {
+  color: var(--sb-muted);
+  font-size: 12px;
 }
 
 .layout-capacity-chip {
@@ -20671,5 +20706,455 @@ textarea {
 
   .right-panel h3 {
     max-width: none;
+  }
+}
+
+/* Codex Desktop + Jira operational polish layer.
+   Kept as overrides so the existing product surfaces and behavior stay intact. */
+:root {
+  --sb-bg: #0b0f14;
+  --sb-shell: #11161c;
+  --sb-surface: #151a20;
+  --sb-surface-raised: #181f27;
+  --sb-surface-subtle: #10151b;
+  --sb-border: #27303a;
+  --sb-border-strong: #35404d;
+  --sb-text: #eef3f8;
+  --sb-muted: #9aa6b2;
+  --sb-faint: #727d89;
+  --sb-accent: #7dd3a8;
+  --sb-accent-blue: #8bbcff;
+  --sb-warn: #f0d984;
+  --sb-danger: #ff9e9e;
+  --sb-radius: 6px;
+  --sb-radius-sm: 4px;
+  --sb-row-h: 34px;
+  letter-spacing: 0;
+}
+
+body {
+  background: var(--sb-bg);
+}
+
+.app-shell {
+  background: var(--sb-bg);
+}
+
+.app-menu-bar {
+  height: 38px;
+  border-bottom-color: var(--sb-border);
+  background: #0f141a;
+}
+
+.app-menu-brand {
+  color: var(--sb-text);
+  font-weight: 800;
+}
+
+.app-menu-item > button,
+.sidebar-command-list button,
+.project-folder-button,
+.sidebar-session-button,
+.sidebar-footer button {
+  border-radius: var(--sb-radius);
+}
+
+.app-menu-item > button:hover,
+.app-menu-item > button.is-active,
+.sidebar-command-list button:hover,
+.project-folder-button:hover,
+.sidebar-footer button:hover {
+  background: #222a33;
+}
+
+.app-menu-dropdown,
+.app-dialog {
+  border-color: var(--sb-border-strong);
+  border-radius: 8px;
+  background: var(--sb-surface);
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.38);
+}
+
+.sidebar {
+  gap: 10px;
+  border-right-color: var(--sb-border);
+  background: #11171e;
+  padding: 8px;
+}
+
+.sidebar-section-label {
+  margin: 10px 6px 5px;
+  color: var(--sb-faint);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.sidebar-command-list button,
+.project-folder-button,
+.sidebar-session-button {
+  min-height: var(--sb-row-h);
+  padding: 7px 8px;
+  font-size: 13px;
+}
+
+.sidebar-session-button {
+  position: relative;
+}
+
+.sidebar-session-button.is-selected,
+.sidebar-session-button.is-active {
+  background: #1d2732;
+  box-shadow: inset 3px 0 0 var(--sb-accent);
+}
+
+.workspace,
+.main-surface {
+  background: #0d1117;
+}
+
+.topbar {
+  min-height: 48px;
+  border-bottom-color: var(--sb-border);
+  background: var(--sb-shell);
+  padding: 10px 14px;
+}
+
+.title-block h2 {
+  color: var(--sb-text);
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.eyebrow,
+.brand-row p,
+.project-time,
+.cell-role,
+.validation-label {
+  color: var(--sb-muted);
+}
+
+.segmented,
+.layout-select,
+.adaptive-toolbar,
+.adaptive-docking-toggle,
+.layout-capacity-chip,
+.runtime-pill {
+  border-color: var(--sb-border);
+  border-radius: var(--sb-radius);
+  background: var(--sb-surface-subtle);
+}
+
+.segmented button,
+.layout-select select,
+.adaptive-toolbar button,
+.adaptive-template-select,
+.layout-capacity-chip {
+  border-radius: var(--sb-radius-sm);
+}
+
+.segmented button.is-active,
+.adaptive-docking-toggle button.is-active {
+  background: #213040;
+  color: var(--sb-text);
+  box-shadow: inset 0 -2px 0 var(--sb-accent-blue);
+}
+
+.main-surface {
+  padding: 10px;
+}
+
+.session-cell {
+  border: 1px solid var(--sb-border);
+  border-radius: 8px;
+  background: var(--sb-surface);
+  box-shadow: none;
+}
+
+.session-cell.is-focused {
+  border-color: #4b6f95;
+  box-shadow: 0 0 0 1px rgba(139, 188, 255, 0.16);
+}
+
+.cell-header {
+  min-height: 44px;
+  border-bottom-color: var(--sb-border);
+  background: #151b22;
+  padding: 9px 10px;
+}
+
+.cell-header h3 {
+  color: var(--sb-text);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.cell-meta {
+  border-bottom-color: var(--sb-border);
+  background: #111820;
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
+.cell-body {
+  background: #0f141a;
+}
+
+.chat-message {
+  gap: 8px;
+}
+
+.chat-bubble {
+  border-radius: 8px;
+}
+
+.chat-message-user .chat-bubble {
+  border: 1px solid #235f43;
+  background: #10281b;
+}
+
+.chat-message-codex .chat-bubble,
+.chat-message-tool .chat-bubble,
+.chat-message-system .chat-bubble {
+  border: 1px solid var(--sb-border);
+  background: #151b22;
+}
+
+.chat-message-header {
+  padding-bottom: 5px;
+}
+
+.chat-message-header strong {
+  color: var(--sb-text);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.chat-message-header small {
+  color: var(--sb-faint);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.chat-message-body {
+  color: #dce5ee;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.chat-trace-section {
+  border-color: var(--sb-border);
+  border-radius: var(--sb-radius);
+  background: #0f151c;
+}
+
+.chat-trace-section summary {
+  min-height: 32px;
+  border-bottom: 1px solid transparent;
+  padding: 7px 9px;
+}
+
+.chat-trace-section[open] summary {
+  border-bottom-color: var(--sb-border);
+}
+
+.chat-trace-section summary span {
+  color: var(--sb-text);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.chat-trace-section summary small {
+  color: var(--sb-muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.chat-trace-section pre,
+.terminal-pane-active pre,
+.git-workbench-diff pre {
+  background: #090d12;
+  color: #dbe7f3;
+  font-size: 12px;
+  line-height: 1.48;
+}
+
+.chat-message-actions button,
+.dialog-secondary-action,
+.dialog-primary-action,
+.git-workbench-actions button,
+.terminal-pane-actions button,
+.terminal-pane-command button,
+.browser-context-bar button,
+.browser-context-meta button {
+  border: 1px solid var(--sb-border-strong);
+  border-radius: var(--sb-radius);
+  background: #1b232c;
+  color: var(--sb-text);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.dialog-primary-action,
+.chat-composer button[type="submit"] {
+  border-color: #2f7b53;
+  background: #1c6b43;
+  color: #effff4;
+}
+
+.chat-composer-shell {
+  border-top-color: var(--sb-border);
+  background: #111820;
+}
+
+.chat-composer {
+  border-color: var(--sb-border);
+  border-radius: 8px;
+  background: #0d1218;
+}
+
+.chat-composer textarea,
+.chat-composer-meta .agent-setting-select,
+.terminal-pane-command input,
+.browser-context-bar input,
+.git-workbench-actions input {
+  border-color: var(--sb-border);
+  border-radius: var(--sb-radius);
+  background: #0a0f15;
+  color: var(--sb-text);
+}
+
+.chat-composer-meta {
+  border-top-color: var(--sb-border);
+}
+
+.app-dialog {
+  max-width: min(1120px, calc(100vw - 42px));
+}
+
+.app-dialog header {
+  border-bottom-color: var(--sb-border);
+  background: #141a21;
+  padding: 12px 14px;
+}
+
+.app-dialog h3 {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.app-dialog-body {
+  background: var(--sb-surface);
+  padding: 14px;
+}
+
+.connection-palette-search,
+.catalog-row,
+.mcp-manager-row,
+.git-workbench-group,
+.git-workbench-diff,
+.terminal-pane-active pre,
+.browser-context-active iframe,
+.background-agent-row,
+.pipeline-view,
+.planning-view,
+.handoff-panel,
+.task-board,
+.pipeline-detail-panel {
+  border-color: var(--sb-border);
+  border-radius: 8px;
+  background: var(--sb-surface-subtle);
+}
+
+.catalog-list,
+.mcp-manager-list,
+.background-agent-list {
+  gap: 6px;
+}
+
+.catalog-row,
+.mcp-manager-row,
+.background-agent-row {
+  padding: 8px 9px;
+}
+
+.pipeline-header,
+.planning-header,
+.task-board-header,
+.handoff-panel header {
+  border-bottom-color: var(--sb-border);
+  background: #151b22;
+  padding: 10px 12px;
+}
+
+.pipeline-row,
+.task-row {
+  min-height: 42px;
+  border-color: #202832;
+  padding: 8px 12px;
+}
+
+.pipeline-row-button:hover,
+.pipeline-row-button:focus-visible,
+.pipeline-row-button.is-selected {
+  background: #1c242d;
+}
+
+.pipeline-row-button.is-selected {
+  box-shadow: inset 3px 0 0 var(--sb-accent-blue);
+}
+
+.pipeline-stage,
+.pipeline-run-status,
+.task-status,
+.state-chip,
+.runtime-pill,
+.panel-branch-signal,
+.panel-runtime-signal,
+.summary-chips span,
+.background-agent-row > span,
+.background-agent-row > b {
+  border-radius: 999px;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.right-panel {
+  border-left-color: var(--sb-border);
+  background: #11171e;
+}
+
+.right-panel header {
+  border-bottom-color: var(--sb-border);
+  background: #151b22;
+}
+
+@media (max-width: 899px) {
+  .app-dialog {
+    max-width: calc(100vw - 18px);
+  }
+
+  .main-surface {
+    padding: 8px;
+  }
+
+  .surface-toolbar {
+    align-items: stretch;
+  }
+
+  .toolbar-status {
+    flex-basis: 100%;
+  }
+
+  .toolbar-status .run-chip,
+  .toolbar-status .layout-capacity-chip {
+    max-width: 100%;
+  }
+
+  .chat-message-body {
+    font-size: 12px;
   }
 }
