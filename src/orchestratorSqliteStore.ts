@@ -58,3 +58,13 @@ export async function applyOrchestratorSqliteSnapshot(
     snapshot
   });
 }
+
+export async function readOrchestratorSqliteSnapshot(): Promise<OrchestratorSqliteSnapshot> {
+  if (!hasTauriRuntime()) {
+    throw new Error("orchestrator_sqlite_tauri_unavailable");
+  }
+
+  const { invoke } = await import("@tauri-apps/api/core");
+
+  return invoke<OrchestratorSqliteSnapshot>("orchestrator_sqlite_read_snapshot");
+}

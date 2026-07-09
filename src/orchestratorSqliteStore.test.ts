@@ -6,7 +6,10 @@ import {
   processAllQueuedOrchestratorEvents
 } from "./orchestratorBackend";
 import { createArtifactMetadataFromText } from "./orchestratorArtifacts";
-import { buildOrchestratorSqliteSnapshot } from "./orchestratorSqliteStore";
+import {
+  buildOrchestratorSqliteSnapshot,
+  readOrchestratorSqliteSnapshot
+} from "./orchestratorSqliteStore";
 
 const createdAt = "2026-07-09T12:00:00.000Z";
 
@@ -60,5 +63,11 @@ describe("orchestrator SQLite store adapter", () => {
       task_id: "task-1",
       kind: "validator-report"
     });
+  });
+
+  it("requires the Tauri runtime before reading the durable snapshot", async () => {
+    await expect(readOrchestratorSqliteSnapshot()).rejects.toThrow(
+      "orchestrator_sqlite_tauri_unavailable"
+    );
   });
 });

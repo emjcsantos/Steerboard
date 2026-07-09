@@ -6349,7 +6349,7 @@ mod orchestrator_sqlite {
     use serde::{Deserialize, Serialize};
     use std::path::PathBuf;
 
-    #[derive(Debug, Clone, Deserialize)]
+    #[derive(Debug, Clone, Deserialize, Serialize)]
     #[serde(rename_all = "snake_case")]
     pub struct OrchestratorRunSqliteRow {
         pub id: String,
@@ -6363,7 +6363,7 @@ mod orchestrator_sqlite {
         pub updated_at: String,
     }
 
-    #[derive(Debug, Clone, Deserialize)]
+    #[derive(Debug, Clone, Deserialize, Serialize)]
     #[serde(rename_all = "snake_case")]
     pub struct OrchestratorQueueSqliteRow {
         pub id: String,
@@ -6379,7 +6379,7 @@ mod orchestrator_sqlite {
         pub ignored_reason: Option<String>,
     }
 
-    #[derive(Debug, Clone, Deserialize)]
+    #[derive(Debug, Clone, Deserialize, Serialize)]
     #[serde(rename_all = "snake_case")]
     pub struct OrchestratorLedgerSqliteRow {
         pub id: String,
@@ -6393,7 +6393,7 @@ mod orchestrator_sqlite {
         pub created_at: String,
     }
 
-    #[derive(Debug, Clone, Deserialize)]
+    #[derive(Debug, Clone, Deserialize, Serialize)]
     #[serde(rename_all = "snake_case")]
     pub struct OrchestratorArtifactSqliteRow {
         pub id: String,
@@ -6408,7 +6408,7 @@ mod orchestrator_sqlite {
         pub created_at: String,
     }
 
-    #[derive(Debug, Clone, Deserialize)]
+    #[derive(Debug, Clone, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct OrchestratorSqliteSnapshot {
         pub runs: Vec<OrchestratorRunSqliteRow>,
@@ -6603,6 +6603,122 @@ mod orchestrator_sqlite {
         Ok(())
     }
 
+    fn read_runs(connection: &Connection) -> Result<Vec<OrchestratorRunSqliteRow>, String> {
+        let mut statement = connection
+            .prepare(
+                "SELECT id, project_id, scope_json, base_branch, integration_branch, status, phase, created_at, updated_at
+                 FROM orchestrator_runs
+                 ORDER BY updated_at ASC, id ASC",
+            )
+            .map_err(|error| format!("orchestrator_sqlite_read_runs_prepare_failed:{error}"))?;
+        let rows = statement
+            .query_map([], |row| {
+                Ok(OrchestratorRunSqliteRow {
+                    id: row.get(0)?,
+                    project_id: row.get(1)?,
+                    scope_json: row.get(2)?,
+                    base_branch: row.get(3)?,
+                    integration_branch: row.get(4)?,
+                    status: row.get(5)?,
+                    phase: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
+                })
+            })
+            .map_err(|error| format!("orchestrator_sqlite_read_runs_failed:{error}"))?;
+
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|error| format!("orchestrator_sqlite_read_runs_collect_failed:{error}"))
+    }
+
+    fn read_queue(connection: &Connection, queue_name: &str) -> Result<Vec<OrchestratorQueueSqliteRow>, String> {
+        let mut statement = connection
+            .prepare(
+                "SELECT id, run_id, queue_name, sequence, kind, payload_json, dedupe_key, status, enqueued_at, processed_at, ignored_reason
+                 FROM orchestrator_queue
+                 WHERE queue_name = ?1
+                 ORDER BY sequence ASC, id ASC",
+            )
+            .map_err(|error| format!("orchestrator_sqlite_read_queue_prepare_failed:{error}"))?;
+        let rows = statement
+            .query_map([queue_name], |row| {
+                Ok(OrchestratorQueueSqliteRow {
+                    id: row.get(0)?,
+                    run_id: row.get(1)?,
+                    queue_name: row.get(2)?,
+                    sequence: row.get(3)?,
+                    kind: row.get(4)?,
+                    payload_json: row.get(5)?,
+                    dedupe_key: row.get(6)?,
+                    status: row.get(7)?,
+                    enqueued_at: row.get(8)?,
+                    processed_at: row.get(9)?,
+                    ignored_reason: row.get(10)?,
+                })
+            })
+            .map_err(|error| format!("orchestrator_sqlite_read_queue_failed:{error}"))?;
+
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|error| format!("orchestrator_sqlite_read_queue_collect_failed:{error}"))
+    }
+
+    fn read_ledger(connection: &Connection) -> Result<Vec<OrchestratorLedgerSqliteRow>, String> {
+        let mut statement = connection
+            .prepare(
+                "SELECT id, run_id, sequence, event_id, kind, severity, message, payload_json, created_at
+                 FROM orchestrator_ledger
+                 ORDER BY sequence ASC, id ASC",
+            )
+            .map_err(|error| format!("orchestrator_sqlite_read_ledger_prepare_failed:{error}"))?;
+        let rows = statement
+            .query_map([], |row| {
+                Ok(OrchestratorLedgerSqliteRow {
+                    id: row.get(0)?,
+                    run_id: row.get(1)?,
+                    sequence: row.get(2)?,
+                    event_id: row.get(3)?,
+                    kind: row.get(4)?,
+                    severity: row.get(5)?,
+                    message: row.get(6)?,
+                    payload_json: row.get(7)?,
+                    created_at: row.get(8)?,
+                })
+            })
+            .map_err(|error| format!("orchestrator_sqlite_read_ledger_failed:{error}"))?;
+
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|error| format!("orchestrator_sqlite_read_ledger_collect_failed:{error}"))
+    }
+
+    fn read_artifacts(connection: &Connection) -> Result<Vec<OrchestratorArtifactSqliteRow>, String> {
+        let mut statement = connection
+            .prepare(
+                "SELECT id, run_id, task_id, job_id, attempt, kind, path, sha256, size_bytes, created_at
+                 FROM orchestrator_artifacts
+                 ORDER BY created_at ASC, id ASC",
+            )
+            .map_err(|error| format!("orchestrator_sqlite_read_artifacts_prepare_failed:{error}"))?;
+        let rows = statement
+            .query_map([], |row| {
+                Ok(OrchestratorArtifactSqliteRow {
+                    id: row.get(0)?,
+                    run_id: row.get(1)?,
+                    task_id: row.get(2)?,
+                    job_id: row.get(3)?,
+                    attempt: row.get(4)?,
+                    kind: row.get(5)?,
+                    path: row.get(6)?,
+                    sha256: row.get(7)?,
+                    size_bytes: row.get(8)?,
+                    created_at: row.get(9)?,
+                })
+            })
+            .map_err(|error| format!("orchestrator_sqlite_read_artifacts_failed:{error}"))?;
+
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|error| format!("orchestrator_sqlite_read_artifacts_collect_failed:{error}"))
+    }
+
     #[tauri::command]
     pub fn orchestrator_sqlite_apply_snapshot(
         snapshot: OrchestratorSqliteSnapshot,
@@ -6641,6 +6757,22 @@ mod orchestrator_sqlite {
             ledger_rows_written: snapshot.ledger.len(),
             artifacts_written: snapshot.artifacts.len(),
             detail: "Orchestrator SQLite snapshot applied.".to_string(),
+        })
+    }
+
+    #[tauri::command]
+    pub fn orchestrator_sqlite_read_snapshot() -> Result<OrchestratorSqliteSnapshot, String> {
+        let path = database_path()?;
+        let connection = Connection::open(&path)
+            .map_err(|error| format!("orchestrator_sqlite_open_failed:{error}"))?;
+        initialize_schema(&connection)?;
+
+        Ok(OrchestratorSqliteSnapshot {
+            runs: read_runs(&connection)?,
+            events: read_queue(&connection, "event")?,
+            commands: read_queue(&connection, "command")?,
+            ledger: read_ledger(&connection)?,
+            artifacts: read_artifacts(&connection)?,
         })
     }
 }
@@ -7209,6 +7341,7 @@ pub fn run() {
             runtime_bridge::git_workbench_action,
             runtime_bridge::terminal_pane_action,
             orchestrator_sqlite::orchestrator_sqlite_apply_snapshot,
+            orchestrator_sqlite::orchestrator_sqlite_read_snapshot,
             orchestrator_runtime_executor::orchestrator_execute_command,
             runtime_bridge::phase3_command_validation_artifact_read,
             runtime_bridge::phase3_smoke_proof_bundle_artifact_read,
