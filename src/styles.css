@@ -19937,6 +19937,52 @@ textarea {
   border-left: 3px solid #596471;
 }
 
+.pm-orchestrator-ledger-section {
+  grid-column: 1 / -1;
+  border: 1px solid #273340;
+  border-radius: 6px;
+  background: #0d1319;
+}
+
+.pm-orchestrator-ledger-section summary {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.pm-orchestrator-ledger-section summary strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #edf3f8;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pm-orchestrator-ledger-section summary span {
+  max-width: 52%;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: #7f8c99;
+  padding: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pm-orchestrator-ledger-section ol {
+  margin: 0;
+  border-top: 1px solid #273340;
+  padding: 7px 8px 8px 24px;
+  color: #aeb9c5;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .pm-table-wrap {
   min-width: 0;
   min-height: 0;

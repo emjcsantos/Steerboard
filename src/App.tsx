@@ -226,6 +226,9 @@ import {
   summarizeOrchestratorRunQueue
 } from "./orchestratorBackend";
 import {
+  groupOrchestratorLedgerForUi
+} from "./orchestratorLedgerView";
+import {
   createOrchestrationDependencyReadiness,
   type OrchestrationDependencyReadiness
 } from "./orchestrationDependencyReadiness";
@@ -12649,7 +12652,10 @@ function PlanningView({
       createdAt: "preview"
     });
 
-    return summarizeOrchestratorRunQueue(state, runId);
+    return {
+      summary: summarizeOrchestratorRunQueue(state, runId),
+      sections: groupOrchestratorLedgerForUi(state.ledger, { runId })
+    };
   }, [project.id, rows]);
 
   function handleToggleTask(taskId: string) {
@@ -12725,34 +12731,47 @@ function PlanningView({
 
       <div className="planning-body">
         <section
-          aria-label={orchestratorBackendSummary.ariaLabel}
+          aria-label={orchestratorBackendSummary.summary.ariaLabel}
           className={classNames(
             "pm-orchestrator-backend",
-            `pm-orchestrator-backend-${orchestratorBackendSummary.tone}`
+            `pm-orchestrator-backend-${orchestratorBackendSummary.summary.tone}`
           )}
-          title={orchestratorBackendSummary.detail}
+          title={orchestratorBackendSummary.summary.detail}
         >
           <div>
-            <strong>{orchestratorBackendSummary.label}</strong>
-            <span>{orchestratorBackendSummary.statusLabel}</span>
+            <strong>{orchestratorBackendSummary.summary.label}</strong>
+            <span>{orchestratorBackendSummary.summary.statusLabel}</span>
           </div>
-          <p>{orchestratorBackendSummary.phaseLabel}</p>
+          <p>{orchestratorBackendSummary.summary.phaseLabel}</p>
           <dl>
             <div>
               <dt>Queued</dt>
-              <dd>{orchestratorBackendSummary.queuedEventCount}</dd>
+              <dd>{orchestratorBackendSummary.summary.queuedEventCount}</dd>
             </div>
             <div>
               <dt>Ledger</dt>
-              <dd>{orchestratorBackendSummary.ledgerEntryCount}</dd>
+              <dd>{orchestratorBackendSummary.summary.ledgerEntryCount}</dd>
             </div>
             <div>
               <dt>Integration</dt>
-              <dd title={orchestratorBackendSummary.integrationBranch}>
-                {orchestratorBackendSummary.integrationBranch}
+              <dd title={orchestratorBackendSummary.summary.integrationBranch}>
+                {orchestratorBackendSummary.summary.integrationBranch}
               </dd>
             </div>
           </dl>
+          {orchestratorBackendSummary.sections.slice(0, 2).map((section) => (
+            <details className="pm-orchestrator-ledger-section" key={section.id}>
+              <summary>
+                <strong>{section.title}</strong>
+                <span>{section.summary}</span>
+              </summary>
+              <ol>
+                {section.entries.map((entry) => (
+                  <li key={entry.id}>{entry.message}</li>
+                ))}
+              </ol>
+            </details>
+          ))}
         </section>
 
         <div className="pm-table-wrap" aria-label="Project Management hierarchy table">
