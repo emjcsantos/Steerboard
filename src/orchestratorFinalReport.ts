@@ -523,9 +523,23 @@ export function queueFinalMergeAfterApproval(input: {
   }
 
   const remotePolicy = input.remotePolicy ?? DEFAULT_REMOTE_POLICY;
+  const approvedState = enqueueOrchestratorEvent(input.backendState, {
+    id: `${run.id}:finalization:approved:${input.createdAt}`,
+    runId: run.id,
+    kind: "approval.requested",
+    payload: {
+      phase: "Final merge approved.",
+      integrationBranch: run.integrationBranch,
+      targetBranch: input.targetBranch,
+      userApprovedFinalMerge: true,
+      finalMergeRequiresApproval: true
+    },
+    dedupeKey: `${run.id}:finalization:approved:${input.createdAt}`,
+    enqueuedAt: input.createdAt
+  });
 
   return {
-    backendState: enqueueOrchestratorCommand(input.backendState, {
+    backendState: enqueueOrchestratorCommand(approvedState, {
       id: `${run.id}:finalization:merge:${input.createdAt}`,
       runId: run.id,
       kind: "finalization.merge",

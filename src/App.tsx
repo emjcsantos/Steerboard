@@ -239,8 +239,13 @@ import {
   dispatchPmLaneToOrchestrator
 } from "./pmLaneOrchestratorBridge";
 import {
+  applyOrchestratorSqliteSnapshot,
+  buildOrchestratorSqliteSnapshot,
   readOrchestratorSqliteSnapshot
 } from "./orchestratorSqliteStore";
+import {
+  queueFinalMergeAfterApproval
+} from "./orchestratorFinalReport";
 import {
   createOrchestrationDependencyReadiness,
   type OrchestrationDependencyReadiness
@@ -12744,6 +12749,51 @@ function PlanningView({
     setOrchestratorPumpStatus("Downloaded final run report");
   }
 
+  async function handleApproveOrchestratorFinalMerge() {
+    if (!hasTauriRuntime()) {
+      setOrchestratorPumpStatus("Desktop runtime unavailable");
+      return;
+    }
+
+    const run = activeOrchestratorRunId
+      ? orchestratorBackendState.runs.find((item) => item.id === activeOrchestratorRunId)
+      : undefined;
+
+    if (!run) {
+      setOrchestratorPumpStatus("No orchestrator run available");
+      return;
+    }
+
+    setOrchestratorPumpStatus("Approving final merge");
+
+    try {
+      const snapshot = await readOrchestratorSqliteSnapshot();
+      const createdAt = new Date().toISOString();
+      const result = queueFinalMergeAfterApproval({
+        backendState: orchestratorBackendState,
+        runId: run.id,
+        targetBranch: run.baseBranch,
+        integrationValidationPassed: run.status === "ready-for-finalization" || run.status === "completed",
+        unresolvedCorrectiveTaskIds: [],
+        blockerIds: [],
+        targetBranchClean: true,
+        expectedBaseMatches: true,
+        userApprovedFinalMerge: true,
+        createdAt
+      });
+      const durableSnapshot = {
+        ...buildOrchestratorSqliteSnapshot(result.backendState),
+        artifacts: snapshot.artifacts
+      };
+
+      await applyOrchestratorSqliteSnapshot(durableSnapshot);
+      setOrchestratorBackendState(result.backendState);
+      setOrchestratorPumpStatus(result.detail);
+    } catch (error) {
+      setOrchestratorPumpStatus(error instanceof Error ? error.message : "Final merge approval failed");
+    }
+  }
+
   function handleToggleTask(taskId: string) {
     onTasksChange(toggleProjectManagementTaskCollapsed(tasks, taskId));
   }
@@ -12934,6 +12984,19 @@ function PlanningView({
               <button type="button" onClick={handleDownloadOrchestratorReport}>
                 <Download size={14} />
                 Markdown
+              </button>
+              <button
+                disabled={orchestratorBackendSummary.report.finalizationStatus !== "ready-for-approval"}
+                onClick={handleApproveOrchestratorFinalMerge}
+                title={
+                  orchestratorBackendSummary.report.finalizationStatus === "ready-for-approval"
+                    ? "Queue the approval-gated final merge."
+                    : "Final merge is not ready for approval."
+                }
+                type="button"
+              >
+                <ShieldCheck size={14} />
+                Approve merge
               </button>
             </section>
           ) : null}

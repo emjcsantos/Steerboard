@@ -217,6 +217,14 @@ describe("orchestrator final report and remote policy", () => {
       queued: true,
       approvalRequired: false
     });
+    expect(result.backendState.eventQueue[0]).toMatchObject({
+      kind: "approval.requested",
+      payload: {
+        phase: "Final merge approved.",
+        userApprovedFinalMerge: true,
+        finalMergeRequiresApproval: true
+      }
+    });
     expect(result.backendState.commandQueue[0]).toMatchObject({
       kind: "finalization.merge",
       payload: {

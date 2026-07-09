@@ -6902,6 +6902,35 @@ mod orchestrator_runtime_executor {
         run_command(cwd, "git", args)
     }
 
+    fn current_branch(repo: &Path) -> Result<String, String> {
+        run_git(repo, &["rev-parse", "--abbrev-ref", "HEAD"])
+    }
+
+    fn resolve_branch_ref(repo: &Path, branch: &str) -> Result<String, String> {
+        if branch == "current" {
+            Ok("HEAD".to_string())
+        } else {
+            ensure_safe_user_branch(branch)?;
+            let current = current_branch(repo)?;
+            if branch == current {
+                Ok("HEAD".to_string())
+            } else {
+                Ok(branch.to_string())
+            }
+        }
+    }
+
+    fn resolve_target_branch(repo: &Path, branch: &str) -> Result<String, String> {
+        if branch == "current" {
+            let current = current_branch(repo)?;
+            ensure_safe_user_branch(&current)?;
+            Ok(current)
+        } else {
+            ensure_safe_user_branch(branch)?;
+            Ok(branch.to_string())
+        }
+    }
+
     fn resolve_repository(path: &str) -> Result<PathBuf, String> {
         let root = PathBuf::from(path.trim())
             .canonicalize()
@@ -6928,6 +6957,24 @@ mod orchestrator_runtime_executor {
             Ok(())
         } else {
             Err("orchestrator_runtime_unsafe_branch".to_string())
+        }
+    }
+
+    fn ensure_safe_user_branch(branch: &str) -> Result<(), String> {
+        let safe_name = !branch.trim().is_empty()
+            && !branch.contains("..")
+            && !branch.contains('\\')
+            && !branch.chars().any(char::is_whitespace)
+            && branch.len() <= 160;
+        let allowed = branch == "HEAD"
+            || branch == "main"
+            || branch == "master"
+            || branch == "dev"
+            || branch.starts_with("codex/");
+        if safe_name && allowed {
+            Ok(())
+        } else {
+            Err("orchestrator_runtime_unsafe_user_branch".to_string())
         }
     }
 
@@ -7295,6 +7342,7 @@ mod orchestrator_runtime_executor {
         let base_branch = value_string(&request.payload, "baseBranch")?;
         let commit_shas = value_string_array(&request.payload, "commitShas")?;
         ensure_safe_branch(&integration_branch)?;
+        let base_ref = resolve_branch_ref(repo, &base_branch)?;
         let integration_slug = integration_branch.replace('/', "-");
         let integration_path = repo
             .join(".steerboard")
@@ -7323,7 +7371,7 @@ mod orchestrator_runtime_executor {
                     "-B",
                     integration_branch.as_str(),
                     integration_path.to_string_lossy().as_ref(),
-                    base_branch.as_str(),
+                    base_ref.as_str(),
                 ],
             )?;
             steps.push(step(
@@ -7372,7 +7420,7 @@ mod orchestrator_runtime_executor {
             return Err("orchestrator_runtime_final_merge_requires_approval".to_string());
         }
         ensure_safe_branch(&integration_branch)?;
-        ensure_safe_branch(&target_branch)?;
+        let target_branch = resolve_target_branch(repo, &target_branch)?;
         let status = run_git(repo, &["status", "--porcelain"])?;
         if !status.trim().is_empty() {
             return Err("orchestrator_runtime_target_branch_not_clean".to_string());
@@ -7428,7 +7476,7 @@ mod orchestrator_runtime_executor {
     ) -> Result<OrchestratorRuntimeCommandResult, String> {
         let remote = value_string(&request.payload, "remote")?;
         let branch = value_string(&request.payload, "branch")?;
-        ensure_safe_branch(&branch)?;
+        ensure_safe_user_branch(&branch)?;
         run_git(repo, &["push", remote.as_str(), branch.as_str()])?;
 
         Ok(OrchestratorRuntimeCommandResult {

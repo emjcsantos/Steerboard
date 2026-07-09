@@ -20001,6 +20001,13 @@ textarea {
   background: #1d3448;
 }
 
+.pm-orchestrator-report button:disabled {
+  border-color: #29333d;
+  background: #111820;
+  color: #687887;
+  cursor: not-allowed;
+}
+
 .pm-orchestrator-backend-ready {
   border-left: 3px solid #3dcf87;
 }
