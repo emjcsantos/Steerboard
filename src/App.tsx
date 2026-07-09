@@ -221,6 +221,11 @@ import {
   type OrchestrationTask
 } from "./orchestration";
 import {
+  createBoundedOrchestratorRun,
+  createOrchestratorBackendState,
+  summarizeOrchestratorRunQueue
+} from "./orchestratorBackend";
+import {
   createOrchestrationDependencyReadiness,
   type OrchestrationDependencyReadiness
 } from "./orchestrationDependencyReadiness";
@@ -12631,6 +12636,21 @@ function PlanningView({
       )
     : undefined;
   const recentReviewRecords = dispatchReviewRecords.slice(0, 3);
+  const orchestratorBackendSummary = useMemo(() => {
+    const runId = `pm-${project.id}-preview`;
+    const state = createBoundedOrchestratorRun(createOrchestratorBackendState(), {
+      id: runId,
+      projectId: project.id,
+      scope: {
+        mode: "task-list",
+        taskIds: rows.map((row) => row.task.id)
+      },
+      baseBranch: "current",
+      createdAt: "preview"
+    });
+
+    return summarizeOrchestratorRunQueue(state, runId);
+  }, [project.id, rows]);
 
   function handleToggleTask(taskId: string) {
     onTasksChange(toggleProjectManagementTaskCollapsed(tasks, taskId));
@@ -12704,6 +12724,37 @@ function PlanningView({
       </header>
 
       <div className="planning-body">
+        <section
+          aria-label={orchestratorBackendSummary.ariaLabel}
+          className={classNames(
+            "pm-orchestrator-backend",
+            `pm-orchestrator-backend-${orchestratorBackendSummary.tone}`
+          )}
+          title={orchestratorBackendSummary.detail}
+        >
+          <div>
+            <strong>{orchestratorBackendSummary.label}</strong>
+            <span>{orchestratorBackendSummary.statusLabel}</span>
+          </div>
+          <p>{orchestratorBackendSummary.phaseLabel}</p>
+          <dl>
+            <div>
+              <dt>Queued</dt>
+              <dd>{orchestratorBackendSummary.queuedEventCount}</dd>
+            </div>
+            <div>
+              <dt>Ledger</dt>
+              <dd>{orchestratorBackendSummary.ledgerEntryCount}</dd>
+            </div>
+            <div>
+              <dt>Integration</dt>
+              <dd title={orchestratorBackendSummary.integrationBranch}>
+                {orchestratorBackendSummary.integrationBranch}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
         <div className="pm-table-wrap" aria-label="Project Management hierarchy table">
           <table className="pm-hierarchy-table">
             <thead>
