@@ -3,7 +3,8 @@ import {
   createOrchestratorContextCheckpoint,
   filterOrchestratorLedgerEntries,
   groupOrchestratorLedgerForUi,
-  isProgressKind
+  isProgressKind,
+  selectLatestOrchestratorRunReportForUi
 } from "./orchestratorLedgerView";
 import type { OrchestratorLedgerEntry } from "./orchestratorBackend";
 
@@ -139,5 +140,44 @@ describe("orchestrator ledger view", () => {
     expect(isProgressKind("validator.reported")).toBe(true);
     expect(isProgressKind("integration.updated")).toBe(true);
     expect(isProgressKind("approval.requested")).toBe(false);
+  });
+
+  it("selects the latest Markdown-exportable run report from ledger payloads", () => {
+    const report = selectLatestOrchestratorRunReportForUi([
+      ...entries,
+      {
+        id: "ledger-report",
+        runId: "run-1",
+        sequence: 5,
+        kind: "run.phase.changed",
+        severity: "info",
+        message: "Final run report generated.",
+        payload: {
+          reportId: "run-1:report:2026-07-09T05:06:00.000Z",
+          reportMarkdown: "# Orchestrator Run Report: run-1",
+          exportFormats: ["markdown"],
+          recommendedNextAction: "Approve final merge when ready.",
+          summaryJson: {
+            acceptedCommitShas: ["abc123", "def456"],
+            validationEvidenceCount: 3,
+            cleanupStatus: "1 cleanup job; 0 ready; 0 blocked; 0 in retention.",
+            finalizationStatus: "ready-for-approval"
+          }
+        },
+        createdAt: "2026-07-09T05:06:00.000Z"
+      }
+    ], "run-1");
+
+    expect(report).toMatchObject({
+      id: "run-1:report:2026-07-09T05:06:00.000Z",
+      runId: "run-1",
+      markdown: "# Orchestrator Run Report: run-1",
+      recommendedNextAction: "Approve final merge when ready.",
+      finalizationStatus: "ready-for-approval",
+      cleanupStatus: "1 cleanup job; 0 ready; 0 blocked; 0 in retention.",
+      acceptedCommitCount: 2,
+      validationEvidenceCount: 3,
+      exportFormats: ["markdown"]
+    });
   });
 });

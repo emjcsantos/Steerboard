@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   CircleDot,
   ClipboardList,
+  Download,
   EyeOff,
   Folder,
   GitBranch,
@@ -228,7 +229,8 @@ import {
   type OrchestratorBackendState
 } from "./orchestratorBackend";
 import {
-  groupOrchestratorLedgerForUi
+  groupOrchestratorLedgerForUi,
+  selectLatestOrchestratorRunReportForUi
 } from "./orchestratorLedgerView";
 import {
   runOrchestratorQueuePumpCycle
@@ -12710,9 +12712,37 @@ function PlanningView({
       sections: groupOrchestratorLedgerForUi(
         orchestratorBackendState.ledger,
         activeOrchestratorRunId ? { runId: activeOrchestratorRunId } : {}
-      )
+      ),
+      report: selectLatestOrchestratorRunReportForUi(orchestratorBackendState.ledger, activeOrchestratorRunId)
     };
   }, [activeOrchestratorRunId, orchestratorBackendState]);
+
+  function handleDownloadOrchestratorReport() {
+    const report = orchestratorBackendSummary.report;
+
+    if (!report) {
+      setOrchestratorPumpStatus("No final report available");
+      return;
+    }
+
+    if (typeof document === "undefined" || typeof URL === "undefined" || typeof Blob === "undefined") {
+      setOrchestratorPumpStatus("Markdown export unavailable");
+      return;
+    }
+
+    const safeRunId = report.runId.replace(/[^a-z0-9-]+/gi, "-").replace(/(^-+|-+$)/g, "") || "run";
+    const blob = new Blob([report.markdown], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+
+    anchor.href = url;
+    anchor.download = `${safeRunId}-orchestrator-report.md`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    setOrchestratorPumpStatus("Downloaded final run report");
+  }
 
   function handleToggleTask(taskId: string) {
     onTasksChange(toggleProjectManagementTaskCollapsed(tasks, taskId));
@@ -12878,6 +12908,35 @@ function PlanningView({
               </dd>
             </div>
           </dl>
+          {orchestratorBackendSummary.report ? (
+            <section className="pm-orchestrator-report" aria-label="Final orchestrator run report">
+              <div>
+                <strong>{orchestratorBackendSummary.report.title}</strong>
+                <span>{orchestratorBackendSummary.report.finalizationStatus ?? "report"}</span>
+              </div>
+              <p>{orchestratorBackendSummary.report.recommendedNextAction}</p>
+              <dl>
+                <div>
+                  <dt>Commits</dt>
+                  <dd>{orchestratorBackendSummary.report.acceptedCommitCount}</dd>
+                </div>
+                <div>
+                  <dt>Evidence</dt>
+                  <dd>{orchestratorBackendSummary.report.validationEvidenceCount}</dd>
+                </div>
+                <div>
+                  <dt>Cleanup</dt>
+                  <dd title={orchestratorBackendSummary.report.cleanupStatus}>
+                    {orchestratorBackendSummary.report.cleanupStatus}
+                  </dd>
+                </div>
+              </dl>
+              <button type="button" onClick={handleDownloadOrchestratorReport}>
+                <Download size={14} />
+                Markdown
+              </button>
+            </section>
+          ) : null}
           {orchestratorBackendSummary.sections.slice(0, 2).map((section) => (
             <details className="pm-orchestrator-ledger-section" key={section.id}>
               <summary>

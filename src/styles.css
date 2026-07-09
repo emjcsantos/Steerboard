@@ -19955,6 +19955,52 @@ textarea {
   white-space: nowrap;
 }
 
+.pm-orchestrator-report {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid #2f4558;
+  border-radius: 6px;
+  background: #101923;
+  padding: 8px;
+}
+
+.pm-orchestrator-report > div:first-child {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+.pm-orchestrator-report p {
+  grid-column: 1 / -1;
+}
+
+.pm-orchestrator-report dl {
+  grid-column: 1 / -1;
+}
+
+.pm-orchestrator-report button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #3b5f7a;
+  border-radius: 6px;
+  background: #16283a;
+  color: #d8e8f7;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.pm-orchestrator-report button:hover {
+  border-color: #5c8db4;
+  background: #1d3448;
+}
+
 .pm-orchestrator-backend-ready {
   border-left: 3px solid #3dcf87;
 }

@@ -43,6 +43,20 @@ export interface OrchestratorContextCheckpoint {
   excludedRawEventCount: number;
 }
 
+export interface OrchestratorRunReportUiSummary {
+  id: string;
+  runId: string;
+  generatedAt: string;
+  title: string;
+  markdown: string;
+  recommendedNextAction?: string;
+  finalizationStatus?: string;
+  cleanupStatus?: string;
+  acceptedCommitCount: number;
+  validationEvidenceCount: number;
+  exportFormats: string[];
+}
+
 function payloadText(entry: OrchestratorLedgerEntry, key: string): string | undefined {
   const value = entry.payload[key];
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
@@ -59,6 +73,34 @@ function payloadStringList(entry: OrchestratorLedgerEntry, key: string): string[
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
     : [];
+}
+
+function payloadRecord(entry: OrchestratorLedgerEntry, key: string): Record<string, unknown> | undefined {
+  const value = entry.payload[key];
+
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined;
+}
+
+function recordString(record: Record<string, unknown>, key: string): string | undefined {
+  const value = record[key];
+
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function recordStringList(record: Record<string, unknown>, key: string): string[] {
+  const value = record[key];
+
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+}
+
+function recordNumber(record: Record<string, unknown>, key: string): number {
+  const value = record[key];
+
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
 function sectionKindForEntry(entry: OrchestratorLedgerEntry): OrchestratorLedgerSectionKind {
@@ -260,6 +302,41 @@ export function createOrchestratorContextCheckpoint(input: {
     nextActions,
     summaryLines,
     excludedRawEventCount: runEntries.length
+  };
+}
+
+export function selectLatestOrchestratorRunReportForUi(
+  entries: readonly OrchestratorLedgerEntry[],
+  runId?: string
+): OrchestratorRunReportUiSummary | undefined {
+  const reportEntry = [...entries]
+    .filter((entry) =>
+      (!runId || entry.runId === runId) &&
+      typeof entry.payload.reportMarkdown === "string" &&
+      typeof entry.payload.reportId === "string"
+    )
+    .sort((first, second) => first.createdAt.localeCompare(second.createdAt))
+    .at(-1);
+
+  if (!reportEntry) {
+    return undefined;
+  }
+
+  const summaryJson = payloadRecord(reportEntry, "summaryJson") ?? {};
+  const reportId = payloadText(reportEntry, "reportId") ?? reportEntry.id;
+
+  return {
+    id: reportId,
+    runId: reportEntry.runId,
+    generatedAt: reportEntry.createdAt,
+    title: `Run report ${reportEntry.runId}`,
+    markdown: payloadText(reportEntry, "reportMarkdown") ?? "",
+    recommendedNextAction: payloadText(reportEntry, "recommendedNextAction") ?? recordString(summaryJson, "recommendedNextAction"),
+    finalizationStatus: recordString(summaryJson, "finalizationStatus"),
+    cleanupStatus: recordString(summaryJson, "cleanupStatus"),
+    acceptedCommitCount: recordStringList(summaryJson, "acceptedCommitShas").length,
+    validationEvidenceCount: recordNumber(summaryJson, "validationEvidenceCount"),
+    exportFormats: payloadStringList(reportEntry, "exportFormats")
   };
 }
 
