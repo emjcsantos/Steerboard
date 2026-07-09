@@ -1,4 +1,5 @@
 import type { AcceptanceCriterionResult, ValidatorReport } from "./orchestratorValidatorLoop";
+import type { OrchestratorRuntimeCommandResult } from "./orchestratorRuntimeExecutor";
 import type { PmWorkerReadyTask, ValidationEvidenceKind } from "./pmLaneWorkerReady";
 
 export type OrchestratorArtifactKind =
@@ -122,6 +123,7 @@ export function buildArtifactPath(input: {
   artifactRoot: string;
   runId: string;
   taskId?: string;
+  jobId?: string;
   artifactId: string;
   kind: OrchestratorArtifactKind;
 }): string {
@@ -129,6 +131,7 @@ export function buildArtifactPath(input: {
     input.artifactRoot,
     normalizeSegment(input.runId, "run"),
     normalizeSegment(input.taskId ?? "run", "task"),
+    input.jobId ? normalizeSegment(input.jobId, "job") : "",
     `${normalizeSegment(input.artifactId, "artifact")}.${extensionForKind(input.kind)}`
   ]);
 }
@@ -157,6 +160,7 @@ export async function createArtifactMetadataFromText(input: {
       artifactRoot: input.artifactRoot,
       runId: input.runId,
       taskId: input.taskId,
+      jobId: input.jobId,
       artifactId: input.id,
       kind: input.kind
     }),
@@ -207,6 +211,59 @@ export async function createArtifactMetadataFromStoredFile(input: {
     sizeBytes: bytes.byteLength,
     createdAt: input.createdAt
   };
+}
+
+function artifactKindFromPath(path: string): OrchestratorArtifactKind {
+  const lower = path.toLowerCase();
+
+  if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".webp")) {
+    return "screenshot";
+  }
+
+  if (lower.endsWith(".diff") || lower.endsWith(".patch")) {
+    return "diff";
+  }
+
+  if (lower.includes("validator") && (lower.includes("report") || lower.endsWith(".md"))) {
+    return "validator-report";
+  }
+
+  if (lower.includes("stdout") || lower.includes("stderr") || lower.includes("validation")) {
+    return "validation-output";
+  }
+
+  if (lower.endsWith(".log") || lower.endsWith(".jsonl")) {
+    return "log";
+  }
+
+  return "report";
+}
+
+export async function createArtifactMetadataFromRuntimeResult(input: {
+  result: OrchestratorRuntimeCommandResult;
+  artifactRoot: string;
+  taskId?: string;
+  jobId?: string;
+  attempt?: number;
+  createdAt: string;
+  readFile: (path: string) => Promise<string | Uint8Array>;
+}): Promise<OrchestratorArtifact[]> {
+  return Promise.all(
+    input.result.artifactPaths.map((path, index) =>
+      createArtifactMetadataFromStoredFile({
+        id: `${input.result.commandId}:artifact:${index + 1}`,
+        runId: input.result.runId,
+        taskId: input.taskId,
+        jobId: input.jobId,
+        attempt: input.attempt,
+        kind: artifactKindFromPath(path),
+        path,
+        artifactRoot: input.artifactRoot,
+        createdAt: input.createdAt,
+        readFile: input.readFile
+      })
+    )
+  );
 }
 
 export function serializeArtifactsForSqlite(

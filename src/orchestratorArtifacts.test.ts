@@ -4,6 +4,7 @@ import {
   buildArtifactPath,
   canCleanupArtifact,
   createArtifactMetadataFromText,
+  createArtifactMetadataFromRuntimeResult,
   createArtifactMetadataFromStoredFile,
   criterionEvidenceRequirementsFromTask,
   linkEvidenceToAcceptanceResults,
@@ -58,10 +59,11 @@ describe("orchestrator artifacts and validation evidence", () => {
         artifactRoot: ".steerboard/artifacts",
         runId: "Run 123",
         taskId: "Task 1",
+        jobId: "Validator 1",
         artifactId: "Validator Report",
         kind: "validator-report"
       })
-    ).toBe(".steerboard/artifacts/run-123/task-1/validator-report.md");
+    ).toBe(".steerboard/artifacts/run-123/task-1/validator-1/validator-report.md");
   });
 
   it("computes real SHA-256 metadata and SQLite rows for text artifacts", async () => {
@@ -119,6 +121,52 @@ describe("orchestrator artifacts and validation evidence", () => {
       sizeBytes: 16
     });
     expect(artifact.sha256).toBe(await sha256Hex(new TextEncoder().encode("validator stdout")));
+  });
+
+  it("converts runtime artifact paths into stable SQLite-ready metadata", async () => {
+    const artifacts = await createArtifactMetadataFromRuntimeResult({
+      result: {
+        commandId: "run-123:worker:task-1:validator:1:start",
+        runId: "run-123",
+        kind: "validator.start",
+        executed: true,
+        blocked: false,
+        artifactPaths: [
+          ".steerboard/orchestrator-artifacts/run-123/validator-prompt.md",
+          ".steerboard/orchestrator-artifacts/run-123/validator-stdout.jsonl"
+        ],
+        steps: [],
+        detail: "Read-only validator completed."
+      },
+      artifactRoot: ".steerboard/orchestrator-artifacts",
+      taskId: "task-1",
+      jobId: "validator-1",
+      attempt: 1,
+      createdAt,
+      readFile: async (requestedPath) => requestedPath.endsWith("jsonl") ? "validator stdout" : "validator report"
+    });
+
+    expect(artifacts).toHaveLength(2);
+    expect(artifacts[0]).toMatchObject({
+      id: "run-123:worker:task-1:validator:1:start:artifact:1",
+      runId: "run-123",
+      taskId: "task-1",
+      jobId: "validator-1",
+      attempt: 1,
+      kind: "validator-report"
+    });
+    expect(artifacts[1]).toMatchObject({
+      id: "run-123:worker:task-1:validator:1:start:artifact:2",
+      kind: "validation-output",
+      sizeBytes: 16
+    });
+    expect(serializeArtifactsForSqlite(artifacts)[0]).toMatchObject({
+      id: "run-123:worker:task-1:validator:1:start:artifact:1",
+      run_id: "run-123",
+      task_id: "task-1",
+      job_id: "validator-1",
+      attempt: 1
+    });
   });
 
   it("rejects missing files and artifacts outside the project-local artifact root", async () => {
