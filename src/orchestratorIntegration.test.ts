@@ -7,8 +7,10 @@ import {
 import {
   createAcceptedWorkerCommit,
   evaluateIntegrationGates,
-  queueAutomaticIntegration
+  queueAutomaticIntegration,
+  queueIntegrationAfterWorkerCommitRuntime
 } from "./orchestratorIntegration";
+import type { OrchestratorQueuedCommand } from "./orchestratorBackend";
 import {
   DEFAULT_WORKER_MODEL_PROFILE,
   type WorkerJobRecord
@@ -75,6 +77,27 @@ function passingReport(): ValidatorReport {
     evidenceReferences: ["artifact://report-1"],
     nextAction: "accept",
     createdAt
+  };
+}
+
+function workerCommitCommand(overrides: Partial<OrchestratorQueuedCommand> = {}): OrchestratorQueuedCommand {
+  return {
+    id: "run-123:worker:task-1:commit",
+    runId: "run-123",
+    sequence: 1,
+    kind: "worker.commit",
+    payload: {
+      taskId: "task-1",
+      workerJobId: "run-123:worker:task-1",
+      branch: "codex/orch/task-1",
+      worktreePath: ".steerboard/worktrees/task-1",
+      commitSha: "fallback123",
+      validationReportId: "report-1",
+      commandEvidence: ["npm.cmd run test -- src/task-1.test.ts"]
+    },
+    status: "queued",
+    enqueuedAt: createdAt,
+    ...overrides
   };
 }
 
@@ -169,6 +192,91 @@ describe("orchestrator integration", () => {
       validationScope: "targeted",
       finalMergeRequiresApproval: true
     });
+  });
+
+  it("queues integration from a successful worker commit runtime result using the real commit sha", () => {
+    const result = queueIntegrationAfterWorkerCommitRuntime({
+      backendState: backendState(),
+      command: workerCommitCommand(),
+      result: {
+        commandId: "run-123:worker:task-1:commit",
+        runId: "run-123",
+        kind: "worker.commit",
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [
+          {
+            label: "Commit accepted worker output",
+            command: "git commit -m <message>",
+            status: "passed",
+            detail: "Committed abc123."
+          }
+        ],
+        detail: "Accepted worker output committed.",
+        structuredOutput: {
+          commitSha: "abc123",
+          branch: "codex/orch/task-1"
+        }
+      },
+      createdAt
+    });
+
+    expect(result?.queued).toBe(true);
+    expect(result?.acceptedCommit).toMatchObject({
+      taskId: "task-1",
+      workerJobId: "run-123:worker:task-1",
+      branch: "codex/orch/task-1",
+      commitSha: "abc123",
+      validationReportId: "report-1"
+    });
+    expect(result?.backendState.commandQueue[0]).toMatchObject({
+      kind: "integration.start",
+      payload: {
+        integrationBranch: "codex/orch/integration/run-123",
+        commitShas: ["abc123"],
+        finalMergeRequiresApproval: true
+      }
+    });
+  });
+
+  it("does not queue duplicate integration for the same accepted commit", () => {
+    const first = queueIntegrationAfterWorkerCommitRuntime({
+      backendState: backendState(),
+      command: workerCommitCommand(),
+      result: {
+        commandId: "run-123:worker:task-1:commit",
+        runId: "run-123",
+        kind: "worker.commit",
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [],
+        detail: "Committed.",
+        structuredOutput: { commitSha: "abc123" }
+      },
+      createdAt
+    });
+    const second = queueIntegrationAfterWorkerCommitRuntime({
+      backendState: first?.backendState ?? backendState(),
+      command: workerCommitCommand({ sequence: 2 }),
+      result: {
+        commandId: "run-123:worker:task-1:commit",
+        runId: "run-123",
+        kind: "worker.commit",
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [],
+        detail: "Committed.",
+        structuredOutput: { commitSha: "abc123" }
+      },
+      createdAt: "2026-07-09T06:02:00.000Z"
+    });
+
+    expect(first?.queued).toBe(true);
+    expect(second?.queued).toBe(false);
+    expect(second?.backendState.commandQueue.filter((command) => command.kind === "integration.start")).toHaveLength(1);
   });
 
   it("creates integration blocker evidence instead of touching the user branch when gates fail", () => {

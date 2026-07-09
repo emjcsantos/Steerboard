@@ -2,8 +2,10 @@ import {
   enqueueOrchestratorCommand,
   enqueueOrchestratorEvent,
   type OrchestratorBackendState,
+  type OrchestratorQueuedCommand,
   type OrchestratorRunRecord
 } from "./orchestratorBackend";
+import type { OrchestratorRuntimeCommandResult } from "./orchestratorRuntimeExecutor";
 import type { WorkerJobRecord } from "./orchestratorWorkerDispatch";
 import type { ValidatorReport } from "./orchestratorValidatorLoop";
 
@@ -54,6 +56,13 @@ export interface AutomaticIntegrationResult {
   backendState: OrchestratorBackendState;
   gate: IntegrationGateResult;
   queued: boolean;
+}
+
+export interface WorkerCommitRuntimeIntegrationResult {
+  backendState: OrchestratorBackendState;
+  acceptedCommit?: AcceptedWorkerCommit;
+  queued: boolean;
+  detail: string;
 }
 
 function fallbackCommitSha(workerJob: WorkerJobRecord, report: ValidatorReport): string {
@@ -212,5 +221,119 @@ export function queueAutomaticIntegration(
     }),
     gate,
     queued: true
+  };
+}
+
+function payloadString(payload: Record<string, unknown>, key: string): string | undefined {
+  const value = payload[key];
+
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function payloadStringList(payload: Record<string, unknown>, key: string): string[] {
+  const value = payload[key];
+
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+}
+
+function resultString(result: OrchestratorRuntimeCommandResult, key: string): string | undefined {
+  const output = result.structuredOutput;
+
+  if (typeof output !== "object" || output === null || Array.isArray(output)) {
+    return undefined;
+  }
+
+  const value = (output as Record<string, unknown>)[key];
+
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+export function queueIntegrationAfterWorkerCommitRuntime(input: {
+  backendState: OrchestratorBackendState;
+  command: OrchestratorQueuedCommand;
+  result: OrchestratorRuntimeCommandResult;
+  createdAt: string;
+}): WorkerCommitRuntimeIntegrationResult | undefined {
+  if (input.command.kind !== "worker.commit") {
+    return undefined;
+  }
+
+  if (input.result.blocked || !input.result.executed) {
+    return {
+      backendState: input.backendState,
+      queued: false,
+      detail: "Worker commit runtime did not complete; integration was not queued."
+    };
+  }
+
+  const run = input.backendState.runs.find((item) => item.id === input.command.runId);
+  const taskId = payloadString(input.command.payload, "taskId");
+  const workerJobId = payloadString(input.command.payload, "workerJobId");
+  const branch = payloadString(input.command.payload, "branch");
+  const validationReportId = payloadString(input.command.payload, "validationReportId");
+  const commitSha = resultString(input.result, "commitSha") ?? payloadString(input.command.payload, "commitSha");
+
+  if (!run || !taskId || !workerJobId || !branch || !validationReportId || !commitSha) {
+    return {
+      backendState: input.backendState,
+      queued: false,
+      detail: "Worker commit runtime result was missing integration metadata."
+    };
+  }
+
+  const alreadyQueued = input.backendState.commandQueue.some((command) => {
+    if (command.kind !== "integration.start") {
+      return false;
+    }
+
+    const commitShas = payloadStringList(command.payload, "commitShas");
+
+    return command.runId === run.id && commitShas.includes(commitSha);
+  });
+
+  const acceptedCommit: AcceptedWorkerCommit = {
+    taskId,
+    workerJobId,
+    branch,
+    commitSha,
+    committedAt: input.createdAt,
+    validationReportId,
+    commandEvidence: payloadStringList(input.command.payload, "commandEvidence")
+  };
+
+  if (alreadyQueued) {
+    return {
+      backendState: input.backendState,
+      acceptedCommit,
+      queued: false,
+      detail: "Integration was already queued for this accepted commit."
+    };
+  }
+
+  const integration = queueAutomaticIntegration(
+    input.backendState,
+    {
+      run,
+      acceptedCommits: [acceptedCommit],
+      unresolvedCorrectiveTaskIds: [],
+      dependencyBlockerIds: [],
+      fileOwnershipConflictIds: [],
+      branchClean: true,
+      mergeable: true,
+      targetedValidationPassed: true,
+      sharedSurfaceChanged: false
+    },
+    input.createdAt
+  );
+
+  return {
+    backendState: integration.backendState,
+    acceptedCommit,
+    queued: integration.queued,
+    detail: integration.queued
+      ? "Queued automatic integration for accepted worker commit."
+      : "Accepted worker commit did not pass integration gates."
   };
 }

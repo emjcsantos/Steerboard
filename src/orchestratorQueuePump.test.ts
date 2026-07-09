@@ -274,6 +274,74 @@ describe("orchestrator queue pump", () => {
     });
   });
 
+  it("queues automatic integration after a successful worker commit runtime result", async () => {
+    const state = enqueueOrchestratorCommand(stateWithRun(), {
+      id: "run-123:worker:task-1:commit",
+      runId: "run-123",
+      kind: "worker.commit",
+      payload: {
+        taskId: "task-1",
+        workerJobId: "run-123:worker:task-1",
+        branch: "codex/orch/task-1",
+        worktreePath: "C:\\repo\\.steerboard\\worktrees\\task-1",
+        commitSha: "fallback123",
+        validationReportId: "report-1",
+        commandEvidence: ["npm.cmd run test -- src/task-1.test.ts"]
+      },
+      enqueuedAt: createdAt
+    });
+    let persisted: OrchestratorSqliteSnapshot | undefined;
+    const result = await runOrchestratorQueuePumpCycle({
+      repositoryRoot: "C:\\repo",
+      processedAt,
+      readSnapshot: async () => buildOrchestratorSqliteSnapshot(state),
+      applySnapshot: async (snapshot) => {
+        persisted = snapshot;
+        return applyResult(snapshot);
+      },
+      execute: async (request) => ({
+        commandId: request.commandId,
+        runId: request.runId,
+        kind: request.kind,
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [
+          {
+            label: "Commit accepted worker output",
+            command: "git commit -m <message>",
+            status: "passed",
+            detail: "Committed abc123."
+          }
+        ],
+        detail: "Accepted worker output committed.",
+        structuredOutput: {
+          commitSha: "abc123",
+          branch: "codex/orch/task-1"
+        }
+      })
+    });
+
+    expect(result.detail).toBe("Drained one worker commit, queued automatic integration, and persisted the ledger state.");
+    expect(result.backendState.commandQueue[0]).toMatchObject({
+      kind: "worker.commit",
+      status: "processed"
+    });
+    expect(result.backendState.commandQueue.at(-1)).toMatchObject({
+      kind: "integration.start",
+      status: "queued",
+      payload: {
+        integrationBranch: "codex/orch/integration/run-123",
+        commitShas: ["abc123"],
+        finalMergeRequiresApproval: true
+      }
+    });
+    expect(persisted?.commands.at(-1)).toMatchObject({
+      kind: "integration.start",
+      status: "queued"
+    });
+  });
+
   it("does not rewrite SQLite when no durable queue work exists", async () => {
     const result = await runOrchestratorQueuePumpCycle({
       repositoryRoot: "C:\\repo",
