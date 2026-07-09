@@ -175,6 +175,35 @@ export function serializeArtifactsForSqlite(
   }));
 }
 
+function normalizeArtifactKind(value: string): OrchestratorArtifactKind {
+  return value === "screenshot" ||
+    value === "log" ||
+    value === "report" ||
+    value === "diff" ||
+    value === "validation-output" ||
+    value === "worker-handoff" ||
+    value === "validator-report"
+    ? value
+    : "report";
+}
+
+export function hydrateArtifactsFromSqlite(
+  artifacts: readonly OrchestratorArtifactSqliteRow[]
+): OrchestratorArtifact[] {
+  return artifacts.map((artifact) => ({
+    id: artifact.id,
+    runId: artifact.run_id,
+    taskId: artifact.task_id ?? undefined,
+    jobId: artifact.job_id ?? undefined,
+    attempt: artifact.attempt ?? undefined,
+    kind: normalizeArtifactKind(artifact.kind),
+    path: artifact.path,
+    sha256: artifact.sha256,
+    sizeBytes: artifact.size_bytes,
+    createdAt: artifact.created_at
+  }));
+}
+
 export function linkEvidenceToAcceptanceResults(input: {
   report: ValidatorReport;
   evidence: readonly ValidationEvidence[];

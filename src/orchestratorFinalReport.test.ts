@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   createBoundedOrchestratorRun,
   createOrchestratorBackendState,
+  enqueueOrchestratorCommand,
+  enqueueOrchestratorEvent,
   processAllQueuedOrchestratorEvents
 } from "./orchestratorBackend";
 import {
   DEFAULT_REMOTE_POLICY,
+  enqueueFinalRunReportIfReady,
   evaluateFinalizationGates,
   evaluateRemotePushGates,
   generateOrchestratorRunReport,
@@ -235,6 +238,72 @@ describe("orchestrator final report and remote policy", () => {
       branch: "codex/orch/integration/run-123",
       remote: "origin",
       error: "remote disabled"
+    });
+  });
+
+  it("queues a Markdown-exportable final report event from durable run state", () => {
+    const withIntegrationCommand = enqueueOrchestratorCommand(state(), {
+      id: "run-123:integration:start",
+      runId: "run-123",
+      kind: "integration.start",
+      payload: {
+        integrationBranch: "codex/orch/integration/run-123",
+        acceptedCommits: [
+          {
+            taskId: "task-1",
+            workerJobId: "worker-1",
+            branch: "codex/orch/task-1",
+            worktreePath: ".steerboard/worktrees/task-1",
+            commitSha: "abc123",
+            validationReportId: "report-1"
+          }
+        ],
+        commitShas: ["abc123"],
+        finalMergeRequiresApproval: true
+      },
+      enqueuedAt: createdAt
+    });
+    const readyState = processAllQueuedOrchestratorEvents(
+      enqueueOrchestratorEvent(withIntegrationCommand, {
+        id: "run-123:ready",
+        runId: "run-123",
+        kind: "integration.updated",
+        payload: {
+          phase: "Integration branch ready for finalization.",
+          runStatus: "ready-for-finalization",
+          integrationBranch: "codex/orch/integration/run-123",
+          commitShas: ["abc123"],
+          finalMergeRequiresApproval: true
+        },
+        enqueuedAt: createdAt
+      }),
+      "2026-07-09T11:01:00.000Z"
+    );
+    const result = enqueueFinalRunReportIfReady({
+      backendState: readyState,
+      artifacts: [artifact()],
+      generatedAt: "2026-07-09T11:02:00.000Z"
+    });
+
+    expect(result.queued).toBe(true);
+    expect(result.report?.summaryJson).toMatchObject({
+      taskScope: ["task-1"],
+      completedTaskIds: ["task-1"],
+      acceptedCommitShas: ["abc123"],
+      finalizationStatus: "ready-for-approval",
+      recommendedNextAction: "Approve final merge when ready."
+    });
+
+    const processed = processAllQueuedOrchestratorEvents(result.backendState, "2026-07-09T11:03:00.000Z");
+
+    expect(processed.ledger.at(-1)).toMatchObject({
+      kind: "run.phase.changed",
+      message: "Final run report generated."
+    });
+    expect(processed.ledger.at(-1)?.payload).toMatchObject({
+      reportMarkdown: expect.stringContaining("# Orchestrator Run Report: run-123"),
+      exportFormats: ["markdown"],
+      recommendedNextAction: "Approve final merge when ready."
     });
   });
 });

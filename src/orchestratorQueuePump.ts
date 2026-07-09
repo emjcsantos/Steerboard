@@ -16,6 +16,7 @@ import {
   type OrchestratorSqliteApplyResult,
   type OrchestratorSqliteSnapshot
 } from "./orchestratorSqliteStore";
+import { hydrateArtifactsFromSqlite } from "./orchestratorArtifacts";
 import {
   applyValidatorRuntimeCommandResult
 } from "./orchestratorValidatorRuntimeReport";
@@ -23,6 +24,7 @@ import {
   applyIntegrationRuntimeCommandResult,
   queueIntegrationAfterWorkerCommitRuntime
 } from "./orchestratorIntegration";
+import { enqueueFinalRunReportIfReady } from "./orchestratorFinalReport";
 
 export interface OrchestratorQueuePumpCycleInput {
   repositoryRoot: string;
@@ -85,12 +87,20 @@ export async function runOrchestratorQueuePumpCycle(
     loopApplied?.backendState ?? integrationQueued?.backendState ?? integrationApplied?.backendState ?? drained.backendState;
   const afterCommandQueued = queuedEventCount(stateAfterLoop);
   const processedState = processAllQueuedOrchestratorEvents(stateAfterLoop, input.processedAt);
-  const eventsProcessed = afterCommandQueued - queuedEventCount(processedState);
+  const reportQueued = enqueueFinalRunReportIfReady({
+    backendState: processedState,
+    artifacts: hydrateArtifactsFromSqlite(snapshot.artifacts),
+    generatedAt: input.processedAt
+  });
+  const stateAfterReport = reportQueued.queued
+    ? processAllQueuedOrchestratorEvents(reportQueued.backendState, input.processedAt)
+    : processedState;
+  const eventsProcessed = afterCommandQueued - queuedEventCount(processedState) + (reportQueued.queued ? 1 : 0);
   const changed = drained.drained || eventsProcessed > 0;
 
   if (!changed) {
     return {
-      backendState: processedState,
+      backendState: stateAfterReport,
       commandDrained: false,
       eventsProcessed: 0,
       snapshotApplied: false,
@@ -99,13 +109,13 @@ export async function runOrchestratorQueuePumpCycle(
   }
 
   const nextSnapshot = {
-    ...buildOrchestratorSqliteSnapshot(processedState),
+    ...buildOrchestratorSqliteSnapshot(stateAfterReport),
     artifacts: snapshot.artifacts
   };
   const applyResult = await applySnapshot(nextSnapshot);
 
   return {
-    backendState: processedState,
+    backendState: stateAfterReport,
     commandDrained: drained.drained,
     eventsProcessed,
     snapshotApplied: true,

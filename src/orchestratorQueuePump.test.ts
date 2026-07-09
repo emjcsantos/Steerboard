@@ -403,7 +403,7 @@ describe("orchestrator queue pump", () => {
     );
     expect(result.backendState.runs[0]).toMatchObject({
       status: "ready-for-finalization",
-      phase: "Integration branch ready for finalization."
+      phase: "Final run report generated."
     });
     expect(result.backendState.commandQueue[0]).toMatchObject({
       kind: "integration.start",
@@ -420,12 +420,17 @@ describe("orchestrator queue pump", () => {
     });
     expect(persisted?.runs[0]).toMatchObject({
       status: "ready-for-finalization",
-      phase: "Integration branch ready for finalization."
+      phase: "Final run report generated."
     });
     expect(persisted?.commands.at(-1)).toMatchObject({
       kind: "cleanup.start",
       status: "queued"
     });
+    expect(persisted?.ledger.at(-1)).toMatchObject({
+      kind: "run.phase.changed",
+      message: "Final run report generated."
+    });
+    expect(persisted?.ledger.at(-1)?.payload_json).toContain("# Orchestrator Run Report: run-123");
   });
 
   it("does not rewrite SQLite when no durable queue work exists", async () => {

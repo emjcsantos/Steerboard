@@ -1,13 +1,14 @@
 import {
   enqueueOrchestratorEvent,
   type OrchestratorBackendState,
+  type OrchestratorQueuedCommand,
   type OrchestratorLedgerEntry,
   type OrchestratorRunRecord
 } from "./orchestratorBackend";
 import type { OrchestratorArtifact } from "./orchestratorArtifacts";
 import type { CleanupJob, CleanupQueueSummary } from "./orchestratorCleanup";
 import type { AcceptedWorkerCommit } from "./orchestratorIntegration";
-import type { PmWorkerReadyTask } from "./pmLaneWorkerReady";
+import { DEFAULT_PM_TASK_BUDGET, type PmWorkerReadyTask } from "./pmLaneWorkerReady";
 
 export type FinalizationStatus =
   | "not-ready"
@@ -35,6 +36,13 @@ export interface OrchestratorRunReport {
     finalizationStatus: FinalizationStatus;
     recommendedNextAction: string;
   };
+}
+
+export interface FinalRunReportEventResult {
+  backendState: OrchestratorBackendState;
+  report?: OrchestratorRunReport;
+  queued: boolean;
+  detail: string;
 }
 
 export interface FinalizationGateInput {
@@ -89,6 +97,188 @@ function cleanupStatus(jobs: readonly CleanupJob[]): string {
   const open = jobs.filter((job) => job.status !== "completed" && job.status !== "cancelled");
 
   return open.length === 0 ? "cleanup complete" : `${open.length} cleanup job${open.length === 1 ? "" : "s"} open`;
+}
+
+function payloadString(payload: Record<string, unknown>, key: string): string | undefined {
+  const value = payload[key];
+
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function payloadStringList(payload: Record<string, unknown>, key: string): string[] {
+  const value = payload[key];
+
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+}
+
+function payloadNumber(payload: Record<string, unknown>, key: string): number | undefined {
+  const value = payload[key];
+
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function cleanupJobFromCommand(command: OrchestratorQueuedCommand): CleanupJob | undefined {
+  if (command.kind !== "cleanup.start") {
+    return undefined;
+  }
+
+  const id = payloadString(command.payload, "id");
+  const path = payloadString(command.payload, "path");
+  const kind = payloadString(command.payload, "kind");
+  const status = payloadString(command.payload, "status");
+  const retentionExpiresAt = payloadString(command.payload, "retentionExpiresAt");
+  const reason = payloadString(command.payload, "reason");
+  const createdAt = payloadString(command.payload, "createdAt");
+  const updatedAt = payloadString(command.payload, "updatedAt");
+
+  if (
+    !id ||
+    !path ||
+    !kind ||
+    !status ||
+    !retentionExpiresAt ||
+    !reason ||
+    !createdAt ||
+    !updatedAt ||
+    (kind !== "worker-worktree" &&
+      kind !== "validator-artifact" &&
+      kind !== "runtime-state" &&
+      kind !== "stale-process-handle") ||
+    (status !== "scheduled" &&
+      status !== "retention-active" &&
+      status !== "ready" &&
+      status !== "running" &&
+      status !== "blocked" &&
+      status !== "completed" &&
+      status !== "failed" &&
+      status !== "cancelled")
+  ) {
+    return undefined;
+  }
+
+  return {
+    id,
+    runId: command.runId,
+    taskId: payloadString(command.payload, "taskId"),
+    jobId: payloadString(command.payload, "jobId"),
+    kind,
+    path,
+    reason,
+    status,
+    retentionExpiresAt,
+    blockedReasons: [],
+    createdAt,
+    updatedAt,
+    completedAt: payloadString(command.payload, "completedAt"),
+    deletionResult: payloadString(command.payload, "deletionResult")
+  };
+}
+
+function acceptedCommitsFromCommand(command: OrchestratorQueuedCommand): AcceptedWorkerCommit[] {
+  if (command.kind !== "integration.start" || !Array.isArray(command.payload.acceptedCommits)) {
+    return [];
+  }
+
+  return command.payload.acceptedCommits.flatMap((item) => {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) {
+      return [];
+    }
+
+    const record = item as Record<string, unknown>;
+    const taskId = payloadString(record, "taskId");
+    const workerJobId = payloadString(record, "workerJobId");
+    const branch = payloadString(record, "branch");
+    const commitSha = payloadString(record, "commitSha");
+    const validationReportId = payloadString(record, "validationReportId");
+
+    return taskId && workerJobId && branch && commitSha && validationReportId
+      ? [
+          {
+            taskId,
+            workerJobId,
+            branch,
+            worktreePath: payloadString(record, "worktreePath"),
+            commitSha,
+            committedAt: command.processedAt ?? command.enqueuedAt,
+            validationReportId,
+            commandEvidence: payloadStringList(record, "commandEvidence")
+          }
+        ]
+      : [];
+  });
+}
+
+function taskFromRunScope(run: OrchestratorRunRecord, taskId: string, sequence: number): PmWorkerReadyTask {
+  return {
+    id: taskId,
+    title: `Orchestrator task ${taskId}`,
+    objective: `Task ${taskId} from orchestrator run ${run.id}.`,
+    ownedFiles: [],
+    forbiddenFiles: [],
+    dependencies: [],
+    acceptanceCriteria: [],
+    validationCommands: [],
+    rollbackPlan: "Review orchestrator ledger before rollback.",
+    budget: { ...DEFAULT_PM_TASK_BUDGET },
+    priority: "normal",
+    capabilityProfile: "workspace-write",
+    evidenceKinds: [],
+    provenance: {
+      origin: "orchestrator",
+      labels: ["orchestrator-created"]
+    },
+    templateSnapshot: {
+      taskId,
+      templateId: "durable-run-report",
+      resolvedAt: run.updatedAt,
+      templateJson: {
+        runId: run.id
+      }
+    },
+    status: "queued",
+    createdAt: run.createdAt,
+    sequence
+  };
+}
+
+function blockerIdsFromLedger(ledger: readonly OrchestratorLedgerEntry[], runId: string): string[] {
+  return [
+    ...new Set(
+      ledger
+        .filter((entry) => entry.runId === runId)
+        .flatMap((entry) => payloadStringList(entry.payload, "blockerIds"))
+    )
+  ];
+}
+
+function correctiveTaskIdsFromLedger(ledger: readonly OrchestratorLedgerEntry[], runId: string): string[] {
+  return [
+    ...new Set(
+      ledger
+        .filter((entry) => entry.runId === runId)
+        .flatMap((entry) => {
+          const correctiveTaskIds = payloadStringList(entry.payload, "correctiveTaskIds");
+          const correctiveTaskCount = payloadNumber(entry.payload, "correctiveTaskCount") ?? 0;
+
+          return correctiveTaskIds.length > 0
+            ? correctiveTaskIds
+            : correctiveTaskCount > 0
+            ? [`${entry.id}:corrective-tasks:${correctiveTaskCount}`]
+            : [];
+        })
+    )
+  ];
+}
+
+function shouldGenerateFinalReport(run: OrchestratorRunRecord): boolean {
+  return (
+    run.status === "ready-for-finalization" ||
+    run.status === "completed" ||
+    run.status === "cancelled" ||
+    run.status === "validation-failed"
+  );
 }
 
 export function evaluateFinalizationGates(input: FinalizationGateInput): FinalizationGateResult {
@@ -258,5 +448,113 @@ export function generateOrchestratorRunReport(input: {
     generatedAt: input.generatedAt,
     markdown,
     summaryJson
+  };
+}
+
+export function generateOrchestratorRunReportFromDurableState(input: {
+  backendState: OrchestratorBackendState;
+  run: OrchestratorRunRecord;
+  artifacts: readonly OrchestratorArtifact[];
+  generatedAt: string;
+}): OrchestratorRunReport {
+  const runLedger = input.backendState.ledger.filter((entry) => entry.runId === input.run.id);
+  const acceptedCommits = input.backendState.commandQueue.flatMap(acceptedCommitsFromCommand);
+  const cleanupJobs = input.backendState.commandQueue
+    .map(cleanupJobFromCommand)
+    .filter((job): job is CleanupJob => Boolean(job));
+  const blockerIds = blockerIdsFromLedger(input.backendState.ledger, input.run.id);
+  const correctiveTaskIds = correctiveTaskIdsFromLedger(input.backendState.ledger, input.run.id);
+  const taskIds = [
+    ...new Set([
+      ...input.run.scope.taskIds,
+      ...acceptedCommits.map((commit) => commit.taskId),
+      ...correctiveTaskIds
+    ])
+  ];
+  const tasks = taskIds.map((taskId, index) => taskFromRunScope(input.run, taskId, index + 1));
+  const correctiveTasks = correctiveTaskIds.map((taskId, index) => taskFromRunScope(input.run, taskId, taskIds.length + index + 1));
+  const finalization = evaluateFinalizationGates({
+    integrationValidationPassed: input.run.status !== "validation-failed",
+    unresolvedCorrectiveTaskIds: input.run.status === "ready-for-finalization" ? [] : correctiveTaskIds,
+    blockerIds,
+    targetBranchClean: true,
+    expectedBaseMatches: true,
+    userApprovedFinalMerge: false
+  });
+
+  return generateOrchestratorRunReport({
+    run: input.run,
+    tasks,
+    acceptedCommits,
+    artifacts: input.artifacts.filter((artifact) => artifact.runId === input.run.id),
+    correctiveTasks,
+    blockerIds,
+    ledger: runLedger,
+    cleanupJobs,
+    finalization,
+    generatedAt: input.generatedAt
+  });
+}
+
+export function enqueueFinalRunReportIfReady(input: {
+  backendState: OrchestratorBackendState;
+  artifacts: readonly OrchestratorArtifact[];
+  generatedAt: string;
+  runId?: string;
+}): FinalRunReportEventResult {
+  const run = input.runId
+    ? input.backendState.runs.find((item) => item.id === input.runId)
+    : [...input.backendState.runs]
+        .filter(shouldGenerateFinalReport)
+        .sort((first, second) => second.updatedAt.localeCompare(first.updatedAt))[0];
+
+  if (!run || !shouldGenerateFinalReport(run)) {
+    return {
+      backendState: input.backendState,
+      queued: false,
+      detail: "No run is ready for final report generation."
+    };
+  }
+
+  const dedupeKey = `${run.id}:final-report:${run.status}:${run.updatedAt}`;
+
+  if (
+    input.backendState.processedEventKeys.includes(dedupeKey) ||
+    input.backendState.eventQueue.some((event) => (event.dedupeKey ?? event.id) === dedupeKey)
+  ) {
+    return {
+      backendState: input.backendState,
+      queued: false,
+      detail: "Final report already exists for this run state."
+    };
+  }
+
+  const report = generateOrchestratorRunReportFromDurableState({
+    backendState: input.backendState,
+    run,
+    artifacts: input.artifacts,
+    generatedAt: input.generatedAt
+  });
+
+  return {
+    backendState: enqueueOrchestratorEvent(input.backendState, {
+      id: report.id,
+      runId: run.id,
+      kind: "run.phase.changed",
+      payload: {
+        phase: "Final run report generated.",
+        runStatus: run.status,
+        reportId: report.id,
+        reportMarkdown: report.markdown,
+        summaryJson: report.summaryJson,
+        exportFormats: ["markdown"],
+        recommendedNextAction: report.summaryJson.recommendedNextAction
+      },
+      dedupeKey,
+      enqueuedAt: input.generatedAt
+    }),
+    report,
+    queued: true,
+    detail: "Queued final run report event."
   };
 }
