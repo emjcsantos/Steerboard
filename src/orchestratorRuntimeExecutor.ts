@@ -2,6 +2,7 @@ import {
   enqueueOrchestratorCommand,
   enqueueOrchestratorEvent,
   type OrchestratorBackendState,
+  type OrchestratorCommandKind,
   type OrchestratorEventKind,
   type OrchestratorQueuedCommand
 } from "./orchestratorBackend";
@@ -34,7 +35,7 @@ export interface OrchestratorRuntimeCommandStep {
 export interface OrchestratorRuntimeCommandResult {
   commandId: string;
   runId: string;
-  kind: OrchestratorRuntimeCommandKind;
+  kind: OrchestratorCommandKind;
   executed: boolean;
   blocked: boolean;
   artifactPaths: string[];
@@ -59,6 +60,8 @@ const executableKinds = new Set<string>([
   "finalization.merge",
   "remote.push"
 ]);
+
+const controlKinds = new Set<string>(["worker.pause", "worker.cancel"]);
 
 export function buildRuntimeCommandRequest(
   command: OrchestratorQueuedCommand,
@@ -91,11 +94,14 @@ export async function executeOrchestratorRuntimeCommand(
   });
 }
 
-function eventKindForCommand(kind: OrchestratorRuntimeCommandKind): OrchestratorEventKind {
+function eventKindForCommand(kind: OrchestratorCommandKind): OrchestratorEventKind {
   switch (kind) {
     case "worker.start":
     case "worker.commit":
+    case "worker.pause":
       return "worker.progress";
+    case "worker.cancel":
+      return "cleanup.updated";
     case "validator.start":
       return "validator.reported";
     case "integration.start":
@@ -108,6 +114,10 @@ function eventKindForCommand(kind: OrchestratorRuntimeCommandKind): Orchestrator
 }
 
 function phaseForResult(result: OrchestratorRuntimeCommandResult): string {
+  if (controlKinds.has(result.kind)) {
+    return result.detail;
+  }
+
   if (result.blocked) {
     return `Runtime command blocked: ${result.kind}.`;
   }
@@ -139,6 +149,10 @@ function payloadString(payload: Record<string, unknown>, key: string): string | 
   const value = payload[key];
 
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function payloadBoolean(payload: Record<string, unknown>, key: string): boolean {
+  return payload[key] === true;
 }
 
 function payloadNumber(payload: Record<string, unknown>, key: string): number | undefined {
@@ -202,6 +216,59 @@ function enqueueValidatorAfterWorker(
   });
 }
 
+function controlDetailForCommand(command: OrchestratorQueuedCommand): string {
+  const jobId = payloadString(command.payload, "jobId") ?? "unknown job";
+  const reason = payloadString(command.payload, "reason");
+
+  switch (command.kind) {
+    case "worker.pause":
+      return reason ? `Worker pause acknowledged for ${jobId}: ${reason}.` : `Worker pause acknowledged for ${jobId}.`;
+    case "worker.cancel":
+      return reason ? `Worker cancel acknowledged for ${jobId}: ${reason}.` : `Worker cancel acknowledged for ${jobId}.`;
+    default:
+      return `Control command acknowledged for ${jobId}.`;
+  }
+}
+
+function resultForControlCommand(
+  command: OrchestratorQueuedCommand
+): OrchestratorRuntimeCommandResult {
+  const retainedForReview =
+    command.kind === "worker.cancel" &&
+    (payloadBoolean(command.payload, "hasChanges") ||
+      payloadBoolean(command.payload, "hasEvidence") ||
+      payloadBoolean(command.payload, "retainedForReview"));
+
+  return {
+    commandId: command.id,
+    runId: command.runId,
+    kind: command.kind,
+    executed: true,
+    blocked: false,
+    artifactPaths: [],
+    steps: [
+      {
+        label: "Apply orchestrator control command",
+        command: command.kind,
+        status: "passed",
+        detail:
+          command.kind === "worker.cancel" && retainedForReview
+            ? "Worker cancellation retained evidence for review."
+            : "Control command state was recorded durably."
+      }
+    ],
+    detail: controlDetailForCommand(command),
+    structuredOutput: {
+      controlCommand: true,
+      jobId: payloadString(command.payload, "jobId"),
+      taskId: payloadString(command.payload, "taskId"),
+      preventNewTurns: true,
+      preventFileMutations: command.kind === "worker.cancel",
+      retainedForReview
+    }
+  };
+}
+
 export async function drainNextOrchestratorRuntimeCommand(
   state: OrchestratorBackendState,
   input: {
@@ -218,6 +285,41 @@ export async function drainNextOrchestratorRuntimeCommand(
     return {
       backendState: state,
       drained: false
+    };
+  }
+
+  if (controlKinds.has(command.kind)) {
+    const result = resultForControlCommand(command);
+    const marked = markCommand(state, command.id, "processed", input.processedAt);
+    const backendState = enqueueOrchestratorEvent(marked, {
+      id: `${command.id}:control:${input.processedAt}`,
+      runId: command.runId,
+      kind: eventKindForCommand(command.kind),
+      payload: {
+        phase: phaseForResult(result),
+        commandId: command.id,
+        commandKind: command.kind,
+        executed: result.executed,
+        blocked: result.blocked,
+        detail: result.detail,
+        artifactPaths: result.artifactPaths,
+        steps: result.steps.map((step) => ({
+          label: step.label,
+          command: step.command,
+          status: step.status,
+          detail: step.detail
+        })),
+        structuredOutput: result.structuredOutput
+      },
+      dedupeKey: `${command.id}:control`,
+      enqueuedAt: input.processedAt
+    });
+
+    return {
+      backendState,
+      command,
+      result,
+      drained: true
     };
   }
 

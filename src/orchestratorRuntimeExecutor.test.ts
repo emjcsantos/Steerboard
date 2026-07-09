@@ -151,6 +151,117 @@ describe("orchestrator runtime executor", () => {
     ).toThrow("orchestrator_runtime_unsupported_command:worker.pause");
   });
 
+  it("drains worker pause as a durable control event without invoking Tauri", async () => {
+    const state = {
+      ...createBoundedOrchestratorRun(createOrchestratorBackendState(), {
+        id: "run-123",
+        projectId: "steerboard",
+        scope: { mode: "task-list", taskIds: ["task-1"] },
+        baseBranch: "main",
+        createdAt: "2026-07-09T07:00:00.000Z"
+      }),
+      commandQueue: [
+        command({
+          id: "run-123:worker:task-1:pause",
+          kind: "worker.pause",
+          payload: {
+            jobId: "run-123:worker:task-1",
+            taskId: "task-1",
+            reason: "pause-requested"
+          }
+        })
+      ]
+    };
+    const drained = await drainNextOrchestratorRuntimeCommand(state, {
+      repositoryRoot: "repo",
+      processedAt: "2026-07-09T07:01:00.000Z",
+      execute: async () => {
+        throw new Error("pause should not invoke Tauri runtime");
+      }
+    });
+
+    expect(drained.result).toMatchObject({
+      kind: "worker.pause",
+      executed: true,
+      blocked: false,
+      detail: "Worker pause acknowledged for run-123:worker:task-1: pause-requested."
+    });
+    expect(drained.backendState.commandQueue[0]).toMatchObject({
+      status: "processed",
+      processedAt: "2026-07-09T07:01:00.000Z"
+    });
+    expect(drained.backendState.eventQueue[0]).toMatchObject({
+      kind: "worker.progress",
+      status: "queued",
+      payload: {
+        commandKind: "worker.pause",
+        detail: "Worker pause acknowledged for run-123:worker:task-1: pause-requested."
+      }
+    });
+
+    const processed = processAllQueuedOrchestratorEvents(
+      drained.backendState,
+      "2026-07-09T07:02:00.000Z"
+    );
+
+    expect(processed.ledger.at(-1)).toMatchObject({
+      kind: "worker.progress",
+      message: "Worker pause acknowledged for run-123:worker:task-1: pause-requested."
+    });
+  });
+
+  it("drains worker cancel with retained-review evidence as cleanup ledger output", async () => {
+    const state = {
+      ...createBoundedOrchestratorRun(createOrchestratorBackendState(), {
+        id: "run-123",
+        projectId: "steerboard",
+        scope: { mode: "task-list", taskIds: ["task-1"] },
+        baseBranch: "main",
+        createdAt: "2026-07-09T07:00:00.000Z"
+      }),
+      commandQueue: [
+        command({
+          id: "run-123:worker:task-1:cancel",
+          kind: "worker.cancel",
+          payload: {
+            jobId: "run-123:worker:task-1",
+            taskId: "task-1",
+            reason: "superseded",
+            hasChanges: true
+          }
+        })
+      ]
+    };
+    const drained = await drainNextOrchestratorRuntimeCommand(state, {
+      repositoryRoot: "repo",
+      processedAt: "2026-07-09T07:01:00.000Z",
+      execute: async () => {
+        throw new Error("cancel should not invoke Tauri runtime");
+      }
+    });
+
+    expect(drained.backendState.eventQueue[0]).toMatchObject({
+      kind: "cleanup.updated",
+      payload: {
+        commandKind: "worker.cancel",
+        structuredOutput: {
+          retainedForReview: true,
+          preventFileMutations: true
+        }
+      }
+    });
+
+    const processed = processAllQueuedOrchestratorEvents(
+      drained.backendState,
+      "2026-07-09T07:02:00.000Z"
+    );
+
+    expect(processed.ledger.at(-1)).toMatchObject({
+      kind: "cleanup.updated",
+      message: "Worker cancel acknowledged for run-123:worker:task-1: superseded."
+    });
+  });
+
   it("drains the next queued command through a compact FIFO runtime event", async () => {
     const state = createBoundedOrchestratorRun(createOrchestratorBackendState(), {
       id: "run-123",
