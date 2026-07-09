@@ -1,8 +1,10 @@
 import {
   enqueueOrchestratorEvent,
-  type OrchestratorBackendState
+  type OrchestratorBackendState,
+  type OrchestratorQueuedCommand
 } from "./orchestratorBackend";
 import type { OrchestratorArtifact } from "./orchestratorArtifacts";
+import type { OrchestratorRuntimeCommandResult } from "./orchestratorRuntimeExecutor";
 
 export type CleanupJobKind =
   | "worker-worktree"
@@ -74,6 +76,14 @@ export interface CleanupQueueSummary {
   completed: number;
   failed: number;
   cancelled: number;
+  detail: string;
+}
+
+export interface CleanupRuntimeApplyResult {
+  backendState: OrchestratorBackendState;
+  completed: boolean;
+  failed: boolean;
+  job?: CleanupJob;
   detail: string;
 }
 
@@ -212,14 +222,166 @@ export function markCleanupCompleted(
       payload: {
         phase: `Cleanup completed for ${job.kind}.`,
         cleanupJobId: job.id,
+        cleanupStatus: "completed",
         taskId: job.taskId,
         path: job.path,
+        completedAt: input.completedAt,
         deletionResult: input.deletionResult
       },
       dedupeKey: `${job.id}:cleanup-completed:${input.completedAt}`,
       enqueuedAt: input.completedAt
     }),
     job: completedJob
+  };
+}
+
+function payloadString(payload: Record<string, unknown>, key: string): string | undefined {
+  const value = payload[key];
+
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function payloadStringList(payload: Record<string, unknown>, key: string): string[] {
+  const value = payload[key];
+
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+}
+
+function resultString(result: OrchestratorRuntimeCommandResult, key: string): string | undefined {
+  const output = result.structuredOutput;
+
+  if (typeof output !== "object" || output === null || Array.isArray(output)) {
+    return undefined;
+  }
+
+  const value = (output as Record<string, unknown>)[key];
+
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function cleanupJobKind(value: string | undefined): CleanupJobKind | undefined {
+  return value === "worker-worktree" ||
+    value === "validator-artifact" ||
+    value === "runtime-state" ||
+    value === "stale-process-handle"
+    ? value
+    : undefined;
+}
+
+function cleanupJobStatus(value: string | undefined): CleanupJobStatus | undefined {
+  return value === "scheduled" ||
+    value === "retention-active" ||
+    value === "ready" ||
+    value === "running" ||
+    value === "blocked" ||
+    value === "completed" ||
+    value === "failed" ||
+    value === "cancelled"
+    ? value
+    : undefined;
+}
+
+function cleanupJobFromCommand(command: OrchestratorQueuedCommand): CleanupJob | undefined {
+  if (command.kind !== "cleanup.start") {
+    return undefined;
+  }
+
+  const id = payloadString(command.payload, "id");
+  const path = payloadString(command.payload, "path");
+  const kind = cleanupJobKind(payloadString(command.payload, "kind"));
+  const status = cleanupJobStatus(payloadString(command.payload, "status"));
+  const retentionExpiresAt = payloadString(command.payload, "retentionExpiresAt");
+  const reason = payloadString(command.payload, "reason");
+  const createdAt = payloadString(command.payload, "createdAt");
+  const updatedAt = payloadString(command.payload, "updatedAt");
+
+  if (!id || !path || !kind || !status || !retentionExpiresAt || !reason || !createdAt || !updatedAt) {
+    return undefined;
+  }
+
+  return {
+    id,
+    runId: command.runId,
+    taskId: payloadString(command.payload, "taskId"),
+    jobId: payloadString(command.payload, "jobId"),
+    kind,
+    path,
+    reason,
+    status,
+    retentionExpiresAt,
+    blockedReasons: payloadStringList(command.payload, "blockedReasons") as CleanupBlockReason[],
+    createdAt,
+    updatedAt,
+    completedAt: payloadString(command.payload, "completedAt"),
+    deletionResult: payloadString(command.payload, "deletionResult")
+  };
+}
+
+export function applyCleanupRuntimeCommandResult(input: {
+  backendState: OrchestratorBackendState;
+  command: OrchestratorQueuedCommand;
+  result: OrchestratorRuntimeCommandResult;
+  createdAt: string;
+}): CleanupRuntimeApplyResult | undefined {
+  const job = cleanupJobFromCommand(input.command);
+
+  if (!job) {
+    return input.command.kind === "cleanup.start"
+      ? {
+          backendState: input.backendState,
+          completed: false,
+          failed: true,
+          detail: "Cleanup command was missing durable cleanup job metadata."
+        }
+      : undefined;
+  }
+
+  if (input.result.blocked || !input.result.executed) {
+    const failedJob: CleanupJob = {
+      ...job,
+      status: "failed",
+      blockedReasons: ["important-uncommitted-files"],
+      updatedAt: input.createdAt,
+      deletionResult: input.result.detail
+    };
+
+    return {
+      backendState: enqueueOrchestratorEvent(input.backendState, {
+        id: `${job.id}:cleanup-failed:${input.createdAt}`,
+        runId: job.runId,
+        kind: "cleanup.updated",
+        payload: {
+          phase: `Cleanup failed for ${job.kind}.`,
+          cleanupJobId: job.id,
+          cleanupStatus: "failed",
+          taskId: job.taskId,
+          path: job.path,
+          blockedReasons: failedJob.blockedReasons,
+          deletionResult: input.result.detail
+        },
+        dedupeKey: `${job.id}:cleanup-failed:${input.createdAt}`,
+        enqueuedAt: input.createdAt
+      }),
+      completed: false,
+      failed: true,
+      job: failedJob,
+      detail: "Cleanup runtime failed; cleanup was retained for review."
+    };
+  }
+
+  const completed = markCleanupCompleted(input.backendState, job, {
+    completedAt: input.createdAt,
+    deletionResult: resultString(input.result, "deletionResult") ?? input.result.detail
+  });
+
+  return {
+    backendState: completed.backendState,
+    completed: true,
+    failed: false,
+    job: completed.job,
+    detail: "Cleanup runtime completed and durable cleanup evidence was queued."
   };
 }
 

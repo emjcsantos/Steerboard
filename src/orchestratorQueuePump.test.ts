@@ -6,6 +6,7 @@ import {
   enqueueOrchestratorEvent
 } from "./orchestratorBackend";
 import { runOrchestratorQueuePumpCycle } from "./orchestratorQueuePump";
+import { createCleanupJob } from "./orchestratorCleanup";
 import {
   buildOrchestratorSqliteSnapshot,
   type OrchestratorSqliteApplyResult,
@@ -431,6 +432,74 @@ describe("orchestrator queue pump", () => {
       message: "Final run report generated."
     });
     expect(persisted?.ledger.at(-1)?.payload_json).toContain("# Orchestrator Run Report: run-123");
+  });
+
+  it("records cleanup completion after a successful cleanup runtime result", async () => {
+    const cleanupJob = createCleanupJob({
+      id: "run-123:cleanup:task-1:1",
+      runId: "run-123",
+      taskId: "task-1",
+      jobId: "run-123:worker:task-1",
+      kind: "worker-worktree",
+      path: "C:\\repo\\.steerboard\\worktrees\\task-1",
+      reason: "Accepted worker output integrated.",
+      createdAt
+    });
+    const state = enqueueOrchestratorCommand(stateWithRun(), {
+      id: "run-123:cleanup:task-1:1:start",
+      runId: "run-123",
+      kind: "cleanup.start",
+      payload: {
+        ...cleanupJob,
+        policyMode: "automatic",
+        keepOnFailure: true
+      },
+      enqueuedAt: createdAt
+    });
+    let persisted: OrchestratorSqliteSnapshot | undefined;
+    const result = await runOrchestratorQueuePumpCycle({
+      repositoryRoot: "C:\\repo",
+      processedAt,
+      readSnapshot: async () => buildOrchestratorSqliteSnapshot(state),
+      applySnapshot: async (snapshot) => {
+        persisted = snapshot;
+        return applyResult(snapshot);
+      },
+      execute: async (request) => ({
+        commandId: request.commandId,
+        runId: request.runId,
+        kind: request.kind,
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [
+          {
+            label: "Remove cleanup target",
+            command: "Remove-Item -LiteralPath <path> -Recurse",
+            status: "passed",
+            detail: "Removed worktree."
+          }
+        ],
+        detail: "Removed worktree.",
+        structuredOutput: {
+          deletionResult: "Removed worktree path."
+        }
+      })
+    });
+
+    expect(result.detail).toBe("Drained one cleanup command, recorded cleanup completion, and persisted the ledger state.");
+    expect(result.backendState.commandQueue[0]).toMatchObject({
+      kind: "cleanup.start",
+      status: "processed"
+    });
+    expect(result.backendState.ledger.at(-1)).toMatchObject({
+      kind: "cleanup.updated",
+      message: "Cleanup completed for worker-worktree."
+    });
+    expect(persisted?.ledger.at(-1)).toMatchObject({
+      kind: "cleanup.updated"
+    });
+    expect(persisted?.ledger.at(-1)?.payload_json).toContain("\"cleanupStatus\":\"completed\"");
   });
 
   it("does not rewrite SQLite when no durable queue work exists", async () => {

@@ -306,4 +306,82 @@ describe("orchestrator final report and remote policy", () => {
       recommendedNextAction: "Approve final merge when ready."
     });
   });
+
+  it("uses cleanup ledger updates when summarizing final report cleanup status", () => {
+    const cleanupJob = createCleanupJob({
+      id: "cleanup-1",
+      runId: "run-123",
+      taskId: "task-1",
+      jobId: "worker-1",
+      kind: "worker-worktree",
+      path: ".steerboard/worktrees/task-1",
+      reason: "Integrated",
+      createdAt
+    });
+    const withCommands = enqueueOrchestratorCommand(
+      enqueueOrchestratorCommand(state(), {
+        id: "run-123:integration:start",
+        runId: "run-123",
+        kind: "integration.start",
+        payload: {
+          integrationBranch: "codex/orch/integration/run-123",
+          acceptedCommits: [
+            {
+              taskId: "task-1",
+              workerJobId: "worker-1",
+              branch: "codex/orch/task-1",
+              commitSha: "abc123",
+              validationReportId: "report-1"
+            }
+          ],
+          commitShas: ["abc123"],
+          finalMergeRequiresApproval: true
+        },
+        enqueuedAt: createdAt
+      }),
+      {
+        id: "cleanup-1:start",
+        runId: "run-123",
+        kind: "cleanup.start",
+        payload: { ...cleanupJob },
+        enqueuedAt: createdAt
+      }
+    );
+    const readyAndCleaned = processAllQueuedOrchestratorEvents(
+      enqueueOrchestratorEvent(
+        enqueueOrchestratorEvent(withCommands, {
+          id: "run-123:ready",
+          runId: "run-123",
+          kind: "integration.updated",
+          payload: {
+            phase: "Integration branch ready for finalization.",
+            runStatus: "ready-for-finalization"
+          },
+          enqueuedAt: createdAt
+        }),
+        {
+          id: "cleanup-1:completed",
+          runId: "run-123",
+          kind: "cleanup.updated",
+          payload: {
+            phase: "Cleanup completed for worker-worktree.",
+            cleanupJobId: "cleanup-1",
+            cleanupStatus: "completed",
+            completedAt: "2026-07-09T11:03:00.000Z",
+            deletionResult: "Removed worktree."
+          },
+          enqueuedAt: "2026-07-09T11:03:00.000Z"
+        }
+      ),
+      "2026-07-09T11:04:00.000Z"
+    );
+    const result = enqueueFinalRunReportIfReady({
+      backendState: readyAndCleaned,
+      artifacts: [],
+      generatedAt: "2026-07-09T11:05:00.000Z"
+    });
+
+    expect(result.report?.summaryJson.cleanupStatus).toBe("1 cleanup job; 0 ready; 0 blocked; 0 in retention.");
+    expect(result.report?.markdown).toContain("1 cleanup job; 0 ready; 0 blocked; 0 in retention.");
+  });
 });

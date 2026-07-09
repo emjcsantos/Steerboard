@@ -6,7 +6,7 @@ import {
   type OrchestratorRunRecord
 } from "./orchestratorBackend";
 import type { OrchestratorArtifact } from "./orchestratorArtifacts";
-import type { CleanupJob, CleanupQueueSummary } from "./orchestratorCleanup";
+import { summarizeCleanupQueue, type CleanupJob, type CleanupQueueSummary } from "./orchestratorCleanup";
 import type { AcceptedWorkerCommit } from "./orchestratorIntegration";
 import { DEFAULT_PM_TASK_BUDGET, type PmWorkerReadyTask } from "./pmLaneWorkerReady";
 
@@ -174,6 +174,46 @@ function cleanupJobFromCommand(command: OrchestratorQueuedCommand): CleanupJob |
     completedAt: payloadString(command.payload, "completedAt"),
     deletionResult: payloadString(command.payload, "deletionResult")
   };
+}
+
+function cleanupStatusFromPayload(payload: Record<string, unknown>): CleanupJob["status"] | undefined {
+  const value = payloadString(payload, "cleanupStatus");
+
+  return value === "scheduled" ||
+    value === "retention-active" ||
+    value === "ready" ||
+    value === "running" ||
+    value === "blocked" ||
+    value === "completed" ||
+    value === "failed" ||
+    value === "cancelled"
+    ? value
+    : undefined;
+}
+
+function cleanupJobsWithLedgerUpdates(
+  jobs: readonly CleanupJob[],
+  ledger: readonly OrchestratorLedgerEntry[]
+): CleanupJob[] {
+  return jobs.map((job) => {
+    const latest = [...ledger]
+      .filter((entry) => payloadString(entry.payload, "cleanupJobId") === job.id)
+      .sort((first, second) => first.createdAt.localeCompare(second.createdAt))
+      .at(-1);
+    const cleanupStatus = latest ? cleanupStatusFromPayload(latest.payload) : undefined;
+
+    if (!latest || !cleanupStatus) {
+      return job;
+    }
+
+    return {
+      ...job,
+      status: cleanupStatus,
+      completedAt: payloadString(latest.payload, "completedAt") ?? job.completedAt,
+      deletionResult: payloadString(latest.payload, "deletionResult") ?? job.deletionResult,
+      updatedAt: latest.createdAt
+    };
+  });
 }
 
 function acceptedCommitsFromCommand(command: OrchestratorQueuedCommand): AcceptedWorkerCommit[] {
@@ -459,9 +499,12 @@ export function generateOrchestratorRunReportFromDurableState(input: {
 }): OrchestratorRunReport {
   const runLedger = input.backendState.ledger.filter((entry) => entry.runId === input.run.id);
   const acceptedCommits = input.backendState.commandQueue.flatMap(acceptedCommitsFromCommand);
-  const cleanupJobs = input.backendState.commandQueue
+  const cleanupJobs = cleanupJobsWithLedgerUpdates(
+    input.backendState.commandQueue
     .map(cleanupJobFromCommand)
-    .filter((job): job is CleanupJob => Boolean(job));
+      .filter((job): job is CleanupJob => Boolean(job)),
+    input.backendState.ledger
+  );
   const blockerIds = blockerIdsFromLedger(input.backendState.ledger, input.run.id);
   const correctiveTaskIds = correctiveTaskIdsFromLedger(input.backendState.ledger, input.run.id);
   const taskIds = [
@@ -491,6 +534,7 @@ export function generateOrchestratorRunReportFromDurableState(input: {
     blockerIds,
     ledger: runLedger,
     cleanupJobs,
+    cleanupSummary: summarizeCleanupQueue(cleanupJobs),
     finalization,
     generatedAt: input.generatedAt
   });

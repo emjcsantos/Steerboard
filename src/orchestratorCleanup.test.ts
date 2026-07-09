@@ -6,6 +6,7 @@ import {
 } from "./orchestratorBackend";
 import {
   DEFAULT_CLEANUP_POLICY,
+  applyCleanupRuntimeCommandResult,
   createCleanupJob,
   evaluateCleanupBlockReasons,
   markCleanupCompleted,
@@ -176,6 +177,116 @@ describe("orchestrator cleanup queue", () => {
     expect(processed.ledger.at(-1)).toMatchObject({
       kind: "cleanup.updated",
       message: "Cleanup completed for worker-worktree."
+    });
+  });
+
+  it("applies successful cleanup runtime results as durable cleanup completion evidence", () => {
+    const job = createCleanupJob({
+      id: "cleanup-1",
+      runId: "run-123",
+      taskId: "task-1",
+      jobId: "worker-1",
+      kind: "worker-worktree",
+      path: ".steerboard/worktrees/task-1",
+      reason: "Integrated",
+      createdAt
+    });
+    const applied = applyCleanupRuntimeCommandResult({
+      backendState: backendState(),
+      command: {
+        id: "cleanup-1:start",
+        runId: "run-123",
+        sequence: 1,
+        kind: "cleanup.start",
+        payload: { ...job },
+        status: "queued",
+        enqueuedAt: createdAt
+      },
+      result: {
+        commandId: "cleanup-1:start",
+        runId: "run-123",
+        kind: "cleanup.start",
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [],
+        detail: "Removed worktree.",
+        structuredOutput: {
+          deletionResult: "Removed worktree path."
+        }
+      },
+      createdAt: "2026-07-09T10:02:00.000Z"
+    });
+
+    expect(applied?.completed).toBe(true);
+    expect(applied?.job).toMatchObject({
+      status: "completed",
+      completedAt: "2026-07-09T10:02:00.000Z",
+      deletionResult: "Removed worktree path."
+    });
+
+    const processed = processAllQueuedOrchestratorEvents(
+      applied?.backendState ?? backendState(),
+      "2026-07-09T10:03:00.000Z"
+    );
+
+    expect(processed.ledger.at(-1)).toMatchObject({
+      kind: "cleanup.updated",
+      message: "Cleanup completed for worker-worktree.",
+      payload: {
+        cleanupJobId: "cleanup-1",
+        cleanupStatus: "completed",
+        completedAt: "2026-07-09T10:02:00.000Z",
+        deletionResult: "Removed worktree path."
+      }
+    });
+  });
+
+  it("records blocked cleanup runtime results as visible retained failures", () => {
+    const job = createCleanupJob({
+      id: "cleanup-1",
+      runId: "run-123",
+      kind: "runtime-state",
+      path: ".steerboard/runtime/run-123",
+      reason: "Transient state",
+      createdAt
+    });
+    const applied = applyCleanupRuntimeCommandResult({
+      backendState: backendState(),
+      command: {
+        id: "cleanup-1:start",
+        runId: "run-123",
+        sequence: 1,
+        kind: "cleanup.start",
+        payload: { ...job },
+        status: "queued",
+        enqueuedAt: createdAt
+      },
+      result: {
+        commandId: "cleanup-1:start",
+        runId: "run-123",
+        kind: "cleanup.start",
+        executed: false,
+        blocked: true,
+        artifactPaths: [],
+        steps: [],
+        detail: "Path is pinned."
+      },
+      createdAt: "2026-07-09T10:02:00.000Z"
+    });
+
+    expect(applied?.failed).toBe(true);
+    expect(applied?.job).toMatchObject({
+      status: "failed",
+      deletionResult: "Path is pinned."
+    });
+    expect(applied?.backendState.eventQueue.at(-1)).toMatchObject({
+      kind: "cleanup.updated",
+      payload: {
+        cleanupJobId: "cleanup-1",
+        cleanupStatus: "failed",
+        deletionResult: "Path is pinned."
+      }
     });
   });
 
