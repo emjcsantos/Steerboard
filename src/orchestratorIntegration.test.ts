@@ -242,6 +242,57 @@ describe("orchestrator integration", () => {
     });
   });
 
+  it("blocks post-commit integration when runtime gate evidence fails", () => {
+    const result = queueIntegrationAfterWorkerCommitRuntime({
+      backendState: backendState(),
+      command: workerCommitCommand({
+        payload: {
+          ...workerCommitCommand().payload,
+          unresolvedCorrectiveTaskIds: ["task-1-corrective"],
+          fileOwnershipConflictIds: ["src/shared.ts"],
+          branchClean: false,
+          targetedValidationPassed: false
+        }
+      }),
+      result: {
+        commandId: "run-123:worker:task-1:commit",
+        runId: "run-123",
+        kind: "worker.commit",
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [],
+        detail: "Accepted worker output committed.",
+        structuredOutput: {
+          commitSha: "abc123",
+          mergeable: false
+        }
+      },
+      createdAt
+    });
+
+    expect(result?.queued).toBe(false);
+    expect(result?.acceptedCommit).toMatchObject({
+      commitSha: "abc123"
+    });
+    expect(result?.backendState.commandQueue).toEqual([]);
+    expect(result?.backendState.eventQueue[0]).toMatchObject({
+      kind: "integration.updated",
+      payload: {
+        phase: "Integration blocked.",
+        blockerIds: [
+          "task-1-corrective",
+          "src/shared.ts",
+          "corrective-children",
+          "file-ownership",
+          "branch-clean",
+          "mergeable",
+          "validation"
+        ]
+      }
+    });
+  });
+
   it("does not queue duplicate integration for the same accepted commit", () => {
     const first = queueIntegrationAfterWorkerCommitRuntime({
       backendState: backendState(),

@@ -256,6 +256,12 @@ function payloadStringList(payload: Record<string, unknown>, key: string): strin
     : [];
 }
 
+function payloadBoolean(payload: Record<string, unknown>, key: string, fallback: boolean): boolean {
+  const value = payload[key];
+
+  return typeof value === "boolean" ? value : fallback;
+}
+
 function resultString(result: OrchestratorRuntimeCommandResult, key: string): string | undefined {
   const output = result.structuredOutput;
 
@@ -336,13 +342,17 @@ export function queueIntegrationAfterWorkerCommitRuntime(input: {
     {
       run,
       acceptedCommits: [acceptedCommit],
-      unresolvedCorrectiveTaskIds: [],
-      dependencyBlockerIds: [],
-      fileOwnershipConflictIds: [],
-      branchClean: true,
-      mergeable: true,
-      targetedValidationPassed: true,
-      sharedSurfaceChanged: false
+      unresolvedCorrectiveTaskIds: payloadStringList(input.command.payload, "unresolvedCorrectiveTaskIds"),
+      dependencyBlockerIds: payloadStringList(input.command.payload, "dependencyBlockerIds"),
+      fileOwnershipConflictIds: payloadStringList(input.command.payload, "fileOwnershipConflictIds"),
+      branchClean: resultBoolean(input.result, "branchClean") ?? payloadBoolean(input.command.payload, "branchClean", true),
+      mergeable: resultBoolean(input.result, "mergeable") ?? payloadBoolean(input.command.payload, "mergeable", true),
+      targetedValidationPassed:
+        resultBoolean(input.result, "targetedValidationPassed") ??
+        payloadBoolean(input.command.payload, "targetedValidationPassed", true),
+      sharedSurfaceChanged:
+        resultBoolean(input.result, "sharedSurfaceChanged") ??
+        payloadBoolean(input.command.payload, "sharedSurfaceChanged", false)
     },
     input.createdAt
   );
@@ -365,6 +375,18 @@ function resultStringList(result: OrchestratorRuntimeCommandResult, key: string)
   }
 
   return payloadStringList(output as Record<string, unknown>, key);
+}
+
+function resultBoolean(result: OrchestratorRuntimeCommandResult, key: string): boolean | undefined {
+  const output = result.structuredOutput;
+
+  if (typeof output !== "object" || output === null || Array.isArray(output)) {
+    return undefined;
+  }
+
+  const value = (output as Record<string, unknown>)[key];
+
+  return typeof value === "boolean" ? value : undefined;
 }
 
 function cleanupTargetsFromCommand(command: OrchestratorQueuedCommand): Array<{
