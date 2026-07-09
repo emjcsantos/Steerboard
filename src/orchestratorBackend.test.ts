@@ -3,8 +3,10 @@ import {
   createBoundedOrchestratorRun,
   createOrchestratorBackendState,
   enqueueOrchestratorEvent,
+  hydrateOrchestratorBackendStateFromSqlite,
   processAllQueuedOrchestratorEvents,
   processNextOrchestratorEvent,
+  serializeOrchestratorCommandsForSqlite,
   serializeOrchestratorEventsForSqlite,
   serializeOrchestratorLedgerForSqlite,
   serializeOrchestratorRunsForSqlite,
@@ -199,5 +201,40 @@ describe("orchestrator backend queue and ledger", () => {
       lastLedgerEvent: "Worker waiting for lease"
     });
     expect(processedSummary.ariaLabel).toContain("0 queued events");
+  });
+
+  it("hydrates durable SQLite rows back into backend state with dedupe keys", () => {
+    const queued = enqueueOrchestratorEvent(stateWithRun(), {
+      id: "event-1",
+      runId: "run-123",
+      kind: "worker.progress",
+      payload: { phase: "Worker queued.", taskId: "task-1" },
+      dedupeKey: "worker-task-1",
+      enqueuedAt: createdAt
+    });
+    const processed = processAllQueuedOrchestratorEvents(queued, processedAt);
+    const hydrated = hydrateOrchestratorBackendStateFromSqlite({
+      runs: serializeOrchestratorRunsForSqlite(processed.runs),
+      events: serializeOrchestratorEventsForSqlite(processed.eventQueue),
+      commands: serializeOrchestratorCommandsForSqlite(processed.commandQueue),
+      ledger: serializeOrchestratorLedgerForSqlite(processed.ledger)
+    });
+
+    expect(hydrated.runs[0]).toMatchObject({
+      id: "run-123",
+      projectId: "steerboard",
+      phase: "Worker queued."
+    });
+    expect(hydrated.eventQueue[0]).toMatchObject({
+      id: "event-1",
+      kind: "worker.progress",
+      status: "processed",
+      dedupeKey: "worker-task-1"
+    });
+    expect(hydrated.ledger.at(-1)).toMatchObject({
+      kind: "worker.progress",
+      payload: { phase: "Worker queued.", taskId: "task-1" }
+    });
+    expect(hydrated.processedEventKeys).toEqual(["worker-task-1"]);
   });
 });

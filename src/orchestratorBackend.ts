@@ -522,3 +522,125 @@ export function serializeOrchestratorLedgerForSqlite(
     created_at: entry.createdAt
   }));
 }
+
+function safeParseRecord(serialized: string): Record<string, unknown> {
+  try {
+    const parsed = JSON.parse(serialized);
+
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function safeParseScope(serialized: string): OrchestratorRunScope {
+  return normalizeScope(safeParseRecord(serialized));
+}
+
+function normalizeRunStatus(value: string): OrchestratorRunStatus {
+  return value === "planning" ||
+    value === "dispatching" ||
+    value === "running" ||
+    value === "integrating" ||
+    value === "validation-failed" ||
+    value === "ready-for-finalization" ||
+    value === "completed" ||
+    value === "cancelled"
+    ? value
+    : "planning";
+}
+
+function normalizeQueueStatus(value: string): OrchestratorQueueStatus {
+  return value === "queued" || value === "processed" || value === "ignored" ? value : "ignored";
+}
+
+function normalizeEventKind(value: string): OrchestratorEventKind {
+  return value === "run.created" ||
+    value === "run.phase.changed" ||
+    value === "worker.progress" ||
+    value === "validator.reported" ||
+    value === "approval.requested" ||
+    value === "integration.updated" ||
+    value === "cleanup.updated"
+    ? value
+    : "unknown";
+}
+
+function normalizeCommandKind(value: string): OrchestratorCommandKind {
+  return value === "worker.commit" ||
+    value === "worker.start" ||
+    value === "worker.pause" ||
+    value === "worker.cancel" ||
+    value === "validator.start" ||
+    value === "integration.start" ||
+    value === "cleanup.start"
+    ? value
+    : "validator.start";
+}
+
+function normalizeLedgerKind(value: string): OrchestratorLedgerEntry["kind"] {
+  return value === "event.ignored" ? "event.ignored" : normalizeEventKind(value);
+}
+
+function normalizeSeverity(value: string): OrchestratorLedgerEntry["severity"] {
+  return value === "warning" || value === "error" || value === "info" ? value : "info";
+}
+
+export function hydrateOrchestratorBackendStateFromSqlite(input: {
+  runs: readonly OrchestratorRunSqliteRow[];
+  events: readonly OrchestratorQueueSqliteRow[];
+  commands: readonly OrchestratorQueueSqliteRow[];
+  ledger: readonly OrchestratorLedgerSqliteRow[];
+}): OrchestratorBackendState {
+  const eventQueue: OrchestratorQueuedEvent[] = input.events.map((row) => ({
+    id: row.id,
+    runId: row.run_id,
+    sequence: row.sequence,
+    kind: normalizeEventKind(row.kind),
+    payload: safeParseRecord(row.payload_json),
+    dedupeKey: row.dedupe_key ?? undefined,
+    status: normalizeQueueStatus(row.status),
+    enqueuedAt: row.enqueued_at,
+    processedAt: row.processed_at ?? undefined,
+    ignoredReason: row.ignored_reason ?? undefined
+  }));
+
+  return {
+    runs: input.runs.map((row) => ({
+      id: row.id,
+      projectId: row.project_id,
+      scope: safeParseScope(row.scope_json),
+      baseBranch: row.base_branch,
+      integrationBranch: row.integration_branch,
+      status: normalizeRunStatus(row.status),
+      phase: row.phase,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    })),
+    eventQueue,
+    commandQueue: input.commands.map((row) => ({
+      id: row.id,
+      runId: row.run_id,
+      sequence: row.sequence,
+      kind: normalizeCommandKind(row.kind),
+      payload: safeParseRecord(row.payload_json),
+      status: normalizeQueueStatus(row.status),
+      enqueuedAt: row.enqueued_at,
+      processedAt: row.processed_at ?? undefined
+    })),
+    ledger: input.ledger.map((row) => ({
+      id: row.id,
+      runId: row.run_id,
+      sequence: row.sequence,
+      eventId: row.event_id ?? undefined,
+      kind: normalizeLedgerKind(row.kind),
+      severity: normalizeSeverity(row.severity),
+      message: row.message,
+      payload: safeParseRecord(row.payload_json),
+      createdAt: row.created_at
+    })),
+    processedEventKeys: eventQueue
+      .filter((event) => event.status === "processed")
+      .map((event) => event.dedupeKey ?? event.id)
+  };
+}
