@@ -485,6 +485,49 @@ describe("orchestrator final report and remote policy", () => {
     });
   });
 
+  it("generates final reports for completed, cancelled, and validation-failed terminal states", () => {
+    const cases = [
+      {
+        status: "completed" as const,
+        expectedFinalizationStatus: "completed",
+        expectedDetail: "Final merge has completed."
+      },
+      {
+        status: "cancelled" as const,
+        expectedFinalizationStatus: "not-ready",
+        expectedDetail: "Run was cancelled before finalization."
+      },
+      {
+        status: "validation-failed" as const,
+        expectedFinalizationStatus: "blocked",
+        expectedDetail: "Finalization blocked by integration-validation, user-approval."
+      }
+    ];
+
+    for (const item of cases) {
+      const base = state();
+      const backendState = {
+        ...base,
+        runs: base.runs.map((run) => ({
+          ...run,
+          status: item.status,
+          phase: `Run ${item.status}.`,
+          updatedAt: "2026-07-09T11:02:00.000Z"
+        }))
+      };
+      const result = enqueueFinalRunReportIfReady({
+        backendState,
+        artifacts: [artifact()],
+        generatedAt: "2026-07-09T11:03:00.000Z"
+      });
+
+      expect(result.queued).toBe(true);
+      expect(result.report?.summaryJson.finalizationStatus).toBe(item.expectedFinalizationStatus);
+      expect(result.report?.markdown).toContain(`Status: ${item.status}`);
+      expect(result.report?.markdown).toContain(item.expectedDetail);
+    }
+  });
+
   it("uses cleanup ledger updates when summarizing final report cleanup status", () => {
     const cleanupJob = createCleanupJob({
       id: "cleanup-1",

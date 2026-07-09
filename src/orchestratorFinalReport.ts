@@ -396,6 +396,41 @@ export function evaluateFinalizationGates(input: FinalizationGateInput): Finaliz
   };
 }
 
+function finalizationForRunReport(
+  run: OrchestratorRunRecord,
+  input: {
+    correctiveTaskIds: readonly string[];
+    blockerIds: readonly string[];
+  }
+): FinalizationGateResult {
+  if (run.status === "completed") {
+    return {
+      status: "completed",
+      canMergeToTarget: false,
+      missingGateIds: [],
+      detail: "Final merge has completed."
+    };
+  }
+
+  if (run.status === "cancelled") {
+    return {
+      status: "not-ready",
+      canMergeToTarget: false,
+      missingGateIds: ["run-cancelled"],
+      detail: "Run was cancelled before finalization."
+    };
+  }
+
+  return evaluateFinalizationGates({
+    integrationValidationPassed: run.status !== "validation-failed",
+    unresolvedCorrectiveTaskIds: run.status === "ready-for-finalization" ? [] : input.correctiveTaskIds,
+    blockerIds: input.blockerIds,
+    targetBranchClean: true,
+    expectedBaseMatches: true,
+    userApprovedFinalMerge: false
+  });
+}
+
 export function evaluateRemotePushGates(input: RemotePushGateInput): RemotePushGateResult {
   const missingGateIds = [
     input.policy.pushMode !== "automatic" ? "automatic-push-disabled" : undefined,
@@ -821,13 +856,9 @@ export function generateOrchestratorRunReportFromDurableState(input: {
   ];
   const tasks = taskIds.map((taskId, index) => taskFromRunScope(input.run, taskId, index + 1));
   const correctiveTasks = correctiveTaskIds.map((taskId, index) => taskFromRunScope(input.run, taskId, taskIds.length + index + 1));
-  const finalization = evaluateFinalizationGates({
-    integrationValidationPassed: input.run.status !== "validation-failed",
-    unresolvedCorrectiveTaskIds: input.run.status === "ready-for-finalization" ? [] : correctiveTaskIds,
-    blockerIds,
-    targetBranchClean: true,
-    expectedBaseMatches: true,
-    userApprovedFinalMerge: false
+  const finalization = finalizationForRunReport(input.run, {
+    correctiveTaskIds,
+    blockerIds
   });
 
   return generateOrchestratorRunReport({
