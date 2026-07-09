@@ -59,6 +59,7 @@ export interface OrchestratorQueuedEvent {
 }
 
 export type OrchestratorCommandKind =
+  | "worker.commit"
   | "worker.start"
   | "worker.pause"
   | "worker.cancel"
