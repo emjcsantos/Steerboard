@@ -234,6 +234,9 @@ import {
   runOrchestratorQueuePumpCycle
 } from "./orchestratorQueuePump";
 import {
+  dispatchPmLaneToOrchestrator
+} from "./pmLaneOrchestratorBridge";
+import {
   readOrchestratorSqliteSnapshot
 } from "./orchestratorSqliteStore";
 import {
@@ -12748,6 +12751,31 @@ function PlanningView({
     }
   }
 
+  async function handleQueuePmWorkers() {
+    if (!hasTauriRuntime()) {
+      setOrchestratorPumpStatus("Desktop runtime unavailable");
+      return;
+    }
+
+    setOrchestratorPumpStatus("Queuing PM worker tasks");
+
+    try {
+      const result = await dispatchPmLaneToOrchestrator({
+        project,
+        tasks,
+        repositoryRoot: ".",
+        worktreeRoot: ".steerboard/worktrees",
+        createdAt: new Date().toISOString(),
+        concurrencyLimit: 3
+      });
+
+      setOrchestratorBackendState(result.backendState);
+      setOrchestratorPumpStatus(result.detail);
+    } catch (error) {
+      setOrchestratorPumpStatus(error instanceof Error ? error.message : "PM worker queue failed");
+    }
+  }
+
   function handleChatSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -12818,6 +12846,13 @@ function PlanningView({
           </div>
           <p>{orchestratorBackendSummary.summary.phaseLabel}</p>
           <div className="pm-orchestrator-actions">
+            <button
+              onClick={handleQueuePmWorkers}
+              type="button"
+            >
+              <GitBranch size={14} />
+              Queue workers
+            </button>
             <button
               onClick={handleDrainOrchestratorQueue}
               type="button"
