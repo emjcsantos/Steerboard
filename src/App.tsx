@@ -230,6 +230,7 @@ import {
 } from "./orchestratorBackend";
 import {
   groupOrchestratorLedgerForUi,
+  selectCleanupQueueSummaryForUi,
   selectLatestOrchestratorRunReportForUi
 } from "./orchestratorLedgerView";
 import {
@@ -12718,6 +12719,7 @@ function PlanningView({
         orchestratorBackendState.ledger,
         activeOrchestratorRunId ? { runId: activeOrchestratorRunId } : {}
       ),
+      cleanup: selectCleanupQueueSummaryForUi(orchestratorBackendState.ledger, activeOrchestratorRunId),
       report: selectLatestOrchestratorRunReportForUi(orchestratorBackendState.ledger, activeOrchestratorRunId)
     };
   }, [activeOrchestratorRunId, orchestratorBackendState]);
@@ -12955,6 +12957,12 @@ function PlanningView({
               <dt>Integration</dt>
               <dd title={orchestratorBackendSummary.summary.integrationBranch}>
                 {orchestratorBackendSummary.summary.integrationBranch}
+              </dd>
+            </div>
+            <div>
+              <dt>Cleanup</dt>
+              <dd title={orchestratorBackendSummary.cleanup.detail}>
+                {orchestratorBackendSummary.cleanup.label}
               </dd>
             </div>
           </dl>

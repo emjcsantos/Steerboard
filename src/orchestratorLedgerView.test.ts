@@ -4,6 +4,7 @@ import {
   filterOrchestratorLedgerEntries,
   groupOrchestratorLedgerForUi,
   isProgressKind,
+  selectCleanupQueueSummaryForUi,
   selectLatestOrchestratorRunReportForUi
 } from "./orchestratorLedgerView";
 import type { OrchestratorLedgerEntry } from "./orchestratorBackend";
@@ -140,6 +141,60 @@ describe("orchestrator ledger view", () => {
     expect(isProgressKind("validator.reported")).toBe(true);
     expect(isProgressKind("integration.updated")).toBe(true);
     expect(isProgressKind("approval.requested")).toBe(false);
+  });
+
+  it("selects visible cleanup queue status from the latest cleanup ledger event per job", () => {
+    const cleanup = selectCleanupQueueSummaryForUi([
+      ...entries,
+      {
+        id: "cleanup-running",
+        runId: "run-1",
+        sequence: 6,
+        kind: "cleanup.updated",
+        severity: "info",
+        message: "Cleanup running.",
+        payload: {
+          cleanupJobId: "cleanup-1",
+          cleanupStatus: "running"
+        },
+        createdAt: "2026-07-09T05:05:00.000Z"
+      },
+      {
+        id: "cleanup-completed",
+        runId: "run-1",
+        sequence: 7,
+        kind: "cleanup.updated",
+        severity: "info",
+        message: "Cleanup completed.",
+        payload: {
+          cleanupJobId: "cleanup-1",
+          cleanupStatus: "completed"
+        },
+        createdAt: "2026-07-09T05:06:00.000Z"
+      },
+      {
+        id: "cleanup-blocked",
+        runId: "run-1",
+        sequence: 8,
+        kind: "cleanup.updated",
+        severity: "warning",
+        message: "Cleanup blocked.",
+        payload: {
+          cleanupJobId: "cleanup-2",
+          cleanupStatus: "blocked"
+        },
+        createdAt: "2026-07-09T05:07:00.000Z"
+      }
+    ], "run-1");
+
+    expect(cleanup).toMatchObject({
+      total: 2,
+      completed: 1,
+      blocked: 1,
+      running: 0,
+      label: "2 cleanup jobs",
+      detail: "2 cleanup jobs; 0 ready; 0 running; 1 blocked; 0 in retention."
+    });
   });
 
   it("selects the latest Markdown-exportable run report from ledger payloads", () => {

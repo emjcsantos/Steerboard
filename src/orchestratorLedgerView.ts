@@ -57,6 +57,20 @@ export interface OrchestratorRunReportUiSummary {
   exportFormats: string[];
 }
 
+export interface OrchestratorCleanupQueueUiSummary {
+  total: number;
+  scheduled: number;
+  retentionActive: number;
+  ready: number;
+  running: number;
+  blocked: number;
+  completed: number;
+  failed: number;
+  cancelled: number;
+  label: string;
+  detail: string;
+}
+
 function payloadText(entry: OrchestratorLedgerEntry, key: string): string | undefined {
   const value = entry.payload[key];
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
@@ -174,6 +188,21 @@ function summarizeEntries(entries: readonly OrchestratorLedgerEntry[]): string {
   return `${entries.length} event${entries.length === 1 ? "" : "s"} | latest: ${last.message}`;
 }
 
+function cleanupStatusFromEntry(entry: OrchestratorLedgerEntry): string | undefined {
+  const status = payloadText(entry, "cleanupStatus");
+
+  return status === "scheduled" ||
+    status === "retention-active" ||
+    status === "ready" ||
+    status === "running" ||
+    status === "blocked" ||
+    status === "completed" ||
+    status === "failed" ||
+    status === "cancelled"
+    ? status
+    : undefined;
+}
+
 export function filterOrchestratorLedgerEntries(
   entries: readonly OrchestratorLedgerEntry[],
   filter: OrchestratorLedgerFilter
@@ -254,6 +283,68 @@ export function groupOrchestratorLedgerForUi(
       entries: sectionEntries
     };
   });
+}
+
+export function selectCleanupQueueSummaryForUi(
+  entries: readonly OrchestratorLedgerEntry[],
+  runId?: string
+): OrchestratorCleanupQueueUiSummary {
+  const latestByJob = new Map<string, OrchestratorLedgerEntry>();
+
+  for (const entry of entries) {
+    if (entry.kind !== "cleanup.updated" || (runId && entry.runId !== runId) || !cleanupStatusFromEntry(entry)) {
+      continue;
+    }
+
+    const jobId = payloadText(entry, "cleanupJobId") ?? entry.id;
+    const previous = latestByJob.get(jobId);
+
+    if (!previous || previous.createdAt <= entry.createdAt) {
+      latestByJob.set(jobId, entry);
+    }
+  }
+
+  const summary = [...latestByJob.values()].reduce(
+    (acc, entry) => {
+      const status = cleanupStatusFromEntry(entry);
+
+      return {
+        ...acc,
+        total: acc.total + 1,
+        scheduled: acc.scheduled + (status === "scheduled" ? 1 : 0),
+        retentionActive: acc.retentionActive + (status === "retention-active" ? 1 : 0),
+        ready: acc.ready + (status === "ready" ? 1 : 0),
+        running: acc.running + (status === "running" ? 1 : 0),
+        blocked: acc.blocked + (status === "blocked" ? 1 : 0),
+        completed: acc.completed + (status === "completed" ? 1 : 0),
+        failed: acc.failed + (status === "failed" ? 1 : 0),
+        cancelled: acc.cancelled + (status === "cancelled" ? 1 : 0)
+      };
+    },
+    {
+      total: 0,
+      scheduled: 0,
+      retentionActive: 0,
+      ready: 0,
+      running: 0,
+      blocked: 0,
+      completed: 0,
+      failed: 0,
+      cancelled: 0
+    }
+  );
+
+  const label = summary.total === 0
+    ? "No cleanup"
+    : `${summary.total} cleanup job${summary.total === 1 ? "" : "s"}`;
+
+  return {
+    ...summary,
+    label,
+    detail:
+      `${label}; ${summary.ready} ready; ${summary.running} running; ` +
+      `${summary.blocked} blocked; ${summary.retentionActive} in retention.`
+  };
 }
 
 export function createOrchestratorContextCheckpoint(input: {
