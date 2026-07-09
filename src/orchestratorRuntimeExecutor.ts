@@ -12,8 +12,14 @@ export type OrchestratorRuntimeCommandKind =
   | "worker.start"
   | "worker.commit"
   | "validator.start"
+  | "validator.pause"
+  | "validator.cancel"
   | "integration.start"
+  | "integration.pause"
+  | "integration.cancel"
   | "cleanup.start"
+  | "cleanup.pause"
+  | "cleanup.cancel"
   | "finalization.merge"
   | "remote.push";
 
@@ -61,7 +67,16 @@ const executableKinds = new Set<string>([
   "remote.push"
 ]);
 
-const controlKinds = new Set<string>(["worker.pause", "worker.cancel"]);
+const controlKinds = new Set<string>([
+  "worker.pause",
+  "worker.cancel",
+  "validator.pause",
+  "validator.cancel",
+  "integration.pause",
+  "integration.cancel",
+  "cleanup.pause",
+  "cleanup.cancel"
+]);
 
 export function buildRuntimeCommandRequest(
   command: OrchestratorQueuedCommand,
@@ -101,6 +116,15 @@ function eventKindForCommand(kind: OrchestratorCommandKind): OrchestratorEventKi
     case "worker.pause":
       return "worker.progress";
     case "worker.cancel":
+      return "cleanup.updated";
+    case "validator.pause":
+    case "validator.cancel":
+      return "validator.reported";
+    case "integration.pause":
+    case "integration.cancel":
+      return "integration.updated";
+    case "cleanup.pause":
+    case "cleanup.cancel":
       return "cleanup.updated";
     case "validator.start":
       return "validator.reported";
@@ -219,15 +243,13 @@ function enqueueValidatorAfterWorker(
 function controlDetailForCommand(command: OrchestratorQueuedCommand): string {
   const jobId = payloadString(command.payload, "jobId") ?? "unknown job";
   const reason = payloadString(command.payload, "reason");
+  const action = command.kind.endsWith(".cancel") ? "cancel" : command.kind.endsWith(".pause") ? "pause" : "control";
+  const rawLabel = command.kind.split(".")[0] ?? "job";
+  const label = `${rawLabel.slice(0, 1).toUpperCase()}${rawLabel.slice(1)}`;
 
-  switch (command.kind) {
-    case "worker.pause":
-      return reason ? `Worker pause acknowledged for ${jobId}: ${reason}.` : `Worker pause acknowledged for ${jobId}.`;
-    case "worker.cancel":
-      return reason ? `Worker cancel acknowledged for ${jobId}: ${reason}.` : `Worker cancel acknowledged for ${jobId}.`;
-    default:
-      return `Control command acknowledged for ${jobId}.`;
-  }
+  return reason
+    ? `${label} ${action} acknowledged for ${jobId}: ${reason}.`
+    : `${label} ${action} acknowledged for ${jobId}.`;
 }
 
 function resultForControlCommand(
@@ -252,7 +274,7 @@ function resultForControlCommand(
         command: command.kind,
         status: "passed",
         detail:
-          command.kind === "worker.cancel" && retainedForReview
+          command.kind.endsWith(".cancel") && retainedForReview
             ? "Worker cancellation retained evidence for review."
             : "Control command state was recorded durably."
       }
@@ -263,7 +285,7 @@ function resultForControlCommand(
       jobId: payloadString(command.payload, "jobId"),
       taskId: payloadString(command.payload, "taskId"),
       preventNewTurns: true,
-      preventFileMutations: command.kind === "worker.cancel",
+      preventFileMutations: command.kind.endsWith(".cancel"),
       retainedForReview
     }
   };

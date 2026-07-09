@@ -86,6 +86,26 @@ describe("orchestrator job control", () => {
     });
   });
 
+  it("routes validator, integration, and cleanup pause controls by job kind", () => {
+    const jobs = ["validator", "integration", "cleanup"] as const;
+    const commandKinds = jobs.map((kind) => {
+      const result = requestPauseRuntimeJob(
+        backendState(),
+        createRuntimeJobControlRecord({
+          id: `${kind}-1`,
+          runId: "run-123",
+          kind,
+          updatedAt: createdAt
+        }),
+        "2026-07-09T07:02:00.000Z"
+      );
+
+      return result.backendState.commandQueue[0].kind;
+    });
+
+    expect(commandKinds).toEqual(["validator.pause", "integration.pause", "cleanup.pause"]);
+  });
+
   it("cancel before changes releases the lease and becomes review-eligible", () => {
     const leased = leaseRuntimeJob(
       createRuntimeJobControlRecord({
@@ -111,6 +131,38 @@ describe("orchestrator job control", () => {
       cancellationReason: "user changed direction",
       cleanupEligibility: "eligible-after-review"
     });
+    expect(cancelled.backendState.commandQueue[0]).toMatchObject({
+      kind: "worker.cancel",
+      payload: {
+        reason: "user changed direction",
+        retainedForReview: false
+      }
+    });
+  });
+
+  it("routes validator, integration, and cleanup cancel controls by job kind", () => {
+    const jobs = ["validator", "integration", "cleanup"] as const;
+    const commandKinds = jobs.map((kind) => {
+      const result = cancelRuntimeJob(
+        backendState(),
+        createRuntimeJobControlRecord({
+          id: `${kind}-1`,
+          runId: "run-123",
+          kind,
+          updatedAt: createdAt
+        }),
+        {
+          reason: `${kind} stop`,
+          hasChanges: false,
+          hasEvidence: false,
+          cancelledAt: "2026-07-09T07:04:00.000Z"
+        }
+      );
+
+      return result.backendState.commandQueue[0].kind;
+    });
+
+    expect(commandKinds).toEqual(["validator.cancel", "integration.cancel", "cleanup.cancel"]);
   });
 
   it("cancel with changes retains worktree for review and writes ledger evidence through queue", () => {
@@ -207,6 +259,20 @@ describe("orchestrator job control", () => {
         "2026-07-09T07:07:00.000Z"
       ).action
     ).toBe("restart-validator");
+    expect(
+      reviewStaleRuntimeJob(
+        { ...base, kind: "integration" },
+        {
+          jobId: base.id,
+          processAlive: false,
+          worktreeExists: true,
+          branchExists: true,
+          gitStatus: "clean",
+          hasUncommittedOutput: false
+        },
+        "2026-07-09T07:07:00.000Z"
+      ).action
+    ).toBe("block-human-review");
     expect(
       reviewStaleRuntimeJob(
         base,

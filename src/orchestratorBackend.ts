@@ -64,8 +64,14 @@ export type OrchestratorCommandKind =
   | "worker.pause"
   | "worker.cancel"
   | "validator.start"
+  | "validator.pause"
+  | "validator.cancel"
   | "integration.start"
+  | "integration.pause"
+  | "integration.cancel"
   | "cleanup.start"
+  | "cleanup.pause"
+  | "cleanup.cancel"
   | "finalization.merge"
   | "remote.push";
 
@@ -592,8 +598,14 @@ function normalizeCommandKind(value: string): OrchestratorCommandKind {
     value === "worker.pause" ||
     value === "worker.cancel" ||
     value === "validator.start" ||
+    value === "validator.pause" ||
+    value === "validator.cancel" ||
     value === "integration.start" ||
+    value === "integration.pause" ||
+    value === "integration.cancel" ||
     value === "cleanup.start" ||
+    value === "cleanup.pause" ||
+    value === "cleanup.cancel" ||
     value === "finalization.merge" ||
     value === "remote.push"
     ? value

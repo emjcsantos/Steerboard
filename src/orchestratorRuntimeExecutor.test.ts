@@ -262,6 +262,90 @@ describe("orchestrator runtime executor", () => {
     });
   });
 
+  it("drains validator, integration, and cleanup controls without invoking Tauri", async () => {
+    const state = {
+      ...createBoundedOrchestratorRun(createOrchestratorBackendState(), {
+        id: "run-123",
+        projectId: "steerboard",
+        scope: { mode: "task-list", taskIds: ["task-1"] },
+        baseBranch: "main",
+        createdAt: "2026-07-09T07:00:00.000Z"
+      }),
+      commandQueue: [
+        command({
+          id: "validator-1:pause",
+          kind: "validator.pause",
+          payload: {
+            jobId: "validator-1",
+            taskId: "task-1",
+            reason: "operator pause"
+          }
+        }),
+        command({
+          id: "integration-1:cancel",
+          sequence: 2,
+          kind: "integration.cancel",
+          payload: {
+            jobId: "integration-1",
+            reason: "merge blocked"
+          }
+        }),
+        command({
+          id: "cleanup-1:cancel",
+          sequence: 3,
+          kind: "cleanup.cancel",
+          payload: {
+            jobId: "cleanup-1",
+            reason: "retention hold"
+          }
+        })
+      ]
+    };
+    const first = await drainNextOrchestratorRuntimeCommand(state, {
+      repositoryRoot: "repo",
+      processedAt: "2026-07-09T07:01:00.000Z",
+      execute: async () => {
+        throw new Error("control should not invoke Tauri runtime");
+      }
+    });
+    const second = await drainNextOrchestratorRuntimeCommand(first.backendState, {
+      repositoryRoot: "repo",
+      processedAt: "2026-07-09T07:02:00.000Z",
+      execute: async () => {
+        throw new Error("control should not invoke Tauri runtime");
+      }
+    });
+    const third = await drainNextOrchestratorRuntimeCommand(second.backendState, {
+      repositoryRoot: "repo",
+      processedAt: "2026-07-09T07:03:00.000Z",
+      execute: async () => {
+        throw new Error("control should not invoke Tauri runtime");
+      }
+    });
+
+    expect(first.backendState.eventQueue[0]).toMatchObject({
+      kind: "validator.reported",
+      payload: {
+        commandKind: "validator.pause",
+        detail: "Validator pause acknowledged for validator-1: operator pause."
+      }
+    });
+    expect(second.backendState.eventQueue[1]).toMatchObject({
+      kind: "integration.updated",
+      payload: {
+        commandKind: "integration.cancel",
+        detail: "Integration cancel acknowledged for integration-1: merge blocked."
+      }
+    });
+    expect(third.backendState.eventQueue[2]).toMatchObject({
+      kind: "cleanup.updated",
+      payload: {
+        commandKind: "cleanup.cancel",
+        detail: "Cleanup cancel acknowledged for cleanup-1: retention hold."
+      }
+    });
+  });
+
   it("drains the next queued command through a compact FIFO runtime event", async () => {
     const state = createBoundedOrchestratorRun(createOrchestratorBackendState(), {
       id: "run-123",

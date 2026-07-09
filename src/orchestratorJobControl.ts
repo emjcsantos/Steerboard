@@ -1,6 +1,7 @@
 import {
   enqueueOrchestratorCommand,
   enqueueOrchestratorEvent,
+  type OrchestratorCommandKind,
   type OrchestratorBackendState
 } from "./orchestratorBackend";
 import type { WorkerJobStatus } from "./orchestratorWorkerDispatch";
@@ -53,6 +54,14 @@ export interface RecoveryReviewResult {
   audit: RecoveryAudit;
   action: RecoveryAction;
   detail: string;
+}
+
+function pauseCommandKind(kind: RuntimeJobKind): OrchestratorCommandKind {
+  return `${kind}.pause` as OrchestratorCommandKind;
+}
+
+function cancelCommandKind(kind: RuntimeJobKind): OrchestratorCommandKind {
+  return `${kind}.cancel` as OrchestratorCommandKind;
 }
 
 export function createRuntimeJobControlRecord(input: {
@@ -123,13 +132,11 @@ export function requestPauseRuntimeJob(
     preventNewTurns: true,
     updatedAt: requestedAt
   };
-  const commandKind = job.kind === "validator" ? "validator.start" : "worker.pause";
-
   return {
     backendState: enqueueOrchestratorCommand(backendState, {
       id: `${job.id}:pause:${requestedAt}`,
       runId: job.runId,
-      kind: commandKind,
+      kind: pauseCommandKind(job.kind),
       payload: {
         jobId: job.id,
         taskId: job.taskId,
@@ -177,7 +184,20 @@ export function cancelRuntimeJob(
   };
 
   return {
-    backendState: enqueueOrchestratorEvent(backendState, {
+    backendState: enqueueOrchestratorEvent(enqueueOrchestratorCommand(backendState, {
+      id: `${job.id}:cancel:${input.cancelledAt}`,
+      runId: job.runId,
+      kind: cancelCommandKind(job.kind),
+      payload: {
+        jobId: job.id,
+        taskId: job.taskId,
+        reason: nextJob.cancellationReason,
+        hasChanges: input.hasChanges,
+        hasEvidence: input.hasEvidence,
+        retainedForReview: requiresReview
+      },
+      enqueuedAt: input.cancelledAt
+    }), {
       id: `${job.id}:cancelled:${input.cancelledAt}`,
       runId: job.runId,
       kind: "cleanup.updated",
@@ -249,6 +269,15 @@ export function reviewStaleRuntimeJob(
   }
 
   if (!audit.processAlive && audit.worktreeExists && audit.branchExists && audit.gitStatus === "clean") {
+    if (job.kind !== "worker" && job.kind !== "validator") {
+      return {
+        job: reviewedJob,
+        audit,
+        action: "block-human-review",
+        detail: "Non-worker runtime job is clean but requires explicit recovery review before restart."
+      };
+    }
+
     return {
       job: reviewedJob,
       audit,
