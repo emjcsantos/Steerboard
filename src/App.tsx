@@ -231,7 +231,8 @@ import {
 import {
   groupOrchestratorLedgerForUi,
   selectCleanupQueueSummaryForUi,
-  selectLatestOrchestratorRunReportForUi
+  selectLatestOrchestratorRunReportForUi,
+  type OrchestratorLedgerSectionKind
 } from "./orchestratorLedgerView";
 import {
   runOrchestratorQueuePumpCycle
@@ -12651,6 +12652,9 @@ function PlanningView({
   const visibleRows = rows.filter((row) => !row.hiddenByAncestor);
   const [stagedResult, setStagedResult] = useState<ProjectManagementArenaDispatchResult>();
   const [chatInput, setChatInput] = useState("");
+  const [planningSurfaceTab, setPlanningSurfaceTab] = useState<"pm-table" | "orchestrator-preview">("pm-table");
+  const [orchestratorPreviewFilter, setOrchestratorPreviewFilter] =
+    useState<OrchestratorLedgerSectionKind | "all">("all");
   const planningTaskIds = useMemo(() => rows.map((row) => row.task.id), [rows]);
   const fallbackOrchestratorState = useMemo(() => createBoundedOrchestratorRun(createOrchestratorBackendState(), {
     id: `pm-${project.id}-preview`,
@@ -12723,6 +12727,23 @@ function PlanningView({
       report: selectLatestOrchestratorRunReportForUi(orchestratorBackendState.ledger, activeOrchestratorRunId)
     };
   }, [activeOrchestratorRunId, orchestratorBackendState]);
+  const orchestratorPreviewSections = useMemo(
+    () =>
+      orchestratorPreviewFilter === "all"
+        ? orchestratorBackendSummary.sections
+        : orchestratorBackendSummary.sections.filter((section) => section.kind === orchestratorPreviewFilter),
+    [orchestratorBackendSummary.sections, orchestratorPreviewFilter]
+  );
+  const orchestratorFilterOptions: Array<{ label: string; value: OrchestratorLedgerSectionKind | "all" }> = [
+    { label: "All", value: "all" },
+    { label: "Workers", value: "worker" },
+    { label: "Validators", value: "validator" },
+    { label: "Integration", value: "integration" },
+    { label: "Cleanup", value: "cleanup" },
+    { label: "Approvals", value: "approval" }
+  ];
+  const previewTaskRows = visibleRows.filter(({ task }) => task.type === "child").slice(0, 8);
+  const pmOpenTaskCount = visibleRows.filter(({ task }) => task.status !== "completed" && task.status !== "canceled").length;
 
   function handleDownloadOrchestratorReport() {
     const report = orchestratorBackendSummary.report;
@@ -12914,127 +12935,152 @@ function PlanningView({
       </header>
 
       <div className="planning-body">
-        <section
-          aria-label={orchestratorBackendSummary.summary.ariaLabel}
-          className={classNames(
-            "pm-orchestrator-backend",
-            `pm-orchestrator-backend-${orchestratorBackendSummary.summary.tone}`
-          )}
-          title={orchestratorBackendSummary.summary.detail}
-        >
-          <div>
-            <strong>{orchestratorBackendSummary.summary.label}</strong>
-            <span>{orchestratorBackendSummary.summary.statusLabel}</span>
-          </div>
-          <p>{orchestratorBackendSummary.summary.phaseLabel}</p>
-          <div className="pm-orchestrator-actions">
-            <button
-              onClick={handleQueuePmWorkers}
-              type="button"
+        <div className="pm-surface-tabs" role="tablist" aria-label="Project Management surfaces">
+          <button
+            aria-selected={planningSurfaceTab === "pm-table"}
+            className={classNames("pm-surface-tab", planningSurfaceTab === "pm-table" && "is-active")}
+            onClick={() => setPlanningSurfaceTab("pm-table")}
+            role="tab"
+            type="button"
+          >
+            <ClipboardList size={14} />
+            PM Table
+          </button>
+          <button
+            aria-selected={planningSurfaceTab === "orchestrator-preview"}
+            className={classNames("pm-surface-tab", planningSurfaceTab === "orchestrator-preview" && "is-active")}
+            onClick={() => setPlanningSurfaceTab("orchestrator-preview")}
+            role="tab"
+            type="button"
+          >
+            <Workflow size={14} />
+            Orchestrator Preview
+          </button>
+        </div>
+
+        {planningSurfaceTab === "pm-table" ? (
+          <div className="pm-surface-tab-panel pm-surface-tab-panel-table" role="tabpanel">
+            <section
+              aria-label={orchestratorBackendSummary.summary.ariaLabel}
+              className={classNames(
+                "pm-orchestrator-backend",
+                `pm-orchestrator-backend-${orchestratorBackendSummary.summary.tone}`
+              )}
+              title={orchestratorBackendSummary.summary.detail}
             >
-              <GitBranch size={14} />
-              Queue workers
-            </button>
-            <button
-              onClick={handleDrainOrchestratorQueue}
-              type="button"
-            >
-              <Play size={14} />
-              Drain next
-            </button>
-            <span title={orchestratorPumpStatus}>{orchestratorPumpStatus}</span>
-          </div>
-          <dl>
-            <div>
-              <dt>Queued</dt>
-              <dd>{orchestratorBackendSummary.summary.queuedEventCount}</dd>
-            </div>
-            <div>
-              <dt>Ledger</dt>
-              <dd>{orchestratorBackendSummary.summary.ledgerEntryCount}</dd>
-            </div>
-            <div>
-              <dt>Integration</dt>
-              <dd title={orchestratorBackendSummary.summary.integrationBranch}>
-                {orchestratorBackendSummary.summary.integrationBranch}
-              </dd>
-            </div>
-            <div>
-              <dt>Cleanup</dt>
-              <dd title={orchestratorBackendSummary.cleanup.detail}>
-                {orchestratorBackendSummary.cleanup.label}
-              </dd>
-            </div>
-          </dl>
-          {orchestratorBackendSummary.report ? (
-            <section className="pm-orchestrator-report" aria-label="Final orchestrator run report">
               <div>
-                <strong>{orchestratorBackendSummary.report.title}</strong>
-                <span>{orchestratorBackendSummary.report.finalizationStatus ?? "report"}</span>
+                <strong>{orchestratorBackendSummary.summary.label}</strong>
+                <span>{orchestratorBackendSummary.summary.statusLabel}</span>
               </div>
-              <p>{orchestratorBackendSummary.report.recommendedNextAction}</p>
+              <p>{orchestratorBackendSummary.summary.phaseLabel}</p>
+              <div className="pm-orchestrator-actions">
+                <button
+                  onClick={handleQueuePmWorkers}
+                  type="button"
+                >
+                  <GitBranch size={14} />
+                  Queue workers
+                </button>
+                <button
+                  onClick={handleDrainOrchestratorQueue}
+                  type="button"
+                >
+                  <Play size={14} />
+                  Drain next
+                </button>
+                <span title={orchestratorPumpStatus}>{orchestratorPumpStatus}</span>
+              </div>
               <dl>
                 <div>
-                  <dt>Commits</dt>
-                  <dd>{orchestratorBackendSummary.report.acceptedCommitCount}</dd>
+                  <dt>Queued</dt>
+                  <dd>{orchestratorBackendSummary.summary.queuedEventCount}</dd>
                 </div>
                 <div>
-                  <dt>Evidence</dt>
-                  <dd>{orchestratorBackendSummary.report.validationEvidenceCount}</dd>
+                  <dt>Ledger</dt>
+                  <dd>{orchestratorBackendSummary.summary.ledgerEntryCount}</dd>
+                </div>
+                <div>
+                  <dt>Integration</dt>
+                  <dd title={orchestratorBackendSummary.summary.integrationBranch}>
+                    {orchestratorBackendSummary.summary.integrationBranch}
+                  </dd>
                 </div>
                 <div>
                   <dt>Cleanup</dt>
-                  <dd title={orchestratorBackendSummary.report.cleanupStatus}>
-                    {orchestratorBackendSummary.report.cleanupStatus}
+                  <dd title={orchestratorBackendSummary.cleanup.detail}>
+                    {orchestratorBackendSummary.cleanup.label}
                   </dd>
                 </div>
               </dl>
-              <button type="button" onClick={handleDownloadOrchestratorReport}>
-                <Download size={14} />
-                Markdown
-              </button>
-              <button
-                disabled={orchestratorBackendSummary.report.finalizationStatus !== "ready-for-approval"}
-                onClick={handleApproveOrchestratorFinalMerge}
-                title={
-                  orchestratorBackendSummary.report.finalizationStatus === "ready-for-approval"
-                    ? "Queue the approval-gated final merge."
-                    : "Final merge is not ready for approval."
-                }
-                type="button"
-              >
-                <ShieldCheck size={14} />
-                Approve merge
-              </button>
-            </section>
-          ) : null}
-          {orchestratorBackendSummary.sections.map((section) => (
-            <details className="pm-orchestrator-ledger-section" key={section.id}>
-              <summary>
-                <strong>{section.title}</strong>
-                <span>{section.summary}</span>
-              </summary>
-              {section.details.length > 0 ? (
-                <dl className="pm-orchestrator-ledger-details">
-                  {section.details.map((detail) => (
-                    <div key={`${section.id}-${detail.label}`}>
-                      <dt>{detail.label}</dt>
-                      <dd title={detail.value}>{detail.value}</dd>
+              {orchestratorBackendSummary.report ? (
+                <section className="pm-orchestrator-report" aria-label="Final orchestrator run report">
+                  <div>
+                    <strong>{orchestratorBackendSummary.report.title}</strong>
+                    <span>{orchestratorBackendSummary.report.finalizationStatus ?? "report"}</span>
+                  </div>
+                  <p>{orchestratorBackendSummary.report.recommendedNextAction}</p>
+                  <dl>
+                    <div>
+                      <dt>Commits</dt>
+                      <dd>{orchestratorBackendSummary.report.acceptedCommitCount}</dd>
                     </div>
-                  ))}
-                </dl>
+                    <div>
+                      <dt>Evidence</dt>
+                      <dd>{orchestratorBackendSummary.report.validationEvidenceCount}</dd>
+                    </div>
+                    <div>
+                      <dt>Cleanup</dt>
+                      <dd title={orchestratorBackendSummary.report.cleanupStatus}>
+                        {orchestratorBackendSummary.report.cleanupStatus}
+                      </dd>
+                    </div>
+                  </dl>
+                  <button type="button" onClick={handleDownloadOrchestratorReport}>
+                    <Download size={14} />
+                    Markdown
+                  </button>
+                  <button
+                    disabled={orchestratorBackendSummary.report.finalizationStatus !== "ready-for-approval"}
+                    onClick={handleApproveOrchestratorFinalMerge}
+                    title={
+                      orchestratorBackendSummary.report.finalizationStatus === "ready-for-approval"
+                        ? "Queue the approval-gated final merge."
+                        : "Final merge is not ready for approval."
+                    }
+                    type="button"
+                  >
+                    <ShieldCheck size={14} />
+                    Approve merge
+                  </button>
+                </section>
               ) : null}
-              <ol>
-                {section.entries.map((entry) => (
-                  <li key={entry.id}>{entry.message}</li>
-                ))}
-              </ol>
-            </details>
-          ))}
-        </section>
+              {orchestratorBackendSummary.sections.map((section) => (
+                <details className="pm-orchestrator-ledger-section" key={section.id}>
+                  <summary>
+                    <strong>{section.title}</strong>
+                    <span>{section.summary}</span>
+                  </summary>
+                  {section.details.length > 0 ? (
+                    <dl className="pm-orchestrator-ledger-details">
+                      {section.details.map((detail) => (
+                        <div key={`${section.id}-${detail.label}`}>
+                          <dt>{detail.label}</dt>
+                          <dd title={detail.value}>{detail.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : null}
+                  <ol>
+                    {section.entries.map((entry) => (
+                      <li key={entry.id}>{entry.message}</li>
+                    ))}
+                  </ol>
+                </details>
+              ))}
+            </section>
 
-        <div className="pm-table-wrap" aria-label="Project Management hierarchy table">
-          <table className="pm-hierarchy-table">
+            <div className="pm-table-wrap" aria-label="Project Management hierarchy table">
+              <table className="pm-hierarchy-table">
             <thead>
               <tr>
                 <th>Task</th>
@@ -13110,10 +13156,10 @@ function PlanningView({
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
+              </table>
+            </div>
 
-        <section className="pm-bottom-panel" aria-label="Project Management alignment chat">
+            <section className="pm-bottom-panel" aria-label="Project Management alignment chat">
           <div className="pm-chat-panel">
             <div className="pm-chat-header">
               <strong>PM Alignment</strong>
@@ -13204,7 +13250,182 @@ function PlanningView({
               </>
             )}
           </aside>
-        </section>
+            </section>
+          </div>
+        ) : (
+          <section className="pm-surface-tab-panel pm-orchestrator-workbench-preview" role="tabpanel" aria-label="Orchestrator workbench preview">
+            <header className="pm-orchestrator-workbench-header">
+              <div>
+                <strong>{orchestratorBackendSummary.summary.label}</strong>
+                <span>{orchestratorBackendSummary.summary.statusLabel}</span>
+              </div>
+              <div className="pm-orchestrator-actions">
+                <button onClick={handleQueuePmWorkers} type="button">
+                  <GitBranch size={14} />
+                  Queue workers
+                </button>
+                <button onClick={handleDrainOrchestratorQueue} type="button">
+                  <Play size={14} />
+                  Drain next
+                </button>
+                <button disabled title="Select a running job to enable pause." type="button">
+                  <Pause size={14} />
+                  Pause
+                </button>
+                <button disabled title="Select a running job to enable cancel." type="button">
+                  <AlertTriangle size={14} />
+                  Cancel
+                </button>
+              </div>
+            </header>
+
+            <div className="pm-orchestrator-workbench-grid">
+              <section className="pm-orchestrator-run-panel" aria-label="Orchestrator run posture">
+                <div className="pm-orchestrator-panel-heading">
+                  <strong>Run</strong>
+                  <span title={orchestratorPumpStatus}>{orchestratorPumpStatus}</span>
+                </div>
+                <p>{orchestratorBackendSummary.summary.phaseLabel}</p>
+                <dl>
+                  <div>
+                    <dt>Queued</dt>
+                    <dd>{orchestratorBackendSummary.summary.queuedEventCount}</dd>
+                  </div>
+                  <div>
+                    <dt>Ledger</dt>
+                    <dd>{orchestratorBackendSummary.summary.ledgerEntryCount}</dd>
+                  </div>
+                  <div>
+                    <dt>PM Open</dt>
+                    <dd>{pmOpenTaskCount}</dd>
+                  </div>
+                  <div>
+                    <dt>Cleanup</dt>
+                    <dd title={orchestratorBackendSummary.cleanup.detail}>{orchestratorBackendSummary.cleanup.label}</dd>
+                  </div>
+                </dl>
+                <div className="pm-orchestrator-branch-line" title={orchestratorBackendSummary.summary.integrationBranch}>
+                  <GitBranch size={14} />
+                  <span>{orchestratorBackendSummary.summary.integrationBranch}</span>
+                </div>
+              </section>
+
+              <section className="pm-orchestrator-jira-panel" aria-label="PM source of truth preview">
+                <div className="pm-orchestrator-panel-heading">
+                  <strong>PM Lane</strong>
+                  <span>{previewTaskRows.length} visible children</span>
+                </div>
+                <ol>
+                  {previewTaskRows.map(({ task }) => (
+                    <li key={task.id}>
+                      <div>
+                        <strong title={task.title}>{task.title}</strong>
+                        <span className={classNames("pm-status-pill", `pm-status-${task.status}`)}>
+                          {projectManagementStatusLabels[task.status]}
+                        </span>
+                      </div>
+                      <p title={task.description}>{task.description}</p>
+                      <small>{task.sourceDocument}</small>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+
+              <section className="pm-orchestrator-ledger-workbench" aria-label="Orchestrator ledger preview">
+                <div className="pm-orchestrator-panel-heading">
+                  <strong>Ledger</strong>
+                  <span>{orchestratorPreviewSections.length} sections</span>
+                </div>
+                <div className="pm-orchestrator-filter-row" role="toolbar" aria-label="Ledger filters">
+                  {orchestratorFilterOptions.map((option) => (
+                    <button
+                      className={classNames(orchestratorPreviewFilter === option.value && "is-active")}
+                      key={option.value}
+                      onClick={() => setOrchestratorPreviewFilter(option.value)}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="pm-orchestrator-ledger-scroll">
+                  {orchestratorPreviewSections.length > 0 ? (
+                    orchestratorPreviewSections.map((section) => (
+                      <details className="pm-orchestrator-ledger-section" key={section.id} open={section.kind !== "other"}>
+                        <summary>
+                          <strong>{section.title}</strong>
+                          <span>{section.summary}</span>
+                        </summary>
+                        {section.details.length > 0 ? (
+                          <dl className="pm-orchestrator-ledger-details">
+                            {section.details.map((detail) => (
+                              <div key={`${section.id}-${detail.label}`}>
+                                <dt>{detail.label}</dt>
+                                <dd title={detail.value}>{detail.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        ) : null}
+                        <ol>
+                          {section.entries.map((entry) => (
+                            <li key={entry.id}>{entry.message}</li>
+                          ))}
+                        </ol>
+                      </details>
+                    ))
+                  ) : (
+                    <p className="pm-orchestrator-empty">No ledger sections for this filter.</p>
+                  )}
+                </div>
+              </section>
+
+              <aside className="pm-orchestrator-side-panel" aria-label="Orchestrator finalization preview">
+                <section>
+                  <div className="pm-orchestrator-panel-heading">
+                    <strong>Report</strong>
+                    <span>{orchestratorBackendSummary.report?.finalizationStatus ?? "pending"}</span>
+                  </div>
+                  {orchestratorBackendSummary.report ? (
+                    <>
+                      <p>{orchestratorBackendSummary.report.recommendedNextAction}</p>
+                      <dl>
+                        <div>
+                          <dt>Commits</dt>
+                          <dd>{orchestratorBackendSummary.report.acceptedCommitCount}</dd>
+                        </div>
+                        <div>
+                          <dt>Evidence</dt>
+                          <dd>{orchestratorBackendSummary.report.validationEvidenceCount}</dd>
+                        </div>
+                      </dl>
+                      <button type="button" onClick={handleDownloadOrchestratorReport}>
+                        <Download size={14} />
+                        Markdown
+                      </button>
+                      <button
+                        disabled={orchestratorBackendSummary.report.finalizationStatus !== "ready-for-approval"}
+                        onClick={handleApproveOrchestratorFinalMerge}
+                        type="button"
+                      >
+                        <ShieldCheck size={14} />
+                        Approve merge
+                      </button>
+                    </>
+                  ) : (
+                    <p>No final report yet.</p>
+                  )}
+                </section>
+                <section>
+                  <div className="pm-orchestrator-panel-heading">
+                    <strong>Cleanup</strong>
+                    <span>{orchestratorBackendSummary.cleanup.label}</span>
+                  </div>
+                  <p>{orchestratorBackendSummary.cleanup.detail}</p>
+                </section>
+              </aside>
+            </div>
+          </section>
+        )}
       </div>
     </section>
   );
