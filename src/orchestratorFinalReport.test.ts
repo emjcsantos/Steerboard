@@ -417,6 +417,32 @@ describe("orchestrator final report and remote policy", () => {
       remote: "origin",
       error: "remote disabled"
     });
+
+    const report = generateOrchestratorRunReport({
+      run: processed.runs[0],
+      tasks: [task()],
+      acceptedCommits: [commit()],
+      artifacts: [artifact()],
+      correctiveTasks: [],
+      blockerIds: [],
+      ledger: processed.ledger,
+      cleanupJobs: [],
+      finalization: evaluateFinalizationGates({
+        integrationValidationPassed: true,
+        unresolvedCorrectiveTaskIds: [],
+        blockerIds: [],
+        targetBranchClean: true,
+        expectedBaseMatches: true,
+        userApprovedFinalMerge: false
+      }),
+      generatedAt: "2026-07-09T11:02:00.000Z"
+    });
+
+    expect(report.summaryJson.remotePushFailures).toEqual([
+      "origin codex/orch/integration/run-123: remote disabled"
+    ]);
+    expect(report.markdown).toContain("## Remote Push Failures");
+    expect(report.markdown).toContain("origin codex/orch/integration/run-123: remote disabled");
   });
 
   it("queues a Markdown-exportable final report event from durable run state", () => {

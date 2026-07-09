@@ -37,6 +37,7 @@ export interface OrchestratorRunReport {
     cleanupStatus: string;
     finalizationStatus: FinalizationStatus;
     recommendedNextAction: string;
+    remotePushFailures: string[];
   };
 }
 
@@ -120,6 +121,18 @@ function remotePolicyFromPayload(payload: Record<string, unknown>): RemotePolicy
 
 function listLines(items: readonly string[]): string {
   return items.length > 0 ? items.map((item) => `- ${item}`).join("\n") : "- None";
+}
+
+function remotePushFailureLines(ledger: readonly OrchestratorLedgerEntry[]): string[] {
+  return ledger
+    .filter((entry) => entry.kind === "integration.updated" && payloadString(entry.payload, "phase") === "Remote push failed.")
+    .map((entry) => {
+      const remote = payloadString(entry.payload, "remote") ?? "remote";
+      const branch = payloadString(entry.payload, "branch") ?? "branch";
+      const error = payloadString(entry.payload, "error") ?? entry.message;
+
+      return `${remote} ${branch}: ${error}`;
+    });
 }
 
 function cleanupStatus(jobs: readonly CleanupJob[]): string {
@@ -763,6 +776,7 @@ export function generateOrchestratorRunReport(input: {
     .filter((task) => task.status === "queued" || input.acceptedCommits.some((commit) => commit.taskId === task.id))
     .map((task) => task.id);
   const validationEvidenceCount = input.artifacts.length;
+  const remotePushFailures = remotePushFailureLines(input.ledger);
   const recommendedNextAction =
     input.finalization.status === "ready-for-approval"
       ? "Approve final merge when ready."
@@ -781,7 +795,8 @@ export function generateOrchestratorRunReport(input: {
     unresolvedBlockers: [...input.blockerIds],
     cleanupStatus: input.cleanupSummary?.detail ?? cleanupStatus(input.cleanupJobs),
     finalizationStatus: input.finalization.status,
-    recommendedNextAction
+    recommendedNextAction,
+    remotePushFailures
   };
   const markdown = [
     `# Orchestrator Run Report: ${input.run.id}`,
@@ -814,6 +829,9 @@ export function generateOrchestratorRunReport(input: {
     "",
     "## Approvals And Denials",
     listLines(input.ledger.filter((entry) => entry.kind === "approval.requested").map((entry) => entry.message)),
+    "",
+    "## Remote Push Failures",
+    listLines(summaryJson.remotePushFailures),
     "",
     "## Cleanup Status",
     summaryJson.cleanupStatus,
