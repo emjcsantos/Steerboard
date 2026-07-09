@@ -7357,11 +7357,108 @@ mod orchestrator_runtime_executor {
         })
     }
 
+    fn execute_finalization_merge(
+        request: &OrchestratorRuntimeCommandRequest,
+        repo: &Path,
+    ) -> Result<OrchestratorRuntimeCommandResult, String> {
+        let integration_branch = value_string(&request.payload, "integrationBranch")?;
+        let target_branch = value_string(&request.payload, "targetBranch")?;
+        let approved = request
+            .payload
+            .get("userApprovedFinalMerge")
+            .and_then(|value| value.as_bool())
+            .unwrap_or(false);
+        if !approved {
+            return Err("orchestrator_runtime_final_merge_requires_approval".to_string());
+        }
+        ensure_safe_branch(&integration_branch)?;
+        ensure_safe_branch(&target_branch)?;
+        let status = run_git(repo, &["status", "--porcelain"])?;
+        if !status.trim().is_empty() {
+            return Err("orchestrator_runtime_target_branch_not_clean".to_string());
+        }
+
+        let mut steps = Vec::new();
+        run_git(repo, &["checkout", target_branch.as_str()])?;
+        steps.push(step(
+            "Checkout target branch",
+            "git checkout <target-branch>",
+            "passed",
+            format!("Checked out {target_branch}."),
+        ));
+        let message = format!("orchestrator: merge {}", request.run_id);
+        run_git(
+            repo,
+            &[
+                "merge",
+                "--no-ff",
+                integration_branch.as_str(),
+                "-m",
+                message.as_str(),
+            ],
+        )?;
+        let merge_commit_sha = run_git(repo, &["rev-parse", "HEAD"])?;
+        steps.push(step(
+            "Merge integration branch",
+            "git merge --no-ff <integration-branch>",
+            "passed",
+            format!("Merged {integration_branch} into {target_branch}."),
+        ));
+
+        Ok(OrchestratorRuntimeCommandResult {
+            command_id: request.command_id.clone(),
+            run_id: request.run_id.clone(),
+            kind: request.kind.clone(),
+            executed: true,
+            blocked: false,
+            artifact_paths: Vec::new(),
+            steps,
+            detail: format!("Final merge completed into {target_branch}."),
+            structured_output: Some(serde_json::json!({
+                "integrationBranch": integration_branch,
+                "targetBranch": target_branch,
+                "mergeCommitSha": merge_commit_sha.trim(),
+            })),
+        })
+    }
+
+    fn execute_remote_push(
+        request: &OrchestratorRuntimeCommandRequest,
+        repo: &Path,
+    ) -> Result<OrchestratorRuntimeCommandResult, String> {
+        let remote = value_string(&request.payload, "remote")?;
+        let branch = value_string(&request.payload, "branch")?;
+        ensure_safe_branch(&branch)?;
+        run_git(repo, &["push", remote.as_str(), branch.as_str()])?;
+
+        Ok(OrchestratorRuntimeCommandResult {
+            command_id: request.command_id.clone(),
+            run_id: request.run_id.clone(),
+            kind: request.kind.clone(),
+            executed: true,
+            blocked: false,
+            artifact_paths: Vec::new(),
+            steps: vec![step(
+                "Push final branch",
+                "git push <remote> <branch>",
+                "passed",
+                format!("Pushed {branch} to {remote}."),
+            )],
+            detail: format!("Pushed {branch} to {remote}."),
+            structured_output: Some(serde_json::json!({
+                "remote": remote,
+                "branch": branch,
+                "pushedRef": branch,
+            })),
+        })
+    }
+
     fn execute_cleanup_start(
         request: &OrchestratorRuntimeCommandRequest,
         repo: &Path,
     ) -> Result<OrchestratorRuntimeCommandResult, String> {
-        let worktree_path = value_string(&request.payload, "worktreePath")?;
+        let worktree_path = value_string(&request.payload, "worktreePath")
+            .or_else(|_| value_string(&request.payload, "path"))?;
         let worktree = resolve_repo_child(repo, &worktree_path, ".steerboard/worktrees")?;
         run_git(repo, &["worktree", "remove", worktree.to_string_lossy().as_ref()])?;
 
@@ -7408,6 +7505,8 @@ mod orchestrator_runtime_executor {
             "validator.start" => execute_validator_start(&request, &repo),
             "integration.start" => execute_integration_start(&request, &repo),
             "cleanup.start" => execute_cleanup_start(&request, &repo),
+            "finalization.merge" => execute_finalization_merge(&request, &repo),
+            "remote.push" => execute_remote_push(&request, &repo),
             _ => Err(format!("orchestrator_runtime_unsupported_command:{}", request.kind)),
         };
 

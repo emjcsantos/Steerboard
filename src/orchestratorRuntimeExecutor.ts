@@ -12,7 +12,9 @@ export type OrchestratorRuntimeCommandKind =
   | "worker.commit"
   | "validator.start"
   | "integration.start"
-  | "cleanup.start";
+  | "cleanup.start"
+  | "finalization.merge"
+  | "remote.push";
 
 export interface OrchestratorRuntimeCommandRequest {
   commandId: string;
@@ -53,7 +55,9 @@ const executableKinds = new Set<string>([
   "worker.commit",
   "validator.start",
   "integration.start",
-  "cleanup.start"
+  "cleanup.start",
+  "finalization.merge",
+  "remote.push"
 ]);
 
 export function buildRuntimeCommandRequest(
@@ -95,6 +99,8 @@ function eventKindForCommand(kind: OrchestratorRuntimeCommandKind): Orchestrator
     case "validator.start":
       return "validator.reported";
     case "integration.start":
+    case "finalization.merge":
+    case "remote.push":
       return "integration.updated";
     case "cleanup.start":
       return "cleanup.updated";

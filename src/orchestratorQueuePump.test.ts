@@ -502,6 +502,70 @@ describe("orchestrator queue pump", () => {
     expect(persisted?.ledger.at(-1)?.payload_json).toContain("\"cleanupStatus\":\"completed\"");
   });
 
+  it("records final merge completion and manual remote push gating", async () => {
+    const state = enqueueOrchestratorCommand(stateWithRun(), {
+      id: "run-123:finalization:merge",
+      runId: "run-123",
+      kind: "finalization.merge",
+      payload: {
+        integrationBranch: "codex/orch/integration/run-123",
+        targetBranch: "codex/steerboard-orchestrator-backend",
+        expectedBaseBranch: "main",
+        userApprovedFinalMerge: true,
+        pushMode: "manual",
+        allowedRemote: "origin",
+        finalMergeRequiresApproval: true
+      },
+      enqueuedAt: createdAt
+    });
+    let persisted: OrchestratorSqliteSnapshot | undefined;
+    const result = await runOrchestratorQueuePumpCycle({
+      repositoryRoot: "C:\\repo",
+      processedAt,
+      readSnapshot: async () => buildOrchestratorSqliteSnapshot(state),
+      applySnapshot: async (snapshot) => {
+        persisted = snapshot;
+        return applyResult(snapshot);
+      },
+      execute: async (request) => ({
+        commandId: request.commandId,
+        runId: request.runId,
+        kind: request.kind,
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [
+          {
+            label: "Merge integration branch",
+            command: "git merge --no-ff <integration-branch>",
+            status: "passed",
+            detail: "Merged integration branch."
+          }
+        ],
+        detail: "Final merge completed.",
+        structuredOutput: {
+          mergeCommitSha: "merge123"
+        }
+      })
+    });
+
+    expect(result.detail).toBe("Drained one finalization command, recorded finalization progress, and persisted the ledger state.");
+    expect(result.backendState.runs[0]).toMatchObject({
+      status: "completed",
+      phase: "Final run report generated."
+    });
+    expect(result.backendState.commandQueue[0]).toMatchObject({
+      kind: "finalization.merge",
+      status: "processed"
+    });
+    expect(persisted?.ledger.some((entry) => entry.message === "Final merge completed.")).toBe(true);
+    expect(persisted?.ledger.some((entry) => entry.message === "Remote push gated.")).toBe(true);
+    expect(persisted?.ledger.at(-1)).toMatchObject({
+      kind: "run.phase.changed",
+      message: "Final run report generated."
+    });
+  });
+
   it("does not rewrite SQLite when no durable queue work exists", async () => {
     const result = await runOrchestratorQueuePumpCycle({
       repositoryRoot: "C:\\repo",

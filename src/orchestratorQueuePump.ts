@@ -25,7 +25,7 @@ import {
   applyIntegrationRuntimeCommandResult,
   queueIntegrationAfterWorkerCommitRuntime
 } from "./orchestratorIntegration";
-import { enqueueFinalRunReportIfReady } from "./orchestratorFinalReport";
+import { applyFinalizationRuntimeCommandResult, enqueueFinalRunReportIfReady } from "./orchestratorFinalReport";
 
 export interface OrchestratorQueuePumpCycleInput {
   repositoryRoot: string;
@@ -92,11 +92,21 @@ export async function runOrchestratorQueuePumpCycle(
         createdAt: input.processedAt
       })
     : undefined;
+  const finalizationApplied =
+    !loopApplied && !integrationQueued && !integrationApplied && !cleanupApplied && drained.command && drained.result
+      ? applyFinalizationRuntimeCommandResult({
+          backendState: drained.backendState,
+          command: drained.command,
+          result: drained.result,
+          createdAt: input.processedAt
+        })
+      : undefined;
   const stateAfterLoop =
     loopApplied?.backendState ??
     integrationQueued?.backendState ??
     integrationApplied?.backendState ??
     cleanupApplied?.backendState ??
+    finalizationApplied?.backendState ??
     drained.backendState;
   const afterCommandQueued = queuedEventCount(stateAfterLoop);
   const processedState = processAllQueuedOrchestratorEvents(stateAfterLoop, input.processedAt);
@@ -144,6 +154,10 @@ export async function runOrchestratorQueuePumpCycle(
         ? "Drained one cleanup command, recorded cleanup completion, and persisted the ledger state."
         : cleanupApplied?.failed
         ? "Drained one cleanup command, recorded cleanup failure, and persisted the ledger state."
+        : finalizationApplied?.completed
+        ? "Drained one finalization command, recorded finalization progress, and persisted the ledger state."
+        : finalizationApplied?.failed
+        ? "Drained one finalization command, recorded finalization failure, and persisted the ledger state."
         : "Drained one orchestrator runtime command and persisted the resulting ledger state."
       : "Processed queued orchestrator events and persisted the resulting ledger state."
   };

@@ -77,6 +77,45 @@ describe("orchestrator runtime executor", () => {
     });
   });
 
+  it("keeps finalization and remote push commands executable only through the runtime boundary", () => {
+    const finalization = buildRuntimeCommandRequest(
+      command({
+        id: "run-123:finalization:merge",
+        kind: "finalization.merge",
+        payload: {
+          integrationBranch: "codex/orch/integration/run-123",
+          targetBranch: "codex/steerboard-orchestrator-backend",
+          userApprovedFinalMerge: true,
+          pushMode: "manual"
+        }
+      }),
+      "repo"
+    );
+    const remotePush = buildRuntimeCommandRequest(
+      command({
+        id: "run-123:remote-push",
+        kind: "remote.push",
+        payload: {
+          remote: "origin",
+          branch: "codex/steerboard-orchestrator-backend",
+          pushMode: "automatic"
+        }
+      }),
+      "repo"
+    );
+
+    expect(finalization.kind).toBe("finalization.merge");
+    expect(finalization.payload).toMatchObject({
+      userApprovedFinalMerge: true,
+      pushMode: "manual"
+    });
+    expect(remotePush.kind).toBe("remote.push");
+    expect(remotePush.payload).toMatchObject({
+      remote: "origin",
+      pushMode: "automatic"
+    });
+  });
+
   it("keeps validator commands executable through the read-only runtime boundary", () => {
     const request = buildRuntimeCommandRequest(
       command({

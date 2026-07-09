@@ -8,10 +8,12 @@ import {
 } from "./orchestratorBackend";
 import {
   DEFAULT_REMOTE_POLICY,
+  applyFinalizationRuntimeCommandResult,
   enqueueFinalRunReportIfReady,
   evaluateFinalizationGates,
   evaluateRemotePushGates,
   generateOrchestratorRunReport,
+  queueFinalMergeAfterApproval,
   recordRemotePushFailure
 } from "./orchestratorFinalReport";
 import { DEFAULT_PM_TASK_BUDGET, createPmTaskTemplateSnapshot, type PmWorkerReadyTask } from "./pmLaneWorkerReady";
@@ -163,6 +165,174 @@ describe("orchestrator final report and remote policy", () => {
     ).toMatchObject({
       status: "approved",
       canMergeToTarget: true
+    });
+  });
+
+  it("queues approval evidence instead of final merge when user approval is missing", () => {
+    const result = queueFinalMergeAfterApproval({
+      backendState: state(),
+      runId: "run-123",
+      targetBranch: "codex/steerboard-orchestrator-backend",
+      integrationValidationPassed: true,
+      unresolvedCorrectiveTaskIds: [],
+      blockerIds: [],
+      targetBranchClean: true,
+      expectedBaseMatches: true,
+      userApprovedFinalMerge: false,
+      createdAt
+    });
+
+    expect(result).toMatchObject({
+      queued: false,
+      approvalRequired: true,
+      detail: "Final merge requires explicit user approval."
+    });
+    expect(result.backendState.commandQueue).toEqual([]);
+    expect(result.backendState.eventQueue[0]).toMatchObject({
+      kind: "approval.requested",
+      payload: {
+        phase: "Final merge requires explicit approval.",
+        integrationBranch: "codex/orch/integration/run-123",
+        targetBranch: "codex/steerboard-orchestrator-backend",
+        finalMergeRequiresApproval: true
+      }
+    });
+  });
+
+  it("queues final merge only after approval and passing finalization gates", () => {
+    const result = queueFinalMergeAfterApproval({
+      backendState: state(),
+      runId: "run-123",
+      targetBranch: "codex/steerboard-orchestrator-backend",
+      integrationValidationPassed: true,
+      unresolvedCorrectiveTaskIds: [],
+      blockerIds: [],
+      targetBranchClean: true,
+      expectedBaseMatches: true,
+      userApprovedFinalMerge: true,
+      createdAt
+    });
+
+    expect(result).toMatchObject({
+      queued: true,
+      approvalRequired: false
+    });
+    expect(result.backendState.commandQueue[0]).toMatchObject({
+      kind: "finalization.merge",
+      payload: {
+        integrationBranch: "codex/orch/integration/run-123",
+        targetBranch: "codex/steerboard-orchestrator-backend",
+        userApprovedFinalMerge: true,
+        pushMode: "manual",
+        finalMergeRequiresApproval: true
+      }
+    });
+  });
+
+  it("records completed final merge and keeps remote push manual by default", () => {
+    const queued = queueFinalMergeAfterApproval({
+      backendState: state(),
+      runId: "run-123",
+      targetBranch: "codex/steerboard-orchestrator-backend",
+      integrationValidationPassed: true,
+      unresolvedCorrectiveTaskIds: [],
+      blockerIds: [],
+      targetBranchClean: true,
+      expectedBaseMatches: true,
+      userApprovedFinalMerge: true,
+      createdAt
+    });
+    const applied = applyFinalizationRuntimeCommandResult({
+      backendState: queued.backendState,
+      command: queued.backendState.commandQueue[0],
+      result: {
+        commandId: queued.backendState.commandQueue[0].id,
+        runId: "run-123",
+        kind: "finalization.merge",
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [],
+        detail: "Final merge completed.",
+        structuredOutput: {
+          mergeCommitSha: "merge123"
+        }
+      },
+      createdAt: "2026-07-09T11:02:00.000Z"
+    });
+
+    expect(applied).toMatchObject({
+      completed: true,
+      remoteQueued: false,
+      failed: false,
+      detail: "Final merge completed; remote push remained gated by policy."
+    });
+
+    const processed = processAllQueuedOrchestratorEvents(
+      applied?.backendState ?? queued.backendState,
+      "2026-07-09T11:03:00.000Z"
+    );
+
+    expect(processed.runs[0]).toMatchObject({
+      status: "completed",
+      phase: "Remote push gated."
+    });
+    expect(processed.ledger.at(-2)).toMatchObject({
+      kind: "integration.updated",
+      message: "Final merge completed."
+    });
+    expect(processed.ledger.at(-1)).toMatchObject({
+      kind: "integration.updated",
+      message: "Remote push gated.",
+      payload: {
+        pushMode: "manual",
+        missingGateIds: ["automatic-push-disabled"]
+      }
+    });
+  });
+
+  it("queues automatic remote push only when project policy explicitly enables it", () => {
+    const queued = queueFinalMergeAfterApproval({
+      backendState: state(),
+      runId: "run-123",
+      targetBranch: "codex/steerboard-orchestrator-backend",
+      integrationValidationPassed: true,
+      unresolvedCorrectiveTaskIds: [],
+      blockerIds: [],
+      targetBranchClean: true,
+      expectedBaseMatches: true,
+      userApprovedFinalMerge: true,
+      remotePolicy: { ...DEFAULT_REMOTE_POLICY, pushMode: "automatic" },
+      createdAt
+    });
+    const applied = applyFinalizationRuntimeCommandResult({
+      backendState: queued.backendState,
+      command: queued.backendState.commandQueue[0],
+      result: {
+        commandId: queued.backendState.commandQueue[0].id,
+        runId: "run-123",
+        kind: "finalization.merge",
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [],
+        detail: "Final merge completed.",
+        structuredOutput: {
+          mergeCommitSha: "merge123"
+        }
+      },
+      createdAt: "2026-07-09T11:02:00.000Z"
+    });
+
+    expect(applied?.remoteQueued).toBe(true);
+    expect(applied?.backendState.commandQueue.at(-1)).toMatchObject({
+      kind: "remote.push",
+      payload: {
+        remote: "origin",
+        branch: "codex/steerboard-orchestrator-backend",
+        pushMode: "automatic",
+        mergeCommitSha: "merge123"
+      }
     });
   });
 

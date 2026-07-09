@@ -65,7 +65,9 @@ export type OrchestratorCommandKind =
   | "worker.cancel"
   | "validator.start"
   | "integration.start"
-  | "cleanup.start";
+  | "cleanup.start"
+  | "finalization.merge"
+  | "remote.push";
 
 export interface OrchestratorQueuedCommand {
   id: string;
@@ -591,7 +593,9 @@ function normalizeCommandKind(value: string): OrchestratorCommandKind {
     value === "worker.cancel" ||
     value === "validator.start" ||
     value === "integration.start" ||
-    value === "cleanup.start"
+    value === "cleanup.start" ||
+    value === "finalization.merge" ||
+    value === "remote.push"
     ? value
     : "validator.start";
 }
