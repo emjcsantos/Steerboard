@@ -223,11 +223,19 @@ import {
 import {
   createBoundedOrchestratorRun,
   createOrchestratorBackendState,
-  summarizeOrchestratorRunQueue
+  hydrateOrchestratorBackendStateFromSqlite,
+  summarizeOrchestratorRunQueue,
+  type OrchestratorBackendState
 } from "./orchestratorBackend";
 import {
   groupOrchestratorLedgerForUi
 } from "./orchestratorLedgerView";
+import {
+  runOrchestratorQueuePumpCycle
+} from "./orchestratorQueuePump";
+import {
+  readOrchestratorSqliteSnapshot
+} from "./orchestratorSqliteStore";
 import {
   createOrchestrationDependencyReadiness,
   type OrchestrationDependencyReadiness
@@ -12632,6 +12640,20 @@ function PlanningView({
   const visibleRows = rows.filter((row) => !row.hiddenByAncestor);
   const [stagedResult, setStagedResult] = useState<ProjectManagementArenaDispatchResult>();
   const [chatInput, setChatInput] = useState("");
+  const planningTaskIds = useMemo(() => rows.map((row) => row.task.id), [rows]);
+  const fallbackOrchestratorState = useMemo(() => createBoundedOrchestratorRun(createOrchestratorBackendState(), {
+    id: `pm-${project.id}-preview`,
+    projectId: project.id,
+    scope: {
+      mode: "task-list",
+      taskIds: planningTaskIds
+    },
+    baseBranch: "current",
+    createdAt: "preview"
+  }), [planningTaskIds, project.id]);
+  const [orchestratorBackendState, setOrchestratorBackendState] =
+    useState<OrchestratorBackendState>(() => fallbackOrchestratorState);
+  const [orchestratorPumpStatus, setOrchestratorPumpStatus] = useState("Idle");
   const stagedMarkdown = stagedResult ? renderDispatchPackageMarkdown(stagedResult.dispatchPackage) : "";
   const stagedReviewRecord = stagedResult
     ? dispatchReviewRecords.find(
@@ -12639,24 +12661,55 @@ function PlanningView({
       )
     : undefined;
   const recentReviewRecords = dispatchReviewRecords.slice(0, 3);
-  const orchestratorBackendSummary = useMemo(() => {
-    const runId = `pm-${project.id}-preview`;
-    const state = createBoundedOrchestratorRun(createOrchestratorBackendState(), {
-      id: runId,
-      projectId: project.id,
-      scope: {
-        mode: "task-list",
-        taskIds: rows.map((row) => row.task.id)
-      },
-      baseBranch: "current",
-      createdAt: "preview"
-    });
+  useEffect(() => {
+    let cancelled = false;
 
-    return {
-      summary: summarizeOrchestratorRunQueue(state, runId),
-      sections: groupOrchestratorLedgerForUi(state.ledger, { runId })
+    if (!hasTauriRuntime()) {
+      setOrchestratorBackendState(fallbackOrchestratorState);
+      setOrchestratorPumpStatus("Desktop runtime unavailable");
+      return;
+    }
+
+    readOrchestratorSqliteSnapshot()
+      .then((snapshot) => {
+        if (cancelled) {
+          return;
+        }
+
+        setOrchestratorBackendState(
+          snapshot.runs.length > 0
+            ? hydrateOrchestratorBackendStateFromSqlite(snapshot)
+            : fallbackOrchestratorState
+        );
+        setOrchestratorPumpStatus(snapshot.runs.length > 0 ? "Restored durable state" : "No durable run yet");
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+
+        setOrchestratorBackendState(fallbackOrchestratorState);
+        setOrchestratorPumpStatus(error instanceof Error ? error.message : "Durable state unavailable");
+      });
+
+    return () => {
+      cancelled = true;
     };
-  }, [project.id, rows]);
+  }, [fallbackOrchestratorState]);
+  const activeOrchestratorRunId = useMemo(() => {
+    const projectRun = orchestratorBackendState.runs.find((run) => run.projectId === project.id);
+
+    return projectRun?.id ?? orchestratorBackendState.runs.at(-1)?.id;
+  }, [orchestratorBackendState.runs, project.id]);
+  const orchestratorBackendSummary = useMemo(() => {
+    return {
+      summary: summarizeOrchestratorRunQueue(orchestratorBackendState, activeOrchestratorRunId),
+      sections: groupOrchestratorLedgerForUi(
+        orchestratorBackendState.ledger,
+        activeOrchestratorRunId ? { runId: activeOrchestratorRunId } : {}
+      )
+    };
+  }, [activeOrchestratorRunId, orchestratorBackendState]);
 
   function handleToggleTask(taskId: string) {
     onTasksChange(toggleProjectManagementTaskCollapsed(tasks, taskId));
@@ -12672,6 +12725,27 @@ function PlanningView({
     setStagedResult(result);
     onTasksChange(tasks.map((task) => (task.id === taskId ? { ...task, runState: "staged" } : task)));
     onStagePackage(result.dispatchPackage);
+  }
+
+  async function handleDrainOrchestratorQueue() {
+    if (!hasTauriRuntime()) {
+      setOrchestratorPumpStatus("Desktop runtime unavailable");
+      return;
+    }
+
+    setOrchestratorPumpStatus("Draining one FIFO item");
+
+    try {
+      const result = await runOrchestratorQueuePumpCycle({
+        repositoryRoot: ".",
+        processedAt: new Date().toISOString()
+      });
+
+      setOrchestratorBackendState(result.backendState);
+      setOrchestratorPumpStatus(result.detail);
+    } catch (error) {
+      setOrchestratorPumpStatus(error instanceof Error ? error.message : "Queue pump failed");
+    }
   }
 
   function handleChatSubmit(event: FormEvent<HTMLFormElement>) {
@@ -12743,6 +12817,16 @@ function PlanningView({
             <span>{orchestratorBackendSummary.summary.statusLabel}</span>
           </div>
           <p>{orchestratorBackendSummary.summary.phaseLabel}</p>
+          <div className="pm-orchestrator-actions">
+            <button
+              onClick={handleDrainOrchestratorQueue}
+              type="button"
+            >
+              <Play size={14} />
+              Drain next
+            </button>
+            <span title={orchestratorPumpStatus}>{orchestratorPumpStatus}</span>
+          </div>
           <dl>
             <div>
               <dt>Queued</dt>
