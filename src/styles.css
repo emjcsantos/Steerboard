@@ -20061,6 +20061,38 @@ textarea {
   white-space: nowrap;
 }
 
+.pm-orchestrator-ledger-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  border-top: 1px solid #273340;
+  background: #273340;
+}
+
+.pm-orchestrator-ledger-details div {
+  min-width: 0;
+  background: #111820;
+  padding: 6px 8px;
+}
+
+.pm-orchestrator-ledger-details dt {
+  color: #7f8c99;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pm-orchestrator-ledger-details dd {
+  min-width: 0;
+  overflow: hidden;
+  margin: 2px 0 0;
+  color: #dce3eb;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .pm-orchestrator-ledger-section ol {
   margin: 0;
   border-top: 1px solid #273340;

@@ -31,7 +31,13 @@ const entries: OrchestratorLedgerEntry[] = [
       taskId: "task-1",
       jobId: "worker-1",
       attempt: 1,
-      changedFiles: ["src/a.ts"]
+      changedFiles: ["src/a.ts"],
+      validationCommands: ["npm.cmd run test -- src/a.test.ts"],
+      budget: {
+        maxWorkerAttempts: 3,
+        maxRuntimeMinutes: 30,
+        maxTokens: 100000
+      }
     },
     createdAt: "2026-07-09T05:01:00.000Z"
   },
@@ -50,7 +56,31 @@ const entries: OrchestratorLedgerEntry[] = [
       verdict: "revision-required",
       nextAction: "return-to-worker",
       findingCount: 2,
-      changedFiles: ["src/a.ts", "src/a.test.ts"]
+      changedFiles: ["src/a.ts", "src/a.test.ts"],
+      commandsRun: [
+        {
+          command: "npm.cmd run test -- src/a.test.ts",
+          status: "failed",
+          detail: "One failing test."
+        }
+      ],
+      findings: [
+        {
+          id: "missing-assertion",
+          severity: "error",
+          message: "Add missing assertion.",
+          files: ["src/a.test.ts"],
+          evidence: ["vitest"]
+        }
+      ],
+      acceptanceResults: [
+        {
+          criterion: "Task is complete.",
+          status: "fail",
+          evidence: ["vitest"]
+        }
+      ],
+      evidenceReferences: ["artifact://validator/report-1"]
     },
     createdAt: "2026-07-09T05:02:00.000Z"
   },
@@ -94,7 +124,21 @@ describe("orchestrator ledger view", () => {
     expect(sections.every((section) => section.collapsible)).toBe(true);
     expect(sections.find((section) => section.kind === "worker")).toMatchObject({
       title: "Worker | task-1 | attempt 1",
-      summary: "1 event | latest: Worker ran command."
+      summary: "1 event | latest: Worker ran command.",
+      details: expect.arrayContaining([
+        { label: "Commands", value: "npm.cmd run test -- src/a.test.ts" },
+        { label: "Changed files", value: "src/a.ts" },
+        { label: "Budget", value: "3 attempts / 30 min / 100000 tokens" }
+      ])
+    });
+    expect(sections.find((section) => section.kind === "validator")).toMatchObject({
+      details: expect.arrayContaining([
+        { label: "Commands", value: "npm.cmd run test -- src/a.test.ts (failed)" },
+        { label: "Findings", value: "Add missing assertion. (error)" },
+        { label: "Acceptance", value: "Task is complete. (fail)" },
+        { label: "Evidence", value: "artifact://validator/report-1" },
+        { label: "Verdict", value: "revision-required -> return-to-worker" }
+      ])
     });
   });
 

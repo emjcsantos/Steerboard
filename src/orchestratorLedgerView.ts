@@ -29,7 +29,13 @@ export interface OrchestratorLedgerUiSection {
   title: string;
   summary: string;
   collapsible: true;
+  details: OrchestratorLedgerUiDetail[];
   entries: OrchestratorLedgerEntry[];
+}
+
+export interface OrchestratorLedgerUiDetail {
+  label: string;
+  value: string;
 }
 
 export interface OrchestratorContextCheckpoint {
@@ -95,6 +101,16 @@ function payloadRecord(entry: OrchestratorLedgerEntry, key: string): Record<stri
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? value as Record<string, unknown>
     : undefined;
+}
+
+function payloadRecordList(entry: OrchestratorLedgerEntry, key: string): Record<string, unknown>[] {
+  const value = entry.payload[key];
+
+  return Array.isArray(value)
+    ? value.filter((item): item is Record<string, unknown> =>
+        typeof item === "object" && item !== null && !Array.isArray(item)
+      )
+    : [];
 }
 
 function recordString(record: Record<string, unknown>, key: string): string | undefined {
@@ -186,6 +202,133 @@ function summarizeEntries(entries: readonly OrchestratorLedgerEntry[]): string {
   }
 
   return `${entries.length} event${entries.length === 1 ? "" : "s"} | latest: ${last.message}`;
+}
+
+function compactList(values: readonly string[], max = 3): string {
+  const unique = [...new Set(values.filter((value) => value.trim().length > 0))];
+  const visible = unique.slice(0, max);
+  const hiddenCount = Math.max(unique.length - visible.length, 0);
+
+  return hiddenCount > 0 ? `${visible.join(", ")} +${hiddenCount}` : visible.join(", ");
+}
+
+function commandLabels(entries: readonly OrchestratorLedgerEntry[]): string[] {
+  return entries.flatMap((entry) => {
+    const stepCommands = payloadRecordList(entry, "steps").map((step) => {
+      const command = recordString(step, "command");
+      const status = recordString(step, "status");
+
+      return command ? `${command}${status ? ` (${status})` : ""}` : undefined;
+    });
+    const reportCommands = payloadRecordList(entry, "commandsRun").map((commandResult) => {
+      const command = recordString(commandResult, "command");
+      const status = recordString(commandResult, "status");
+
+      return command ? `${command}${status ? ` (${status})` : ""}` : undefined;
+    });
+
+    return [
+      ...stepCommands,
+      ...reportCommands,
+      ...payloadStringList(entry, "validationCommands")
+    ].filter((value): value is string => Boolean(value));
+  });
+}
+
+function acceptanceLabels(entries: readonly OrchestratorLedgerEntry[]): string[] {
+  return entries.flatMap((entry) =>
+    payloadRecordList(entry, "acceptanceResults").map((result) => {
+      const criterion = recordString(result, "criterion");
+      const status = recordString(result, "status");
+
+      return criterion ? `${criterion}${status ? ` (${status})` : ""}` : undefined;
+    }).filter((value): value is string => Boolean(value))
+  );
+}
+
+function findingLabels(entries: readonly OrchestratorLedgerEntry[]): string[] {
+  return entries.flatMap((entry) =>
+    payloadRecordList(entry, "findings").map((finding) => {
+      const message = recordString(finding, "message");
+      const severity = recordString(finding, "severity");
+
+      return message ? `${message}${severity ? ` (${severity})` : ""}` : undefined;
+    }).filter((value): value is string => Boolean(value))
+  );
+}
+
+function budgetLabels(entries: readonly OrchestratorLedgerEntry[]): string[] {
+  return entries.flatMap((entry) => {
+    const budget = payloadRecord(entry, "budget");
+
+    if (!budget) {
+      return [];
+    }
+
+    const attempts = recordNumber(budget, "maxWorkerAttempts");
+    const minutes = recordNumber(budget, "maxRuntimeMinutes");
+    const tokens = recordNumber(budget, "maxTokens");
+    const parts = [
+      attempts > 0 ? `${attempts} attempts` : undefined,
+      minutes > 0 ? `${minutes} min` : undefined,
+      tokens > 0 ? `${tokens} tokens` : undefined
+    ].filter(Boolean);
+
+    return parts.length > 0 ? [parts.join(" / ")] : [];
+  });
+}
+
+function buildSectionDetails(entries: readonly OrchestratorLedgerEntry[]): OrchestratorLedgerUiDetail[] {
+  const latest = entries.at(-1);
+  const changedFiles = entries.flatMap((entry) => payloadStringList(entry, "changedFiles"));
+  const ownedFiles = entries.flatMap((entry) => payloadStringList(entry, "ownedFiles"));
+  const evidence = entries.flatMap((entry) => [
+    ...payloadStringList(entry, "evidenceReferences"),
+    ...payloadStringList(entry, "artifactPaths")
+  ]);
+  const commands = commandLabels(entries);
+  const acceptance = acceptanceLabels(entries);
+  const findings = findingLabels(entries);
+  const budgets = budgetLabels(entries);
+  const verdict = latest ? payloadText(latest, "verdict") : undefined;
+  const nextAction = latest ? payloadText(latest, "nextAction") : undefined;
+  const cleanupStatus = latest ? payloadText(latest, "cleanupStatus") : undefined;
+  const commandKind = latest ? payloadText(latest, "commandKind") : undefined;
+  const details: OrchestratorLedgerUiDetail[] = [];
+
+  if (commands.length > 0) {
+    details.push({ label: "Commands", value: compactList(commands) });
+  }
+
+  if (changedFiles.length > 0 || ownedFiles.length > 0) {
+    details.push({ label: changedFiles.length > 0 ? "Changed files" : "Owned files", value: compactList(changedFiles.length > 0 ? changedFiles : ownedFiles) });
+  }
+
+  if (budgets.length > 0) {
+    details.push({ label: "Budget", value: compactList(budgets) });
+  }
+
+  if (findings.length > 0) {
+    details.push({ label: "Findings", value: compactList(findings) });
+  }
+
+  if (acceptance.length > 0) {
+    details.push({ label: "Acceptance", value: compactList(acceptance) });
+  }
+
+  if (evidence.length > 0) {
+    details.push({ label: "Evidence", value: compactList(evidence) });
+  }
+
+  if (verdict || nextAction) {
+    details.push({ label: "Verdict", value: [verdict, nextAction].filter(Boolean).join(" -> ") });
+  }
+
+  if (cleanupStatus || commandKind) {
+    details.push({ label: cleanupStatus ? "Cleanup" : "Command", value: cleanupStatus ?? commandKind ?? "" });
+  }
+
+  return details;
 }
 
 function cleanupStatusFromEntry(entry: OrchestratorLedgerEntry): string | undefined {
@@ -280,6 +423,7 @@ export function groupOrchestratorLedgerForUi(
       title: title?.title ?? "Other",
       summary: summarizeEntries(sectionEntries),
       collapsible: true,
+      details: buildSectionDetails(sectionEntries),
       entries: sectionEntries
     };
   });

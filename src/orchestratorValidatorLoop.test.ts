@@ -188,7 +188,26 @@ describe("orchestrator validator loop", () => {
 
     expect(loop.accepted).toBe(true);
     expect(loop.backendState.eventQueue[0]).toMatchObject({
-      kind: "validator.reported"
+      kind: "validator.reported",
+      payload: {
+        attempt: 1,
+        verdict: "pass",
+        nextAction: "accept",
+        commandsRun: [
+          {
+            command: "npm.cmd run test -- src/orchestratorValidatorLoop.test.ts",
+            status: "passed",
+            detail: "Passed"
+          }
+        ],
+        acceptanceResults: [
+          {
+            criterion: "Validator produces a structured report.",
+            status: "pass",
+            evidence: ["vitest"]
+          }
+        ]
+      }
     });
   });
 

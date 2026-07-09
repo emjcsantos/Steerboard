@@ -202,6 +202,7 @@ describe("orchestrator worker dispatch", () => {
       modelProfileId: DEFAULT_WORKER_MODEL_PROFILE.id,
       capabilityProfile: "workspace-write",
       attempt: 1,
+      budget: DEFAULT_PM_TASK_BUDGET,
       ownedFiles: ["src/task-1.ts"],
       acceptanceCriteria: ["Worker job is queued."],
       validationCommands: ["npm.cmd run test -- src/orchestratorWorkerDispatch.test.ts"]
@@ -235,7 +236,13 @@ describe("orchestrator worker dispatch", () => {
     expect(result.backendState.runs[0].phase).toBe("Run created");
     expect(result.backendState.eventQueue[0]).toMatchObject({
       kind: "worker.progress",
-      status: "queued"
+      status: "queued",
+      payload: {
+        attempt: 1,
+        budget: DEFAULT_PM_TASK_BUDGET,
+        ownedFiles: ["src/task-1.ts"],
+        validationCommands: ["npm.cmd run test -- src/orchestratorWorkerDispatch.test.ts"]
+      }
     });
 
     const processed = processAllQueuedOrchestratorEvents(result.backendState, "2026-07-09T03:01:00.000Z");

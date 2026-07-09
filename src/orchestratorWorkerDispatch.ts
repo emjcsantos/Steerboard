@@ -293,6 +293,7 @@ export function dispatchWorkerReadyTasks(
         modelProfileId: job.modelProfileId,
         capabilityProfile: job.capabilityProfile,
         attempt: job.attempt,
+        budget: job.budget,
         ownedFiles: job.ownedFiles,
         acceptanceCriteria: task.acceptanceCriteria,
         validationCommands: task.validationCommands
@@ -308,7 +309,11 @@ export function dispatchWorkerReadyTasks(
         jobId: job.id,
         taskId: task.id,
         branch: job.branch,
-        worktreePath: job.worktreePath
+        worktreePath: job.worktreePath,
+        attempt: job.attempt,
+        budget: job.budget,
+        ownedFiles: job.ownedFiles,
+        validationCommands: task.validationCommands
       },
       dedupeKey: `${job.id}:queued`,
       enqueuedAt: request.createdAt

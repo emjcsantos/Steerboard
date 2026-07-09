@@ -13008,12 +13008,22 @@ function PlanningView({
               </button>
             </section>
           ) : null}
-          {orchestratorBackendSummary.sections.slice(0, 2).map((section) => (
+          {orchestratorBackendSummary.sections.map((section) => (
             <details className="pm-orchestrator-ledger-section" key={section.id}>
               <summary>
                 <strong>{section.title}</strong>
                 <span>{section.summary}</span>
               </summary>
+              {section.details.length > 0 ? (
+                <dl className="pm-orchestrator-ledger-details">
+                  {section.details.map((detail) => (
+                    <div key={`${section.id}-${detail.label}`}>
+                      <dt>{detail.label}</dt>
+                      <dd title={detail.value}>{detail.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
               <ol>
                 {section.entries.map((entry) => (
                   <li key={entry.id}>{entry.message}</li>

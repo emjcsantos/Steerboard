@@ -290,8 +290,15 @@ export function applyValidatorReport(
       taskId: report.taskId,
       workerJobId: report.workerJobId,
       validatorJobId: report.validatorJobId,
+      attempt: report.attempt,
+      verdict: report.verdict,
       nextAction: report.nextAction,
-      findingCount: report.findings.length
+      findingCount: report.findings.length,
+      findings: report.findings,
+      commandsRun: report.commandsRun,
+      acceptanceResults: report.acceptanceResults,
+      changedFiles: report.changedFiles,
+      evidenceReferences: report.evidenceReferences
     },
     dedupeKey: report.id,
     enqueuedAt: report.createdAt
