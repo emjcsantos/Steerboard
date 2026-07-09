@@ -6350,7 +6350,7 @@ mod orchestrator_sqlite {
     use std::path::PathBuf;
 
     #[derive(Debug, Clone, Deserialize)]
-    #[serde(rename_all = "camelCase")]
+    #[serde(rename_all = "snake_case")]
     pub struct OrchestratorRunSqliteRow {
         pub id: String,
         pub project_id: String,
@@ -6364,7 +6364,7 @@ mod orchestrator_sqlite {
     }
 
     #[derive(Debug, Clone, Deserialize)]
-    #[serde(rename_all = "camelCase")]
+    #[serde(rename_all = "snake_case")]
     pub struct OrchestratorQueueSqliteRow {
         pub id: String,
         pub run_id: String,
@@ -6380,7 +6380,7 @@ mod orchestrator_sqlite {
     }
 
     #[derive(Debug, Clone, Deserialize)]
-    #[serde(rename_all = "camelCase")]
+    #[serde(rename_all = "snake_case")]
     pub struct OrchestratorLedgerSqliteRow {
         pub id: String,
         pub run_id: String,
@@ -6394,7 +6394,7 @@ mod orchestrator_sqlite {
     }
 
     #[derive(Debug, Clone, Deserialize)]
-    #[serde(rename_all = "camelCase")]
+    #[serde(rename_all = "snake_case")]
     pub struct OrchestratorArtifactSqliteRow {
         pub id: String,
         pub run_id: String,
