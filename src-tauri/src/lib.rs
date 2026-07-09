@@ -6344,6 +6344,307 @@ mod runtime_bridge {
     }
 }
 
+mod orchestrator_sqlite {
+    use rusqlite::{params, Connection};
+    use serde::{Deserialize, Serialize};
+    use std::path::PathBuf;
+
+    #[derive(Debug, Clone, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OrchestratorRunSqliteRow {
+        pub id: String,
+        pub project_id: String,
+        pub scope_json: String,
+        pub base_branch: String,
+        pub integration_branch: String,
+        pub status: String,
+        pub phase: String,
+        pub created_at: String,
+        pub updated_at: String,
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OrchestratorQueueSqliteRow {
+        pub id: String,
+        pub run_id: String,
+        pub queue_name: String,
+        pub sequence: i64,
+        pub kind: String,
+        pub payload_json: String,
+        pub dedupe_key: Option<String>,
+        pub status: String,
+        pub enqueued_at: String,
+        pub processed_at: Option<String>,
+        pub ignored_reason: Option<String>,
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OrchestratorLedgerSqliteRow {
+        pub id: String,
+        pub run_id: String,
+        pub sequence: i64,
+        pub event_id: Option<String>,
+        pub kind: String,
+        pub severity: String,
+        pub message: String,
+        pub payload_json: String,
+        pub created_at: String,
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OrchestratorArtifactSqliteRow {
+        pub id: String,
+        pub run_id: String,
+        pub task_id: Option<String>,
+        pub job_id: Option<String>,
+        pub attempt: Option<i64>,
+        pub kind: String,
+        pub path: String,
+        pub sha256: String,
+        pub size_bytes: i64,
+        pub created_at: String,
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OrchestratorSqliteSnapshot {
+        pub runs: Vec<OrchestratorRunSqliteRow>,
+        pub events: Vec<OrchestratorQueueSqliteRow>,
+        pub commands: Vec<OrchestratorQueueSqliteRow>,
+        pub ledger: Vec<OrchestratorLedgerSqliteRow>,
+        pub artifacts: Vec<OrchestratorArtifactSqliteRow>,
+    }
+
+    #[derive(Debug, Clone, Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OrchestratorSqliteApplyResult {
+        pub database_path: String,
+        pub runs_written: usize,
+        pub queue_rows_written: usize,
+        pub ledger_rows_written: usize,
+        pub artifacts_written: usize,
+        pub detail: String,
+    }
+
+    fn database_path() -> Result<PathBuf, String> {
+        let root = std::env::current_dir()
+            .map_err(|error| format!("orchestrator_sqlite_current_dir_failed:{error}"))?;
+        let dir = root.join(".steerboard");
+        std::fs::create_dir_all(&dir)
+            .map_err(|error| format!("orchestrator_sqlite_create_dir_failed:{error}"))?;
+        Ok(dir.join("orchestrator.sqlite"))
+    }
+
+    fn initialize_schema(connection: &Connection) -> Result<(), String> {
+        connection
+            .execute_batch(
+                r#"
+                CREATE TABLE IF NOT EXISTS orchestrator_runs (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT NOT NULL,
+                    scope_json TEXT NOT NULL,
+                    base_branch TEXT NOT NULL,
+                    integration_branch TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    phase TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS orchestrator_queue (
+                    id TEXT PRIMARY KEY,
+                    run_id TEXT NOT NULL,
+                    queue_name TEXT NOT NULL,
+                    sequence INTEGER NOT NULL,
+                    kind TEXT NOT NULL,
+                    payload_json TEXT NOT NULL,
+                    dedupe_key TEXT,
+                    status TEXT NOT NULL,
+                    enqueued_at TEXT NOT NULL,
+                    processed_at TEXT,
+                    ignored_reason TEXT
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_orchestrator_queue_run_status
+                    ON orchestrator_queue(run_id, queue_name, status, sequence);
+
+                CREATE TABLE IF NOT EXISTS orchestrator_ledger (
+                    id TEXT PRIMARY KEY,
+                    run_id TEXT NOT NULL,
+                    sequence INTEGER NOT NULL,
+                    event_id TEXT,
+                    kind TEXT NOT NULL,
+                    severity TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    payload_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_orchestrator_ledger_run_sequence
+                    ON orchestrator_ledger(run_id, sequence);
+
+                CREATE TABLE IF NOT EXISTS orchestrator_artifacts (
+                    id TEXT PRIMARY KEY,
+                    run_id TEXT NOT NULL,
+                    task_id TEXT,
+                    job_id TEXT,
+                    attempt INTEGER,
+                    kind TEXT NOT NULL,
+                    path TEXT NOT NULL,
+                    sha256 TEXT NOT NULL,
+                    size_bytes INTEGER NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_orchestrator_artifacts_run_task
+                    ON orchestrator_artifacts(run_id, task_id, job_id);
+                "#,
+            )
+            .map_err(|error| format!("orchestrator_sqlite_schema_failed:{error}"))
+    }
+
+    fn write_run(tx: &rusqlite::Transaction<'_>, row: &OrchestratorRunSqliteRow) -> Result<(), String> {
+        tx.execute(
+            r#"
+            INSERT OR REPLACE INTO orchestrator_runs (
+                id, project_id, scope_json, base_branch, integration_branch,
+                status, phase, created_at, updated_at
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+            "#,
+            params![
+                row.id,
+                row.project_id,
+                row.scope_json,
+                row.base_branch,
+                row.integration_branch,
+                row.status,
+                row.phase,
+                row.created_at,
+                row.updated_at
+            ],
+        )
+        .map_err(|error| format!("orchestrator_sqlite_write_run_failed:{error}"))?;
+        Ok(())
+    }
+
+    fn write_queue(tx: &rusqlite::Transaction<'_>, row: &OrchestratorQueueSqliteRow) -> Result<(), String> {
+        tx.execute(
+            r#"
+            INSERT OR REPLACE INTO orchestrator_queue (
+                id, run_id, queue_name, sequence, kind, payload_json, dedupe_key,
+                status, enqueued_at, processed_at, ignored_reason
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+            "#,
+            params![
+                row.id,
+                row.run_id,
+                row.queue_name,
+                row.sequence,
+                row.kind,
+                row.payload_json,
+                row.dedupe_key,
+                row.status,
+                row.enqueued_at,
+                row.processed_at,
+                row.ignored_reason
+            ],
+        )
+        .map_err(|error| format!("orchestrator_sqlite_write_queue_failed:{error}"))?;
+        Ok(())
+    }
+
+    fn write_ledger(tx: &rusqlite::Transaction<'_>, row: &OrchestratorLedgerSqliteRow) -> Result<(), String> {
+        tx.execute(
+            r#"
+            INSERT OR REPLACE INTO orchestrator_ledger (
+                id, run_id, sequence, event_id, kind, severity, message, payload_json, created_at
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+            "#,
+            params![
+                row.id,
+                row.run_id,
+                row.sequence,
+                row.event_id,
+                row.kind,
+                row.severity,
+                row.message,
+                row.payload_json,
+                row.created_at
+            ],
+        )
+        .map_err(|error| format!("orchestrator_sqlite_write_ledger_failed:{error}"))?;
+        Ok(())
+    }
+
+    fn write_artifact(tx: &rusqlite::Transaction<'_>, row: &OrchestratorArtifactSqliteRow) -> Result<(), String> {
+        tx.execute(
+            r#"
+            INSERT OR REPLACE INTO orchestrator_artifacts (
+                id, run_id, task_id, job_id, attempt, kind, path, sha256, size_bytes, created_at
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+            "#,
+            params![
+                row.id,
+                row.run_id,
+                row.task_id,
+                row.job_id,
+                row.attempt,
+                row.kind,
+                row.path,
+                row.sha256,
+                row.size_bytes,
+                row.created_at
+            ],
+        )
+        .map_err(|error| format!("orchestrator_sqlite_write_artifact_failed:{error}"))?;
+        Ok(())
+    }
+
+    #[tauri::command]
+    pub fn orchestrator_sqlite_apply_snapshot(
+        snapshot: OrchestratorSqliteSnapshot,
+    ) -> Result<OrchestratorSqliteApplyResult, String> {
+        let path = database_path()?;
+        let mut connection = Connection::open(&path)
+            .map_err(|error| format!("orchestrator_sqlite_open_failed:{error}"))?;
+        initialize_schema(&connection)?;
+        let tx = connection
+            .transaction()
+            .map_err(|error| format!("orchestrator_sqlite_transaction_failed:{error}"))?;
+
+        for row in &snapshot.runs {
+            write_run(&tx, row)?;
+        }
+
+        for row in snapshot.events.iter().chain(snapshot.commands.iter()) {
+            write_queue(&tx, row)?;
+        }
+
+        for row in &snapshot.ledger {
+            write_ledger(&tx, row)?;
+        }
+
+        for row in &snapshot.artifacts {
+            write_artifact(&tx, row)?;
+        }
+
+        tx.commit()
+            .map_err(|error| format!("orchestrator_sqlite_commit_failed:{error}"))?;
+
+        Ok(OrchestratorSqliteApplyResult {
+            database_path: path.to_string_lossy().to_string(),
+            runs_written: snapshot.runs.len(),
+            queue_rows_written: snapshot.events.len() + snapshot.commands.len(),
+            ledger_rows_written: snapshot.ledger.len(),
+            artifacts_written: snapshot.artifacts.len(),
+            detail: "Orchestrator SQLite snapshot applied.".to_string(),
+        })
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -6380,6 +6681,7 @@ pub fn run() {
             runtime_bridge::git_workbench_diff,
             runtime_bridge::git_workbench_action,
             runtime_bridge::terminal_pane_action,
+            orchestrator_sqlite::orchestrator_sqlite_apply_snapshot,
             runtime_bridge::phase3_command_validation_artifact_read,
             runtime_bridge::phase3_smoke_proof_bundle_artifact_read,
             runtime_bridge::phase3_panel_evidence_artifact_read,
