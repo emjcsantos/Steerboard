@@ -6820,6 +6820,7 @@ mod orchestrator_runtime_executor {
         pub artifact_paths: Vec<String>,
         pub steps: Vec<OrchestratorRuntimeCommandStep>,
         pub detail: String,
+        pub structured_output: Option<Value>,
     }
 
     fn hide_command_window(command: &mut Command) {
@@ -6996,7 +6997,7 @@ mod orchestrator_runtime_executor {
         stdout_path: &Path,
         stderr_path: &Path,
         sandbox: &str,
-    ) -> Result<(), String> {
+    ) -> Result<Option<Value>, String> {
         #[cfg(windows)]
         let mut command = {
             let mut command = Command::new("cmd");
@@ -7030,14 +7031,63 @@ mod orchestrator_runtime_executor {
         fs::write(stderr_path, &output.stderr)
             .map_err(|error| format!("orchestrator_runtime_codex_stderr_write_failed:{error}"))?;
 
+        let structured_output = structured_validator_output(&output.stdout);
+
         if output.status.success() {
-            Ok(())
+            Ok(structured_output)
         } else {
             Err(format!(
                 "orchestrator_runtime_codex_exited_{}",
                 output.status.code().unwrap_or(-1)
             ))
         }
+    }
+
+    fn validator_report_candidate(value: &Value) -> Option<Value> {
+        if let Some(object) = value.as_object() {
+            if object.contains_key("verdict") && object.contains_key("nextAction") {
+                return Some(value.clone());
+            }
+
+            for nested in object.values() {
+                if let Some(found) = validator_report_candidate(nested) {
+                    return Some(found);
+                }
+            }
+        }
+
+        if let Some(array) = value.as_array() {
+            for nested in array {
+                if let Some(found) = validator_report_candidate(nested) {
+                    return Some(found);
+                }
+            }
+        }
+
+        if let Some(text) = value.as_str() {
+            if let Ok(parsed) = serde_json::from_str::<Value>(text.trim()) {
+                return validator_report_candidate(&parsed);
+            }
+        }
+
+        None
+    }
+
+    fn structured_validator_output(stdout: &[u8]) -> Option<Value> {
+        let text = String::from_utf8_lossy(stdout);
+        for line in text.lines().rev() {
+            let trimmed = line.trim();
+            if trimmed.is_empty() {
+                continue;
+            }
+            if let Ok(value) = serde_json::from_str::<Value>(trimmed) {
+                if let Some(found) = validator_report_candidate(&value) {
+                    return Some(found);
+                }
+            }
+        }
+
+        None
     }
 
     fn execute_worker_start(
@@ -7094,7 +7144,7 @@ mod orchestrator_runtime_executor {
             .map_err(|error| format!("orchestrator_runtime_prompt_write_failed:{error}"))?;
         artifacts.push(prompt_path.to_string_lossy().to_string());
 
-        run_codex_exec(&worktree, &prompt, &stdout_path, &stderr_path, "workspace-write")?;
+        let _ = run_codex_exec(&worktree, &prompt, &stdout_path, &stderr_path, "workspace-write")?;
         artifacts.push(stdout_path.to_string_lossy().to_string());
         artifacts.push(stderr_path.to_string_lossy().to_string());
         steps.push(step(
@@ -7113,6 +7163,7 @@ mod orchestrator_runtime_executor {
             artifact_paths: artifacts,
             steps,
             detail: "Worker worktree was created and Codex worker execution completed.".to_string(),
+            structured_output: None,
         })
     }
 
@@ -7145,7 +7196,7 @@ mod orchestrator_runtime_executor {
         );
         fs::write(&prompt_path, &prompt)
             .map_err(|error| format!("orchestrator_runtime_validator_prompt_write_failed:{error}"))?;
-        run_codex_exec(&worktree, &prompt, &stdout_path, &stderr_path, "read-only")?;
+        let structured_output = run_codex_exec(&worktree, &prompt, &stdout_path, &stderr_path, "read-only")?;
 
         Ok(OrchestratorRuntimeCommandResult {
             command_id: request.command_id.clone(),
@@ -7165,6 +7216,7 @@ mod orchestrator_runtime_executor {
                 "Codex validator completed and wrote stdout/stderr artifacts.".to_string(),
             )],
             detail: "Read-only validator execution completed.".to_string(),
+            structured_output,
         })
     }
 
@@ -7197,6 +7249,7 @@ mod orchestrator_runtime_executor {
                     "Worker branch has no changes to commit.".to_string(),
                 )],
                 detail: "Worker commit blocked because there were no changed files.".to_string(),
+                structured_output: None,
             });
         }
 
@@ -7226,6 +7279,7 @@ mod orchestrator_runtime_executor {
             artifact_paths: Vec::new(),
             steps,
             detail: format!("Accepted worker output committed on {branch}."),
+            structured_output: None,
         })
     }
 
@@ -7295,6 +7349,7 @@ mod orchestrator_runtime_executor {
             artifact_paths: Vec::new(),
             steps,
             detail: format!("Integrated accepted commits into {integration_branch}."),
+            structured_output: None,
         })
     }
 
@@ -7320,6 +7375,7 @@ mod orchestrator_runtime_executor {
                 format!("Removed {}.", worktree.display()),
             )],
             detail: "Worker worktree cleanup completed.".to_string(),
+            structured_output: None,
         })
     }
 
@@ -7333,6 +7389,7 @@ mod orchestrator_runtime_executor {
             artifact_paths: Vec::new(),
             steps: vec![step("Preflight", "orchestrator runtime executor", "blocked", detail.clone())],
             detail,
+            structured_output: None,
         }
     }
 

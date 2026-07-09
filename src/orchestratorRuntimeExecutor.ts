@@ -38,6 +38,7 @@ export interface OrchestratorRuntimeCommandResult {
   artifactPaths: string[];
   steps: OrchestratorRuntimeCommandStep[];
   detail: string;
+  structuredOutput?: unknown;
 }
 
 export interface OrchestratorRuntimeDrainResult {

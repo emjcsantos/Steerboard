@@ -16,6 +16,9 @@ import {
   type OrchestratorSqliteApplyResult,
   type OrchestratorSqliteSnapshot
 } from "./orchestratorSqliteStore";
+import {
+  applyValidatorRuntimeCommandResult
+} from "./orchestratorValidatorRuntimeReport";
 
 export interface OrchestratorQueuePumpCycleInput {
   repositoryRoot: string;
@@ -50,8 +53,17 @@ export async function runOrchestratorQueuePumpCycle(
     processedAt: input.processedAt,
     execute: input.execute ?? executeOrchestratorRuntimeCommand
   });
-  const afterCommandQueued = queuedEventCount(drained.backendState);
-  const processedState = processAllQueuedOrchestratorEvents(drained.backendState, input.processedAt);
+  const loopApplied = drained.command && drained.result
+    ? applyValidatorRuntimeCommandResult({
+        backendState: drained.backendState,
+        command: drained.command,
+        result: drained.result,
+        createdAt: input.processedAt
+      })
+    : undefined;
+  const stateAfterLoop = loopApplied?.backendState ?? drained.backendState;
+  const afterCommandQueued = queuedEventCount(stateAfterLoop);
+  const processedState = processAllQueuedOrchestratorEvents(stateAfterLoop, input.processedAt);
   const eventsProcessed = afterCommandQueued - queuedEventCount(processedState);
   const changed = drained.drained || eventsProcessed > 0;
 
@@ -78,7 +90,9 @@ export async function runOrchestratorQueuePumpCycle(
     snapshotApplied: true,
     applyResult,
     detail: drained.drained
-      ? "Drained one orchestrator runtime command and persisted the resulting ledger state."
+      ? loopApplied
+        ? "Drained one validator command, applied the validator loop decision, and persisted the ledger state."
+        : "Drained one orchestrator runtime command and persisted the resulting ledger state."
       : "Processed queued orchestrator events and persisted the resulting ledger state."
   };
 }

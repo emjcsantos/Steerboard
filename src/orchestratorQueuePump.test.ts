@@ -130,6 +130,139 @@ describe("orchestrator queue pump", () => {
     expect(result.backendState.runs[0].phase).toBe("Validator passed.");
   });
 
+  it("applies a structured validator pass while draining validator.start", async () => {
+    const state = enqueueOrchestratorCommand(stateWithRun(), {
+      id: "run-123:worker:task-1:validator:1:start",
+      runId: "run-123",
+      kind: "validator.start",
+      payload: {
+        jobId: "run-123:worker:task-1:validator:1",
+        workerJobId: "run-123:worker:task-1",
+        taskId: "task-1",
+        worktreePath: "C:\\repo\\.steerboard\\worktrees\\task-1",
+        capabilityProfile: "read-only",
+        attempt: 1,
+        ownedFiles: ["src/task-1.ts"],
+        acceptanceCriteria: ["Task passes."],
+        validationCommands: ["npm.cmd run test -- src/task-1.test.ts"]
+      },
+      enqueuedAt: createdAt
+    });
+    const result = await runOrchestratorQueuePumpCycle({
+      repositoryRoot: "C:\\repo",
+      processedAt,
+      readSnapshot: async () => buildOrchestratorSqliteSnapshot(state),
+      applySnapshot: async (snapshot) => applyResult(snapshot),
+      execute: async (request) => ({
+        commandId: request.commandId,
+        runId: request.runId,
+        kind: request.kind,
+        executed: true,
+        blocked: false,
+        artifactPaths: ["C:\\repo\\.steerboard\\orchestrator-artifacts\\run-123\\validator.jsonl"],
+        steps: [
+          {
+            label: "Launch read-only validator",
+            command: "codex exec --json -m gpt-5.3-spark -s read-only",
+            status: "passed",
+            detail: "Validator completed."
+          }
+        ],
+        detail: "Read-only validator execution completed.",
+        structuredOutput: {
+          verdict: "pass",
+          nextAction: "accept",
+          findings: [],
+          acceptanceResults: [
+            {
+              criterion: "Task passes.",
+              status: "pass",
+              evidence: ["validator"]
+            }
+          ]
+        }
+      })
+    });
+
+    expect(result.detail).toBe("Drained one validator command, applied the validator loop decision, and persisted the ledger state.");
+    expect(result.backendState.commandQueue[0]).toMatchObject({
+      status: "processed"
+    });
+    expect(result.backendState.ledger.at(-1)).toMatchObject({
+      kind: "validator.reported",
+      message: "Validator verdict: pass."
+    });
+  });
+
+  it("queues a worker retry from structured validator revision output", async () => {
+    const state = enqueueOrchestratorCommand(stateWithRun(), {
+      id: "run-123:worker:task-1:validator:1:start",
+      runId: "run-123",
+      kind: "validator.start",
+      payload: {
+        jobId: "run-123:worker:task-1:validator:1",
+        workerJobId: "run-123:worker:task-1",
+        taskId: "task-1",
+        worktreePath: "C:\\repo\\.steerboard\\worktrees\\task-1",
+        capabilityProfile: "read-only",
+        attempt: 1,
+        ownedFiles: ["src/task-1.ts"],
+        acceptanceCriteria: ["Task passes."],
+        validationCommands: ["npm.cmd run test -- src/task-1.test.ts"]
+      },
+      enqueuedAt: createdAt
+    });
+    const result = await runOrchestratorQueuePumpCycle({
+      repositoryRoot: "C:\\repo",
+      processedAt,
+      readSnapshot: async () => buildOrchestratorSqliteSnapshot(state),
+      applySnapshot: async (snapshot) => applyResult(snapshot),
+      execute: async (request) => ({
+        commandId: request.commandId,
+        runId: request.runId,
+        kind: request.kind,
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [
+          {
+            label: "Launch read-only validator",
+            command: "codex exec --json -m gpt-5.3-spark -s read-only",
+            status: "passed",
+            detail: "Validator completed."
+          }
+        ],
+        detail: "Read-only validator execution completed.",
+        structuredOutput: {
+          verdict: "revision-required",
+          nextAction: "return-to-worker",
+          findings: [
+            {
+              id: "missing-case",
+              severity: "error",
+              message: "Add one missing case.",
+              files: ["src/task-1.test.ts"],
+              sharedSurface: false,
+              evidence: ["validator"]
+            }
+          ]
+        }
+      })
+    });
+
+    expect(result.backendState.commandQueue.at(-1)).toMatchObject({
+      kind: "worker.start",
+      payload: {
+        attempt: 2,
+        defectCount: 1
+      }
+    });
+    expect(result.backendState.ledger.at(-1)).toMatchObject({
+      kind: "validator.reported",
+      message: "Validator verdict: revision-required."
+    });
+  });
+
   it("does not rewrite SQLite when no durable queue work exists", async () => {
     const result = await runOrchestratorQueuePumpCycle({
       repositoryRoot: "C:\\repo",
