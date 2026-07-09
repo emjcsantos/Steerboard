@@ -348,12 +348,14 @@ export function processNextOrchestratorEvent(
     };
   }
 
+  const requestedStatus = payloadRunStatus(nextEvent.payload);
   const nextStatus =
-    nextEvent.kind === "integration.updated"
+    requestedStatus ??
+    (nextEvent.kind === "integration.updated"
       ? "integrating"
       : nextEvent.kind === "worker.progress" || nextEvent.kind === "validator.reported"
       ? "running"
-      : run.status;
+      : run.status);
   const nextPhase =
     typeof nextEvent.payload.phase === "string" && nextEvent.payload.phase.trim().length > 0
       ? nextEvent.payload.phase.trim()
@@ -548,6 +550,22 @@ function normalizeRunStatus(value: string): OrchestratorRunStatus {
     value === "cancelled"
     ? value
     : "planning";
+}
+
+function payloadRunStatus(payload: Record<string, unknown>): OrchestratorRunStatus | undefined {
+  const value = payload.runStatus;
+
+  return typeof value === "string" &&
+    (value === "planning" ||
+      value === "dispatching" ||
+      value === "running" ||
+      value === "integrating" ||
+      value === "validation-failed" ||
+      value === "ready-for-finalization" ||
+      value === "completed" ||
+      value === "cancelled")
+    ? value
+    : undefined;
 }
 
 function normalizeQueueStatus(value: string): OrchestratorQueueStatus {

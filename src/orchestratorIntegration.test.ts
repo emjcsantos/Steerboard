@@ -5,6 +5,7 @@ import {
   processAllQueuedOrchestratorEvents
 } from "./orchestratorBackend";
 import {
+  applyIntegrationRuntimeCommandResult,
   createAcceptedWorkerCommit,
   evaluateIntegrationGates,
   queueAutomaticIntegration,
@@ -113,6 +114,7 @@ describe("orchestrator integration", () => {
       taskId: "task-1",
       workerJobId: "run-123:worker:task-1",
       branch: "codex/orch/task-1",
+      worktreePath: ".steerboard/worktrees/task-1",
       commitSha: "abc123",
       committedAt: createdAt,
       validationReportId: "report-1",
@@ -277,6 +279,74 @@ describe("orchestrator integration", () => {
     expect(first?.queued).toBe(true);
     expect(second?.queued).toBe(false);
     expect(second?.backendState.commandQueue.filter((command) => command.kind === "integration.start")).toHaveLength(1);
+  });
+
+  it("marks successful integration runtime results ready for finalization and queues cleanup", () => {
+    const state = backendState();
+    const accepted = createAcceptedWorkerCommit(state, workerJob(), passingReport(), {
+      committedAt: createdAt,
+      commitSha: "abc123",
+      commandEvidence: []
+    }).commit;
+    const queued = queueAutomaticIntegration(
+      state,
+      {
+        run: state.runs[0],
+        acceptedCommits: [accepted],
+        unresolvedCorrectiveTaskIds: [],
+        dependencyBlockerIds: [],
+        fileOwnershipConflictIds: [],
+        branchClean: true,
+        mergeable: true,
+        targetedValidationPassed: true,
+        sharedSurfaceChanged: false
+      },
+      createdAt
+    );
+    const command = queued.backendState.commandQueue[0];
+    const result = applyIntegrationRuntimeCommandResult({
+      backendState: queued.backendState,
+      command,
+      result: {
+        commandId: command.id,
+        runId: "run-123",
+        kind: "integration.start",
+        executed: true,
+        blocked: false,
+        artifactPaths: [],
+        steps: [],
+        detail: "Cherry-picked accepted commit and validation passed.",
+        structuredOutput: {
+          integrationBranch: "codex/orch/integration/run-123",
+          commitShas: ["abc123"]
+        }
+      },
+      createdAt: "2026-07-09T06:03:00.000Z"
+    });
+
+    expect(result?.completed).toBe(true);
+    expect(result?.cleanupQueued).toBe(1);
+    expect(result?.backendState.eventQueue.at(-1)).toMatchObject({
+      kind: "integration.updated",
+      payload: {
+        phase: "Integration branch ready for finalization.",
+        runStatus: "ready-for-finalization",
+        integrationBranch: "codex/orch/integration/run-123",
+        commitShas: ["abc123"],
+        finalMergeRequiresApproval: true
+      }
+    });
+    expect(result?.backendState.commandQueue.at(-1)).toMatchObject({
+      kind: "cleanup.start",
+      payload: {
+        runId: "run-123",
+        taskId: "task-1",
+        jobId: "run-123:worker:task-1",
+        kind: "worker-worktree",
+        path: ".steerboard/worktrees/task-1",
+        status: "retention-active"
+      }
+    });
   });
 
   it("creates integration blocker evidence instead of touching the user branch when gates fail", () => {

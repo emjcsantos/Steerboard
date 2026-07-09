@@ -5,6 +5,7 @@ import {
   type OrchestratorQueuedCommand,
   type OrchestratorRunRecord
 } from "./orchestratorBackend";
+import { createCleanupJob } from "./orchestratorCleanup";
 import type { OrchestratorRuntimeCommandResult } from "./orchestratorRuntimeExecutor";
 import type { WorkerJobRecord } from "./orchestratorWorkerDispatch";
 import type { ValidatorReport } from "./orchestratorValidatorLoop";
@@ -13,6 +14,7 @@ export interface AcceptedWorkerCommit {
   taskId: string;
   workerJobId: string;
   branch: string;
+  worktreePath?: string;
   commitSha: string;
   committedAt: string;
   validationReportId: string;
@@ -65,6 +67,13 @@ export interface WorkerCommitRuntimeIntegrationResult {
   detail: string;
 }
 
+export interface IntegrationRuntimeApplyResult {
+  backendState: OrchestratorBackendState;
+  completed: boolean;
+  cleanupQueued: number;
+  detail: string;
+}
+
 function fallbackCommitSha(workerJob: WorkerJobRecord, report: ValidatorReport): string {
   const seed = `${workerJob.id}:${report.id}:${report.createdAt}`;
   let hash = 0;
@@ -94,6 +103,7 @@ export function createAcceptedWorkerCommit(
     taskId: workerJob.taskId,
     workerJobId: workerJob.id,
     branch: workerJob.branch,
+    worktreePath: workerJob.worktreePath,
     commitSha: input.commitSha ?? fallbackCommitSha(workerJob, report),
     committedAt: input.committedAt,
     validationReportId: report.id,
@@ -214,6 +224,14 @@ export function queueAutomaticIntegration(
         integrationBranch: input.run.integrationBranch,
         baseBranch: input.run.baseBranch,
         commitShas: input.acceptedCommits.map((commit) => commit.commitSha),
+        acceptedCommits: input.acceptedCommits.map((commit) => ({
+          taskId: commit.taskId,
+          workerJobId: commit.workerJobId,
+          branch: commit.branch,
+          worktreePath: commit.worktreePath,
+          commitSha: commit.commitSha,
+          validationReportId: commit.validationReportId
+        })),
         validationScope: gate.validationScope,
         finalMergeRequiresApproval: true
       },
@@ -297,6 +315,7 @@ export function queueIntegrationAfterWorkerCommitRuntime(input: {
     taskId,
     workerJobId,
     branch,
+    worktreePath: payloadString(input.command.payload, "worktreePath"),
     commitSha,
     committedAt: input.createdAt,
     validationReportId,
@@ -335,5 +354,162 @@ export function queueIntegrationAfterWorkerCommitRuntime(input: {
     detail: integration.queued
       ? "Queued automatic integration for accepted worker commit."
       : "Accepted worker commit did not pass integration gates."
+  };
+}
+
+function resultStringList(result: OrchestratorRuntimeCommandResult, key: string): string[] {
+  const output = result.structuredOutput;
+
+  if (typeof output !== "object" || output === null || Array.isArray(output)) {
+    return [];
+  }
+
+  return payloadStringList(output as Record<string, unknown>, key);
+}
+
+function cleanupTargetsFromCommand(command: OrchestratorQueuedCommand): Array<{
+  taskId: string;
+  workerJobId: string;
+  path: string;
+}> {
+  const acceptedCommits = command.payload.acceptedCommits;
+
+  if (!Array.isArray(acceptedCommits)) {
+    return [];
+  }
+
+  return acceptedCommits.flatMap((item) => {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) {
+      return [];
+    }
+
+    const record = item as Record<string, unknown>;
+    const taskId = payloadString(record, "taskId");
+    const workerJobId = payloadString(record, "workerJobId");
+    const path = payloadString(record, "worktreePath");
+
+    return taskId && workerJobId && path
+      ? [
+          {
+            taskId,
+            workerJobId,
+            path
+          }
+        ]
+      : [];
+  });
+}
+
+export function applyIntegrationRuntimeCommandResult(input: {
+  backendState: OrchestratorBackendState;
+  command: OrchestratorQueuedCommand;
+  result: OrchestratorRuntimeCommandResult;
+  createdAt: string;
+}): IntegrationRuntimeApplyResult | undefined {
+  if (input.command.kind !== "integration.start") {
+    return undefined;
+  }
+
+  const run = input.backendState.runs.find((item) => item.id === input.command.runId);
+
+  if (!run) {
+    return {
+      backendState: input.backendState,
+      completed: false,
+      cleanupQueued: 0,
+      detail: "Integration runtime result was ignored because the run no longer exists."
+    };
+  }
+
+  const integrationBranch =
+    resultString(input.result, "integrationBranch") ?? payloadString(input.command.payload, "integrationBranch") ?? run.integrationBranch;
+  const commitShas =
+    resultStringList(input.result, "commitShas").length > 0
+      ? resultStringList(input.result, "commitShas")
+      : payloadStringList(input.command.payload, "commitShas");
+
+  if (input.result.blocked || !input.result.executed) {
+    return {
+      backendState: enqueueOrchestratorEvent(input.backendState, {
+        id: `${run.id}:integration:failed:${input.createdAt}`,
+        runId: run.id,
+        kind: "integration.updated",
+        payload: {
+          phase: "Integration failed.",
+          runStatus: "validation-failed",
+          integrationBranch,
+          commitShas,
+          blockerIds: ["integration-runtime"],
+          commandId: input.command.id,
+          detail: input.result.detail,
+          finalMergeRequiresApproval: true
+        },
+        dedupeKey: `${input.command.id}:integration-failed`,
+        enqueuedAt: input.createdAt
+      }),
+      completed: false,
+      cleanupQueued: 0,
+      detail: "Integration runtime failed; finalization was blocked."
+    };
+  }
+
+  let nextState = enqueueOrchestratorEvent(input.backendState, {
+    id: `${run.id}:integration:ready:${input.createdAt}`,
+    runId: run.id,
+    kind: "integration.updated",
+    payload: {
+      phase: "Integration branch ready for finalization.",
+      runStatus: "ready-for-finalization",
+      integrationBranch,
+      commitShas,
+      validationScope: payloadString(input.command.payload, "validationScope") ?? resultString(input.result, "validationScope") ?? "targeted",
+      commandId: input.command.id,
+      detail: input.result.detail,
+      finalMergeRequiresApproval: true
+    },
+    dedupeKey: `${input.command.id}:integration-ready`,
+    enqueuedAt: input.createdAt
+  });
+
+  const cleanupTargets = cleanupTargetsFromCommand(input.command);
+
+  cleanupTargets.forEach((target, index) => {
+    const cleanupJob = createCleanupJob({
+      id: `${run.id}:cleanup:${target.taskId}:${index + 1}`,
+      runId: run.id,
+      taskId: target.taskId,
+      jobId: target.workerJobId,
+      kind: "worker-worktree",
+      path: target.path,
+      reason: "Accepted worker output integrated.",
+      createdAt: input.createdAt
+    });
+    const alreadyQueued = nextState.commandQueue.some(
+      (command) =>
+        command.kind === "cleanup.start" &&
+        command.runId === run.id &&
+        payloadString(command.payload, "path") === target.path
+    );
+
+    if (!alreadyQueued) {
+      nextState = enqueueOrchestratorCommand(nextState, {
+        id: `${cleanupJob.id}:start`,
+        runId: run.id,
+        kind: "cleanup.start",
+        payload: {
+          ...cleanupJob,
+          policyMode: "automatic",
+          keepOnFailure: true
+        },
+        enqueuedAt: input.createdAt
+      });
+    }
+  });
+
+  return {
+    backendState: nextState,
+    completed: true,
+    cleanupQueued: cleanupTargets.length,
+    detail: "Integration runtime completed; run is ready for finalization."
   };
 }

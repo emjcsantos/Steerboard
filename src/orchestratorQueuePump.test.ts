@@ -342,6 +342,92 @@ describe("orchestrator queue pump", () => {
     });
   });
 
+  it("marks the run ready for finalization after a successful integration runtime result", async () => {
+    const state = enqueueOrchestratorCommand(stateWithRun(), {
+      id: "run-123:integration:start",
+      runId: "run-123",
+      kind: "integration.start",
+      payload: {
+        integrationBranch: "codex/orch/integration/run-123",
+        baseBranch: "main",
+        commitShas: ["abc123"],
+        acceptedCommits: [
+          {
+            taskId: "task-1",
+            workerJobId: "run-123:worker:task-1",
+            branch: "codex/orch/task-1",
+            worktreePath: "C:\\repo\\.steerboard\\worktrees\\task-1",
+            commitSha: "abc123",
+            validationReportId: "report-1"
+          }
+        ],
+        validationScope: "targeted",
+        finalMergeRequiresApproval: true
+      },
+      enqueuedAt: createdAt
+    });
+    let persisted: OrchestratorSqliteSnapshot | undefined;
+    const result = await runOrchestratorQueuePumpCycle({
+      repositoryRoot: "C:\\repo",
+      processedAt,
+      readSnapshot: async () => buildOrchestratorSqliteSnapshot(state),
+      applySnapshot: async (snapshot) => {
+        persisted = snapshot;
+        return applyResult(snapshot);
+      },
+      execute: async (request) => ({
+        commandId: request.commandId,
+        runId: request.runId,
+        kind: request.kind,
+        executed: true,
+        blocked: false,
+        artifactPaths: ["C:\\repo\\.steerboard\\orchestrator-artifacts\\run-123\\integration.json"],
+        steps: [
+          {
+            label: "Cherry-pick accepted commits",
+            command: "git cherry-pick abc123",
+            status: "passed",
+            detail: "Integration branch contains abc123."
+          }
+        ],
+        detail: "Integration branch validated.",
+        structuredOutput: {
+          integrationBranch: "codex/orch/integration/run-123",
+          commitShas: ["abc123"]
+        }
+      })
+    });
+
+    expect(result.detail).toBe(
+      "Drained one integration command, marked the run ready for finalization, queued cleanup, and persisted the ledger state."
+    );
+    expect(result.backendState.runs[0]).toMatchObject({
+      status: "ready-for-finalization",
+      phase: "Integration branch ready for finalization."
+    });
+    expect(result.backendState.commandQueue[0]).toMatchObject({
+      kind: "integration.start",
+      status: "processed"
+    });
+    expect(result.backendState.commandQueue.at(-1)).toMatchObject({
+      kind: "cleanup.start",
+      status: "queued",
+      payload: {
+        kind: "worker-worktree",
+        path: "C:\\repo\\.steerboard\\worktrees\\task-1",
+        status: "retention-active"
+      }
+    });
+    expect(persisted?.runs[0]).toMatchObject({
+      status: "ready-for-finalization",
+      phase: "Integration branch ready for finalization."
+    });
+    expect(persisted?.commands.at(-1)).toMatchObject({
+      kind: "cleanup.start",
+      status: "queued"
+    });
+  });
+
   it("does not rewrite SQLite when no durable queue work exists", async () => {
     const result = await runOrchestratorQueuePumpCycle({
       repositoryRoot: "C:\\repo",

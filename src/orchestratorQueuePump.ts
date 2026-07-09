@@ -20,6 +20,7 @@ import {
   applyValidatorRuntimeCommandResult
 } from "./orchestratorValidatorRuntimeReport";
 import {
+  applyIntegrationRuntimeCommandResult,
   queueIntegrationAfterWorkerCommitRuntime
 } from "./orchestratorIntegration";
 
@@ -72,7 +73,16 @@ export async function runOrchestratorQueuePumpCycle(
         createdAt: input.processedAt
       })
     : undefined;
-  const stateAfterLoop = loopApplied?.backendState ?? integrationQueued?.backendState ?? drained.backendState;
+  const integrationApplied = !loopApplied && !integrationQueued && drained.command && drained.result
+    ? applyIntegrationRuntimeCommandResult({
+        backendState: drained.backendState,
+        command: drained.command,
+        result: drained.result,
+        createdAt: input.processedAt
+      })
+    : undefined;
+  const stateAfterLoop =
+    loopApplied?.backendState ?? integrationQueued?.backendState ?? integrationApplied?.backendState ?? drained.backendState;
   const afterCommandQueued = queuedEventCount(stateAfterLoop);
   const processedState = processAllQueuedOrchestratorEvents(stateAfterLoop, input.processedAt);
   const eventsProcessed = afterCommandQueued - queuedEventCount(processedState);
@@ -105,6 +115,8 @@ export async function runOrchestratorQueuePumpCycle(
         ? "Drained one validator command, applied the validator loop decision, and persisted the ledger state."
         : integrationQueued?.queued
         ? "Drained one worker commit, queued automatic integration, and persisted the ledger state."
+        : integrationApplied?.completed
+        ? "Drained one integration command, marked the run ready for finalization, queued cleanup, and persisted the ledger state."
         : "Drained one orchestrator runtime command and persisted the resulting ledger state."
       : "Processed queued orchestrator events and persisted the resulting ledger state."
   };
