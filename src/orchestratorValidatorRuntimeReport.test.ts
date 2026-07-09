@@ -9,6 +9,7 @@ import {
   type ValidatorJobRecord
 } from "./orchestratorValidatorLoop";
 import {
+  applyValidatorRuntimeCommandResult,
   applyValidatorRuntimeResult,
   validatorReportFromRuntimeResult
 } from "./orchestratorValidatorRuntimeReport";
@@ -315,6 +316,59 @@ describe("orchestrator validator runtime report", () => {
     expect(processed.ledger.at(-1)).toMatchObject({
       kind: "validator.reported",
       message: "Validator verdict: revision-required."
+    });
+  });
+
+  it("reconstructs task-specific validator scope from a queued runtime command", () => {
+    const applied = applyValidatorRuntimeCommandResult({
+      backendState: backendState(),
+      command: {
+        id: "run-123:worker:task-1:validator:1:start",
+        runId: "run-123",
+        sequence: 7,
+        kind: "validator.start",
+        payload: {
+          jobId: "run-123:worker:task-1:validator:1",
+          workerJobId: "run-123:worker:task-1",
+          taskId: "task-1",
+          branch: "codex/orch/task-1-runtime-parser",
+          worktreePath: ".steerboard/worktrees/task-1-runtime-parser",
+          capabilityProfile: "read-only",
+          attempt: 1,
+          ownedFiles: ["src/orchestratorValidatorRuntimeReport.ts"],
+          acceptanceCriteria: ["Validator reports are structured."],
+          validationCommands: ["npm.cmd run test -- src/orchestratorValidatorRuntimeReport.test.ts"]
+        },
+        status: "queued",
+        enqueuedAt: createdAt
+      },
+      result: runtimeResult({
+        structuredOutput: {
+          verdict: "pass",
+          nextAction: "accept",
+          findings: [],
+          commandsRun: [
+            {
+              command: "npm.cmd run test -- src/orchestratorValidatorRuntimeReport.test.ts",
+              status: "passed",
+              detail: "Passed"
+            }
+          ]
+        }
+      }),
+      createdAt
+    });
+
+    expect(applied?.report.acceptanceResults).toEqual([
+      {
+        criterion: "Validator reports are structured.",
+        status: "pass",
+        evidence: []
+      }
+    ]);
+    expect(applied?.acceptedCommit).toMatchObject({
+      branch: "codex/orch/task-1-runtime-parser",
+      commandEvidence: ["npm.cmd run test -- src/orchestratorValidatorRuntimeReport.test.ts"]
     });
   });
 });

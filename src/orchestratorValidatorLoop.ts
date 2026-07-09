@@ -164,8 +164,12 @@ export function createValidatorJobForWorker(
       jobId: job.id,
       workerJobId: workerJob.id,
       taskId: task.id,
+      branch: workerJob.branch,
       worktreePath: workerJob.worktreePath,
       capabilityProfile: job.capabilityProfile,
+      attempt: job.attempt,
+      ownedFiles: job.validationScope.ownedFiles,
+      acceptanceCriteria: job.validationScope.acceptanceCriteria,
       validationCommands: job.validationScope.validationCommands
     },
     enqueuedAt: createdAt

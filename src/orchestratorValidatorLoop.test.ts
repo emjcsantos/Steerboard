@@ -146,7 +146,15 @@ describe("orchestrator validator loop", () => {
     });
     expect(result.backendState.commandQueue[0]).toMatchObject({
       kind: "validator.start",
-      status: "queued"
+      status: "queued",
+      payload: {
+        branch: "codex/orch/task-1-validator-loop",
+        capabilityProfile: "read-only",
+        attempt: 1,
+        ownedFiles: ["src/orchestratorValidatorLoop.ts"],
+        acceptanceCriteria: ["Validator produces a structured report.", "Corrective tasks are narrow."],
+        validationCommands: ["npm.cmd run test -- src/orchestratorValidatorLoop.test.ts"]
+      }
     });
   });
 
