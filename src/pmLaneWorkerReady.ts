@@ -48,6 +48,12 @@ export interface PmTaskTemplateSnapshot {
   templateJson: Record<string, unknown>;
 }
 
+export interface PmTaskTemplateDefinition {
+  templateId: string;
+  source: "built-in" | "project-local";
+  templateJson: Record<string, unknown>;
+}
+
 export interface PmWorkerReadyTask {
   id: string;
   title: string;
@@ -304,4 +310,34 @@ export function createPmTaskTemplateSnapshot(input: {
     resolvedAt: input.resolvedAt,
     templateJson: JSON.parse(JSON.stringify(input.templateJson)) as Record<string, unknown>
   };
+}
+
+export function resolvePmTaskTemplateSnapshot(input: {
+  taskId: string;
+  templateId: string;
+  resolvedAt: string;
+  builtInTemplates: readonly PmTaskTemplateDefinition[];
+  projectLocalTemplates?: readonly PmTaskTemplateDefinition[];
+}): PmTaskTemplateSnapshot {
+  const projectLocalMatch = input.projectLocalTemplates?.find(
+    (template) => template.templateId === input.templateId
+  );
+  const builtInMatch = input.builtInTemplates.find(
+    (template) => template.templateId === input.templateId
+  );
+  const match = projectLocalMatch ?? builtInMatch;
+
+  if (!match) {
+    throw new Error(`pm_task_template_not_found:${input.templateId}`);
+  }
+
+  return createPmTaskTemplateSnapshot({
+    taskId: input.taskId,
+    templateId: match.templateId,
+    resolvedAt: input.resolvedAt,
+    templateJson: {
+      ...match.templateJson,
+      templateSource: match.source
+    }
+  });
 }

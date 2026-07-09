@@ -7,6 +7,7 @@ import {
   evaluatePmWorkerReadyTask,
   orderPmDispatchQueue,
   prepareOrchestratorCreatedTaskForDispatch,
+  resolvePmTaskTemplateSnapshot,
   type PmWorkerReadyTask
 } from "./pmLaneWorkerReady";
 
@@ -206,5 +207,78 @@ describe("PM lane worker-ready gates", () => {
     expect(snapshot.templateJson).toMatchObject({
       defaultPriority: "normal"
     });
+  });
+
+  it("resolves project-local templates before built-ins without rewriting historical snapshots", () => {
+    const builtInTemplate = {
+      templateId: "bugfix",
+      source: "built-in" as const,
+      templateJson: {
+        validationCommands: ["npm.cmd run test"],
+        budget: { ...DEFAULT_PM_TASK_BUDGET }
+      }
+    };
+    const projectTemplate = {
+      templateId: "bugfix",
+      source: "project-local" as const,
+      templateJson: {
+        validationCommands: ["npm.cmd run test -- src/project.test.ts"],
+        budget: { ...DEFAULT_PM_TASK_BUDGET, maxCommandsRun: 8 }
+      }
+    };
+    const snapshot = resolvePmTaskTemplateSnapshot({
+      taskId: "task-1",
+      templateId: "bugfix",
+      resolvedAt: createdAt,
+      builtInTemplates: [builtInTemplate],
+      projectLocalTemplates: [projectTemplate]
+    });
+
+    projectTemplate.templateJson.validationCommands = ["mutated"];
+
+    expect(snapshot).toMatchObject({
+      taskId: "task-1",
+      templateId: "bugfix",
+      resolvedAt: createdAt,
+      templateJson: {
+        templateSource: "project-local",
+        validationCommands: ["npm.cmd run test -- src/project.test.ts"],
+        budget: {
+          maxCommandsRun: 8
+        }
+      }
+    });
+  });
+
+  it("falls back to built-in templates and reports missing template ids", () => {
+    const snapshot = resolvePmTaskTemplateSnapshot({
+      taskId: "task-1",
+      templateId: "docs",
+      resolvedAt: createdAt,
+      builtInTemplates: [
+        {
+          templateId: "docs",
+          source: "built-in",
+          templateJson: {
+            validationCommands: ["npm.cmd run test -- src/docs.test.ts"]
+          }
+        }
+      ],
+      projectLocalTemplates: []
+    });
+
+    expect(snapshot.templateJson).toMatchObject({
+      templateSource: "built-in",
+      validationCommands: ["npm.cmd run test -- src/docs.test.ts"]
+    });
+    expect(() =>
+      resolvePmTaskTemplateSnapshot({
+        taskId: "task-1",
+        templateId: "missing",
+        resolvedAt: createdAt,
+        builtInTemplates: [],
+        projectLocalTemplates: []
+      })
+    ).toThrow("pm_task_template_not_found:missing");
   });
 });
