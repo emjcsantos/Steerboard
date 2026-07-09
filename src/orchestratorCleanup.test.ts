@@ -7,9 +7,11 @@ import {
 import {
   DEFAULT_CLEANUP_POLICY,
   applyCleanupRuntimeCommandResult,
+  cancelCleanupJob,
   createCleanupJob,
   evaluateCleanupBlockReasons,
   markCleanupCompleted,
+  markCleanupRunning,
   refreshCleanupJobStatus,
   summarizeCleanupQueue
 } from "./orchestratorCleanup";
@@ -64,6 +66,57 @@ describe("orchestrator cleanup queue", () => {
       keepOnFailure: true,
       keepOnIntegrationFailure: true
     });
+  });
+
+  it("creates cleanup jobs for every retained orchestrator resource kind", () => {
+    const jobs = [
+      createCleanupJob({
+        id: "cleanup-worktree",
+        runId: "run-123",
+        taskId: "task-1",
+        jobId: "worker-1",
+        kind: "worker-worktree",
+        path: ".steerboard/worktrees/task-1",
+        reason: "Accepted work integrated.",
+        createdAt
+      }),
+      createCleanupJob({
+        id: "cleanup-artifact",
+        runId: "run-123",
+        taskId: "task-1",
+        jobId: "validator-1",
+        kind: "validator-artifact",
+        path: ".steerboard/artifacts/run-123/task-1/validator.log",
+        reason: "Validator temp artifact retention.",
+        createdAt
+      }),
+      createCleanupJob({
+        id: "cleanup-runtime",
+        runId: "run-123",
+        kind: "runtime-state",
+        path: ".steerboard/runtime/run-123",
+        reason: "Transient runtime state.",
+        createdAt
+      }),
+      createCleanupJob({
+        id: "cleanup-process",
+        runId: "run-123",
+        jobId: "worker-stale",
+        kind: "stale-process-handle",
+        path: "pid-123",
+        reason: "Stale process handle.",
+        createdAt
+      })
+    ];
+
+    expect(jobs.map((job) => job.kind)).toEqual([
+      "worker-worktree",
+      "validator-artifact",
+      "runtime-state",
+      "stale-process-handle"
+    ]);
+    expect(jobs.every((job) => job.status === "retention-active")).toBe(true);
+    expect(jobs.every((job) => job.retentionExpiresAt === "2026-07-09T10:00:00.000Z")).toBe(true);
   });
 
   it("blocks cleanup on every unsafe condition", () => {
@@ -177,6 +230,45 @@ describe("orchestrator cleanup queue", () => {
     expect(processed.ledger.at(-1)).toMatchObject({
       kind: "cleanup.updated",
       message: "Cleanup completed for worker-worktree."
+    });
+  });
+
+  it("records running and cancelled cleanup transitions as visible ledger events", () => {
+    const job = {
+      ...createCleanupJob({
+        id: "cleanup-1",
+        runId: "run-123",
+        taskId: "task-1",
+        kind: "runtime-state",
+        path: ".steerboard/runtime/run-123",
+        reason: "Transient state",
+        createdAt
+      }),
+      status: "scheduled" as const
+    };
+    const running = markCleanupRunning(backendState(), job, "2026-07-09T10:01:00.000Z");
+    const cancelled = cancelCleanupJob(running.backendState, running.job, {
+      cancelledAt: "2026-07-09T10:02:00.000Z",
+      reason: "Run was pinned before cleanup."
+    });
+    const processed = processAllQueuedOrchestratorEvents(
+      cancelled.backendState,
+      "2026-07-09T10:03:00.000Z"
+    );
+
+    expect(job.status).toBe("scheduled");
+    expect(running.job.status).toBe("running");
+    expect(cancelled.job).toMatchObject({
+      status: "cancelled",
+      deletionResult: "Run was pinned before cleanup."
+    });
+    expect(processed.ledger.at(-2)).toMatchObject({
+      kind: "cleanup.updated",
+      message: "Cleanup running for runtime-state."
+    });
+    expect(processed.ledger.at(-1)).toMatchObject({
+      kind: "cleanup.updated",
+      message: "Cleanup cancelled for runtime-state."
     });
   });
 
@@ -322,15 +414,51 @@ describe("orchestrator cleanup queue", () => {
           createdAt
         }),
         status: "completed" as const
+      },
+      {
+        ...createCleanupJob({
+          id: "cleanup-4",
+          runId: "run-123",
+          kind: "runtime-state",
+          path: ".steerboard/runtime/run-456",
+          reason: "Runtime",
+          createdAt
+        }),
+        status: "scheduled" as const
+      },
+      {
+        ...createCleanupJob({
+          id: "cleanup-5",
+          runId: "run-123",
+          kind: "runtime-state",
+          path: ".steerboard/runtime/run-789",
+          reason: "Runtime",
+          createdAt
+        }),
+        status: "running" as const
+      },
+      {
+        ...createCleanupJob({
+          id: "cleanup-6",
+          runId: "run-123",
+          kind: "runtime-state",
+          path: ".steerboard/runtime/run-cancelled",
+          reason: "Runtime",
+          createdAt
+        }),
+        status: "cancelled" as const
       }
     ];
 
     expect(summarizeCleanupQueue(jobs)).toMatchObject({
-      total: 3,
+      total: 6,
+      scheduled: 1,
       retentionActive: 1,
+      running: 1,
       blocked: 1,
       completed: 1,
-      detail: "3 cleanup jobs; 0 ready; 1 blocked; 1 in retention."
+      cancelled: 1,
+      detail: "6 cleanup jobs; 0 ready; 1 blocked; 1 in retention."
     });
   });
 });

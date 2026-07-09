@@ -235,6 +235,73 @@ export function markCleanupCompleted(
   };
 }
 
+export function markCleanupRunning(
+  backendState: OrchestratorBackendState,
+  job: CleanupJob,
+  startedAt: string
+): { backendState: OrchestratorBackendState; job: CleanupJob } {
+  const runningJob: CleanupJob = {
+    ...job,
+    status: "running",
+    updatedAt: startedAt
+  };
+
+  return {
+    backendState: enqueueOrchestratorEvent(backendState, {
+      id: `${job.id}:cleanup-running:${startedAt}`,
+      runId: job.runId,
+      kind: "cleanup.updated",
+      payload: {
+        phase: `Cleanup running for ${job.kind}.`,
+        cleanupJobId: job.id,
+        cleanupStatus: "running",
+        taskId: job.taskId,
+        path: job.path,
+        startedAt
+      },
+      dedupeKey: `${job.id}:cleanup-running:${startedAt}`,
+      enqueuedAt: startedAt
+    }),
+    job: runningJob
+  };
+}
+
+export function cancelCleanupJob(
+  backendState: OrchestratorBackendState,
+  job: CleanupJob,
+  input: {
+    cancelledAt: string;
+    reason: string;
+  }
+): { backendState: OrchestratorBackendState; job: CleanupJob } {
+  const cancelledJob: CleanupJob = {
+    ...job,
+    status: "cancelled",
+    deletionResult: input.reason.trim() || "Cleanup cancelled.",
+    updatedAt: input.cancelledAt
+  };
+
+  return {
+    backendState: enqueueOrchestratorEvent(backendState, {
+      id: `${job.id}:cleanup-cancelled:${input.cancelledAt}`,
+      runId: job.runId,
+      kind: "cleanup.updated",
+      payload: {
+        phase: `Cleanup cancelled for ${job.kind}.`,
+        cleanupJobId: job.id,
+        cleanupStatus: "cancelled",
+        taskId: job.taskId,
+        path: job.path,
+        cancelledAt: input.cancelledAt,
+        deletionResult: cancelledJob.deletionResult
+      },
+      dedupeKey: `${job.id}:cleanup-cancelled:${input.cancelledAt}`,
+      enqueuedAt: input.cancelledAt
+    }),
+    job: cancelledJob
+  };
+}
+
 function payloadString(payload: Record<string, unknown>, key: string): string | undefined {
   const value = payload[key];
 
