@@ -46,6 +46,9 @@ export interface CleanupJob {
   kind: CleanupJobKind;
   path: string;
   reason: string;
+  policyMode: CleanupPolicy["mode"];
+  keepOnFailure: true;
+  keepOnIntegrationFailure: true;
   status: CleanupJobStatus;
   retentionExpiresAt: string;
   blockedReasons: CleanupBlockReason[];
@@ -119,6 +122,9 @@ export function createCleanupJob(input: {
     kind: input.kind,
     path: input.path,
     reason: input.reason.trim() || "Cleanup scheduled.",
+    policyMode: policy.mode,
+    keepOnFailure: policy.keepOnFailure,
+    keepOnIntegrationFailure: policy.keepOnIntegrationFailure,
     status: "retention-active",
     retentionExpiresAt: addMinutes(input.createdAt, policy.retentionMinutes),
     blockedReasons: [],
@@ -376,6 +382,9 @@ function cleanupJobFromCommand(command: OrchestratorQueuedCommand): CleanupJob |
     kind,
     path,
     reason,
+    policyMode: "automatic",
+    keepOnFailure: true,
+    keepOnIntegrationFailure: true,
     status,
     retentionExpiresAt,
     blockedReasons: payloadStringList(command.payload, "blockedReasons") as CleanupBlockReason[],

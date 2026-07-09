@@ -57,6 +57,9 @@ describe("orchestrator cleanup queue", () => {
 
     expect(job).toMatchObject({
       status: "retention-active",
+      policyMode: "automatic",
+      keepOnFailure: true,
+      keepOnIntegrationFailure: true,
       retentionExpiresAt: "2026-07-09T10:00:00.000Z",
       reason: "Accepted work integrated."
     });
@@ -313,6 +316,9 @@ describe("orchestrator cleanup queue", () => {
     expect(applied?.completed).toBe(true);
     expect(applied?.job).toMatchObject({
       status: "completed",
+      policyMode: "automatic",
+      keepOnFailure: true,
+      keepOnIntegrationFailure: true,
       completedAt: "2026-07-09T10:02:00.000Z",
       deletionResult: "Removed worktree path."
     });
