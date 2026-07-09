@@ -272,6 +272,23 @@ export function enqueueOrchestratorEvent(
   };
 }
 
+export function enqueueOrchestratorCommand(
+  state: OrchestratorBackendState,
+  command: Omit<OrchestratorQueuedCommand, "sequence" | "status">
+): OrchestratorBackendState {
+  return {
+    ...state,
+    commandQueue: [
+      ...state.commandQueue,
+      {
+        ...command,
+        sequence: nextSequence(state.commandQueue),
+        status: "queued"
+      }
+    ]
+  };
+}
+
 export function processNextOrchestratorEvent(
   state: OrchestratorBackendState,
   processedAt: string
@@ -468,6 +485,24 @@ export function serializeOrchestratorEventsForSqlite(
     enqueued_at: event.enqueuedAt,
     processed_at: event.processedAt ?? null,
     ignored_reason: event.ignoredReason ?? null
+  }));
+}
+
+export function serializeOrchestratorCommandsForSqlite(
+  commands: readonly OrchestratorQueuedCommand[]
+): OrchestratorQueueSqliteRow[] {
+  return commands.map((command) => ({
+    id: command.id,
+    run_id: command.runId,
+    queue_name: "command",
+    sequence: command.sequence,
+    kind: command.kind,
+    payload_json: JSON.stringify(command.payload),
+    dedupe_key: null,
+    status: command.status,
+    enqueued_at: command.enqueuedAt,
+    processed_at: command.processedAt ?? null,
+    ignored_reason: null
   }));
 }
 
