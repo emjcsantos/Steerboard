@@ -1,0 +1,189 @@
+import {
+  enqueueOrchestratorEvent,
+  type OrchestratorBackendState,
+  type OrchestratorEventKind,
+  type OrchestratorQueuedCommand
+} from "./orchestratorBackend";
+import { hasTauriRuntime } from "./tauriRuntime";
+
+export type OrchestratorRuntimeCommandKind =
+  | "worker.start"
+  | "worker.commit"
+  | "integration.start"
+  | "cleanup.start";
+
+export interface OrchestratorRuntimeCommandRequest {
+  commandId: string;
+  runId: string;
+  kind: OrchestratorRuntimeCommandKind;
+  repositoryRoot: string;
+  payload: Record<string, unknown>;
+}
+
+export interface OrchestratorRuntimeCommandStep {
+  label: string;
+  command: string;
+  status: "passed" | "blocked" | "failed" | "skipped";
+  detail: string;
+}
+
+export interface OrchestratorRuntimeCommandResult {
+  commandId: string;
+  runId: string;
+  kind: OrchestratorRuntimeCommandKind;
+  executed: boolean;
+  blocked: boolean;
+  artifactPaths: string[];
+  steps: OrchestratorRuntimeCommandStep[];
+  detail: string;
+}
+
+export interface OrchestratorRuntimeDrainResult {
+  backendState: OrchestratorBackendState;
+  command?: OrchestratorQueuedCommand;
+  result?: OrchestratorRuntimeCommandResult;
+  drained: boolean;
+}
+
+const executableKinds = new Set<string>([
+  "worker.start",
+  "worker.commit",
+  "integration.start",
+  "cleanup.start"
+]);
+
+export function buildRuntimeCommandRequest(
+  command: OrchestratorQueuedCommand,
+  repositoryRoot: string
+): OrchestratorRuntimeCommandRequest {
+  if (!executableKinds.has(command.kind)) {
+    throw new Error(`orchestrator_runtime_unsupported_command:${command.kind}`);
+  }
+
+  return {
+    commandId: command.id,
+    runId: command.runId,
+    kind: command.kind as OrchestratorRuntimeCommandKind,
+    repositoryRoot,
+    payload: command.payload
+  };
+}
+
+export async function executeOrchestratorRuntimeCommand(
+  request: OrchestratorRuntimeCommandRequest
+): Promise<OrchestratorRuntimeCommandResult> {
+  if (!hasTauriRuntime()) {
+    throw new Error("orchestrator_runtime_tauri_unavailable");
+  }
+
+  const { invoke } = await import("@tauri-apps/api/core");
+
+  return invoke<OrchestratorRuntimeCommandResult>("orchestrator_execute_command", {
+    request
+  });
+}
+
+function eventKindForCommand(kind: OrchestratorRuntimeCommandKind): OrchestratorEventKind {
+  switch (kind) {
+    case "worker.start":
+    case "worker.commit":
+      return "worker.progress";
+    case "integration.start":
+      return "integration.updated";
+    case "cleanup.start":
+      return "cleanup.updated";
+  }
+}
+
+function phaseForResult(result: OrchestratorRuntimeCommandResult): string {
+  if (result.blocked) {
+    return `Runtime command blocked: ${result.kind}.`;
+  }
+
+  return `Runtime command completed: ${result.kind}.`;
+}
+
+function markCommand(
+  state: OrchestratorBackendState,
+  commandId: string,
+  status: "processed" | "ignored",
+  processedAt: string
+): OrchestratorBackendState {
+  return {
+    ...state,
+    commandQueue: state.commandQueue.map((command) =>
+      command.id === commandId
+        ? {
+            ...command,
+            status,
+            processedAt
+          }
+        : command
+    )
+  };
+}
+
+export async function drainNextOrchestratorRuntimeCommand(
+  state: OrchestratorBackendState,
+  input: {
+    repositoryRoot: string;
+    processedAt: string;
+    execute?: (request: OrchestratorRuntimeCommandRequest) => Promise<OrchestratorRuntimeCommandResult>;
+  }
+): Promise<OrchestratorRuntimeDrainResult> {
+  const command = [...state.commandQueue]
+    .filter((item) => item.status === "queued")
+    .sort((first, second) => first.sequence - second.sequence)[0];
+
+  if (!command) {
+    return {
+      backendState: state,
+      drained: false
+    };
+  }
+
+  let request: OrchestratorRuntimeCommandRequest;
+
+  try {
+    request = buildRuntimeCommandRequest(command, input.repositoryRoot);
+  } catch {
+    return {
+      backendState: markCommand(state, command.id, "ignored", input.processedAt),
+      command,
+      drained: true
+    };
+  }
+
+  const execute = input.execute ?? executeOrchestratorRuntimeCommand;
+  const result = await execute(request);
+  const marked = markCommand(state, command.id, result.blocked ? "ignored" : "processed", input.processedAt);
+  const backendState = enqueueOrchestratorEvent(marked, {
+    id: `${command.id}:runtime:${input.processedAt}`,
+    runId: command.runId,
+    kind: eventKindForCommand(request.kind),
+    payload: {
+      phase: phaseForResult(result),
+      commandId: command.id,
+      commandKind: command.kind,
+      executed: result.executed,
+      blocked: result.blocked,
+      detail: result.detail,
+      artifactPaths: result.artifactPaths,
+      steps: result.steps.map((step) => ({
+        label: step.label,
+        command: step.command,
+        status: step.status,
+        detail: step.detail
+      }))
+    },
+    dedupeKey: `${command.id}:runtime`,
+    enqueuedAt: input.processedAt
+  });
+
+  return {
+    backendState,
+    command,
+    result,
+    drained: true
+  };
+}

@@ -6645,6 +6645,533 @@ mod orchestrator_sqlite {
     }
 }
 
+mod orchestrator_runtime_executor {
+    use serde::{Deserialize, Serialize};
+    use serde_json::Value;
+    use std::fs;
+    use std::path::{Path, PathBuf};
+    use std::process::Command;
+
+    #[cfg(windows)]
+    use std::os::windows::process::CommandExt;
+
+    #[cfg(windows)]
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+    #[derive(Debug, Clone, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OrchestratorRuntimeCommandRequest {
+        pub command_id: String,
+        pub run_id: String,
+        pub kind: String,
+        pub repository_root: String,
+        pub payload: Value,
+    }
+
+    #[derive(Debug, Clone, Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OrchestratorRuntimeCommandStep {
+        pub label: String,
+        pub command: String,
+        pub status: String,
+        pub detail: String,
+    }
+
+    #[derive(Debug, Clone, Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OrchestratorRuntimeCommandResult {
+        pub command_id: String,
+        pub run_id: String,
+        pub kind: String,
+        pub executed: bool,
+        pub blocked: bool,
+        pub artifact_paths: Vec<String>,
+        pub steps: Vec<OrchestratorRuntimeCommandStep>,
+        pub detail: String,
+    }
+
+    fn hide_command_window(command: &mut Command) {
+        #[cfg(windows)]
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    fn step(label: &str, command: &str, status: &str, detail: String) -> OrchestratorRuntimeCommandStep {
+        OrchestratorRuntimeCommandStep {
+            label: label.to_string(),
+            command: command.to_string(),
+            status: status.to_string(),
+            detail,
+        }
+    }
+
+    fn value_string(payload: &Value, key: &str) -> Result<String, String> {
+        payload
+            .get(key)
+            .and_then(Value::as_str)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(ToOwned::to_owned)
+            .ok_or_else(|| format!("orchestrator_runtime_missing_payload:{key}"))
+    }
+
+    fn optional_value_string(payload: &Value, key: &str) -> Option<String> {
+        payload
+            .get(key)
+            .and_then(Value::as_str)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(ToOwned::to_owned)
+    }
+
+    fn value_string_array(payload: &Value, key: &str) -> Result<Vec<String>, String> {
+        let values = payload
+            .get(key)
+            .and_then(Value::as_array)
+            .ok_or_else(|| format!("orchestrator_runtime_missing_payload:{key}"))?;
+        let items = values
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(ToOwned::to_owned)
+            .collect::<Vec<_>>();
+
+        if items.is_empty() {
+            return Err(format!("orchestrator_runtime_empty_payload:{key}"));
+        }
+
+        Ok(items)
+    }
+
+    fn run_command(cwd: &Path, program: &str, args: &[&str]) -> Result<String, String> {
+        let mut command = Command::new(program);
+        command.current_dir(cwd);
+        command.args(args);
+        hide_command_window(&mut command);
+        let output = command
+            .output()
+            .map_err(|error| format!("orchestrator_runtime_command_failed:{program}:{error}"))?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            let detail = if stderr.is_empty() { stdout } else { stderr };
+            return Err(format!(
+                "orchestrator_runtime_command_exited_{}:{}",
+                output.status.code().unwrap_or(-1),
+                detail
+            ));
+        }
+
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    }
+
+    fn run_git(cwd: &Path, args: &[&str]) -> Result<String, String> {
+        run_command(cwd, "git", args)
+    }
+
+    fn resolve_repository(path: &str) -> Result<PathBuf, String> {
+        let root = PathBuf::from(path.trim())
+            .canonicalize()
+            .map_err(|error| format!("orchestrator_runtime_repository_unavailable:{}", error.kind()))?;
+        let toplevel = run_git(&root, &["rev-parse", "--show-toplevel"])?;
+        let git_root = PathBuf::from(toplevel.trim())
+            .canonicalize()
+            .map_err(|error| format!("orchestrator_runtime_git_root_unavailable:{}", error.kind()))?;
+
+        if git_root != root {
+            return Err("orchestrator_runtime_repository_root_mismatch".to_string());
+        }
+
+        Ok(root)
+    }
+
+    fn ensure_safe_branch(branch: &str) -> Result<(), String> {
+        let safe = branch.starts_with("codex/orch/")
+            && !branch.contains("..")
+            && !branch.contains('\\')
+            && !branch.chars().any(char::is_whitespace)
+            && branch.len() <= 160;
+        if safe {
+            Ok(())
+        } else {
+            Err("orchestrator_runtime_unsafe_branch".to_string())
+        }
+    }
+
+    fn resolve_repo_child(repo: &Path, raw_path: &str, required_prefix: &str) -> Result<PathBuf, String> {
+        let raw = PathBuf::from(raw_path.trim());
+        let path = if raw.is_absolute() { raw } else { repo.join(raw) };
+        let parent = path
+            .parent()
+            .ok_or_else(|| "orchestrator_runtime_missing_target_parent".to_string())?;
+        fs::create_dir_all(parent)
+            .map_err(|error| format!("orchestrator_runtime_create_parent_failed:{error}"))?;
+        let parent = parent
+            .canonicalize()
+            .map_err(|error| format!("orchestrator_runtime_parent_unavailable:{}", error.kind()))?;
+        let required = repo
+            .join(required_prefix)
+            .canonicalize()
+            .or_else(|_| {
+                fs::create_dir_all(repo.join(required_prefix))
+                    .map_err(|error| format!("orchestrator_runtime_create_required_root_failed:{error}"))?;
+                repo.join(required_prefix)
+                    .canonicalize()
+                    .map_err(|error| format!("orchestrator_runtime_required_root_unavailable:{}", error.kind()))
+            })?;
+
+        if !parent.starts_with(&required) && parent != required {
+            return Err("orchestrator_runtime_target_outside_allowed_root".to_string());
+        }
+
+        Ok(path)
+    }
+
+    fn artifact_path(repo: &Path, run_id: &str, command_id: &str, name: &str) -> Result<PathBuf, String> {
+        let safe_run = run_id.replace(|character: char| !character.is_ascii_alphanumeric() && character != '-', "-");
+        let safe_command = command_id
+            .replace(|character: char| !character.is_ascii_alphanumeric() && character != '-', "-");
+        let dir = repo
+            .join(".steerboard")
+            .join("orchestrator-artifacts")
+            .join(safe_run);
+        fs::create_dir_all(&dir)
+            .map_err(|error| format!("orchestrator_runtime_artifact_dir_failed:{error}"))?;
+        Ok(dir.join(format!("{safe_command}-{name}")))
+    }
+
+    fn worktree_for_branch(repo: &Path, branch: &str) -> Result<PathBuf, String> {
+        let output = run_git(repo, &["worktree", "list", "--porcelain"])?;
+        let mut current_worktree: Option<PathBuf> = None;
+        let expected = format!("branch refs/heads/{branch}");
+
+        for line in output.lines() {
+            if let Some(path) = line.strip_prefix("worktree ") {
+                current_worktree = Some(PathBuf::from(path.trim()));
+            } else if line.trim() == expected {
+                if let Some(path) = current_worktree {
+                    return Ok(path);
+                }
+            }
+        }
+
+        Err("orchestrator_runtime_worktree_not_found_for_branch".to_string())
+    }
+
+    fn run_codex_exec(worktree: &Path, prompt: &str, stdout_path: &Path, stderr_path: &Path) -> Result<(), String> {
+        #[cfg(windows)]
+        let mut command = {
+            let mut command = Command::new("cmd");
+            command.arg("/C").arg("codex");
+            command
+        };
+
+        #[cfg(not(windows))]
+        let mut command = Command::new("codex");
+
+        command
+            .arg("exec")
+            .arg("--json")
+            .arg("-m")
+            .arg("gpt-5.3-spark")
+            .arg("-c")
+            .arg("model_reasoning_effort=\"extra-high\"")
+            .arg("-s")
+            .arg("workspace-write")
+            .arg("-a")
+            .arg("never")
+            .arg("-C")
+            .arg(worktree)
+            .arg(prompt);
+        hide_command_window(&mut command);
+        let output = command
+            .output()
+            .map_err(|error| format!("orchestrator_runtime_codex_launch_failed:{error}"))?;
+        fs::write(stdout_path, &output.stdout)
+            .map_err(|error| format!("orchestrator_runtime_codex_stdout_write_failed:{error}"))?;
+        fs::write(stderr_path, &output.stderr)
+            .map_err(|error| format!("orchestrator_runtime_codex_stderr_write_failed:{error}"))?;
+
+        if output.status.success() {
+            Ok(())
+        } else {
+            Err(format!(
+                "orchestrator_runtime_codex_exited_{}",
+                output.status.code().unwrap_or(-1)
+            ))
+        }
+    }
+
+    fn execute_worker_start(
+        request: &OrchestratorRuntimeCommandRequest,
+        repo: &Path,
+    ) -> Result<OrchestratorRuntimeCommandResult, String> {
+        let branch = value_string(&request.payload, "branch")?;
+        let worktree_path = value_string(&request.payload, "worktreePath")?;
+        let task_id = value_string(&request.payload, "taskId")?;
+        ensure_safe_branch(&branch)?;
+        let worktree = resolve_repo_child(repo, &worktree_path, ".steerboard/worktrees")?;
+        let mut steps = Vec::new();
+        let mut artifacts = Vec::new();
+
+        if worktree.join(".git").exists() {
+            steps.push(step(
+                "Create worker worktree",
+                "git worktree add",
+                "skipped",
+                "Worker worktree already exists.".to_string(),
+            ));
+        } else {
+            run_git(
+                repo,
+                &[
+                    "worktree",
+                    "add",
+                    "-b",
+                    branch.as_str(),
+                    worktree.to_string_lossy().as_ref(),
+                    "HEAD",
+                ],
+            )?;
+            steps.push(step(
+                "Create worker worktree",
+                "git worktree add -b <branch> <path> HEAD",
+                "passed",
+                format!("Created {branch} at {}.", worktree.display()),
+            ));
+        }
+
+        let prompt_path = artifact_path(repo, &request.run_id, &request.command_id, "worker-prompt.md")?;
+        let stdout_path = artifact_path(repo, &request.run_id, &request.command_id, "codex-stdout.jsonl")?;
+        let stderr_path = artifact_path(repo, &request.run_id, &request.command_id, "codex-stderr.log")?;
+        let prompt = format!(
+            "You are an orchestrator worker for run `{}` task `{}`.\n\nWork only in `{}` on branch `{}`.\nUse the task packet from the orchestrator payload. Commit nothing unless validation passes.\n\nPayload JSON:\n{}\n",
+            request.run_id,
+            task_id,
+            worktree.display(),
+            branch,
+            request.payload
+        );
+        fs::write(&prompt_path, &prompt)
+            .map_err(|error| format!("orchestrator_runtime_prompt_write_failed:{error}"))?;
+        artifacts.push(prompt_path.to_string_lossy().to_string());
+
+        run_codex_exec(&worktree, &prompt, &stdout_path, &stderr_path)?;
+        artifacts.push(stdout_path.to_string_lossy().to_string());
+        artifacts.push(stderr_path.to_string_lossy().to_string());
+        steps.push(step(
+            "Launch Codex worker",
+            "codex exec --json -m gpt-5.3-spark -s workspace-write -a never",
+            "passed",
+            "Codex worker completed and wrote stdout/stderr artifacts.".to_string(),
+        ));
+
+        Ok(OrchestratorRuntimeCommandResult {
+            command_id: request.command_id.clone(),
+            run_id: request.run_id.clone(),
+            kind: request.kind.clone(),
+            executed: true,
+            blocked: false,
+            artifact_paths: artifacts,
+            steps,
+            detail: "Worker worktree was created and Codex worker execution completed.".to_string(),
+        })
+    }
+
+    fn execute_worker_commit(
+        request: &OrchestratorRuntimeCommandRequest,
+        repo: &Path,
+    ) -> Result<OrchestratorRuntimeCommandResult, String> {
+        let branch = value_string(&request.payload, "branch")?;
+        let task_id = value_string(&request.payload, "taskId")?;
+        ensure_safe_branch(&branch)?;
+        let worktree = optional_value_string(&request.payload, "worktreePath")
+            .map(|path| resolve_repo_child(repo, &path, ".steerboard/worktrees"))
+            .transpose()?
+            .unwrap_or(worktree_for_branch(repo, &branch)?);
+        let status = run_git(&worktree, &["status", "--porcelain"])?;
+        let mut steps = Vec::new();
+
+        if status.trim().is_empty() {
+            return Ok(OrchestratorRuntimeCommandResult {
+                command_id: request.command_id.clone(),
+                run_id: request.run_id.clone(),
+                kind: request.kind.clone(),
+                executed: false,
+                blocked: true,
+                artifact_paths: Vec::new(),
+                steps: vec![step(
+                    "Commit accepted worker output",
+                    "git status --porcelain",
+                    "blocked",
+                    "Worker branch has no changes to commit.".to_string(),
+                )],
+                detail: "Worker commit blocked because there were no changed files.".to_string(),
+            });
+        }
+
+        run_git(&worktree, &["add", "--all"])?;
+        steps.push(step(
+            "Stage worker output",
+            "git add --all",
+            "passed",
+            "Worker changes staged.".to_string(),
+        ));
+        let message = format!("orchestrator: accept {task_id}");
+        run_git(&worktree, &["commit", "-m", message.as_str()])?;
+        let commit_sha = run_git(&worktree, &["rev-parse", "HEAD"])?;
+        steps.push(step(
+            "Commit accepted worker output",
+            "git commit -m <message>",
+            "passed",
+            format!("Committed {}.", commit_sha.trim()),
+        ));
+
+        Ok(OrchestratorRuntimeCommandResult {
+            command_id: request.command_id.clone(),
+            run_id: request.run_id.clone(),
+            kind: request.kind.clone(),
+            executed: true,
+            blocked: false,
+            artifact_paths: Vec::new(),
+            steps,
+            detail: format!("Accepted worker output committed on {branch}."),
+        })
+    }
+
+    fn execute_integration_start(
+        request: &OrchestratorRuntimeCommandRequest,
+        repo: &Path,
+    ) -> Result<OrchestratorRuntimeCommandResult, String> {
+        let integration_branch = value_string(&request.payload, "integrationBranch")?;
+        let base_branch = value_string(&request.payload, "baseBranch")?;
+        let commit_shas = value_string_array(&request.payload, "commitShas")?;
+        ensure_safe_branch(&integration_branch)?;
+        let integration_slug = integration_branch.replace('/', "-");
+        let integration_path = repo
+            .join(".steerboard")
+            .join("integration")
+            .join(integration_slug);
+        let integration_path = resolve_repo_child(
+            repo,
+            integration_path.to_string_lossy().as_ref(),
+            ".steerboard/integration",
+        )?;
+        let mut steps = Vec::new();
+
+        if integration_path.join(".git").exists() {
+            steps.push(step(
+                "Create integration worktree",
+                "git worktree add -B <branch> <path> <base>",
+                "skipped",
+                "Integration worktree already exists.".to_string(),
+            ));
+        } else {
+            run_git(
+                repo,
+                &[
+                    "worktree",
+                    "add",
+                    "-B",
+                    integration_branch.as_str(),
+                    integration_path.to_string_lossy().as_ref(),
+                    base_branch.as_str(),
+                ],
+            )?;
+            steps.push(step(
+                "Create integration worktree",
+                "git worktree add -B <branch> <path> <base>",
+                "passed",
+                format!("Created integration worktree at {}.", integration_path.display()),
+            ));
+        }
+
+        for commit in &commit_shas {
+            run_git(&integration_path, &["cherry-pick", commit.as_str()])?;
+        }
+        steps.push(step(
+            "Apply accepted commits",
+            "git cherry-pick <accepted-commits>",
+            "passed",
+            format!("Applied {} accepted commit(s).", commit_shas.len()),
+        ));
+
+        Ok(OrchestratorRuntimeCommandResult {
+            command_id: request.command_id.clone(),
+            run_id: request.run_id.clone(),
+            kind: request.kind.clone(),
+            executed: true,
+            blocked: false,
+            artifact_paths: Vec::new(),
+            steps,
+            detail: format!("Integrated accepted commits into {integration_branch}."),
+        })
+    }
+
+    fn execute_cleanup_start(
+        request: &OrchestratorRuntimeCommandRequest,
+        repo: &Path,
+    ) -> Result<OrchestratorRuntimeCommandResult, String> {
+        let worktree_path = value_string(&request.payload, "worktreePath")?;
+        let worktree = resolve_repo_child(repo, &worktree_path, ".steerboard/worktrees")?;
+        run_git(repo, &["worktree", "remove", worktree.to_string_lossy().as_ref()])?;
+
+        Ok(OrchestratorRuntimeCommandResult {
+            command_id: request.command_id.clone(),
+            run_id: request.run_id.clone(),
+            kind: request.kind.clone(),
+            executed: true,
+            blocked: false,
+            artifact_paths: Vec::new(),
+            steps: vec![step(
+                "Remove worker worktree",
+                "git worktree remove <path>",
+                "passed",
+                format!("Removed {}.", worktree.display()),
+            )],
+            detail: "Worker worktree cleanup completed.".to_string(),
+        })
+    }
+
+    fn blocked_result(request: &OrchestratorRuntimeCommandRequest, detail: String) -> OrchestratorRuntimeCommandResult {
+        OrchestratorRuntimeCommandResult {
+            command_id: request.command_id.clone(),
+            run_id: request.run_id.clone(),
+            kind: request.kind.clone(),
+            executed: false,
+            blocked: true,
+            artifact_paths: Vec::new(),
+            steps: vec![step("Preflight", "orchestrator runtime executor", "blocked", detail.clone())],
+            detail,
+        }
+    }
+
+    fn execute(request: OrchestratorRuntimeCommandRequest) -> OrchestratorRuntimeCommandResult {
+        let repo = match resolve_repository(&request.repository_root) {
+            Ok(repo) => repo,
+            Err(error) => return blocked_result(&request, error),
+        };
+        let result = match request.kind.as_str() {
+            "worker.start" => execute_worker_start(&request, &repo),
+            "worker.commit" => execute_worker_commit(&request, &repo),
+            "integration.start" => execute_integration_start(&request, &repo),
+            "cleanup.start" => execute_cleanup_start(&request, &repo),
+            _ => Err(format!("orchestrator_runtime_unsupported_command:{}", request.kind)),
+        };
+
+        result.unwrap_or_else(|error| blocked_result(&request, error))
+    }
+
+    #[tauri::command]
+    pub async fn orchestrator_execute_command(
+        request: OrchestratorRuntimeCommandRequest,
+    ) -> Result<OrchestratorRuntimeCommandResult, String> {
+        tauri::async_runtime::spawn_blocking(move || execute(request))
+            .await
+            .map_err(|error| format!("orchestrator_runtime_worker_failed:{error}"))
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -6682,6 +7209,7 @@ pub fn run() {
             runtime_bridge::git_workbench_action,
             runtime_bridge::terminal_pane_action,
             orchestrator_sqlite::orchestrator_sqlite_apply_snapshot,
+            orchestrator_runtime_executor::orchestrator_execute_command,
             runtime_bridge::phase3_command_validation_artifact_read,
             runtime_bridge::phase3_smoke_proof_bundle_artifact_read,
             runtime_bridge::phase3_panel_evidence_artifact_read,
