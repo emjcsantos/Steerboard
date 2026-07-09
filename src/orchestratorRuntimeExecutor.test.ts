@@ -20,7 +20,11 @@ function command(overrides: Partial<OrchestratorQueuedCommand> = {}): Orchestrat
       jobId: "run-123:worker:task-1",
       taskId: "task-1",
       branch: "codex/orch/task-1",
-      worktreePath: "C:\\Users\\MJ\\Projects\\ProjectAtlas\\Steerboard\\.steerboard\\worktrees\\task-1"
+      worktreePath: "C:\\Users\\MJ\\Projects\\ProjectAtlas\\Steerboard\\.steerboard\\worktrees\\task-1",
+      attempt: 1,
+      ownedFiles: ["src/task-1.ts"],
+      acceptanceCriteria: ["Task is complete."],
+      validationCommands: ["npm.cmd run test -- src/task-1.test.ts"]
     },
     status: "queued",
     enqueuedAt: "2026-07-09T07:00:00.000Z",
@@ -41,7 +45,11 @@ describe("orchestrator runtime executor", () => {
         jobId: "run-123:worker:task-1",
         taskId: "task-1",
         branch: "codex/orch/task-1",
-        worktreePath: "C:\\Users\\MJ\\Projects\\ProjectAtlas\\Steerboard\\.steerboard\\worktrees\\task-1"
+        worktreePath: "C:\\Users\\MJ\\Projects\\ProjectAtlas\\Steerboard\\.steerboard\\worktrees\\task-1",
+        attempt: 1,
+        ownedFiles: ["src/task-1.ts"],
+        acceptanceCriteria: ["Task is complete."],
+        validationCommands: ["npm.cmd run test -- src/task-1.test.ts"]
       }
     });
   });
@@ -69,15 +77,39 @@ describe("orchestrator runtime executor", () => {
     });
   });
 
+  it("keeps validator commands executable through the read-only runtime boundary", () => {
+    const request = buildRuntimeCommandRequest(
+      command({
+        id: "run-123:worker:task-1:validator:1:start",
+        kind: "validator.start",
+        payload: {
+          jobId: "run-123:worker:task-1:validator:1",
+          workerJobId: "run-123:worker:task-1",
+          taskId: "task-1",
+          worktreePath: "C:\\repo\\.steerboard\\worktrees\\task-1",
+          capabilityProfile: "read-only",
+          validationCommands: ["npm.cmd run test -- src/task-1.test.ts"]
+        }
+      }),
+      "repo"
+    );
+
+    expect(request.kind).toBe("validator.start");
+    expect(request.payload).toMatchObject({
+      capabilityProfile: "read-only",
+      validationCommands: ["npm.cmd run test -- src/task-1.test.ts"]
+    });
+  });
+
   it("blocks non-runtime commands instead of pretending they are executable", () => {
     expect(() =>
       buildRuntimeCommandRequest(
         command({
-          kind: "validator.start"
+          kind: "worker.pause"
         }),
         "repo"
       )
-    ).toThrow("orchestrator_runtime_unsupported_command:validator.start");
+    ).toThrow("orchestrator_runtime_unsupported_command:worker.pause");
   });
 
   it("drains the next queued command through a compact FIFO runtime event", async () => {
@@ -119,6 +151,18 @@ describe("orchestrator runtime executor", () => {
       id: "run-123:worker:task-1:start",
       status: "processed",
       processedAt: "2026-07-09T07:01:00.000Z"
+    });
+    expect(drained.backendState.commandQueue[1]).toMatchObject({
+      id: "run-123:worker:task-1:validator:1:start",
+      kind: "validator.start",
+      status: "queued",
+      payload: {
+        jobId: "run-123:worker:task-1:validator:1",
+        workerJobId: "run-123:worker:task-1",
+        taskId: "task-1",
+        capabilityProfile: "read-only",
+        validationCommands: ["npm.cmd run test -- src/task-1.test.ts"]
+      }
     });
     expect(drained.backendState.eventQueue[0]).toMatchObject({
       kind: "worker.progress",
@@ -181,6 +225,63 @@ describe("orchestrator runtime executor", () => {
       phase: "Runtime command blocked: worker.start.",
       blocked: true,
       detail: "orchestrator_runtime_unsafe_branch"
+    });
+    expect(drained.backendState.commandQueue).toHaveLength(1);
+  });
+
+  it("drains validator starts into validator ledger events", async () => {
+    const state = {
+      ...createBoundedOrchestratorRun(createOrchestratorBackendState(), {
+        id: "run-123",
+        projectId: "steerboard",
+        scope: { mode: "task-list", taskIds: ["task-1"] },
+        baseBranch: "main",
+        createdAt: "2026-07-09T07:00:00.000Z"
+      }),
+      commandQueue: [
+        command({
+          id: "run-123:worker:task-1:validator:1:start",
+          kind: "validator.start",
+          payload: {
+            jobId: "run-123:worker:task-1:validator:1",
+            workerJobId: "run-123:worker:task-1",
+            taskId: "task-1",
+            worktreePath: "C:\\repo\\.steerboard\\worktrees\\task-1",
+            capabilityProfile: "read-only",
+            validationCommands: ["npm.cmd run test -- src/task-1.test.ts"]
+          }
+        })
+      ]
+    };
+    const drained = await drainNextOrchestratorRuntimeCommand(state, {
+      repositoryRoot: "repo",
+      processedAt: "2026-07-09T07:01:00.000Z",
+      execute: async (request) => ({
+        commandId: request.commandId,
+        runId: request.runId,
+        kind: request.kind,
+        executed: true,
+        blocked: false,
+        artifactPaths: ["C:\\repo\\.steerboard\\orchestrator-artifacts\\run-123\\validator.jsonl"],
+        steps: [
+          {
+            label: "Launch read-only validator",
+            command: "codex exec --json -m gpt-5.3-spark -s read-only",
+            status: "passed",
+            detail: "Validator completed."
+          }
+        ],
+        detail: "Read-only validator execution completed."
+      })
+    });
+
+    expect(drained.backendState.eventQueue[0]).toMatchObject({
+      kind: "validator.reported"
+    });
+    expect(drained.backendState.eventQueue[0].payload).toMatchObject({
+      phase: "Runtime command completed: validator.start.",
+      commandKind: "validator.start",
+      executed: true
     });
   });
 });

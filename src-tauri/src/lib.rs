@@ -6990,7 +6990,13 @@ mod orchestrator_runtime_executor {
         Err("orchestrator_runtime_worktree_not_found_for_branch".to_string())
     }
 
-    fn run_codex_exec(worktree: &Path, prompt: &str, stdout_path: &Path, stderr_path: &Path) -> Result<(), String> {
+    fn run_codex_exec(
+        worktree: &Path,
+        prompt: &str,
+        stdout_path: &Path,
+        stderr_path: &Path,
+        sandbox: &str,
+    ) -> Result<(), String> {
         #[cfg(windows)]
         let mut command = {
             let mut command = Command::new("cmd");
@@ -7009,7 +7015,7 @@ mod orchestrator_runtime_executor {
             .arg("-c")
             .arg("model_reasoning_effort=\"extra-high\"")
             .arg("-s")
-            .arg("workspace-write")
+            .arg(sandbox)
             .arg("-a")
             .arg("never")
             .arg("-C")
@@ -7088,7 +7094,7 @@ mod orchestrator_runtime_executor {
             .map_err(|error| format!("orchestrator_runtime_prompt_write_failed:{error}"))?;
         artifacts.push(prompt_path.to_string_lossy().to_string());
 
-        run_codex_exec(&worktree, &prompt, &stdout_path, &stderr_path)?;
+        run_codex_exec(&worktree, &prompt, &stdout_path, &stderr_path, "workspace-write")?;
         artifacts.push(stdout_path.to_string_lossy().to_string());
         artifacts.push(stderr_path.to_string_lossy().to_string());
         steps.push(step(
@@ -7107,6 +7113,58 @@ mod orchestrator_runtime_executor {
             artifact_paths: artifacts,
             steps,
             detail: "Worker worktree was created and Codex worker execution completed.".to_string(),
+        })
+    }
+
+    fn execute_validator_start(
+        request: &OrchestratorRuntimeCommandRequest,
+        repo: &Path,
+    ) -> Result<OrchestratorRuntimeCommandResult, String> {
+        let job_id = value_string(&request.payload, "jobId")?;
+        let worker_job_id = value_string(&request.payload, "workerJobId")?;
+        let task_id = value_string(&request.payload, "taskId")?;
+        let worktree_path = value_string(&request.payload, "worktreePath")?;
+        let capability_profile = value_string(&request.payload, "capabilityProfile")?;
+        if capability_profile != "read-only" {
+            return Err("orchestrator_runtime_validator_requires_read_only".to_string());
+        }
+        let worktree = resolve_repo_child(repo, &worktree_path, ".steerboard/worktrees")?;
+        let validation_commands = value_string_array(&request.payload, "validationCommands").unwrap_or_default();
+        let prompt_path = artifact_path(repo, &request.run_id, &request.command_id, "validator-prompt.md")?;
+        let stdout_path = artifact_path(repo, &request.run_id, &request.command_id, "validator-stdout.jsonl")?;
+        let stderr_path = artifact_path(repo, &request.run_id, &request.command_id, "validator-stderr.log")?;
+        let prompt = format!(
+            "You are a read-only validator for run `{}` task `{}`.\n\nValidate worker job `{}` from worktree `{}`.\nDo not modify files. Do not commit. Inspect the worker result, run only read-safe checks, and return a concise verdict with findings, changed files, commands reviewed, evidence paths, and next action.\n\nValidator job: `{}`\nValidation command hints:\n{}\n\nPayload JSON:\n{}\n",
+            request.run_id,
+            task_id,
+            worker_job_id,
+            worktree.display(),
+            job_id,
+            validation_commands.join("\n"),
+            request.payload
+        );
+        fs::write(&prompt_path, &prompt)
+            .map_err(|error| format!("orchestrator_runtime_validator_prompt_write_failed:{error}"))?;
+        run_codex_exec(&worktree, &prompt, &stdout_path, &stderr_path, "read-only")?;
+
+        Ok(OrchestratorRuntimeCommandResult {
+            command_id: request.command_id.clone(),
+            run_id: request.run_id.clone(),
+            kind: request.kind.clone(),
+            executed: true,
+            blocked: false,
+            artifact_paths: vec![
+                prompt_path.to_string_lossy().to_string(),
+                stdout_path.to_string_lossy().to_string(),
+                stderr_path.to_string_lossy().to_string(),
+            ],
+            steps: vec![step(
+                "Launch read-only validator",
+                "codex exec --json -m gpt-5.3-spark -s read-only -a never",
+                "passed",
+                "Codex validator completed and wrote stdout/stderr artifacts.".to_string(),
+            )],
+            detail: "Read-only validator execution completed.".to_string(),
         })
     }
 
@@ -7286,6 +7344,7 @@ mod orchestrator_runtime_executor {
         let result = match request.kind.as_str() {
             "worker.start" => execute_worker_start(&request, &repo),
             "worker.commit" => execute_worker_commit(&request, &repo),
+            "validator.start" => execute_validator_start(&request, &repo),
             "integration.start" => execute_integration_start(&request, &repo),
             "cleanup.start" => execute_cleanup_start(&request, &repo),
             _ => Err(format!("orchestrator_runtime_unsupported_command:{}", request.kind)),

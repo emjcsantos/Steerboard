@@ -1,4 +1,5 @@
 import {
+  enqueueOrchestratorCommand,
   enqueueOrchestratorEvent,
   type OrchestratorBackendState,
   type OrchestratorEventKind,
@@ -9,6 +10,7 @@ import { hasTauriRuntime } from "./tauriRuntime";
 export type OrchestratorRuntimeCommandKind =
   | "worker.start"
   | "worker.commit"
+  | "validator.start"
   | "integration.start"
   | "cleanup.start";
 
@@ -48,6 +50,7 @@ export interface OrchestratorRuntimeDrainResult {
 const executableKinds = new Set<string>([
   "worker.start",
   "worker.commit",
+  "validator.start",
   "integration.start",
   "cleanup.start"
 ]);
@@ -88,6 +91,8 @@ function eventKindForCommand(kind: OrchestratorRuntimeCommandKind): Orchestrator
     case "worker.start":
     case "worker.commit":
       return "worker.progress";
+    case "validator.start":
+      return "validator.reported";
     case "integration.start":
       return "integration.updated";
     case "cleanup.start":
@@ -121,6 +126,72 @@ function markCommand(
         : command
     )
   };
+}
+
+function payloadString(payload: Record<string, unknown>, key: string): string | undefined {
+  const value = payload[key];
+
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function payloadNumber(payload: Record<string, unknown>, key: string): number | undefined {
+  const value = payload[key];
+
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function payloadStringList(payload: Record<string, unknown>, key: string): string[] {
+  const value = payload[key];
+
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+}
+
+function enqueueValidatorAfterWorker(
+  state: OrchestratorBackendState,
+  command: OrchestratorQueuedCommand,
+  result: OrchestratorRuntimeCommandResult,
+  processedAt: string
+): OrchestratorBackendState {
+  if (command.kind !== "worker.start" || result.blocked || !result.executed) {
+    return state;
+  }
+
+  const jobId = payloadString(command.payload, "jobId");
+  const taskId = payloadString(command.payload, "taskId");
+  const worktreePath = payloadString(command.payload, "worktreePath");
+  const attempt = payloadNumber(command.payload, "attempt") ?? 1;
+
+  if (!jobId || !taskId || !worktreePath) {
+    return state;
+  }
+
+  const validatorJobId = `${jobId}:validator:${attempt}`;
+  const validatorCommandId = `${validatorJobId}:start`;
+
+  if (state.commandQueue.some((queued) => queued.id === validatorCommandId)) {
+    return state;
+  }
+
+  return enqueueOrchestratorCommand(state, {
+    id: validatorCommandId,
+    runId: command.runId,
+    kind: "validator.start",
+    payload: {
+      jobId: validatorJobId,
+      workerJobId: jobId,
+      taskId,
+      worktreePath,
+      capabilityProfile: "read-only",
+      attempt,
+      ownedFiles: payloadStringList(command.payload, "ownedFiles"),
+      acceptanceCriteria: payloadStringList(command.payload, "acceptanceCriteria"),
+      validationCommands: payloadStringList(command.payload, "validationCommands"),
+      workerArtifactPaths: result.artifactPaths
+    },
+    enqueuedAt: processedAt
+  });
 }
 
 export async function drainNextOrchestratorRuntimeCommand(
@@ -157,7 +228,8 @@ export async function drainNextOrchestratorRuntimeCommand(
   const execute = input.execute ?? executeOrchestratorRuntimeCommand;
   const result = await execute(request);
   const marked = markCommand(state, command.id, result.blocked ? "ignored" : "processed", input.processedAt);
-  const backendState = enqueueOrchestratorEvent(marked, {
+  const withValidator = enqueueValidatorAfterWorker(marked, command, result, input.processedAt);
+  const backendState = enqueueOrchestratorEvent(withValidator, {
     id: `${command.id}:runtime:${input.processedAt}`,
     runId: command.runId,
     kind: eventKindForCommand(request.kind),

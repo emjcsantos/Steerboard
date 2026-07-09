@@ -291,7 +291,11 @@ export function dispatchWorkerReadyTasks(
         worktreePath: job.worktreePath,
         repositoryRoot: request.repositoryRoot,
         modelProfileId: job.modelProfileId,
-        capabilityProfile: job.capabilityProfile
+        capabilityProfile: job.capabilityProfile,
+        attempt: job.attempt,
+        ownedFiles: job.ownedFiles,
+        acceptanceCriteria: task.acceptanceCriteria,
+        validationCommands: task.validationCommands
       },
       enqueuedAt: request.createdAt
     });

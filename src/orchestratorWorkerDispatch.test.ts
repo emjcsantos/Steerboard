@@ -200,7 +200,11 @@ describe("orchestrator worker dispatch", () => {
     expect(JSON.parse(commandRows[0].payload_json)).toMatchObject({
       jobId: "run-123:worker:task-1",
       modelProfileId: DEFAULT_WORKER_MODEL_PROFILE.id,
-      capabilityProfile: "workspace-write"
+      capabilityProfile: "workspace-write",
+      attempt: 1,
+      ownedFiles: ["src/task-1.ts"],
+      acceptanceCriteria: ["Worker job is queued."],
+      validationCommands: ["npm.cmd run test -- src/orchestratorWorkerDispatch.test.ts"]
     });
   });
 
