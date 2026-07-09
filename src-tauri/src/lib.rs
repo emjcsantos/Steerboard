@@ -7279,7 +7279,11 @@ mod orchestrator_runtime_executor {
             artifact_paths: Vec::new(),
             steps,
             detail: format!("Accepted worker output committed on {branch}."),
-            structured_output: None,
+            structured_output: Some(serde_json::json!({
+                "taskId": task_id,
+                "branch": branch,
+                "commitSha": commit_sha.trim(),
+            })),
         })
     }
 

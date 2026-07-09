@@ -14,6 +14,10 @@ import type { PmWorkerReadyTask } from "./pmLaneWorkerReady";
 import type { WorkerJobRecord } from "./orchestratorWorkerDispatch";
 import { DEFAULT_PM_TASK_BUDGET, createPmTaskTemplateSnapshot } from "./pmLaneWorkerReady";
 import { DEFAULT_WORKER_MODEL_PROFILE } from "./orchestratorWorkerDispatch";
+import {
+  createAcceptedWorkerCommit,
+  type AcceptedWorkerCommit
+} from "./orchestratorIntegration";
 
 export interface ValidatorRuntimeReportApplyResult {
   backendState: OrchestratorBackendState;
@@ -21,6 +25,7 @@ export interface ValidatorRuntimeReportApplyResult {
   accepted: boolean;
   revisionQueued: boolean;
   correctiveTaskCount: number;
+  acceptedCommit?: AcceptedWorkerCommit;
 }
 
 const verdicts = new Set<ValidatorVerdict>([
@@ -229,12 +234,20 @@ export function applyValidatorRuntimeResult(input: {
     input.maxAttempts
   );
 
+  const acceptedCommit = loop.accepted
+    ? createAcceptedWorkerCommit(loop.backendState, input.workerJob, report, {
+        committedAt: input.createdAt,
+        commandEvidence: report.commandsRun.map((command) => command.command)
+      })
+    : undefined;
+
   return {
-    backendState: loop.backendState,
+    backendState: acceptedCommit?.backendState ?? loop.backendState,
     report,
     accepted: loop.accepted,
     revisionQueued: Boolean(loop.revisionPacket),
-    correctiveTaskCount: loop.corrective?.tasks.length ?? 0
+    correctiveTaskCount: loop.corrective?.tasks.length ?? 0,
+    acceptedCommit: acceptedCommit?.commit
   };
 }
 

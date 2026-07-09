@@ -139,6 +139,7 @@ describe("orchestrator queue pump", () => {
         jobId: "run-123:worker:task-1:validator:1",
         workerJobId: "run-123:worker:task-1",
         taskId: "task-1",
+        branch: "codex/orch/task-1",
         worktreePath: "C:\\repo\\.steerboard\\worktrees\\task-1",
         capabilityProfile: "read-only",
         attempt: 1,
@@ -187,6 +188,16 @@ describe("orchestrator queue pump", () => {
     expect(result.detail).toBe("Drained one validator command, applied the validator loop decision, and persisted the ledger state.");
     expect(result.backendState.commandQueue[0]).toMatchObject({
       status: "processed"
+    });
+    expect(result.backendState.commandQueue.at(-1)).toMatchObject({
+      kind: "worker.commit",
+      status: "queued",
+      payload: {
+        taskId: "task-1",
+        workerJobId: "run-123:worker:task-1",
+        branch: "codex/orch/task-1",
+        worktreePath: "C:\\repo\\.steerboard\\worktrees\\task-1"
+      }
     });
     expect(result.backendState.ledger.at(-1)).toMatchObject({
       kind: "validator.reported",

@@ -98,6 +98,7 @@ export function createAcceptedWorkerCommit(
       taskId: commit.taskId,
       workerJobId: commit.workerJobId,
       branch: commit.branch,
+      worktreePath: workerJob.worktreePath,
       commitSha: commit.commitSha,
       validationReportId: commit.validationReportId,
       commandEvidence: commit.commandEvidence

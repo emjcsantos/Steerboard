@@ -183,6 +183,7 @@ function enqueueValidatorAfterWorker(
       jobId: validatorJobId,
       workerJobId: jobId,
       taskId,
+      branch: payloadString(command.payload, "branch"),
       worktreePath,
       capabilityProfile: "read-only",
       attempt,

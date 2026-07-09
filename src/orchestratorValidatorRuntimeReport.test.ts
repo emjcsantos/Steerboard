@@ -157,6 +157,48 @@ describe("orchestrator validator runtime report", () => {
     ]);
   });
 
+  it("queues an accepted worker commit after a passing validator report", () => {
+    const validator = createValidatorJobForWorker(backendState(), sourceTask(), workerJob(), createdAt);
+    const applied = applyValidatorRuntimeResult({
+      backendState: validator.backendState,
+      sourceTask: sourceTask(),
+      workerJob: workerJob(),
+      validatorJob: validator.job,
+      result: runtimeResult(),
+      createdAt,
+      structuredOutput: {
+        verdict: "pass",
+        nextAction: "accept",
+        findings: [],
+        commandsRun: [
+          {
+            command: "npm.cmd run test -- src/orchestratorValidatorRuntimeReport.test.ts",
+            status: "passed",
+            detail: "Passed"
+          }
+        ]
+      }
+    });
+
+    expect(applied.accepted).toBe(true);
+    expect(applied.acceptedCommit).toMatchObject({
+      taskId: "task-1",
+      workerJobId: "run-123:worker:task-1",
+      branch: "codex/orch/task-1-runtime-parser",
+      validationReportId: applied.report.id
+    });
+    expect(applied.backendState.commandQueue.at(-1)).toMatchObject({
+      kind: "worker.commit",
+      payload: {
+        taskId: "task-1",
+        workerJobId: "run-123:worker:task-1",
+        branch: "codex/orch/task-1-runtime-parser",
+        worktreePath: ".steerboard/worktrees/task-1-runtime-parser",
+        commandEvidence: ["npm.cmd run test -- src/orchestratorValidatorRuntimeReport.test.ts"]
+      }
+    });
+  });
+
   it("applies revision-required validator output and queues a worker retry before max attempts", () => {
     const validator = createValidatorJobForWorker(backendState(), sourceTask(), workerJob(), createdAt);
     const applied = applyValidatorRuntimeResult({
@@ -190,6 +232,7 @@ describe("orchestrator validator runtime report", () => {
     });
 
     expect(applied.accepted).toBe(false);
+    expect(applied.acceptedCommit).toBeUndefined();
     expect(applied.revisionQueued).toBe(true);
     expect(applied.correctiveTaskCount).toBe(0);
     expect(applied.backendState.commandQueue.at(-1)).toMatchObject({
