@@ -1,5 +1,5 @@
 import type { AcceptanceCriterionResult, ValidatorReport } from "./orchestratorValidatorLoop";
-import type { ValidationEvidenceKind } from "./pmLaneWorkerReady";
+import type { PmWorkerReadyTask, ValidationEvidenceKind } from "./pmLaneWorkerReady";
 
 export type OrchestratorArtifactKind =
   | "screenshot"
@@ -87,8 +87,16 @@ function joinArtifactPath(parts: string[]): string {
     .join("/");
 }
 
+function normalizePathForComparison(path: string): string {
+  return path.replace(/\\/g, "/").replace(/\/+$/g, "");
+}
+
 function bytesFromText(text: string): Uint8Array {
   return new TextEncoder().encode(text);
+}
+
+function bytesFromStoredContent(content: string | Uint8Array): Uint8Array {
+  return typeof content === "string" ? bytesFromText(content) : content;
 }
 
 function bytesToHex(buffer: ArrayBuffer): string {
@@ -152,6 +160,49 @@ export async function createArtifactMetadataFromText(input: {
       artifactId: input.id,
       kind: input.kind
     }),
+    sha256: await sha256Hex(bytes),
+    sizeBytes: bytes.byteLength,
+    createdAt: input.createdAt
+  };
+}
+
+export async function createArtifactMetadataFromStoredFile(input: {
+  id: string;
+  runId: string;
+  taskId?: string;
+  jobId?: string;
+  attempt?: number;
+  kind: OrchestratorArtifactKind;
+  path: string;
+  artifactRoot?: string;
+  createdAt: string;
+  readFile: (path: string) => Promise<string | Uint8Array>;
+}): Promise<OrchestratorArtifact> {
+  if (input.artifactRoot) {
+    const root = normalizePathForComparison(input.artifactRoot);
+    const artifactPath = normalizePathForComparison(input.path);
+
+    if (artifactPath !== root && !artifactPath.startsWith(`${root}/`)) {
+      throw new Error(`orchestrator_artifact_outside_root:${input.path}`);
+    }
+  }
+
+  let bytes: Uint8Array;
+
+  try {
+    bytes = bytesFromStoredContent(await input.readFile(input.path));
+  } catch {
+    throw new Error(`orchestrator_artifact_file_missing:${input.path}`);
+  }
+
+  return {
+    id: input.id,
+    runId: input.runId,
+    taskId: input.taskId,
+    jobId: input.jobId,
+    attempt: input.attempt,
+    kind: input.kind,
+    path: input.path,
     sha256: await sha256Hex(bytes),
     sizeBytes: bytes.byteLength,
     createdAt: input.createdAt
@@ -226,6 +277,15 @@ export function linkEvidenceToAcceptanceResults(input: {
       missingAcceptedEvidence: result.status === "pass" && !hasAcceptedEvidence
     };
   });
+}
+
+export function criterionEvidenceRequirementsFromTask(
+  task: Pick<PmWorkerReadyTask, "acceptanceCriteria" | "evidenceKinds">
+): CriterionEvidenceRequirement[] {
+  return task.acceptanceCriteria.map((criterion) => ({
+    criterion,
+    acceptedKinds: [...task.evidenceKinds]
+  }));
 }
 
 export function artifactsReferencedByAcceptedEvidence(

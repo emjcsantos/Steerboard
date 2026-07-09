@@ -4,6 +4,8 @@ import {
   buildArtifactPath,
   canCleanupArtifact,
   createArtifactMetadataFromText,
+  createArtifactMetadataFromStoredFile,
+  criterionEvidenceRequirementsFromTask,
   linkEvidenceToAcceptanceResults,
   serializeArtifactsForSqlite,
   sha256Hex,
@@ -86,6 +88,83 @@ describe("orchestrator artifacts and validation evidence", () => {
       kind: "validator-report",
       size_bytes: 16
     });
+  });
+
+  it("computes metadata from existing project-local artifact files", async () => {
+    const path = ".steerboard/artifacts/run-123/task-1/validator.log";
+    const artifact = await createArtifactMetadataFromStoredFile({
+      id: "artifact-file",
+      runId: "run-123",
+      taskId: "task-1",
+      jobId: "validator-1",
+      attempt: 2,
+      kind: "validation-output",
+      path,
+      artifactRoot: ".steerboard/artifacts",
+      createdAt,
+      readFile: async (requestedPath) => {
+        expect(requestedPath).toBe(path);
+        return "validator stdout";
+      }
+    });
+
+    expect(artifact).toMatchObject({
+      id: "artifact-file",
+      runId: "run-123",
+      taskId: "task-1",
+      jobId: "validator-1",
+      attempt: 2,
+      kind: "validation-output",
+      path,
+      sizeBytes: 16
+    });
+    expect(artifact.sha256).toBe(await sha256Hex(new TextEncoder().encode("validator stdout")));
+  });
+
+  it("rejects missing files and artifacts outside the project-local artifact root", async () => {
+    await expect(
+      createArtifactMetadataFromStoredFile({
+        id: "missing",
+        runId: "run-123",
+        kind: "log",
+        path: ".steerboard/artifacts/run-123/missing.log",
+        artifactRoot: ".steerboard/artifacts",
+        createdAt,
+        readFile: async () => {
+          throw new Error("ENOENT");
+        }
+      })
+    ).rejects.toThrow("orchestrator_artifact_file_missing:.steerboard/artifacts/run-123/missing.log");
+
+    await expect(
+      createArtifactMetadataFromStoredFile({
+        id: "outside",
+        runId: "run-123",
+        kind: "log",
+        path: "C:\\tmp\\outside.log",
+        artifactRoot: ".steerboard/artifacts",
+        createdAt,
+        readFile: async () => "not reached"
+      })
+    ).rejects.toThrow("orchestrator_artifact_outside_root:C:\\tmp\\outside.log");
+  });
+
+  it("derives per-criterion evidence requirements from PM task evidence kinds", () => {
+    expect(
+      criterionEvidenceRequirementsFromTask({
+        acceptanceCriteria: ["Tests pass.", "Build passes."],
+        evidenceKinds: ["test", "build"]
+      })
+    ).toEqual([
+      {
+        criterion: "Tests pass.",
+        acceptedKinds: ["test", "build"]
+      },
+      {
+        criterion: "Build passes.",
+        acceptedKinds: ["test", "build"]
+      }
+    ]);
   });
 
   it("links evidence to acceptance criteria and detects unacceptable evidence kinds", () => {

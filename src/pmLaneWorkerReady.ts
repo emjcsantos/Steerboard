@@ -9,6 +9,7 @@ export type PmWorkerReadyStatus =
   | "queued"
   | "needs-refinement";
 export type ValidationEvidenceKind =
+  | "test"
   | "unit-test"
   | "integration-test"
   | "typecheck"
