@@ -7,8 +7,14 @@ import {
   drainNextOrchestratorRuntimeCommand,
   executeOrchestratorRuntimeCommand,
   type OrchestratorRuntimeCommandRequest,
-  type OrchestratorRuntimeCommandResult
+  type OrchestratorRuntimeCommandResult,
+  type OrchestratorRuntimeDrainResult
 } from "./orchestratorRuntimeExecutor";
+import {
+  orchestratorRunController,
+  type OrchestratorExecutionPolicy,
+  type OrchestratorRunController
+} from "./orchestratorRunController";
 import {
   applyOrchestratorSqliteSnapshot,
   buildOrchestratorSqliteSnapshot,
@@ -33,6 +39,8 @@ export interface OrchestratorQueuePumpCycleInput {
   readSnapshot?: () => Promise<OrchestratorSqliteSnapshot>;
   applySnapshot?: (snapshot: OrchestratorSqliteSnapshot) => Promise<OrchestratorSqliteApplyResult>;
   execute?: (request: OrchestratorRuntimeCommandRequest) => Promise<OrchestratorRuntimeCommandResult>;
+  executionPolicy?: OrchestratorExecutionPolicy;
+  controller?: OrchestratorRunController;
 }
 
 export interface OrchestratorQueuePumpCycleResult {
@@ -53,13 +61,30 @@ export async function runOrchestratorQueuePumpCycle(
 ): Promise<OrchestratorQueuePumpCycleResult> {
   const readSnapshot = input.readSnapshot ?? readOrchestratorSqliteSnapshot;
   const applySnapshot = input.applySnapshot ?? applyOrchestratorSqliteSnapshot;
+  const controller = input.controller ?? orchestratorRunController;
+  const lease = controller.claim(input.repositoryRoot, input.executionPolicy);
+
+  if (!lease.acquired) {
+    const snapshot = await readSnapshot();
+    return {
+      backendState: hydrateOrchestratorBackendStateFromSqlite(snapshot),
+      commandDrained: false,
+      eventsProcessed: 0,
+      snapshotApplied: false,
+      detail: "An orchestrator queue pump is already running for this repository."
+    };
+  }
+
+  try {
   const snapshot = await readSnapshot();
   const restored = hydrateOrchestratorBackendStateFromSqlite(snapshot);
-  const drained = await drainNextOrchestratorRuntimeCommand(restored, {
-    repositoryRoot: input.repositoryRoot,
-    processedAt: input.processedAt,
-    execute: input.execute ?? executeOrchestratorRuntimeCommand
-  });
+  const drained: OrchestratorRuntimeDrainResult = lease.canExecuteRuntimeCommand
+    ? await drainNextOrchestratorRuntimeCommand(restored, {
+        repositoryRoot: input.repositoryRoot,
+        processedAt: input.processedAt,
+        execute: input.execute ?? executeOrchestratorRuntimeCommand
+      })
+    : { backendState: restored, drained: false };
   const loopApplied = drained.command && drained.result
     ? applyValidatorRuntimeCommandResult({
         backendState: drained.backendState,
@@ -127,7 +152,9 @@ export async function runOrchestratorQueuePumpCycle(
       commandDrained: false,
       eventsProcessed: 0,
       snapshotApplied: false,
-      detail: "No queued orchestrator command or event was available."
+      detail: lease.reason === "continuous-gate-closed"
+        ? "Continuous execution remains gated by readiness and permission approval."
+        : "No queued orchestrator command or event was available."
     };
   }
 
@@ -161,4 +188,7 @@ export async function runOrchestratorQueuePumpCycle(
         : "Drained one orchestrator runtime command and persisted the resulting ledger state."
       : "Processed queued orchestrator events and persisted the resulting ledger state."
   };
+  } finally {
+    lease.release();
+  }
 }

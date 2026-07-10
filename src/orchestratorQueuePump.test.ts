@@ -7,6 +7,8 @@ import {
 } from "./orchestratorBackend";
 import { runOrchestratorQueuePumpCycle } from "./orchestratorQueuePump";
 import { createCleanupJob } from "./orchestratorCleanup";
+import { OrchestratorRunController } from "./orchestratorRunController";
+import type { OrchestratorRuntimeCommandRequest } from "./orchestratorRuntimeExecutor";
 import {
   buildOrchestratorSqliteSnapshot,
   type OrchestratorSqliteApplyResult,
@@ -582,5 +584,84 @@ describe("orchestrator queue pump", () => {
       snapshotApplied: false,
       detail: "No queued orchestrator command or event was available."
     });
+  });
+
+  it("keeps continuous runtime execution behind readiness and permission gates", async () => {
+    const state = enqueueOrchestratorCommand(stateWithRun(), {
+      id: "command-gated",
+      runId: "run-123",
+      kind: "worker.start",
+      payload: { jobId: "job-1", taskId: "task-1" },
+      enqueuedAt: createdAt
+    });
+    const result = await runOrchestratorQueuePumpCycle({
+      repositoryRoot: "C:\\repo-gated",
+      processedAt,
+      controller: new OrchestratorRunController(),
+      executionPolicy: {
+        mode: "continuous",
+        readinessApproved: true,
+        permissionApproved: false
+      },
+      readSnapshot: async () => buildOrchestratorSqliteSnapshot(state),
+      applySnapshot: async () => {
+        throw new Error("should-not-write");
+      },
+      execute: async () => {
+        throw new Error("should-not-execute");
+      }
+    });
+
+    expect(result).toMatchObject({
+      commandDrained: false,
+      snapshotApplied: false,
+      detail: "Continuous execution remains gated by readiness and permission approval."
+    });
+    expect(result.backendState.commandQueue[0].status).toBe("queued");
+  });
+
+  it("prevents simultaneous queue pumps from executing the same command twice", async () => {
+    const state = enqueueOrchestratorCommand(stateWithRun(), {
+      id: "command-once",
+      runId: "run-123",
+      kind: "worker.start",
+      payload: { jobId: "job-1", taskId: "task-1" },
+      enqueuedAt: createdAt
+    });
+    const controller = new OrchestratorRunController();
+    let releaseExecution: (() => void) | undefined;
+    const executionStarted = new Promise<void>((resolve) => {
+      releaseExecution = resolve;
+    });
+    let executeCount = 0;
+    const input = {
+      repositoryRoot: "C:\\repo-concurrent",
+      processedAt,
+      controller,
+      readSnapshot: async () => buildOrchestratorSqliteSnapshot(state),
+      applySnapshot: async (snapshot: OrchestratorSqliteSnapshot) => applyResult(snapshot),
+      execute: async (request: OrchestratorRuntimeCommandRequest) => {
+        executeCount += 1;
+        await executionStarted;
+        return {
+          commandId: request.commandId,
+          runId: request.runId,
+          kind: request.kind,
+          executed: true,
+          blocked: false,
+          artifactPaths: [],
+          steps: [],
+          detail: "Executed once."
+        };
+      }
+    };
+    const first = runOrchestratorQueuePumpCycle(input);
+    await Promise.resolve();
+    const concurrent = await runOrchestratorQueuePumpCycle(input);
+    releaseExecution?.();
+    await first;
+
+    expect(concurrent.detail).toBe("An orchestrator queue pump is already running for this repository.");
+    expect(executeCount).toBe(1);
   });
 });
