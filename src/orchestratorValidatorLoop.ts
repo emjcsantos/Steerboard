@@ -10,7 +10,8 @@ import {
   type PmWorkerReadyTask,
   type ValidationEvidenceKind
 } from "./pmLaneWorkerReady";
-import type { WorkerJobRecord, WorkerJobStatus } from "./orchestratorWorkerDispatch";
+import type { WorkerJobRecord, WorkerJobStatus, WorkerModelProfile } from "./orchestratorWorkerDispatch";
+import { queueOrchestratorTakeover } from "./orchestratorTakeover";
 
 export type ValidatorVerdict = "pass" | "revision-required" | "blocked" | "needs-corrective-task";
 export type ValidatorNextAction =
@@ -95,6 +96,8 @@ export interface ValidatorLoopResult {
   accepted: boolean;
   revisionPacket?: WorkerRevisionPacket;
   corrective?: CorrectiveTaskResult;
+  takeoverQueued?: boolean;
+  takeoverJobId?: string;
 }
 
 const DEFAULT_MAX_ATTEMPTS = 3;
@@ -278,7 +281,9 @@ export function applyValidatorReport(
   workerJob: WorkerJobRecord,
   validatorJob: ValidatorJobRecord,
   report: ValidatorReport,
-  maxAttempts = DEFAULT_MAX_ATTEMPTS
+  maxAttempts = DEFAULT_MAX_ATTEMPTS,
+  exhaustionPolicy: "orchestrator-takeover" | "corrective-task" = "corrective-task",
+  orchestratorProfile?: WorkerModelProfile
 ): ValidatorLoopResult {
   let nextState = enqueueOrchestratorEvent(backendState, {
     id: report.id,
@@ -321,10 +326,22 @@ export function applyValidatorReport(
       payload: {
         jobId: workerJob.id,
         taskId: workerJob.taskId,
+        branch: workerJob.branch,
         worktreePath: workerJob.worktreePath,
         attempt: revisionPacket.nextAttempt,
+        reportId: report.id,
         defectCount: revisionPacket.findings.length,
-        requiredActions: revisionPacket.requiredActions
+        findings: revisionPacket.findings,
+        requiredActions: revisionPacket.requiredActions,
+        ownership: {
+          retainedByWorkerJobId: workerJob.id,
+          ownedFiles: workerJob.ownedFiles
+        },
+        ownedFiles: workerJob.ownedFiles,
+        forbiddenFiles: workerJob.forbiddenFiles,
+        acceptanceCriteria: sourceTask.acceptanceCriteria,
+        validationCommands: sourceTask.validationCommands,
+        modelRouting: orchestratorProfile ? { orchestrator: orchestratorProfile } : undefined
       },
       enqueuedAt: report.createdAt
     });
@@ -333,6 +350,50 @@ export function applyValidatorReport(
       backendState: nextState,
       accepted: false,
       revisionPacket
+    };
+  }
+
+  if (report.verdict === "blocked") {
+    return {
+      backendState: nextState,
+      accepted: false
+    };
+  }
+
+  if (exhaustionPolicy === "orchestrator-takeover") {
+    if (orchestratorProfile) {
+      const takeover = queueOrchestratorTakeover({
+        backendState: nextState,
+        workerJob,
+        report,
+        orchestratorProfile
+      });
+      return {
+        backendState: takeover.backendState,
+        accepted: false,
+        takeoverQueued: takeover.queued,
+        takeoverJobId: takeover.jobId
+      };
+    }
+    nextState = enqueueOrchestratorEvent(nextState, {
+      id: `${report.id}:takeover-blocked`,
+      runId: report.runId,
+      kind: "worker.progress",
+      payload: {
+        phase: "Validation exhausted, but orchestrator takeover is blocked by a missing resolved profile.",
+        workState: "blocked",
+        taskId: report.taskId,
+        workerJobId: workerJob.id,
+        reportId: report.id,
+        blockedReason: "missing-orchestrator-profile"
+      },
+      dedupeKey: `${report.id}:takeover-blocked`,
+      enqueuedAt: report.createdAt
+    });
+    return {
+      backendState: nextState,
+      accepted: false,
+      takeoverQueued: false
     };
   }
 

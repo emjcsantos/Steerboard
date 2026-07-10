@@ -20,6 +20,7 @@ export type OrchestratorRuntimeCommandKind =
   | "cleanup.start"
   | "cleanup.pause"
   | "cleanup.cancel"
+  | "orchestrator.takeover"
   | "finalization.merge"
   | "remote.push";
 
@@ -63,6 +64,7 @@ const executableKinds = new Set<string>([
   "validator.start",
   "integration.start",
   "cleanup.start",
+  "orchestrator.takeover",
   "finalization.merge",
   "remote.push"
 ]);
@@ -114,6 +116,7 @@ function eventKindForCommand(kind: OrchestratorCommandKind): OrchestratorEventKi
     case "worker.start":
     case "worker.commit":
     case "worker.pause":
+    case "orchestrator.takeover":
       return "worker.progress";
     case "worker.cancel":
       return "cleanup.updated";
@@ -199,7 +202,7 @@ function enqueueValidatorAfterWorker(
   result: OrchestratorRuntimeCommandResult,
   processedAt: string
 ): OrchestratorBackendState {
-  if (command.kind !== "worker.start" || result.blocked || !result.executed) {
+  if (command.kind !== "worker.start" || result.blocked || !result.executed || payloadBoolean(command.payload, "skipValidator")) {
     return state;
   }
 
@@ -234,7 +237,8 @@ function enqueueValidatorAfterWorker(
       ownedFiles: payloadStringList(command.payload, "ownedFiles"),
       acceptanceCriteria: payloadStringList(command.payload, "acceptanceCriteria"),
       validationCommands: payloadStringList(command.payload, "validationCommands"),
-      workerArtifactPaths: result.artifactPaths
+      workerArtifactPaths: result.artifactPaths,
+      modelRouting: command.payload.modelRouting
     },
     enqueuedAt: processedAt
   });

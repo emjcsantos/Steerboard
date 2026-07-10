@@ -32,6 +32,7 @@ import {
   queueIntegrationAfterWorkerCommitRuntime
 } from "./orchestratorIntegration";
 import { applyFinalizationRuntimeCommandResult, enqueueFinalRunReportIfReady } from "./orchestratorFinalReport";
+import { applyOrchestratorTakeoverRuntimeResult } from "./orchestratorTakeover";
 
 export interface OrchestratorQueuePumpCycleInput {
   repositoryRoot: string;
@@ -85,7 +86,15 @@ export async function runOrchestratorQueuePumpCycle(
         execute: input.execute ?? executeOrchestratorRuntimeCommand
       })
     : { backendState: restored, drained: false };
-  const loopApplied = drained.command && drained.result
+  const takeoverApplied = drained.command && drained.result
+    ? applyOrchestratorTakeoverRuntimeResult({
+        backendState: drained.backendState,
+        command: drained.command,
+        result: drained.result,
+        createdAt: input.processedAt
+      })
+    : undefined;
+  const loopApplied = !takeoverApplied && drained.command && drained.result
     ? applyValidatorRuntimeCommandResult({
         backendState: drained.backendState,
         command: drained.command,
@@ -127,6 +136,7 @@ export async function runOrchestratorQueuePumpCycle(
         })
       : undefined;
   const stateAfterLoop =
+    takeoverApplied?.backendState ??
     loopApplied?.backendState ??
     integrationQueued?.backendState ??
     integrationApplied?.backendState ??
@@ -173,6 +183,10 @@ export async function runOrchestratorQueuePumpCycle(
     detail: drained.drained
       ? loopApplied
         ? "Drained one validator command, applied the validator loop decision, and persisted the ledger state."
+        : takeoverApplied?.completed
+        ? "Drained one orchestrator takeover, queued its accepted commit for normal integration, and persisted the ledger state."
+        : takeoverApplied?.failed
+        ? "Drained one orchestrator takeover, recorded takeover failure, and persisted the ledger state."
         : integrationQueued?.queued
         ? "Drained one worker commit, queued automatic integration, and persisted the ledger state."
         : integrationApplied?.completed

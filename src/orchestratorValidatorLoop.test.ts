@@ -242,8 +242,39 @@ describe("orchestrator validator loop", () => {
     });
     expect(loop.backendState.commandQueue.at(-1)?.payload).toMatchObject({
       jobId: "run-123:worker:task-1",
+      branch: "codex/orch/task-1-validator-loop",
       worktreePath: ".steerboard/worktrees/task-1-validator-loop",
-      attempt: 2
+      attempt: 2,
+      reportId: "report-1",
+      requiredActions: ["Add focused validator loop coverage."],
+      ownership: {
+        retainedByWorkerJobId: "run-123:worker:task-1",
+        ownedFiles: ["src/orchestratorValidatorLoop.ts"]
+      }
+    });
+  });
+
+  it("returns the same worker and mutable scope for the second revision attempt", () => {
+    const secondWorker = workerJob({ attempt: 2 });
+    const validator = createValidatorJobForWorker(backendState(), sourceTask(), secondWorker, createdAt);
+    const loop = applyValidatorReport(
+      validator.backendState,
+      sourceTask(),
+      secondWorker,
+      validator.job,
+      report({ id: "report-2", attempt: 2 })
+    );
+
+    expect(loop.revisionPacket).toMatchObject({ attempt: 2, nextAttempt: 3 });
+    expect(loop.backendState.commandQueue.at(-1)).toMatchObject({
+      kind: "worker.start",
+      payload: {
+        jobId: "run-123:worker:task-1",
+        branch: "codex/orch/task-1-validator-loop",
+        worktreePath: ".steerboard/worktrees/task-1-validator-loop",
+        attempt: 3,
+        reportId: "report-2"
+      }
     });
   });
 
@@ -316,5 +347,69 @@ describe("orchestrator validator loop", () => {
       kind: "validator.reported",
       message: "Validator verdict: revision-required."
     });
+  });
+
+  it("queues exactly one orchestrator takeover after the third failure and no fourth attempt", () => {
+    const thirdWorker = workerJob({ attempt: 3, lease: { leaseOwner: "worker-agent", leasedAt: createdAt } });
+    const validator = createValidatorJobForWorker(backendState(), sourceTask(), thirdWorker, createdAt);
+    const orchestratorProfile = {
+      ...DEFAULT_WORKER_MODEL_PROFILE,
+      id: "teacher-high",
+      role: "orchestrator" as const,
+      model: "gpt-5.3-codex",
+      reasoningEffort: "high" as const,
+      capabilities: { ...DEFAULT_WORKER_MODEL_PROFILE.capabilities }
+    };
+    const thirdReport = report({ id: "report-third", attempt: 3 });
+    const first = applyValidatorReport(
+      validator.backendState,
+      sourceTask(),
+      thirdWorker,
+      validator.job,
+      thirdReport,
+      3,
+      "orchestrator-takeover",
+      orchestratorProfile
+    );
+    const replay = applyValidatorReport(
+      first.backendState,
+      sourceTask(),
+      thirdWorker,
+      validator.job,
+      thirdReport,
+      3,
+      "orchestrator-takeover",
+      orchestratorProfile
+    );
+
+    expect(first.takeoverQueued).toBe(true);
+    expect(replay.takeoverQueued).toBe(false);
+    expect(replay.backendState.commandQueue.filter((command) => command.kind === "orchestrator.takeover")).toHaveLength(1);
+    expect(replay.backendState.commandQueue.some((command) => command.payload.attempt === 4)).toBe(false);
+    expect(replay.backendState.commandQueue.at(-1)?.payload.modelProfile).toMatchObject({
+      id: "teacher-high",
+      role: "orchestrator",
+      reasoningEffort: "high"
+    });
+  });
+
+  it("keeps blocked validation distinct from retry, takeover, and corrective exhaustion", () => {
+    const validator = createValidatorJobForWorker(backendState(), sourceTask(), workerJob(), createdAt);
+    const loop = applyValidatorReport(
+      validator.backendState,
+      sourceTask(),
+      workerJob(),
+      validator.job,
+      report({ verdict: "blocked", nextAction: "escalate-human" }),
+      3,
+      "orchestrator-takeover"
+    );
+
+    expect(loop.accepted).toBe(false);
+    expect(loop.revisionPacket).toBeUndefined();
+    expect(loop.takeoverQueued).toBeUndefined();
+    expect(loop.corrective).toBeUndefined();
+    expect(loop.backendState.commandQueue).toHaveLength(1);
+    expect(loop.backendState.commandQueue[0].kind).toBe("validator.start");
   });
 });

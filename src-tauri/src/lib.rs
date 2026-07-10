@@ -7043,6 +7043,8 @@ mod orchestrator_runtime_executor {
         prompt: &str,
         stdout_path: &Path,
         stderr_path: &Path,
+        model: &str,
+        reasoning_effort: &str,
         sandbox: &str,
     ) -> Result<Option<Value>, String> {
         #[cfg(windows)]
@@ -7059,9 +7061,9 @@ mod orchestrator_runtime_executor {
             .arg("exec")
             .arg("--json")
             .arg("-m")
-            .arg("gpt-5.3-spark")
+            .arg(model)
             .arg("-c")
-            .arg("model_reasoning_effort=\"extra-high\"")
+            .arg(format!("model_reasoning_effort=\"{reasoning_effort}\""))
             .arg("-s")
             .arg(sandbox)
             .arg("-a")
@@ -7144,6 +7146,54 @@ mod orchestrator_runtime_executor {
         let branch = value_string(&request.payload, "branch")?;
         let worktree_path = value_string(&request.payload, "worktreePath")?;
         let task_id = value_string(&request.payload, "taskId")?;
+        let takeover = request.kind == "orchestrator.takeover";
+        let (model, reasoning_effort) = if takeover {
+            let job_id = value_string(&request.payload, "jobId")?;
+            let ownership = request
+                .payload
+                .get("ownership")
+                .and_then(Value::as_object)
+                .ok_or_else(|| "orchestrator_takeover_missing_ownership_handoff".to_string())?;
+            let released_worker = ownership
+                .get("releasedWorkerJobId")
+                .and_then(Value::as_str)
+                .filter(|value| !value.trim().is_empty())
+                .ok_or_else(|| "orchestrator_takeover_worker_ownership_not_released".to_string())?;
+            let transferred_to = ownership
+                .get("transferredToJobId")
+                .and_then(Value::as_str)
+                .ok_or_else(|| "orchestrator_takeover_missing_transfer_target".to_string())?;
+            let owned_files = ownership
+                .get("ownedFiles")
+                .and_then(Value::as_array)
+                .ok_or_else(|| "orchestrator_takeover_missing_mutable_scope".to_string())?;
+            if released_worker == job_id || transferred_to != job_id || owned_files.is_empty() {
+                return Err("orchestrator_takeover_invalid_ownership_transfer".to_string());
+            }
+            let profile = request
+                .payload
+                .get("modelProfile")
+                .and_then(Value::as_object)
+                .ok_or_else(|| "orchestrator_takeover_missing_orchestrator_profile".to_string())?;
+            if profile.get("role").and_then(Value::as_str) != Some("orchestrator")
+                || profile.get("provider").and_then(Value::as_str) != Some("codex")
+            {
+                return Err("orchestrator_takeover_invalid_orchestrator_profile".to_string());
+            }
+            let model = profile
+                .get("model")
+                .and_then(Value::as_str)
+                .filter(|value| !value.trim().is_empty() && value.len() <= 120)
+                .ok_or_else(|| "orchestrator_takeover_invalid_model".to_string())?;
+            let effort = profile
+                .get("reasoningEffort")
+                .and_then(Value::as_str)
+                .filter(|value| matches!(*value, "low" | "medium" | "high" | "extra-high"))
+                .ok_or_else(|| "orchestrator_takeover_invalid_reasoning_effort".to_string())?;
+            (model.to_string(), effort.to_string())
+        } else {
+            ("gpt-5.3-spark".to_string(), "extra-high".to_string())
+        };
         ensure_safe_branch(&branch)?;
         let worktree = resolve_repo_child(repo, &worktree_path, ".steerboard/worktrees")?;
         let mut steps = Vec::new();
@@ -7180,7 +7230,8 @@ mod orchestrator_runtime_executor {
         let stdout_path = artifact_path(repo, &request.run_id, &request.command_id, "codex-stdout.jsonl")?;
         let stderr_path = artifact_path(repo, &request.run_id, &request.command_id, "codex-stderr.log")?;
         let prompt = format!(
-            "You are an orchestrator worker for run `{}` task `{}`.\n\nWork only in `{}` on branch `{}`.\nUse the task packet from the orchestrator payload. Commit nothing unless validation passes.\n\nPayload JSON:\n{}\n",
+            "You are {} for run `{}` task `{}`.\n\nWork only in `{}` on branch `{}`.\nUse the task packet from the orchestrator payload. Commit nothing unless validation passes.\n\nPayload JSON:\n{}\n",
+            if takeover { "the audited orchestrator takeover" } else { "an orchestrator worker" },
             request.run_id,
             task_id,
             worktree.display(),
@@ -7191,12 +7242,13 @@ mod orchestrator_runtime_executor {
             .map_err(|error| format!("orchestrator_runtime_prompt_write_failed:{error}"))?;
         artifacts.push(prompt_path.to_string_lossy().to_string());
 
-        let _ = run_codex_exec(&worktree, &prompt, &stdout_path, &stderr_path, "workspace-write")?;
+        let _ = run_codex_exec(&worktree, &prompt, &stdout_path, &stderr_path, &model, &reasoning_effort, "workspace-write")?;
         artifacts.push(stdout_path.to_string_lossy().to_string());
         artifacts.push(stderr_path.to_string_lossy().to_string());
+        let launch_command = format!("codex exec --json -m {model} -s workspace-write -a never");
         steps.push(step(
-            "Launch Codex worker",
-            "codex exec --json -m gpt-5.3-spark -s workspace-write -a never",
+            if takeover { "Launch orchestrator takeover" } else { "Launch Codex worker" },
+            &launch_command,
             "passed",
             "Codex worker completed and wrote stdout/stderr artifacts.".to_string(),
         ));
@@ -7209,7 +7261,11 @@ mod orchestrator_runtime_executor {
             blocked: false,
             artifact_paths: artifacts,
             steps,
-            detail: "Worker worktree was created and Codex worker execution completed.".to_string(),
+            detail: if takeover {
+                "Audited orchestrator takeover completed with transferred ownership.".to_string()
+            } else {
+                "Worker worktree was created and Codex worker execution completed.".to_string()
+            },
             structured_output: None,
         })
     }
@@ -7243,7 +7299,15 @@ mod orchestrator_runtime_executor {
         );
         fs::write(&prompt_path, &prompt)
             .map_err(|error| format!("orchestrator_runtime_validator_prompt_write_failed:{error}"))?;
-        let structured_output = run_codex_exec(&worktree, &prompt, &stdout_path, &stderr_path, "read-only")?;
+        let structured_output = run_codex_exec(
+            &worktree,
+            &prompt,
+            &stdout_path,
+            &stderr_path,
+            "gpt-5.3-spark",
+            "extra-high",
+            "read-only",
+        )?;
 
         Ok(OrchestratorRuntimeCommandResult {
             command_id: request.command_id.clone(),
@@ -7548,7 +7612,7 @@ mod orchestrator_runtime_executor {
             Err(error) => return blocked_result(&request, error),
         };
         let result = match request.kind.as_str() {
-            "worker.start" => execute_worker_start(&request, &repo),
+            "worker.start" | "orchestrator.takeover" => execute_worker_start(&request, &repo),
             "worker.commit" => execute_worker_commit(&request, &repo),
             "validator.start" => execute_validator_start(&request, &repo),
             "integration.start" => execute_integration_start(&request, &repo),

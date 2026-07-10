@@ -20,6 +20,7 @@ export interface OrchestratorRunScope {
   includeSplitChildren: boolean;
   includeNewMatchingFilterTasks: boolean;
   approvedWorkerCapacity: number;
+  validationExhaustionPolicy: "orchestrator-takeover" | "corrective-task";
 }
 
 export interface OrchestratorRunRecord {
@@ -73,6 +74,7 @@ export type OrchestratorCommandKind =
   | "cleanup.start"
   | "cleanup.pause"
   | "cleanup.cancel"
+  | "orchestrator.takeover"
   | "finalization.merge"
   | "remote.push";
 
@@ -172,7 +174,8 @@ const DEFAULT_SCOPE: OrchestratorRunScope = {
   includeCorrectiveChildren: true,
   includeSplitChildren: true,
   includeNewMatchingFilterTasks: false,
-  approvedWorkerCapacity: 5
+  approvedWorkerCapacity: 5,
+  validationExhaustionPolicy: "orchestrator-takeover"
 };
 
 function normalizeIdSegment(value: string): string {
@@ -218,7 +221,11 @@ function normalizeScope(scope: Partial<OrchestratorRunScope>): OrchestratorRunSc
     approvedWorkerCapacity:
       Number.isInteger(requestedCapacity) && requestedCapacity >= 1 && requestedCapacity <= 20
         ? requestedCapacity
-        : DEFAULT_SCOPE.approvedWorkerCapacity
+        : DEFAULT_SCOPE.approvedWorkerCapacity,
+    validationExhaustionPolicy:
+      scope.validationExhaustionPolicy === "corrective-task"
+        ? "corrective-task"
+        : "orchestrator-takeover"
   };
 }
 
@@ -613,6 +620,7 @@ function normalizeCommandKind(value: string): OrchestratorCommandKind {
     value === "cleanup.start" ||
     value === "cleanup.pause" ||
     value === "cleanup.cancel" ||
+    value === "orchestrator.takeover" ||
     value === "finalization.merge" ||
     value === "remote.push"
     ? value

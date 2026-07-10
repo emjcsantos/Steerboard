@@ -97,6 +97,8 @@ describe("orchestrator run projection", () => {
     expect(transitionOrchestratorWorkState("validating", "revision-required")).toBe("revision-required");
     expect(transitionOrchestratorWorkState("blocked", "escalated")).toBe("escalated");
     expect(transitionOrchestratorWorkState("escalated", "takeover")).toBe("takeover");
+    expect(transitionOrchestratorWorkState("takeover", "accepted")).toBe("accepted");
+    expect(transitionOrchestratorWorkState("takeover", "failed")).toBe("failed");
     expect(transitionOrchestratorWorkState("accepted", "integrating")).toBe("integrating");
     expect(transitionOrchestratorWorkState("integrating", "completed")).toBe("completed");
     expect(transitionOrchestratorWorkState("completed", "running")).toBe("completed");

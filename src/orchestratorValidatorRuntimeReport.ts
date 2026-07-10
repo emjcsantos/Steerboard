@@ -11,7 +11,7 @@ import {
 import type { OrchestratorBackendState, OrchestratorQueuedCommand } from "./orchestratorBackend";
 import type { OrchestratorRuntimeCommandResult } from "./orchestratorRuntimeExecutor";
 import type { PmWorkerReadyTask } from "./pmLaneWorkerReady";
-import type { WorkerJobRecord } from "./orchestratorWorkerDispatch";
+import type { WorkerJobRecord, WorkerModelProfile } from "./orchestratorWorkerDispatch";
 import { DEFAULT_PM_TASK_BUDGET, createPmTaskTemplateSnapshot } from "./pmLaneWorkerReady";
 import { DEFAULT_WORKER_MODEL_PROFILE } from "./orchestratorWorkerDispatch";
 import {
@@ -26,6 +26,7 @@ export interface ValidatorRuntimeReportApplyResult {
   revisionQueued: boolean;
   correctiveTaskCount: number;
   acceptedCommit?: AcceptedWorkerCommit;
+  takeoverQueued: boolean;
 }
 
 const verdicts = new Set<ValidatorVerdict>([
@@ -223,6 +224,8 @@ export function applyValidatorRuntimeResult(input: {
   createdAt: string;
   structuredOutput?: unknown;
   maxAttempts?: number;
+  exhaustionPolicy?: "orchestrator-takeover" | "corrective-task";
+  orchestratorProfile?: WorkerModelProfile;
 }): ValidatorRuntimeReportApplyResult {
   const report = validatorReportFromRuntimeResult(input);
   const loop = applyValidatorReport(
@@ -231,7 +234,9 @@ export function applyValidatorRuntimeResult(input: {
     input.workerJob,
     input.validatorJob,
     report,
-    input.maxAttempts
+    input.maxAttempts,
+    input.exhaustionPolicy,
+    input.orchestratorProfile
   );
 
   const acceptedCommit = loop.accepted
@@ -247,6 +252,7 @@ export function applyValidatorRuntimeResult(input: {
     accepted: loop.accepted,
     revisionQueued: Boolean(loop.revisionPacket),
     correctiveTaskCount: loop.corrective?.tasks.length ?? 0,
+    takeoverQueued: Boolean(loop.takeoverQueued),
     acceptedCommit: acceptedCommit?.commit
   };
 }
@@ -295,6 +301,12 @@ export function applyValidatorRuntimeCommandResult(input: {
   const ownedFiles = payloadStringList(input.command.payload, "ownedFiles");
   const acceptanceCriteria = payloadStringList(input.command.payload, "acceptanceCriteria");
   const validationCommands = payloadStringList(input.command.payload, "validationCommands");
+  const modelRouting = isRecord(input.command.payload.modelRouting) ? input.command.payload.modelRouting : undefined;
+  const storedOrchestratorProfile = isRecord(modelRouting?.orchestrator) && modelRouting.orchestrator.role === "orchestrator"
+    ? modelRouting.orchestrator as unknown as WorkerModelProfile
+    : undefined;
+  const exhaustionPolicy = input.backendState.runs.find((run) => run.id === input.command.runId)
+    ?.scope.validationExhaustionPolicy ?? "orchestrator-takeover";
   const sourceTask: PmWorkerReadyTask = {
     id: taskId,
     title: `Validator task ${taskId}`,
@@ -368,6 +380,8 @@ export function applyValidatorRuntimeCommandResult(input: {
     result: input.result,
     createdAt: input.createdAt,
     structuredOutput: input.result.structuredOutput,
-    maxAttempts: input.maxAttempts
+    maxAttempts: input.maxAttempts,
+    exhaustionPolicy,
+    orchestratorProfile: storedOrchestratorProfile
   });
 }

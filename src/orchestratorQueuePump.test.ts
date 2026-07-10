@@ -664,4 +664,77 @@ describe("orchestrator queue pump", () => {
     expect(concurrent.detail).toBe("An orchestrator queue pump is already running for this repository.");
     expect(executeCount).toBe(1);
   });
+
+  it("drains takeover completion into the normal commit path without validator re-entry", async () => {
+    const state = enqueueOrchestratorCommand(stateWithRun(), {
+      id: "takeover:start",
+      runId: "run-123",
+      kind: "orchestrator.takeover",
+      payload: {
+        jobId: "takeover",
+        jobKind: "orchestrator-takeover",
+        taskId: "task-1",
+        branch: "codex/orch/task-1",
+        worktreePath: ".steerboard/worktrees/task-1",
+        takeoverForReportId: "report-3"
+      },
+      enqueuedAt: createdAt
+    });
+    const result = await runOrchestratorQueuePumpCycle({
+      repositoryRoot: "C:\\repo-takeover",
+      processedAt,
+      controller: new OrchestratorRunController(),
+      readSnapshot: async () => buildOrchestratorSqliteSnapshot(state),
+      applySnapshot: async (snapshot) => applyResult(snapshot),
+      execute: async (request) => ({
+        commandId: request.commandId,
+        runId: request.runId,
+        kind: request.kind,
+        executed: true,
+        blocked: false,
+        artifactPaths: ["takeover.jsonl"],
+        steps: [],
+        detail: "Takeover completed."
+      })
+    });
+
+    expect(result.detail).toBe("Drained one orchestrator takeover, queued its accepted commit for normal integration, and persisted the ledger state.");
+    expect(result.backendState.commandQueue.at(-1)).toMatchObject({
+      kind: "worker.commit",
+      payload: { workerJobId: "takeover", takeoverCompleted: true }
+    });
+    expect(result.backendState.commandQueue.some((command) => command.kind === "validator.start")).toBe(false);
+    expect(result.backendState.ledger.some((entry) => entry.message === "Orchestrator takeover completed.")).toBe(true);
+  });
+
+  it("persists takeover failure without commit, integration, or validator commands", async () => {
+    const state = enqueueOrchestratorCommand(stateWithRun(), {
+      id: "takeover-failed:start",
+      runId: "run-123",
+      kind: "orchestrator.takeover",
+      payload: { jobId: "takeover-failed", jobKind: "orchestrator-takeover", taskId: "task-1" },
+      enqueuedAt: createdAt
+    });
+    const result = await runOrchestratorQueuePumpCycle({
+      repositoryRoot: "C:\\repo-takeover-failed",
+      processedAt,
+      controller: new OrchestratorRunController(),
+      readSnapshot: async () => buildOrchestratorSqliteSnapshot(state),
+      applySnapshot: async (snapshot) => applyResult(snapshot),
+      execute: async (request) => ({
+        commandId: request.commandId,
+        runId: request.runId,
+        kind: request.kind,
+        executed: false,
+        blocked: true,
+        artifactPaths: [],
+        steps: [],
+        detail: "Takeover blocked."
+      })
+    });
+
+    expect(result.detail).toBe("Drained one orchestrator takeover, recorded takeover failure, and persisted the ledger state.");
+    expect(result.backendState.commandQueue).toHaveLength(1);
+    expect(result.backendState.ledger.some((entry) => entry.message === "Orchestrator takeover failed.")).toBe(true);
+  });
 });

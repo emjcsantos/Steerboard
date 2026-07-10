@@ -62,7 +62,7 @@ const allowedTransitions: Record<OrchestratorWorkState, ReadonlySet<Orchestrator
   blocked: new Set(["assigned", "escalated", "takeover", "failed"]),
   failed: new Set(["assigned", "escalated", "takeover"]),
   escalated: new Set(["takeover", "assigned", "blocked", "failed"]),
-  takeover: new Set(["running", "submitted", "blocked", "failed"]),
+  takeover: new Set(["running", "submitted", "accepted", "blocked", "failed"]),
   integrating: new Set(["completed", "blocked", "failed"]),
   completed: new Set()
 };
