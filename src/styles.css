@@ -20061,6 +20061,42 @@ textarea {
   white-space: nowrap;
 }
 
+.pm-classroom-participant-summary {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 6px;
+  border: 1px solid #2f4558;
+  border-left: 3px solid #596471;
+  border-radius: 6px;
+  background: #101923;
+  padding: 8px;
+}
+
+.pm-classroom-participant-summary-ready {
+  border-left-color: #3dcf87;
+}
+
+.pm-classroom-participant-summary-limited {
+  border-left-color: #f5c96b;
+}
+
+.pm-classroom-participant-summary > div:first-child {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pm-classroom-participant-summary p {
+  white-space: normal;
+}
+
+.pm-classroom-participant-summary dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .pm-orchestrator-report {
   display: grid;
   grid-column: 1 / -1;

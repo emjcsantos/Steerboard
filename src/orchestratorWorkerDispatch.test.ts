@@ -205,7 +205,32 @@ describe("orchestrator worker dispatch", () => {
       budget: DEFAULT_PM_TASK_BUDGET,
       ownedFiles: ["src/task-1.ts"],
       acceptanceCriteria: ["Worker job is queued."],
-      validationCommands: ["npm.cmd run test -- src/orchestratorWorkerDispatch.test.ts"]
+      validationCommands: ["npm.cmd run test -- src/orchestratorWorkerDispatch.test.ts"],
+      classroom: {
+        schemaVersion: 1,
+        participant: {
+          id: "run-123:participant:task-1",
+          runId: "run-123",
+          role: "worker",
+          seat: 1,
+          currentJobId: "run-123:worker:task-1",
+          modelProfileSnapshot: DEFAULT_WORKER_MODEL_PROFILE
+        },
+        job: {
+          id: "run-123:worker:task-1",
+          attempt: 1,
+          ownership: {
+            ownedFiles: ["src/task-1.ts"],
+            forbiddenFiles: ["src/codexSession.ts"]
+          }
+        },
+        message: {
+          actor: {
+            kind: "participant",
+            participantId: "run-123:participant:task-1"
+          }
+        }
+      }
     });
   });
 

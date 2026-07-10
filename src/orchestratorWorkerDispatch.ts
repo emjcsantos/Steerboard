@@ -10,6 +10,7 @@ import {
   type PmWorkerCapabilityProfile,
   type PmWorkerReadyTask
 } from "./pmLaneWorkerReady";
+import { buildClassroomWorkerEnvelope } from "./classroomParticipants";
 
 export type WorkerJobStatus =
   | "queued"
@@ -278,6 +279,14 @@ export function dispatchWorkerReadyTasks(
       modelProfile,
       existingCount
     });
+    const classroomMessage = `Worker queued for ${task.title}.`;
+    const classroom = buildClassroomWorkerEnvelope({
+      job,
+      modelProfile,
+      seat: request.activeWorkerJobs.length + selectedJobs.length + 1,
+      messageId: `${job.id}:message:queued`,
+      message: classroomMessage
+    });
 
     selectedJobs.push(job);
     nextState = enqueueOrchestratorCommand(nextState, {
@@ -296,7 +305,8 @@ export function dispatchWorkerReadyTasks(
         budget: job.budget,
         ownedFiles: job.ownedFiles,
         acceptanceCriteria: task.acceptanceCriteria,
-        validationCommands: task.validationCommands
+        validationCommands: task.validationCommands,
+        classroom
       },
       enqueuedAt: request.createdAt
     });
@@ -305,7 +315,7 @@ export function dispatchWorkerReadyTasks(
       runId: request.runId,
       kind: "worker.progress",
       payload: {
-        phase: `Worker queued for ${task.title}.`,
+        phase: classroomMessage,
         jobId: job.id,
         taskId: task.id,
         branch: job.branch,
@@ -313,7 +323,8 @@ export function dispatchWorkerReadyTasks(
         attempt: job.attempt,
         budget: job.budget,
         ownedFiles: job.ownedFiles,
-        validationCommands: task.validationCommands
+        validationCommands: task.validationCommands,
+        classroom
       },
       dedupeKey: `${job.id}:queued`,
       enqueuedAt: request.createdAt

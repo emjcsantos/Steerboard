@@ -229,6 +229,10 @@ import {
   type OrchestratorBackendState
 } from "./orchestratorBackend";
 import {
+  hydrateClassroomParticipantProjection,
+  summarizeClassroomParticipant
+} from "./classroomParticipants";
+import {
   groupOrchestratorLedgerForUi,
   selectCleanupQueueSummaryForUi,
   selectLatestOrchestratorRunReportForUi,
@@ -12750,6 +12754,13 @@ export function PlanningView({
       report: selectLatestOrchestratorRunReportForUi(orchestratorBackendState.ledger, activeOrchestratorRunId)
     };
   }, [activeOrchestratorRunId, orchestratorBackendState]);
+  const classroomParticipantSummary = useMemo(
+    () => summarizeClassroomParticipant(
+      hydrateClassroomParticipantProjection(orchestratorBackendState),
+      activeOrchestratorRunId
+    ),
+    [activeOrchestratorRunId, orchestratorBackendState]
+  );
   const orchestratorPreviewSections = useMemo(
     () =>
       orchestratorPreviewFilter === "all"
@@ -13035,6 +13046,35 @@ export function PlanningView({
                   </dd>
                 </div>
               </dl>
+              <section
+                aria-label={classroomParticipantSummary.ariaLabel}
+                className={classNames(
+                  "pm-classroom-participant-summary",
+                  `pm-classroom-participant-summary-${classroomParticipantSummary.tone}`
+                )}
+              >
+                <div>
+                  <strong>{classroomParticipantSummary.label}</strong>
+                  <span>{classroomParticipantSummary.seatLabel ?? "No seat"}</span>
+                </div>
+                <p>{classroomParticipantSummary.detail}</p>
+                {classroomParticipantSummary.participantId ? (
+                  <dl>
+                    <div>
+                      <dt>Model</dt>
+                      <dd>{classroomParticipantSummary.modelLabel}</dd>
+                    </div>
+                    <div>
+                      <dt>Job</dt>
+                      <dd>{classroomParticipantSummary.jobLabel}</dd>
+                    </div>
+                    <div>
+                      <dt>Messages</dt>
+                      <dd>{classroomParticipantSummary.messageCount}</dd>
+                    </div>
+                  </dl>
+                ) : null}
+              </section>
               {orchestratorBackendSummary.report ? (
                 <section className="pm-orchestrator-report" aria-label="Final orchestrator run report">
                   <div>
