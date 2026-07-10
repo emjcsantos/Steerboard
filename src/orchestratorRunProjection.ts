@@ -37,6 +37,18 @@ export interface OrchestratorRunProjection {
   completionPercent: number;
   taskStates: Record<string, OrchestratorWorkState>;
   progress: string[];
+  capacity: {
+    approved: number;
+    occupiedSeats: number;
+    emptySeats: number;
+    queued: number;
+    active: number;
+    waiting: number;
+    validating: number;
+    blocked: number;
+    teacherStandingParticipantIds: string[];
+    visibleQueueParticipantIds: string[];
+  };
 }
 
 const allowedTransitions: Record<OrchestratorWorkState, ReadonlySet<OrchestratorWorkState>> = {
@@ -170,7 +182,19 @@ function sharedProjection(state: OrchestratorBackendState, runId?: string): Omit
       counts: { runs: 0, tasks: 0, participants: 0, jobs: 0, messages: 0, validations: 0, completed: 0 },
       completionPercent: 0,
       taskStates: {},
-      progress: []
+      progress: [],
+      capacity: {
+        approved: 5,
+        occupiedSeats: 0,
+        emptySeats: 5,
+        queued: 0,
+        active: 0,
+        waiting: 0,
+        validating: 0,
+        blocked: 0,
+        teacherStandingParticipantIds: [],
+        visibleQueueParticipantIds: []
+      }
     };
   }
   const classroom = hydrateClassroomParticipantProjection(state);
@@ -197,6 +221,25 @@ function sharedProjection(state: OrchestratorBackendState, runId?: string): Omit
     .slice(-8)
     .map((item) => sanitizeOrchestratorProgress(item.message))
     .filter((item): item is string => Boolean(item));
+  const approvedCapacity = run.scope.approvedWorkerCapacity;
+  const queuedJobs = jobs.filter((job) => job.status === "queued");
+  const activeJobs = jobs.filter((job) =>
+    job.status === "leased" || job.status === "running" || job.status === "pausing" || job.status === "cancelling"
+  );
+  const waitingJobs = jobs.filter((job) => job.status === "paused" || job.status === "waiting-approval");
+  const blockedTaskIds = new Set(
+    Object.entries(taskStates)
+      .filter(([, workState]) =>
+        workState === "blocked" || workState === "failed" || workState === "escalated" || workState === "revision-required"
+      )
+      .map(([taskId]) => taskId)
+  );
+  jobs.filter((job) => job.status === "recovery-review" || job.status === "failed")
+    .forEach((job) => blockedTaskIds.add(job.taskId));
+  const assignedJobIds = new Set([...queuedJobs, ...activeJobs].map((job) => job.id));
+  const assignedParticipants = runParticipants
+    .filter((participant) => assignedJobIds.has(participant.currentJobId))
+    .sort((first, second) => first.seat - second.seat);
   return {
     runId: run.id,
     phase: sanitizeOrchestratorProgress(run.phase) ?? "In progress",
@@ -212,7 +255,19 @@ function sharedProjection(state: OrchestratorBackendState, runId?: string): Omit
     },
     completionPercent: taskIds.length === 0 ? 0 : Math.round((completed / taskIds.length) * 100),
     taskStates,
-    progress
+    progress,
+    capacity: {
+      approved: approvedCapacity,
+      occupiedSeats: runParticipants.length,
+      emptySeats: Math.max(approvedCapacity - runParticipants.length, 0),
+      queued: queuedJobs.length,
+      active: activeJobs.length,
+      waiting: waitingJobs.length,
+      validating: Object.values(taskStates).filter((item) => item === "validating").length,
+      blocked: blockedTaskIds.size,
+      teacherStandingParticipantIds: assignedParticipants.slice(0, 2).map((participant) => participant.id),
+      visibleQueueParticipantIds: assignedParticipants.slice(2).map((participant) => participant.id)
+    }
   };
 }
 

@@ -22,3 +22,7 @@ The Project Management surface shows a minimal read-only restored-participant su
 The typed work-state transition table prevents out-of-order or duplicate progress from regressing accepted, integrating, or completed work. Progress removes private-reasoning markers and control characters, is length-bounded, and can be rate-limited through `OrchestratorProgressThrottle`.
 
 `OrchestratorRunController` keeps execution policy explicit. Manual is the default. Continuous command execution requires both readiness and permission approval; event processing remains a separate safe phase. A repository-scoped in-flight lease prevents simultaneous queue pumps from executing the same durable command twice.
+
+## Worker capacity and seats
+
+Approved worker capacity is stored in the durable run scope and defaults to five. The UI reports occupied and empty places separately; only restored participant envelopes count as occupied workers. Dispatch restores active jobs and occupied seats before applying capacity or file-ownership checks, rejects duplicate active attempts for the same task, and assigns the first available deterministic seat. The first two assigned participants are projected into teacher standing slots while additional assigned participants remain explicitly visible in the queue.

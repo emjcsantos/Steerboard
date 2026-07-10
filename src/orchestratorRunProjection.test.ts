@@ -121,6 +121,71 @@ describe("orchestrator run projection", () => {
       completionPercent: 100,
       taskStates: { "task-1": "completed" }
     });
+    expect(professional.capacity).toMatchObject({
+      approved: 5,
+      occupiedSeats: 1,
+      emptySeats: 4
+    });
+  });
+
+  it("assigns two deterministic teacher standing slots and keeps overflow visible in queue", () => {
+    const state = createBoundedOrchestratorRun(createOrchestratorBackendState(), {
+      id: "run-capacity",
+      projectId: "steerboard",
+      scope: { mode: "task-list", taskIds: ["one", "two", "three"], approvedWorkerCapacity: 5 },
+      baseBranch: "main",
+      createdAt
+    });
+    ["one", "two", "three"].forEach((taskId, index) => {
+      const job: WorkerJobRecord = {
+        id: `run-capacity:worker:${taskId}`,
+        runId: "run-capacity",
+        taskId,
+        branch: `codex/orch/${taskId}`,
+        worktreePath: `.steerboard/worktrees/${taskId}`,
+        status: "queued",
+        modelProfileId: DEFAULT_WORKER_MODEL_PROFILE.id,
+        capabilityProfile: "workspace-write",
+        budget: { ...DEFAULT_PM_TASK_BUDGET },
+        ownedFiles: [`src/${taskId}.ts`],
+        forbiddenFiles: [],
+        attempt: 1,
+        lease: {},
+        createdAt
+      };
+      const classroom = buildClassroomWorkerEnvelope({
+        job,
+        modelProfile: DEFAULT_WORKER_MODEL_PROFILE,
+        seat: index + 1,
+        messageId: `message-${taskId}`,
+        message: `Queued ${taskId}.`
+      });
+      state.commandQueue.push({
+        id: `command-${taskId}`,
+        runId: "run-capacity",
+        sequence: index + 1,
+        kind: "worker.start",
+        payload: { classroom },
+        status: "queued",
+        enqueuedAt: createdAt
+      });
+    });
+
+    expect(projectOrchestratorRun(state, "classroom", "run-capacity").capacity).toEqual({
+      approved: 5,
+      occupiedSeats: 3,
+      emptySeats: 2,
+      queued: 3,
+      active: 0,
+      waiting: 0,
+      validating: 0,
+      blocked: 0,
+      teacherStandingParticipantIds: [
+        "run-capacity:participant:one",
+        "run-capacity:participant:two"
+      ],
+      visibleQueueParticipantIds: ["run-capacity:participant:three"]
+    });
   });
 
   it("bounds and sanitizes progress without exposing private reasoning", () => {

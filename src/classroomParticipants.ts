@@ -1,6 +1,7 @@
 import type { OrchestratorBackendState } from "./orchestratorBackend";
 import type {
   WorkerJobRecord,
+  WorkerDispatchJobClaim,
   WorkerJobStatus,
   WorkerModelProfile,
   WorkerModelProvider
@@ -87,6 +88,12 @@ export interface ClassroomParticipantSummary {
   ariaLabel: string;
 }
 
+export interface ClassroomDispatchContext {
+  activeWorkerJobs: WorkerDispatchJobClaim[];
+  existingWorkerJobs: WorkerDispatchJobClaim[];
+  occupiedSeats: number[];
+}
+
 const providers = new Set<WorkerModelProvider>([
   "codex",
   "openai-api",
@@ -122,6 +129,16 @@ const jobStatuses = new Set<WorkerJobStatus>([
   "failed",
   "cancelled",
   "stale",
+  "recovery-review"
+]);
+const activeDispatchStatuses = new Set<WorkerJobStatus>([
+  "queued",
+  "leased",
+  "running",
+  "pausing",
+  "paused",
+  "cancelling",
+  "waiting-approval",
   "recovery-review"
 ]);
 
@@ -354,6 +371,31 @@ export function hydrateClassroomParticipantProjection(
     participants: [...participants.values()],
     jobs: [...jobs.values()],
     messages: [...messages.values()]
+  };
+}
+
+export function selectClassroomDispatchContext(
+  state: OrchestratorBackendState,
+  runId: string
+): ClassroomDispatchContext {
+  const projection = hydrateClassroomParticipantProjection(state);
+  const jobs = projection.jobs.filter((job) => job.runId === runId);
+  const existingWorkerJobs: WorkerDispatchJobClaim[] = jobs.map((job) => ({
+    id: job.id,
+    runId: job.runId,
+    taskId: job.taskId,
+    status: job.status,
+    ownedFiles: [...job.ownership.ownedFiles]
+  }));
+  const activeJobIds = new Set(
+    jobs.filter((job) => activeDispatchStatuses.has(job.status)).map((job) => job.id)
+  );
+  return {
+    activeWorkerJobs: existingWorkerJobs.filter((job) => activeDispatchStatuses.has(job.status)),
+    existingWorkerJobs,
+    occupiedSeats: projection.participants
+      .filter((participant) => participant.runId === runId && activeJobIds.has(participant.currentJobId))
+      .map((participant) => participant.seat)
   };
 }
 

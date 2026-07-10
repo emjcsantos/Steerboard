@@ -63,6 +63,35 @@ function backendState() {
   });
 }
 
+function workerJob(
+  taskId: string,
+  status: WorkerJobRecord["status"] = "running",
+  ownedFiles: string[] = [`src/${taskId}.ts`]
+): WorkerJobRecord {
+  return {
+    id: `run-123:worker:${taskId}`,
+    runId: "run-123",
+    taskId,
+    branch: `codex/orch/${taskId}`,
+    worktreePath: `.steerboard/worktrees/${taskId}`,
+    status,
+    modelProfileId: DEFAULT_WORKER_MODEL_PROFILE.id,
+    capabilityProfile: "workspace-write",
+    budget: { ...DEFAULT_PM_TASK_BUDGET },
+    ownedFiles,
+    forbiddenFiles: [],
+    attempt: 1,
+    lease: {},
+    createdAt
+  };
+}
+
+function dispatchedClassroomSeats(result: ReturnType<typeof dispatchWorkerReadyTasks>): number[] {
+  return serializeOrchestratorCommandsForSqlite(result.backendState.commandQueue).map(
+    (row) => JSON.parse(row.payload_json).classroom.participant.seat as number
+  );
+}
+
 function dispatch(tasks: PmWorkerReadyTask[], activeWorkerJobs: WorkerJobRecord[] = []) {
   return dispatchWorkerReadyTasks(backendState(), tasks, {
     runId: "run-123",
@@ -75,6 +104,109 @@ function dispatch(tasks: PmWorkerReadyTask[], activeWorkerJobs: WorkerJobRecord[
 }
 
 describe("orchestrator worker dispatch", () => {
+  it("honors worker capacities one and five with deterministic classroom seats", () => {
+    const tasks = Array.from({ length: 6 }, (_, index) =>
+      task({ id: `task-${index + 1}`, sequence: index + 1 })
+    );
+    const capacityOne = dispatchWorkerReadyTasks(backendState(), tasks, {
+      runId: "run-123",
+      repositoryRoot: "repo",
+      worktreeRoot: ".steerboard/worktrees",
+      createdAt,
+      concurrencyLimit: 1,
+      activeWorkerJobs: []
+    });
+    const capacityFive = dispatchWorkerReadyTasks(backendState(), tasks, {
+      runId: "run-123",
+      repositoryRoot: "repo",
+      worktreeRoot: ".steerboard/worktrees",
+      createdAt,
+      concurrencyLimit: 5,
+      activeWorkerJobs: []
+    });
+
+    expect(capacityOne.queuedTaskIds).toEqual(["task-1"]);
+    expect(capacityOne.skippedTaskIds).toEqual(["task-2", "task-3", "task-4", "task-5", "task-6"]);
+    expect(dispatchedClassroomSeats(capacityOne)).toEqual([1]);
+    expect(capacityFive.queuedTaskIds).toEqual(["task-1", "task-2", "task-3", "task-4", "task-5"]);
+    expect(capacityFive.skippedTaskIds).toEqual(["task-6"]);
+    expect(dispatchedClassroomSeats(capacityFive)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it("counts restored active jobs toward capacity and stops at capacity reached", () => {
+    const restoredActiveJobs = Array.from({ length: 4 }, (_, index) =>
+      workerJob(`restored-${index + 1}`)
+    );
+    const onePlaceLeft = dispatchWorkerReadyTasks(
+      backendState(),
+      [task({ id: "next-1", sequence: 1 }), task({ id: "next-2", sequence: 2 })],
+      {
+        runId: "run-123",
+        repositoryRoot: "repo",
+        worktreeRoot: ".steerboard/worktrees",
+        createdAt,
+        concurrencyLimit: 5,
+        activeWorkerJobs: restoredActiveJobs,
+        existingWorkerJobs: restoredActiveJobs
+      }
+    );
+    const capacityReached = dispatchWorkerReadyTasks(backendState(), [task({ id: "next-1" })], {
+      runId: "run-123",
+      repositoryRoot: "repo",
+      worktreeRoot: ".steerboard/worktrees",
+      createdAt,
+      concurrencyLimit: 5,
+      activeWorkerJobs: [...restoredActiveJobs, workerJob("restored-5")],
+      existingWorkerJobs: [...restoredActiveJobs, workerJob("restored-5")]
+    });
+
+    expect(onePlaceLeft.queuedTaskIds).toEqual(["next-1"]);
+    expect(onePlaceLeft.skippedTaskIds).toEqual(["next-2"]);
+    expect(dispatchedClassroomSeats(onePlaceLeft)).toEqual([5]);
+    expect(capacityReached.jobs).toEqual([]);
+    expect(capacityReached.skippedTaskIds).toEqual(["next-1"]);
+    expect(capacityReached.backendState.commandQueue).toEqual([]);
+  });
+
+  it("does not dispatch a duplicate active attempt for the same task", () => {
+    const activeAttempt = workerJob("task-1");
+    const result = dispatchWorkerReadyTasks(backendState(), [task({ id: "task-1" })], {
+      runId: "run-123",
+      repositoryRoot: "repo",
+      worktreeRoot: ".steerboard/worktrees",
+      createdAt,
+      concurrencyLimit: 5,
+      activeWorkerJobs: [activeAttempt],
+      existingWorkerJobs: [activeAttempt]
+    });
+
+    expect(result.jobs).toEqual([]);
+    expect(result.skippedTaskIds).toEqual(["task-1"]);
+    expect(result.backendState.commandQueue).toEqual([]);
+    expect(result.backendState.eventQueue).toEqual([]);
+  });
+
+  it("fills the lowest available deterministic seats around restored participants", () => {
+    const restoredActiveJobs = [workerJob("restored-1"), workerJob("restored-2")];
+    const result = dispatchWorkerReadyTasks(
+      backendState(),
+      [task({ id: "next-1", sequence: 1 }), task({ id: "next-2", sequence: 2 })],
+      {
+        runId: "run-123",
+        repositoryRoot: "repo",
+        worktreeRoot: ".steerboard/worktrees",
+        createdAt,
+        concurrencyLimit: 5,
+        activeWorkerJobs: restoredActiveJobs,
+        existingWorkerJobs: restoredActiveJobs,
+        occupiedSeats: [2, 4]
+      }
+    );
+
+    expect(result.queuedTaskIds).toEqual(["next-1", "next-2"]);
+    expect(dispatchedClassroomSeats(result)).toEqual([1, 3]);
+  });
+
   it("dispatches dependency-ready tasks by priority and FIFO capacity", () => {
     const result = dispatchWorkerReadyTasks(
       backendState(),

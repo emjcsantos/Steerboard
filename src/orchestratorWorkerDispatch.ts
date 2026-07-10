@@ -67,15 +67,21 @@ export interface WorkerJobRecord {
   createdAt: string;
 }
 
+export type WorkerDispatchJobClaim = Pick<
+  WorkerJobRecord,
+  "id" | "runId" | "taskId" | "status" | "ownedFiles"
+>;
+
 export interface WorkerDispatchRequest {
   runId: string;
   repositoryRoot: string;
   worktreeRoot: string;
   createdAt: string;
   concurrencyLimit: number;
-  activeWorkerJobs: readonly WorkerJobRecord[];
-  existingWorkerJobs?: readonly WorkerJobRecord[];
+  activeWorkerJobs: readonly WorkerDispatchJobClaim[];
+  existingWorkerJobs?: readonly WorkerDispatchJobClaim[];
   modelProfiles?: readonly WorkerModelProfile[];
+  occupiedSeats?: readonly number[];
 }
 
 export interface WorkerDispatchResult {
@@ -148,7 +154,7 @@ function taskDependenciesReady(task: PmWorkerReadyTask, completedTaskIds: Readon
 
 function hasOwnershipOverlap(
   task: PmWorkerReadyTask,
-  activeJobs: readonly WorkerJobRecord[],
+  activeJobs: readonly WorkerDispatchJobClaim[],
   selectedJobs: readonly WorkerJobRecord[]
 ): boolean {
   const owned = task.ownedFiles.map(normalizePathSegment);
@@ -192,6 +198,24 @@ function resolveWorkerModelProfile(profiles: readonly WorkerModelProfile[] | und
   return profiles?.find((profile) => profile.role === "worker") ?? DEFAULT_WORKER_MODEL_PROFILE;
 }
 
+const activeWorkerStatuses = new Set<WorkerJobStatus>([
+  "queued",
+  "leased",
+  "running",
+  "pausing",
+  "paused",
+  "cancelling",
+  "waiting-approval",
+  "recovery-review"
+]);
+
+function nextAvailableClassroomSeat(occupiedSeats: ReadonlySet<number>, capacity: number): number | undefined {
+  for (let seat = 1; seat <= capacity; seat += 1) {
+    if (!occupiedSeats.has(seat)) return seat;
+  }
+  return undefined;
+}
+
 function createApprovalRequest(input: {
   runId: string;
   task: PmWorkerReadyTask;
@@ -225,10 +249,21 @@ export function dispatchWorkerReadyTasks(
   );
   const modelProfile = resolveWorkerModelProfile(request.modelProfiles);
   const capacity = Math.max(0, request.concurrencyLimit - request.activeWorkerJobs.length);
+  const occupiedSeats = new Set(
+    (request.occupiedSeats ?? request.activeWorkerJobs.map((_, index) => index + 1))
+      .filter((seat) => Number.isInteger(seat) && seat >= 1 && seat <= request.concurrencyLimit)
+  );
   let nextState = backendState;
 
   for (const task of orderPmDispatchQueue(tasks)) {
     if (selectedJobs.length >= capacity) {
+      skippedTaskIds.push(task.id);
+      continue;
+    }
+
+    const duplicateActiveAttempt = [...request.activeWorkerJobs, ...(request.existingWorkerJobs ?? [])]
+      .some((job) => job.taskId === task.id && activeWorkerStatuses.has(job.status));
+    if (duplicateActiveAttempt) {
       skippedTaskIds.push(task.id);
       continue;
     }
@@ -280,13 +315,19 @@ export function dispatchWorkerReadyTasks(
       existingCount
     });
     const classroomMessage = `Worker queued for ${task.title}.`;
+    const seat = nextAvailableClassroomSeat(occupiedSeats, request.concurrencyLimit);
+    if (!seat) {
+      skippedTaskIds.push(task.id);
+      continue;
+    }
     const classroom = buildClassroomWorkerEnvelope({
       job,
       modelProfile,
-      seat: request.activeWorkerJobs.length + selectedJobs.length + 1,
+      seat,
       messageId: `${job.id}:message:queued`,
       message: classroomMessage
     });
+    occupiedSeats.add(seat);
 
     selectedJobs.push(job);
     nextState = enqueueOrchestratorCommand(nextState, {

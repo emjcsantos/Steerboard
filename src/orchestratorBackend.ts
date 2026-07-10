@@ -19,6 +19,7 @@ export interface OrchestratorRunScope {
   includeCorrectiveChildren: boolean;
   includeSplitChildren: boolean;
   includeNewMatchingFilterTasks: boolean;
+  approvedWorkerCapacity: number;
 }
 
 export interface OrchestratorRunRecord {
@@ -170,7 +171,8 @@ const DEFAULT_SCOPE: OrchestratorRunScope = {
   taskIds: [],
   includeCorrectiveChildren: true,
   includeSplitChildren: true,
-  includeNewMatchingFilterTasks: false
+  includeNewMatchingFilterTasks: false,
+  approvedWorkerCapacity: 5
 };
 
 function normalizeIdSegment(value: string): string {
@@ -208,10 +210,15 @@ function runMessageForStatus(status: OrchestratorRunStatus): string {
 }
 
 function normalizeScope(scope: Partial<OrchestratorRunScope>): OrchestratorRunScope {
+  const requestedCapacity = Number(scope.approvedWorkerCapacity);
   return {
     ...DEFAULT_SCOPE,
     ...scope,
-    taskIds: Array.isArray(scope.taskIds) ? scope.taskIds : DEFAULT_SCOPE.taskIds
+    taskIds: Array.isArray(scope.taskIds) ? scope.taskIds : DEFAULT_SCOPE.taskIds,
+    approvedWorkerCapacity:
+      Number.isInteger(requestedCapacity) && requestedCapacity >= 1 && requestedCapacity <= 20
+        ? requestedCapacity
+        : DEFAULT_SCOPE.approvedWorkerCapacity
   };
 }
 

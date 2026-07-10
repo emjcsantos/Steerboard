@@ -48,6 +48,21 @@ function applyResult(snapshot: OrchestratorSqliteSnapshot): OrchestratorSqliteAp
 }
 
 describe("PM lane orchestrator bridge", () => {
+  it("defaults new durable runs to five approved worker places", async () => {
+    const result = await dispatchPmLaneToOrchestrator({
+      project,
+      tasks: [],
+      repositoryRoot: "C:\\repo",
+      worktreeRoot: "C:\\repo\\.steerboard\\worktrees",
+      createdAt,
+      readSnapshot: async () => buildOrchestratorSqliteSnapshot(createOrchestratorBackendState()),
+      applySnapshot: async (snapshot) => applyResult(snapshot)
+    });
+
+    expect(result.backendState.runs[0].scope.approvedWorkerCapacity).toBe(5);
+    expect(result.dispatch.jobs).toEqual([]);
+  });
+
   it("converts PM child rows into strict worker-ready tasks", () => {
     const workerTask = convertPmTaskToWorkerReadyTask({
       task: task({ id: "phase-11-child-live-loop", complexity: "extra_high" }),
@@ -132,7 +147,7 @@ describe("PM lane orchestrator bridge", () => {
     });
   });
 
-  it("restores existing durable state instead of replacing prior run ledger", async () => {
+  it("restores durable capacity and does not over-dispatch a second active worker", async () => {
     const first = await dispatchPmLaneToOrchestrator({
       project,
       tasks: [task({ id: "task-a" })],
@@ -158,6 +173,8 @@ describe("PM lane orchestrator bridge", () => {
     expect(second.backendState.ledger[0]).toMatchObject({
       kind: "run.created"
     });
-    expect(second.backendState.commandQueue).toHaveLength(2);
+    expect(second.backendState.commandQueue).toHaveLength(1);
+    expect(second.dispatch.skippedTaskIds).toEqual(["task-b"]);
+    expect(second.backendState.runs[0].scope.approvedWorkerCapacity).toBe(1);
   });
 });

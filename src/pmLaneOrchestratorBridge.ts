@@ -21,8 +21,9 @@ import {
 import {
   dispatchWorkerReadyTasks,
   type WorkerDispatchResult,
-  type WorkerJobRecord
+  type WorkerDispatchJobClaim
 } from "./orchestratorWorkerDispatch";
+import { selectClassroomDispatchContext } from "./classroomParticipants";
 import type { ProjectSummary } from "./fixtures";
 import type { ProjectManagementTask } from "./projectManagementHierarchy";
 
@@ -32,8 +33,8 @@ export interface PmLaneOrchestratorDispatchInput {
   repositoryRoot: string;
   worktreeRoot: string;
   createdAt: string;
-  concurrencyLimit: number;
-  existingWorkerJobs?: readonly WorkerJobRecord[];
+  concurrencyLimit?: number;
+  existingWorkerJobs?: readonly WorkerDispatchJobClaim[];
   readSnapshot?: () => Promise<OrchestratorSqliteSnapshot>;
   applySnapshot?: (snapshot: OrchestratorSqliteSnapshot) => Promise<OrchestratorSqliteApplyResult>;
 }
@@ -161,6 +162,7 @@ async function restoreOrCreateState(input: {
   project: Pick<ProjectSummary, "id" | "name">;
   taskIds: string[];
   createdAt: string;
+  approvedWorkerCapacity: number;
   readSnapshot: () => Promise<OrchestratorSqliteSnapshot>;
 }): Promise<{ state: OrchestratorBackendState; artifacts: OrchestratorSqliteSnapshot["artifacts"] }> {
   const snapshot = await input.readSnapshot();
@@ -180,7 +182,8 @@ async function restoreOrCreateState(input: {
       projectId: input.project.id,
       scope: {
         mode: "task-list",
-        taskIds: input.taskIds
+        taskIds: input.taskIds,
+        approvedWorkerCapacity: input.approvedWorkerCapacity
       },
       baseBranch: "current",
       createdAt: input.createdAt
@@ -204,16 +207,30 @@ export async function dispatchPmLaneToOrchestrator(
     project: input.project,
     taskIds: workerReadyTasks.map((task) => task.id),
     createdAt: input.createdAt,
+    approvedWorkerCapacity: input.concurrencyLimit ?? 5,
     readSnapshot
   });
+  const run = restored.state.runs.find((item) => item.id === runId);
+  const approvedWorkerCapacity = run?.scope.approvedWorkerCapacity ?? 5;
+  const restoredDispatch = selectClassroomDispatchContext(restored.state, runId);
+  const suppliedExisting = input.existingWorkerJobs ?? [];
+  const existingWorkerJobs = [
+    ...restoredDispatch.existingWorkerJobs,
+    ...suppliedExisting.filter(
+      (candidate) => !restoredDispatch.existingWorkerJobs.some((existing) => existing.id === candidate.id)
+    )
+  ];
+  const activeStatuses = new Set(["queued", "leased", "running", "pausing", "paused", "cancelling", "waiting-approval", "recovery-review"]);
+  const activeWorkerJobs = existingWorkerJobs.filter((job) => activeStatuses.has(job.status));
   const dispatch = dispatchWorkerReadyTasks(restored.state, workerReadyTasks, {
     runId,
     repositoryRoot: input.repositoryRoot,
     worktreeRoot: input.worktreeRoot,
     createdAt: input.createdAt,
-    concurrencyLimit: input.concurrencyLimit,
-    activeWorkerJobs: [],
-    existingWorkerJobs: input.existingWorkerJobs
+    concurrencyLimit: approvedWorkerCapacity,
+    activeWorkerJobs,
+    existingWorkerJobs,
+    occupiedSeats: restoredDispatch.occupiedSeats
   });
   const snapshot = {
     ...buildOrchestratorSqliteSnapshot(dispatch.backendState),

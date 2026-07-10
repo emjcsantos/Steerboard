@@ -232,6 +232,7 @@ import {
   hydrateClassroomParticipantProjection,
   summarizeClassroomParticipant
 } from "./classroomParticipants";
+import { projectOrchestratorRun } from "./orchestratorRunProjection";
 import {
   groupOrchestratorLedgerForUi,
   selectCleanupQueueSummaryForUi,
@@ -12761,6 +12762,10 @@ export function PlanningView({
     ),
     [activeOrchestratorRunId, orchestratorBackendState]
   );
+  const orchestratorRunProjection = useMemo(
+    () => projectOrchestratorRun(orchestratorBackendState, "professional", activeOrchestratorRunId),
+    [activeOrchestratorRunId, orchestratorBackendState]
+  );
   const orchestratorPreviewSections = useMemo(
     () =>
       orchestratorPreviewFilter === "all"
@@ -12903,7 +12908,7 @@ export function PlanningView({
         repositoryRoot: ".",
         worktreeRoot: ".steerboard/worktrees",
         createdAt: new Date().toISOString(),
-        concurrencyLimit: 3
+        concurrencyLimit: 5
       });
 
       setOrchestratorBackendState(result.backendState);
@@ -13058,6 +13063,36 @@ export function PlanningView({
                   <span>{classroomParticipantSummary.seatLabel ?? "No seat"}</span>
                 </div>
                 <p>{classroomParticipantSummary.detail}</p>
+                <dl aria-label="Classroom capacity counts">
+                  <div>
+                    <dt>Occupied</dt>
+                    <dd>{orchestratorRunProjection.capacity.occupiedSeats}/{orchestratorRunProjection.capacity.approved}</dd>
+                  </div>
+                  <div>
+                    <dt>Empty</dt>
+                    <dd>{orchestratorRunProjection.capacity.emptySeats}</dd>
+                  </div>
+                  <div>
+                    <dt>Queued</dt>
+                    <dd>{orchestratorRunProjection.capacity.queued}</dd>
+                  </div>
+                  <div>
+                    <dt>Active</dt>
+                    <dd>{orchestratorRunProjection.capacity.active}</dd>
+                  </div>
+                  <div>
+                    <dt>Waiting</dt>
+                    <dd>{orchestratorRunProjection.capacity.waiting}</dd>
+                  </div>
+                  <div>
+                    <dt>Validating</dt>
+                    <dd>{orchestratorRunProjection.capacity.validating}</dd>
+                  </div>
+                  <div>
+                    <dt>Blocked</dt>
+                    <dd>{orchestratorRunProjection.capacity.blocked}</dd>
+                  </div>
+                </dl>
                 {classroomParticipantSummary.participantId ? (
                   <dl>
                     <div>
