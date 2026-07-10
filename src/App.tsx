@@ -341,6 +341,10 @@ import {
   type WorkspacePreferences
 } from "./preferences";
 import {
+  isClassroomModeFeatureEnabled,
+  OrchestratorWorkspace
+} from "./orchestratorWorkspace";
+import {
   buildProjectManagementArenaDispatch,
   createProjectManagementChatReply,
   flattenProjectManagementRows,
@@ -1255,6 +1259,9 @@ const pipelineItems: PipelineItem[] = [];
 const registryEntries: RegistryEntry[] = [];
 const runtimeAdapters: RuntimeAdapter[] = [];
 const LOCAL_CHAT_SESSIONS_STORAGE_KEY = "steerboard.localChatSessions.v1";
+const classroomModeFeatureEnabled = isClassroomModeFeatureEnabled(
+  import.meta.env.VITE_STEERBOARD_CLASSROOM_MODE
+);
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -2428,7 +2435,7 @@ export function App() {
     []
   );
   const [preferences, setPreferences] = useState<WorkspacePreferences>(() =>
-    loadWorkspacePreferences(validProjectIds)
+    loadWorkspacePreferences(validProjectIds, classroomModeFeatureEnabled)
   );
   const [adaptiveCockpitLayout, setAdaptiveCockpitLayout] = useState<AdaptiveCockpitLayout>(() =>
     loadAdaptiveCockpitLayout()
@@ -2659,7 +2666,14 @@ export function App() {
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
   }, []);
-  const { selectedProjectId, mode, layoutId, view, adaptiveProjectTemplateId } = preferences;
+  const {
+    selectedProjectId,
+    mode,
+    layoutId,
+    view,
+    adaptiveProjectTemplateId,
+    orchestratorPresentationMode
+  } = preferences;
   const codexTransportDecision = useMemo(
     () => decideCodexTransport(codexTransportProbe, codexLiveSmokeProof),
     [codexLiveSmokeProof, codexTransportProbe]
@@ -5660,7 +5674,14 @@ export function App() {
         <div className="content-split">
           <section className="main-surface" aria-label={viewLabel}>
             {view === "cockpit" ? (
-              <>
+              <OrchestratorWorkspace
+                classroomModeEnabled={classroomModeFeatureEnabled && mode === "orchestrator"}
+                onPresentationModeChange={(nextPresentationMode) =>
+                  updatePreferences({ orchestratorPresentationMode: nextPresentationMode })
+                }
+                presentationMode={orchestratorPresentationMode}
+                professionalContent={
+                  <>
                 <div className="surface-toolbar">
                   <label className={classNames("layout-select", layout.kind === "adaptive" && "is-adaptive")}>
                     <span>Layout</span>
@@ -5903,7 +5924,9 @@ export function App() {
                         ))}
                   </div>
                 )}
-              </>
+                  </>
+                }
+              />
             ) : view === "pipeline" ? (
               <PipelineView
                 items={projectPipelineItems}
@@ -12629,7 +12652,7 @@ function formatShortDate(value: string): string {
   }).format(parsed);
 }
 
-function PlanningView({
+export function PlanningView({
   chatMessages,
   dispatchReviewRecords,
   onChatMessagesChange,

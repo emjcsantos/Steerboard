@@ -15,7 +15,8 @@ describe("workspace preferences", () => {
       mode: "monitor",
       layoutId: "3x2",
       view: "planning",
-      adaptiveProjectTemplateId: "project-monitor"
+      adaptiveProjectTemplateId: "project-monitor",
+      orchestratorPresentationMode: "professional"
     };
 
     expect(normalizePreferences(stored, validProjects)).toEqual(stored);
@@ -27,7 +28,8 @@ describe("workspace preferences", () => {
       mode: "orchestrator",
       layoutId: "adaptive",
       view: "cockpit",
-      adaptiveProjectTemplateId: "project-orchestrator"
+      adaptiveProjectTemplateId: "project-orchestrator",
+      orchestratorPresentationMode: "professional"
     };
 
     expect(normalizePreferences(stored, validProjects)).toEqual(stored);
@@ -81,5 +83,54 @@ describe("workspace preferences", () => {
     );
 
     expect(repaired.adaptiveProjectTemplateId).toBe("auto-stack");
+  });
+
+  it("loads classroom presentation when the feature is enabled", () => {
+    const repaired = parseStoredPreferences(
+      JSON.stringify({
+        ...fallbackPreferences,
+        orchestratorPresentationMode: "classroom"
+      }),
+      validProjects,
+      fallbackPreferences,
+      true
+    );
+
+    expect(repaired.orchestratorPresentationMode).toBe("classroom");
+  });
+
+  it("repairs classroom presentation when the feature is disabled", () => {
+    const repaired = normalizePreferences(
+      {
+        ...fallbackPreferences,
+        orchestratorPresentationMode: "classroom"
+      },
+      validProjects
+    );
+
+    expect(repaired.orchestratorPresentationMode).toBe("professional");
+  });
+
+  it("repairs missing and malformed presentation modes to professional", () => {
+    const missing = { ...fallbackPreferences } as Record<string, unknown>;
+    delete missing.orchestratorPresentationMode;
+
+    expect(normalizePreferences(missing, validProjects, fallbackPreferences, true).orchestratorPresentationMode).toBe(
+      "professional"
+    );
+    expect(
+      normalizePreferences(
+        { ...fallbackPreferences, orchestratorPresentationMode: "school" },
+        validProjects,
+        fallbackPreferences,
+        true
+      ).orchestratorPresentationMode
+    ).toBe("professional");
+  });
+
+  it("repairs malformed serialized preferences to professional", () => {
+    expect(parseStoredPreferences("{", validProjects, fallbackPreferences, true).orchestratorPresentationMode).toBe(
+      "professional"
+    );
   });
 });

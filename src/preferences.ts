@@ -2,6 +2,7 @@ import { defaultLayoutByMode, layoutOptions, type CockpitMode, type LayoutId } f
 import type { AdaptiveCockpitProjectStackRequestedTemplateId } from "./adaptiveCockpitProjectStack";
 
 export type PrimaryView = "cockpit" | "pipeline" | "planning";
+export type OrchestratorPresentationMode = "professional" | "classroom";
 
 export interface WorkspacePreferences {
   selectedProjectId: string;
@@ -9,6 +10,7 @@ export interface WorkspacePreferences {
   layoutId: LayoutId;
   view: PrimaryView;
   adaptiveProjectTemplateId: AdaptiveCockpitProjectStackRequestedTemplateId;
+  orchestratorPresentationMode: OrchestratorPresentationMode;
 }
 
 export const PREFERENCES_STORAGE_KEY = "steerboard.workspace.preferences";
@@ -18,7 +20,8 @@ export const fallbackPreferences: WorkspacePreferences = {
   mode: "orchestrator",
   layoutId: defaultLayoutByMode.orchestrator,
   view: "cockpit",
-  adaptiveProjectTemplateId: "auto-stack"
+  adaptiveProjectTemplateId: "auto-stack",
+  orchestratorPresentationMode: "professional"
 };
 
 const validModes: CockpitMode[] = ["focus", "orchestrator", "monitor"];
@@ -38,10 +41,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function normalizePreferences(
   value: unknown,
   validProjectIds: string[],
-  fallback: WorkspacePreferences = fallbackPreferences
+  fallback: WorkspacePreferences = fallbackPreferences,
+  classroomFeatureEnabled = false
 ): WorkspacePreferences {
+  const safeFallback: WorkspacePreferences = {
+    ...fallback,
+    orchestratorPresentationMode: "professional"
+  };
+
   if (!isRecord(value)) {
-    return fallback;
+    return safeFallback;
   }
 
   const mode = validModes.includes(value.mode as CockpitMode)
@@ -60,38 +69,52 @@ export function normalizePreferences(
   )
     ? (value.adaptiveProjectTemplateId as AdaptiveCockpitProjectStackRequestedTemplateId)
     : fallback.adaptiveProjectTemplateId;
+  const orchestratorPresentationMode: OrchestratorPresentationMode =
+    classroomFeatureEnabled && value.orchestratorPresentationMode === "classroom"
+      ? "classroom"
+      : "professional";
 
   return {
     selectedProjectId,
     mode,
     layoutId,
     view,
-    adaptiveProjectTemplateId
+    adaptiveProjectTemplateId,
+    orchestratorPresentationMode
   };
 }
 
 export function parseStoredPreferences(
   serialized: string | null,
   validProjectIds: string[],
-  fallback: WorkspacePreferences = fallbackPreferences
+  fallback: WorkspacePreferences = fallbackPreferences,
+  classroomFeatureEnabled = false
 ): WorkspacePreferences {
   if (!serialized) {
-    return fallback;
+    return { ...fallback, orchestratorPresentationMode: "professional" };
   }
 
   try {
-    return normalizePreferences(JSON.parse(serialized), validProjectIds, fallback);
+    return normalizePreferences(JSON.parse(serialized), validProjectIds, fallback, classroomFeatureEnabled);
   } catch {
-    return fallback;
+    return { ...fallback, orchestratorPresentationMode: "professional" };
   }
 }
 
-export function loadWorkspacePreferences(validProjectIds: string[]): WorkspacePreferences {
+export function loadWorkspacePreferences(
+  validProjectIds: string[],
+  classroomFeatureEnabled = false
+): WorkspacePreferences {
   if (typeof window === "undefined") {
     return fallbackPreferences;
   }
 
-  return parseStoredPreferences(window.localStorage.getItem(PREFERENCES_STORAGE_KEY), validProjectIds);
+  return parseStoredPreferences(
+    window.localStorage.getItem(PREFERENCES_STORAGE_KEY),
+    validProjectIds,
+    fallbackPreferences,
+    classroomFeatureEnabled
+  );
 }
 
 export function saveWorkspacePreferences(preferences: WorkspacePreferences) {
