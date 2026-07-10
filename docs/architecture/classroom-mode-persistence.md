@@ -34,3 +34,9 @@ Capacity may be approved from one through twenty. Increasing it exposes empty pl
 Validation exhaustion policy is stored in the durable run scope and is independent of presentation. The default is `orchestrator-takeover`; `corrective-task` remains explicitly selectable. Revision failures one and two reuse the same worker identity, branch, worktree, and ownership scope for attempts two and three while persisting the validator report and required actions.
 
 The third revision failure creates one deterministic `orchestrator.takeover` command and no fourth worker attempt. A durable handoff event releases the worker owner and transfers the exact mutable file scope before the command can run. The Rust runtime refuses takeover without a valid handoff or a resolved Codex orchestrator profile, and applies that profile's model and reasoning effort. Successful takeover queues the normal accepted-commit/integration path without another validator; failed takeover queues no downstream mutation. Replayed third-failure reports cannot duplicate the deterministic takeover job.
+
+## Orchestrator-only chat
+
+The persistent right-side chat has one immutable recipient: the main orchestrator. Stored messages repair to `user` or `orchestrator` authors only; worker, validator, broadcast, and malformed messages are discarded. Selecting a roster participant changes only the persisted read-only watching reference. Orchestrator replies may link to durable task, job, validation, and evidence identifiers, while active/waiting/validating/blocked counts remain read-only projections.
+
+Panel messages, width, collapsed state, and watching context persist under `steerboard.orchestratorChat.v1` with bounded repair. The collapse toggle remains mounted as the focus-return target. Wide layouts keep the non-modal panel beside staged/canvas content; narrower layouts use a stacked compact non-overlay presentation.

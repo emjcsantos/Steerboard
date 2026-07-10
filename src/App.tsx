@@ -235,6 +235,14 @@ import {
 import { projectOrchestratorRun } from "./orchestratorRunProjection";
 import { ClassroomRoster } from "./classroomRoster";
 import {
+  loadOrchestratorChatState,
+  OrchestratorChat,
+  saveOrchestratorChatState,
+  selectOrchestratorWatchingContext,
+  type OrchestratorChatContextLink,
+  type OrchestratorChatMessage
+} from "./orchestratorChat";
+import {
   groupOrchestratorLedgerForUi,
   selectCleanupQueueSummaryForUi,
   selectLatestOrchestratorRunReportForUi,
@@ -359,13 +367,10 @@ import {
   projectManagementTypeLabels,
   toggleProjectManagementTaskCollapsed,
   type ProjectManagementArenaDispatchResult,
-  type ProjectManagementChatMessage,
   type ProjectManagementTask
 } from "./projectManagementHierarchy";
 import {
-  loadProjectManagementChat,
   loadProjectManagementTasks,
-  saveProjectManagementChat,
   saveProjectManagementTasks
 } from "./projectManagementHierarchyStorage";
 import { hasTauriRuntime } from "./tauriRuntime";
@@ -2450,9 +2455,6 @@ export function App() {
   const [projectManagementTasks, setProjectManagementTasks] = useState<ProjectManagementTask[]>(() =>
     loadProjectManagementTasks()
   );
-  const [projectManagementChat, setProjectManagementChat] = useState<ProjectManagementChatMessage[]>(() =>
-    loadProjectManagementChat()
-  );
   const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
   const [localChatSessions, setLocalChatSessions] = useState<SessionSummary[]>(() =>
     loadLocalChatSessions()
@@ -3849,9 +3851,6 @@ export function App() {
     saveProjectManagementTasks(projectManagementTasks);
   }, [projectManagementTasks]);
 
-  useEffect(() => {
-    saveProjectManagementChat(projectManagementChat);
-  }, [projectManagementChat]);
 
   useEffect(() => {
     saveLocalChatSessions(localChatSessions);
@@ -5949,9 +5948,7 @@ export function App() {
               />
             ) : (
               <PlanningView
-                chatMessages={projectManagementChat}
                 dispatchReviewRecords={projectDispatchReviewRecords}
-                onChatMessagesChange={setProjectManagementChat}
                 onStagePackage={handleStagePackage}
                 onTasksChange={setProjectManagementTasks}
                 project={project}
@@ -12659,18 +12656,14 @@ function formatShortDate(value: string): string {
 }
 
 export function PlanningView({
-  chatMessages,
   dispatchReviewRecords,
-  onChatMessagesChange,
   onStagePackage,
   onTasksChange,
   project,
   projects,
   tasks
 }: {
-  chatMessages: ProjectManagementChatMessage[];
   dispatchReviewRecords: DispatchReviewRecord[];
-  onChatMessagesChange: (messages: ProjectManagementChatMessage[]) => void;
   onStagePackage: (dispatchPackage: DispatchPackage) => void;
   onTasksChange: (tasks: ProjectManagementTask[]) => void;
   project: ProjectSummary;
@@ -12680,7 +12673,10 @@ export function PlanningView({
   const rows = useMemo(() => flattenProjectManagementRows(tasks), [tasks]);
   const visibleRows = rows.filter((row) => !row.hiddenByAncestor);
   const [stagedResult, setStagedResult] = useState<ProjectManagementArenaDispatchResult>();
-  const [chatInput, setChatInput] = useState("");
+  const [orchestratorChatState, setOrchestratorChatState] = useState(loadOrchestratorChatState);
+  const [orchestratorChatCompact, setOrchestratorChatCompact] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 1199px)").matches
+  );
   const [planningSurfaceTab, setPlanningSurfaceTab] = useState<"pm-table" | "orchestrator-preview">("pm-table");
   const [orchestratorPreviewFilter, setOrchestratorPreviewFilter] =
     useState<OrchestratorLedgerSectionKind | "all">("all");
@@ -12698,7 +12694,6 @@ export function PlanningView({
   const [orchestratorBackendState, setOrchestratorBackendState] =
     useState<OrchestratorBackendState>(() => fallbackOrchestratorState);
   const [orchestratorPumpStatus, setOrchestratorPumpStatus] = useState("Idle");
-  const [selectedClassroomParticipantId, setSelectedClassroomParticipantId] = useState<string>();
   const stagedMarkdown = stagedResult ? renderDispatchPackageMarkdown(stagedResult.dispatchPackage) : "";
   const stagedReviewRecord = stagedResult
     ? dispatchReviewRecords.find(
@@ -12706,6 +12701,17 @@ export function PlanningView({
       )
     : undefined;
   const recentReviewRecords = dispatchReviewRecords.slice(0, 3);
+  useEffect(() => {
+    saveOrchestratorChatState(orchestratorChatState);
+  }, [orchestratorChatState]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 1199px)");
+    const update = () => setOrchestratorChatCompact(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   useEffect(() => {
     let cancelled = false;
 
@@ -12921,21 +12927,12 @@ export function PlanningView({
     }
   }
 
-  function handleChatSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const text = chatInput.trim();
-
-    if (text.length === 0) {
-      return;
-    }
-
+  function handleOrchestratorChatSend(text: string) {
     const createdAt = new Date().toISOString();
-    const userMessage: ProjectManagementChatMessage = {
-      id: `pm-user-${createdAt}`,
-      role: "user",
-      text,
-      createdAt
+    const userMessage: OrchestratorChatMessage = {
+      id: `orchestrator-user-${createdAt}`,
+      author: "user",
+      body: text
     };
     const shouldMarkValidationTodo =
       text.toLowerCase().includes("mark") &&
@@ -12949,21 +12946,53 @@ export function PlanningView({
         )
       : tasks;
     const changedTaskCount = updatedTasks.filter((task, index) => task.status !== tasks[index]?.status).length;
-    const reply: ProjectManagementChatMessage = {
-      id: `pm-assistant-${createdAt}`,
-      role: "assistant",
-      text: changedTaskCount > 0
+    const watchedParticipant = orchestratorChatState.watchingContext?.kind === "worker"
+      ? classroomParticipantProjection.participants.find(
+          (participant) => participant.id === orchestratorChatState.watchingContext?.id
+        )
+      : undefined;
+    const watchedJob = classroomParticipantProjection.jobs.find(
+      (job) => job.id === watchedParticipant?.currentJobId
+    );
+    const validationEntry = [...orchestratorBackendState.ledger].reverse().find(
+      (entry) => entry.kind === "validator.reported" && entry.payload.taskId === watchedJob?.taskId
+    );
+    const evidenceReference = Array.isArray(validationEntry?.payload.evidenceReferences)
+      ? validationEntry.payload.evidenceReferences.find((value): value is string => typeof value === "string")
+      : undefined;
+    const contextLinks: OrchestratorChatContextLink[] = [
+      watchedJob ? { kind: "task", id: watchedJob.taskId, label: `Task ${watchedJob.taskId}` } : undefined,
+      watchedJob ? { kind: "job", id: watchedJob.id, label: `Job ${watchedJob.id}` } : undefined,
+      validationEntry ? { kind: "validation", id: validationEntry.id, label: `Validation ${validationEntry.id}` } : undefined,
+      evidenceReference ? { kind: "evidence", id: evidenceReference, label: "Validation evidence" } : undefined
+    ].filter((link): link is OrchestratorChatContextLink => Boolean(link));
+    const reply: OrchestratorChatMessage = {
+      id: `orchestrator-reply-${createdAt}`,
+      author: "orchestrator",
+      body: changedTaskCount > 0
         ? `Updated ${changedTaskCount} validation ${changedTaskCount === 1 ? "task" : "tasks"} to TO DO in the Project Management table.`
         : createProjectManagementChatReply(text),
-      createdAt
+      ...(contextLinks.length ? { contextLinks } : {})
     };
 
     if (changedTaskCount > 0) {
       onTasksChange(updatedTasks);
     }
 
-    onChatMessagesChange([...chatMessages, userMessage, reply].slice(-40));
-    setChatInput("");
+    setOrchestratorChatState((current) => ({
+      ...current,
+      messages: [...current.messages, userMessage, reply].slice(-80)
+    }));
+  }
+
+  function handleWatchingParticipant(participantId: string) {
+    const participant = classroomParticipantProjection.participants.find((item) => item.id === participantId);
+    if (!participant) return;
+    setOrchestratorChatState((current) => selectOrchestratorWatchingContext(current, {
+      kind: "worker",
+      id: participant.id,
+      label: `Worker in seat ${participant.seat}`
+    }));
   }
 
   return (
@@ -13113,9 +13142,13 @@ export function PlanningView({
                   </dl>
                 ) : null}
                 <ClassroomRoster
-                  onSelectParticipant={setSelectedClassroomParticipantId}
+                  onSelectParticipant={handleWatchingParticipant}
                   projection={classroomParticipantProjection}
-                  selectedParticipantId={selectedClassroomParticipantId}
+                  selectedParticipantId={
+                    orchestratorChatState.watchingContext?.kind === "worker"
+                      ? orchestratorChatState.watchingContext.id
+                      : undefined
+                  }
                   visibleParticipantIds={orchestratorRunProjection.capacity.teacherStandingParticipantIds}
                 />
               </section>
@@ -13267,36 +13300,19 @@ export function PlanningView({
             </div>
 
             <section className="pm-bottom-panel" aria-label="Project Management alignment chat">
-          <div className="pm-chat-panel">
-            <div className="pm-chat-header">
-              <strong>PM Alignment</strong>
-              <span>Scoped to dashboard updates</span>
-            </div>
-            <div className="pm-chat-transcript" aria-label="Project Management dashboard transcript">
-              {chatMessages.length === 0 ? (
-                <p className="pm-chat-empty">Ask for hierarchy, completion, status, or Arena-run preparation updates.</p>
-              ) : (
-                chatMessages.map((message) => (
-                  <article className={classNames("pm-chat-message", `pm-chat-${message.role}`)} key={message.id}>
-                    <strong>{message.role === "user" ? "You" : "Steerboard"}</strong>
-                    <p>{message.text}</p>
-                  </article>
-                ))
-              )}
-            </div>
-            <form className="pm-chat-composer" onSubmit={handleChatSubmit}>
-              <Terminal size={15} />
-              <input
-                aria-label="Project Management dashboard instruction"
-                onChange={(event) => setChatInput(event.currentTarget.value)}
-                placeholder="Update the PM dashboard..."
-                value={chatInput}
-              />
-              <button type="submit">
-                <Send size={14} />
-              </button>
-            </form>
-          </div>
+          <OrchestratorChat
+            compact={orchestratorChatCompact}
+            onCollapsedChange={(collapsed) => setOrchestratorChatState((current) => ({ ...current, collapsed }))}
+            onSendMessage={handleOrchestratorChatSend}
+            onStateChange={setOrchestratorChatState}
+            runCounts={{
+              active: orchestratorRunProjection.capacity.active,
+              waiting: orchestratorRunProjection.capacity.waiting,
+              validating: orchestratorRunProjection.capacity.validating,
+              blocked: orchestratorRunProjection.capacity.blocked
+            }}
+            state={orchestratorChatState}
+          />
 
           <aside className="pm-staged-panel" aria-label="Staged Arena dispatch preview">
             <div className="pm-staged-header">
