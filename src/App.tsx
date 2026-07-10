@@ -233,6 +233,7 @@ import {
   summarizeClassroomParticipant
 } from "./classroomParticipants";
 import { projectOrchestratorRun } from "./orchestratorRunProjection";
+import { ClassroomRoster } from "./classroomRoster";
 import {
   groupOrchestratorLedgerForUi,
   selectCleanupQueueSummaryForUi,
@@ -12697,6 +12698,7 @@ export function PlanningView({
   const [orchestratorBackendState, setOrchestratorBackendState] =
     useState<OrchestratorBackendState>(() => fallbackOrchestratorState);
   const [orchestratorPumpStatus, setOrchestratorPumpStatus] = useState("Idle");
+  const [selectedClassroomParticipantId, setSelectedClassroomParticipantId] = useState<string>();
   const stagedMarkdown = stagedResult ? renderDispatchPackageMarkdown(stagedResult.dispatchPackage) : "";
   const stagedReviewRecord = stagedResult
     ? dispatchReviewRecords.find(
@@ -12755,12 +12757,13 @@ export function PlanningView({
       report: selectLatestOrchestratorRunReportForUi(orchestratorBackendState.ledger, activeOrchestratorRunId)
     };
   }, [activeOrchestratorRunId, orchestratorBackendState]);
+  const classroomParticipantProjection = useMemo(
+    () => hydrateClassroomParticipantProjection(orchestratorBackendState),
+    [orchestratorBackendState]
+  );
   const classroomParticipantSummary = useMemo(
-    () => summarizeClassroomParticipant(
-      hydrateClassroomParticipantProjection(orchestratorBackendState),
-      activeOrchestratorRunId
-    ),
-    [activeOrchestratorRunId, orchestratorBackendState]
+    () => summarizeClassroomParticipant(classroomParticipantProjection, activeOrchestratorRunId),
+    [activeOrchestratorRunId, classroomParticipantProjection]
   );
   const orchestratorRunProjection = useMemo(
     () => projectOrchestratorRun(orchestratorBackendState, "professional", activeOrchestratorRunId),
@@ -13109,6 +13112,12 @@ export function PlanningView({
                     </div>
                   </dl>
                 ) : null}
+                <ClassroomRoster
+                  onSelectParticipant={setSelectedClassroomParticipantId}
+                  projection={classroomParticipantProjection}
+                  selectedParticipantId={selectedClassroomParticipantId}
+                  visibleParticipantIds={orchestratorRunProjection.capacity.teacherStandingParticipantIds}
+                />
               </section>
               {orchestratorBackendSummary.report ? (
                 <section className="pm-orchestrator-report" aria-label="Final orchestrator run report">

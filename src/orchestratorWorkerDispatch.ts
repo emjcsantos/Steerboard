@@ -11,6 +11,7 @@ import {
   type PmWorkerReadyTask
 } from "./pmLaneWorkerReady";
 import { buildClassroomWorkerEnvelope } from "./classroomParticipants";
+import { resolveOrchestratorModelRouting } from "./orchestratorModelRouting";
 
 export type WorkerJobStatus =
   | "queued"
@@ -82,6 +83,7 @@ export interface WorkerDispatchRequest {
   existingWorkerJobs?: readonly WorkerDispatchJobClaim[];
   modelProfiles?: readonly WorkerModelProfile[];
   occupiedSeats?: readonly number[];
+  modelProfileAssignments?: Readonly<Record<string, string>>;
 }
 
 export interface WorkerDispatchResult {
@@ -194,10 +196,6 @@ function createWorkerJob(input: {
   };
 }
 
-function resolveWorkerModelProfile(profiles: readonly WorkerModelProfile[] | undefined): WorkerModelProfile {
-  return profiles?.find((profile) => profile.role === "worker") ?? DEFAULT_WORKER_MODEL_PROFILE;
-}
-
 const activeWorkerStatuses = new Set<WorkerJobStatus>([
   "queued",
   "leased",
@@ -247,7 +245,6 @@ export function dispatchWorkerReadyTasks(
       .filter((job) => job.status === "completed")
       .map((job) => job.taskId)
   );
-  const modelProfile = resolveWorkerModelProfile(request.modelProfiles);
   const capacity = Math.max(0, request.concurrencyLimit - request.activeWorkerJobs.length);
   const occupiedSeats = new Set(
     (request.occupiedSeats ?? request.activeWorkerJobs.map((_, index) => index + 1))
@@ -305,6 +302,16 @@ export function dispatchWorkerReadyTasks(
       continue;
     }
 
+    const modelRouting = resolveOrchestratorModelRouting({
+      profiles: request.modelProfiles,
+      workerProfileId: request.modelProfileAssignments?.[task.id],
+      fallbackWorkerProfile: DEFAULT_WORKER_MODEL_PROFILE
+    });
+    const modelProfile = modelRouting.worker;
+    if (!modelProfile) {
+      blockedTaskIds.push(task.id);
+      continue;
+    }
     const existingCount = (request.existingWorkerJobs ?? []).filter((job) => job.taskId === task.id).length;
     const job = createWorkerJob({
       runId: request.runId,
@@ -320,6 +327,7 @@ export function dispatchWorkerReadyTasks(
       skippedTaskIds.push(task.id);
       continue;
     }
+
     const classroom = buildClassroomWorkerEnvelope({
       job,
       modelProfile,
@@ -347,7 +355,8 @@ export function dispatchWorkerReadyTasks(
         ownedFiles: job.ownedFiles,
         acceptanceCriteria: task.acceptanceCriteria,
         validationCommands: task.validationCommands,
-        classroom
+        classroom,
+        modelRouting
       },
       enqueuedAt: request.createdAt
     });
@@ -365,7 +374,8 @@ export function dispatchWorkerReadyTasks(
         budget: job.budget,
         ownedFiles: job.ownedFiles,
         validationCommands: task.validationCommands,
-        classroom
+        classroom,
+        modelRouting
       },
       dedupeKey: `${job.id}:queued`,
       enqueuedAt: request.createdAt

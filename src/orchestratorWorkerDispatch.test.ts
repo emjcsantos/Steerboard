@@ -8,7 +8,8 @@ import {
 import {
   DEFAULT_WORKER_MODEL_PROFILE,
   dispatchWorkerReadyTasks,
-  type WorkerJobRecord
+  type WorkerJobRecord,
+  type WorkerModelProfile
 } from "./orchestratorWorkerDispatch";
 import {
   DEFAULT_PM_TASK_BUDGET,
@@ -364,6 +365,57 @@ describe("orchestrator worker dispatch", () => {
         }
       }
     });
+  });
+
+  it("routes different workers to independently assigned provider and model snapshots", () => {
+    const profiles: WorkerModelProfile[] = [
+      { ...DEFAULT_WORKER_MODEL_PROFILE, id: "anthropic-worker", provider: "anthropic", model: "claude-worker", reasoningEffort: "high", capabilities: { ...DEFAULT_WORKER_MODEL_PROFILE.capabilities } },
+      { ...DEFAULT_WORKER_MODEL_PROFILE, id: "gemini-worker", provider: "gemini", model: "gemini-worker", reasoningEffort: "medium", capabilities: { ...DEFAULT_WORKER_MODEL_PROFILE.capabilities } },
+      { ...DEFAULT_WORKER_MODEL_PROFILE, id: "validator", role: "validator", model: "gpt-validator", capabilities: { ...DEFAULT_WORKER_MODEL_PROFILE.capabilities } },
+      { ...DEFAULT_WORKER_MODEL_PROFILE, id: "orchestrator", role: "orchestrator", model: "gpt-orchestrator", capabilities: { ...DEFAULT_WORKER_MODEL_PROFILE.capabilities } }
+    ];
+    const result = dispatchWorkerReadyTasks(
+      backendState(),
+      [task({ id: "task-1" }), task({ id: "task-2", sequence: 2 })],
+      {
+        runId: "run-123",
+        repositoryRoot: "repo",
+        worktreeRoot: ".steerboard/worktrees",
+        createdAt,
+        concurrencyLimit: 2,
+        activeWorkerJobs: [],
+        modelProfiles: profiles,
+        modelProfileAssignments: { "task-1": "anthropic-worker", "task-2": "gemini-worker" }
+      }
+    );
+
+    expect(result.jobs.map((job) => job.modelProfileId)).toEqual(["anthropic-worker", "gemini-worker"]);
+    expect(result.backendState.commandQueue.map((command) => command.payload.modelRouting)).toEqual([
+      expect.objectContaining({
+        worker: expect.objectContaining({ provider: "anthropic", model: "claude-worker", reasoningEffort: "high" }),
+        validator: expect.objectContaining({ model: "gpt-validator" }),
+        orchestrator: expect.objectContaining({ model: "gpt-orchestrator" })
+      }),
+      expect.objectContaining({
+        worker: expect.objectContaining({ provider: "gemini", model: "gemini-worker", reasoningEffort: "medium" })
+      })
+    ]);
+  });
+
+  it("blocks dispatch when an explicitly assigned model profile is missing", () => {
+    const result = dispatchWorkerReadyTasks(backendState(), [task({ id: "task-1" })], {
+      runId: "run-123",
+      repositoryRoot: "repo",
+      worktreeRoot: ".steerboard/worktrees",
+      createdAt,
+      concurrencyLimit: 1,
+      activeWorkerJobs: [],
+      modelProfiles: [],
+      modelProfileAssignments: { "task-1": "missing-profile" }
+    });
+
+    expect(result.jobs).toEqual([]);
+    expect(result.blockedTaskIds).toEqual(["task-1"]);
   });
 
   it("routes capability escalation to approval instead of dispatching silently", () => {
