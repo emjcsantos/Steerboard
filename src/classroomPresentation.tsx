@@ -275,6 +275,7 @@ export function ClassroomPresentation({
           </select>
         </label>
       </nav>
+      <div className="classroom-workspace-layout">
       <div
         aria-label="Classroom canvas viewport"
         className="classroom-room-viewport"
@@ -365,6 +366,15 @@ export function ClassroomPresentation({
       </div>
       </div>
 
+      <aside aria-label="Classroom context" className="classroom-context-rail">
+        <div className="classroom-context-chat">{chat}</div>
+        <div className="classroom-secondary-context">
+          {roster}
+          <div className="classroom-context-inspector">{inspector}</div>
+        </div>
+      </aside>
+      </div>
+
       {bubbleSelection.durableActivityIndicators.length ? (
         <nav aria-label="Suppressed classroom previews" className="classroom-durable-activity-indicators">
           {bubbleSelection.durableActivityIndicators.map((indicator) => (
@@ -388,9 +398,6 @@ export function ClassroomPresentation({
         </details>
       ) : null}
 
-      <aside aria-label="Classroom context" className="classroom-context-rail">
-        {roster}<div className="classroom-context-inspector">{inspector}</div><div className="classroom-context-chat">{chat}</div>
-      </aside>
     </section>
   );
 }

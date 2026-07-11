@@ -106,6 +106,8 @@ describe("ClassroomPresentation", () => {
     expect(html.match(/data-seat-state="occupied"/g)).toHaveLength(20);
     expect(html).toContain('class="classroom-context-rail"');
     expect(html).toContain('aria-label="Classroom canvas viewport"');
+    expect(html).toContain('class="classroom-workspace-layout"');
+    expect(html.indexOf('class="classroom-context-chat"')).toBeLessThan(html.indexOf('class="classroom-secondary-context"'));
   });
 
   it("renders sanitized durable previews or a labeled durable fallback without worker chat", () => {

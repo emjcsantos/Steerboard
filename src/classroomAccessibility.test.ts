@@ -37,7 +37,7 @@ describe("Classroom WCAG 2.2 AA presentation evidence", () => {
   });
 
   it("uses non-overlay reflow for compact roster, inspector, and chat context", () => {
-    expect(styles).toMatch(/@media \(max-width: 980px\)[\s\S]*\.classroom-context-rail\s*\{\s*grid-template-columns:\s*1fr;/);
+    expect(styles).toMatch(/@media \(max-width: 1100px\)[\s\S]*\.classroom-context-rail\s*\{[^}]*grid-row:\s*1;/);
     expect(styles).toMatch(/\.classroom-room-viewport\s*\{[^}]*overflow:\s*auto/s);
   });
 });
