@@ -86,4 +86,25 @@ describe("ClassroomPresentation", () => {
     expect(html).toContain("Inspector detail");
     expect(html).toContain("Orchestrator chat");
   });
+
+  it("renders labeled keyboard viewport controls without replacing semantic seat text", () => {
+    const html = render(["queued", "running"]);
+    expect(html).toContain('aria-label="Classroom viewport controls"');
+    expect(html).toContain('aria-keyshortcuts="+"');
+    expect(html).toContain('aria-keyshortcuts="-"');
+    expect(html).toContain('aria-keyshortcuts="F"');
+    expect(html).toContain('aria-keyshortcuts="0"');
+    expect(html).toContain('aria-label="Pan classroom"');
+    expect(html).toContain('data-seat-state="reserved"');
+    expect(html).toContain('data-seat-state="occupied"');
+    expect(html).toContain('data-seat-state="empty"');
+  });
+
+  it("renders twenty deterministic participant targets while preserving the non-overlay context rail", () => {
+    const html = render(Array.from({ length: 20 }, () => "running" as const), 20);
+    expect(html.match(/class="classroom-seat"/g)).toHaveLength(20);
+    expect(html.match(/data-seat-state="occupied"/g)).toHaveLength(20);
+    expect(html).toContain('class="classroom-context-rail"');
+    expect(html).toContain('aria-label="Classroom canvas viewport"');
+  });
 });

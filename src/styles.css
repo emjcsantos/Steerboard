@@ -2449,28 +2449,59 @@ textarea {
   background: color-mix(in srgb, var(--classroom-line) 24%, transparent);
 }
 
+.classroom-viewport-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.classroom-viewport-controls > span { display: flex; gap: 4px; }
+.classroom-viewport-controls button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--classroom-line);
+  border-radius: 10px;
+  color: inherit;
+  background: var(--surface-raised, #fff);
+  cursor: pointer;
+}
+.classroom-viewport-controls button:hover,
+.classroom-viewport-controls button:focus-visible { border-color: var(--classroom-accent); }
+.classroom-viewport-controls output { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+.classroom-room-viewport {
+  overflow: auto;
+  min-height: 420px;
+  border-radius: 16px;
+  outline: none;
+}
+.classroom-room-viewport:focus-visible { box-shadow: 0 0 0 3px var(--classroom-accent); }
+
 .classroom-status-board dt { font-size: 11px; }
 .classroom-status-board dd { margin: 2px 0 0; font-weight: 700; }
 
 .classroom-room {
-  display: grid;
-  grid-template-columns: minmax(180px, .8fr) minmax(360px, 2fr) minmax(180px, .8fr);
-  gap: 20px;
-  min-height: 420px;
-  padding: 24px;
+  position: relative;
+  min-width: 900px;
+  min-height: 720px;
   background-image: linear-gradient(rgba(8, 145, 178, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(8, 145, 178, .045) 1px, transparent 1px);
   background-size: 32px 32px;
+  transform-origin: center;
+  transition: transform 180ms ease-out;
 }
 
 .classroom-teacher-zone,
 .classroom-validator-zone {
+  position: absolute;
   display: grid;
-  align-content: start;
-  gap: 16px;
+  grid-template-rows: 1fr auto;
+  gap: 6px;
+  z-index: 2;
 }
 
 .classroom-actor {
-  min-height: 92px;
+  min-height: 48px;
   justify-content: center;
   align-content: center;
   padding: 16px;
@@ -2480,16 +2511,16 @@ textarea {
   background: var(--surface-raised, #fff);
 }
 
-.classroom-actor-teacher { min-height: 124px; box-shadow: 0 12px 28px rgba(8, 145, 178, .16); }
+.classroom-actor-teacher { min-height: 52px; box-shadow: 0 12px 28px rgba(8, 145, 178, .16); }
 .classroom-actor-teacher strong { font-size: 20px; }
 .classroom-actor-validator { border-width: 1px; }
 
-.classroom-standing-slots { display: grid; gap: 8px; }
+.classroom-standing-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .classroom-standing-slot {
   display: grid;
   gap: 2px;
-  min-height: 64px;
-  padding: 10px;
+  min-height: 48px;
+  padding: 6px;
   border: 1px dashed var(--classroom-line);
   border-radius: 12px;
   background: var(--surface-raised, #fff);
@@ -2497,22 +2528,37 @@ textarea {
 .classroom-standing-slot[data-occupied="true"] { border-style: solid; border-color: var(--classroom-accent); }
 
 .classroom-seat-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(140px, 1fr));
-  align-content: center;
-  gap: 16px;
+  position: absolute;
+  inset: 0;
+}
+
+.classroom-room-viewport[data-semantic-zoom="overview"] .classroom-seat-number {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
 }
 
 .classroom-seat {
+  position: absolute;
   display: grid;
   gap: 8px;
-  min-height: 112px;
-  padding: 14px;
+  min-height: 44px;
+  padding: 6px;
   text-align: left;
   border: 1px solid var(--classroom-line);
   border-radius: 14px;
   color: inherit;
   background: var(--surface-raised, #fff);
+}
+
+.classroom-door-corridor,
+.classroom-walking-path {
+  position: absolute;
+  border: 1px dashed color-mix(in srgb, var(--classroom-accent) 34%, transparent);
+  background: color-mix(in srgb, var(--classroom-line) 13%, transparent);
+  pointer-events: none;
 }
 .classroom-seat:not(:disabled) { cursor: pointer; }
 .classroom-seat:not(:disabled):hover { border-color: var(--classroom-accent); }
@@ -2530,16 +2576,12 @@ textarea {
 }
 
 @media (max-width: 980px) {
-  .classroom-room { grid-template-columns: 1fr 1.6fr; }
-  .classroom-validator-zone { grid-column: 1 / -1; grid-template-columns: 180px 1fr; }
-  .classroom-standing-slots { grid-template-columns: repeat(2, 1fr); }
   .classroom-context-rail { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 680px) {
   .classroom-status-board { align-items: stretch; flex-direction: column; }
-  .classroom-room, .classroom-validator-zone { grid-template-columns: 1fr; }
-  .classroom-seat-grid { grid-template-columns: 1fr; }
+  .classroom-viewport-controls output { width: 100%; margin-left: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
