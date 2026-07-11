@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import type { ClassroomParticipantProjection } from "./classroomParticipants";
-import type { OrchestratorRunProjection, OrchestratorWorkState } from "./orchestratorRunProjection";
+import { sanitizeOrchestratorProgress, type OrchestratorRunProjection, type OrchestratorWorkState } from "./orchestratorRunProjection";
 import {
   classroomSemanticZoom,
   fitClassroomViewport,
@@ -10,6 +10,12 @@ import {
   saveClassroomViewport
 } from "./classroomViewport";
 import { buildClassroomSceneMap, CLASSROOM_SCENE_CAPACITIES, type ClassroomSceneRect } from "./classroomSceneMap";
+import {
+  selectClassroomBubbles,
+  type ClassroomBubbleAnchor,
+  type ClassroomBubbleCandidate,
+  type ClassroomBubbleKind
+} from "./classroomBubbles";
 
 export type ClassroomVisualStatus =
   | "queued"
@@ -52,6 +58,24 @@ export interface ClassroomPresentationProps {
   roster?: ReactNode;
   chat?: ReactNode;
   inspector?: ReactNode;
+  nowMs?: number;
+  reducedMotion?: boolean;
+}
+
+function bubbleKind(body: string, orchestrator: boolean): ClassroomBubbleKind {
+  const text = body.toLowerCase();
+  if (/error|escalat|blocked|failed/.test(text)) return "escalation";
+  if (/validat|revision|accepted|pass/.test(text)) return "validation";
+  if (/assign|dispatch/.test(text)) return "assignment";
+  if (/acknowledg|received|understood/.test(text)) return "acknowledgement";
+  return orchestrator ? "orchestrator" : "thinking";
+}
+
+function bubbleAnchors(rect: ClassroomSceneRect, actorId: string): ClassroomBubbleAnchor[] {
+  return [
+    { id: `${actorId}-above`, x: Math.max(0, rect.x - 3), y: Math.max(0, rect.y - 9), width: 18, height: 8 },
+    { id: `${actorId}-below`, x: Math.max(0, rect.x - 3), y: Math.min(92, rect.y + rect.height + 1), width: 18, height: 8 }
+  ];
 }
 
 /** Read-only presentation of durable orchestrator state. */
@@ -62,7 +86,9 @@ export function ClassroomPresentation({
   onSelectParticipant,
   roster,
   chat,
-  inspector
+  inspector,
+  nowMs = Date.now(),
+  reducedMotion = false
 }: ClassroomPresentationProps) {
   const [viewport, setViewport] = useState(loadClassroomViewport);
   useEffect(() => saveClassroomViewport(viewport), [viewport]);
@@ -90,6 +116,38 @@ export function ClassroomPresentation({
   const sceneCapacity = CLASSROOM_SCENE_CAPACITIES.find((capacity) => capacity >= initialPlaces.length) ?? 20;
   const scene = buildClassroomSceneMap(sceneCapacity);
   const semanticZoom = classroomSemanticZoom(viewport.zoom);
+  const bubbleCandidates: ClassroomBubbleCandidate[] = participants.messages
+    .filter((message) => !projection.runId || message.runId === projection.runId)
+    .flatMap((message): ClassroomBubbleCandidate[] => {
+      const orchestrator = message.actor.kind === "orchestrator";
+      const participantId = message.actor.kind === "participant" ? message.actor.participantId : undefined;
+      const participant = participantId ? participantById.get(participantId) : undefined;
+      const actorId = participantId ?? "orchestrator";
+      const actorRect = orchestrator
+        ? scene.teacherZone
+        : participant
+        ? scene.seats[participant.seat - 1]?.desk
+        : undefined;
+      return actorRect ? [{
+        id: `bubble-${message.id}`,
+        actorId,
+        kind: bubbleKind(message.body, orchestrator),
+        summary: message.body,
+        createdAtMs: Date.parse(message.createdAt),
+        anchors: bubbleAnchors(actorRect, actorId),
+        severity: /error|escalat|blocked|failed/i.test(message.body) ? "error" as const : "routine" as const,
+        durableActivityId: message.id
+      }] : [];
+    });
+  const bubbleSelection = selectClassroomBubbles(bubbleCandidates, {
+    nowMs,
+    viewport: scene.bounds,
+    occupiedRects: [
+      scene.statusRail, scene.doorCorridor, scene.teacherZone, scene.validatorZone, scene.roster,
+      ...scene.walkingPaths, ...scene.seats.map((seat) => seat.interactionZone)
+    ],
+    reducedMotion
+  });
 
   function sceneStyle(rect: ClassroomSceneRect): CSSProperties {
     return { left: `${rect.x}%`, top: `${rect.y}%`, width: `${rect.width}%`, height: `${rect.height}%` };
@@ -223,8 +281,45 @@ export function ClassroomPresentation({
             {[0, 1].map((index) => standingSlot("validator", index, validatorIds[index]))}
           </div>
         </section>
+        <div aria-label="Classroom activity previews" className="classroom-bubble-layer">
+          {bubbleSelection.bubbles.map((bubble) => (
+            <a
+              className="classroom-bubble"
+              data-bubble-kind={bubble.kind}
+              data-static-status={bubble.staticStatus}
+              href={bubble.target.surface === "orchestrator-chat"
+                ? `#orchestrator-chat-${encodeURIComponent(bubble.target.referenceId)}`
+                : `#orchestrator-activity-${encodeURIComponent(bubble.target.referenceId)}`}
+              key={bubble.id}
+              style={sceneStyle(bubble.anchor)}
+            >{bubble.summary}</a>
+          ))}
+        </div>
       </div>
       </div>
+
+      {bubbleSelection.durableActivityIndicators.length ? (
+        <nav aria-label="Suppressed classroom previews" className="classroom-durable-activity-indicators">
+          {bubbleSelection.durableActivityIndicators.map((indicator) => (
+            <a href={`#orchestrator-activity-${encodeURIComponent(indicator.target.referenceId)}`} key={`${indicator.actorId}:${indicator.target.referenceId}`}>
+              {indicator.label}
+            </a>
+          ))}
+        </nav>
+      ) : null}
+
+      {participants.messages.length ? (
+        <details className="classroom-durable-activity">
+          <summary>Durable activity ({participants.messages.length})</summary>
+          <ol>
+            {participants.messages.map((message) => (
+              <li id={`orchestrator-activity-${message.id}`} key={message.id}>
+                {sanitizeOrchestratorProgress(message.body) ?? "Activity details unavailable"}
+              </li>
+            ))}
+          </ol>
+        </details>
+      ) : null}
 
       <aside aria-label="Classroom context" className="classroom-context-rail">
         {roster}<div className="classroom-context-inspector">{inspector}</div><div className="classroom-context-chat">{chat}</div>

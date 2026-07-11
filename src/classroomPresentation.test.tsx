@@ -107,4 +107,21 @@ describe("ClassroomPresentation", () => {
     expect(html).toContain('class="classroom-context-rail"');
     expect(html).toContain('aria-label="Classroom canvas viewport"');
   });
+
+  it("renders sanitized durable previews or a labeled durable fallback without worker chat", () => {
+    const data = fixture(["running"]);
+    data.participants.participants[0].seat = 2;
+    data.participants.participants[0].id = "participant-2";
+    data.participants.jobs[0].participantId = "participant-2";
+    data.participants.messages = [{
+      id: "message-2", runId: "run-1", actor: { kind: "participant", participantId: "participant-2" },
+      body: "Working safely. <think>private reasoning</think>", createdAt: "2026-07-11T03:00:00.000Z"
+    }];
+    const html = renderToStaticMarkup(<ClassroomPresentation {...data} nowMs={Date.parse("2026-07-11T03:00:01.000Z")} />);
+    expect(html).toContain('aria-label="Classroom activity previews"');
+    expect(html).toContain("Working safely.");
+    expect(html).not.toContain("private reasoning");
+    expect(html).toContain("Durable activity (1)");
+    expect(html).not.toContain("Message Worker");
+  });
 });

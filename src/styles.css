@@ -2560,6 +2560,31 @@ textarea {
   background: color-mix(in srgb, var(--classroom-line) 13%, transparent);
   pointer-events: none;
 }
+
+.classroom-bubble-layer { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.classroom-bubble {
+  position: absolute;
+  display: -webkit-box;
+  padding: 6px 8px;
+  overflow: hidden;
+  color: var(--classroom-ink);
+  font-size: 12px;
+  line-height: 1.25;
+  text-decoration: none;
+  border: 1px solid var(--classroom-line);
+  border-radius: 10px;
+  background: var(--surface-raised, #fff);
+  box-shadow: 0 8px 20px rgba(8, 145, 178, .14);
+  pointer-events: auto;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.classroom-bubble[data-bubble-kind="escalation"] { border-color: var(--danger, #dc2626); }
+.classroom-bubble:focus-visible { outline: 3px solid var(--classroom-accent); outline-offset: 2px; }
+.classroom-durable-activity-indicators,
+.classroom-durable-activity { padding: 10px 12px; border: 1px solid var(--classroom-line); border-radius: 12px; }
+.classroom-durable-activity-indicators { display: flex; flex-wrap: wrap; gap: 8px; }
+.classroom-durable-activity ol { margin-bottom: 0; }
 .classroom-seat:not(:disabled) { cursor: pointer; }
 .classroom-seat:not(:disabled):hover { border-color: var(--classroom-accent); }
 .classroom-seat:focus-visible { outline: 3px solid var(--classroom-accent); outline-offset: 3px; }
