@@ -234,6 +234,7 @@ import {
 } from "./classroomParticipants";
 import { projectOrchestratorRun } from "./orchestratorRunProjection";
 import { ClassroomRoster } from "./classroomRoster";
+import { ClassroomInspector } from "./classroomInspector";
 import {
   loadOrchestratorChatState,
   OrchestratorChat,
@@ -12677,6 +12678,11 @@ export function PlanningView({
   const [orchestratorChatCompact, setOrchestratorChatCompact] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(max-width: 1199px)").matches
   );
+  const [focusedClassroomParticipantId, setFocusedClassroomParticipantId] = useState<string>();
+  const [revealedClassroomParticipantId, setRevealedClassroomParticipantId] = useState<string>();
+  const [reducedMotion, setReducedMotion] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
   const [planningSurfaceTab, setPlanningSurfaceTab] = useState<"pm-table" | "orchestrator-preview">("pm-table");
   const [orchestratorPreviewFilter, setOrchestratorPreviewFilter] =
     useState<OrchestratorLedgerSectionKind | "all">("all");
@@ -12708,6 +12714,14 @@ export function PlanningView({
     if (typeof window === "undefined") return;
     const media = window.matchMedia("(max-width: 1199px)");
     const update = () => setOrchestratorChatCompact(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(media.matches);
     update();
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
@@ -12988,6 +13002,8 @@ export function PlanningView({
   function handleWatchingParticipant(participantId: string) {
     const participant = classroomParticipantProjection.participants.find((item) => item.id === participantId);
     if (!participant) return;
+    setFocusedClassroomParticipantId(participant.id);
+    setRevealedClassroomParticipantId(participant.id);
     setOrchestratorChatState((current) => selectOrchestratorWatchingContext(current, {
       kind: "worker",
       id: participant.id,
@@ -13142,6 +13158,9 @@ export function PlanningView({
                   </dl>
                 ) : null}
                 <ClassroomRoster
+                  focusedParticipantId={focusedClassroomParticipantId}
+                  onFocusedParticipantChange={setFocusedClassroomParticipantId}
+                  onRevealParticipant={(participantId) => setRevealedClassroomParticipantId(participantId)}
                   onSelectParticipant={handleWatchingParticipant}
                   projection={classroomParticipantProjection}
                   selectedParticipantId={
@@ -13149,7 +13168,21 @@ export function PlanningView({
                       ? orchestratorChatState.watchingContext.id
                       : undefined
                   }
-                  visibleParticipantIds={orchestratorRunProjection.capacity.teacherStandingParticipantIds}
+                  reducedMotion={reducedMotion}
+                  visibleParticipantIds={[
+                    ...orchestratorRunProjection.capacity.teacherStandingParticipantIds,
+                    ...(revealedClassroomParticipantId ? [revealedClassroomParticipantId] : [])
+                  ]}
+                />
+                <ClassroomInspector
+                  ledger={orchestratorBackendState.ledger}
+                  now={new Date().toISOString()}
+                  projection={classroomParticipantProjection}
+                  selectedParticipantId={
+                    orchestratorChatState.watchingContext?.kind === "worker"
+                      ? orchestratorChatState.watchingContext.id
+                      : undefined
+                  }
                 />
               </section>
               {orchestratorBackendSummary.report ? (

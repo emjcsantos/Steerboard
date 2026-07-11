@@ -40,3 +40,9 @@ The third revision failure creates one deterministic `orchestrator.takeover` com
 The persistent right-side chat has one immutable recipient: the main orchestrator. Stored messages repair to `user` or `orchestrator` authors only; worker, validator, broadcast, and malformed messages are discarded. Selecting a roster participant changes only the persisted read-only watching reference. Orchestrator replies may link to durable task, job, validation, and evidence identifiers, while active/waiting/validating/blocked counts remain read-only projections.
 
 Panel messages, width, collapsed state, and watching context persist under `steerboard.orchestratorChat.v1` with bounded repair. The collapse toggle remains mounted as the focus-return target. Wide layouts keep the non-modal panel beside staged/canvas content; narrower layouts use a stacked compact non-overlay presentation.
+
+## Worker inspection and roster navigation
+
+The roster and visual actor selection share one participant identifier. Selection opens the read-only Worker Inspector and updates only the chat's watching reference; the chat recipient remains the orchestrator. The inspector reports durable identity, model/profile details, enabled capabilities, current task and attempt, status, branch/worktree, ownership, findings, evidence, elapsed time, and only explicitly trusted provider/runtime usage. Unsupported mutation controls remain disabled with visible reasons.
+
+The complete roster is the semantic alternative for up to twenty real participants. It uses one roving tab stop, arrow-key wrapping, Home/End navigation, and Enter/Space selection. Selecting an off-room participant adds it to the visible presentation set while preserving focus; `prefers-reduced-motion` changes reveal behavior to immediate. Every status includes visible text and a non-color icon.

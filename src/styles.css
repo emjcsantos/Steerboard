@@ -20140,6 +20140,90 @@ textarea {
   border-style: dashed;
 }
 
+.classroom-inspector {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 8px;
+  border: 1px solid #2f4558;
+  border-radius: 7px;
+  background: #0d141b;
+  padding: 9px;
+}
+
+.classroom-inspector > header,
+.classroom-inspector > header > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+}
+
+.classroom-inspector h2,
+.classroom-inspector h3,
+.classroom-inspector p {
+  margin: 0;
+}
+
+.classroom-inspector h2 {
+  color: #edf3f8;
+  font-size: 12px;
+}
+
+.classroom-inspector h3,
+.classroom-inspector p,
+.classroom-inspector li {
+  color: #9fb0c0;
+  font-size: 10px;
+}
+
+.classroom-status-icon {
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid #40566a;
+  border-radius: 50%;
+  color: #8bbcff;
+}
+
+.classroom-inspector > dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 5px;
+}
+
+.classroom-inspector > dl div {
+  min-width: 0;
+}
+
+.classroom-inspector > dl dd {
+  white-space: normal;
+}
+
+.classroom-inspector section {
+  border-top: 1px solid #27313c;
+  padding-top: 6px;
+}
+
+.classroom-inspector ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.classroom-inspector-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.classroom-inspector-actions button {
+  border: 1px solid #303b47;
+  border-radius: 5px;
+  color: #6f7d8a;
+  padding: 4px 6px;
+  font-size: 9px;
+}
+
 .pm-orchestrator-report {
   display: grid;
   grid-column: 1 / -1;
