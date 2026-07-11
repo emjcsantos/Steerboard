@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import type { ClassroomParticipantProjection } from "./classroomParticipants";
 import { sanitizeOrchestratorProgress, type OrchestratorRunProjection, type OrchestratorWorkState } from "./orchestratorRunProjection";
 import {
@@ -16,6 +16,12 @@ import {
   type ClassroomBubbleCandidate,
   type ClassroomBubbleKind
 } from "./classroomBubbles";
+import {
+  catchUpClassroomMotion,
+  deriveClassroomMotion,
+  type ClassroomMotionFrame,
+  type ClassroomMotionMode
+} from "./classroomMotion";
 
 export type ClassroomVisualStatus =
   | "queued"
@@ -78,6 +84,13 @@ function bubbleAnchors(rect: ClassroomSceneRect, actorId: string): ClassroomBubb
   ];
 }
 
+function frameRevision(actors: ClassroomMotionFrame["actors"]): number {
+  return actors.reduce((value, actor) => {
+    const token = `${actor.participantId}:${actor.seat}:${actor.workState}`;
+    return token.split("").reduce((hash, character) => (hash * 31 + character.charCodeAt(0)) >>> 0, value);
+  }, 17);
+}
+
 /** Read-only presentation of durable orchestrator state. */
 export function ClassroomPresentation({
   projection,
@@ -91,7 +104,21 @@ export function ClassroomPresentation({
   reducedMotion = false
 }: ClassroomPresentationProps) {
   const [viewport, setViewport] = useState(loadClassroomViewport);
+  const [viewportManipulatedByUser, setViewportManipulatedByUser] = useState(false);
+  const [systemReducedMotion, setSystemReducedMotion] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+  const effectiveReducedMotion = reducedMotion || systemReducedMotion;
+  const [motionMode, setMotionMode] = useState<ClassroomMotionMode>(() => effectiveReducedMotion ? "reduced" : "full");
   useEffect(() => saveClassroomViewport(viewport), [viewport]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setSystemReducedMotion(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   const runParticipants = participants.participants
     .filter((participant) => !projection.runId || participant.runId === projection.runId)
     .sort((left, right) => left.seat - right.seat);
@@ -116,6 +143,30 @@ export function ClassroomPresentation({
   const sceneCapacity = CLASSROOM_SCENE_CAPACITIES.find((capacity) => capacity >= initialPlaces.length) ?? 20;
   const scene = buildClassroomSceneMap(sceneCapacity);
   const semanticZoom = classroomSemanticZoom(viewport.zoom);
+  const motionActors = runParticipants.map((participant) => {
+    const job = jobByParticipantId.get(participant.id);
+    return {
+      participantId: participant.id,
+      seat: participant.seat,
+      workState: job ? projection.taskStates[job.taskId] ?? "queued" : "queued"
+    };
+  });
+  const motionFrame: ClassroomMotionFrame = { revision: frameRevision(motionActors), actors: motionActors };
+  const durableSeatedParticipantIds = useRef(new Set(runParticipants.map((participant) => participant.id)));
+  const [motionProjection, setMotionProjection] = useState(() => deriveClassroomMotion(motionFrame, motionFrame, {
+    mode: effectiveReducedMotion ? "reduced" : motionMode,
+    durableSeatedParticipantIds: durableSeatedParticipantIds.current
+  }));
+  useEffect(() => {
+    const mode = effectiveReducedMotion ? "reduced" : motionMode;
+    setMotionProjection((current) => catchUpClassroomMotion(current, motionFrame, {
+      mode,
+      durableSeatedParticipantIds: durableSeatedParticipantIds.current,
+      viewportManipulatedByUser,
+      focusedActorKey: current.focusedActorKey
+    }));
+    runParticipants.forEach((participant) => durableSeatedParticipantIds.current.add(participant.id));
+  }, [motionFrame.revision, motionMode, effectiveReducedMotion, viewportManipulatedByUser]);
   const bubbleCandidates: ClassroomBubbleCandidate[] = participants.messages
     .filter((message) => !projection.runId || message.runId === projection.runId)
     .flatMap((message): ClassroomBubbleCandidate[] => {
@@ -146,7 +197,7 @@ export function ClassroomPresentation({
       scene.statusRail, scene.doorCorridor, scene.teacherZone, scene.validatorZone, scene.roster,
       ...scene.walkingPaths, ...scene.seats.map((seat) => seat.interactionZone)
     ],
-    reducedMotion
+    reducedMotion: effectiveReducedMotion
   });
 
   function sceneStyle(rect: ClassroomSceneRect): CSSProperties {
@@ -154,10 +205,12 @@ export function ClassroomPresentation({
   }
 
   function zoomBy(delta: number) {
+    setViewportManipulatedByUser(true);
     setViewport((current) => manipulateClassroomViewport(current, { zoom: current.zoom + delta }));
   }
 
   function panBy(x: number, y: number) {
+    setViewportManipulatedByUser(true);
     setViewport((current) => manipulateClassroomViewport(current, {
       panX: current.panX + x,
       panY: current.panY + y
@@ -207,8 +260,8 @@ export function ClassroomPresentation({
       <nav aria-label="Classroom viewport controls" className="classroom-viewport-controls">
         <button aria-keyshortcuts="+" onClick={() => zoomBy(0.1)} type="button">Zoom In</button>
         <button aria-keyshortcuts="-" onClick={() => zoomBy(-0.1)} type="button">Zoom Out</button>
-        <button aria-keyshortcuts="F" onClick={() => setViewport(fitClassroomViewport())} type="button">Fit</button>
-        <button aria-keyshortcuts="0" onClick={() => setViewport(resetClassroomViewport())} type="button">Reset</button>
+        <button aria-keyshortcuts="F" onClick={() => { setViewportManipulatedByUser(true); setViewport(fitClassroomViewport()); }} type="button">Fit</button>
+        <button aria-keyshortcuts="0" onClick={() => { setViewportManipulatedByUser(true); setViewport(resetClassroomViewport()); }} type="button">Reset</button>
         <span role="group" aria-label="Pan classroom">
           <button aria-label="Pan left" onClick={() => panBy(-0.08, 0)} type="button">Left</button>
           <button aria-label="Pan up" onClick={() => panBy(0, -0.08)} type="button">Up</button>
@@ -216,6 +269,11 @@ export function ClassroomPresentation({
           <button aria-label="Pan right" onClick={() => panBy(0.08, 0)} type="button">Right</button>
         </span>
         <output aria-live="polite">{Math.round(viewport.zoom * 100)}% · {viewport.fitMode} fit</output>
+        <label>Motion
+          <select aria-label="Classroom motion mode" disabled={effectiveReducedMotion} onChange={(event) => setMotionMode(event.currentTarget.value as ClassroomMotionMode)} value={effectiveReducedMotion ? "reduced" : motionMode}>
+            <option value="full">Full</option><option value="fast">Fast</option><option value="minimal">Minimal</option><option value="reduced">Reduced</option>
+          </select>
+        </label>
       </nav>
       <div
         aria-label="Classroom canvas viewport"
@@ -251,6 +309,9 @@ export function ClassroomPresentation({
               : status === "queued"
               ? "reserved"
               : "occupied";
+            const motionIntent = participant
+              ? motionProjection.intents.find((intent) => intent.participantId === participant.id)
+              : undefined;
             return (
               <button
                 aria-label={participant ? `Worker ${participant.seat}, ${status}` : `Seat ${seat}, empty`}
@@ -258,10 +319,16 @@ export function ClassroomPresentation({
                 className="classroom-seat"
                 data-status={status ?? "empty"}
                 data-seat-state={seatState}
+                data-visual-intent={motionIntent?.kind}
+                data-motion-mode={effectiveReducedMotion ? "reduced" : motionMode}
+                data-actor-key={participant ? motionProjection.actorKeys[participant.id] : undefined}
                 disabled={!participant || !onSelectParticipant}
                 key={seat}
                 onClick={() => participant && onSelectParticipant?.(participant.id)}
-                style={sceneStyle(scene.seats[seat - 1].interactionZone)}
+                style={{
+                  ...sceneStyle(scene.seats[seat - 1].interactionZone),
+                  "--classroom-motion-duration": `${motionIntent?.durationMs ?? 0}ms`
+                } as CSSProperties}
                 type="button"
               >
                 <span className="classroom-seat-number">Seat {seat}</span>

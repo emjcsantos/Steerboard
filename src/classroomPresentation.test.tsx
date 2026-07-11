@@ -124,4 +124,14 @@ describe("ClassroomPresentation", () => {
     expect(html).toContain("Durable activity (1)");
     expect(html).not.toContain("Message Worker");
   });
+
+  it("offers four motion modes and forces a disabled Reduced control when reduced motion is active", () => {
+    const data = fixture(["running"]);
+    const standard = renderToStaticMarkup(<ClassroomPresentation {...data} />);
+    const reduced = renderToStaticMarkup(<ClassroomPresentation {...data} reducedMotion />);
+    expect(standard).toContain('aria-label="Classroom motion mode"');
+    for (const label of ["Full", "Fast", "Minimal", "Reduced"]) expect(standard).toContain(`>${label}</option>`);
+    expect(reduced).toContain('<select aria-label="Classroom motion mode" disabled=""');
+    expect(reduced).toContain('data-motion-mode="reduced"');
+  });
 });

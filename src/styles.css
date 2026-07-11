@@ -2592,6 +2592,26 @@ textarea {
 .classroom-seat:disabled { opacity: .72; }
 .classroom-seat[data-status="blocked"], .classroom-seat[data-status="escalated"] { border-color: var(--danger, #dc2626); }
 .classroom-seat i { font-style: normal; }
+.classroom-seat[data-visual-intent] {
+  animation-duration: var(--classroom-motion-duration, 0ms);
+  animation-timing-function: ease-out;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+.classroom-seat[data-visual-intent="enter-seat-with-chair"],
+.classroom-seat[data-visual-intent="return-to-desk"],
+.classroom-seat[data-visual-intent="revision-return"] { animation-name: classroom-arrive; }
+.classroom-seat[data-visual-intent="assignment"],
+.classroom-seat[data-visual-intent="submit-to-validator"],
+.classroom-seat[data-visual-intent="pass-forward"],
+.classroom-seat[data-visual-intent="escalation-forward"],
+.classroom-seat[data-visual-intent="teacher-takeover"] { animation-name: classroom-forward; }
+.classroom-seat[data-visual-intent="catch-up"] { animation-name: classroom-catch-up; }
+@keyframes classroom-arrive { from { transform: translateY(8px); opacity: .45; } to { transform: translateY(0); opacity: 1; } }
+@keyframes classroom-forward { from { transform: translateX(-6px); opacity: .6; } to { transform: translateX(0); opacity: 1; } }
+@keyframes classroom-catch-up { from { opacity: .7; } to { opacity: 1; } }
+.classroom-seat[data-motion-mode="minimal"] { animation-timing-function: step-end; }
+.classroom-seat[data-motion-mode="reduced"] { animation: none; }
 
 .classroom-context-rail {
   display: grid;
