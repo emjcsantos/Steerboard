@@ -46,3 +46,9 @@ Panel messages, width, collapsed state, and watching context persist under `stee
 The roster and visual actor selection share one participant identifier. Selection opens the read-only Worker Inspector and updates only the chat's watching reference; the chat recipient remains the orchestrator. The inspector reports durable identity, model/profile details, enabled capabilities, current task and attempt, status, branch/worktree, ownership, findings, evidence, elapsed time, and only explicitly trusted provider/runtime usage. Unsupported mutation controls remain disabled with visible reasons.
 
 The complete roster is the semantic alternative for up to twenty real participants. It uses one roving tab stop, arrow-key wrapping, Home/End navigation, and Enter/Space selection. Selecting an off-room participant adds it to the visible presentation set while preserving focus; `prefers-reduced-motion` changes reveal behavior to immediate. Every status includes visible text and a non-color icon.
+
+## Static classroom presentation
+
+`ClassroomPresentation` is a read-only adapter over `OrchestratorRunProjection` and `ClassroomParticipantProjection`. The App owns one restored backend state and supplies that same state to both the Professional planning tools and the Classroom canvas, so switching presentations does not restart or copy the run.
+
+The initial room always shows at least five capacity places, but creates student actors only for durable participants. The Orchestrator teacher, subordinate Validator, two assignment slots, two validation slots, status counts, roster, inspector, and non-modal Orchestrator Chat remain separate semantic regions. Queued, working, validating, revision, accepted, escalated, blocked, and completed states use persistent text plus an icon and remain understandable with motion disabled. Seat selection only updates read-only watching context; the canvas has no execution callbacks.

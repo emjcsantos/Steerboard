@@ -235,6 +235,7 @@ import {
 import { projectOrchestratorRun } from "./orchestratorRunProjection";
 import { ClassroomRoster } from "./classroomRoster";
 import { ClassroomInspector } from "./classroomInspector";
+import { ClassroomPresentation } from "./classroomPresentation";
 import {
   loadOrchestratorChatState,
   OrchestratorChat,
@@ -3926,6 +3927,51 @@ export function App() {
   }, [preset.sessionIds]);
 
   const project = projects.find((item) => item.id === selectedProjectId) ?? emptyWorkspaceProject;
+  const classroomTaskIds = useMemo(
+    () => flattenProjectManagementRows(projectManagementTasks).map((row) => row.task.id),
+    [projectManagementTasks]
+  );
+  const classroomFallbackState = useMemo(() => createBoundedOrchestratorRun(createOrchestratorBackendState(), {
+    id: `pm-${project.id}-preview`,
+    projectId: project.id,
+    scope: { mode: "task-list", taskIds: classroomTaskIds },
+    baseBranch: "current",
+    createdAt: "preview"
+  }), [classroomTaskIds, project.id]);
+  const [sharedOrchestratorBackendState, setSharedOrchestratorBackendState] =
+    useState<OrchestratorBackendState>(() => classroomFallbackState);
+  const [classroomSelectedParticipantId, setClassroomSelectedParticipantId] = useState<string>();
+  const [classroomChatState, setClassroomChatState] = useState(loadOrchestratorChatState);
+  useEffect(() => {
+    let cancelled = false;
+    if (!hasTauriRuntime()) {
+      setSharedOrchestratorBackendState(classroomFallbackState);
+      return;
+    }
+    readOrchestratorSqliteSnapshot()
+      .then((snapshot) => {
+        if (!cancelled) {
+          setSharedOrchestratorBackendState(snapshot.runs.length
+            ? hydrateOrchestratorBackendStateFromSqlite(snapshot)
+            : classroomFallbackState);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSharedOrchestratorBackendState(classroomFallbackState);
+      });
+    return () => { cancelled = true; };
+  }, [classroomFallbackState]);
+  useEffect(() => saveOrchestratorChatState(classroomChatState), [classroomChatState]);
+  const classroomRunId = sharedOrchestratorBackendState.runs.find((run) => run.projectId === project.id)?.id
+    ?? sharedOrchestratorBackendState.runs.at(-1)?.id;
+  const sharedClassroomParticipants = useMemo(
+    () => hydrateClassroomParticipantProjection(sharedOrchestratorBackendState),
+    [sharedOrchestratorBackendState]
+  );
+  const sharedClassroomProjection = useMemo(
+    () => projectOrchestratorRun(sharedOrchestratorBackendState, "classroom", classroomRunId),
+    [classroomRunId, sharedOrchestratorBackendState]
+  );
   const registryEntry = registryByProject.get(project.id);
   const runtimeAdapter = runtimeByProject.get(project.id);
   const registrySummary = summarizeRegistry(registryEntries);
@@ -5682,6 +5728,63 @@ export function App() {
             {view === "cockpit" ? (
               <OrchestratorWorkspace
                 classroomModeEnabled={classroomModeFeatureEnabled && mode === "orchestrator"}
+                classroomContent={
+                  <ClassroomPresentation
+                    chat={
+                      <OrchestratorChat
+                        onCollapsedChange={(collapsed) => setClassroomChatState((current) => ({ ...current, collapsed }))}
+                        onSendMessage={(body) => setClassroomChatState((current) => ({
+                          ...current,
+                          messages: [...current.messages,
+                            { id: `user-${Date.now()}`, author: "user" as const, body },
+                            { id: `orchestrator-${Date.now()}`, author: "orchestrator" as const, body: "Message received. I will keep the selected worker as read-only context." }
+                          ].slice(-80)
+                        }))}
+                        onStateChange={setClassroomChatState}
+                        runCounts={{
+                          active: sharedClassroomProjection.capacity.active,
+                          waiting: sharedClassroomProjection.capacity.waiting,
+                          validating: sharedClassroomProjection.capacity.validating,
+                          blocked: sharedClassroomProjection.capacity.blocked
+                        }}
+                        state={classroomChatState}
+                      />
+                    }
+                    inspector={
+                      <ClassroomInspector
+                        ledger={sharedOrchestratorBackendState.ledger}
+                        now={new Date().toISOString()}
+                        projection={sharedClassroomParticipants}
+                        selectedParticipantId={classroomSelectedParticipantId}
+                      />
+                    }
+                    onSelectParticipant={(participantId) => {
+                      const participant = sharedClassroomParticipants.participants.find((item) => item.id === participantId);
+                      setClassroomSelectedParticipantId(participantId);
+                      setClassroomChatState((current) => selectOrchestratorWatchingContext(current, participant ? {
+                        kind: "worker",
+                        id: participant.id,
+                        label: `Worker ${participant.seat}`
+                      } : undefined));
+                    }}
+                    participants={sharedClassroomParticipants}
+                    projection={sharedClassroomProjection}
+                    roster={
+                      <ClassroomRoster
+                        onSelectParticipant={(participantId) => {
+                          const participant = sharedClassroomParticipants.participants.find((item) => item.id === participantId);
+                          setClassroomSelectedParticipantId(participantId);
+                          setClassroomChatState((current) => selectOrchestratorWatchingContext(current, participant ? {
+                            kind: "worker", id: participant.id, label: `Worker ${participant.seat}`
+                          } : undefined));
+                        }}
+                        projection={sharedClassroomParticipants}
+                        selectedParticipantId={classroomSelectedParticipantId}
+                      />
+                    }
+                    selectedParticipantId={classroomSelectedParticipantId}
+                  />
+                }
                 onPresentationModeChange={(nextPresentationMode) =>
                   updatePreferences({ orchestratorPresentationMode: nextPresentationMode })
                 }
@@ -5952,6 +6055,8 @@ export function App() {
                 dispatchReviewRecords={projectDispatchReviewRecords}
                 onStagePackage={handleStagePackage}
                 onTasksChange={setProjectManagementTasks}
+                orchestratorBackendState={sharedOrchestratorBackendState}
+                onOrchestratorBackendStateChange={setSharedOrchestratorBackendState}
                 project={project}
                 projects={projects}
                 tasks={projectManagementTasks}
@@ -12660,6 +12765,8 @@ export function PlanningView({
   dispatchReviewRecords,
   onStagePackage,
   onTasksChange,
+  orchestratorBackendState: providedOrchestratorBackendState,
+  onOrchestratorBackendStateChange,
   project,
   projects,
   tasks
@@ -12667,6 +12774,8 @@ export function PlanningView({
   dispatchReviewRecords: DispatchReviewRecord[];
   onStagePackage: (dispatchPackage: DispatchPackage) => void;
   onTasksChange: (tasks: ProjectManagementTask[]) => void;
+  orchestratorBackendState?: OrchestratorBackendState;
+  onOrchestratorBackendStateChange?: (state: OrchestratorBackendState | ((current: OrchestratorBackendState) => OrchestratorBackendState)) => void;
   project: ProjectSummary;
   projects: ProjectSummary[];
   tasks: ProjectManagementTask[];
@@ -12686,19 +12795,15 @@ export function PlanningView({
   const [planningSurfaceTab, setPlanningSurfaceTab] = useState<"pm-table" | "orchestrator-preview">("pm-table");
   const [orchestratorPreviewFilter, setOrchestratorPreviewFilter] =
     useState<OrchestratorLedgerSectionKind | "all">("all");
-  const planningTaskIds = useMemo(() => rows.map((row) => row.task.id), [rows]);
-  const fallbackOrchestratorState = useMemo(() => createBoundedOrchestratorRun(createOrchestratorBackendState(), {
+  const planningFallbackState = useMemo(() => createBoundedOrchestratorRun(createOrchestratorBackendState(), {
     id: `pm-${project.id}-preview`,
     projectId: project.id,
-    scope: {
-      mode: "task-list",
-      taskIds: planningTaskIds
-    },
+    scope: { mode: "task-list", taskIds: rows.map((row) => row.task.id) },
     baseBranch: "current",
     createdAt: "preview"
-  }), [planningTaskIds, project.id]);
-  const [orchestratorBackendState, setOrchestratorBackendState] =
-    useState<OrchestratorBackendState>(() => fallbackOrchestratorState);
+  }), [project.id, rows]);
+  const orchestratorBackendState = providedOrchestratorBackendState ?? planningFallbackState;
+  const setOrchestratorBackendState = onOrchestratorBackendStateChange ?? (() => undefined);
   const [orchestratorPumpStatus, setOrchestratorPumpStatus] = useState("Idle");
   const stagedMarkdown = stagedResult ? renderDispatchPackageMarkdown(stagedResult.dispatchPackage) : "";
   const stagedReviewRecord = stagedResult
@@ -12726,41 +12831,6 @@ export function PlanningView({
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!hasTauriRuntime()) {
-      setOrchestratorBackendState(fallbackOrchestratorState);
-      setOrchestratorPumpStatus("Desktop runtime unavailable");
-      return;
-    }
-
-    readOrchestratorSqliteSnapshot()
-      .then((snapshot) => {
-        if (cancelled) {
-          return;
-        }
-
-        setOrchestratorBackendState(
-          snapshot.runs.length > 0
-            ? hydrateOrchestratorBackendStateFromSqlite(snapshot)
-            : fallbackOrchestratorState
-        );
-        setOrchestratorPumpStatus(snapshot.runs.length > 0 ? "Restored durable state" : "No durable run yet");
-      })
-      .catch((error) => {
-        if (cancelled) {
-          return;
-        }
-
-        setOrchestratorBackendState(fallbackOrchestratorState);
-        setOrchestratorPumpStatus(error instanceof Error ? error.message : "Durable state unavailable");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fallbackOrchestratorState]);
   const activeOrchestratorRunId = useMemo(() => {
     const projectRun = orchestratorBackendState.runs.find((run) => run.projectId === project.id);
 
