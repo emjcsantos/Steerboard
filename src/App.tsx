@@ -236,6 +236,7 @@ import { projectOrchestratorRun } from "./orchestratorRunProjection";
 import { ClassroomRoster } from "./classroomRoster";
 import { ClassroomInspector } from "./classroomInspector";
 import { ClassroomPresentation } from "./classroomPresentation";
+import { resolveClassroomRollout, type ClassroomRolloutConfig } from "./classroomRollout";
 import {
   loadOrchestratorChatState,
   OrchestratorChat,
@@ -1272,9 +1273,33 @@ const pipelineItems: PipelineItem[] = [];
 const registryEntries: RegistryEntry[] = [];
 const runtimeAdapters: RuntimeAdapter[] = [];
 const LOCAL_CHAT_SESSIONS_STORAGE_KEY = "steerboard.localChatSessions.v1";
-const classroomModeFeatureEnabled = isClassroomModeFeatureEnabled(
-  import.meta.env.VITE_STEERBOARD_CLASSROOM_MODE
-);
+const configuredClassroomRolloutState = import.meta.env.VITE_STEERBOARD_CLASSROOM_ROLLOUT;
+const configuredClassroomRollout: ClassroomRolloutConfig | undefined =
+  configuredClassroomRolloutState === "owner-approved"
+    ? {
+        state: "owner-approved",
+        ownerApproval: {
+          approvedBy: import.meta.env.VITE_STEERBOARD_CLASSROOM_APPROVED_BY ?? "",
+          approvedAt: import.meta.env.VITE_STEERBOARD_CLASSROOM_APPROVED_AT ?? "",
+          evidence: import.meta.env.VITE_STEERBOARD_CLASSROOM_APPROVAL_EVIDENCE ?? ""
+        }
+      }
+    : configuredClassroomRolloutState === "rolled-back"
+      ? {
+          state: "rolled-back",
+          rollback: {
+            rolledBackBy: import.meta.env.VITE_STEERBOARD_CLASSROOM_ROLLED_BACK_BY ?? "",
+            rolledBackAt: import.meta.env.VITE_STEERBOARD_CLASSROOM_ROLLED_BACK_AT ?? "",
+            reason: import.meta.env.VITE_STEERBOARD_CLASSROOM_ROLLBACK_REASON ?? ""
+          }
+        }
+      : configuredClassroomRolloutState === "internal-preview" || configuredClassroomRolloutState === "off"
+        ? { state: configuredClassroomRolloutState }
+        : isClassroomModeFeatureEnabled(import.meta.env.VITE_STEERBOARD_CLASSROOM_MODE)
+          ? { state: "internal-preview" }
+          : undefined;
+const classroomRolloutDecision = resolveClassroomRollout(configuredClassroomRollout, null);
+const classroomModeFeatureEnabled = classroomRolloutDecision.available;
 
 const modeLabels: Record<CockpitMode, string> = {
   focus: "Focus",
@@ -5728,6 +5753,7 @@ export function App() {
             {view === "cockpit" ? (
               <OrchestratorWorkspace
                 classroomModeEnabled={classroomModeFeatureEnabled && mode === "orchestrator"}
+                classroomRolloutState={classroomRolloutDecision.available ? classroomRolloutDecision.state as "internal-preview" | "owner-approved" : undefined}
                 classroomContent={
                   <ClassroomPresentation
                     chat={

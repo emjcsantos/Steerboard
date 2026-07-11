@@ -196,6 +196,14 @@ Do not proceed to the next section until the current item is at least `review`.
 13. `Recovery`
     - Induce one recoverable failure path.
     - Verify recovery evidence and handoff route are visible and deterministic.
+14. `Classroom Mode`
+    - Keep Professional as the default, then test `off`, `internal-preview`, an evidence-complete `owner-approved`, and an evidence-complete `rolled-back` configuration.
+    - Verify enabling, switching, disabling, and rollback preserve the same durable run identity and restored participant/job/message/validation counts.
+    - Run `npm.cmd test -- --run src/classroomModeE2E.test.tsx src/classroomAccessibility.test.ts src/classroomHardening.test.ts src/classroomRollout.test.ts`, then `npm.cmd run check`.
+    - Run `cargo test --manifest-path src-tauri/Cargo.toml --test classroom_takeover_contract` and `cargo test --manifest-path src-tauri/Cargo.toml --no-run`.
+    - Run `npm.cmd run desktop:build` and confirm `src-tauri/target/release/steerboard.exe` exists.
+    - Verify restored five- and twenty-worker rooms, reload without chair replay, exactly one takeover after the third validator failure, Orchestrator-only chat, complete roster/inspector, sanitized bubbles, Full/Fast/Minimal/Reduced motion, keyboard viewport controls, high zoom/reflow, forced colors, and visible focus.
+    - Re-run the Professional regression suites for preferences, workspace, Arena acceptance, PM hierarchy/staging, provider catalog, permission approval, and owner command/right-panel evidence.
 
 ## Repeatability Note
 

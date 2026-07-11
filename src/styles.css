@@ -2638,6 +2638,28 @@ textarea {
   }
 }
 
+@media (forced-colors: active) {
+  .classroom-presentation,
+  .classroom-status-board,
+  .classroom-room,
+  .classroom-context-rail,
+  .classroom-seat,
+  .classroom-actor,
+  .classroom-standing-slot,
+  .classroom-bubble {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    forced-color-adjust: auto;
+  }
+  .classroom-seat:focus-visible,
+  .classroom-bubble:focus-visible,
+  .classroom-room-viewport:focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 3px;
+  }
+}
+
 .layout-select {
   display: grid;
   grid-template-columns: auto minmax(106px, 120px);

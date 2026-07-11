@@ -43,6 +43,7 @@ export function PresentationSwitch({ mode, onModeChange }: PresentationSwitchPro
 
 export interface OrchestratorWorkspaceProps {
   classroomModeEnabled: boolean;
+  classroomRolloutState?: "internal-preview" | "owner-approved";
   presentationMode: OrchestratorPresentationMode;
   onPresentationModeChange: (mode: OrchestratorPresentationMode) => void;
   professionalContent: ReactNode;
@@ -51,6 +52,7 @@ export interface OrchestratorWorkspaceProps {
 
 export function OrchestratorWorkspace({
   classroomModeEnabled,
+  classroomRolloutState,
   presentationMode,
   onPresentationModeChange,
   professionalContent,
@@ -64,6 +66,7 @@ export function OrchestratorWorkspace({
     <section
       aria-label="Orchestrator workspace"
       className="orchestrator-workspace"
+      data-classroom-rollout={classroomRolloutState}
       data-orchestrator-presentation={presentationMode}
     >
       <PresentationSwitch mode={presentationMode} onModeChange={onPresentationModeChange} />
